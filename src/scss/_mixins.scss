@@ -1,0 +1,15 @@
+// Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+@import "variables";
+
+@mixin slashes {
+  position: absolute;
+  right: -0.7rem;
+
+  content: "/";
+  text-decoration: none;
+
+  color: var(--color-secondary);
+}

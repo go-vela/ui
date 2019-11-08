@@ -1,0 +1,39 @@
+// Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+:root {
+  // main colors
+  --color-offwhite: hsla(0, 0%, 90%, 1);
+  --color-gray: hsla(0, 0%, 34%, 1);
+  --color-darkcoal: hsla(0, 0%, 12%, 1);
+  --color-coal: hsla(0, 0%, 16%, 1);
+  --color-cyan: hsla(192, 100%, 50%, 1);
+  --color-lightcyan: hsla(192, 100%, 75%, 1);
+  --color-lavender: hsla(286, 29%, 55%, 1);
+
+  // for status indications
+  --color-red: hsla(353, 69%, 45%, 1);
+  --color-green: hsla(89, 63%, 44%, 1);
+  --color-yellow: hsla(56, 100%, 50%, 1);
+
+  // dark theme (default)
+  --color-bg: var(--color-coal);
+  --color-bg-darker: var(--color-darkcoal);
+  --color-text: var(--color-offwhite);
+  --color-primary: var(--color-cyan);
+  --color-secondary: var(--color-lavender);
+
+  // some common attributes
+  --horizontal-pad: 3em;
+  --line-width: 2px;
+
+  // system font stack
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol";
+
+  // system mono-spaced font stack
+  --font-code: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+}

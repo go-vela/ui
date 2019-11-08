@@ -1,0 +1,54 @@
+{
+  "name": "vela-ui",
+  "version": "0.1.0",
+  "description": "Vela UI",
+  "author": "Vela Team",
+  "engines": {
+    "node": ">=10.15.0"
+  },
+  "dependencies": {
+    "@fullhuman/postcss-purgecss": "^1.3.0",
+    "@types/parcel-env": "0.0.0",
+    "autoprefixer": "^9.7.1",
+    "elm": "^0.19.1-3",
+    "node-elm-compiler": "^5.0.4",
+    "parcel-bundler": "^1.12.4",
+    "rimraf": "^3.0.0",
+    "sass": "^1.23.3",
+    "typescript": "^3.7.2"
+  },
+  "devDependencies": {
+    "cypress": "^3.6.0",
+    "elm-hot": "^1.1.3",
+    "start-server-and-test": "^1.10.6"
+  },
+  "scripts": {
+    "predev": "npm run clean",
+    "dev": "npm run start",
+    "prestart": "npm run clean",
+    "start": "parcel src/static/index.html --port 8888",
+    "build-img": "parcel build src/static/img/*",
+    "prebuild": "npm run clean",
+    "build": "parcel build src/static/index.html --no-minify",
+    "prebuild-prod": "npm run clean",
+    "build-prod": "parcel build src/static/index.html --no-cache --detailed-report --experimental-scope-hoisting",
+    "test": "elm-test --compiler ./node_modules/.bin/elm",
+    "test:watch": "elm-test --compiler ./node_modules/.bin/elm --watch",
+    "test:cy": "start-test 8888 cypress",
+    "test:cy-open": "start-test 8888 cypress:open",
+    "cypress": "cypress run",
+    "cypress:open": "cypress open",
+    "clean": "rimraf ./dist/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/go-vela/ui.git"
+  },
+  "keywords": [
+    "elm",
+    "parcel",
+    "purgecss",
+    "cypress"
+  ],
+  "license": "Apache-2.0"
+}

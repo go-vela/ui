@@ -1,0 +1,10 @@
+**/.cache
+**/.git
+**/.github
+**/cypress
+**/elm-stuff
+**/node_modules
+**/src
+**/tests
+.DS_Store
+.elm

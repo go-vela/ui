@@ -1,0 +1,19 @@
+name: integration
+on:
+  pull_request:
+  push:
+      
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      ELM_HOME: "${GITHUB_WORKSPACE}"
+    container:
+      image: cypress/base:10.15.3
+    steps:
+    - name: clone
+      uses: actions/checkout@v1
+      
+    - name: cypress
+    - run: npm ci
+    - run: npm run test:cy
