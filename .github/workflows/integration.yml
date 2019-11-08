@@ -15,5 +15,6 @@ jobs:
       uses: actions/checkout@v1
       
     - name: cypress
-    - run: npm ci
-    - run: npm run test:cy
+      run: | 
+        npm ci
+        npm run test:cy
