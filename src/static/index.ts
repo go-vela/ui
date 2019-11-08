@@ -15,9 +15,9 @@ const currentSessionState: Session | null = storedSessionState
 // Vela flags; configuration for bootstrapping Vela Elm UI
 const flags: Flags = {
   isDev: process.env.NODE_ENV === "development",
-  velaAPI: process.env.VELA_API || "",
-  velaSourceBaseURL: process.env.VELA_SOURCE_BASE_URL || "",
-  velaSourceClient: process.env.VELA_SOURCE_CLIENT || "",
+  velaAPI: process.env.VELA_API || "##VELA_API##",
+  velaSourceBaseURL: process.env.VELA_SOURCE_BASE_URL || "##VELA_SOURCE_BASE_URL##",
+  velaSourceClient: process.env.VELA_SOURCE_CLIENT || "##VELA_SOURCE_CLIENT##",
   velaSession: currentSessionState || null
 };
 
