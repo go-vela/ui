@@ -2,20 +2,26 @@ name: elm test
 on:
   pull_request:
   push:
-      
+
 jobs:
   elm-test:
     runs-on: ubuntu-latest
     env:
       ELM_HOME: "${GITHUB_WORKSPACE}"
     steps:
-    - name: clone
-      uses: actions/checkout@v1
-      
-    - name: setup node
-      uses: actions/setup-node@v1
-      with:
-        node-version: '10.15.3'
-    - run: npm ci
-    - run: npm i elm-test
-    - run: npm run test
+      - name: clone
+        uses: actions/checkout@v1
+
+      - name: cache node_modules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: npm-${{ hashFiles('**/package-lock.json') }}
+
+      - name: setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "10.15.3"
+      - run: npm i
+      - run: npm i elm-test
+      - run: npm run test

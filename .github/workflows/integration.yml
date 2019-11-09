@@ -2,7 +2,7 @@ name: integration
 on:
   pull_request:
   push:
-      
+
 jobs:
   integration:
     runs-on: ubuntu-latest
@@ -11,10 +11,16 @@ jobs:
     container:
       image: cypress/base:10.15.3
     steps:
-    - name: clone
-      uses: actions/checkout@v1
-      
-    - name: cypress
-      run: | 
-        npm ci
-        npm run test:cy
+      - name: clone
+        uses: actions/checkout@v1
+
+      - name: cache node_modules
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: npm-${{ hashFiles('**/package-lock.json') }}
+
+      - name: cypress
+        run: |
+          npm i
+          npm run test:cy
