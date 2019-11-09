@@ -9,21 +9,34 @@ jobs:
     env:
       NODE_ENV: production
       ELM_HOME: "${GITHUB_WORKSPACE}"
+      CI: 1
     steps:
       - name: clone
         uses: actions/checkout@master
+
+      - name: cache central npm
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: cache cypress binary
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cypress-${{ runner.os }}-node-
 
       - name: cache node_modules
         uses: actions/cache@v1
         with:
           path: node_modules
-          key: node-modules-${{ hashFiles('**/package-lock.json') }}
-
-      - name: cache home cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.cache
-          key: home-dcache-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
 
       - name: setup node
         uses: actions/setup-node@v1
