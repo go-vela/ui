@@ -16,14 +16,14 @@ const currentSessionState: Session | null = storedSessionState
 const flags: Flags = {
   isDev: process.env.NODE_ENV === "development",
   velaAPI: process.env.VELA_API || "",
-  velaSourceBaseURL: process.env.VELA_SOURCE_BASE_URL || "",
+  velaSourceBaseURL: process.env.VELA_SOURCE_URL || "",
   velaSourceClient: process.env.VELA_SOURCE_CLIENT || "",
   velaSession: currentSessionState || null
 };
 
 // create the configuration object for Elm
 const config: Config = {
-  node: null, // not passsing an HTML node will let Elm take over the whole page
+  node: null, // not passing an HTML node will let Elm take over the whole page
   flags: flags
 };
 
