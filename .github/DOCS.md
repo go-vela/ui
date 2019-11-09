@@ -32,7 +32,7 @@ make up
 docker-compose -f docker-compose.yml up -d --build
 ```
 
-_Note: you can also uncomment the `ui` service in [docker-compose.yml](docker.compose.yml)
+_Note: you can also uncomment the `ui` service in [docker-compose.yml](../docker-compose.yml)
 and follow the above to run the whole stack as Docker containers._
 
 ## Developing
