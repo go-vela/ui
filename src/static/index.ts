@@ -23,7 +23,7 @@ const flags: Flags = {
 
 // create the configuration object for Elm
 const config: Config = {
-  node: null, // not passsing an HTML node will let Elm take over the whole page
+  node: null, // not passing an HTML node will let Elm take over the whole page
   flags: flags
 };
 
