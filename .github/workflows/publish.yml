@@ -23,7 +23,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: "$HOME/.cache"
-          key: home-cache-${{ hashFiles('**/package-lock.json') }}
+          key: home-dotcache-${{ hashFiles('**/package-lock.json') }}
 
       - name: setup node
         uses: actions/setup-node@v1
