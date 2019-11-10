@@ -35,7 +35,7 @@ jobs:
             ${{ runner.os }}-modules-
       - uses: actions/setup-node@v1
         with:
-          node-version: $USE_NODE_VER
+          node-version: "${USE_NODE_VER}"
 
       # ┌┐ ┬ ┬┬┬  ┌┬┐
       # ├┴┐│ │││   ││

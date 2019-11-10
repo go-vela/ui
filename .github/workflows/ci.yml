@@ -41,7 +41,7 @@ jobs:
             cypress-${{ runner.os }}-bin-
       - uses: actions/setup-node@v1
         with:
-          node-version: $USE_NODE_VER
+          node-version: "${USE_NODE_VER}"
 
       - name: install dependencies
         run: npm i --prefer-offline --no-audit
@@ -79,7 +79,7 @@ jobs:
             cypress-${{ runner.os }}-bin-
       - uses: actions/setup-node@v1
         with:
-          node-version: $USE_NODE_VER
+          node-version: "${USE_NODE_VER}"
 
       - name: install dependencies
         run: npm i --prefer-offline --no-audit
@@ -117,7 +117,7 @@ jobs:
             cypress-${{ runner.os }}-bin-
       - uses: actions/setup-node@v1
         with:
-          node-version: $USE_NODE_VER
+          node-version: "${USE_NODE_VER}"
 
       - name: install dependencies
         run: npm i --prefer-offline --no-audit
