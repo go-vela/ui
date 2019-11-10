@@ -8,4 +8,9 @@ COPY dist /usr/share/nginx/html
 
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+COPY docker-entrypoint.sh /usr/local/bin
+RUN ln -s /usr/local/bin/docker-entrypoint.sh /
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+EXPOSE 80 443
+CMD ["nginx", "-g", "daemon off;"]
