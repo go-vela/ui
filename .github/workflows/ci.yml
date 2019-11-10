@@ -123,3 +123,50 @@ jobs:
         run: npm i --prefer-offline --no-audit
       - name: run cypress tests
         run: npm run test:cy
+
+  # ┌─┐┬ ┬┌┐ ┬  ┬┌─┐┬ ┬
+  # ├─┘│ │├┴┐│  │└─┐├─┤
+  # ┴  └─┘└─┘┴─┘┴└─┘┴ ┴
+  publish:
+    name: build and push to docker
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'go-vela/ui'
+    needs: [elm-format, elm-test, integration]
+    env:
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.USE_NODE_VER }}
+
+      # ┌┐ ┬ ┬┬┬  ┌┬┐
+      # ├┴┐│ │││   ││
+      # └─┘└─┘┴┴─┘─┴┘
+      - name: install dependencies
+        run: npm i --prefer-offline --no-audit
+      - name: run production build
+        run: npm run build-prod
+
+      # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
+      #  │││ ││  ├┴┐├┤ ├┬┘
+      # ─┴┘└─┘└─┘┴ ┴└─┘┴└─
+      - name: push to docker
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: target/vela-ui
+          cache: true
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
