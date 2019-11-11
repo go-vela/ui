@@ -1,0 +1,172 @@
+# Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+#
+# Use of this source code is governed by the LICENSE file in this repository.
+
+name: ci
+
+on: [push, pull_request]
+
+env:
+  ELM_HOME: "${GITHUB_WORKSPACE}"
+  USE_NODE_VER: "10.15.3"
+  CI: 1
+
+jobs:
+  # ┌─┐┬  ┌┬┐   ┌─┐┌─┐┬─┐┌┬┐┌─┐┌┬┐
+  # ├┤ │  │││───├┤ │ │├┬┘│││├─┤ │
+  # └─┘┴─┘┴ ┴   └  └─┘┴└─┴ ┴┴ ┴ ┴
+  elm-format:
+    name: validate elm files
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-bin-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cypress-${{ runner.os }}-bin-
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.USE_NODE_VER }}
+
+      - name: install dependencies
+        run: npm i --prefer-offline --no-audit
+      - name: install elm-format
+        run: npm i elm-format
+      - name: run elm-format
+        run: npx elm-format --validate src/ tests/
+
+  # ┌─┐┬  ┌┬┐  ┌┬┐┌─┐┌─┐┌┬┐
+  # ├┤ │  │││───│ ├┤ └─┐ │
+  # └─┘┴─┘┴ ┴   ┴ └─┘└─┘ ┴
+  elm-test:
+    name: run elm tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-bin-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cypress-${{ runner.os }}-bin-
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.USE_NODE_VER }}
+
+      - name: install dependencies
+        run: npm i --prefer-offline --no-audit
+      - name: install elm-test
+        run: npm i elm-test
+      - name: run elm-test
+        run: npm run test
+
+  # ┌─┐┬ ┬┌─┐┬─┐┌─┐┌─┐┌─┐
+  # │  └┬┘├─┘├┬┘├┤ └─┐└─┐
+  # └─┘ ┴ ┴  ┴└─└─┘└─┘└─┘
+  integration:
+    name: run cypress tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-bin-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cypress-${{ runner.os }}-bin-
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.USE_NODE_VER }}
+
+      - name: install dependencies
+        run: npm i --prefer-offline --no-audit
+      - name: run cypress tests
+        run: npm run test:cy
+
+  # ┌─┐┬ ┬┌┐ ┬  ┬┌─┐┬ ┬
+  # ├─┘│ │├┴┐│  │└─┐├─┤
+  # ┴  └─┘└─┘┴─┘┴└─┘┴ ┴
+  publish:
+    name: build and push to docker
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'go-vela/ui'
+    needs: [elm-format, elm-test, integration]
+    env:
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.USE_NODE_VER }}
+
+      # ┌┐ ┬ ┬┬┬  ┌┬┐
+      # ├┴┐│ │││   ││
+      # └─┘└─┘┴┴─┘─┴┘
+      - name: install dependencies
+        run: npm i --prefer-offline --no-audit
+      - name: run production build
+        run: npm run build-prod
+
+      # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
+      #  │││ ││  ├┴┐├┤ ├┬┘
+      # ─┴┘└─┘└─┘┴ ┴└─┘┴└─
+      - name: push to docker
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: target/vela-ui
+          cache: true
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
