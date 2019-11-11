@@ -863,14 +863,17 @@ viewSourceRepos model sourceRepos =
 -}
 viewSourceOrg : Model -> Org -> Repositories -> Html Msg
 viewSourceOrg model org repos =
-    viewSourceOrgDetails model org repos <|
-        if shouldSearch <| searchFilterLocal org model.source_search_filters then
-            -- Search and render repos using the global filter
-            searchReposLocal org model.source_search_filters repos
+    let
+        ( repos_, content ) =
+            if shouldSearch <| searchFilterLocal org model.source_search_filters then
+                -- Search and render repos using the global filter
+                searchReposLocal org model.source_search_filters repos
 
-        else
-            -- Render repos normally
-            List.map viewSourceRepo repos
+            else
+                -- Render repos normally
+                ( repos, List.map viewSourceRepo repos )
+    in
+    viewSourceOrgDetails model org repos_ content
 
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element
@@ -1393,18 +1396,20 @@ searchReposGlobal filters repos =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> List (Html Msg)
+searchReposLocal : Org -> RepoSearchFilters -> Repositories -> ( Repositories, List (Html Msg) )
 searchReposLocal org filters repos =
     -- Filter the repos if the user typed more than 2 characters
     let
         filteredRepos =
             List.filter (\repo -> filterRepo filters (Just org) repo.name) repos
     in
-    if not <| List.isEmpty filteredRepos then
+    ( filteredRepos
+    , if not <| List.isEmpty filteredRepos then
         List.map viewSourceRepo filteredRepos
 
-    else
+      else
         [ div [ class "-no-repos" ] [ text "No results" ] ]
+    )
 
 
 {-| filterRepo : takes org/repo display filters, the org and filters a single repo based on user-entered text
