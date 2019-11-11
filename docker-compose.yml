@@ -5,7 +5,6 @@ services:
   #   build:
   #     context: .
   #     dockerfile: Dockerfile
-  #   image: vela:local
   #   networks:
   #     - vela
   #   env_file:
