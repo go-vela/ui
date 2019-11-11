@@ -898,7 +898,7 @@ viewSourceOrgSummary model org repos filtered content =
         ]
         :: div [ class "source-actions" ]
             [ repoSearchBarLocal model org
-            , addOrgBtn org repos
+            , addOrgBtn org repos filtered
             ]
         :: content
 
@@ -933,11 +933,18 @@ viewRepoCount repos =
     span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
 
 
-{-| addOrgBtn : takes org and repos and renders a button to add them all at once
+{-| addOrgBtn : takes org and repos and renders a button to add them all at once, texts depends on user input filter
 -}
-addOrgBtn : Org -> Repositories -> Html Msg
-addOrgBtn org repos =
-    button [ class "-inverted", onClick (AddOrgRepos org repos) ] [ text "Add All" ]
+addOrgBtn : Org -> Repositories -> Bool -> Html Msg
+addOrgBtn org repos filtered =
+    button [ class "-inverted", onClick (AddOrgRepos org repos) ]
+        [ text <|
+            if filtered then
+                "Add Shown"
+
+            else
+                "Add All"
+        ]
 
 
 {-| buildAddRepoElement : builds action element for adding single repos
