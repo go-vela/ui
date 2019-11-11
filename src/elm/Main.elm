@@ -864,32 +864,32 @@ viewSourceRepos model sourceRepos =
 viewSourceOrg : Model -> Org -> Repositories -> Html Msg
 viewSourceOrg model org repos =
     let
-        ( repos_, content ) =
+        ( repos_, filtered, content ) =
             if shouldSearch <| searchFilterLocal org model.source_search_filters then
                 -- Search and render repos using the global filter
                 searchReposLocal org model.source_search_filters repos
 
             else
                 -- Render repos normally
-                ( repos, List.map viewSourceRepo repos )
+                ( repos, False, List.map viewSourceRepo repos )
     in
-    viewSourceOrgDetails model org repos_ content
+    viewSourceOrgDetails model org repos_ filtered content
 
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element
 -}
-viewSourceOrgDetails : Model -> Org -> Repositories -> List (Html Msg) -> Html Msg
-viewSourceOrgDetails model org repos content =
+viewSourceOrgDetails : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> Html Msg
+viewSourceOrgDetails model org repos filtered content =
     div [ class "org" ]
         [ details [ class "details", class "repo-item" ] <|
-            viewSourceOrgSummary model org repos content
+            viewSourceOrgSummary model org repos filtered content
         ]
 
 
 {-| viewSourceOrgSummary : renders the source repositories details summary
 -}
-viewSourceOrgSummary : Model -> Org -> Repositories -> List (Html Msg) -> List (Html Msg)
-viewSourceOrgSummary model org repos content =
+viewSourceOrgSummary : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> List (Html Msg)
+viewSourceOrgSummary model org repos filtered content =
     summary [ class "summary", Util.testAttribute <| "source-org-" ++ org ]
         [ div [ class "org-header" ]
             [ text org
@@ -1396,7 +1396,7 @@ searchReposGlobal filters repos =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> ( Repositories, List (Html Msg) )
+searchReposLocal : Org -> RepoSearchFilters -> Repositories -> ( Repositories, Bool, List (Html Msg) )
 searchReposLocal org filters repos =
     -- Filter the repos if the user typed more than 2 characters
     let
@@ -1404,6 +1404,7 @@ searchReposLocal org filters repos =
             List.filter (\repo -> filterRepo filters (Just org) repo.name) repos
     in
     ( filteredRepos
+    , True
     , if not <| List.isEmpty filteredRepos then
         List.map viewSourceRepo filteredRepos
 
