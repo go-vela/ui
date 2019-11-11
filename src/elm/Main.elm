@@ -211,7 +211,7 @@ type Msg
     | SignInRequested
     | FetchSourceRepositories
     | AddRepo Repository
-    | AddOrgRepos String Repositories
+    | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
     | GetBuilds Org Repo
@@ -402,18 +402,9 @@ update msg model =
             , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
             )
 
-        AddOrgRepos org repos ->
-            let
-                body : Repository -> Http.Body
-                body r =
-                    Http.jsonBody <| encodeAddRepository <| buildAddRepositoryPayload r model.velaSourceBaseURL
-
-                -- list of tasks to batch
-                tasks =
-                    List.map (\repo -> Api.try (RepoAddedResponse repo) <| Api.addRepository model <| body repo) repos
-            in
-            ( { model | sourceRepos = updateSourceRepoStatus { defaultRepository | org = org, name = "" } Loading model.sourceRepos updateSourceRepoListByOrg }
-            , Cmd.batch tasks
+        AddOrgRepos repos ->
+            ( model
+            , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
             )
 
         GetBuilds org repo ->
@@ -898,7 +889,7 @@ viewSourceOrgSummary model org repos filtered content =
         ]
         :: div [ class "source-actions" ]
             [ repoSearchBarLocal model org
-            , addOrgBtn org repos filtered
+            , addReposBtn repos filtered
             ]
         :: content
 
@@ -933,14 +924,14 @@ viewRepoCount repos =
     span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
 
 
-{-| addOrgBtn : takes org and repos and renders a button to add them all at once, texts depends on user input filter
+{-| addReposBtn : takes List of repos and renders a button to add them all at once, texts depends on user input filter
 -}
-addOrgBtn : Org -> Repositories -> Bool -> Html Msg
-addOrgBtn org repos filtered =
-    button [ class "-inverted", onClick (AddOrgRepos org repos) ]
+addReposBtn : Repositories -> Bool -> Html Msg
+addReposBtn repos filtered =
+    button [ class "-inverted", onClick (AddOrgRepos repos) ]
         [ text <|
             if filtered then
-                "Add Shown"
+                "Add Results"
 
             else
                 "Add All"
@@ -1285,13 +1276,6 @@ updateSourceRepoListByRepoName repo status orgRepos =
                 sourceRepo
         )
         orgRepos
-
-
-{-| updateSourceRepoListByOrg : list map for updating repo status by org
--}
-updateSourceRepoListByOrg : Repository -> WebData Bool -> Repositories -> Repositories
-updateSourceRepoListByOrg _ status orgRepos =
-    List.map (\sourceRepo -> { sourceRepo | added = status }) orgRepos
 
 
 {-| buildAddRepositoryPayload : builds the payload for adding a repository via the api
