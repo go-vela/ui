@@ -731,7 +731,7 @@ viewOverview model =
                 , p []
                     [ text "To have Vela start building your projects we need to get them added."
                     , br [] []
-                    , text "Add repositories from your Github account to Vela now!"
+                    , text "Add repositories from your GitHub account to Vela now!"
                     ]
                 , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
                 ]
