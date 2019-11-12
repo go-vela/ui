@@ -13,7 +13,7 @@ import Vela exposing (AuthParams, BuildNumber, Org, Repo)
 type Page
     = Overview
     | AddRepositories
-    | RepositorySettings Org Repo
+    | RepoSettings Org Repo
     | RepositoryBuilds Org Repo
     | Build Org Repo BuildNumber
     | Login
@@ -37,8 +37,8 @@ toRoute page =
         AddRepositories ->
             Routes.AddRepositories
 
-        RepositorySettings org repo ->
-            Routes.RepositorySettings org repo
+        RepoSettings org repo ->
+            Routes.RepoSettings org repo
 
         RepositoryBuilds org repo ->
             Routes.RepositoryBuilds org repo

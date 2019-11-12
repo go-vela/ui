@@ -29,7 +29,7 @@ type alias Repo =
 type Route
     = Overview
     | AddRepositories
-    | RepositorySettings Org Repo
+    | RepoSettings Org Repo
     | RepositoryBuilds Org Repo
     | Build Org Repo BuildNumber
     | Login
@@ -50,7 +50,7 @@ routes =
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , parseAuth
-        , map RepositorySettings (string </> string </> s "settings")
+        , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string)
         , map Build (string </> string </> string)
         , map NotFound (s "404")
@@ -88,14 +88,14 @@ routeToUrl route =
         AddRepositories ->
             "/account/add-repos"
 
+        RepoSettings org repo ->
+            "/" ++ org ++ "/" ++ repo ++ "/settings"
+
         RepositoryBuilds org repo ->
             "/" ++ org ++ "/" ++ repo
 
         Build org repo num ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ num
-
-        RepositorySettings org repo ->
-            "/" ++ org ++ "/" ++ repo ++ "/settings"
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

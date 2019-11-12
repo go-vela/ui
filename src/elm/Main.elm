@@ -687,16 +687,12 @@ viewContent model =
             , viewAddRepos model
             )
 
-        Pages.RepositorySettings org repo ->
+        Pages.RepoSettings org repo ->
             ( "Repository Settings"
             , viewRepoSettings model org repo
             )
 
         Pages.RepositoryBuilds org repo ->
-            let
-                _ =
-                    Debug.log "?" "RepositoryBuilds"
-            in
             ( "Repository Builds"
             , viewRepositoryBuilds model.builds.builds model.time org repo
             )
@@ -1116,11 +1112,11 @@ navButton model =
                 [ class "-btn"
                 , class "-inverted"
                 , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                , Routes.href <| Routes.RepositorySettings org repo
+                , Routes.href <| Routes.RepoSettings org repo
                 ]
                 [ text "Repo Settings" ]
 
-        Pages.RepositorySettings org repo ->
+        Pages.RepoSettings org repo ->
             button
                 [ classList
                     [ ( "btn-refresh", True )
@@ -1258,11 +1254,11 @@ setNewPage route model =
                 _ ->
                     ( { model | page = Pages.AddRepositories }, Cmd.none )
 
-        ( Routes.RepositorySettings org repo, _ ) ->
-            loadRepoBuildsPage model org repo
+        ( Routes.RepoSettings org repo, _ ) ->
+            loadRepoSettingsPage model org repo
 
         ( Routes.RepositoryBuilds org repo, _ ) ->
-            loadRepoSettingsPage model org repo
+            loadRepoBuildsPage model org repo
 
         ( Routes.Build org repo buildNumber, _ ) ->
             loadBuildPage model org repo buildNumber
@@ -1292,7 +1288,7 @@ loadRepoSettingsPage model org repo =
     --         { loadedBuilds | org = org, repo = repo, builds = Loading }
     -- in
     -- Fetch builds from Api
-    ( { model | page = Pages.RepositoryBuilds org repo }
+    ( { model | page = Pages.RepoSettings org repo }
     , Cmd.batch
         [ getRepoSettings model org repo
         ]
