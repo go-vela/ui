@@ -72,10 +72,8 @@ context("Searching", () => {
               .should("be.visible")
               .clear();
           });
-          it("octocat should show", () => {
+          it("octocat and server should show", () => {
             cy.get("[data-test=source-repo-octocat]").should("be.visible");
-          });
-          it("server should show", () => {
             cy.get("[data-test=source-repo-server]").should("be.visible");
           });
         });
@@ -132,9 +130,9 @@ context("Searching", () => {
                 .and("not.contain", "Adding");
               cy.get("[data-test=source-repo-octocat]")
                 .should("be.visible")
-                .and("not.contain", "Adding");
+                .and("contain", "Adding");
             });
-            it("add all button should contain Add All", () => {
+            it("without search input, add all button should contain Add All", () => {
               cy.get("[data-test=add-org-github]").contains("Add All");
             });
           }
