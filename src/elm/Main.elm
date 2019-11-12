@@ -122,7 +122,18 @@ type alias Model =
     , navigationKey : Navigation.Key
     , zone : Time.Zone
     , time : Time.Posix
-    , source_search_filters : RepoSearchFilters
+    , sourceSearchFilters : RepoSearchFilters
+    , repoSettings : WebData RepoSettings
+    }
+
+
+initRepoSettings : WebData RepoSettings
+initRepoSettings =
+    RemoteData.succeed <| RepoSettings False
+
+
+type alias RepoSettings =
+    { enabled : Bool
     }
 
 
@@ -176,7 +187,8 @@ init flags url navKey =
             , toasties = Alerting.initialState
             , zone = Time.utc
             , time = Time.millisToPosix 0
-            , source_search_filters = Dict.empty
+            , sourceSearchFilters = Dict.empty
+            , repoSettings = initRepoSettings
             }
 
         ( newModel, newPage ) =
@@ -277,7 +289,7 @@ update msg model =
                     ( { model | currentRepos = toFailure error }, addError error )
 
         FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, source_search_filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+            ( { model | sourceRepos = Loading, sourceSearchFilters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -448,9 +460,9 @@ update msg model =
         SearchSourceRepos org searchBy ->
             let
                 filters =
-                    Dict.update org (\_ -> Just searchBy) model.source_search_filters
+                    Dict.update org (\_ -> Just searchBy) model.sourceSearchFilters
             in
-            ( { model | source_search_filters = filters }, Cmd.none )
+            ( { model | sourceSearchFilters = filters }, Cmd.none )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
@@ -675,7 +687,16 @@ viewContent model =
             , viewAddRepos model
             )
 
+        Pages.RepositorySettings org repo ->
+            ( "Repository Settings"
+            , viewRepoSettings model org repo
+            )
+
         Pages.RepositoryBuilds org repo ->
+            let
+                _ =
+                    Debug.log "?" "RepositoryBuilds"
+            in
             ( "Repository Builds"
             , viewRepositoryBuilds model.builds.builds model.time org repo
             )
@@ -842,13 +863,54 @@ viewAddRepos model =
                 ]
 
 
+{-| viewRepoSettings : takes model, org and repo and renders page for updating repo settings
+-}
+viewRepoSettings : Model -> Org -> Repo -> Html Msg
+viewRepoSettings model org repo =
+    let
+        _ =
+            Debug.log "??" "YOOO"
+
+        loading =
+            div []
+                [ h1 []
+                    [ text "Loading your Repo Settings"
+                    , span [ class "loading-ellipsis" ] []
+                    ]
+                , p []
+                    [ text <|
+                        "Hang tight while we grab the settings for this repo."
+                    ]
+                ]
+    in
+    case model.repoSettings of
+        Success repoSettings ->
+            div [ class "repo-settings" ]
+                [ text <| org ++ "/" ++ repo ++ " repo settings"
+                ]
+
+        Loading ->
+            loading
+
+        NotAsked ->
+            loading
+
+        Failure _ ->
+            div []
+                [ p []
+                    [ text <|
+                        "There was an error fetching your repo settings... Click Refresh or try again later!"
+                    ]
+                ]
+
+
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
 viewSourceRepos : Model -> SourceRepositories -> Html Msg
 viewSourceRepos model sourceRepos =
-    if shouldSearch <| searchFilterGlobal model.source_search_filters then
+    if shouldSearch <| searchFilterGlobal model.sourceSearchFilters then
         -- Search and render repos using the global filter
-        searchReposGlobal model.source_search_filters sourceRepos
+        searchReposGlobal model.sourceSearchFilters sourceRepos
 
     else
         -- Render repos normally
@@ -864,9 +926,9 @@ viewSourceRepos model sourceRepos =
 viewSourceOrg : Model -> Org -> Repositories -> Html Msg
 viewSourceOrg model org repos =
     viewSourceOrgDetails model org repos <|
-        if shouldSearch <| searchFilterLocal org model.source_search_filters then
+        if shouldSearch <| searchFilterLocal org model.sourceSearchFilters then
             -- Search and render repos using the global filter
-            searchReposLocal org model.source_search_filters repos
+            searchReposLocal org model.sourceSearchFilters repos
 
         else
             -- Render repos normally
@@ -971,7 +1033,7 @@ repoSearchBarGlobal model =
         , input
             [ Util.testAttribute "global-search-input"
             , placeholder "Type to filter all repositories..."
-            , value <| searchFilterGlobal model.source_search_filters
+            , value <| searchFilterGlobal model.sourceSearchFilters
             , onInput <| SearchSourceRepos ""
             ]
             []
@@ -990,7 +1052,7 @@ repoSearchBarLocal model org =
                 "Type to filter repositories in "
                     ++ org
                     ++ "..."
-            , value <| searchFilterLocal org model.source_search_filters
+            , value <| searchFilterLocal org model.sourceSearchFilters
             , onInput <| SearchSourceRepos org
             ]
             []
@@ -1047,6 +1109,34 @@ navButton model =
 
                     _ ->
                         text "Refresh List"
+                ]
+
+        Pages.RepositoryBuilds org repo ->
+            a
+                [ class "-btn"
+                , class "-inverted"
+                , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
+                , Routes.href <| Routes.RepositorySettings org repo
+                ]
+                [ text "Repo Settings" ]
+
+        Pages.RepositorySettings org repo ->
+            button
+                [ classList
+                    [ ( "btn-refresh", True )
+                    , ( "-inverted", True )
+                    , ( "loading", model.repoSettings == Loading )
+                    ]
+                , onClick FetchSourceRepositories
+                , disabled (model.repoSettings == Loading)
+                , Util.testAttribute "refresh-repo-settings"
+                ]
+                [ case model.repoSettings of
+                    Loading ->
+                        text "Loading…"
+
+                    _ ->
+                        text "Refresh Settings"
                 ]
 
         Pages.Build org repo buildNumber ->
@@ -1168,8 +1258,11 @@ setNewPage route model =
                 _ ->
                     ( { model | page = Pages.AddRepositories }, Cmd.none )
 
-        ( Routes.RepositoryBuilds org repo, _ ) ->
+        ( Routes.RepositorySettings org repo, _ ) ->
             loadRepoBuildsPage model org repo
+
+        ( Routes.RepositoryBuilds org repo, _ ) ->
+            loadRepoSettingsPage model org repo
 
         ( Routes.Build org repo buildNumber, _ ) ->
             loadBuildPage model org repo buildNumber
@@ -1184,6 +1277,26 @@ setNewPage route model =
 
         ( Routes.NotFound, _ ) ->
             ( { model | page = Pages.NotFound }, Cmd.none )
+
+
+{-| loadRepoSettingsPage : takes model org and repo and loads the page for updating repo configurations
+-}
+loadRepoSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadRepoSettingsPage model org repo =
+    -- let
+    --     -- Builds already loaded
+    --     loadedBuilds =
+    --         model.builds
+    --     -- Set builds to Loading
+    --     loadingBuilds =
+    --         { loadedBuilds | org = org, repo = repo, builds = Loading }
+    -- in
+    -- Fetch builds from Api
+    ( { model | page = Pages.RepositoryBuilds org repo }
+    , Cmd.batch
+        [ getRepoSettings model org repo
+        ]
+    )
 
 
 {-| loadRepoBuildsPage : takes model org and repo and loads the appropriate builds.
@@ -1450,6 +1563,12 @@ shouldSearch filter =
 
 
 -- API HELPERS
+-- TODO THIS NEEDS TO BE UPDATED
+
+
+getRepoSettings : Model -> Org -> Repo -> Cmd Msg
+getRepoSettings model org repo =
+    Api.tryAll (BuildsResponse org repo) <| Api.getAllBuilds model org repo
 
 
 getBuilds : Model -> Org -> Repo -> Cmd Msg
