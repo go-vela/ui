@@ -112,6 +112,9 @@ context("Searching", () => {
         it("api should show", () => {
           cy.get("[data-test=source-repo-api]").should("be.visible");
         });
+        it("add all button should contain Add Results", () => {
+          cy.get("[data-test=add-org-vela]").contains("Add Results");
+        });
         context(
           "click Add All button, then clear vela local search input",
           () => {
@@ -150,6 +153,9 @@ context("Searching", () => {
               cy.get("[data-test=source-repo-ideas]")
                 .should("be.visible")
                 .and("not.contain", "Adding");
+            });
+            it("add all button should contain Add All", () => {
+              cy.get("[data-test=add-org-vela]").contains("Add All");
             });
           }
         );
