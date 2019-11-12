@@ -18,9 +18,9 @@ context("Searching", () => {
     it("global search bar should show", () => {
       cy.get("[data-test=global-search-bar]").should("be.visible");
     });
-    context("click on vela org", () => {
+    context("click on github org", () => {
       beforeEach(() => {
-        cy.get("[data-test=source-org-vela]").click();
+        cy.get("[data-test=source-org-github]").click();
       });
       it("local search bar should show", () => {
         cy.get("[data-test=local-search-bar]").should("be.visible");
@@ -35,65 +35,45 @@ context("Searching", () => {
         it("server should show", () => {
           cy.get("[data-test=source-repo-server]").should("be.visible");
         });
-        it("ideas should not show", () => {
-          cy.get("[data-test=source-repo-ideas]").should("not.be.visible");
+        it("octocat should not show", () => {
+          cy.get("[data-test=source-repo-octocat]").should("not.be.visible");
         });
         it("org repo count should not exist", () => {
           cy.get("[data-test=source-repo-count]").should("not.be.visible");
         });
-      });
-
-      context("type 'vela' into the global search bar", () => {
-        beforeEach(() => {
-          cy.get("[data-test=global-search-input]")
-            .should("be.visible")
-            .clear()
-            .type("vela");
-        });
-        it("server should show", () => {
-          cy.get("[data-test=source-repo-server]").should("be.visible");
-        });
-        it("ideas should show", () => {
-          cy.get("[data-test=source-repo-ideas]").should("be.visible");
-        });
-        it("applications should not show", () => {
-          cy.get("[data-test=source-repo-applications]").should(
-            "not.be.visible"
-          );
-        });
-        it("org repo count should not exist", () => {
-          cy.get("[data-test=source-repo-count]").should("not.be.visible");
+        it("cat org should not exist", () => {
+          cy.get("[data-test=source-org-cat]").should("not.be.visible");
         });
       });
 
-      context("type 'ide' into the vela org local search bar", () => {
+      context("type 'octo' into the github org local search bar", () => {
         beforeEach(() => {
           cy.get("[data-test=global-search-input]").clear();
-          cy.get("[data-test=local-search-input-vela]")
+          cy.get("[data-test=local-search-input-github]")
             .should("be.visible")
             .clear()
-            .type("ide");
+            .type("octo");
         });
-        it("ideas should show", () => {
-          cy.get("[data-test=source-repo-ideas]").should("be.visible");
+        it("octocat should show", () => {
+          cy.get("[data-test=source-repo-octocat]").should("be.visible");
         });
         it("server should not show", () => {
           cy.get("[data-test=source-repo-server]").should("not.be.visible");
         });
-        it("vela repo count should display 1", () => {
+        it("github repo count should display 3", () => {
           cy.get("[data-test=source-repo-count]")
             .should("be.visible")
-            .should("contain", "1");
+            .should("contain", "3");
         });
-        context("clear vela local search bar", () => {
+        context("clear github local search bar", () => {
           beforeEach(() => {
             cy.get("[data-test=global-search-input]").clear();
-            cy.get("[data-test=local-search-input-vela]")
+            cy.get("[data-test=local-search-input-github]")
               .should("be.visible")
               .clear();
           });
-          it("ideas should show", () => {
-            cy.get("[data-test=source-repo-ideas]").should("be.visible");
+          it("octocat should show", () => {
+            cy.get("[data-test=source-repo-octocat]").should("be.visible");
           });
           it("server should show", () => {
             cy.get("[data-test=source-repo-server]").should("be.visible");
@@ -101,22 +81,22 @@ context("Searching", () => {
         });
       });
 
-      context("type 'api' into the vela org local search bar", () => {
+      context("type 'octo' into the github org local search bar", () => {
         beforeEach(() => {
           cy.get("[data-test=global-search-input]").clear();
-          cy.get("[data-test=local-search-input-vela]")
+          cy.get("[data-test=local-search-input-github]")
             .should("be.visible")
             .clear()
-            .type("api");
+            .type("octo");
         });
-        it("api should show", () => {
-          cy.get("[data-test=source-repo-api]").should("be.visible");
+        it("octocat should show", () => {
+          cy.get("[data-test=source-repo-octocat]").should("be.visible");
         });
         it("add all button should contain Add Results", () => {
-          cy.get("[data-test=add-org-vela]").contains("Add Results");
+          cy.get("[data-test=add-org-github]").contains("Add Results");
         });
         context(
-          "click Add All button, then clear vela local search input",
+          "click Add All button, then clear github local search input",
           () => {
             beforeEach(() => {
               cy.route(
@@ -124,38 +104,38 @@ context("Searching", () => {
                 "*api/v1/repos*",
                 "fixture:add_repo_response.json"
               );
-              cy.get("[data-test=add-org-vela]").click({ force: true });
-              cy.get("[data-test=local-search-input-vela]")
+              cy.get("[data-test=add-org-github]").click({ force: true });
+              cy.get("[data-test=local-search-input-github]")
                 .should("be.visible")
                 .clear();
             });
             it("filtered repos should show and display adding", () => {
-              cy.get("[data-test=source-repo-api]")
+              cy.get("[data-test=source-repo-octocat]")
                 .should("be.visible")
                 .and("contain", "Adding");
 
-              cy.get("[data-test=source-repo-api-1]")
+              cy.get("[data-test=source-repo-octocat-1]")
                 .should("be.visible")
                 .and("contain", "Adding");
 
-              cy.get("[data-test=source-repo-api-2]")
+              cy.get("[data-test=source-repo-octocat-2]")
                 .should("be.visible")
                 .and("contain", "Adding");
 
-              cy.get("[data-test=source-repo-api-docs]")
+              cy.get("[data-test=source-repo-server]")
                 .should("be.visible")
-                .and("contain", "Adding");
+                .and("not.contain", "Adding");
             });
             it("non-filtered repos should show but not display adding", () => {
               cy.get("[data-test=source-repo-server]")
                 .should("be.visible")
                 .and("not.contain", "Adding");
-              cy.get("[data-test=source-repo-ideas]")
+              cy.get("[data-test=source-repo-octocat]")
                 .should("be.visible")
                 .and("not.contain", "Adding");
             });
             it("add all button should contain Add All", () => {
-              cy.get("[data-test=add-org-vela]").contains("Add All");
+              cy.get("[data-test=add-org-github]").contains("Add All");
             });
           }
         );
@@ -163,14 +143,14 @@ context("Searching", () => {
 
       context("with searches entered, refresh source repos list", () => {
         beforeEach(() => {
-          cy.get("[data-test=local-search-input-vela]")
+          cy.get("[data-test=local-search-input-github]")
             .should("be.visible")
             .clear()
             .type("serv");
           cy.get("[data-test=global-search-input]")
             .should("be.visible")
             .clear()
-            .type("vela");
+            .type("github");
           cy.get("[data-test=refresh-source-repos]")
             .should("be.visible")
             .click();
@@ -178,13 +158,13 @@ context("Searching", () => {
         it("global search should be cleared", () => {
           cy.get("[data-test=global-search-input]").should(
             "not.contain",
-            "vela"
+            "octo"
           );
         });
         it("local search should be cleared", () => {
-          cy.get("[data-test=local-search-input-vela]").should(
+          cy.get("[data-test=local-search-input-github]").should(
             "not.contain",
-            "serv"
+            "octo"
           );
         });
       });
@@ -203,7 +183,7 @@ context("Searching", () => {
 
       context("type 'nonsense' into the local search bar", () => {
         beforeEach(() => {
-          cy.get("[data-test=local-search-input-vela]")
+          cy.get("[data-test=local-search-input-github]")
             .should("be.visible")
             .clear()
             .type("nonsense");
