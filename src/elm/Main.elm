@@ -889,7 +889,7 @@ viewSourceOrgSummary model org repos filtered content =
         ]
         :: div [ class "source-actions" ]
             [ repoSearchBarLocal model org
-            , addReposBtn repos filtered
+            , addReposBtn org repos filtered
             ]
         :: content
 
@@ -926,9 +926,9 @@ viewRepoCount repos =
 
 {-| addReposBtn : takes List of repos and renders a button to add them all at once, texts depends on user input filter
 -}
-addReposBtn : Repositories -> Bool -> Html Msg
-addReposBtn repos filtered =
-    button [ class "-inverted", onClick (AddOrgRepos repos) ]
+addReposBtn : Org -> Repositories -> Bool -> Html Msg
+addReposBtn org repos filtered =
+    button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (AddOrgRepos repos) ]
         [ text <|
             if filtered then
                 "Add Results"

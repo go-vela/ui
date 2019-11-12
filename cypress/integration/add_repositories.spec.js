@@ -79,6 +79,23 @@ context("Add Repositories", () => {
         .should("be.disabled");
       cy.wait("@sourceRepos");
     });
+
+    it("shows the loading labels when all repos for org are added", () => {
+      cy.get("[data-test=source-org-cat]").click();
+      cy.get("[data-test=add-org-cat]").click({ force: true });
+
+      cy.get("[data-test=source-repo-api-1] .repo-add--adding")
+        .should("be.visible")
+        .and("contain", "Added");
+
+      cy.get("[data-test=source-repo-api-2] .repo-add--adding")
+        .should("be.visible")
+        .and("contain", "Adding");
+
+      cy.get("[data-test=source-repo-api-docs] .repo-add--adding")
+        .should("be.visible")
+        .and("contain", "Adding");
+    });
   });
 
   context("logged in - api error", () => {

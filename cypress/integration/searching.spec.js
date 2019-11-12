@@ -85,6 +85,74 @@ context("Searching", () => {
             .should("be.visible")
             .should("contain", "1");
         });
+        context("clear vela local search bar", () => {
+          beforeEach(() => {
+            cy.get("[data-test=global-search-input]").clear();
+            cy.get("[data-test=local-search-input-vela]")
+              .should("be.visible")
+              .clear();
+          });
+          it("ideas should show", () => {
+            cy.get("[data-test=source-repo-ideas]").should("be.visible");
+          });
+          it("server should show", () => {
+            cy.get("[data-test=source-repo-server]").should("be.visible");
+          });
+        });
+      });
+
+      context("type 'api' into the vela org local search bar", () => {
+        beforeEach(() => {
+          cy.get("[data-test=global-search-input]").clear();
+          cy.get("[data-test=local-search-input-vela]")
+            .should("be.visible")
+            .clear()
+            .type("api");
+        });
+        it("api should show", () => {
+          cy.get("[data-test=source-repo-api]").should("be.visible");
+        });
+        context(
+          "click Add All button, then clear vela local search input",
+          () => {
+            beforeEach(() => {
+              cy.route(
+                "POST",
+                "*api/v1/repos*",
+                "fixture:add_repo_response.json"
+              );
+              cy.get("[data-test=add-org-vela]").click({ force: true });
+              cy.get("[data-test=local-search-input-vela]")
+                .should("be.visible")
+                .clear();
+            });
+            it("filtered repos should show and display adding", () => {
+              cy.get("[data-test=source-repo-api]")
+                .should("be.visible")
+                .and("contain", "Adding");
+
+              cy.get("[data-test=source-repo-api-1]")
+                .should("be.visible")
+                .and("contain", "Adding");
+
+              cy.get("[data-test=source-repo-api-2]")
+                .should("be.visible")
+                .and("contain", "Adding");
+
+              cy.get("[data-test=source-repo-api-docs]")
+                .should("be.visible")
+                .and("contain", "Adding");
+            });
+            it("non-filtered repos should show but not display adding", () => {
+              cy.get("[data-test=source-repo-server]")
+                .should("be.visible")
+                .and("not.contain", "Adding");
+              cy.get("[data-test=source-repo-ideas]")
+                .should("be.visible")
+                .and("not.contain", "Adding");
+            });
+          }
+        );
       });
 
       context("with searches entered, refresh source repos list", () => {
