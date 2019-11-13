@@ -23,6 +23,7 @@ module Vela exposing
     , Step
     , StepNumber
     , Steps
+    , UpdateRepositoryPayload
     , User
     , decodeBuild
     , decodeBuilds
@@ -36,8 +37,10 @@ module Vela exposing
     , defaultAddRepositoryPayload
     , defaultBuilds
     , defaultRepository
+    , defaultUpdateRepositoryPayload
     , defaultUser
     , encodeAddRepository
+    , encodeUpdateRepository
     , encodeUser
     )
 
@@ -233,6 +236,41 @@ type alias AddRepositoryPayload =
 defaultAddRepositoryPayload : AddRepositoryPayload
 defaultAddRepositoryPayload =
     AddRepositoryPayload "" "" "" "" "" 60 False True True True True False False
+
+
+type alias UpdateRepositoryPayload =
+    { active : Maybe Bool
+    , allow_pull : Maybe Bool
+    , allow_push : Maybe Bool
+    , allow_deploy : Maybe Bool
+    , allow_tag : Maybe Bool
+    }
+
+
+defaultUpdateRepositoryPayload : UpdateRepositoryPayload
+defaultUpdateRepositoryPayload =
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing
+
+
+encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
+encodeUpdateRepository repo =
+    Encode.object
+        [ ( "active", optionalBool repo.active )
+        , ( "allow_pull", optionalBool repo.allow_pull )
+        , ( "allow_push", optionalBool repo.allow_push )
+        , ( "allow_deploy", optionalBool repo.allow_deploy )
+        , ( "allow_tag", optionalBool repo.allow_tag )
+        ]
+
+
+optionalBool : Maybe Bool -> Encode.Value
+optionalBool b =
+    case b of
+        Just b_ ->
+            Encode.bool b_
+
+        Nothing ->
+            Encode.null
 
 
 

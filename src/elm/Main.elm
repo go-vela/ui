@@ -39,11 +39,13 @@ import Html
 import Html.Attributes
     exposing
         ( attribute
+        , checked
         , class
         , classList
         , disabled
         , href
         , placeholder
+        , type_
         , value
         )
 import Html.Events exposing (onClick, onInput)
@@ -82,13 +84,16 @@ import Vela
         , Step
         , StepNumber
         , Steps
+        , UpdateRepositoryPayload
         , User
         , decodeUser
         , defaultAddRepositoryPayload
         , defaultBuilds
         , defaultRepository
+        , defaultUpdateRepositoryPayload
         , defaultUser
         , encodeAddRepository
+        , encodeUpdateRepository
         , encodeUser
         )
 
@@ -123,7 +128,7 @@ type alias Model =
     , zone : Time.Zone
     , time : Time.Posix
     , sourceSearchFilters : RepoSearchFilters
-    , repoSettings : WebData RepoSettings
+    , repo : WebData Repository
     }
 
 
@@ -142,6 +147,10 @@ type alias RepoSearchFilters =
 
 
 type alias SearchFilter =
+    String
+
+
+type alias Field =
     String
 
 
@@ -188,7 +197,7 @@ init flags url navKey =
             , zone = Time.utc
             , time = Time.millisToPosix 0
             , sourceSearchFilters = Dict.empty
-            , repoSettings = initRepoSettings
+            , repo = RemoteData.succeed defaultRepository
             }
 
         ( newModel, newPage ) =
@@ -223,15 +232,19 @@ type Msg
     | SignInRequested
     | FetchSourceRepositories
     | AddRepo Repository
+    | UpdateRepo Repo
     | AddOrgRepos String Repositories
     | RemoveRepo Repository
+      -- | UpdateRepo Field Value
     | RestartBuild Org Repo BuildNumber
     | GetBuilds Org Repo
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
+    | RepoResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoAddedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
+    | RepoUpdatedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -272,7 +285,7 @@ update msg model =
                     )
 
                 Err error ->
-                    -- TODO: customize error toast based on type of error?
+                    -- TODO: customize error toast based on type of error
                     ( { model | user = toFailure error }
                     , Cmd.batch
                         [ addError error
@@ -287,6 +300,14 @@ update msg model =
 
                 Err error ->
                     ( { model | currentRepos = toFailure error }, addError error )
+
+        RepoResponse _ _ response ->
+            case response of
+                Ok ( _, repoResponse ) ->
+                    ( { model | repo = RemoteData.succeed repoResponse }, Cmd.none )
+
+                Err error ->
+                    ( { model | repo = toFailure error }, addError error )
 
         FetchSourceRepositories ->
             ( { model | sourceRepos = Loading, sourceSearchFilters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
@@ -306,6 +327,14 @@ update msg model =
 
                 Err error ->
                     ( { model | sourceRepos = updateSourceRepoStatus repo (toFailure error) model.sourceRepos updateSourceRepoListByRepoName }, addError error )
+
+        RepoUpdatedResponse repo response ->
+            case response of
+                Ok ( _, updatedRepo ) ->
+                    ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
+
+                Err error ->
+                    ( { model | repo = toFailure error }, addError error )
 
         RemoveRepo repo ->
             ( model, Api.try (RepoRemovedResponse repo) <| Api.deleteRepo model repo )
@@ -412,6 +441,20 @@ update msg model =
             in
             ( { model | sourceRepos = updateSourceRepoStatus repo Loading model.sourceRepos updateSourceRepoListByRepoName }
             , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
+            )
+
+        UpdateRepo repo ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepositoryPayload repo model.velaSourceBaseURL
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+            in
+            ( { model | repo = Loading }
+            , Api.try (RepoUpdatedResponse repo) <| Api.updateRepository model body
             )
 
         AddOrgRepos org repos ->
@@ -864,9 +907,6 @@ viewAddRepos model =
 viewRepoSettings : Model -> Org -> Repo -> Html Msg
 viewRepoSettings model org repo =
     let
-        _ =
-            Debug.log "??" "YOOO"
-
         loading =
             div []
                 [ h1 []
@@ -879,10 +919,18 @@ viewRepoSettings model org repo =
                     ]
                 ]
     in
-    case model.repoSettings of
-        Success repoSettings ->
+    case model.repo of
+        Success repo_ ->
             div [ class "repo-settings" ]
-                [ text <| org ++ "/" ++ repo ++ " repo settings"
+                [ text <| "Enabled "
+                , input
+                    [ Util.testAttribute "global-search-input"
+                    , placeholder "Type to filter all repositories..."
+                    , checked repo_.active
+                    , onInput <| UpdateRepo <| buildUpdatedRepo "active" (not repo_.active)
+                    , type_ "checkbox"
+                    ]
+                    []
                 ]
 
         Loading ->
@@ -1121,18 +1169,18 @@ navButton model =
                 [ classList
                     [ ( "btn-refresh", True )
                     , ( "-inverted", True )
-                    , ( "loading", model.repoSettings == Loading )
+                    , ( "loading", model.repo == Loading )
                     ]
                 , onClick FetchSourceRepositories
-                , disabled (model.repoSettings == Loading)
+                , disabled (model.repo == Loading)
                 , Util.testAttribute "refresh-repo-settings"
                 ]
-                [ case model.repoSettings of
+                [ case model.repo of
                     Loading ->
                         text "Loading…"
 
                     _ ->
-                        text "Refresh Settings"
+                        text "Refresh Repo"
                 ]
 
         Pages.Build org repo buildNumber ->
@@ -1290,7 +1338,7 @@ loadRepoSettingsPage model org repo =
     -- Fetch builds from Api
     ( { model | page = Pages.RepoSettings org repo }
     , Cmd.batch
-        [ getRepoSettings model org repo
+        [ getRepo model org repo
         ]
     )
 
@@ -1403,6 +1451,26 @@ buildAddRepositoryPayload repo velaSourceBaseURL =
         , full_name = repo.org ++ "/" ++ repo.name
         , link = String.join "/" [ velaSourceBaseURL, repo.org, repo.name ]
         , clone = String.join "/" [ velaSourceBaseURL, repo.org, repo.name ] ++ ".git"
+    }
+
+
+type alias UpdateRepoPayload =
+    { active : Bool
+    }
+
+
+buildUpdateRepositoryPayload : Field -> Bool -> UpdateRepositoryPayload
+buildUpdateRepositoryPayload field value =
+    { defaultUpdateRepositoryPayload
+        | field = value
+    }
+
+
+{-| buildUpdatedRepo : builds the payload for updating a repository via the api
+-}
+buildUpdatedRepo : Repository -> Field -> Bool -> UpdateRepoPayload
+buildUpdatedRepo repo field b =
+    { active = b
     }
 
 
@@ -1559,12 +1627,11 @@ shouldSearch filter =
 
 
 -- API HELPERS
--- TODO THIS NEEDS TO BE UPDATED
 
 
-getRepoSettings : Model -> Org -> Repo -> Cmd Msg
-getRepoSettings model org repo =
-    Api.tryAll (BuildsResponse org repo) <| Api.getAllBuilds model org repo
+getRepo : Model -> Org -> Repo -> Cmd Msg
+getRepo model org repo =
+    Api.try (RepoResponse org repo) <| Api.getRepo model org repo
 
 
 getBuilds : Model -> Org -> Repo -> Cmd Msg
