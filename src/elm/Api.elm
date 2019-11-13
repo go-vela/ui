@@ -382,9 +382,9 @@ addRepository model body =
 
 {-| updateRepository : updates a repository
 -}
-updateRepository : PartialModel a -> Http.Body -> Request Repository
-updateRepository model body =
-    put model.velaAPI (Endpoint.Repositories Nothing Nothing) body decodeRepository
+updateRepository : PartialModel a -> Org -> Repo -> Http.Body -> Request Repository
+updateRepository model org repo body =
+    put model.velaAPI (Endpoint.Repository org repo) body decodeRepository
         |> withAuth model.session
 
 

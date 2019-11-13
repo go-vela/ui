@@ -225,7 +225,7 @@ type Msg
     | SignInRequested
     | FetchSourceRepositories
     | AddRepo Repository
-    | UpdateRepo Field Bool
+    | UpdateRepo Org Repo Field Bool
     | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
@@ -452,7 +452,7 @@ update msg model =
             , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
             )
 
-        UpdateRepo field value ->
+        UpdateRepo org repo field value ->
             let
                 payload : UpdateRepositoryPayload
                 payload =
@@ -462,8 +462,8 @@ update msg model =
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
             in
-            ( { model | repo = Loading }
-            , Api.try RepoUpdatedResponse <| Api.updateRepository model body
+            ( model
+            , Api.try RepoUpdatedResponse <| Api.updateRepository model org repo body
             )
 
         AddOrgRepos repos ->
@@ -929,7 +929,7 @@ viewRepoSettings model org repo =
                     [ Util.testAttribute "global-search-input"
                     , placeholder "Type to filter all repositories..."
                     , checked repo_.active
-                    , onClick <| UpdateRepo "active" (not repo_.active)
+                    , onClick <| UpdateRepo repo_.org repo_.name "active" (not repo_.active)
                     , type_ "checkbox"
                     ]
                     []
@@ -1176,7 +1176,7 @@ navButton model =
                 ]
                 [ text "Repo Settings" ]
 
-        Pages.RepoSettings org repo ->
+        Pages.RepoSettings _ _ ->
             button
                 [ classList
                     [ ( "btn-refresh", True )
@@ -1465,11 +1465,6 @@ buildAddRepositoryPayload repo velaSourceBaseURL =
         , full_name = repo.org ++ "/" ++ repo.name
         , link = String.join "/" [ velaSourceBaseURL, repo.org, repo.name ]
         , clone = String.join "/" [ velaSourceBaseURL, repo.org, repo.name ] ++ ".git"
-    }
-
-
-type alias UpdateRepoPayload =
-    { active : Bool
     }
 
 
