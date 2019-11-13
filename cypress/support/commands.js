@@ -20,6 +20,13 @@ Cypress.Commands.add("login", (path = "/", fixture = "sessionstorage") => {
   });
 });
 
+// Clear session storage helper
+Cypress.Commands.add("clearSession", () => {
+  cy.window().then(win => {
+    win.sessionStorage.clear();
+  });
+});
+
 // Route stubbing helpers
 Cypress.Commands.add("stubBuild", () => {
   cy.server();
@@ -93,5 +100,33 @@ Cypress.Commands.add("stubStepsWithLogs", () => {
         response: logs[i]
       });
     }
+  });
+});
+
+Cypress.Commands.add("stubBuildsErrors", () => {
+  cy.route({
+    method: "GET",
+    url: "*api/v1/repos/*/*/builds*",
+    status: 500,
+    response: "server error"
+  });
+});
+
+
+Cypress.Commands.add("stubBuildErrors", () => {
+  cy.route({
+    method: "GET",
+    url: "*api/v1/repos/*/*/builds/*",
+    status: 500,
+    response: "server error"
+  });
+});
+
+Cypress.Commands.add("stubStepsErrors", () => {
+  cy.route({
+    method: "GET",
+    url: "*api/v1/repos/*/*/builds/*/steps*",
+    status: 500,
+    response: "server error"
   });
 });

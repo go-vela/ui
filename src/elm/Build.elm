@@ -277,9 +277,13 @@ viewBuildHistory now timezone page org repo builds =
     if show then
         case builds of
             RemoteData.Success blds ->
-                div [ class "build-history", Util.testAttribute "build-history" ] <|
-                    List.indexedMap (\idx -> \build -> recentBuild now timezone org repo build idx) <|
-                        List.take 10 blds
+                if List.length blds > 0 then
+                    div [ class "build-history", Util.testAttribute "build-history" ] <|
+                        List.indexedMap (\idx -> \build -> recentBuild now timezone org repo build idx) <|
+                            List.take 10 blds
+
+                else
+                    text ""
 
             RemoteData.Loading ->
                 div [ class "build-history" ] [ smallLoader ]
