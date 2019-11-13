@@ -32,7 +32,7 @@ const app: App = Elm.Main.init(config);
 
 // subscribe to session events sent from Elm
 app.ports.storeSession.subscribe(sessionMessage => {
-  if (sessionMessage === null || sessionMessage.token === "") {
+  if (sessionMessage === null) {
     sessionStorage.removeItem(storageKey);
   } else {
     sessionStorage.setItem(storageKey, JSON.stringify(sessionMessage));

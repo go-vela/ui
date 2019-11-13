@@ -52,6 +52,7 @@ import Http exposing (Error(..))
 import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
+import Json.Encode as Encode
 import List.Extra exposing (setIf)
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
@@ -77,19 +78,20 @@ import Vela
         , Repo
         , Repositories
         , Repository
+        , Session
         , SourceRepoUpdateFunction
         , SourceRepositories
         , Step
         , StepNumber
         , Steps
         , User
-        , decodeUser
+        , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
         , defaultRepository
-        , defaultUser
+        , defaultSession
         , encodeAddRepository
-        , encodeUser
+        , encodeSession
         )
 
 
@@ -102,13 +104,13 @@ type alias Flags =
     , velaAPI : String
     , velaSourceBaseURL : String
     , velaSourceClient : String
-    , velaSession : Maybe User
+    , velaSession : Maybe Session
     }
 
 
 type alias Model =
     { page : Page
-    , user : WebData User
+    , session : Maybe Session
     , currentRepos : WebData Repositories
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
@@ -123,6 +125,7 @@ type alias Model =
     , zone : Time.Zone
     , time : Time.Posix
     , source_search_filters : RepoSearchFilters
+    , entryURL : Url
     }
 
 
@@ -153,7 +156,7 @@ init flags url navKey =
         model : Model
         model =
             { page = Pages.Overview
-            , user = Maybe.map RemoteData.succeed flags.velaSession |> Maybe.withDefault NotAsked
+            , session = flags.velaSession
             , currentRepos = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
@@ -177,6 +180,7 @@ init flags url navKey =
             , zone = Time.utc
             , time = Time.millisToPosix 0
             , source_search_filters = Dict.empty
+            , entryURL = url
             }
 
         ( newModel, newPage ) =
@@ -230,7 +234,7 @@ type Msg
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
-    | SessionChanged User
+    | SessionChanged (Maybe Session)
       -- Time
     | AdjustTimeZone Time.Zone
     | AdjustTime Time.Posix
@@ -246,22 +250,39 @@ update msg model =
         SignInRequested ->
             ( model, Navigation.load model.velaSourceOauthStartURL )
 
-        SessionChanged newUser ->
-            ( { model | user = RemoteData.succeed newUser }, Cmd.none )
+        SessionChanged newSession ->
+            ( { model | session = newSession }, Cmd.none )
 
         UserResponse response ->
             case response of
                 Ok ( _, user ) ->
-                    ( { model | user = RemoteData.succeed user }
+                    let
+                        currentSession : Session
+                        currentSession =
+                            Maybe.withDefault defaultSession model.session
+
+                        session : Session
+                        session =
+                            { currentSession | username = user.username, token = user.token }
+
+                        redirectTo : String
+                        redirectTo =
+                            case session.entrypoint of
+                                "" ->
+                                    Routes.routeToUrl Routes.Overview
+
+                                _ ->
+                                    session.entrypoint
+                    in
+                    ( { model | session = Just session }
                     , Cmd.batch
-                        [ Interop.storeSession <| encodeUser user
-                        , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview
+                        [ Interop.storeSession <| encodeSession session
+                        , Navigation.pushUrl model.navigationKey redirectTo
                         ]
                     )
 
                 Err error ->
-                    -- TODO: customize error toast based on type of error?
-                    ( { model | user = toFailure error }
+                    ( { model | session = Nothing }
                     , Cmd.batch
                         [ addError error
                         , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
@@ -488,17 +509,18 @@ subscriptions model =
 
 
 decodeOnSessionChange : Decode.Value -> Msg
-decodeOnSessionChange userJson =
-    case Decode.decodeValue decodeUser userJson of
-        Ok user ->
-            if String.isEmpty user.token then
+decodeOnSessionChange sessionJson =
+    case Decode.decodeValue decodeSession sessionJson of
+        Ok session ->
+            if String.isEmpty session.token then
                 NewRoute Routes.Login
 
             else
-                SessionChanged user
+                SessionChanged (Just session)
 
-        Err errorMessage ->
-            Error <| "bad session change: " ++ Decode.errorToString errorMessage
+        Err _ ->
+            -- typically you end up here when getting logged out where we return null
+            SessionChanged Nothing
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
@@ -652,7 +674,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy viewHeader model.user
+        [ lazy viewHeader model.session
         , viewNav model
         , div [ class "util" ] [ Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds ]
         , main_ []
@@ -701,6 +723,7 @@ viewContent model =
             )
 
         Pages.NotFound ->
+            -- TODO: make this page more helpful
             ( "404"
             , h1 [] [ text "Not Found" ]
             )
@@ -1065,26 +1088,31 @@ navButton model =
             text ""
 
 
-viewHeader : WebData User -> Html Msg
-viewHeader webDataUser =
+viewHeader : Maybe Session -> Html Msg
+viewHeader maybeSession =
+    let
+        session : Session
+        session =
+            Maybe.withDefault defaultSession maybeSession
+    in
     header []
         [ div [ class "identity", Util.testAttribute "identity" ]
             [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
-            , case webDataUser of
-                Success { username } ->
+            , case session.username of
+                "" ->
+                    details [ class "details", class "identity-name", attribute "role" "navigation" ]
+                        [ summary [ class "summary" ] [ text "Vela" ] ]
+
+                _ ->
                     details [ class "details", class "identity-name", attribute "role" "navigation" ]
                         [ summary [ class "summary" ]
-                            [ text username
+                            [ text session.username
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
                         , ul [ attribute "aria-hidden" "true", attribute "role" "menu" ]
                             [ li [] [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]
-
-                _ ->
-                    details [ class "details", class "identity-name", attribute "role" "navigation" ]
-                        [ summary [ class "summary" ] [ text "Vela" ] ]
             ]
         , div [ class "help-links" ]
             [ a [ href "https://github.com/go-vela/ui/issues/new" ] [ text "feedback" ]
@@ -1115,45 +1143,39 @@ recordsGroupBy key recordList =
 
 setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
 setNewPage route model =
-    case ( route, model.user ) of
-        {--
-            Logged in and on auth flow pages - what are you doing here?
-        --}
-        ( Routes.Login, Success _ ) ->
+    let
+        sessionHasToken : Bool
+        sessionHasToken =
+            case model.session of
+                Just session ->
+                    String.length session.token > 0
+
+                Nothing ->
+                    False
+    in
+    case ( route, sessionHasToken ) of
+        -- Logged in and on auth flow pages - what are you doing here?
+        ( Routes.Login, True ) ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview )
 
-        ( Routes.Authenticate _, Success _ ) ->
+        ( Routes.Authenticate _, True ) ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview )
 
-        {--
-            "Not logged in" (yet) and on auth flow pages, continue on..
-        --}
-        ( Routes.Login, _ ) ->
+        -- "Not logged in" (yet) and on auth flow pages, continue on..
+        ( Routes.Authenticate { code, state }, False ) ->
+            ( { model | page = Pages.Authenticate <| AuthParams code state }
+            , Api.try UserResponse <| Api.getUser model <| AuthParams code state
+            )
+
+        -- On the login page but not logged in.. good place to be
+        ( Routes.Login, False ) ->
             ( { model | page = Pages.Login }, Cmd.none )
 
-        ( Routes.Authenticate { code, state }, _ ) ->
-            let
-                authParams : AuthParams
-                authParams =
-                    { code = code
-                    , state = state
-                    }
-            in
-            ( { model | page = Pages.Authenticate authParams }, Api.try UserResponse <| Api.getUser model authParams )
-
-        {--
-            Redirect to login page if anon user hits any page
-        --}
-        ( _, NotAsked ) ->
-            ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login )
-
-        {--
-            "Normal" page handling below
-        --}
-        ( Routes.Overview, _ ) ->
+        -- "Normal" page handling below
+        ( Routes.Overview, True ) ->
             ( { model | page = Pages.Overview }, Api.tryAll RepositoriesResponse <| Api.getAllRepositories model )
 
-        ( Routes.AddRepositories, _ ) ->
+        ( Routes.AddRepositories, True ) ->
             case model.sourceRepos of
                 NotAsked ->
                     ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
@@ -1168,22 +1190,32 @@ setNewPage route model =
                 _ ->
                     ( { model | page = Pages.AddRepositories }, Cmd.none )
 
-        ( Routes.RepositoryBuilds org repo, _ ) ->
+        ( Routes.RepositoryBuilds org repo, True ) ->
             loadRepoBuildsPage model org repo
 
-        ( Routes.Build org repo buildNumber, _ ) ->
+        ( Routes.Build org repo buildNumber, True ) ->
             loadBuildPage model org repo buildNumber
 
-        ( Routes.Logout, _ ) ->
-            ( { model | user = NotAsked }
+        ( Routes.Logout, True ) ->
+            ( { model | session = Nothing }
             , Cmd.batch
-                [ Interop.storeSession <| encodeUser defaultUser
+                [ Interop.storeSession Encode.null
                 , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
                 ]
             )
 
-        ( Routes.NotFound, _ ) ->
+        -- Not found page handling
+        ( Routes.NotFound, True ) ->
             ( { model | page = Pages.NotFound }, Cmd.none )
+
+        -- Hitting any page and not being logged in will land you on the login page
+        ( _, False ) ->
+            ( model
+            , Cmd.batch
+                [ Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
+                , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
+                ]
+            )
 
 
 {-| loadRepoBuildsPage : takes model org and repo and loads the appropriate builds.
