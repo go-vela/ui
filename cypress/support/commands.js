@@ -20,6 +20,13 @@ Cypress.Commands.add("login", (path = "/", fixture = "sessionstorage") => {
   });
 });
 
+// Clear session storage helper
+Cypress.Commands.add("clearSession", () => {
+  cy.window().then(win => {
+    win.sessionStorage.clear();
+  });
+});
+
 // Route stubbing helpers
 Cypress.Commands.add("stubBuild", () => {
   cy.server();
