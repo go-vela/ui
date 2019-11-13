@@ -138,8 +138,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'go-vela/ui'
     needs: [elm-format, elm-test, integration]
-    env:
-      NODE_ENV: production
 
     steps:
       - uses: actions/checkout@v1
@@ -164,8 +162,8 @@ jobs:
       # └─┘└─┘┴┴─┘─┴┘
       - name: install dependencies
         run: npm i --prefer-offline --no-audit
-      - name: run production build
-        run: npm run build-prod
+      - name: run development build
+        run: npm run build
 
       # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
       #  │││ ││  ├┴┐├┤ ├┬┘
