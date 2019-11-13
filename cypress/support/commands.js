@@ -95,3 +95,31 @@ Cypress.Commands.add("stubStepsWithLogs", () => {
     }
   });
 });
+
+Cypress.Commands.add("stubBuildsErrors", () => {
+  cy.route({
+    method: "GET",
+    url: "*api/v1/repos/*/*/builds*",
+    status: 500,
+    response: "server error"
+  });
+});
+
+
+Cypress.Commands.add("stubBuildErrors", () => {
+  cy.route({
+    method: "GET",
+    url: "*api/v1/repos/*/*/builds/*",
+    status: 500,
+    response: "server error"
+  });
+});
+
+Cypress.Commands.add("stubStepsErrors", () => {
+  cy.route({
+    method: "GET",
+    url: "*api/v1/repos/*/*/builds/*/steps*",
+    status: 500,
+    response: "server error"
+  });
+});

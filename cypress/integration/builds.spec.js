@@ -59,4 +59,35 @@ context("org/repo View Repository Builds Page", () => {
       cy.location("pathname").should("eq", "/someorg/somerepo/1");
     });
   });
+
+  context("logged in and server returning builds error", () => {
+    beforeEach(() => {
+      cy.server();
+      cy.stubBuildsErrors();
+      cy.login("/someorg/somerepo");
+    });
+
+    it("error alert should show", () => {
+      cy.get("[data-test=alerts]")
+        .should("exist")
+        .contains("Error");
+    });
+  });
+
+  context("logged out and server returning 55 builds", () => {
+    beforeEach(() => {
+      cy.clearSession();
+      cy.server();
+      cy.stubBuilds();
+      cy.visit("/someorg/somerepo");
+    });
+
+    it("error alert should not show", () => {
+      cy.get("[data-test=alerts]").should("be.not.visible");
+    });
+
+    it("builds should redirect to login", () => {
+      cy.location("pathname").should("eq", "/account/login");
+    });
+  });
 });

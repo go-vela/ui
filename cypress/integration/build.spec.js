@@ -1,5 +1,68 @@
 context("org/repo/build View Build Page", () => {
-  context("logged in and server returning single build", () => {
+  context("logged in and server returning build error", () => {
+    beforeEach(() => {
+      cy.server();
+      cy.stubBuildErrors();
+      cy.stubBuildsErrors();
+      cy.stubStepsErrors();
+      cy.login("/someorg/somerepo/1");
+    });
+    it("error alert should show", () => {
+      cy.get("[data-test=alerts]")
+        .should("exist")
+        .contains("Error");
+    });
+  });
+  context("logged in and server returning 5 builds", () => {
+    beforeEach(() => {
+      cy.server();
+      cy.fixture("builds_5.json").as("builds5");
+      cy.route({
+        method: "GET",
+        url: "api/v1/repos/*/*/builds?page=1&per_page=100",
+        response: "@builds5"
+      });
+      cy.login("/someorg/somerepo/1");
+      cy.get("[data-test=build-history]").as("buildHistory");
+    });
+
+    it("build history should show", () => {
+      cy.get("@buildHistory").should("be.visible");
+    });
+
+    it("build history should have 5 builds", () => {
+      cy.get("@buildHistory").should("be.visible");
+      cy.get("@buildHistory")
+        .children()
+        .should("have.length", 5);
+    });
+
+    it("clicking build history item should redirect to build page", () => {
+      cy.get("@buildHistory")
+        .children()
+        .last()
+        .click();
+      cy.location("pathname").should("eq", "/someorg/somerepo/105");
+    });
+  });
+
+  context("logged in and server returning 0 builds", () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route({
+        method: "GET",
+        url: "api/v1/repos/*/*/builds?page=1&per_page=100",
+        response: []
+      });
+      cy.login("/someorg/somerepo/1");
+    });
+
+    it("build history should not show", () => {
+      cy.get("[data-test=build-history]").should("not.exist");
+    });
+  });
+
+  context("logged in and server returning builds and single build", () => {
     beforeEach(() => {
       cy.server();
       cy.stubBuild();
@@ -66,7 +129,7 @@ context("org/repo/build View Build Page", () => {
         cy.get("[data-test=restart-build]").as("restartBuild");
       });
 
-      it("clicking Restart Build should show alert", () => {
+      it("clicking restart build should show alert", () => {
         cy.get("@restartBuild").click();
         cy.get("[data-test=alert]").should(
           "contain",
@@ -78,6 +141,25 @@ context("org/repo/build View Build Page", () => {
         cy.get("@restartBuild").click();
         cy.get("[data-test=alert-hyperlink]").click();
         cy.location("pathname").should("eq", "/someorg/somerepo/2");
+      });
+    });
+
+    context("server failing to restart build", () => {
+      beforeEach(() => {
+        cy.server();
+        cy.fixture("build_pending.json").as("restartedBuild");
+        cy.route({
+          method: "POST",
+          url: "api/v1/repos/*/*/builds/*",
+          status: 500,
+          response: "server error"
+        });
+        cy.get("[data-test=restart-build]").as("restartBuild");
+      });
+
+      it("clicking restart build should show error alert", () => {
+        cy.get("@restartBuild").click();
+        cy.get("[data-test=alert]").should("contain", "Error");
       });
     });
 
