@@ -17,6 +17,7 @@ module Vela exposing
     , Repo
     , Repositories
     , Repository
+    , Session
     , SourceRepoUpdateFunction
     , SourceRepositories
     , Status(..)
@@ -29,6 +30,7 @@ module Vela exposing
     , decodeLog
     , decodeRepositories
     , decodeRepository
+    , decodeSession
     , decodeSourceRepositories
     , decodeStep
     , decodeSteps
@@ -36,9 +38,10 @@ module Vela exposing
     , defaultAddRepositoryPayload
     , defaultBuilds
     , defaultRepository
+    , defaultSession
     , defaultUser
     , encodeAddRepository
-    , encodeUser
+    , encodeSession
     )
 
 import Dict exposing (Dict)
@@ -69,6 +72,39 @@ type alias StepNumber =
 
 
 
+-- SESSION
+
+
+type alias Session =
+    { username : String
+    , token : String
+    , entrypoint : String
+    }
+
+
+defaultSession : Session
+defaultSession =
+    Session "" "" ""
+
+
+decodeSession : Decoder Session
+decodeSession =
+    Decode.succeed Session
+        |> required "username" string
+        |> required "token" string
+        |> required "entrypoint" string
+
+
+encodeSession : Session -> Encode.Value
+encodeSession session =
+    Encode.object
+        [ ( "username", Encode.string <| session.username )
+        , ( "token", Encode.string <| session.token )
+        , ( "entrypoint", Encode.string <| session.entrypoint )
+        ]
+
+
+
 -- USER
 
 
@@ -88,14 +124,6 @@ decodeUser =
     Decode.succeed User
         |> required "username" string
         |> required "token" string
-
-
-encodeUser : User -> Encode.Value
-encodeUser user =
-    Encode.object
-        [ ( "username", Encode.string <| user.username )
-        , ( "token", Encode.string <| user.token )
-        ]
 
 
 

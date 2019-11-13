@@ -50,6 +50,12 @@ context("Authentication", () => {
   });
 
   context("logged out", () => {
+    beforeEach(() => {
+      cy.window().then(win => {
+        win.sessionStorage.removeItem("vela");
+      });
+    });
+
     it("empty values in sessionstorage object should redirect to login page", () => {
       cy.visit("/");
       cy.location("pathname").should("eq", "/account/login");
@@ -117,6 +123,33 @@ context("Authentication", () => {
         .contains("Error");
 
       cy.location("pathname").should("eq", "/account/login");
+    });
+  });
+
+  context("post-login redirect", () => {
+    beforeEach(() => {
+      cy.login("/Cookie/Cat", "redirect");
+    });
+
+    it("should redirect to the login page", () => {
+      cy.location("pathname").should("eq", "/account/login");
+    });
+
+    it("shows the app name near the logo since no user has logged in yet", () => {
+      cy.get("[data-test=identity]").contains("Vela");
+    });
+
+    it("should redirect to the original entrypoint after logging in", () => {
+      cy.server();
+      cy.route({
+        method: "GET",
+        url: "/authenticate*",
+        response: "fixture:auth.json"
+      });
+
+      cy.visit("/account/authenticate?code=deadbeef&state=1337");
+
+      cy.location("pathname").should("eq", "/Cookie/Cat");
     });
   });
 });

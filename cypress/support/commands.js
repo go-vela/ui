@@ -8,9 +8,9 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
-// Login helper
-Cypress.Commands.add("login", (path = "/") => {
-  cy.fixture("sessionstorage").then(sessionstorageSample => {
+// Login helper (accepts initial path to vist and sessionstorage fixture)
+Cypress.Commands.add("login", (path = "/", fixture = "sessionstorage") => {
+  cy.fixture(fixture).then(sessionstorageSample => {
     cy.visit(path, {
       onBeforeLoad: win => {
         const serialized = JSON.stringify(sessionstorageSample);
@@ -28,28 +28,28 @@ Cypress.Commands.add("stubBuild", () => {
   cy.fixture("build_success.json").as("successBuild");
   cy.fixture("build_failure.json").as("failureBuild");
   cy.route({
-      method: "GET",
-      url: "api/v1/repos/*/*/builds/1",
-      status: 200,
-      response: "@runningBuild"
+    method: "GET",
+    url: "api/v1/repos/*/*/builds/1",
+    status: 200,
+    response: "@runningBuild"
   });
   cy.route({
-      method: "GET",
-      url: "api/v1/repos/*/*/builds/2",
-      status: 200,
-      response: "@pendingBuild"
+    method: "GET",
+    url: "api/v1/repos/*/*/builds/2",
+    status: 200,
+    response: "@pendingBuild"
   });
   cy.route({
-      method: "GET",
-      url: "api/v1/repos/*/*/builds/3",
-      status: 200,
-      response: "@successBuild"
+    method: "GET",
+    url: "api/v1/repos/*/*/builds/3",
+    status: 200,
+    response: "@successBuild"
   });
   cy.route({
-      method: "GET",
-      url: "api/v1/repos/*/*/builds/4",
-      status: 200,
-      response: "@failureBuild"
+    method: "GET",
+    url: "api/v1/repos/*/*/builds/4",
+    status: 200,
+    response: "@failureBuild"
   });
 });
 
@@ -75,21 +75,20 @@ Cypress.Commands.add("stubBuilds", () => {
   });
 });
 
-
 Cypress.Commands.add("stubStepsWithLogs", () => {
   cy.server();
   cy.fixture("steps_5.json").as("steps");
   cy.route({
-      method: "GET",
-      url: "api/v1/repos/*/*/builds/*/steps",
-      status: 200,
-      response: "@steps"
+    method: "GET",
+    url: "api/v1/repos/*/*/builds/*/steps",
+    status: 200,
+    response: "@steps"
   });
   cy.fixture("logs").then(logs => {
     for (let i = 0; i < logs.length; i++) {
       cy.route({
         method: "GET",
-        url: "api/v1/repos/*/*/builds/*/steps/"+logs[i]['step_id']+"/logs",
+        url: "api/v1/repos/*/*/builds/*/steps/" + logs[i]["step_id"] + "/logs",
         status: 200,
         response: logs[i]
       });

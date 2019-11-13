@@ -88,4 +88,5 @@ export type ToElm<T> = {
 export type Session = {
   readonly username: string;
   readonly token: string;
+  readonly entrypoint: string;
 };
