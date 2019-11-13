@@ -11,6 +11,7 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
+    , Field
     , Log
     , Logs
     , Org
@@ -26,6 +27,7 @@ module Vela exposing
     , Steps
     , UpdateRepositoryPayload
     , User
+    , buildUpdateRepositoryPayload
     , decodeBuild
     , decodeBuilds
     , decodeLog
@@ -275,6 +277,10 @@ type alias UpdateRepositoryPayload =
     }
 
 
+type alias Field =
+    String
+
+
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
     UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing
@@ -292,13 +298,35 @@ encodeUpdateRepository repo =
 
 
 optionalBool : Maybe Bool -> Encode.Value
-optionalBool b =
-    case b of
-        Just b_ ->
-            Encode.bool b_
+optionalBool value =
+    case value of
+        Just value_ ->
+            Encode.bool value_
 
         Nothing ->
             Encode.null
+
+
+buildUpdateRepositoryPayload : Field -> Bool -> UpdateRepositoryPayload
+buildUpdateRepositoryPayload field value =
+    case field of
+        "active" ->
+            { defaultUpdateRepositoryPayload | active = Just value }
+
+        "allow_pull" ->
+            { defaultUpdateRepositoryPayload | allow_pull = Just value }
+
+        "allow_push" ->
+            { defaultUpdateRepositoryPayload | allow_push = Just value }
+
+        "allow_deploy" ->
+            { defaultUpdateRepositoryPayload | allow_deploy = Just value }
+
+        "allow_tag" ->
+            { defaultUpdateRepositoryPayload | allow_tag = Just value }
+
+        _ ->
+            defaultUpdateRepositoryPayload
 
 
 

@@ -74,6 +74,7 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
+        , Field
         , Log
         , Logs
         , Org
@@ -88,6 +89,7 @@ import Vela
         , Steps
         , UpdateRepositoryPayload
         , User
+        , buildUpdateRepositoryPayload
         , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
@@ -98,7 +100,6 @@ import Vela
         , encodeAddRepository
         , encodeSession
         , encodeUpdateRepository
-        , encodeUser
         )
 
 
@@ -133,17 +134,6 @@ type alias Model =
     , time : Time.Posix
     , sourceSearchFilters : RepoSearchFilters
     , repo : WebData Repository
-    }
-
-
-initRepoSettings : WebData RepoSettings
-initRepoSettings =
-    RemoteData.succeed <| RepoSettings False
-
-
-type alias RepoSettings =
-    { enabled : Bool
-    , source_search_filters : RepoSearchFilters
     , entryURL : Url
     }
 
@@ -153,10 +143,6 @@ type alias RepoSearchFilters =
 
 
 type alias SearchFilter =
-    String
-
-
-type alias Field =
     String
 
 
@@ -239,10 +225,9 @@ type Msg
     | SignInRequested
     | FetchSourceRepositories
     | AddRepo Repository
-    | UpdateRepo Repo
+    | UpdateRepo Field Bool
     | AddOrgRepos Repositories
     | RemoveRepo Repository
-      -- | UpdateRepo Field Value
     | RestartBuild Org Repo BuildNumber
     | GetBuilds Org Repo
       -- Inbound HTTP responses
@@ -251,7 +236,7 @@ type Msg
     | RepoResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoAddedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
-    | RepoUpdatedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
+    | RepoUpdatedResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -352,7 +337,7 @@ update msg model =
                 Err error ->
                     ( { model | sourceRepos = updateSourceRepoStatus repo (toFailure error) model.sourceRepos updateSourceRepoListByRepoName }, addError error )
 
-        RepoUpdatedResponse repo response ->
+        RepoUpdatedResponse response ->
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
@@ -467,18 +452,18 @@ update msg model =
             , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
             )
 
-        UpdateRepo repo ->
+        UpdateRepo field value ->
             let
                 payload : UpdateRepositoryPayload
                 payload =
-                    buildUpdateRepositoryPayload repo model.velaSourceBaseURL
+                    buildUpdateRepositoryPayload field value
 
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
             in
             ( { model | repo = Loading }
-            , Api.try (RepoUpdatedResponse repo) <| Api.updateRepository model body
+            , Api.try RepoUpdatedResponse <| Api.updateRepository model body
             )
 
         AddOrgRepos repos ->
@@ -944,7 +929,7 @@ viewRepoSettings model org repo =
                     [ Util.testAttribute "global-search-input"
                     , placeholder "Type to filter all repositories..."
                     , checked repo_.active
-                    , onInput <| UpdateRepo <| buildUpdatedRepo "active" (not repo_.active)
+                    , onClick <| UpdateRepo "active" (not repo_.active)
                     , type_ "checkbox"
                     ]
                     []
@@ -988,9 +973,9 @@ viewSourceOrg : Model -> Org -> Repositories -> Html Msg
 viewSourceOrg model org repos =
     let
         ( repos_, filtered, content ) =
-            if shouldSearch <| searchFilterLocal org model.source_search_filters then
+            if shouldSearch <| searchFilterLocal org model.sourceSearchFilters then
                 -- Search and render repos using the global filter
-                searchReposLocal org model.source_search_filters repos
+                searchReposLocal org model.sourceSearchFilters repos
 
             else
                 -- Render repos normally
@@ -1485,21 +1470,6 @@ buildAddRepositoryPayload repo velaSourceBaseURL =
 
 type alias UpdateRepoPayload =
     { active : Bool
-    }
-
-
-buildUpdateRepositoryPayload : Field -> Bool -> UpdateRepositoryPayload
-buildUpdateRepositoryPayload field value =
-    { defaultUpdateRepositoryPayload
-        | field = value
-    }
-
-
-{-| buildUpdatedRepo : builds the payload for updating a repository via the api
--}
-buildUpdatedRepo : Repository -> Field -> Bool -> UpdateRepoPayload
-buildUpdatedRepo repo field b =
-    { active = b
     }
 
 
