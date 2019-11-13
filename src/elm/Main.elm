@@ -54,6 +54,7 @@ import Http exposing (Error(..))
 import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
+import Json.Encode as Encode
 import List.Extra exposing (setIf)
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
@@ -79,6 +80,7 @@ import Vela
         , Repo
         , Repositories
         , Repository
+        , Session
         , SourceRepoUpdateFunction
         , SourceRepositories
         , Step
@@ -86,13 +88,15 @@ import Vela
         , Steps
         , UpdateRepositoryPayload
         , User
-        , decodeUser
+        , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
         , defaultRepository
+        , defaultSession
         , defaultUpdateRepositoryPayload
         , defaultUser
         , encodeAddRepository
+        , encodeSession
         , encodeUpdateRepository
         , encodeUser
         )
@@ -107,13 +111,13 @@ type alias Flags =
     , velaAPI : String
     , velaSourceBaseURL : String
     , velaSourceClient : String
-    , velaSession : Maybe User
+    , velaSession : Maybe Session
     }
 
 
 type alias Model =
     { page : Page
-    , user : WebData User
+    , session : Maybe Session
     , currentRepos : WebData Repositories
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
@@ -139,6 +143,8 @@ initRepoSettings =
 
 type alias RepoSettings =
     { enabled : Bool
+    , source_search_filters : RepoSearchFilters
+    , entryURL : Url
     }
 
 
@@ -173,7 +179,7 @@ init flags url navKey =
         model : Model
         model =
             { page = Pages.Overview
-            , user = Maybe.map RemoteData.succeed flags.velaSession |> Maybe.withDefault NotAsked
+            , session = flags.velaSession
             , currentRepos = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
@@ -198,6 +204,7 @@ init flags url navKey =
             , time = Time.millisToPosix 0
             , sourceSearchFilters = Dict.empty
             , repo = RemoteData.succeed defaultRepository
+            , entryURL = url
             }
 
         ( newModel, newPage ) =
@@ -233,7 +240,7 @@ type Msg
     | FetchSourceRepositories
     | AddRepo Repository
     | UpdateRepo Repo
-    | AddOrgRepos String Repositories
+    | AddOrgRepos Repositories
     | RemoveRepo Repository
       -- | UpdateRepo Field Value
     | RestartBuild Org Repo BuildNumber
@@ -255,7 +262,7 @@ type Msg
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
-    | SessionChanged User
+    | SessionChanged (Maybe Session)
       -- Time
     | AdjustTimeZone Time.Zone
     | AdjustTime Time.Posix
@@ -271,22 +278,39 @@ update msg model =
         SignInRequested ->
             ( model, Navigation.load model.velaSourceOauthStartURL )
 
-        SessionChanged newUser ->
-            ( { model | user = RemoteData.succeed newUser }, Cmd.none )
+        SessionChanged newSession ->
+            ( { model | session = newSession }, Cmd.none )
 
         UserResponse response ->
             case response of
                 Ok ( _, user ) ->
-                    ( { model | user = RemoteData.succeed user }
+                    let
+                        currentSession : Session
+                        currentSession =
+                            Maybe.withDefault defaultSession model.session
+
+                        session : Session
+                        session =
+                            { currentSession | username = user.username, token = user.token }
+
+                        redirectTo : String
+                        redirectTo =
+                            case session.entrypoint of
+                                "" ->
+                                    Routes.routeToUrl Routes.Overview
+
+                                _ ->
+                                    session.entrypoint
+                    in
+                    ( { model | session = Just session }
                     , Cmd.batch
-                        [ Interop.storeSession <| encodeUser user
-                        , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview
+                        [ Interop.storeSession <| encodeSession session
+                        , Navigation.pushUrl model.navigationKey redirectTo
                         ]
                     )
 
                 Err error ->
-                    -- TODO: customize error toast based on type of error
-                    ( { model | user = toFailure error }
+                    ( { model | session = Nothing }
                     , Cmd.batch
                         [ addError error
                         , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
@@ -457,18 +481,9 @@ update msg model =
             , Api.try (RepoUpdatedResponse repo) <| Api.updateRepository model body
             )
 
-        AddOrgRepos org repos ->
-            let
-                body : Repository -> Http.Body
-                body r =
-                    Http.jsonBody <| encodeAddRepository <| buildAddRepositoryPayload r model.velaSourceBaseURL
-
-                -- list of tasks to batch
-                tasks =
-                    List.map (\repo -> Api.try (RepoAddedResponse repo) <| Api.addRepository model <| body repo) repos
-            in
-            ( { model | sourceRepos = updateSourceRepoStatus { defaultRepository | org = org, name = "" } Loading model.sourceRepos updateSourceRepoListByOrg }
-            , Cmd.batch tasks
+        AddOrgRepos repos ->
+            ( model
+            , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
             )
 
         GetBuilds org repo ->
@@ -543,17 +558,18 @@ subscriptions model =
 
 
 decodeOnSessionChange : Decode.Value -> Msg
-decodeOnSessionChange userJson =
-    case Decode.decodeValue decodeUser userJson of
-        Ok user ->
-            if String.isEmpty user.token then
+decodeOnSessionChange sessionJson =
+    case Decode.decodeValue decodeSession sessionJson of
+        Ok session ->
+            if String.isEmpty session.token then
                 NewRoute Routes.Login
 
             else
-                SessionChanged user
+                SessionChanged (Just session)
 
-        Err errorMessage ->
-            Error <| "bad session change: " ++ Decode.errorToString errorMessage
+        Err _ ->
+            -- typically you end up here when getting logged out where we return null
+            SessionChanged Nothing
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
@@ -707,7 +723,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy viewHeader model.user
+        [ lazy viewHeader model.session
         , viewNav model
         , div [ class "util" ] [ Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds ]
         , main_ []
@@ -761,6 +777,7 @@ viewContent model =
             )
 
         Pages.NotFound ->
+            -- TODO: make this page more helpful
             ( "404"
             , h1 [] [ text "Not Found" ]
             )
@@ -969,30 +986,33 @@ viewSourceRepos model sourceRepos =
 -}
 viewSourceOrg : Model -> Org -> Repositories -> Html Msg
 viewSourceOrg model org repos =
-    viewSourceOrgDetails model org repos <|
-        if shouldSearch <| searchFilterLocal org model.sourceSearchFilters then
-            -- Search and render repos using the global filter
-            searchReposLocal org model.sourceSearchFilters repos
+    let
+        ( repos_, filtered, content ) =
+            if shouldSearch <| searchFilterLocal org model.source_search_filters then
+                -- Search and render repos using the global filter
+                searchReposLocal org model.source_search_filters repos
 
-        else
-            -- Render repos normally
-            List.map viewSourceRepo repos
+            else
+                -- Render repos normally
+                ( repos, False, List.map viewSourceRepo repos )
+    in
+    viewSourceOrgDetails model org repos_ filtered content
 
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element
 -}
-viewSourceOrgDetails : Model -> Org -> Repositories -> List (Html Msg) -> Html Msg
-viewSourceOrgDetails model org repos content =
+viewSourceOrgDetails : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> Html Msg
+viewSourceOrgDetails model org repos filtered content =
     div [ class "org" ]
         [ details [ class "details", class "repo-item" ] <|
-            viewSourceOrgSummary model org repos content
+            viewSourceOrgSummary model org repos filtered content
         ]
 
 
 {-| viewSourceOrgSummary : renders the source repositories details summary
 -}
-viewSourceOrgSummary : Model -> Org -> Repositories -> List (Html Msg) -> List (Html Msg)
-viewSourceOrgSummary model org repos content =
+viewSourceOrgSummary : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> List (Html Msg)
+viewSourceOrgSummary model org repos filtered content =
     summary [ class "summary", Util.testAttribute <| "source-org-" ++ org ]
         [ div [ class "org-header" ]
             [ text org
@@ -1001,7 +1021,7 @@ viewSourceOrgSummary model org repos content =
         ]
         :: div [ class "source-actions" ]
             [ repoSearchBarLocal model org
-            , addOrgBtn org repos
+            , addReposBtn org repos filtered
             ]
         :: content
 
@@ -1036,11 +1056,18 @@ viewRepoCount repos =
     span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
 
 
-{-| addOrgBtn : takes org and repos and renders a button to add them all at once
+{-| addReposBtn : takes List of repos and renders a button to add them all at once, texts depends on user input filter
 -}
-addOrgBtn : Org -> Repositories -> Html Msg
-addOrgBtn org repos =
-    button [ class "-inverted", onClick (AddOrgRepos org repos) ] [ text "Add All" ]
+addReposBtn : Org -> Repositories -> Bool -> Html Msg
+addReposBtn org repos filtered =
+    button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (AddOrgRepos repos) ]
+        [ text <|
+            if filtered then
+                "Add Results"
+
+            else
+                "Add All"
+        ]
 
 
 {-| buildAddRepoElement : builds action element for adding single repos
@@ -1199,26 +1226,31 @@ navButton model =
             text ""
 
 
-viewHeader : WebData User -> Html Msg
-viewHeader webDataUser =
+viewHeader : Maybe Session -> Html Msg
+viewHeader maybeSession =
+    let
+        session : Session
+        session =
+            Maybe.withDefault defaultSession maybeSession
+    in
     header []
         [ div [ class "identity", Util.testAttribute "identity" ]
             [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
-            , case webDataUser of
-                Success { username } ->
+            , case session.username of
+                "" ->
+                    details [ class "details", class "identity-name", attribute "role" "navigation" ]
+                        [ summary [ class "summary" ] [ text "Vela" ] ]
+
+                _ ->
                     details [ class "details", class "identity-name", attribute "role" "navigation" ]
                         [ summary [ class "summary" ]
-                            [ text username
+                            [ text session.username
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
                         , ul [ attribute "aria-hidden" "true", attribute "role" "menu" ]
                             [ li [] [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]
-
-                _ ->
-                    details [ class "details", class "identity-name", attribute "role" "navigation" ]
-                        [ summary [ class "summary" ] [ text "Vela" ] ]
             ]
         , div [ class "help-links" ]
             [ a [ href "https://github.com/go-vela/ui/issues/new" ] [ text "feedback" ]
@@ -1249,45 +1281,39 @@ recordsGroupBy key recordList =
 
 setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
 setNewPage route model =
-    case ( route, model.user ) of
-        {--
-            Logged in and on auth flow pages - what are you doing here?
-        --}
-        ( Routes.Login, Success _ ) ->
+    let
+        sessionHasToken : Bool
+        sessionHasToken =
+            case model.session of
+                Just session ->
+                    String.length session.token > 0
+
+                Nothing ->
+                    False
+    in
+    case ( route, sessionHasToken ) of
+        -- Logged in and on auth flow pages - what are you doing here?
+        ( Routes.Login, True ) ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview )
 
-        ( Routes.Authenticate _, Success _ ) ->
+        ( Routes.Authenticate _, True ) ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview )
 
-        {--
-            "Not logged in" (yet) and on auth flow pages, continue on..
-        --}
-        ( Routes.Login, _ ) ->
+        -- "Not logged in" (yet) and on auth flow pages, continue on..
+        ( Routes.Authenticate { code, state }, False ) ->
+            ( { model | page = Pages.Authenticate <| AuthParams code state }
+            , Api.try UserResponse <| Api.getUser model <| AuthParams code state
+            )
+
+        -- On the login page but not logged in.. good place to be
+        ( Routes.Login, False ) ->
             ( { model | page = Pages.Login }, Cmd.none )
 
-        ( Routes.Authenticate { code, state }, _ ) ->
-            let
-                authParams : AuthParams
-                authParams =
-                    { code = code
-                    , state = state
-                    }
-            in
-            ( { model | page = Pages.Authenticate authParams }, Api.try UserResponse <| Api.getUser model authParams )
-
-        {--
-            Redirect to login page if anon user hits any page
-        --}
-        ( _, NotAsked ) ->
-            ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login )
-
-        {--
-            "Normal" page handling below
-        --}
-        ( Routes.Overview, _ ) ->
+        -- "Normal" page handling below
+        ( Routes.Overview, True ) ->
             ( { model | page = Pages.Overview }, Api.tryAll RepositoriesResponse <| Api.getAllRepositories model )
 
-        ( Routes.AddRepositories, _ ) ->
+        ( Routes.AddRepositories, True ) ->
             case model.sourceRepos of
                 NotAsked ->
                     ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
@@ -1305,22 +1331,32 @@ setNewPage route model =
         ( Routes.RepoSettings org repo, _ ) ->
             loadRepoSettingsPage model org repo
 
-        ( Routes.RepositoryBuilds org repo, _ ) ->
+        ( Routes.RepositoryBuilds org repo, True ) ->
             loadRepoBuildsPage model org repo
 
-        ( Routes.Build org repo buildNumber, _ ) ->
+        ( Routes.Build org repo buildNumber, True ) ->
             loadBuildPage model org repo buildNumber
 
-        ( Routes.Logout, _ ) ->
-            ( { model | user = NotAsked }
+        ( Routes.Logout, True ) ->
+            ( { model | session = Nothing }
             , Cmd.batch
-                [ Interop.storeSession <| encodeUser defaultUser
+                [ Interop.storeSession Encode.null
                 , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
                 ]
             )
 
-        ( Routes.NotFound, _ ) ->
+        -- Not found page handling
+        ( Routes.NotFound, True ) ->
             ( { model | page = Pages.NotFound }, Cmd.none )
+
+        -- Hitting any page and not being logged in will land you on the login page
+        ( _, False ) ->
+            ( model
+            , Cmd.batch
+                [ Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
+                , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
+                ]
+            )
 
 
 {-| loadRepoSettingsPage : takes model org and repo and loads the page for updating repo configurations
@@ -1432,13 +1468,6 @@ updateSourceRepoListByRepoName repo status orgRepos =
                 sourceRepo
         )
         orgRepos
-
-
-{-| updateSourceRepoListByOrg : list map for updating repo status by org
--}
-updateSourceRepoListByOrg : Repository -> WebData Bool -> Repositories -> Repositories
-updateSourceRepoListByOrg _ status orgRepos =
-    List.map (\sourceRepo -> { sourceRepo | added = status }) orgRepos
 
 
 {-| buildAddRepositoryPayload : builds the payload for adding a repository via the api
@@ -1570,18 +1599,21 @@ searchReposGlobal filters repos =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> List (Html Msg)
+searchReposLocal : Org -> RepoSearchFilters -> Repositories -> ( Repositories, Bool, List (Html Msg) )
 searchReposLocal org filters repos =
     -- Filter the repos if the user typed more than 2 characters
     let
         filteredRepos =
             List.filter (\repo -> filterRepo filters (Just org) repo.name) repos
     in
-    if not <| List.isEmpty filteredRepos then
+    ( filteredRepos
+    , True
+    , if not <| List.isEmpty filteredRepos then
         List.map viewSourceRepo filteredRepos
 
-    else
+      else
         [ div [ class "-no-repos" ] [ text "No results" ] ]
+    )
 
 
 {-| filterRepo : takes org/repo display filters, the org and filters a single repo based on user-entered text
