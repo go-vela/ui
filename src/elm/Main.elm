@@ -88,7 +88,6 @@ import Vela
         , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
-        , defaultRepository
         , defaultSession
         , encodeAddRepository
         , encodeSession
