@@ -211,7 +211,7 @@ type Msg
     | SignInRequested
     | FetchSourceRepositories
     | AddRepo Repository
-    | AddOrgRepos String Repositories
+    | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
     | GetBuilds Org Repo
@@ -402,18 +402,9 @@ update msg model =
             , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
             )
 
-        AddOrgRepos org repos ->
-            let
-                body : Repository -> Http.Body
-                body r =
-                    Http.jsonBody <| encodeAddRepository <| buildAddRepositoryPayload r model.velaSourceBaseURL
-
-                -- list of tasks to batch
-                tasks =
-                    List.map (\repo -> Api.try (RepoAddedResponse repo) <| Api.addRepository model <| body repo) repos
-            in
-            ( { model | sourceRepos = updateSourceRepoStatus { defaultRepository | org = org, name = "" } Loading model.sourceRepos updateSourceRepoListByOrg }
-            , Cmd.batch tasks
+        AddOrgRepos repos ->
+            ( model
+            , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
             )
 
         GetBuilds org repo ->
@@ -863,30 +854,33 @@ viewSourceRepos model sourceRepos =
 -}
 viewSourceOrg : Model -> Org -> Repositories -> Html Msg
 viewSourceOrg model org repos =
-    viewSourceOrgDetails model org repos <|
-        if shouldSearch <| searchFilterLocal org model.source_search_filters then
-            -- Search and render repos using the global filter
-            searchReposLocal org model.source_search_filters repos
+    let
+        ( repos_, filtered, content ) =
+            if shouldSearch <| searchFilterLocal org model.source_search_filters then
+                -- Search and render repos using the global filter
+                searchReposLocal org model.source_search_filters repos
 
-        else
-            -- Render repos normally
-            List.map viewSourceRepo repos
+            else
+                -- Render repos normally
+                ( repos, False, List.map viewSourceRepo repos )
+    in
+    viewSourceOrgDetails model org repos_ filtered content
 
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element
 -}
-viewSourceOrgDetails : Model -> Org -> Repositories -> List (Html Msg) -> Html Msg
-viewSourceOrgDetails model org repos content =
+viewSourceOrgDetails : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> Html Msg
+viewSourceOrgDetails model org repos filtered content =
     div [ class "org" ]
         [ details [ class "details", class "repo-item" ] <|
-            viewSourceOrgSummary model org repos content
+            viewSourceOrgSummary model org repos filtered content
         ]
 
 
 {-| viewSourceOrgSummary : renders the source repositories details summary
 -}
-viewSourceOrgSummary : Model -> Org -> Repositories -> List (Html Msg) -> List (Html Msg)
-viewSourceOrgSummary model org repos content =
+viewSourceOrgSummary : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> List (Html Msg)
+viewSourceOrgSummary model org repos filtered content =
     summary [ class "summary", Util.testAttribute <| "source-org-" ++ org ]
         [ div [ class "org-header" ]
             [ text org
@@ -895,7 +889,7 @@ viewSourceOrgSummary model org repos content =
         ]
         :: div [ class "source-actions" ]
             [ repoSearchBarLocal model org
-            , addOrgBtn org repos
+            , addReposBtn org repos filtered
             ]
         :: content
 
@@ -930,11 +924,18 @@ viewRepoCount repos =
     span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
 
 
-{-| addOrgBtn : takes org and repos and renders a button to add them all at once
+{-| addReposBtn : takes List of repos and renders a button to add them all at once, texts depends on user input filter
 -}
-addOrgBtn : Org -> Repositories -> Html Msg
-addOrgBtn org repos =
-    button [ class "-inverted", onClick (AddOrgRepos org repos) ] [ text "Add All" ]
+addReposBtn : Org -> Repositories -> Bool -> Html Msg
+addReposBtn org repos filtered =
+    button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (AddOrgRepos repos) ]
+        [ text <|
+            if filtered then
+                "Add Results"
+
+            else
+                "Add All"
+        ]
 
 
 {-| buildAddRepoElement : builds action element for adding single repos
@@ -1277,13 +1278,6 @@ updateSourceRepoListByRepoName repo status orgRepos =
         orgRepos
 
 
-{-| updateSourceRepoListByOrg : list map for updating repo status by org
--}
-updateSourceRepoListByOrg : Repository -> WebData Bool -> Repositories -> Repositories
-updateSourceRepoListByOrg _ status orgRepos =
-    List.map (\sourceRepo -> { sourceRepo | added = status }) orgRepos
-
-
 {-| buildAddRepositoryPayload : builds the payload for adding a repository via the api
 -}
 buildAddRepositoryPayload : Repository -> String -> AddRepositoryPayload
@@ -1393,18 +1387,21 @@ searchReposGlobal filters repos =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> List (Html Msg)
+searchReposLocal : Org -> RepoSearchFilters -> Repositories -> ( Repositories, Bool, List (Html Msg) )
 searchReposLocal org filters repos =
     -- Filter the repos if the user typed more than 2 characters
     let
         filteredRepos =
             List.filter (\repo -> filterRepo filters (Just org) repo.name) repos
     in
-    if not <| List.isEmpty filteredRepos then
+    ( filteredRepos
+    , True
+    , if not <| List.isEmpty filteredRepos then
         List.map viewSourceRepo filteredRepos
 
-    else
+      else
         [ div [ class "-no-repos" ] [ text "No results" ] ]
+    )
 
 
 {-| filterRepo : takes org/repo display filters, the org and filters a single repo based on user-entered text

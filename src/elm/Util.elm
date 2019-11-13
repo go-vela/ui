@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Util exposing
     ( dateToHumanReadable
+    , dispatch
     , filterEmptyLists
     , fiveSecondsMillis
     , formatTestTag
@@ -21,6 +22,7 @@ import DateFormat exposing (monthNameFull)
 import Html exposing (Attribute)
 import Html.Attributes exposing (attribute)
 import RemoteData exposing (WebData)
+import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone)
 
 
@@ -115,3 +117,11 @@ isSuccess status =
 
         _ ->
             False
+
+
+{-| dispatch : performs an always-succeed task to push a Cmd Msg to update in loops
+-}
+dispatch : msg -> Cmd msg
+dispatch msg =
+    succeed msg
+        |> perform identity

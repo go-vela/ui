@@ -19,7 +19,7 @@ context("Add Repositories", () => {
     it("should show the orgs", () => {
       cy.get("[data-test=source-repos] .repo-list .org").should(
         "have.length",
-        2
+        3
       );
     });
 
@@ -78,6 +78,23 @@ context("Add Repositories", () => {
         .should("be.visible")
         .should("be.disabled");
       cy.wait("@sourceRepos");
+    });
+
+    it("shows the loading labels when all repos for org are added", () => {
+      cy.get("[data-test=source-org-github]").click();
+      cy.get("[data-test=add-org-github]").click({ force: true });
+
+      cy.get("[data-test=source-repo-octocat]")
+      .should("be.visible")
+      .and("contain", "Adding");
+
+      cy.get("[data-test=source-repo-octocat-1]")
+        .should("be.visible")
+        .and("contain", "Adding");
+
+      cy.get("[data-test=source-repo-octocat-2]")
+        .should("be.visible")
+        .and("contain", "Adding");
     });
   });
 
