@@ -114,25 +114,26 @@ viewBuildItem now org repo build =
             animationStatusClass build.status
 
         markdown =
-            [ div [ class "build--status", Util.testAttribute "build-status", statusClass ] status
-            , div [ class "build--info" ]
-                [ div [ class "build--row" ]
-                    [ div [ class "build--id" ] id
+            [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
+            , div [ class "info" ]
+                [ div [ class "row" ]
+                    [ div [ class "id" ] id
                     ]
-                , div [ class "build--row" ]
-                    [ div [ class "build--git-info" ]
-                        [ div [ class "build--git-info-commit" ] commit
+                , div [ class "row" ]
+                    [ div [ class "git-info" ]
+                        [ div [ class "commit" ] commit
                         , text "on"
-                        , div [ class "build--git-info-branch" ] branch
+                        , div [ class "branch" ] branch
                         , text "by"
-                        , div [ class "build--git-info-sender" ] sender
+                        , div [ class "sender" ] sender
                         ]
-                    , div [ class "build--time-info" ]
-                        [ div [ class "build--time-info-age" ] age
-                        , span [ class "build--time-info-delimiter" ] [ text "/" ]
-                        , div [ class "build--time-info-duration" ] duration
+                    , div [ class "time-info" ]
+                        [ div [ class "age" ] age
+                        , span [ class "delimiter" ] [ text "/" ]
+                        , div [ class "duration" ] duration
                         ]
                     ]
+                , buildError build
                 ]
             ]
     in
@@ -140,6 +141,30 @@ viewBuildItem now org repo build =
         [ div [ class "build", statusClass ] <|
             buildStatusStyles markdown build.status build.number
         ]
+
+
+{-| buildError : checks for build error and renders message
+-}
+buildError : Build -> Html msg
+buildError build =
+    case build.status of
+        Vela.Error ->
+            div [ class "row" ]
+                [ div [ class "error", Util.testAttribute "build-error" ]
+                    [ span [ class "label" ] [ text "error:" ]
+                    , span [ class "message" ]
+                        [ text <|
+                            if String.isEmpty build.error then
+                                "no error msg"
+
+                            else
+                                build.error
+                        ]
+                    ]
+                ]
+
+        _ ->
+            text ""
 
 
 {-| viewFullBuild : renders entire build based on current application time
@@ -216,7 +241,7 @@ viewStepDetails now step logs =
                     , div [ class "-duration" ] [ text <| formatRunTime now step.started step.finished ]
                     ]
                 ]
-            , viewLogs <| getStepLog step logs
+            , viewStepLogs step logs
             ]
     in
     details [ class "details" ] stepSummary
@@ -227,6 +252,28 @@ viewStepDetails now step logs =
 viewStepIcon : Step -> Html msg
 viewStepIcon step =
     stepStatusToIcon step.status |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+
+
+{-| viewStepLogs : takes step and logs and renders step logs or step error
+-}
+viewStepLogs : Step -> Logs -> Html msg
+viewStepLogs step logs =
+    case step.status of
+        Vela.Error ->
+            div [ class "log", class "error", Util.testAttribute "step-error" ]
+                [ span [ class "label" ] [ text "error:" ]
+                , span [ class "message" ]
+                    [ text <|
+                        if String.isEmpty step.error then
+                            "no error msg"
+
+                        else
+                            step.error
+                    ]
+                ]
+
+        _ ->
+            viewLogs <| getStepLog step logs
 
 
 {-| viewLogs : renders a build step logs
@@ -523,15 +570,15 @@ toTwoDigits int =
 stepClasses : Step -> Steps -> Html.Attribute msg
 stepClasses step steps =
     let
-        first =
-            case List.head steps of
+        last =
+            case List.head <| List.reverse steps of
                 Just s ->
                     s.number
 
                 Nothing ->
                     -1
     in
-    classList [ ( "step", True ), ( "-line", True ), ( "-last", first == step.number ) ]
+    classList [ ( "step", True ), ( "-line", True ), ( "-last", last == step.number ) ]
 
 
 {-| decodeLog : returns a string from a Maybe Log and decodes it from base64
