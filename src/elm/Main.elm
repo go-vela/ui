@@ -47,7 +47,7 @@ import Html.Attributes
         , value
         )
 import Html.Events exposing (onClick, onInput)
-import Html.Lazy exposing (lazy)
+import Html.Lazy exposing (lazy2)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -103,6 +103,8 @@ type alias Flags =
     , velaAPI : String
     , velaSourceBaseURL : String
     , velaSourceClient : String
+    , velaFeedbackURL : String
+    , velaDocsURL : String
     , velaSession : Maybe Session
     }
 
@@ -120,6 +122,8 @@ type alias Model =
     , velaAPI : String
     , velaSourceBaseURL : String
     , velaSourceOauthStartURL : String
+    , velaFeedbackURL : String
+    , velaDocsURL : String
     , navigationKey : Navigation.Key
     , zone : Time.Zone
     , time : Time.Posix
@@ -174,6 +178,8 @@ init flags url navKey =
                     , UB.string "client_id" flags.velaSourceClient
                     ]
             , velaSourceBaseURL = flags.velaSourceBaseURL
+            , velaFeedbackURL = flags.velaFeedbackURL
+            , velaDocsURL = flags.velaDocsURL
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = Time.utc
@@ -664,7 +670,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy viewHeader model.session
+        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL }
         , viewNav model
         , div [ class "util" ] [ Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds ]
         , main_ []
@@ -1088,8 +1094,8 @@ navButton model =
             text ""
 
 
-viewHeader : Maybe Session -> Html Msg
-viewHeader maybeSession =
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String } -> Html Msg
+viewHeader maybeSession { feedbackLink, docsLink } =
     let
         session : Session
         session =
@@ -1115,8 +1121,8 @@ viewHeader maybeSession =
                         ]
             ]
         , div [ class "help-links" ]
-            [ a [ href "https://github.com/go-vela/ui/issues/new" ] [ text "feedback" ]
-            , a [ href "https://go-vela.github.io/docs" ] [ text "docs" ]
+            [ a [ href feedbackLink ] [ text "feedback" ]
+            , a [ href docsLink ] [ text "docs" ]
             , FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml []
             ]
         ]
