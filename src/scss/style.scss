@@ -1225,7 +1225,7 @@ button.-solid {
   bottom: 10px;
 
   width: 100%;
-  max-width: 500px;
+  max-width: 530px;
   margin: 0;
   padding: 0;
 
@@ -1237,11 +1237,10 @@ button.-solid {
   margin: 1em 1em 0 1em;
 
   transition: max-height 1.2s, margin-top 1.2s;
-
-  background-color: var(--color-bg-darker);
 }
 
 .alert-container {
+  width: 500px;
   padding: 1em;
 
   cursor: pointer;
@@ -1249,6 +1248,7 @@ button.-solid {
   color: white;
   border-radius: 5px;
   border-radius: 0px;
+  background-color: var(--color-bg-darker);
   box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
 
   font-size: 14px;
@@ -1262,10 +1262,12 @@ button.-solid {
 
 .alert-container .-message {
   display: flex;
+  overflow-y: auto;
   flex-direction: row;
   justify-content: space-between;
 
-  margin-top: 0.5em;
+  max-height: 3.25em;
+  margin-top: 0.25em;
   margin-bottom: 0;
 
   font-size: 0.9em;

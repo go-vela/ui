@@ -1,7 +1,7 @@
 {--
-Copyright (c) 2019 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
---}
+  Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+  Use of this source code is governed by the LICENSE file in this repository.
+  --}
 
 
 module Alerts exposing (Alert(..), config, view)
@@ -90,7 +90,7 @@ wrapAlert variantClass title message link =
 config : Alerting.Config msg
 config =
     Alerts.config
-        |> Alerting.delay (Util.oneSecondMillis * 15)
+        |> Alerting.delay (Util.oneSecondMillis * 30)
         |> Alerting.containerAttrs [ class "alert-container-attributes" ]
         |> Alerting.itemAttrs [ Util.testAttribute "alert", class "alert-item-attributes" ]
 
