@@ -51,6 +51,10 @@ export type Flags = {
   readonly velaSourceBaseURL: string;
   /** @property velaSourceClient the "Client ID" for the OAuth app set up in the source management tool */
   readonly velaSourceClient: string;
+  /** @property velaFeedbackURL allows you to customize the destination of the feedback link */
+  readonly velaFeedbackURL: string;
+  /** @property velaDocsURL allows you to customize the destination of the docs link */
+  readonly velaDocsURL: string;
   /** @property velaSession used for passsing in an existing Vela session to Elm */
   readonly velaSession: Session | null;
 };

@@ -138,8 +138,8 @@ context("org/repo/build View Build Page", () => {
       });
 
       it("clicking restarted build link should redirect to Build page", () => {
-        cy.get("@restartBuild").click();
-        cy.get("[data-test=alert-hyperlink]").click();
+        cy.get("@restartBuild").click({ force: true });
+        cy.get("[data-test=alert-hyperlink]").click({ force: true });
         cy.location("pathname").should("eq", "/someorg/somerepo/2");
       });
     });
@@ -230,6 +230,29 @@ context("org/repo/build View Build Page", () => {
 
       it("build should have failure style", () => {
         cy.get("@buildStatus").should("have.class", "-failure");
+      });
+    });
+
+    context("visit build with server error", () => {
+      beforeEach(() => {
+        cy.visit("/someorg/somerepo/5");
+        cy.get("[data-test=full-build]").as("build");
+        cy.get("@build")
+          .get("[data-test=build-status]")
+          .as("buildStatus");
+      });
+
+      it("build should have failure style", () => {
+        cy.get("@buildStatus").should("have.class", "-failure");
+      });
+
+      it("build error should show", () => {
+        cy.get("[data-test=build-error]").should("be.visible");
+      });
+
+      it("build error should contain error", () => {
+        cy.get("[data-test=build-error]").contains("error:");
+        cy.get("[data-test=build-error]").contains("failure authenticating");
       });
     });
   });
