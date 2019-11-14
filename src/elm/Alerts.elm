@@ -90,7 +90,7 @@ wrapAlert variantClass title message link =
 config : Alerting.Config msg
 config =
     Alerts.config
-        |> Alerting.delay (Util.oneSecondMillis * 15)
+        |> Alerting.delay (Util.oneSecondMillis * 30)
         |> Alerting.containerAttrs [ class "alert-container-attributes" ]
         |> Alerting.itemAttrs [ Util.testAttribute "alert", class "alert-item-attributes" ]
 
