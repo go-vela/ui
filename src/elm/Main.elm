@@ -59,6 +59,7 @@ import List.Extra exposing (setIf)
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
+import Settings
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
 import Time exposing (utc)
@@ -89,7 +90,8 @@ import Vela
         , Steps
         , UpdateRepositoryPayload
         , User
-        , buildUpdateRepositoryPayload
+        , buildUpdateRepoBoolPayload
+        , buildUpdateRepoStringPayload
         , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
@@ -232,7 +234,8 @@ type Msg
     | FetchSourceRepositories
     | FetchRepo Org Repo
     | AddRepo Repository
-    | UpdateRepo Org Repo Field Bool
+    | UpdateRepoBool Org Repo Field Bool
+    | UpdateRepoString Org Repo Field String
     | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
@@ -243,7 +246,7 @@ type Msg
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoAddedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
-    | RepoUpdatedResponse Field Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
+    | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -348,11 +351,11 @@ update msg model =
                 Err error ->
                     ( { model | sourceRepos = updateSourceRepoStatus repo (toFailure error) model.sourceRepos updateSourceRepoListByRepoName }, addError error )
 
-        RepoUpdatedResponse field value response ->
+        RepoUpdatedResponse field response ->
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (repoUpdateMsg field value updatedRepo.full_name) Nothing)
+                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (Settings.repoUpdateMsg field updatedRepo) Nothing)
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
@@ -464,18 +467,32 @@ update msg model =
             , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
             )
 
-        UpdateRepo org repo field value ->
+        UpdateRepoBool org repo field value ->
             let
                 payload : UpdateRepositoryPayload
                 payload =
-                    buildUpdateRepositoryPayload field value
+                    buildUpdateRepoBoolPayload field value
 
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
             in
             ( model
-            , Api.try (RepoUpdatedResponse field value) (Api.updateRepository model org repo body)
+            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            )
+
+        UpdateRepoString org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoStringPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+            in
+            ( model
+            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
             )
 
         AddOrgRepos repos ->
@@ -539,20 +556,6 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
-
-
-repoUpdateMsg : Field -> Bool -> Repo -> String
-repoUpdateMsg field value repo =
-    case field of
-        "active" ->
-            if value then
-                repo ++ " activated."
-
-            else
-                repo ++ " deactivated."
-
-        _ ->
-            "Unrecognized update made to " ++ repo ++ "."
 
 
 
@@ -930,6 +933,30 @@ viewAddRepos model =
                 ]
 
 
+repoSettingsHooks : Repository -> Html Msg
+repoSettingsHooks repo =
+    div [ class "inputs" ]
+        [ div [ class "header" ] [ text "Hooks" ]
+        , div [ class "checkboxes" ]
+            [ repoUpdateCheckbox "push" "allow_push" repo.allow_push repo
+            , repoUpdateCheckbox "pull request" "allow_pr" repo.allow_pr repo
+            , repoUpdateCheckbox "deploy" "allow_deploy" repo.allow_deploy repo
+            , repoUpdateCheckbox "tag" "allow_tag" repo.allow_tag repo
+            ]
+        ]
+
+
+repoSettingsSecurity : Repository -> Html Msg
+repoSettingsSecurity repo =
+    div [ class "inputs" ]
+        [ div [ class "header" ] [ text "Security" ]
+        , div [ class "checkboxes" ]
+            [ repoUpdateCheckbox "private" "private" repo.private repo
+            , repoUpdateCheckbox "trusted" "trusted" repo.trusted repo
+            ]
+        ]
+
+
 repoUpdateCheckbox : String -> Field -> Bool -> Repository -> Html Msg
 repoUpdateCheckbox label field value repo =
     div [ class "checkbox" ]
@@ -937,7 +964,7 @@ repoUpdateCheckbox label field value repo =
             [ Util.testAttribute <| "repo-checkbox-" ++ field
             , class "-checkbox"
             , checked value
-            , onClick <| UpdateRepo repo.org repo.name field (not value)
+            , onClick <| UpdateRepoBool repo.org repo.name field (not value)
             , type_ "checkbox"
             ]
             []
@@ -945,14 +972,31 @@ repoUpdateCheckbox label field value repo =
         ]
 
 
-repoSettingsHooks : Repository -> List (Html Msg)
-repoSettingsHooks repo =
-    [ repoUpdateCheckbox "enabled" "active" repo.active repo
-    , repoUpdateCheckbox "push" "allow_push" repo.allow_push repo
-    , repoUpdateCheckbox "pull request" "allow_pr" repo.allow_pr repo
-    , repoUpdateCheckbox "deploy" "allow_deploy" repo.allow_deploy repo
-    , repoUpdateCheckbox "tag" "allow_tag" repo.allow_tag repo
-    ]
+repoSettingsVisibility : Repository -> Html Msg
+repoSettingsVisibility repo =
+    div [ class "inputs" ]
+        [ div [ class "header" ] [ text "Security" ]
+        , div [ class "radios" ]
+            [ repoVisibilityRadio "public" "public" repo
+            , repoVisibilityRadio "private" "private" repo
+            , repoVisibilityRadio "internal" "internal" repo
+            ]
+        ]
+
+
+repoVisibilityRadio : String -> String -> Repository -> Html Msg
+repoVisibilityRadio label value repo =
+    div [ class "checkbox" ]
+        [ input
+            [ Util.testAttribute <| "repo-checkbox-" ++ value
+            , class "-checkbox"
+            , checked (value == repo.visibility)
+            , onClick <| UpdateRepoString repo.org repo.name "visibility" value
+            , type_ "radio"
+            ]
+            []
+        , text label
+        ]
 
 
 {-| viewRepoSettings : takes model, org and repo and renders page for updating repo settings
@@ -968,7 +1012,9 @@ viewRepoSettings model =
     case model.repo of
         Success repo ->
             div [ class "repo-settings" ]
-                [ div [ class "input-group" ] <| repoSettingsHooks repo
+                [ repoSettingsHooks repo
+                , repoSettingsSecurity repo
+                , repoSettingsVisibility repo
                 ]
 
         Loading ->

@@ -27,7 +27,8 @@ module Vela exposing
     , Steps
     , UpdateRepositoryPayload
     , User
-    , buildUpdateRepositoryPayload
+    , buildUpdateRepoBoolPayload
+    , buildUpdateRepoStringPayload
     , decodeBuild
     , decodeBuilds
     , decodeLog
@@ -269,11 +270,14 @@ defaultAddRepositoryPayload =
 
 
 type alias UpdateRepositoryPayload =
-    { active : Maybe Bool
+    { private : Maybe Bool
+    , trusted : Maybe Bool
+    , active : Maybe Bool
     , allow_pull : Maybe Bool
     , allow_push : Maybe Bool
     , allow_deploy : Maybe Bool
     , allow_tag : Maybe Bool
+    , visibility : Maybe String
     }
 
 
@@ -283,17 +287,20 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
 encodeUpdateRepository repo =
     Encode.object
         [ ( "active", optionalBool repo.active )
+        , ( "private", optionalBool repo.private )
+        , ( "trusted", optionalBool repo.trusted )
         , ( "allow_pull", optionalBool repo.allow_pull )
         , ( "allow_push", optionalBool repo.allow_push )
         , ( "allow_deploy", optionalBool repo.allow_deploy )
         , ( "allow_tag", optionalBool repo.allow_tag )
+        , ( "visibility", optionalString repo.visibility )
         ]
 
 
@@ -307,9 +314,25 @@ optionalBool value =
             Encode.null
 
 
-buildUpdateRepositoryPayload : Field -> Bool -> UpdateRepositoryPayload
-buildUpdateRepositoryPayload field value =
+optionalString : Maybe String -> Encode.Value
+optionalString value =
+    case value of
+        Just value_ ->
+            Encode.string value_
+
+        Nothing ->
+            Encode.null
+
+
+buildUpdateRepoBoolPayload : Field -> Bool -> UpdateRepositoryPayload
+buildUpdateRepoBoolPayload field value =
     case field of
+        "private" ->
+            { defaultUpdateRepositoryPayload | private = Just value }
+
+        "trusted" ->
+            { defaultUpdateRepositoryPayload | trusted = Just value }
+
         "active" ->
             { defaultUpdateRepositoryPayload | active = Just value }
 
@@ -324,6 +347,16 @@ buildUpdateRepositoryPayload field value =
 
         "allow_tag" ->
             { defaultUpdateRepositoryPayload | allow_tag = Just value }
+
+        _ ->
+            defaultUpdateRepositoryPayload
+
+
+buildUpdateRepoStringPayload : Field -> String -> UpdateRepositoryPayload
+buildUpdateRepoStringPayload field value =
+    case field of
+        "visibility" ->
+            { defaultUpdateRepositoryPayload | visibility = Just value }
 
         _ ->
             defaultUpdateRepositoryPayload
