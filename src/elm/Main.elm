@@ -224,6 +224,7 @@ type Msg
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
+    | FetchRepo Org Repo
     | AddRepo Repository
     | UpdateRepo Org Repo Field Bool
     | AddOrgRepos Repositories
@@ -233,10 +234,10 @@ type Msg
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
-    | RepoResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
+    | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoAddedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
-    | RepoUpdatedResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
+    | RepoUpdatedResponse Field Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -310,7 +311,7 @@ update msg model =
                 Err error ->
                     ( { model | currentRepos = toFailure error }, addError error )
 
-        RepoResponse _ _ response ->
+        RepoResponse response ->
             case response of
                 Ok ( _, repoResponse ) ->
                     ( { model | repo = RemoteData.succeed repoResponse }, Cmd.none )
@@ -320,6 +321,9 @@ update msg model =
 
         FetchSourceRepositories ->
             ( { model | sourceRepos = Loading, sourceSearchFilters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+
+        FetchRepo org repo ->
+            ( { model | repo = Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -337,10 +341,11 @@ update msg model =
                 Err error ->
                     ( { model | sourceRepos = updateSourceRepoStatus repo (toFailure error) model.sourceRepos updateSourceRepoListByRepoName }, addError error )
 
-        RepoUpdatedResponse response ->
+        RepoUpdatedResponse field value response ->
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
+                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (repoUpdateMsg field value updatedRepo.full_name) Nothing)
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
@@ -463,7 +468,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
             in
             ( model
-            , Api.try RepoUpdatedResponse <| Api.updateRepository model org repo body
+            , Api.try (RepoUpdatedResponse field value) (Api.updateRepository model org repo body)
             )
 
         AddOrgRepos repos ->
@@ -527,6 +532,20 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
+
+
+repoUpdateMsg : Field -> Bool -> Repo -> String
+repoUpdateMsg field value repo =
+    case field of
+        "active" ->
+            if value then
+                    repo ++ " activated."
+
+                else
+                    repo ++ " deactivated."
+
+        _ ->
+            "Unrecognized update made to " ++ repo ++ "."
 
 
 
@@ -911,14 +930,7 @@ viewRepoSettings model org repo =
     let
         loading =
             div []
-                [ h1 []
-                    [ text "Loading your Repo Settings"
-                    , span [ class "loading-ellipsis" ] []
-                    ]
-                , p []
-                    [ text <|
-                        "Hang tight while we grab the settings for this repo."
-                    ]
+                [ Util.largeLoader
                 ]
     in
     case model.repo of
@@ -929,7 +941,7 @@ viewRepoSettings model org repo =
                     [ Util.testAttribute "global-search-input"
                     , placeholder "Type to filter all repositories..."
                     , checked repo_.active
-                    , onClick <| UpdateRepo repo_.org repo_.name "active" (not repo_.active)
+                    , onClick <| UpdateRepo org repo "active" (not repo_.active)
                     , type_ "checkbox"
                     ]
                     []
@@ -1176,14 +1188,14 @@ navButton model =
                 ]
                 [ text "Repo Settings" ]
 
-        Pages.RepoSettings _ _ ->
+        Pages.RepoSettings org repo ->
             button
                 [ classList
                     [ ( "btn-refresh", True )
                     , ( "-inverted", True )
                     , ( "loading", model.repo == Loading )
                     ]
-                , onClick FetchSourceRepositories
+                , onClick <| FetchRepo org repo
                 , disabled (model.repo == Loading)
                 , Util.testAttribute "refresh-repo-settings"
                 ]
@@ -1348,19 +1360,9 @@ setNewPage route model =
 -}
 loadRepoSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadRepoSettingsPage model org repo =
-    -- let
-    --     -- Builds already loaded
-    --     loadedBuilds =
-    --         model.builds
-    --     -- Set builds to Loading
-    --     loadingBuilds =
-    --         { loadedBuilds | org = org, repo = repo, builds = Loading }
-    -- in
-    -- Fetch builds from Api
-    ( { model | page = Pages.RepoSettings org repo }
-    , Cmd.batch
-        [ getRepo model org repo
-        ]
+    -- Fetch repo from Api
+    ( { model | page = Pages.RepoSettings org repo, repo = Loading }
+    , getRepo model org repo
     )
 
 
@@ -1628,7 +1630,7 @@ shouldSearch filter =
 
 getRepo : Model -> Org -> Repo -> Cmd Msg
 getRepo model org repo =
-    Api.try (RepoResponse org repo) <| Api.getRepo model org repo
+    Api.try RepoResponse <| Api.getRepo model org repo
 
 
 getBuilds : Model -> Org -> Repo -> Cmd Msg
