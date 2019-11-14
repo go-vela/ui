@@ -34,6 +34,7 @@ Cypress.Commands.add("stubBuild", () => {
   cy.fixture("build_pending.json").as("pendingBuild");
   cy.fixture("build_success.json").as("successBuild");
   cy.fixture("build_failure.json").as("failureBuild");
+  cy.fixture("build_error.json").as("errorBuild");
   cy.route({
     method: "GET",
     url: "api/v1/repos/*/*/builds/1",
@@ -57,6 +58,12 @@ Cypress.Commands.add("stubBuild", () => {
     url: "api/v1/repos/*/*/builds/4",
     status: 200,
     response: "@failureBuild"
+  });
+  cy.route({
+    method: "GET",
+    url: "api/v1/repos/*/*/builds/5",
+    status: 200,
+    response: "@errorBuild"
   });
 });
 

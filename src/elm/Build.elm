@@ -150,8 +150,8 @@ buildError build =
     case build.status of
         Vela.Error ->
             div [ class "row" ]
-                [ div [ class "error" ]
-                    [ span [ class "label" ] [ text "server error:" ]
+                [ div [ class "error", Util.testAttribute "build-error" ]
+                    [ span [ class "label" ] [ text "error:" ]
                     , span [ class "message" ] [ text build.error ]
                     ]
                 ]
@@ -253,8 +253,8 @@ viewStepMessage : Step -> Logs -> Html msg
 viewStepMessage step logs =
     case step.status of
         Vela.Error ->
-            div [ class "error" ]
-                [ span [ class "label" ] [ text "server error:" ]
+            div [ class "error", Util.testAttribute "step-error" ]
+                [ span [ class "label" ] [ text "error:" ]
                 , span [ class "message" ] [ text step.error ]
                 ]
 

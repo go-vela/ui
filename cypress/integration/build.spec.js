@@ -245,6 +245,15 @@ context("org/repo/build View Build Page", () => {
       it("build should have failure style", () => {
         cy.get("@buildStatus").should("have.class", "-failure");
       });
+
+      it("build error should show", () => {
+        cy.get("[data-test=build-error]").should("be.visible");
+      });
+
+      it("build error should contain error", () => {
+        cy.get("[data-test=build-error]").contains("error:");
+        cy.get("[data-test=build-error]").contains("failure authenticating");
+      });
     });
   });
 });
