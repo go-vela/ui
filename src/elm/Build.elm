@@ -353,7 +353,11 @@ recentBuild now timezone org repo build idx =
         icon =
             recentBuildStatusToIcon build.status idx
     in
-    a [ class "-build", Routes.href <| Routes.Build org repo <| String.fromInt build.number ]
+    a
+        [ class "-build"
+        , Routes.href <| Routes.Build org repo <| String.fromInt build.number
+        , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
+        ]
         [ icon |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
         , div [ class "-tooltip", Util.testAttribute "build-history-tooltip" ]
             [ div [ class "-info" ]
