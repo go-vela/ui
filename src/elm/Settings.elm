@@ -9,6 +9,10 @@ module Settings exposing (repoUpdateMsg)
 import Vela exposing (Field, Repository)
 
 
+
+-- HELPERS
+
+
 {-| repoUpdateMsg : takes update field and updated repo and returns how to alert the user.
 -}
 repoUpdateMsg : Field -> Repository -> String
@@ -37,7 +41,7 @@ msgPrefix field =
         "visibility" ->
             "$ visibility set to "
 
-        "allow_pr" ->
+        "allow_pull" ->
             "Pull events for $ "
 
         "allow_push" ->
@@ -75,8 +79,8 @@ msgSuffix field repo =
         "visibility" ->
             repo.visibility ++ "."
 
-        "allow_pr" ->
-            toggleText repo.allow_pr
+        "allow_pull" ->
+            toggleText repo.allow_pull
 
         "allow_push" ->
             toggleText repo.allow_push

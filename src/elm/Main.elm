@@ -27,6 +27,7 @@ import Html
         , h1
         , header
         , input
+        , label
         , li
         , main_
         , nav
@@ -43,7 +44,9 @@ import Html.Attributes
         , class
         , classList
         , disabled
+        , for
         , href
+        , id
         , placeholder
         , type_
         , value
@@ -469,6 +472,9 @@ update msg model =
 
         UpdateRepoBool org repo field value ->
             let
+                _ =
+                    Debug.log field value
+
                 payload : UpdateRepositoryPayload
                 payload =
                     buildUpdateRepoBoolPayload field value
@@ -933,72 +939,6 @@ viewAddRepos model =
                 ]
 
 
-repoSettingsHooks : Repository -> Html Msg
-repoSettingsHooks repo =
-    div [ class "inputs" ]
-        [ div [ class "header" ] [ text "Hooks" ]
-        , div [ class "checkboxes" ]
-            [ repoUpdateCheckbox "push" "allow_push" repo.allow_push repo
-            , repoUpdateCheckbox "pull request" "allow_pr" repo.allow_pr repo
-            , repoUpdateCheckbox "deploy" "allow_deploy" repo.allow_deploy repo
-            , repoUpdateCheckbox "tag" "allow_tag" repo.allow_tag repo
-            ]
-        ]
-
-
-repoSettingsSecurity : Repository -> Html Msg
-repoSettingsSecurity repo =
-    div [ class "inputs" ]
-        [ div [ class "header" ] [ text "Security" ]
-        , div [ class "checkboxes" ]
-            [ repoUpdateCheckbox "private" "private" repo.private repo
-            , repoUpdateCheckbox "trusted" "trusted" repo.trusted repo
-            ]
-        ]
-
-
-repoUpdateCheckbox : String -> Field -> Bool -> Repository -> Html Msg
-repoUpdateCheckbox label field value repo =
-    div [ class "checkbox" ]
-        [ input
-            [ Util.testAttribute <| "repo-checkbox-" ++ field
-            , class "-checkbox"
-            , checked value
-            , onClick <| UpdateRepoBool repo.org repo.name field (not value)
-            , type_ "checkbox"
-            ]
-            []
-        , text label
-        ]
-
-
-repoSettingsVisibility : Repository -> Html Msg
-repoSettingsVisibility repo =
-    div [ class "inputs" ]
-        [ div [ class "header" ] [ text "Security" ]
-        , div [ class "radios" ]
-            [ repoVisibilityRadio "public" "public" repo
-            , repoVisibilityRadio "private" "private" repo
-            , repoVisibilityRadio "internal" "internal" repo
-            ]
-        ]
-
-
-repoVisibilityRadio : String -> String -> Repository -> Html Msg
-repoVisibilityRadio label value repo =
-    div [ class "checkbox" ]
-        [ input
-            [ Util.testAttribute <| "repo-checkbox-" ++ value
-            , class "-checkbox"
-            , checked (value == repo.visibility)
-            , onClick <| UpdateRepoString repo.org repo.name "visibility" value
-            , type_ "radio"
-            ]
-            []
-        , text label
-        ]
-
-
 {-| viewRepoSettings : takes model, org and repo and renders page for updating repo settings
 -}
 viewRepoSettings : Model -> Html Msg
@@ -1030,6 +970,71 @@ viewRepoSettings model =
                         "There was an error fetching your repo settings... Click Refresh or try again later!"
                     ]
                 ]
+
+
+repoSettingsHooks : Repository -> Html Msg
+repoSettingsHooks repo =
+    div [ class "inputs" ]
+        [ div [ class "header" ] [ text "Hooks" ]
+        , div [ class "checkboxes" ]
+            [ repoUpdateCheckbox "push" "allow_push" repo.allow_push repo
+            , repoUpdateCheckbox "pull request" "allow_pull" repo.allow_pull repo
+            , repoUpdateCheckbox "deploy" "allow_deploy" repo.allow_deploy repo
+            , repoUpdateCheckbox "tag" "allow_tag" repo.allow_tag repo
+            ]
+        ]
+
+
+repoSettingsSecurity : Repository -> Html Msg
+repoSettingsSecurity repo =
+    div [ class "inputs" ]
+        [ div [ class "header" ] [ text "Security" ]
+        , div [ class "checkboxes" ]
+            [ repoUpdateCheckbox "private" "private" repo.private repo
+            ]
+        ]
+
+
+repoUpdateCheckbox : String -> Field -> Bool -> Repository -> Html Msg
+repoUpdateCheckbox name field value repo =
+    div [ class "checkbox" ]
+        [ input
+            [ Util.testAttribute <| "repo-checkbox-" ++ field
+            , id name
+            , checked value
+            , onClick <| UpdateRepoBool repo.org repo.name field (not value)
+            , type_ "checkbox"
+            ]
+            []
+        , label [ for name ] [ span [ class "-label" ] [ text name ] ]
+        ]
+
+
+repoSettingsVisibility : Repository -> Html Msg
+repoSettingsVisibility repo =
+    div [ class "inputs" ]
+        [ div [ class "header" ] [ text "Security" ]
+        , div [ class "radios" ]
+            [ repoVisibilityRadio "public" "public" repo
+            , repoVisibilityRadio "private" "private" repo
+            , repoVisibilityRadio "internal" "internal" repo
+            ]
+        ]
+
+
+repoVisibilityRadio : String -> String -> Repository -> Html Msg
+repoVisibilityRadio label value repo =
+    div [ class "checkbox" ]
+        [ input
+            [ Util.testAttribute <| "repo-checkbox-" ++ value
+            , class "-checkbox"
+            , checked (value == repo.visibility)
+            , onClick <| UpdateRepoString repo.org repo.name "visibility" value
+            , type_ "radio"
+            ]
+            []
+        , text label
+        ]
 
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search

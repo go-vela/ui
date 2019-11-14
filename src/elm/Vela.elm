@@ -160,7 +160,7 @@ type alias Repository =
     , private : Bool
     , trusted : Bool
     , active : Bool
-    , allow_pr : Bool
+    , allow_pull : Bool
     , allow_push : Bool
     , allow_deploy : Bool
     , allow_tag : Bool
@@ -190,7 +190,7 @@ decodeRepository =
         |> optional "private" bool False
         |> optional "trusted" bool False
         |> optional "active" bool False
-        |> optional "allow_pr" bool False
+        |> optional "allow_pull" bool False
         |> optional "allow_push" bool False
         |> optional "allow_deploy" bool False
         |> optional "allow_tag" bool False

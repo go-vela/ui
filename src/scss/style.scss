@@ -1308,3 +1308,66 @@ button.-solid {
 .alert-container.-error {
   border: 1px solid var(--color-red);
 }
+
+
+
+.checkbox input[type="checkbox"] {
+  opacity: 0;
+}
+.checkbox label::before{
+  content: "";
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+  
+  border: 1px solid;   
+}
+
+.checkbox label::after {
+  content: "";
+  display: inline-block;
+  height: 6px;
+  width: 9px;
+  border-left: 2px solid;
+  border-bottom: 2px solid;
+  
+  transform: rotate(-45deg);
+}
+
+.checkbox label {
+  position: relative;
+  margin-left: 1em;
+}
+
+.checkbox .-label {
+  margin-left: 0.5em;
+}
+
+.checkbox label::before,
+.checkbox label::after {
+  position: absolute;
+  margin-left: -1em;
+}
+/*Outer-box*/
+.checkbox label::before {
+  top: 3px;
+}
+/*Checkmark*/
+.checkbox label::after {
+  left: 4px;
+  top: 7px;
+}
+
+/*Hide the checkmark by default*/
+.checkbox input[type="checkbox"] + label::after {
+  content: none;
+}
+/*Unhide the checkmark on the checked state*/
+.checkbox input[type="checkbox"]:checked + label::after {
+  content: "";
+}
+
+/*Adding focus styles on the outer-box of the fake checkbox*/
+.checkbox input[type="checkbox"]:focus + label::before {
+  outline: rgb(59, 153, 252) auto 5px;
+}

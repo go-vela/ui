@@ -36,10 +36,12 @@ import Svg.Attributes
         , d
         , fill
         , height
+        , id
         , r
         , stroke
         , strokeLinecap
         , strokeLinejoin
+        , strokeMiterlimit
         , strokeWidth
         , viewBox
         , width
