@@ -138,8 +138,8 @@ context("org/repo/build View Build Page", () => {
       });
 
       it("clicking restarted build link should redirect to Build page", () => {
-        cy.get("@restartBuild").click();
-        cy.get("[data-test=alert-hyperlink]").click();
+        cy.get("@restartBuild").click({ force: true });
+        cy.get("[data-test=alert-hyperlink]").click({ force: true });
         cy.location("pathname").should("eq", "/someorg/somerepo/2");
       });
     });
