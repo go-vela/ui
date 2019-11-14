@@ -742,6 +742,15 @@ button.-solid {
   padding: 0 24px;
 }
 
+.build .error {
+  color: var(--color-red);
+  font-size: 0.9em;
+}
+
+.build .error .message{
+  margin-left: 0.2em;
+}
+
 .git-info {
   display: flex;
   flex-direction: row;

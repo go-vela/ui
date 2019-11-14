@@ -143,13 +143,16 @@ viewBuildItem now org repo build =
         ]
 
 
+{-| buildError : checks for build error and renders message
+-}
 buildError : Build -> Html msg
 buildError build =
     case build.status of
         Vela.Error ->
             div [ class "row" ]
                 [ div [ class "error" ]
-                    [ div [ class "message" ] [ span [ class "label" ] [ text "error:" ], text build.error ]
+                    [ span [ class "label" ] [ text "server error:" ]
+                    , span [ class "message" ] [ text build.error ]
                     ]
                 ]
 
