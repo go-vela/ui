@@ -1311,9 +1311,10 @@ button.-solid {
 
 
 
-.checkbox input[type="checkbox"] {
+.checkbox input[type="checkbox"], .checkbox input[type="radio"] {
   opacity: 0;
 }
+
 .checkbox label::before{
   content: "";
   display: inline-block;
@@ -1321,6 +1322,10 @@ button.-solid {
   width: 16px;
   
   border: 1px solid;   
+}
+
+.checkbox.radio label::before{
+  border-radius: 12px;
 }
 
 .checkbox label::after {
@@ -1359,15 +1364,15 @@ button.-solid {
 }
 
 /*Hide the checkmark by default*/
-.checkbox input[type="checkbox"] + label::after {
+.checkbox input[type="checkbox"] + label::after, .checkbox input[type="radio"] + label::after {
   content: none;
 }
 /*Unhide the checkmark on the checked state*/
-.checkbox input[type="checkbox"]:checked + label::after {
+.checkbox input[type="checkbox"]:checked + label::after, .checkbox input[type="radio"]:checked + label::after {
   content: "";
 }
 
 /*Adding focus styles on the outer-box of the fake checkbox*/
-.checkbox input[type="checkbox"]:focus + label::before {
+.checkbox input[type="checkbox"]:focus + label::before, .checkbox input[type="radio"]:focus + label::before {
   outline: rgb(59, 153, 252) auto 5px;
 }

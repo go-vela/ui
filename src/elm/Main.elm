@@ -997,16 +997,20 @@ repoSettingsSecurity repo =
 
 repoUpdateCheckbox : String -> Field -> Bool -> Repository -> Html Msg
 repoUpdateCheckbox name field value repo =
+    let
+        checkboxID =
+            "checkbox-" ++ name
+    in
     div [ class "checkbox" ]
         [ input
             [ Util.testAttribute <| "repo-checkbox-" ++ field
-            , id name
+            , id checkboxID
             , checked value
             , onClick <| UpdateRepoBool repo.org repo.name field (not value)
             , type_ "checkbox"
             ]
             []
-        , label [ for name ] [ span [ class "-label" ] [ text name ] ]
+        , label [ for checkboxID ] [ span [ class "-label" ] [ text name ] ]
         ]
 
 
@@ -1023,17 +1027,21 @@ repoSettingsVisibility repo =
 
 
 repoVisibilityRadio : String -> String -> Repository -> Html Msg
-repoVisibilityRadio label value repo =
-    div [ class "checkbox" ]
+repoVisibilityRadio name value repo =
+    let
+        radioID =
+            "radio-" ++ name
+    in
+    div [ class "checkbox", class "radio" ]
         [ input
-            [ Util.testAttribute <| "repo-checkbox-" ++ value
-            , class "-checkbox"
+            [ Util.testAttribute <| "repo-radio-" ++ value
             , checked (value == repo.visibility)
+            , id radioID
             , onClick <| UpdateRepoString repo.org repo.name "visibility" value
             , type_ "radio"
             ]
             []
-        , text label
+        , label [ for radioID ] [ span [ class "-label" ] [ text name ] ]
         ]
 
 
