@@ -114,25 +114,26 @@ viewBuildItem now org repo build =
             animationStatusClass build.status
 
         markdown =
-            [ div [ class "build--status", Util.testAttribute "build-status", statusClass ] status
-            , div [ class "build--info" ]
-                [ div [ class "build--row" ]
-                    [ div [ class "build--id" ] id
+            [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
+            , div [ class "info" ]
+                [ div [ class "row" ]
+                    [ div [ class "id" ] id
                     ]
-                , div [ class "build--row" ]
-                    [ div [ class "build--git-info" ]
-                        [ div [ class "build--git-info-commit" ] commit
+                , div [ class "row" ]
+                    [ div [ class "git-info" ]
+                        [ div [ class "commit" ] commit
                         , text "on"
-                        , div [ class "build--git-info-branch" ] branch
+                        , div [ class "branch" ] branch
                         , text "by"
-                        , div [ class "build--git-info-sender" ] sender
+                        , div [ class "sender" ] sender
                         ]
-                    , div [ class "build--time-info" ]
-                        [ div [ class "build--time-info-age" ] age
-                        , span [ class "build--time-info-delimiter" ] [ text "/" ]
-                        , div [ class "build--time-info-duration" ] duration
+                    , div [ class "time-info" ]
+                        [ div [ class "age" ] age
+                        , span [ class "delimiter" ] [ text "/" ]
+                        , div [ class "duration" ] duration
                         ]
                     ]
+                , buildError build
                 ]
             ]
     in
@@ -140,6 +141,20 @@ viewBuildItem now org repo build =
         [ div [ class "build", statusClass ] <|
             buildStatusStyles markdown build.status build.number
         ]
+
+
+buildError : Build -> Html msg
+buildError build =
+    case build.status of
+        Vela.Error ->
+            div [ class "row" ]
+                [ div [ class "error" ]
+                    [ div [ class "message" ] [ span [ class "label" ] [ text "error:" ], text build.error ]
+                    ]
+                ]
+
+        _ ->
+            text ""
 
 
 {-| viewFullBuild : renders entire build based on current application time

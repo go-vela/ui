@@ -664,7 +664,7 @@ button.-solid {
   font-weight: 300;
 }
 
-.build--status {
+.build .status {
   position: relative;
 
   display: flex;
@@ -705,23 +705,23 @@ button.-solid {
   stroke-linecap: round;
 }
 
-.build--status.-pending {
+.build .status.-pending {
   background: var(--color-gray);
 }
 
-.build--status.-running {
+.build .status.-running {
   background: var(--color-yellow);
 }
 
-.build--status.-success {
+.build .status.-success {
   background: var(--color-green);
 }
 
-.build--status.-failure {
+.build .status.-failure {
   background: var(--color-red);
 }
 
-.build--info {
+.build .info {
   position: relative;
 
   display: flex;
@@ -734,7 +734,7 @@ button.-solid {
   background: var(--color-bg-darker);
 }
 
-.build--row {
+.build .row {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -742,41 +742,41 @@ button.-solid {
   padding: 0 24px;
 }
 
-.build--git-info {
+.git-info {
   display: flex;
   flex-direction: row;
 }
 
-.build--git-info-commit {
+.git-info .commit {
   margin: 0 8px 0 0px;
 }
 
-.build--git-info-branch {
+.git-info .branch {
   margin: 0 8px 0 8px;
 }
 
-.build--git-info-sender {
+.git-info .sender {
   margin: 0 8px 0 8px;
 }
 
-.build--time-info {
+.time-info {
   display: flex;
   flex-direction: row;
 
   font-weight: 300;
 }
 
-.build--time-info-age {
+.time-info .age {
   margin: 0 4px 0 4px;
 }
 
-.build--time-info-delimiter {
+.time-info .delimiter {
   margin: 0 8px;
 
   color: var(--color-secondary);
 }
 
-.build--time-info-duration {
+.time-info .duration {
   margin: 0 0 0 4px;
 
   font-family: var(--font-code);
