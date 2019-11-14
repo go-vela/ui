@@ -570,15 +570,15 @@ toTwoDigits int =
 stepClasses : Step -> Steps -> Html.Attribute msg
 stepClasses step steps =
     let
-        first =
-            case List.head steps of
+        last =
+            case List.head <| List.reverse steps of
                 Just s ->
                     s.number
 
                 Nothing ->
                     -1
     in
-    classList [ ( "step", True ), ( "-line", True ), ( "-last", first == step.number ) ]
+    classList [ ( "step", True ), ( "-line", True ), ( "-last", last == step.number ) ]
 
 
 {-| decodeLog : returns a string from a Maybe Log and decodes it from base64

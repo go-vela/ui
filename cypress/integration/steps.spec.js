@@ -93,5 +93,27 @@ context("org/repo Builds Page", () => {
       cy.get("[data-test=build-error]").contains("error:");
       cy.get("[data-test=build-error]").contains("failure authenticating");
     });
+
+    it("first step should contain error", () => {
+      cy.get("[data-test=step]")
+        .first()
+        .as("cloneStep");
+      cy.get("@cloneStep")
+        .should("be.visible")
+        .click();
+      cy.get("@cloneStep").contains("error:");
+      cy.get("@cloneStep").contains("problem starting container");
+    });
+
+    it("last step should not contain error", () => {
+      cy.get("[data-test=step]")
+        .last()
+        .as("echoStep");
+      cy.get("@echoStep")
+        .should("be.visible")
+        .click({ force: true });
+      cy.get("@echoStep").should("not.contain",  "error:");
+      cy.get("@echoStep").contains("$");
+      });
   });
 });
