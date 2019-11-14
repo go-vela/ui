@@ -232,5 +232,19 @@ context("org/repo/build View Build Page", () => {
         cy.get("@buildStatus").should("have.class", "-failure");
       });
     });
+
+    context("visit build with server error", () => {
+      beforeEach(() => {
+        cy.visit("/someorg/somerepo/5");
+        cy.get("[data-test=full-build]").as("build");
+        cy.get("@build")
+          .get("[data-test=build-status]")
+          .as("buildStatus");
+      });
+
+      it("build should have failure style", () => {
+        cy.get("@buildStatus").should("have.class", "-failure");
+      });
+    });
   });
 });

@@ -234,7 +234,7 @@ viewStepDetails now step logs =
                     , div [ class "-duration" ] [ text <| formatRunTime now step.started step.finished ]
                     ]
                 ]
-            , viewLogs <| getStepLog step logs
+            , viewStepMessage step logs
             ]
     in
     details [ class "details" ] stepSummary
@@ -245,6 +245,21 @@ viewStepDetails now step logs =
 viewStepIcon : Step -> Html msg
 viewStepIcon step =
     stepStatusToIcon step.status |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+
+
+{-| viewStepMessage : takes step and logs and renders step logs or step error
+-}
+viewStepMessage : Step -> Logs -> Html msg
+viewStepMessage step logs =
+    case step.status of
+        Vela.Error ->
+            div [ class "error" ]
+                [ span [ class "label" ] [ text "server error:" ]
+                , span [ class "message" ] [ text step.error ]
+                ]
+
+        _ ->
+            viewLogs <| getStepLog step logs
 
 
 {-| viewLogs : renders a build step logs
