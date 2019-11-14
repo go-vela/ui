@@ -744,6 +744,7 @@ button.-solid {
 
 .build .error {
   color: var(--color-red);
+
   font-size: 0.9em;
 }
 
@@ -1165,8 +1166,8 @@ button.-solid {
 }
 
 .step .summary {
-  padding-top: 1em;
-  padding-bottom: 1em;
+  padding-top: 0.7em;
+  padding-bottom: 0.7em;
 }
 
 .step .-info {
@@ -1188,6 +1189,7 @@ button.-solid {
 
   background-color: var(--color-bg-darker);
 
+  font-size: 0.9em;
   font-weight: 300;
 }
 
@@ -1201,6 +1203,15 @@ button.-solid {
   color: var(--color-gray);
 
   font-family: var(--font-code);
+}
+
+.log.error {
+  padding-top: 0.8em;
+  padding-bottom: 0.8em;
+
+  color: var(--color-red);
+
+  font-size: 0.9em;
 }
 
 .animated {

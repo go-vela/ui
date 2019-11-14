@@ -110,6 +110,27 @@ Cypress.Commands.add("stubStepsWithLogs", () => {
   });
 });
 
+Cypress.Commands.add("stubStepsWithErrorLogs", () => {
+  cy.server();
+  cy.fixture("steps_error.json").as("steps");
+  cy.route({
+    method: "GET",
+    url: "api/v1/repos/*/*/builds/*/steps",
+    status: 200,
+    response: "@steps"
+  });
+  cy.fixture("logs").then(logs => {
+    for (let i = 0; i < logs.length; i++) {
+      cy.route({
+        method: "GET",
+        url: "api/v1/repos/*/*/builds/*/steps/" + logs[i]["step_id"] + "/logs",
+        status: 200,
+        response: logs[i]
+      });
+    }
+  });
+});
+
 Cypress.Commands.add("stubBuildsErrors", () => {
   cy.route({
     method: "GET",

@@ -152,7 +152,14 @@ buildError build =
             div [ class "row" ]
                 [ div [ class "error", Util.testAttribute "build-error" ]
                     [ span [ class "label" ] [ text "error:" ]
-                    , span [ class "message" ] [ text build.error ]
+                    , span [ class "message" ]
+                        [ text <|
+                            if String.isEmpty build.error then
+                                "no error msg"
+
+                            else
+                                build.error
+                        ]
                     ]
                 ]
 
@@ -234,7 +241,7 @@ viewStepDetails now step logs =
                     , div [ class "-duration" ] [ text <| formatRunTime now step.started step.finished ]
                     ]
                 ]
-            , viewStepMessage step logs
+            , viewStepLogs step logs
             ]
     in
     details [ class "details" ] stepSummary
@@ -247,15 +254,22 @@ viewStepIcon step =
     stepStatusToIcon step.status |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
 
 
-{-| viewStepMessage : takes step and logs and renders step logs or step error
+{-| viewStepLogs : takes step and logs and renders step logs or step error
 -}
-viewStepMessage : Step -> Logs -> Html msg
-viewStepMessage step logs =
+viewStepLogs : Step -> Logs -> Html msg
+viewStepLogs step logs =
     case step.status of
         Vela.Error ->
-            div [ class "error", Util.testAttribute "step-error" ]
+            div [ class "log", class "error", Util.testAttribute "step-error" ]
                 [ span [ class "label" ] [ text "error:" ]
-                , span [ class "message" ] [ text step.error ]
+                , span [ class "message" ]
+                    [ text <|
+                        if String.isEmpty step.error then
+                            "no error msg"
+
+                        else
+                            step.error
+                    ]
                 ]
 
         _ ->

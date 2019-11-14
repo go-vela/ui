@@ -63,4 +63,35 @@ context("org/repo Builds Page", () => {
         .should("be.not.visible");
     });
   });
+  context("visit build/steps with server error", () => {
+    beforeEach(() => {
+      cy.server();
+      cy.stubBuild();
+      cy.stubStepsWithErrorLogs();
+      cy.login("/someorg/somerepo/5");
+      cy.get("[data-test=steps]").as("steps");
+      cy.get("[data-test=step]").as("step");
+      cy.get("[data-test=logs]").as("logs");
+      cy.get("[data-test=step-header]")
+        .children()
+        .as("stepHeaders");
+      cy.get("[data-test=full-build]").as("build");
+      cy.get("@build")
+        .get("[data-test=build-status]")
+        .as("buildStatus");
+    });
+
+    it("build should have failure style", () => {
+      cy.get("@buildStatus").should("have.class", "-failure");
+    });
+
+    it("build error should show", () => {
+      cy.get("[data-test=build-error]").should("be.visible");
+    });
+
+    it("build error should contain error", () => {
+      cy.get("[data-test=build-error]").contains("error:");
+      cy.get("[data-test=build-error]").contains("failure authenticating");
+    });
+  });
 });
