@@ -539,10 +539,10 @@ repoUpdateMsg field value repo =
     case field of
         "active" ->
             if value then
-                    repo ++ " activated."
+                repo ++ " activated."
 
-                else
-                    repo ++ " deactivated."
+            else
+                repo ++ " deactivated."
 
         _ ->
             "Unrecognized update made to " ++ repo ++ "."
@@ -750,9 +750,9 @@ viewContent model =
             , viewAddRepos model
             )
 
-        Pages.RepoSettings org repo ->
+        Pages.RepoSettings _ _ ->
             ( "Repository Settings"
-            , viewRepoSettings model org repo
+            , viewRepoSettings model
             )
 
         Pages.RepositoryBuilds org repo ->
@@ -923,10 +923,35 @@ viewAddRepos model =
                 ]
 
 
+repoUpdateCheckbox : String -> Field -> Bool -> Repository -> Html Msg
+repoUpdateCheckbox label field value repo =
+    div [ class "checkbox" ]
+        [ input
+            [ Util.testAttribute <| "repo-checkbox-" ++ field
+            , class "-checkbox"
+            , checked value
+            , onClick <| UpdateRepo repo.org repo.name field (not value)
+            , type_ "checkbox"
+            ]
+            []
+        , text label
+        ]
+
+
+repoSettingsHooks : Repository -> List (Html Msg)
+repoSettingsHooks repo =
+    [ repoUpdateCheckbox "enabled" "active" repo.active repo
+    , repoUpdateCheckbox "push" "allow_push" repo.allow_push repo
+    , repoUpdateCheckbox "pull request" "allow_pr" repo.allow_pr repo
+    , repoUpdateCheckbox "deploy" "allow_deploy" repo.allow_deploy repo
+    , repoUpdateCheckbox "tag" "allow_tag" repo.allow_tag repo
+    ]
+
+
 {-| viewRepoSettings : takes model, org and repo and renders page for updating repo settings
 -}
-viewRepoSettings : Model -> Org -> Repo -> Html Msg
-viewRepoSettings model org repo =
+viewRepoSettings : Model -> Html Msg
+viewRepoSettings model =
     let
         loading =
             div []
@@ -934,17 +959,9 @@ viewRepoSettings model org repo =
                 ]
     in
     case model.repo of
-        Success repo_ ->
+        Success repo ->
             div [ class "repo-settings" ]
-                [ text <| "Enabled "
-                , input
-                    [ Util.testAttribute "global-search-input"
-                    , placeholder "Type to filter all repositories..."
-                    , checked repo_.active
-                    , onClick <| UpdateRepo org repo "active" (not repo_.active)
-                    , type_ "checkbox"
-                    ]
-                    []
+                [ div [ class "input-group" ] <| repoSettingsHooks repo
                 ]
 
         Loading ->
