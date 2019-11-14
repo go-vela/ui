@@ -5,6 +5,10 @@
 import { Elm, Flags, App, Config, Session } from "../elm/Main";
 import "../scss/style.scss";
 
+// Vela consts
+const feedbackURL: string = "https://github.com/go-vela/ui/issues/new";
+const docsURL: string = "https://go-vela.github.io/docs";
+
 // setup for session state
 const storageKey: string = "vela";
 const storedSessionState: string | null = sessionStorage.getItem(storageKey);
@@ -18,6 +22,14 @@ const flags: Flags = {
   velaAPI: process.env.VELA_API || "$VELA_API",
   velaSourceBaseURL: process.env.VELA_SOURCE_URL || "$VELA_SOURCE_URL",
   velaSourceClient: process.env.VELA_SOURCE_CLIENT || "$VELA_SOURCE_CLIENT",
+  velaFeedbackURL:
+    process.env.VELA_FEEDBACK_URL ||
+    envOrNull("VELA_FEEDBACK_URL", "$VELA_FEEDBACK_URL") ||
+    feedbackURL,
+  velaDocsURL:
+    process.env.VELA_DOCS_URL ||
+    envOrNull("VELA_DOCS_URL", "$VELA_DOCS_URL") ||
+    docsURL,
   velaSession: currentSessionState || null
 };
 
@@ -40,3 +52,25 @@ app.ports.storeSession.subscribe(sessionMessage => {
 
   setTimeout(() => app.ports.onSessionChange.send(sessionMessage), 0);
 });
+
+/**
+ * envOrNull is a basic helper that returns a substituted
+ * environment variable or null
+ *
+ * @param env the env variable to be substituted, sans "$" prefix
+ * @param subst the substituted variable (or not)
+ */
+function envOrNull(env: string, subst: string): string | null {
+  // substituted value is empty
+  if (!subst || !subst.trim()) {
+    return null;
+  }
+
+  // value was not substituted; ignore
+  if (subst.indexOf(env) !== -1) {
+    return null;
+  }
+
+  // value was substituted, return it
+  return subst;
+}
