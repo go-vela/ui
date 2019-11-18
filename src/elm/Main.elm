@@ -1017,7 +1017,7 @@ repoUpdateCheckbox name field value repo =
 repoSettingsVisibility : Repository -> Html Msg
 repoSettingsVisibility repo =
     div [ class "inputs" ]
-        [ div [ class "header" ] [ text "Security" ]
+        [ div [ class "header" ] [ text "Visibility" ]
         , div [ class "radios" ]
             [ repoVisibilityRadio "public" "public" repo
             , repoVisibilityRadio "private" "private" repo
@@ -1276,18 +1276,11 @@ navButton model =
                 [ classList
                     [ ( "btn-refresh", True )
                     , ( "-inverted", True )
-                    , ( "loading", model.repo == Loading )
                     ]
                 , onClick <| FetchRepo org repo
-                , disabled (model.repo == Loading)
                 , Util.testAttribute "refresh-repo-settings"
                 ]
-                [ case model.repo of
-                    Loading ->
-                        text "Loading…"
-
-                    _ ->
-                        text "Refresh Repo"
+                [ text "Refresh Settings"
                 ]
 
         Pages.Build org repo buildNumber ->
