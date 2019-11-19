@@ -12,9 +12,9 @@ html {
 }
 
 body {
+  color: var(--color-text);
 
   font-size: 18px;
-  color: var(--color-text);
   background-color: var(--color-bg);
 }
 
@@ -61,12 +61,10 @@ header {
 .details {
   > .summary {
     position: relative;
-
     padding-right: 1.5em;
     padding-bottom: .3em;
 
     overflow: hidden;
-
     cursor: pointer;
 
     // hide details marker on Chrome
@@ -97,11 +95,9 @@ header {
     position: absolute;
     top: .2em;
     right: 0;
-
     color: var(--color-primary);
-
-    transition: all .2s;
     transform-origin: 50% 49%;
+    transition: all .2s;
   }
   &[open] .details-icon-expand {
     transform: rotate(.5turn);
@@ -115,7 +111,6 @@ header {
 
 .identity-logo-link {
   margin-right: 1em;
-
   text-decoration: none;
   // override global `vertical-align: middle` for SVGs
   svg {
@@ -139,11 +134,9 @@ header {
 .help-links {
   display: flex;
   align-items: center;
-
   font-size: 80%;
   > a {
     position: relative;
-
     display: inline-block;
 
     margin-right: 1em;
@@ -169,13 +162,10 @@ header {
     position: absolute;
     top: 1rem;
     left: 0;
-
     width: max-content;
     min-width: 100%;
     padding: 0;
-
     font-size: 80%;
-
     list-style: none;
     background-color: var(--color-bg-darker);
 
@@ -189,18 +179,16 @@ header {
         position: absolute;
         top: -5px;
         left: calc(50% - 6px);
-
         display: block;
 
         width: 10px;
         height: 10px;
-
-        content: "";
         background-color: inherit;
 
         border: inherit;
         border-radius: 0 0 0 .25em;
         transform: rotate(135deg);
+        content: "";
 
         clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
       }
@@ -214,16 +202,13 @@ header {
 
 button,
 .button {
-  padding: .5em 2em;
   margin: .5em 0;
-
-  font-size: 16px;
+  padding: .5em 2em;
+  color: var(--color-bg);
   font-weight: 700;
 
-  color: var(--color-bg);
+  font-size: 16px;
   text-decoration: none;
-
-  cursor: pointer;
   background-image:
     linear-gradient(
       to right,
@@ -233,6 +218,8 @@ button,
     );
   background-size: 200% auto;
   border: none;
+
+  cursor: pointer;
   transition: background .5s;
 
   + button,
@@ -268,7 +255,6 @@ button,
   justify-content: space-between;
 
   padding: 0 3em;
-
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
@@ -285,7 +271,6 @@ button,
   border-image-slice: 1;
   li {
     position: relative;
-
     display: inline-block;
 
     margin-right: 1em;
@@ -312,13 +297,11 @@ button,
 
 .repo-item {
   position: relative;
-
   display: flex;
   justify-content: space-between;
-  padding: .5em;
 
   margin: 2em 0;
-
+  padding: .5em;
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
   border-image-source:
@@ -334,7 +317,6 @@ button,
   border-image-slice: 1;
   > summary {
     margin: .5em 0 0 1em;
-
     text-indent: 0;
   }
 }
@@ -345,9 +327,8 @@ button,
   justify-content: space-between;
 
   width: 100%;
-  padding: .5em 1em;
   margin: .5em 0 0 1em;
-
+  padding: .5em 1em;
   background-color: var(--color-darkcoal);
 }
 
@@ -376,10 +357,9 @@ button,
   overflow: hidden;
   vertical-align: bottom;
 
-  content: "\2026";
-
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
+  content: "\2026";
 }
 
 .util {
@@ -402,7 +382,6 @@ button,
   align-items: center;
 
   margin: 0 1em;
-
   border-bottom: 1px solid var(--color-primary);
 }
 
@@ -410,10 +389,9 @@ button,
 .source-repos .-filter input {
   width: 100%;
   padding: .5em .8em;
+  color: var(--color-text);
 
   font-size: 18px;
-
-  color: var(--color-text);
   background: var(--color-bg);
   border: none;
   &::placeholder {
@@ -429,7 +407,6 @@ button,
     display: flex;
 
     margin-right: 16px;
-
     vertical-align: middle;
   }
 }
@@ -440,9 +417,8 @@ button,
 
 .-no-repos {
   width: 100%;
-  padding: 1.2em 1em;
   margin: .5em 0 0 1em;
-
+  padding: 1.2em 1em;
   background-color: var(--color-bg-darker);
 }
 
@@ -456,12 +432,10 @@ button,
   margin-left: 12px;
   &::before {
     margin-right: .3em;
-
     content: "[";
   }
   &::after {
     margin-left: .3em;
-
     content: "]";
   }
 }
@@ -471,9 +445,8 @@ button,
   align-items: center;
 
   min-width: 150px;
-  padding: .2em 1em;
   margin: .425em 0;
-
+  padding: .2em 1em;
   vertical-align: top;
   > svg {
     margin-right: 1em;
@@ -506,30 +479,29 @@ button,
 .repo-add--failed {
 
   color: var(--color-red);
-  cursor: pointer;
   background: none;
   border: var(--line-width) solid var(--color-red);
+  cursor: pointer;
 
   @extend .repo-add;
 
   &:hover svg {
-    transition: transform .2s ease-in-out;
     transform: rotate(70deg);
+    transition: transform .2s ease-in-out;
   }
 
   > svg {
     margin-right: 1em;
-
     transition: transform .2s ease-in-out;
   }
 }
 
 a.-btn {
-  padding: .3em 2em;
   margin: .5em 0;
+  padding: .3em 2em;
+  font-weight: 700;
 
   font-size: 16px;
-  font-weight: 700;
 
   text-decoration: none;
 }
@@ -641,11 +613,9 @@ button.-solid {
 .large-loader .-spinner {
   width: 40px;
   height: 40px;
-
   border: 2px solid var(--color-text);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
-
   animation: spin 3s linear infinite;
 }
 
@@ -658,11 +628,9 @@ button.-solid {
 .small-loader .-spinner {
   width: 20px;
   height: 20px;
-
   border: 2px solid var(--color-offwhite);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
-
   animation: spin 3s linear infinite;
 }
 
@@ -675,14 +643,12 @@ button.-solid {
 
 .build {
   position: relative;
-
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-
-  font-size: 18px;
   font-weight: 300;
 
+  font-size: 18px;
   border: 2px solid var(--color-bg-darker);
   border-right: 0;
   border-left: 0;
@@ -690,7 +656,6 @@ button.-solid {
 
 .build .status {
   position: relative;
-
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -705,7 +670,6 @@ button.-solid {
 
 .build-icon.-pending {
   padding: 8px;
-
   border: 2px solid var(--color-bg-darker);
   border-radius: 7px;
 }
@@ -716,9 +680,9 @@ button.-solid {
 
 .status-svg {
   fill: none;
+  fill-rule: evenodd;
   stroke: var(--color-bg);
   stroke-width: 2;
-  fill-rule: evenodd;
 }
 
 .status-svg.-linecap-square {
@@ -747,14 +711,12 @@ button.-solid {
 
 .build .info {
   position: relative;
-
   display: flex;
   flex: 1;
   flex-direction: column;
   justify-content: center;
 
   padding: 12px 0;
-
   background: var(--color-bg-darker);
 }
 
@@ -767,9 +729,9 @@ button.-solid {
 }
 
 .build .error {
+  color: var(--color-red);
 
   font-size: .9em;
-  color: var(--color-red);
 }
 
 .build .error .message{
@@ -796,7 +758,6 @@ button.-solid {
 .time-info {
   display: flex;
   flex-direction: row;
-
   font-weight: 300;
 }
 
@@ -806,19 +767,16 @@ button.-solid {
 
 .time-info .delimiter {
   margin: 0 8px;
-
   color: var(--color-secondary);
 }
 
 .time-info .duration {
   margin: 0 0 0 4px;
-
   font-family: var(--font-code);
 }
 
 .build-animation {
   position: absolute;
-
   width: 100%;
 }
 
@@ -856,14 +814,12 @@ button.-solid {
 
 .build-animation.-top.-cover {
   width: 12vw;
-
   animation: build-particles-source 5s ease-in-out infinite;
   animation-direction: alternate;
 }
 
 .build-animation.-bottom.-cover {
   width: 16vw;
-
   animation: build-particles-source 5s ease-in-out infinite;
   animation-direction: alternate-reverse;
 }
@@ -884,7 +840,6 @@ button.-solid {
   position: absolute;
   top: -2px;
   bottom: -2px;
-
   width: 100%;
 }
 
@@ -1002,22 +957,20 @@ button.-solid {
   top: 125%;
   // not sure what to here to display the tooltip on top!
   z-index: 9999;
-
   display: flex;
   flex-direction: column;
 
   width: 300px;
   padding: .2em 0;
+  color: var(--color-text);
 
   font-weight: 300;
 
-  color: var(--color-text);
-
   text-align: center;
-  visibility: hidden;
   background-color: var(--color-bg-darker);
   border: solid 1px var(--color-gray);
   border-radius: 3px;
+  visibility: hidden;
 }
 
 .build-history .-build:hover .-tooltip {
@@ -1027,19 +980,16 @@ button.-solid {
 .build-history .-build:hover .-tooltip::after {
   position: absolute;
   bottom: 100%; /* At the top of the tooltip */
-
   margin-left: .5em;
-
-  content: " ";
   border-color: transparent transparent var(--color-gray) transparent;
   border-style: solid;
 
   border-width: 5px;
+  content: " ";
 }
 
 .build-history .-build .-info {
   padding: .2em .6em;
-
   font-size: 14px;
 }
 
@@ -1102,7 +1052,6 @@ button.-solid {
 .step .-icon-container {
   padding-top: 12px;
   padding-bottom: 12px;
-
   background: var(--color-bg);
 }
 
@@ -1114,7 +1063,6 @@ button.-solid {
 
 .step .-icon.-pending {
   padding: 8px;
-
   border: 2px solid var(--color-gray);
   border-radius: 7px;
 }
@@ -1138,10 +1086,9 @@ button.-solid {
 
 .step .-view {
   flex: 1;
-  padding: 0;
 
   margin: 1em 0;
-
+  padding: 0;
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
   border-image-source:
@@ -1179,13 +1126,12 @@ button.-solid {
 }
 
 .log {
+  margin: 1px;
   padding: 1em;
   padding-top: .5em;
-  margin: 1px;
-
-  font-size: .9em;
   font-weight: 300;
 
+  font-size: .9em;
   background-color: var(--color-bg-darker);
 }
 
@@ -1195,19 +1141,17 @@ button.-solid {
 
 .log .-code .-line-num {
   margin-right: .5em;
+  color: var(--color-gray);
 
   font-family: var(--font-code);
-
-  color: var(--color-gray);
 }
 
 .log.error {
   padding-top: .8em;
   padding-bottom: .8em;
+  color: var(--color-red);
 
   font-size: .9em;
-
-  color: var(--color-red);
 }
 
 .log.error .message{
@@ -1243,40 +1187,35 @@ button.-solid {
   position: fixed;
   right: 0;
   bottom: 10px;
-
   width: 100%;
   max-width: 530px;
-  padding: 0;
   margin: 0;
-
+  padding: 0;
   list-style-type: none;
 }
 
 .alert-item-attributes {
   max-height: 100px;
   margin: 1em 1em 0;
-
   transition: max-height 1.2s, margin-top 1.2s;
 }
 
 .alert-container {
   width: 500px;
   padding: 1em;
-
-  font-size: 14px;
-
   color: white;
 
-  cursor: pointer;
+  font-size: 14px;
   background-color: var(--color-bg-darker);
   border-radius: 5px;
   border-radius: 0;
   box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, .5);
+
+  cursor: pointer;
 }
 
 .alert-container .-title {
   margin: 0;
-
   font-size: 1em;
 }
 
@@ -1289,7 +1228,6 @@ button.-solid {
   margin-top: .25em;
   margin-bottom: 0;
   overflow-y: auto;
-
   font-size: .9em;
 }
 
