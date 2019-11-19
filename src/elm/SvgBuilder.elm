@@ -324,7 +324,7 @@ stepFailure =
 {-| buildHistoryPending : produces svg icon for build history status - pending
 -}
 buildHistoryPending : Int -> Icon
-buildHistoryPending idx =
+buildHistoryPending _ =
     let
         attrs =
             IconAttributes 28 "" 2 (Just "-icon -pending") "0 0 28 28"
@@ -338,7 +338,7 @@ buildHistoryPending idx =
         src =
             [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-pending" ]
                 [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g [ recentBuildFade idx ]
+                , Svg.g []
                     [ Svg.path [ class "-path-2", d strokeB ] []
                     , Svg.circle [ class "-path-3", cx "14", cy "14", r "2" ] []
                     ]
@@ -351,7 +351,7 @@ buildHistoryPending idx =
 {-| buildHistoryRunning : produces svg icon for build history status - running
 -}
 buildHistoryRunning : Int -> Icon
-buildHistoryRunning idx =
+buildHistoryRunning _ =
     let
         attrs =
             IconAttributes 28 "" 2 (Just "-icon -running") "0 0 28 28"
@@ -368,7 +368,7 @@ buildHistoryRunning idx =
         src =
             [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-running" ]
                 [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g [ recentBuildFade idx ]
+                , Svg.g []
                     [ Svg.path [ class "-path-2", d strokeB ] []
                     , Svg.path [ class "-path-3", d strokeC ] []
                     ]
@@ -381,7 +381,7 @@ buildHistoryRunning idx =
 {-| buildHistorySuccess : produces svg icon for build history status - running
 -}
 buildHistorySuccess : Int -> Icon
-buildHistorySuccess idx =
+buildHistorySuccess _ =
     let
         attrs =
             IconAttributes 28 "" 2 (Just "-icon -success") "0 0 28 28"
@@ -398,7 +398,7 @@ buildHistorySuccess idx =
         src =
             [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-success" ]
                 [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g [ recentBuildFade idx ]
+                , Svg.g []
                     [ Svg.path [ class "-path-2", d strokeB ] []
                     , Svg.path [ class "-path-3", d strokeC ] []
                     ]
@@ -411,7 +411,7 @@ buildHistorySuccess idx =
 {-| buildHistoryFailure : produces svg icon for build history status - failure
 -}
 buildHistoryFailure : Int -> Icon
-buildHistoryFailure idx =
+buildHistoryFailure _ =
     let
         attrs =
             IconAttributes 28 "" 2 (Just "-icon -failure") "0 0 28 28"
@@ -428,7 +428,7 @@ buildHistoryFailure idx =
         src =
             [ Svg.g [ class "build-history-svg", class "-build-history-icon" ]
                 [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g [ recentBuildFade idx ]
+                , Svg.g []
                     [ Svg.path [ class "-path-2", d strokeB ] []
                     , Svg.path [ class "-path-3", d strokeC ] []
                     ]
@@ -491,23 +491,6 @@ checkbox checked =
                 ]
     in
     Icon { attrs = attrs, src = src }
-
-
-recentBuildFade : Int -> Html.Attribute msg
-recentBuildFade idx =
-    case idx of
-        -- 9 ->
-        --     class "-fade-5"
-        -- 8 ->
-        --     class "-fade-4"
-        -- 7 ->
-        --     class "-fade-3"
-        -- 6 ->
-        --     class "-fade-2"
-        -- 5 ->
-        --     class "-fade-1"
-        _ ->
-            class "-fade-0"
 
 
 {-| statusToIcon : takes build status string and returns Icon from SvgBuilder

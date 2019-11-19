@@ -40,7 +40,6 @@ import Html
 import Html.Attributes
     exposing
         ( attribute
-        , checked
         , class
         , classList
         , disabled
@@ -67,6 +66,11 @@ import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import Settings
+    exposing
+        ( buildTimeoutValue
+        , updateRepoCheckbox
+        , updateRepoRadio
+        )
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
 import Time exposing (utc)
@@ -367,7 +371,7 @@ update msg model =
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
-                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (Settings.repoUpdateMsg field updatedRepo) Nothing)
+                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (Settings.repoUpdatedAlert field updatedRepo) Nothing)
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
@@ -988,8 +992,8 @@ viewRepoSettings model =
     case model.repo of
         Success repo ->
             div [ class "repo-settings" ]
-                [ div [ class "settings-section-row" ] [ repoSettingsEvents repo, repoSettingsAccess repo ]
-                , div [ class "settings-section-row" ] [ repoSettingsBuildTimeout model repo ]
+                [ div [ class "-row" ] [ repoSettingsEventsCategory repo, repoSettingsAccessCategory repo ]
+                , div [ class "-row" ] [ repoSettingsBuildTimeoutCategory model repo ]
                 ]
 
         Loading ->
@@ -1007,123 +1011,88 @@ viewRepoSettings model =
                 ]
 
 
-repoSettingsEvents : Repository -> Html Msg
-repoSettingsEvents repo =
-    div [ class "settings-section" ]
-        [ div [ class "header" ] [ span [] [ text "Webhook Events" ] ]
-        , div [ class "description" ] [ span [] [ text "Control which events on Git will trigger Vela pipelines" ] ]
+repoSettingsEventsCategory : Repository -> Html Msg
+repoSettingsEventsCategory repo =
+    div [ class "category" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Webhook Events" ] ]
+        , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines" ]
         , div [ class "inputs" ]
-            [ repoUpdateCheckbox "Push" "allow_push" repo.allow_push repo
-            , repoUpdateCheckbox "Pull Request" "allow_pull" repo.allow_pull repo
-            , repoUpdateCheckbox "Deploy" "allow_deploy" repo.allow_deploy repo
-            , repoUpdateCheckbox "Tag" "allow_tag" repo.allow_tag repo
+            [ updateRepoCheckbox "Push"
+                "allow_push"
+                repo.allow_push
+              <|
+                UpdateRepoBool repo.org repo.name "allow_push" (not repo.allow_push)
+            , updateRepoCheckbox "Pull Request"
+                "allow_pull"
+                repo.allow_pull
+              <|
+                UpdateRepoBool repo.org repo.name "allow_pull" (not repo.allow_pull)
+            , updateRepoCheckbox "Deploy"
+                "allow_deploy"
+                repo.allow_deploy
+              <|
+                UpdateRepoBool repo.org repo.name "allow_deploy" (not repo.allow_deploy)
+            , updateRepoCheckbox "Tag"
+                "allow_tag"
+                repo.allow_tag
+              <|
+                UpdateRepoBool repo.org repo.name "allow_tag" (not repo.allow_tag)
             ]
         ]
 
 
-repoSettingsAccess : Repository -> Html Msg
-repoSettingsAccess repo =
-    div [ class "settings-section" ]
-        [ div [ class "header" ] [ span [] [ text "Access" ] ]
-        , div [ class "description" ] [ span [] [ text "Change who can access build information" ] ]
+repoSettingsAccessCategory : Repository -> Html Msg
+repoSettingsAccessCategory repo =
+    div [ class "category" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Access" ] ]
+        , div [ class "description" ] [ text "Change who can access build information" ]
         , div [ class "inputs", class "radios" ]
-            [ repoVisibilityRadio "Public" "public" repo
-            , repoVisibilityRadio "Private" "private" repo
-            , repoVisibilityRadio "Internal" "internal" repo
+            [ updateRepoRadio repo.visibility "private" "Private" <| UpdateRepoString repo.org repo.name "visibility" "private"
+            , updateRepoRadio repo.visibility "public" "Any" <| UpdateRepoString repo.org repo.name "visibility" "public"
             ]
         ]
 
 
-repoSettingsBuildTimeout : Model -> Repository -> Html Msg
-repoSettingsBuildTimeout model repo =
-    div [ class "settings-section" ]
-        [ div [ class "header" ] [ span [] [ text "Build Timeout" ] ]
-        , div [ class "description" ] [ span [] [ text "Builds that reach this timeout setting will be stopped" ] ]
+repoSettingsBuildTimeoutCategory : Model -> Repository -> Html Msg
+repoSettingsBuildTimeoutCategory model repo =
+    div [ class "category" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Build Timeout" ] ]
+        , div [ class "description" ] [ text "Builds that reach this timeout setting will be stopped" ]
         , div [ class "inputs", class "build-timeout" ]
             [ input
                 [ Util.testAttribute <| "repo-build-timeout"
                 , id <| "build-timeout"
-                , value <| buildTimeoutValue model repo
+                , value <| buildTimeoutValue model.buildTimeout repo.timeout
                 , onInput <| ChangeBuildTimeout repo
                 , type_ "text"
                 ]
                 []
             , label [ for "build-timeout" ] [ span [ class "label" ] [ text "minutes" ] ]
-            , saveBuildTimeout repo.org repo.name model.buildTimeout repo.timeout
+            , buildTimeoutUpdateButton repo.org repo.name model.buildTimeout repo.timeout
             ]
         ]
 
 
-saveBuildTimeout : Org -> Repo -> Maybe String -> Int -> Html Msg
-saveBuildTimeout org repo inTimeout repoTimeout =
-    case inTimeout of
-        Just timeout ->
-            if String.isEmpty timeout then
-                text ""
-
-            else if timeout /= String.fromInt repoTimeout then
-                button
-                    [ class "-btn"
-                    , class "-solid"
-                    , class "-build-timeout"
-                    , onClick <| UpdateRepoBuildTimeout org repo timeout
-                    ]
-                    [ text "update" ]
-
-            else
-                text ""
-
-        Nothing ->
-            text ""
-
-
-buildTimeoutValue : Model -> Repository -> String
-buildTimeoutValue model repo =
-    case model.buildTimeout of
-        Just newTimeout ->
-            newTimeout
-
-        Nothing ->
-            String.fromInt repo.timeout
-
-
-repoUpdateCheckbox : String -> Field -> Bool -> Repository -> Html Msg
-repoUpdateCheckbox name field value repo =
-    div [ class "checkbox" ]
-        [ SvgBuilder.checkbox value |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
-        , input
-            [ Util.testAttribute <| "repo-checkbox-" ++ field
-            , id <| checkboxID name
-            , checked value
-            , onClick <| UpdateRepoBool repo.org repo.name field (not value)
-            , type_ "checkbox"
-            ]
-            []
-        , label [ for <| checkboxID name ] [ span [ class "label" ] [ text name ] ]
-        ]
-
-
-repoVisibilityRadio : String -> String -> Repository -> Html Msg
-repoVisibilityRadio name value repo =
+buildTimeoutUpdateButton : Org -> Repo -> Maybe String -> Int -> Html Msg
+buildTimeoutUpdateButton org repo inTimeout repoTimeout =
     let
-        radioID =
-            "radio-" ++ name
+        timeout =
+            Maybe.withDefault "" inTimeout
     in
-    div []
-        [ div [ class "checkbox", class "radio" ]
-            [ SvgBuilder.radio (value == repo.visibility) |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
-            , input
-                [ Util.testAttribute <| "repo-radio-" ++ value
-                , checked (value == repo.visibility)
-                , id radioID
-                , onClick <| UpdateRepoString repo.org repo.name "visibility" value
-                , type_ "radio"
-                , class "radio-input"
-                ]
-                []
-            , label [ for radioID, class "radio-label" ] [ span [ class "label" ] [ text name, fieldInfo value ] ]
+    if String.isEmpty timeout then
+        text ""
+
+    else if timeout /= String.fromInt repoTimeout then
+        button
+            [ class "-btn"
+            , class "-solid"
+            , class "-build-timeout"
+            , onClick <| UpdateRepoBuildTimeout org repo timeout
             ]
-        ]
+            [ text "update" ]
+
+    else
+        text ""
 
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
@@ -1779,25 +1748,6 @@ searchFilterLocal org filters =
 shouldSearch : SearchFilter -> Bool
 shouldSearch filter =
     String.length filter > 2
-
-
-checkboxID : String -> String
-checkboxID name =
-    "checkbox-" ++ name
-
-
-fieldInfo : Field -> Html Msg
-fieldInfo field =
-    span [ class "info" ] <|
-        case field of
-            "private" ->
-                [ text "(restricted to those with repository access)" ]
-
-            "public" ->
-                [ text "(anyone with access to this Vela instance)" ]
-
-            _ ->
-                []
 
 
 

@@ -545,8 +545,9 @@ button.-inverted {
 .-btn.-build-timeout {
   margin: 0;
   margin-left: 1em;
-  font-size: 12px;
   padding: 4px 12px;
+
+  font-size: 12px;
 }
 
 .-btn.-overview {
@@ -982,33 +983,7 @@ button.-solid {
   stroke: var(--color-bg-darker);
 }
 
-.build-history .-build .-fade-0 {
-  opacity: 1;
-}
 
-.build-history .-build .-fade-1 {
-  opacity: 0.7;
-}
-
-.build-history .-build .-fade-2 {
-  opacity: 0.6;
-}
-
-.build-history .-build .-fade-3 {
-  opacity: 0.5;
-}
-
-.build-history .-build .-fade-4 {
-  opacity: 0.4;
-}
-
-.build-history .-build .-fade-5 {
-  opacity: 0.3;
-}
-
-.build-history .-build .-fade-6 {
-  opacity: 0.2;
-}
 
 .build-history .-build .-tooltip {
   position: absolute;
@@ -1321,29 +1296,24 @@ button.-solid {
   flex-direction: column;
 }
 
-.settings-section-row {
+.repo-settings .-row {
   display: flex;
   flex-direction: row;
 }
 
-.settings-section {
+.repo-settings .category {
   width: 22em;
   margin-right: 2em;
 }
 
-.settings-section .header {
+.repo-settings .category .header {
   margin-bottom: 0.5em;
   padding-bottom: 0.2em;
 
   border-bottom: 2px solid var(--color-lavender);
 }
 
-.settings-section .description {
-  font-weight: 300;
-  font-size: 14px;
-}
-
-.settings-section .header span {
+.repo-settings .category .header .text {
   position: relative;
   top: 0.1em;
 
@@ -1351,10 +1321,13 @@ button.-solid {
   font-weight: bold;
 }
 
+.repo-settings .category .description {
+  font-size: 14px;
+  font-weight: 300;
+}
+
 .inputs {
-  margin-bottom: 1em;
-  margin-top: 1em;
-  margin-left: 1em;
+  margin: 1em;
 }
 
 .checkbox {
@@ -1366,35 +1339,27 @@ button.-solid {
   align-items: center;
 }
 
-.info-container{
-  display: flex;
-}
-
-.radio.label {
-  display: flex;
-}
-
 .checkbox .label {
   font-size: 16px;
   font-weight: bold;
 }
-.checkbox .info {
-  font-weight: 300;
-  margin-left: 0.25em;
-}
 
-.checkbox .label {
-  font-size: 16px;
+.checkbox .field-info {
+  margin-left: 0.25em;
+
+  font-weight: 300;
 }
 
 .inputs.build-timeout input {
+  width: 5em;
+  padding: 0.5em;
+
+  text-align: center;
+
+  color: white;
   border: none;
   border-bottom: 1px solid var(--color-lavender);
   background: none;
-  color: white;
-  text-align: center;
-  width: 5em;
-  padding: 0.5em;
 }
 
 .build-timeout input:focus {
@@ -1402,14 +1367,15 @@ button.-solid {
 }
 
 .build-timeout {
-  margin-left: 3em;
   margin-top: 1em;
+  margin-left: 3em;
 }
 
 .build-timeout .label {
-  font-weight: 300;
-  font-size: 16px;
   margin-left: 0.75em;
+
+  font-size: 16px;
+  font-weight: 300;
 }
 
 .checkbox input[type="checkbox"], .checkbox input[type="radio"] {
@@ -1426,10 +1392,12 @@ button.-solid {
 }
 
 .checkbox label::before{
+  top: calc(50% - .575em);
+  left: -1.9em;
+
   width: 1.15em;
   height: 1.15em;
-  left: -1.9em;
-  top: calc(50% - .575em);
+
   content: "";
 }
 

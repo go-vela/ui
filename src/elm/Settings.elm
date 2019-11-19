@@ -4,19 +4,103 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Settings exposing (repoUpdateMsg)
+module Settings exposing
+    ( buildTimeoutValue
+    , repoUpdatedAlert
+    , updateRepoCheckbox
+    , updateRepoRadio
+    )
 
+import Html
+    exposing
+        ( Html
+        , div
+        , input
+        , label
+        , span
+        , text
+        )
+import Html.Attributes
+    exposing
+        ( attribute
+        , checked
+        , class
+        , for
+        , id
+        , type_
+        )
+import Html.Events
+    exposing
+        ( onClick
+        )
+import SvgBuilder
+import Util
 import Vela exposing (Field, Repository)
+
+
+
+-- VIEW
+
+
+updateRepoCheckbox : String -> Field -> Bool -> msg -> Html msg
+updateRepoCheckbox name field value action =
+    div [ class "checkbox" ]
+        [ SvgBuilder.checkbox value |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+        , input
+            [ Util.testAttribute <| "repo-checkbox-" ++ field
+            , id <| "checkbox-" ++ field
+            , checked value
+            , onClick action
+            , type_ "checkbox"
+            ]
+            []
+        , label [ for <| "checkbox-" ++ field ] [ span [ class "label" ] [ text name ] ]
+        ]
+
+
+updateRepoRadio : String -> String -> Field -> msg -> Html msg
+updateRepoRadio value field title action =
+    div [ class "checkbox", class "radio" ]
+        [ SvgBuilder.radio (value == field) |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+        , input
+            [ type_ "radio"
+            , id <| "radio-" ++ field
+            , checked (value == field)
+            , onClick action
+            , Util.testAttribute <| "repo-radio-any"
+            ]
+            []
+        , label [ for <| "radio-" ++ field ] [ span [ class "label" ] [ text title, updateRepoFieldTip field ] ]
+        ]
 
 
 
 -- HELPERS
 
 
-{-| repoUpdateMsg : takes update field and updated repo and returns how to alert the user.
+buildTimeoutValue : Maybe String -> Int -> String
+buildTimeoutValue inTimeout repoTimeout =
+    Maybe.withDefault (String.fromInt repoTimeout) inTimeout
+
+
+updateRepoFieldTip : Field -> Html msg
+updateRepoFieldTip field =
+    span [ class "field-info" ] <|
+        case field of
+            "private" ->
+                [ text "(restricted to those with repository access)" ]
+
+            "public" ->
+                [ text "(anyone with access to this Vela instance)" ]
+
+            _ ->
+                []
+
+
+{-| repoUpdatedAlert : takes update field and updated repo and returns how to alert the user.
 -}
-repoUpdateMsg : Field -> Repository -> String
-repoUpdateMsg field repo =
+repoUpdatedAlert : Field -> Repository -> String
+repoUpdatedAlert field repo =
     let
         prefix =
             msgPrefix field
@@ -66,36 +150,28 @@ msgSuffix : Field -> Repository -> String
 msgSuffix field repo =
     case field of
         "private" ->
-            if repo.private then
-                "private."
-
-            else
-                "public."
+            toggleText "private" repo.private
 
         "trusted" ->
-            if repo.trusted then
-                "trusted."
-
-            else
-                "untrusted."
+            toggleText "trusted" repo.trusted
 
         "visibility" ->
             repo.visibility ++ "."
 
         "allow_pull" ->
-            toggleText repo.allow_pull
+            toggleText "allow_pull" repo.allow_pull
 
         "allow_push" ->
-            toggleText repo.allow_push
+            toggleText "allow_push" repo.allow_push
 
         "allow_deploy" ->
-            toggleText repo.allow_deploy
+            toggleText "allow_deploy" repo.allow_deploy
 
         "allow_tag" ->
-            toggleText repo.allow_tag
+            toggleText "allow_tag" repo.allow_tag
 
         "timeout" ->
-            "set to " ++ String.fromInt repo.timeout ++ "."
+            "set to " ++ String.fromInt repo.timeout ++ " minute(s)."
 
         _ ->
             ""
@@ -103,10 +179,22 @@ msgSuffix field repo =
 
 {-| msgSuffix : takes bool value and returns disabled/enabled.
 -}
-toggleText : Bool -> String
-toggleText value =
+toggleText : Field -> Bool -> String
+toggleText field value =
+    let
+        ( enabled, disabled ) =
+            case field of
+                "private" ->
+                    ( "private.", "any." )
+
+                "trusted" ->
+                    ( "trusted.", "untrusted." )
+
+                _ ->
+                    ( "enabled.", "disabled." )
+    in
     if value then
-        "enabled."
+        enabled
 
     else
-        "disabled."
+        disabled
