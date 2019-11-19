@@ -542,6 +542,13 @@ button.-inverted {
   }
 }
 
+.-btn.-build-timeout {
+  margin: 0;
+  margin-left: 1em;
+  font-size: 12px;
+  padding: 4px 12px;
+}
+
 .-btn.-overview {
   margin: 1em 1em 1em 0;
 }
@@ -1309,70 +1316,127 @@ button.-solid {
   border: 1px solid var(--color-red);
 }
 
+.repo-settings {
+  display: flex;
+  flex-direction: column;
+}
 
+.settings-section-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.settings-section {
+  width: 22em;
+  margin-right: 2em;
+}
+
+.settings-section .header {
+  margin-bottom: 0.5em;
+  padding-bottom: 0.2em;
+
+  border-bottom: 2px solid var(--color-lavender);
+}
+
+.settings-section .description {
+  font-weight: 300;
+  font-size: 14px;
+}
+
+.settings-section .header span {
+  position: relative;
+  top: 0.1em;
+
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.inputs {
+  margin-bottom: 1em;
+  margin-top: 1em;
+  margin-left: 1em;
+}
+
+.checkbox {
+  margin-bottom: 0.5em;
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+}
+
+.info-container{
+  display: flex;
+}
+
+.radio.label {
+  display: flex;
+}
+
+.checkbox .label {
+  font-size: 16px;
+  font-weight: bold;
+}
+.checkbox .info {
+  font-weight: 300;
+  margin-left: 0.25em;
+}
+
+.checkbox .label {
+  font-size: 16px;
+}
+
+.inputs.build-timeout input {
+  border: none;
+  border-bottom: 1px solid var(--color-lavender);
+  background: none;
+  color: white;
+  text-align: center;
+  width: 5em;
+  padding: 0.5em;
+}
+
+.build-timeout input:focus {
+  border-color: var(--color-cyan);
+}
+
+.build-timeout {
+  margin-left: 3em;
+  margin-top: 1em;
+}
+
+.build-timeout .label {
+  font-weight: 300;
+  font-size: 16px;
+  margin-left: 0.75em;
+}
 
 .checkbox input[type="checkbox"], .checkbox input[type="radio"] {
   opacity: 0;
 }
 
-.checkbox label::before{
-  content: "";
-  display: inline-block;
-  height: 16px;
-  width: 16px;
-  
-  border: 1px solid;   
-}
-
-.checkbox.radio label::before{
-  border-radius: 12px;
-}
-
-.checkbox label::after {
-  content: "";
-  display: inline-block;
-  height: 6px;
-  width: 9px;
-  border-left: 2px solid;
-  border-bottom: 2px solid;
-  
-  transform: rotate(-45deg);
-}
-
 .checkbox label {
   position: relative;
-  margin-left: 1em;
-}
-
-.checkbox .-label {
-  margin-left: 0.5em;
 }
 
 .checkbox label::before,
 .checkbox label::after {
   position: absolute;
-  margin-left: -1em;
-}
-/*Outer-box*/
-.checkbox label::before {
-  top: 3px;
-}
-/*Checkmark*/
-.checkbox label::after {
-  left: 4px;
-  top: 7px;
 }
 
-/*Hide the checkmark by default*/
-.checkbox input[type="checkbox"] + label::after, .checkbox input[type="radio"] + label::after {
-  content: none;
-}
-/*Unhide the checkmark on the checked state*/
-.checkbox input[type="checkbox"]:checked + label::after, .checkbox input[type="radio"]:checked + label::after {
+.checkbox label::before{
+  width: 1.15em;
+  height: 1.15em;
+  left: -1.9em;
+  top: calc(50% - .575em);
   content: "";
 }
 
-/*Adding focus styles on the outer-box of the fake checkbox*/
+.checkbox input[type="checkbox"] + label::after, .checkbox input[type="radio"] + label::after {
+  content: none;
+}
+
 .checkbox input[type="checkbox"]:focus + label::before, .checkbox input[type="radio"]:focus + label::before {
-  outline: rgb(59, 153, 252) auto 5px;
+  outline: var(--color-cyan) auto 5px;
 }

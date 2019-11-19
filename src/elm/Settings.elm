@@ -53,6 +53,9 @@ msgPrefix field =
         "allow_tag" ->
             "Tag events for $ "
 
+        "timeout" ->
+            "Build timeout for $ "
+
         _ ->
             "Unrecognized update made to $."
 
@@ -90,6 +93,9 @@ msgSuffix field repo =
 
         "allow_tag" ->
             toggleText repo.allow_tag
+
+        "timeout" ->
+            "set to " ++ String.fromInt repo.timeout ++ "."
 
         _ ->
             ""

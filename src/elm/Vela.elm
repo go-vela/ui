@@ -28,6 +28,7 @@ module Vela exposing
     , UpdateRepositoryPayload
     , User
     , buildUpdateRepoBoolPayload
+    , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
     , decodeBuild
     , decodeBuilds
@@ -278,6 +279,7 @@ type alias UpdateRepositoryPayload =
     , allow_deploy : Maybe Bool
     , allow_tag : Maybe Bool
     , visibility : Maybe String
+    , timeout : Maybe Int
     }
 
 
@@ -287,38 +289,29 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
 encodeUpdateRepository repo =
     Encode.object
-        [ ( "active", optionalBool repo.active )
-        , ( "private", optionalBool repo.private )
-        , ( "trusted", optionalBool repo.trusted )
-        , ( "allow_pull", optionalBool repo.allow_pull )
-        , ( "allow_push", optionalBool repo.allow_push )
-        , ( "allow_deploy", optionalBool repo.allow_deploy )
-        , ( "allow_tag", optionalBool repo.allow_tag )
-        , ( "visibility", optionalString repo.visibility )
+        [ ( "active", encodeOptional Encode.bool repo.active )
+        , ( "private", encodeOptional Encode.bool repo.private )
+        , ( "trusted", encodeOptional Encode.bool repo.trusted )
+        , ( "allow_pull", encodeOptional Encode.bool repo.allow_pull )
+        , ( "allow_push", encodeOptional Encode.bool repo.allow_push )
+        , ( "allow_deploy", encodeOptional Encode.bool repo.allow_deploy )
+        , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
+        , ( "visibility", encodeOptional Encode.string repo.visibility )
+        , ( "timeout", encodeOptional Encode.int repo.timeout )
         ]
 
 
-optionalBool : Maybe Bool -> Encode.Value
-optionalBool value =
+encodeOptional : (a -> Encode.Value) -> Maybe a -> Encode.Value
+encodeOptional encoder value =
     case value of
         Just value_ ->
-            Encode.bool value_
-
-        Nothing ->
-            Encode.null
-
-
-optionalString : Maybe String -> Encode.Value
-optionalString value =
-    case value of
-        Just value_ ->
-            Encode.string value_
+            encoder value_
 
         Nothing ->
             Encode.null
@@ -357,6 +350,16 @@ buildUpdateRepoStringPayload field value =
     case field of
         "visibility" ->
             { defaultUpdateRepositoryPayload | visibility = Just value }
+
+        _ ->
+            defaultUpdateRepositoryPayload
+
+
+buildUpdateRepoIntPayload : Field -> Int -> UpdateRepositoryPayload
+buildUpdateRepoIntPayload field value =
+    case field of
+        "timeout" ->
+            { defaultUpdateRepositoryPayload | timeout = Just value }
 
         _ ->
             defaultUpdateRepositoryPayload

@@ -16,6 +16,8 @@ module SvgBuilder exposing
     , buildStatusAnimation
     , buildStatusToIcon
     , buildSuccess
+    , checkbox
+    , radio
     , recentBuildStatusToIcon
     , stepFailure
     , stepPending
@@ -432,6 +434,61 @@ buildHistoryFailure idx =
                     ]
                 ]
             ]
+    in
+    Icon { attrs = attrs, src = src }
+
+
+{-| radio : produces svg icon for input radio select
+-}
+radio : Bool -> Icon
+radio checked =
+    let
+        attrs =
+            IconAttributes 22 "" 1 (Just "-icon -radio") "0 0 28 28"
+
+        src =
+            if checked then
+                [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
+                    [ Svg.path [ fill "#282828", d "M-414-909h1440V115H-414z" ] []
+                    , Svg.g []
+                        [ Svg.circle [ stroke "#0CF", cx "14", cy "14", r "13.5" ] []
+                        , Svg.circle [ fill "#0CF", stroke "#0CF", cx "14", cy "14", r "7" ] []
+                        ]
+                    ]
+                ]
+
+            else
+                [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
+                    [ Svg.circle [ stroke "#0CF", cx "14", cy "14", r "13.5" ] []
+                    , Svg.circle [ stroke "#0CF", cx "14", cy "14", r "13.5" ] []
+                    , Svg.path [ stroke "none", d "M.5.5h27v27H.5z" ] []
+                    ]
+                ]
+    in
+    Icon { attrs = attrs, src = src }
+
+
+{-| checkbox : produces svg icon for input checkbox select
+-}
+checkbox : Bool -> Icon
+checkbox checked =
+    let
+        attrs =
+            IconAttributes 22 "" 1 (Just "-icon -radio") "0 0 28 28"
+
+        src =
+            if checked then
+                [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
+                    [ Svg.path [ stroke "#0CF", fill "#0CF", d "M.5.5h27v27H.5z" ] []
+                    , Svg.path [ stroke "#282828", Svg.Attributes.fillRule "2", Svg.Attributes.strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] []
+                    ]
+                ]
+
+            else
+                [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
+                    [ Svg.path [ stroke "#0CF", fill "none", d "M.5.5h27v27H.5z" ] []
+                    ]
+                ]
     in
     Icon { attrs = attrs, src = src }
 
