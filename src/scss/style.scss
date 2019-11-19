@@ -12,10 +12,10 @@ html {
 }
 
 body {
-  color: var(--color-text);
-  background-color: var(--color-bg);
 
   font-size: 18px;
+  color: var(--color-text);
+  background-color: var(--color-bg);
 }
 
 a {
@@ -31,39 +31,41 @@ header {
   justify-content: space-between;
 
   padding: 1em var(--horizontal-pad);
+  background:
+    radial-gradient(
+      circle at 50% -200%,
+      var(--color-gray) -7%,
+      transparent 50%
+    );
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
-  border-image-source: linear-gradient(
-    to right,
-    var(--color-primary) 55%,
-    transparent 55%,
-    transparent 58%,
-    var(--color-primary) 58%,
-    var(--color-primary) 69%,
-    transparent 69%,
-    transparent 75%,
-    var(--color-secondary) 75%,
-    var(--color-secondary) 76%,
-    transparent 76%
-  );
+  border-image-source:
+    linear-gradient(
+      to right,
+      var(--color-primary) 55%,
+      transparent 55%,
+      transparent 58%,
+      var(--color-primary) 58%,
+      var(--color-primary) 69%,
+      transparent 69%,
+      transparent 75%,
+      var(--color-secondary) 75%,
+      var(--color-secondary) 76%,
+      transparent 76%
+    );
   border-image-slice: 1;
-  background: radial-gradient(
-    circle at 50% -200%,
-    var(--color-gray) -7%,
-    transparent 50%
-  );
 }
 
 .details {
   > .summary {
     position: relative;
 
-    overflow: hidden;
-
     padding-right: 1.5em;
-    padding-bottom: 0.3em;
+    padding-bottom: .3em;
+
+    overflow: hidden;
 
     cursor: pointer;
 
@@ -93,16 +95,16 @@ header {
   }
   .details-icon-expand {
     position: absolute;
-    top: 0.2em;
+    top: .2em;
     right: 0;
 
-    transition: all 0.2s;
-    transform-origin: 50% 49%;
-
     color: var(--color-primary);
+
+    transition: all .2s;
+    transform-origin: 50% 49%;
   }
   &[open] .details-icon-expand {
-    transform: rotate(0.5turn);
+    transform: rotate(.5turn);
   }
 }
 
@@ -146,12 +148,12 @@ header {
 
     margin-right: 1em;
     &:not(:last-child)::after {
-      @include slashes;
+      @include slashes ();
     }
     &:last-child {
-      text-decoration: none;
 
-      font-weight: bold;
+      font-weight: 700;
+      text-decoration: none;
     }
   }
 }
@@ -162,7 +164,7 @@ header {
 
 .identity-name {
   position: relative;
-  z-index: 9999;
+
   ul {
     position: absolute;
     top: 1rem;
@@ -172,15 +174,15 @@ header {
     min-width: 100%;
     padding: 0;
 
+    font-size: 80%;
+
     list-style: none;
+    background-color: var(--color-bg-darker);
 
     border: 1px solid var(--color-gray);
-    background-color: var(--color-bg-darker);
     box-shadow: 0 0 2px black;
-
-    font-size: 80%;
     > li {
-      padding: 0.5em 1em;
+      padding: .5em 1em;
     }
     @supports (clip-path: inset(50%)) {
       &::after {
@@ -194,11 +196,11 @@ header {
         height: 10px;
 
         content: "";
-        transform: rotate(135deg);
+        background-color: inherit;
 
         border: inherit;
-        border-radius: 0 0 0 0.25em;
-        background-color: inherit;
+        border-radius: 0 0 0 .25em;
+        transform: rotate(135deg);
 
         clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
       }
@@ -212,46 +214,47 @@ header {
 
 button,
 .button {
-  margin: 0.5em 0;
-  padding: 0.5em 2em;
-
-  cursor: pointer;
-  transition: background 0.5s;
-  text-decoration: none;
-
-  color: var(--color-bg);
-  border: none;
-  background-image: linear-gradient(
-    to right,
-    var(--color-cyan) 0%,
-    var(--color-lavender) 60%,
-    var(--color-cyan) 100%
-  );
-  background-size: 200% auto;
+  padding: .5em 2em;
+  margin: .5em 0;
 
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 700;
 
-  & + button,
+  color: var(--color-bg);
+  text-decoration: none;
+
+  cursor: pointer;
+  background-image:
+    linear-gradient(
+      to right,
+      var(--color-cyan) 0%,
+      var(--color-lavender) 60%,
+      var(--color-cyan) 100%
+    );
+  background-size: 200% auto;
+  border: none;
+  transition: background .5s;
+
+  + button,
   + .button {
-    margin-left: 0.5em;
+    margin-left: .5em;
   }
   &:hover {
     background-position: right center;
   }
   &:disabled {
     color: var(--color-darkcoal);
-    border-color: var(--color-gray);
     background-color: var(--color-gray);
     background-image: none;
+    border-color: var(--color-gray);
   }
   &.inverted {
     color: var(--color-cyan);
-    border-width: var(--line-width);
-    border-style: solid;
-    border-color: var(--color-cyan);
     background-color: var(--color-bg);
     background-image: none;
+    border-color: var(--color-cyan);
+    border-style: solid;
+    border-width: var(--line-width);
     &:hover {
       color: var(--color-lightcyan);
       border-color: var(--color-lightcyan);
@@ -269,15 +272,16 @@ button,
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
-  border-image-source: linear-gradient(
-    to right,
-    var(--color-gray) 15%,
-    transparent 15%,
-    transparent 18%,
-    var(--color-gray) 18%,
-    var(--color-gray) 18.8%,
-    transparent 18.8%
-  );
+  border-image-source:
+    linear-gradient(
+      to right,
+      var(--color-gray) 15%,
+      transparent 15%,
+      transparent 18%,
+      var(--color-gray) 18%,
+      var(--color-gray) 18.8%,
+      transparent 18.8%
+    );
   border-image-slice: 1;
   li {
     position: relative;
@@ -286,12 +290,12 @@ button,
 
     margin-right: 1em;
     &:not(:last-child)::after {
-      @include slashes;
+      @include slashes ();
     }
     &:last-child {
-      text-decoration: none;
 
-      font-weight: bold;
+      font-weight: 700;
+      text-decoration: none;
     }
   }
 }
@@ -299,7 +303,7 @@ button,
 .login-source-icon {
   display: inline-block;
 
-  margin-right: 0.6em;
+  margin-right: .6em;
 }
 
 .overview {
@@ -311,24 +315,25 @@ button,
 
   display: flex;
   justify-content: space-between;
+  padding: .5em;
 
   margin: 2em 0;
-  padding: 0.5em;
 
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
-  border-image-source: linear-gradient(
-    to right,
-    var(--color-gray) 75%,
-    transparent 75%,
-    transparent 77%,
-    var(--color-gray) 77%,
-    var(--color-gray) 84%,
-    transparent 84%
-  );
+  border-image-source:
+    linear-gradient(
+      to right,
+      var(--color-gray) 75%,
+      transparent 75%,
+      transparent 77%,
+      var(--color-gray) 77%,
+      var(--color-gray) 84%,
+      transparent 84%
+    );
   border-image-slice: 1;
   > summary {
-    margin: 0.5em 0 0 1em;
+    margin: .5em 0 0 1em;
 
     text-indent: 0;
   }
@@ -340,8 +345,8 @@ button,
   justify-content: space-between;
 
   width: 100%;
-  margin: 0.5em 0 0 1em;
-  padding: 0.5em 1em;
+  padding: .5em 1em;
+  margin: .5em 0 0 1em;
 
   background-color: var(--color-darkcoal);
 }
@@ -352,28 +357,29 @@ button,
 }
 
 .-actions .-view {
-  padding: 0.33em 2em;
+  padding: .33em 2em;
 
   @extend .button;
 }
 
 .-actions .-view > a {
-  text-decoration: none;
 
   color: var(--color-bg);
+  text-decoration: none;
 }
 
 // loading ellipsis
 .loading-ellipsis::after {
   display: inline-block;
-  overflow: hidden;
 
   width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
 
   content: "\2026";
+
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
-  vertical-align: bottom;
 }
 
 .util {
@@ -391,9 +397,9 @@ button,
 .source-actions .-filter,
 .source-repos .-filter {
   display: flex;
-  align-items: center;
   flex: 1;
   flex-direction: row;
+  align-items: center;
 
   margin: 0 1em;
 
@@ -403,13 +409,13 @@ button,
 .source-actions .-filter input,
 .source-repos .-filter input {
   width: 100%;
-  padding: 0.5em 0.8em;
-
-  color: var(--color-text);
-  border: none;
-  background: var(--color-bg);
+  padding: .5em .8em;
 
   font-size: 18px;
+
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: none;
   &::placeholder {
     color: var(--color-gray);
   }
@@ -417,8 +423,8 @@ button,
 
 .org .summary {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
   &::-webkit-details-marker {
     display: flex;
 
@@ -434,27 +440,27 @@ button,
 
 .-no-repos {
   width: 100%;
-  margin: 0.5em 0 0 1em;
   padding: 1.2em 1em;
+  margin: .5em 0 0 1em;
 
   background-color: var(--color-bg-darker);
 }
 
 .org-header {
   display: flex;
-  align-items: center;
   flex: 1;
+  align-items: center;
 }
 
 .repo-count {
   margin-left: 12px;
   &::before {
-    margin-right: 0.3em;
+    margin-right: .3em;
 
     content: "[";
   }
   &::after {
-    margin-left: 0.3em;
+    margin-left: .3em;
 
     content: "]";
   }
@@ -465,8 +471,8 @@ button,
   align-items: center;
 
   min-width: 150px;
-  margin: 0.425em 0;
-  padding: 0.2em 1em;
+  padding: .2em 1em;
+  margin: .425em 0;
 
   vertical-align: top;
   > svg {
@@ -498,44 +504,44 @@ button,
 }
 
 .repo-add--failed {
-  cursor: pointer;
 
   color: var(--color-red);
-  border: var(--line-width) solid var(--color-red);
+  cursor: pointer;
   background: none;
+  border: var(--line-width) solid var(--color-red);
 
   @extend .repo-add;
 
   &:hover svg {
-    transition: transform 0.2s ease-in-out;
+    transition: transform .2s ease-in-out;
     transform: rotate(70deg);
   }
 
   > svg {
     margin-right: 1em;
 
-    transition: transform 0.2s ease-in-out;
+    transition: transform .2s ease-in-out;
   }
 }
 
 a.-btn {
-  margin: 0.5em 0;
-  padding: 0.3em 2em;
-
-  text-decoration: none;
+  padding: .3em 2em;
+  margin: .5em 0;
 
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 700;
+
+  text-decoration: none;
 }
 
 .-btn.-inverted,
 button.-inverted {
   color: var(--color-primary);
-  border-width: var(--line-width);
-  border-style: solid;
-  border-color: var(--color-primary);
   background-color: var(--color-bg);
   background-image: none;
+  border-color: var(--color-primary);
+  border-style: solid;
+  border-width: var(--line-width);
   &:hover {
     color: var(--color-lightcyan);
     border-color: var(--color-lightcyan);
@@ -567,22 +573,22 @@ button.-inverted {
 
 .-btn.-solid,
 button.-solid {
-  transition: 0.1s;
 
   color: var(--color-bg-darker);
-  border-width: var(--line-width);
-  border-style: solid;
-  border-color: var(--color-primary);
   background-color: var(--color-primary);
   background-image: none;
+  border-color: var(--color-primary);
+  border-style: solid;
+  border-width: var(--line-width);
+  transition: .1s;
   &:hover {
     color: var(--color-lightcyan);
-    border-color: var(--color-lightcyan);
     background-color: var(--color-bg-darker);
+    border-color: var(--color-lightcyan);
   }
 
   &.loading {
-    color: var(--color--gray);
+    color: var(--color-gray);
     border: var(--line-width) dashed var(--color-gray);
     &:hover {
       color: inherit;
@@ -592,12 +598,12 @@ button.-solid {
 }
 
 .-btn.-view {
-  margin-left: 0.4em;
+  margin-left: .4em;
 }
 
 .btn-refresh {
   &.loading {
-    color: var(--color--gray);
+    color: var(--color-gray);
     border: var(--line-width) dashed var(--color-gray);
     &:hover {
       color: inherit;
@@ -617,7 +623,7 @@ button.-solid {
 }
 
 .crumb--current {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 // builds styles for /:org/:repo/:build_number
@@ -636,11 +642,11 @@ button.-solid {
   width: 40px;
   height: 40px;
 
-  animation: spin 3s linear infinite;
-
   border: 2px solid var(--color-text);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
+
+  animation: spin 3s linear infinite;
 }
 
 .small-loader {
@@ -653,18 +659,18 @@ button.-solid {
   width: 20px;
   height: 20px;
 
-  animation: spin 3s linear infinite;
-
   border: 2px solid var(--color-offwhite);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
+
+  animation: spin 3s linear infinite;
 }
 
 .build-container {
-  overflow: hidden;
 
   width: 100%;
   margin: 12px 0;
+  overflow: hidden;
 }
 
 .build {
@@ -674,13 +680,12 @@ button.-solid {
   flex-direction: row;
   justify-content: space-between;
 
-  border: 2px solid var(--color-bg-darker);
-  border-right: 0px;
-  border-left: 0px;
-
-  font-family: Helvetica;
   font-size: 18px;
   font-weight: 300;
+
+  border: 2px solid var(--color-bg-darker);
+  border-right: 0;
+  border-left: 0;
 }
 
 .build .status {
@@ -710,9 +715,9 @@ button.-solid {
 }
 
 .status-svg {
+  fill: none;
   stroke: var(--color-bg);
   stroke-width: 2;
-  fill: none;
   fill-rule: evenodd;
 }
 
@@ -762,13 +767,13 @@ button.-solid {
 }
 
 .build .error {
-  color: var(--color-red);
 
-  font-size: 0.9em;
+  font-size: .9em;
+  color: var(--color-red);
 }
 
 .build .error .message{
-  margin-left: 0.2em;
+  margin-left: .2em;
 }
 
 .git-info {
@@ -777,15 +782,15 @@ button.-solid {
 }
 
 .git-info .commit {
-  margin: 0 8px 0 0px;
+  margin: 0 8px 0 0;
 }
 
 .git-info .branch {
-  margin: 0 8px 0 8px;
+  margin: 0 8px;
 }
 
 .git-info .sender {
-  margin: 0 8px 0 8px;
+  margin: 0 8px;
 }
 
 .time-info {
@@ -796,7 +801,7 @@ button.-solid {
 }
 
 .time-info .age {
-  margin: 0 4px 0 4px;
+  margin: 0 4px;
 }
 
 .time-info .delimiter {
@@ -834,13 +839,11 @@ button.-solid {
 }
 
 .build-animation.-bottom.-running {
-  animation: build-status-parallax-running 26s linear 26s infinite,
-    build-status-parallax-start 26s linear none;
+  animation: build-status-parallax-running 26s linear 26s infinite, build-status-parallax-start 26s linear none;
 }
 
 .build-animation.-top.-running {
-  animation: build-status-parallax-running 22s linear 22s infinite,
-    build-status-parallax-start 22s linear none;
+  animation: build-status-parallax-running 22s linear 22s infinite, build-status-parallax-start 22s linear none;
 }
 
 .build-animation.-bottom.-start {
@@ -915,8 +918,8 @@ button.-solid {
 
 .build-history {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
 
   margin-left: 3em;
 }
@@ -982,8 +985,8 @@ button.-solid {
 }
 
 .build-history .-build .-icon.-pending .-path-3 {
-  stroke: var(--color-bg-darker);
   fill: var(--color-bg-darker);
+  stroke: var(--color-bg-darker);
 }
 
 .build-history .-build .-icon.-success .-path-3 {
@@ -994,29 +997,27 @@ button.-solid {
   stroke: var(--color-bg-darker);
 }
 
-
-
 .build-history .-build .-tooltip {
   position: absolute;
+  top: 125%;
   // not sure what to here to display the tooltip on top!
   z-index: 9999;
-  top: 125%;
 
   display: flex;
-  visibility: hidden;
   flex-direction: column;
 
   width: 300px;
-  padding: 0.2em 0;
-
-  text-align: center;
-
-  color: var(--color-text);
-  border: solid 1px var(--color-gray);
-  border-radius: 3px;
-  background-color: var(--color-bg-darker);
+  padding: .2em 0;
 
   font-weight: 300;
+
+  color: var(--color-text);
+
+  text-align: center;
+  visibility: hidden;
+  background-color: var(--color-bg-darker);
+  border: solid 1px var(--color-gray);
+  border-radius: 3px;
 }
 
 .build-history .-build:hover .-tooltip {
@@ -1027,17 +1028,17 @@ button.-solid {
   position: absolute;
   bottom: 100%; /* At the top of the tooltip */
 
-  margin-left: 0.5em;
+  margin-left: .5em;
 
   content: " ";
+  border-color: transparent transparent var(--color-gray) transparent;
+  border-style: solid;
 
   border-width: 5px;
-  border-style: solid;
-  border-color: transparent transparent var(--color-gray) transparent;
 }
 
 .build-history .-build .-info {
-  padding: 0.2em 0.6em;
+  padding: .2em .6em;
 
   font-size: 14px;
 }
@@ -1061,8 +1062,8 @@ button.-solid {
 }
 
 .build-history .-build .-number {
-  margin-right: 0.5em;
-  &:before {
+  margin-right: .5em;
+  &::before {
     content: "#";
   }
 }
@@ -1080,12 +1081,13 @@ button.-solid {
 }
 
 .step.-line {
-  background: linear-gradient(
-    90deg,
-    hsla(0, 0, 0, 0) calc(3.25em - 1px),
-    hsla(0, 0%, 75%, 1) calc(3.25em),
-    hsla(0, 0, 0, 0) calc(3.25em + 1px)
-  );
+  background:
+    linear-gradient(
+      90deg,
+      hsla(0, 0, 0, 0) calc(3.25em - 1px),
+      hsla(0, 0%, 75%, 1) calc(3.25em),
+      hsla(0, 0, 0, 0) calc(3.25em + 1px)
+    );
 }
 .step.-line.-last {
   background-repeat: no-repeat;
@@ -1118,8 +1120,8 @@ button.-solid {
 }
 
 .-step-icon.-pending {
-  stroke: var(--color-gray);
   fill: var(--color-gray);
+  stroke: var(--color-gray);
 }
 
 .-step-icon.-running {
@@ -1136,21 +1138,22 @@ button.-solid {
 
 .step .-view {
   flex: 1;
+  padding: 0;
 
   margin: 1em 0;
-  padding: 0em;
 
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
-  border-image-source: linear-gradient(
-    to right,
-    var(--color-gray) 75%,
-    transparent 75%,
-    transparent 77%,
-    var(--color-gray) 77%,
-    var(--color-gray) 84%,
-    transparent 84%
-  );
+  border-image-source:
+    linear-gradient(
+      to right,
+      var(--color-gray) 75%,
+      transparent 75%,
+      transparent 77%,
+      var(--color-gray) 77%,
+      var(--color-gray) 84%,
+      transparent 84%
+    );
   border-image-slice: 1;
 }
 
@@ -1159,8 +1162,8 @@ button.-solid {
 }
 
 .step .summary {
-  padding-top: 0.7em;
-  padding-bottom: 0.7em;
+  padding-top: .7em;
+  padding-bottom: .7em;
 }
 
 .step .-info {
@@ -1176,14 +1179,14 @@ button.-solid {
 }
 
 .log {
-  margin: 1px;
   padding: 1em;
-  padding-top: 0.5em;
+  padding-top: .5em;
+  margin: 1px;
+
+  font-size: .9em;
+  font-weight: 300;
 
   background-color: var(--color-bg-darker);
-
-  font-size: 0.9em;
-  font-weight: 300;
 }
 
 .log-line {
@@ -1191,24 +1194,24 @@ button.-solid {
 }
 
 .log .-code .-line-num {
-  margin-right: 0.5em;
-
-  color: var(--color-gray);
+  margin-right: .5em;
 
   font-family: var(--font-code);
+
+  color: var(--color-gray);
 }
 
 .log.error {
-  padding-top: 0.8em;
-  padding-bottom: 0.8em;
+  padding-top: .8em;
+  padding-bottom: .8em;
+
+  font-size: .9em;
 
   color: var(--color-red);
-
-  font-size: 0.9em;
 }
 
 .log.error .message{
-  margin-left: 0.2em;
+  margin-left: .2em;
 }
 
 .animated {
@@ -1243,15 +1246,15 @@ button.-solid {
 
   width: 100%;
   max-width: 530px;
-  margin: 0;
   padding: 0;
+  margin: 0;
 
   list-style-type: none;
 }
 
 .alert-item-attributes {
   max-height: 100px;
-  margin: 1em 1em 0 1em;
+  margin: 1em 1em 0;
 
   transition: max-height 1.2s, margin-top 1.2s;
 }
@@ -1260,15 +1263,15 @@ button.-solid {
   width: 500px;
   padding: 1em;
 
-  cursor: pointer;
+  font-size: 14px;
 
   color: white;
-  border-radius: 5px;
-  border-radius: 0px;
-  background-color: var(--color-bg-darker);
-  box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
 
-  font-size: 14px;
+  cursor: pointer;
+  background-color: var(--color-bg-darker);
+  border-radius: 5px;
+  border-radius: 0;
+  box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, .5);
 }
 
 .alert-container .-title {
@@ -1279,15 +1282,15 @@ button.-solid {
 
 .alert-container .-message {
   display: flex;
-  overflow-y: auto;
   flex-direction: row;
   justify-content: space-between;
 
   max-height: 3.25em;
-  margin-top: 0.25em;
+  margin-top: .25em;
   margin-bottom: 0;
+  overflow-y: auto;
 
-  font-size: 0.9em;
+  font-size: .9em;
 }
 
 .alert-container.-success {
