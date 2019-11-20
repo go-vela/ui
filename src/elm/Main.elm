@@ -50,11 +50,7 @@ import Html.Attributes
         , type_
         , value
         )
-import Html.Events
-    exposing
-        ( onClick
-        , onInput
-        )
+import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (lazy2)
 import Http exposing (Error(..))
 import Http.Detailed
@@ -64,13 +60,16 @@ import Json.Encode as Encode
 import List.Extra exposing (setIf)
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
-import Routes exposing (Route(..))
-import Settings
+import RepoSettings
     exposing
-        ( buildTimeoutValue
+        ( buildTimeoutUpdateButton
+        , buildTimeoutValue
+        , repoUpdatedAlert
         , updateRepoCheckbox
         , updateRepoRadio
+        , updateRepoTimeoutInput
         )
+import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
 import Time exposing (utc)
@@ -244,6 +243,7 @@ type Msg
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
     | ChangeBuildTimeout Repository String
+    | RefreshRepoSettings Org Repo
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -371,7 +371,7 @@ update msg model =
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
-                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (Settings.repoUpdatedAlert field updatedRepo) Nothing)
+                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (repoUpdatedAlert field updatedRepo) Nothing)
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
@@ -581,6 +581,9 @@ update msg model =
                                 model.buildTimeout
             in
             ( { model | buildTimeout = newTimeout }, Cmd.none )
+
+        RefreshRepoSettings org repo ->
+            ( { model | buildTimeout = Nothing, repo = Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
@@ -991,9 +994,9 @@ viewRepoSettings model =
     in
     case model.repo of
         Success repo ->
-            div [ class "repo-settings" ]
-                [ div [ class "-row" ] [ repoSettingsEventsCategory repo, repoSettingsAccessCategory repo ]
-                , div [ class "-row" ] [ repoSettingsBuildTimeoutCategory model repo ]
+            div [ class "repo-settings", Util.testAttribute "repo-settings" ]
+                [ div [ class "-row" ] [ repoSettingsCategoryEvents repo, repoSettingsCategoryAccess repo ]
+                , div [ class "-row" ] [ repoSettingsCategoryBuildTimeout model repo ]
                 ]
 
         Loading ->
@@ -1011,9 +1014,11 @@ viewRepoSettings model =
                 ]
 
 
-repoSettingsEventsCategory : Repository -> Html Msg
-repoSettingsEventsCategory repo =
-    div [ class "category" ]
+{-| repoSettingsCategoryEvents : takes model and repo and renders the settings category for updating repo webhook events
+-}
+repoSettingsCategoryEvents : Repository -> Html Msg
+repoSettingsCategoryEvents repo =
+    div [ class "category", Util.testAttribute "repo-settings-events" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Webhook Events" ] ]
         , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines" ]
         , div [ class "inputs" ]
@@ -1021,29 +1026,31 @@ repoSettingsEventsCategory repo =
                 "allow_push"
                 repo.allow_push
               <|
-                UpdateRepoBool repo.org repo.name "allow_push" (not repo.allow_push)
+                UpdateRepoBool repo.org repo.name "allow_push"
             , updateRepoCheckbox "Pull Request"
                 "allow_pull"
                 repo.allow_pull
               <|
-                UpdateRepoBool repo.org repo.name "allow_pull" (not repo.allow_pull)
+                UpdateRepoBool repo.org repo.name "allow_pull"
             , updateRepoCheckbox "Deploy"
                 "allow_deploy"
                 repo.allow_deploy
               <|
-                UpdateRepoBool repo.org repo.name "allow_deploy" (not repo.allow_deploy)
+                UpdateRepoBool repo.org repo.name "allow_deploy"
             , updateRepoCheckbox "Tag"
                 "allow_tag"
                 repo.allow_tag
               <|
-                UpdateRepoBool repo.org repo.name "allow_tag" (not repo.allow_tag)
+                UpdateRepoBool repo.org repo.name "allow_tag"
             ]
         ]
 
 
-repoSettingsAccessCategory : Repository -> Html Msg
-repoSettingsAccessCategory repo =
-    div [ class "category" ]
+{-| repoSettingsCategoryAccess : takes model and repo and renders the settings category for updating repo access
+-}
+repoSettingsCategoryAccess : Repository -> Html Msg
+repoSettingsCategoryAccess repo =
+    div [ class "category", Util.testAttribute "repo-settings-access" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Access" ] ]
         , div [ class "description" ] [ text "Change who can access build information" ]
         , div [ class "inputs", class "radios" ]
@@ -1053,46 +1060,20 @@ repoSettingsAccessCategory repo =
         ]
 
 
-repoSettingsBuildTimeoutCategory : Model -> Repository -> Html Msg
-repoSettingsBuildTimeoutCategory model repo =
-    div [ class "category" ]
+{-| repoSettingsCategoryBuildTimeout : takes model and repo and renders the settings category for updating repo build timeout
+-}
+repoSettingsCategoryBuildTimeout : Model -> Repository -> Html Msg
+repoSettingsCategoryBuildTimeout model repo =
+    div [ class "category", Util.testAttribute "repo-settings-timeout" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Build Timeout" ] ]
         , div [ class "description" ] [ text "Builds that reach this timeout setting will be stopped" ]
-        , div [ class "inputs", class "build-timeout" ]
-            [ input
-                [ Util.testAttribute <| "repo-build-timeout"
-                , id <| "build-timeout"
-                , value <| buildTimeoutValue model.buildTimeout repo.timeout
-                , onInput <| ChangeBuildTimeout repo
-                , type_ "text"
-                ]
-                []
-            , label [ for "build-timeout" ] [ span [ class "label" ] [ text "minutes" ] ]
-            , buildTimeoutUpdateButton repo.org repo.name model.buildTimeout repo.timeout
-            ]
+        , updateRepoTimeoutInput repo
+            model.buildTimeout
+            (ChangeBuildTimeout repo)
+          <|
+            UpdateRepoBuildTimeout repo.org repo.name <|
+                Maybe.withDefault "" model.buildTimeout
         ]
-
-
-buildTimeoutUpdateButton : Org -> Repo -> Maybe String -> Int -> Html Msg
-buildTimeoutUpdateButton org repo inTimeout repoTimeout =
-    let
-        timeout =
-            Maybe.withDefault "" inTimeout
-    in
-    if String.isEmpty timeout then
-        text ""
-
-    else if timeout /= String.fromInt repoTimeout then
-        button
-            [ class "-btn"
-            , class "-solid"
-            , class "-build-timeout"
-            , onClick <| UpdateRepoBuildTimeout org repo timeout
-            ]
-            [ text "update" ]
-
-    else
-        text ""
 
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
@@ -1327,7 +1308,7 @@ navButton model =
                     [ ( "btn-refresh", True )
                     , ( "-inverted", True )
                     ]
-                , onClick <| FetchRepo org repo
+                , onClick <| RefreshRepoSettings org repo
                 , Util.testAttribute "refresh-repo-settings"
                 ]
                 [ text "Refresh Settings"

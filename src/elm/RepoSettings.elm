@@ -4,16 +4,19 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Settings exposing
-    ( buildTimeoutValue
+module RepoSettings exposing
+    ( buildTimeoutUpdateButton
+    , buildTimeoutValue
     , repoUpdatedAlert
     , updateRepoCheckbox
     , updateRepoRadio
+    , updateRepoTimeoutInput
     )
 
 import Html
     exposing
         ( Html
+        , button
         , div
         , input
         , label
@@ -28,11 +31,9 @@ import Html.Attributes
         , for
         , id
         , type_
+        , value
         )
-import Html.Events
-    exposing
-        ( onClick
-        )
+import Html.Events exposing (onCheck, onClick, onInput)
 import SvgBuilder
 import Util
 import Vela exposing (Field, Repository)
@@ -42,16 +43,17 @@ import Vela exposing (Field, Repository)
 -- VIEW
 
 
-updateRepoCheckbox : String -> Field -> Bool -> msg -> Html msg
-updateRepoCheckbox name field value action =
-    div [ class "checkbox" ]
-        [ SvgBuilder.checkbox value |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+updateRepoCheckbox : String -> Field -> Bool -> (Bool -> msg) -> Html msg
+updateRepoCheckbox name field state action =
+    div [ class "checkbox", Util.testAttribute <| "repo-checkbox-" ++ field ]
+        [ SvgBuilder.checkbox state |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
         , input
-            [ Util.testAttribute <| "repo-checkbox-" ++ field
+            [ type_ "checkbox"
             , id <| "checkbox-" ++ field
-            , checked value
-            , onClick action
-            , type_ "checkbox"
+
+            -- , value <| checkedValue state
+            , checked state
+            , onCheck action
             ]
             []
         , label [ for <| "checkbox-" ++ field ] [ span [ class "label" ] [ text name ] ]
@@ -60,22 +62,65 @@ updateRepoCheckbox name field value action =
 
 updateRepoRadio : String -> String -> Field -> msg -> Html msg
 updateRepoRadio value field title action =
-    div [ class "checkbox", class "radio" ]
+    div [ class "checkbox", class "radio", Util.testAttribute <| "repo-radio-" ++ field ]
         [ SvgBuilder.radio (value == field) |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
         , input
             [ type_ "radio"
             , id <| "radio-" ++ field
             , checked (value == field)
             , onClick action
-            , Util.testAttribute <| "repo-radio-any"
             ]
             []
         , label [ for <| "radio-" ++ field ] [ span [ class "label" ] [ text title, updateRepoFieldTip field ] ]
         ]
 
 
+updateRepoTimeoutInput : Repository -> Maybe String -> (String -> msg) -> msg -> Html msg
+updateRepoTimeoutInput repo inTimeout inputAction buttonAction =
+    div [ class "inputs", class "repo-timeout", Util.testAttribute "repo-timeout" ]
+        [ input
+            [ id <| "repo-timeout"
+            , value <| buildTimeoutValue inTimeout repo.timeout
+            , onInput inputAction
+            , type_ "text"
+            ]
+            []
+        , label [ for "repo-timeout" ] [ span [ class "label" ] [ text "minutes" ] ]
+        , buildTimeoutUpdateButton (Maybe.withDefault "" inTimeout)
+            repo.timeout
+            buttonAction
+        ]
+
+
+buildTimeoutUpdateButton : String -> Int -> msg -> Html msg
+buildTimeoutUpdateButton inTimeout repoTimeout m =
+    if String.isEmpty inTimeout then
+        text ""
+
+    else if inTimeout /= String.fromInt repoTimeout then
+        button
+            [ class "-btn"
+            , class "-solid"
+            , class "-repo-timeout"
+            , onClick m
+            ]
+            [ text "update" ]
+
+    else
+        text ""
+
+
 
 -- HELPERS
+
+
+checkedValue : Bool -> String
+checkedValue checked =
+    if checked then
+        "on"
+
+    else
+        "off"
 
 
 buildTimeoutValue : Maybe String -> Int -> String
