@@ -1,119 +1,119 @@
-context("org/repo Builds Page", () => {
-  context("logged in and server returning builds, steps, and logs", () => {
+context('org/repo Builds Page', () => {
+  context('logged in and server returning builds, steps, and logs', () => {
     beforeEach(() => {
       cy.server();
       cy.stubBuild();
       cy.stubStepsWithLogs();
-      cy.login("/someorg/somerepo/1");
-      cy.get("[data-test=steps]").as("steps");
-      cy.get("[data-test=step]").as("step");
-      cy.get("[data-test=logs]").as("logs");
-      cy.get("[data-test=step-header]")
+      cy.login('/someorg/somerepo/1');
+      cy.get('[data-test=steps]').as('steps');
+      cy.get('[data-test=step]').as('step');
+      cy.get('[data-test=logs]').as('logs');
+      cy.get('[data-test=step-header]')
         .children()
-        .as("stepHeaders");
+        .as('stepHeaders');
     });
 
-    it("steps should show", () => {
-      cy.get("@steps").should("be.visible");
+    it('steps should show', () => {
+      cy.get('@steps').should('be.visible');
     });
 
-    it("5 steps should show", () => {
-      cy.get("@steps")
+    it('5 steps should show', () => {
+      cy.get('@steps')
         .children()
-        .should("have.length", 5);
+        .should('have.length', 5);
     });
 
-    it("steps should be in order by number", () => {
-      cy.get("@steps")
+    it('steps should be in order by number', () => {
+      cy.get('@steps')
         .children()
         .first()
-        .should("contain", "clone");
+        .should('contain', 'clone');
 
-      cy.get("@steps")
+      cy.get('@steps')
         .children()
         .last()
-        .should("contain", "echo");
+        .should('contain', 'echo');
     });
 
-    it("all steps should have logs", () => {
-      cy.get("@logs").should("have.length", 5);
+    it('all steps should have logs', () => {
+      cy.get('@logs').should('have.length', 5);
     });
 
-    it("logs should be base64 decoded", () => {
+    it('logs should be base64 decoded', () => {
       // all test logs have a '$' encoded in the source
-      cy.get("@logs")
+      cy.get('@logs')
         .children()
-        .should("contain", "$");
+        .should('contain', '$');
     });
 
-    it("clicking steps should show/hide logs", () => {
-      cy.get("@logs")
+    it('clicking steps should show/hide logs', () => {
+      cy.get('@logs')
         .children()
-        .should("be.not.visible");
+        .should('be.not.visible');
 
-      cy.get("@stepHeaders").click({ force: true, multiple: true });
+      cy.get('@stepHeaders').click({ force: true, multiple: true });
 
-      cy.get("@logs")
+      cy.get('@logs')
         .children()
-        .should("be.visible");
+        .should('be.visible');
 
-      cy.get("@stepHeaders").click({ force: true, multiple: true });
-      cy.get("@logs")
+      cy.get('@stepHeaders').click({ force: true, multiple: true });
+      cy.get('@logs')
         .children()
-        .should("be.not.visible");
+        .should('be.not.visible');
     });
   });
-  context("visit build/steps with server error", () => {
+  context('visit build/steps with server error', () => {
     beforeEach(() => {
       cy.server();
       cy.stubBuild();
       cy.stubStepsWithErrorLogs();
-      cy.login("/someorg/somerepo/5");
-      cy.get("[data-test=steps]").as("steps");
-      cy.get("[data-test=step]").as("step");
-      cy.get("[data-test=logs]").as("logs");
-      cy.get("[data-test=step-header]")
+      cy.login('/someorg/somerepo/5');
+      cy.get('[data-test=steps]').as('steps');
+      cy.get('[data-test=step]').as('step');
+      cy.get('[data-test=logs]').as('logs');
+      cy.get('[data-test=step-header]')
         .children()
-        .as("stepHeaders");
-      cy.get("[data-test=full-build]").as("build");
-      cy.get("@build")
-        .get("[data-test=build-status]")
-        .as("buildStatus");
+        .as('stepHeaders');
+      cy.get('[data-test=full-build]').as('build');
+      cy.get('@build')
+        .get('[data-test=build-status]')
+        .as('buildStatus');
     });
 
-    it("build should have failure style", () => {
-      cy.get("@buildStatus").should("have.class", "-failure");
+    it('build should have failure style', () => {
+      cy.get('@buildStatus').should('have.class', '-failure');
     });
 
-    it("build error should show", () => {
-      cy.get("[data-test=build-error]").should("be.visible");
+    it('build error should show', () => {
+      cy.get('[data-test=build-error]').should('be.visible');
     });
 
-    it("build error should contain error", () => {
-      cy.get("[data-test=build-error]").contains("error:");
-      cy.get("[data-test=build-error]").contains("failure authenticating");
+    it('build error should contain error', () => {
+      cy.get('[data-test=build-error]').contains('error:');
+      cy.get('[data-test=build-error]').contains('failure authenticating');
     });
 
-    it("first step should contain error", () => {
-      cy.get("[data-test=step]")
+    it('first step should contain error', () => {
+      cy.get('[data-test=step]')
         .first()
-        .as("cloneStep");
-      cy.get("@cloneStep")
-        .should("be.visible")
+        .as('cloneStep');
+      cy.get('@cloneStep')
+        .should('be.visible')
         .click();
-      cy.get("@cloneStep").contains("error:");
-      cy.get("@cloneStep").contains("problem starting container");
+      cy.get('@cloneStep').contains('error:');
+      cy.get('@cloneStep').contains('problem starting container');
     });
 
-    it("last step should not contain error", () => {
-      cy.get("[data-test=step]")
+    it('last step should not contain error', () => {
+      cy.get('[data-test=step]')
         .last()
-        .as("echoStep");
-      cy.get("@echoStep")
-        .should("be.visible")
+        .as('echoStep');
+      cy.get('@echoStep')
+        .should('be.visible')
         .click({ force: true });
-      cy.get("@echoStep").should("not.contain",  "error:");
-      cy.get("@echoStep").contains("$");
-      });
+      cy.get('@echoStep').should('not.contain', 'error:');
+      cy.get('@echoStep').contains('$');
+    });
   });
 });
