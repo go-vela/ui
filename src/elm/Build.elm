@@ -575,7 +575,7 @@ stepClasses : Step -> Steps -> Html.Attribute msg
 stepClasses step steps =
     let
         last =
-            case List.head <| List.reverse steps of
+            case List.head steps of
                 Just s ->
                     s.number
 
