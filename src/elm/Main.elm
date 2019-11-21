@@ -27,7 +27,6 @@ import Html
         , h1
         , header
         , input
-        , label
         , li
         , main_
         , nav
@@ -43,11 +42,8 @@ import Html.Attributes
         , class
         , classList
         , disabled
-        , for
         , href
-        , id
         , placeholder
-        , type_
         , value
         )
 import Html.Events exposing (onClick, onInput)
@@ -62,11 +58,10 @@ import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import RepoSettings
     exposing
-        ( buildTimeoutUpdateButton
-        , buildTimeoutValue
-        , repoUpdatedAlert
+        ( repoUpdatedAlert
         , updateRepoCheckbox
         , updateRepoRadio
+        , updateRepoTimeoutHelp
         , updateRepoTimeoutInput
         )
 import Routes exposing (Route(..))
@@ -108,8 +103,6 @@ import Vela
         , defaultBuilds
         , defaultRepository
         , defaultSession
-        , defaultUpdateRepositoryPayload
-        , defaultUser
         , encodeAddRepository
         , encodeSession
         , encodeUpdateRepository
@@ -1073,6 +1066,7 @@ repoSettingsCategoryBuildTimeout model repo =
           <|
             UpdateRepoBuildTimeout repo.org repo.name <|
                 Maybe.withDefault "" model.buildTimeout
+        , updateRepoTimeoutHelp model.buildTimeout
         ]
 
 

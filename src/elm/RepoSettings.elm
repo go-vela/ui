@@ -5,11 +5,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module RepoSettings exposing
-    ( buildTimeoutUpdateButton
-    , buildTimeoutValue
-    , repoUpdatedAlert
+    ( repoUpdatedAlert
     , updateRepoCheckbox
     , updateRepoRadio
+    , updateRepoTimeoutHelp
     , updateRepoTimeoutInput
     )
 
@@ -28,6 +27,8 @@ import Html.Attributes
         ( attribute
         , checked
         , class
+        , classList
+        , disabled
         , for
         , id
         , type_
@@ -50,8 +51,6 @@ updateRepoCheckbox name field state action =
         , input
             [ type_ "checkbox"
             , id <| "checkbox-" ++ field
-
-            -- , value <| checkedValue state
             , checked state
             , onCheck action
             ]
@@ -80,51 +79,82 @@ updateRepoTimeoutInput repo inTimeout inputAction buttonAction =
     div [ class "inputs", class "repo-timeout", Util.testAttribute "repo-timeout" ]
         [ input
             [ id <| "repo-timeout"
-            , value <| buildTimeoutValue inTimeout repo.timeout
+            , value <| buildTimeoutString inTimeout repo.timeout
             , onInput inputAction
             , type_ "text"
+            , classList [ ( "-invalid", not <| validTimeoutUpdate inTimeout Nothing ) ]
             ]
             []
         , label [ for "repo-timeout" ] [ span [ class "label" ] [ text "minutes" ] ]
-        , buildTimeoutUpdateButton (Maybe.withDefault "" inTimeout)
+        , buildTimeoutUpdateButton inTimeout
             repo.timeout
             buttonAction
         ]
 
 
-buildTimeoutUpdateButton : String -> Int -> msg -> Html msg
+updateRepoTimeoutHelp : Maybe String -> Html msg
+updateRepoTimeoutHelp inTimeout =
+    case inTimeout of
+        Just _ ->
+            div [ class "timeout-help" ] [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before increasing the timeout." ]
+
+        Nothing ->
+            text ""
+
+
+validTimeoutUpdate : Maybe String -> Maybe Int -> Bool
+validTimeoutUpdate inTimeout repoTimeout =
+    case inTimeout of
+        Just timeout ->
+            case String.toInt timeout of
+                Just t ->
+                    if t >= 30 && t <= 90 then
+                        case repoTimeout of
+                            Just ti ->
+                                if t /= ti then
+                                    True
+
+                                else
+                                    False
+
+                            Nothing ->
+                                True
+
+                    else
+                        False
+
+                Nothing ->
+                    False
+
+        Nothing ->
+            True
+
+
+buildTimeoutUpdateButton : Maybe String -> Int -> msg -> Html msg
 buildTimeoutUpdateButton inTimeout repoTimeout m =
-    if String.isEmpty inTimeout then
-        text ""
+    case inTimeout of
+        Just _ ->
+            button
+                [ classList
+                    [ ( "-btn", True )
+                    , ( "-inverted", True )
+                    , ( "-repo-timeout", True )
+                    ]
+                , onClick m
+                , disabled <| not <| validTimeoutUpdate inTimeout <| Just repoTimeout
+                ]
+                [ text "update" ]
 
-    else if inTimeout /= String.fromInt repoTimeout then
-        button
-            [ class "-btn"
-            , class "-solid"
-            , class "-repo-timeout"
-            , onClick m
-            ]
-            [ text "update" ]
-
-    else
-        text ""
+        Nothing ->
+            text ""
 
 
 
 -- HELPERS
 
 
-checkedValue : Bool -> String
-checkedValue checked =
-    if checked then
-        "on"
-
-    else
-        "off"
-
-
-buildTimeoutValue : Maybe String -> Int -> String
-buildTimeoutValue inTimeout repoTimeout =
+buildTimeoutString : Maybe String -> Int -> String
+buildTimeoutString inTimeout repoTimeout =
     Maybe.withDefault (String.fromInt repoTimeout) inTimeout
 
 

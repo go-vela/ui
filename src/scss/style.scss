@@ -548,6 +548,17 @@ button.-inverted {
   padding: 4px 12px;
 
   font-size: 12px;
+  font-weight: 300;
+  &:disabled {
+    color: var(--color-offwhite);
+    border: var(--line-width) solid var(--color-gray);
+    background-color: var(--color-coal);
+    background-image: none;
+    &:hover {
+      color: inherit;
+      border-color: inherit;
+    }
+  }
 }
 
 .-btn.-overview {
@@ -1360,6 +1371,8 @@ button.-solid {
   border: none;
   border-bottom: 1px solid var(--color-lavender);
   background: none;
+
+  font-size: 14px;
 }
 
 .repo-timeout input:focus {
@@ -1378,6 +1391,22 @@ button.-solid {
   font-weight: 300;
 }
 
+.repo-timeout input.-invalid {
+  color: var(--color-red);
+
+  caret-color: var(--color-offwhite);
+}
+
+.timeout-help {
+  padding: 8px 12px;
+
+  border-radius: 4px;
+  background: var(--color-gray);
+
+  font-size: 14px;
+  font-weight: 300;
+}
+
 .checkbox input[type="checkbox"], .checkbox input[type="radio"] {
   opacity: 0;
 }
@@ -1392,8 +1421,19 @@ button.-solid {
 }
 
 .checkbox label::before{
+  top: calc(50% - .45em);
+  left: -1.875em;
+
+  width: 1.15em;
+  height: 1.15em;
+
+  content: "";
+}
+
+
+.checkbox.radio label::before{
   top: calc(50% - .575em);
-  left: -1.9em;
+  left: -1.8em;
 
   width: 1.15em;
   height: 1.15em;
