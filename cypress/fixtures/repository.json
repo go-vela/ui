@@ -1,9 +1,9 @@
 {
-    "id": 205,
-    "user_id": 7,
-    "org": "cat",
-    "name": "purr",
-    "full_name": "cat/purr",
+    "id": 101,
+    "user_id": 14,
+    "org": "github",
+    "name": "octocat",
+    "full_name": "github/octocat",
     "link": "",
     "clone": "",
     "branch": "master",
@@ -12,7 +12,7 @@
     "private": false,
     "trusted": true,
     "active": true,
-    "allow_pull": false,
+    "allow_pull": true,
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false

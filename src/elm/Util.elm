@@ -12,15 +12,17 @@ module Util exposing
     , formatTestTag
     , isLoading
     , isSuccess
+    , largeLoader
     , millisToSeconds
     , oneSecondMillis
     , secondsToMillis
+    , smallLoader
     , testAttribute
     )
 
 import DateFormat exposing (monthNameFull)
-import Html exposing (Attribute)
-import Html.Attributes exposing (attribute)
+import Html exposing (Attribute, Html, div)
+import Html.Attributes exposing (attribute, class)
 import RemoteData exposing (WebData)
 import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone)
@@ -125,3 +127,17 @@ dispatch : msg -> Cmd msg
 dispatch msg =
     succeed msg
         |> perform identity
+
+
+{-| smallLoader : renders a small loading spinner for better transitioning UX
+-}
+smallLoader : Html msg
+smallLoader =
+    div [ class "small-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
+
+
+{-| largeLoader : renders a small loading spinner for better transitioning UX
+-}
+largeLoader : Html msg
+largeLoader =
+    div [ class "large-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
