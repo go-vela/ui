@@ -1,0 +1,19 @@
+{
+    "id": 101,
+    "user_id": 14,
+    "org": "github",
+    "name": "octocat",
+    "full_name": "github/octocat",
+    "link": "",
+    "clone": "",
+    "branch": "master",
+    "timeout": 80,
+    "visibility": "private",
+    "private": false,
+    "trusted": true,
+    "active": true,
+    "allow_pull": false,
+    "allow_push": false,
+    "allow_deploy": true,
+    "allow_tag": true
+}
