@@ -1363,8 +1363,10 @@ button.-solid {
 
 .inputs.repo-timeout input {
   width: 5em;
-  padding: 0.5em;
-
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  padding-right: 0em;
+  padding-left: 1em;
   text-align: center;
 
   color: white;
@@ -1391,7 +1393,7 @@ button.-solid {
   font-weight: 300;
 }
 
-.repo-timeout input.-invalid {
+.repo-timeout input:invalid {
   color: var(--color-red);
 
   caret-color: var(--color-offwhite);

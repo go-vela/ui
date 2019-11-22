@@ -90,7 +90,6 @@ updateRepoTimeoutInput repo inTimeout inputAction buttonAction =
             , type_ "number"
             , Html.Attributes.min "30"
             , Html.Attributes.max "90"
-            , classList [ ( "-invalid", not <| validTimeoutUpdate inTimeout Nothing ) ]
             ]
             []
         , label [ for "repo-timeout" ] [ span [ class "label" ] [ text "minutes" ] ]
