@@ -1308,3 +1308,24 @@ button.-solid {
 .alert-container.-error {
   border: 1px solid var(--color-red);
 }
+
+.hook {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  height: 4em;
+  background: var(--color-darkcoal);
+  font-size: 16px;
+  font-weight: 300;
+}
+
+.hook .detail {
+  margin: 0 1em;
+}
+
+.hook .source-id {
+  background: var(--color-gray);
+  padding: 4px 8px;
+  
+}

@@ -1198,7 +1198,29 @@ viewRepositoryHooks hooks now org repo =
 
 viewHook : Posix -> Org -> Repo -> Hook -> Html msg
 viewHook now org repo hook =
-    div [] [ text hook.status ]
+    div [ class "hook" ]
+        [ div [ class "detail", class "source-id" ]
+            [ text hook.source_id
+            ]
+        , div [ class "detail", class "created" ]
+            [ text <| String.fromInt hook.created
+            ]
+        , div [ class "detail", class "host" ]
+            [ text hook.host
+            ]
+        , div [ class "detail", class "branch" ]
+            [ text hook.branch
+            ]
+        , div [ class "detail", class "event" ]
+            [ text hook.event
+            ]
+        , div [ class "detail", class "link" ]
+            [ a [ href hook.link ] [ text <| "" ++ String.fromInt hook.build_id ]
+            ]
+        , div [ class "detail", class "link" ]
+            [ a [ href hook.link ] [ text "View Webhook" ]
+            ]
+        ]
 
 
 
