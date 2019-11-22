@@ -1190,7 +1190,7 @@ viewRepositoryHooks hooks now org repo =
 
 viewHook : Posix -> Org -> Repo -> Hook -> Html msg
 viewHook now org repo hook =
-    text hook.message
+    div [] [ text hook.status ]
 
 
 
