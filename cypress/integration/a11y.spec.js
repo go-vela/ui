@@ -7,7 +7,7 @@ const A11Y_OPTS = {
 
 context("Accessibility (a11y)", () => {
   context("Logged out", () => {
-    it("overview", () => {
+    it.skip("overview", () => {
       cy.clearSession();
       cy.visit("/");
       cy.injectAxe();
@@ -29,11 +29,11 @@ context("Accessibility (a11y)", () => {
       cy.injectAxe();
     });
 
-    it("overview", () => {
+    it.skip("overview", () => {
       cy.checkA11y(A11Y_OPTS);
     });
 
-    it("add repos", () => {
+    it.skip("add repos", () => {
       cy.visit("/account/add-repos");
       cy.injectAxe();
       cy.checkA11y(A11Y_OPTS);
