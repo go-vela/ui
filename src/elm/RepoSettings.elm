@@ -44,6 +44,8 @@ import Vela exposing (Field, Repository)
 -- VIEW
 
 
+{-| updateRepoCheckbox : takes field name, id, state and click action, and renders an input checkbox.
+-}
 updateRepoCheckbox : String -> Field -> Bool -> (Bool -> msg) -> Html msg
 updateRepoCheckbox name field state action =
     div [ class "checkbox", Util.testAttribute <| "repo-checkbox-" ++ field ]
@@ -59,6 +61,8 @@ updateRepoCheckbox name field state action =
         ]
 
 
+{-| updateRepoRadio : takes current value, field id, title for label, and click action and renders an input radio.
+-}
 updateRepoRadio : String -> String -> Field -> msg -> Html msg
 updateRepoRadio value field title action =
     div [ class "checkbox", class "radio", Util.testAttribute <| "repo-radio-" ++ field ]
@@ -74,6 +78,8 @@ updateRepoRadio value field title action =
         ]
 
 
+{-| updateRepoTimeoutInput : takes repo, user input, and button action and renders the text input for updating build timeout.
+-}
 updateRepoTimeoutInput : Repository -> Maybe String -> (String -> msg) -> msg -> Html msg
 updateRepoTimeoutInput repo inTimeout inputAction buttonAction =
     div [ class "inputs", class "repo-timeout", Util.testAttribute "repo-timeout" ]
@@ -92,16 +98,47 @@ updateRepoTimeoutInput repo inTimeout inputAction buttonAction =
         ]
 
 
+{-| updateRepoTimeoutHelp : takes maybe string of user entered timeout and renders a disclaimer on updating the build timeout.
+-}
 updateRepoTimeoutHelp : Maybe String -> Html msg
 updateRepoTimeoutHelp inTimeout =
     case inTimeout of
         Just _ ->
-            div [ class "timeout-help" ] [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before increasing the timeout." ]
+            div [ class "timeout-help" ]
+                [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before increasing the timeout."
+                ]
 
         Nothing ->
             text ""
 
 
+{-| buildTimeoutUpdateButton : takes maybe string of user entered timeout and current repo timeout and renders the button to submit the update.
+-}
+buildTimeoutUpdateButton : Maybe String -> Int -> msg -> Html msg
+buildTimeoutUpdateButton inTimeout repoTimeout m =
+    case inTimeout of
+        Just _ ->
+            button
+                [ classList
+                    [ ( "-btn", True )
+                    , ( "-inverted", True )
+                    , ( "-repo-timeout", True )
+                    ]
+                , onClick m
+                , disabled <| not <| validTimeoutUpdate inTimeout <| Just repoTimeout
+                ]
+                [ text "update" ]
+
+        Nothing ->
+            text ""
+
+
+
+-- HELPERS
+
+
+{-| validTimeoutUpdate : takes maybe string of user entered timeout and returns whether or not it is a valid update.
+-}
 validTimeoutUpdate : Maybe String -> Maybe Int -> Bool
 validTimeoutUpdate inTimeout repoTimeout =
     case inTimeout of
@@ -130,34 +167,15 @@ validTimeoutUpdate inTimeout repoTimeout =
             True
 
 
-buildTimeoutUpdateButton : Maybe String -> Int -> msg -> Html msg
-buildTimeoutUpdateButton inTimeout repoTimeout m =
-    case inTimeout of
-        Just _ ->
-            button
-                [ classList
-                    [ ( "-btn", True )
-                    , ( "-inverted", True )
-                    , ( "-repo-timeout", True )
-                    ]
-                , onClick m
-                , disabled <| not <| validTimeoutUpdate inTimeout <| Just repoTimeout
-                ]
-                [ text "update" ]
-
-        Nothing ->
-            text ""
-
-
-
--- HELPERS
-
-
+{-| buildTimeoutString : takes maybe string of user entered timeout and current repo timeout and returns the potential update.
+-}
 buildTimeoutString : Maybe String -> Int -> String
 buildTimeoutString inTimeout repoTimeout =
     Maybe.withDefault (String.fromInt repoTimeout) inTimeout
 
 
+{-| updateRepoFieldTip : takes field and returns the tip to display after the label.
+-}
 updateRepoFieldTip : Field -> Html msg
 updateRepoFieldTip field =
     span [ class "field-info" ] <|
@@ -252,7 +270,7 @@ msgSuffix field repo =
             ""
 
 
-{-| msgSuffix : takes bool value and returns disabled/enabled.
+{-| toggleText : takes toggle field id and value and returns the text to display when toggling.
 -}
 toggleText : Field -> Bool -> String
 toggleText field value =

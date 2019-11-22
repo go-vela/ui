@@ -903,7 +903,14 @@ viewSingleRepo repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
-            [ button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| RemoveRepo repo ] [ text "Remove" ]
+            [ a
+                [ class "-btn"
+                , class "-inverted"
+                , class "-view"
+                , Routes.href <| Routes.RepoSettings repo.org repo.name
+                ]
+                [ text "Settings" ]
+            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| RemoveRepo repo ] [ text "Remove" ]
             , a
                 [ class "-btn"
                 , class "-solid"

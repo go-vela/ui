@@ -96,7 +96,7 @@ context("Repo Settings", () => {
         cy.get("[data-test=repo-timeout] button")
           .should("be.visible")
           .click();
-        cy.get("[data-test=repo-timeout] button").should("not.be.visible");
+        cy.get("[data-test=repo-timeout] button").should("be.disabled");
       });
       it("clicking Refresh Settings button should clear input", () => {
         cy.get("[data-test=repo-timeout] input").as("repoTimeoutInput");
