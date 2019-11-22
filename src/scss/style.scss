@@ -1409,6 +1409,9 @@ button.-solid {
 
 .checkbox input[type="checkbox"], .checkbox input[type="radio"] {
   opacity: 0;
+  position: relative;
+  right: 1.55em;
+  bottom: 0.1em;
 }
 
 .checkbox label {
