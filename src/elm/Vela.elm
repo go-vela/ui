@@ -11,6 +11,8 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
+    , Hook
+    , Hooks
     , Log
     , Logs
     , Org
@@ -27,6 +29,8 @@ module Vela exposing
     , User
     , decodeBuild
     , decodeBuilds
+    , decodeHook
+    , decodeHooks
     , decodeLog
     , decodeRepositories
     , decodeRepository
@@ -475,3 +479,51 @@ decodeLog =
 
 type alias Logs =
     List Log
+
+
+
+-- HOOKS
+
+
+{-| Hook : record type for vela repo hooks
+-}
+type alias Hook =
+    { id : Int
+    , repo_id : Int
+    , build_id : Int
+    , source_id : String
+    , created : Int
+    , host : String
+    , event : String
+    , branch : String
+    , error : String
+    , status : String
+    , link : String
+    }
+
+
+decodeHook : Decoder Hook
+decodeHook =
+    Decode.succeed Hook
+        |> optional "id" int -1
+        |> optional "repo_id" int -1
+        |> optional "build_id" int -1
+        |> optional "source_id" string ""
+        |> optional "created" int -1
+        |> optional "host" string ""
+        |> optional "event" string ""
+        |> optional "branch" string ""
+        |> optional "error" string ""
+        |> optional "status" string ""
+        |> optional "link" string ""
+
+
+{-| decodeHooks : decodes json from vela into list of hooks
+-}
+decodeHooks : Decoder Hooks
+decodeHooks =
+    Decode.list decodeHook
+
+
+type alias Hooks =
+    List Hook

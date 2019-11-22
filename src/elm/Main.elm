@@ -59,7 +59,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
-import Time exposing (utc)
+import Time exposing (Posix, utc)
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Url.Builder as UB exposing (QueryParameter)
@@ -72,6 +72,8 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
+        , Hook
+        , Hooks
         , Log
         , Logs
         , Org
@@ -85,6 +87,7 @@ import Vela
         , StepNumber
         , Steps
         , User
+        , decodeHooks
         , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
@@ -115,6 +118,7 @@ type alias Model =
     , currentRepos : WebData Repositories
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
+    , hooks : WebData Hooks
     , builds : BuildsModel
     , build : WebData Build
     , steps : WebData Steps
@@ -126,7 +130,7 @@ type alias Model =
     , velaDocsURL : String
     , navigationKey : Navigation.Key
     , zone : Time.Zone
-    , time : Time.Posix
+    , time : Posix
     , source_search_filters : RepoSearchFilters
     , entryURL : Url
     }
@@ -163,6 +167,7 @@ init flags url navKey =
             , currentRepos = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
+            , hooks = NotAsked
             , builds = defaultBuilds
             , build = NotAsked
             , steps = NotAsked
@@ -228,6 +233,7 @@ type Msg
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
+    | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | RepoAddedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -317,7 +323,7 @@ update msg model =
             case response of
                 Ok ( _, addedRepo ) ->
                     ( { model | sourceRepos = updateSourceRepoStatus addedRepo (RemoteData.succeed True) model.sourceRepos updateSourceRepoListByRepoName }, Cmd.none )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " added.") Nothing)
+                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (addedRepo.full_name ++ " added.") Nothing)
 
                 Err error ->
                     ( { model | sourceRepos = updateSourceRepoStatus repo (toFailure error) model.sourceRepos updateSourceRepoListByRepoName }, addError error )
@@ -451,6 +457,14 @@ update msg model =
         Error error ->
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Error "Error" error)
+
+        HooksResponse org repo response ->
+            case response of
+                Ok ( _, hooks ) ->
+                    ( model, Cmd.none )
+
+                Err error ->
+                    ( model, addError error )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -692,6 +706,11 @@ viewContent model =
         Pages.AddRepositories ->
             ( "Add Repositories"
             , viewAddRepos model
+            )
+
+        Pages.RepoHooks org repo ->
+            ( "Repository Hooks"
+            , viewRepositoryHooks model.hooks model.time org repo
             )
 
         Pages.RepositoryBuilds org repo ->
@@ -1129,6 +1148,51 @@ viewHeader maybeSession { feedbackLink, docsLink } =
         ]
 
 
+{-| viewRepositoryHooks : renders hooks
+-}
+viewRepositoryHooks : WebData Hooks -> Posix -> String -> String -> Html msg
+viewRepositoryHooks hooks now org repo =
+    let
+        none =
+            div []
+                [ h1 []
+                    [ text "No Hooks Found"
+                    ]
+                , p []
+                    [ text <|
+                        "Vela hooks belonging to this repo will display here."
+                    ]
+                ]
+    in
+    case hooks of
+        RemoteData.Success hooks_ ->
+            if List.length hooks_ == 0 then
+                none
+
+            else
+                div [ class "hooks", Util.testAttribute "hooks" ] <| List.map (\hook -> viewHook now org repo hook) hooks_
+
+        -- RemoteData.Loading ->
+        --     largeLoader
+        -- RemoteData.NotAsked ->
+        --     largeLoader
+        RemoteData.Failure _ ->
+            div []
+                [ p []
+                    [ text <|
+                        "There was an error fetching hooks for this repository, please try again later!"
+                    ]
+                ]
+
+        _ ->
+            text ""
+
+
+viewHook : Posix -> Org -> Repo -> Hook -> Html msg
+viewHook now org repo hook =
+    text hook.message
+
+
 
 -- HELPERS
 
@@ -1197,6 +1261,9 @@ setNewPage route model =
                 _ ->
                     ( { model | page = Pages.AddRepositories }, Cmd.none )
 
+        ( Routes.RepoHooks org repo, True ) ->
+            loadRepoHooksPage model org repo
+
         ( Routes.RepositoryBuilds org repo, True ) ->
             loadRepoBuildsPage model org repo
 
@@ -1223,6 +1290,18 @@ setNewPage route model =
                 , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
                 ]
             )
+
+
+{-| loadRepoHooksPage : takes model org and repo and loads the hooks page.
+-}
+loadRepoHooksPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadRepoHooksPage model org repo =
+    -- Fetch builds from Api
+    ( { model | page = Pages.RepoHooks org repo }
+    , Cmd.batch
+        [ getHooks model org repo
+        ]
+    )
 
 
 {-| loadRepoBuildsPage : takes model org and repo and loads the appropriate builds.
@@ -1485,6 +1564,11 @@ shouldSearch filter =
 
 
 -- API HELPERS
+
+
+getHooks : Model -> Org -> Repo -> Cmd Msg
+getHooks model org repo =
+    Api.tryAll (HooksResponse org repo) <| Api.getAllHooks model org repo
 
 
 getBuilds : Model -> Org -> Repo -> Cmd Msg
