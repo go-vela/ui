@@ -6,7 +6,8 @@ name: ci
 
 on:
   push:
-    branches:
+    tags-ignore:
+      - "v*"
   pull_request:
 
 env:
