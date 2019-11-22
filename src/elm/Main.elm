@@ -461,7 +461,7 @@ update msg model =
         HooksResponse org repo response ->
             case response of
                 Ok ( _, hooks ) ->
-                    ( model, Cmd.none )
+                    ( { model | hooks = RemoteData.succeed hooks }, Cmd.none )
 
                 Err error ->
                     ( model, addError error )
@@ -810,6 +810,14 @@ viewSingleRepo repo =
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
             [ button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| RemoveRepo repo ] [ text "Remove" ]
+            , a
+                [ class "-btn"
+                , class "-inverted"
+                , class "-view"
+                , Util.testAttribute "repo-hooks"
+                , Routes.href <| Routes.RepoHooks repo.org repo.name
+                ]
+                [ text "Hooks" ]
             , a
                 [ class "-btn"
                 , class "-solid"
@@ -1297,7 +1305,7 @@ setNewPage route model =
 loadRepoHooksPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadRepoHooksPage model org repo =
     -- Fetch builds from Api
-    ( { model | page = Pages.RepoHooks org repo }
+    ( { model | page = Pages.RepoHooks org repo, hooks = Loading }
     , Cmd.batch
         [ getHooks model org repo
         ]
