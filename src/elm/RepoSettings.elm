@@ -107,7 +107,7 @@ updateRepoTimeoutHelp inTimeout =
     case inTimeout of
         Just _ ->
             div [ class "timeout-help" ]
-                [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before increasing the timeout."
+                [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before altering this value. Timeouts must also lie between 30 and 90 minutes."
                 ]
 
         Nothing ->
