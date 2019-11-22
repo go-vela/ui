@@ -87,7 +87,9 @@ updateRepoTimeoutInput repo inTimeout inputAction buttonAction =
             [ id <| "repo-timeout"
             , value <| buildTimeoutString inTimeout repo.timeout
             , onInput inputAction
-            , type_ "text"
+            , type_ "number"
+            , Html.Attributes.min "30"
+            , Html.Attributes.max "90"
             , classList [ ( "-invalid", not <| validTimeoutUpdate inTimeout Nothing ) ]
             ]
             []
