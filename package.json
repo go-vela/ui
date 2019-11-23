@@ -61,6 +61,12 @@
     "type": "git",
     "url": "git+https://github.com/go-vela/ui.git"
   },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
   "keywords": [
     "elm",
     "parcel",
