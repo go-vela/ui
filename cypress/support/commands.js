@@ -140,7 +140,6 @@ Cypress.Commands.add("stubBuildsErrors", () => {
   });
 });
 
-
 Cypress.Commands.add("stubBuildErrors", () => {
   cy.route({
     method: "GET",
@@ -157,4 +156,11 @@ Cypress.Commands.add("stubStepsErrors", () => {
     status: 500,
     response: "server error"
   });
+});
+
+Cypress.Commands.add("checkA11yForPage", (path = "/", opts = {}) => {
+  cy.login(path);
+  cy.injectAxe();
+  cy.wait(500);
+  cy.checkA11y(opts);
 });
