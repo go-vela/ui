@@ -55,8 +55,8 @@ import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
 import List.Extra exposing (setIf)
 import Pages exposing (Page(..))
+import Pages.RepoSettings
 import RemoteData exposing (RemoteData(..), WebData)
-import RepoSettings
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
@@ -353,7 +353,7 @@ update msg model =
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
-                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (RepoSettings.alert field updatedRepo) Nothing)
+                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
@@ -789,7 +789,7 @@ viewContent model =
 
         Pages.RepoSettings _ _ ->
             ( "Repository Settings"
-            , RepoSettings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout
+            , Pages.RepoSettings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout
             )
 
         Pages.RepositoryBuilds org repo ->
