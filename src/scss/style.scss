@@ -1403,6 +1403,29 @@ button.-solid {
   border-bottom: 1px solid var(--color-gray);
 }
 
+.hook .logs .status {
+  margin-left: 0.4em;
+}
+
+.hook .logs .status.-success {
+  color: var(--color-green);
+}
+
+.hook .logs .status.-failure {
+  color: var(--color-red);
+}
+
+.hook .logs .view-build {
+  & > a {
+    margin-left: 0.4em;
+  }
+  & .failure {
+    margin-left: 0.4em;
+    color: var(--color-red);
+  }
+}
+
+
 .repo-settings {
   display: flex;
   flex-direction: column;

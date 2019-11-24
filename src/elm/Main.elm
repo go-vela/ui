@@ -1496,13 +1496,40 @@ viewHook now timezone org repo hook =
             [ h
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
-        , hookLogs "No logs to display"
+        , hookLogs org repo hook.build_id hook.status "No logs to display" hook.link
         ]
 
 
-hookLogs : String -> Html msg
-hookLogs logs =
-    div [ class "logs" ] [ code [] [ text logs ] ]
+hookStatusClass : String -> Html.Attribute msg
+hookStatusClass status =
+    case status of
+        "success" ->
+            class "-success"
+
+        _ ->
+            class "-failure"
+
+
+hookLogs : Org -> Repo -> Int -> String -> String -> String -> Html msg
+hookLogs org repo buildNumber status logs link =
+    div [ class "logs" ]
+        [ code []
+            [ div []
+                [ text "status:"
+                , span [ class "status", hookStatusClass status ]
+                    [ text status ]
+                ]
+            , div [ class "view-build" ]
+                [ text "build:"
+                , hookBuild org repo buildNumber
+                ]
+
+            -- , a
+            --     [ href link, class "link" ]
+            --     [ text "view webhook" ]
+            ]
+        , div [] [ code [] [ text logs ] ]
+        ]
 
 
 hookBuild : Org -> Repo -> Int -> Html msg
