@@ -74,7 +74,7 @@ context("Repo Settings", () => {
         cy.get("@repoTimeoutInput")
           .should("be.visible")
           .type("123");
-        cy.get("@repoTimeoutInput").should("have.value", "60123");
+        cy.get("@repoTimeoutInput").should("have.value", "123");
       });
       it("build timeout input should not allow letter/character input", () => {
         cy.get("[data-test=repo-timeout]").as("repoTimeout");
@@ -82,9 +82,9 @@ context("Repo Settings", () => {
         cy.get("@repoTimeoutInput")
           .should("be.visible")
           .type("cat");
-        cy.get("@repoTimeoutInput").should("not.have.value", "60cat");
+        cy.get("@repoTimeoutInput").should("not.have.value", "cat");
         cy.get("@repoTimeoutInput").type("12cat34");
-        cy.get("@repoTimeoutInput").should("have.value", "601234");
+        cy.get("@repoTimeoutInput").should("have.value", "1234");
       });
       it("clicking update on build timeout should update timeout and hide button", () => {
         cy.get("[data-test=repo-timeout]").as("repoTimeout");
@@ -106,7 +106,7 @@ context("Repo Settings", () => {
         cy.get("[data-test=refresh-repo-settings]")
           .should("be.visible")
           .click({ force: true });
-        cy.get("@repoTimeoutInput").should("have.value", "60");
+        cy.get("@repoTimeoutInput").should("have.value", "");
       });
     });
 });
