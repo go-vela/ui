@@ -560,6 +560,12 @@ button.-inverted {
     }
   }
 }
+.nav-buttons {
+  display: flex;
+}
+.-btn.-hooks {
+  margin-right: 0.4em;
+}
 
 .-btn.-overview {
   margin: 1em 1em 1em 0;
@@ -1301,27 +1307,102 @@ button.-solid {
 .alert-container.-error {
   border: 1px solid var(--color-red);
 }
-
+.hooks {
+  width: 100%;
+  background: var(--color-darkcoal);
+  padding-bottom: 0.4em;
+}
 .hook {
+  background: var(--color-darkcoal);
+  margin-bottom: 0.2em;
+
+  > .hook-summary {
+    padding: 0;
+    position: relative;
+
+    overflow: hidden;
+
+    cursor: pointer;
+
+    // hide details marker on Chrome
+    &::-webkit-details-marker {
+      display: none !important;
+    }
+
+    //hide details marker on Firefox
+    &:first-of-type {
+      list-style-type: none !important;
+    }
+  }
+  .details-icon-expand {
+    position: absolute;
+    top: 0.8em;
+    left: 0.4em;
+
+    transition: all 0.2s;
+    transform-origin: 50% 49%;
+
+    color: var(--color-primary);
+  }
+  &[open] .details-icon-expand {
+    transform: rotate(0.5turn);
+  }
+}
+
+.hook-row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
-  height: 4em;
-  background: var(--color-darkcoal);
+  height: 3em;
+  width: 100%;
   font-size: 16px;
   font-weight: 300;
+  text-align: center;
+  padding: 0 1em;
+  padding-left: 2.2em;
 }
 
-.hook .detail {
-  margin: 0 1em;
+.hook-row .headers {
+  padding-bottom: 0.4em;
+  border-bottom: 1px solid var(--color-gray);
 }
 
-.hook .source-id {
+.hook-row .header {
+  flex: 1;
+  font-size: 18px;
+}
+
+.hook-row .detail {
+  flex: 1;
+  font-size: 14px;
+  & a {
+    margin: 0 auto;
+  }
+}
+
+.hook-row .detail .failure {
+  color: var(--color-red);
+  padding: 4px 8px;
+  margin: 0 auto;
+}
+
+.hook-row .detail.source-id{
   background: var(--color-gray);
   padding: 4px 8px;
-  
+  text-decoration: none;
+  color: var(--color-offwhite);
 }
+
+.hook-row .source-id {
+  min-width: 300px;
+}
+
+.hook .logs {
+  padding: 0.8em 1.8em;
+  font-size: 14px;
+  border-bottom: 1px solid var(--color-gray);
+}
+
 .repo-settings {
   display: flex;
   flex-direction: column;

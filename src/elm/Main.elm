@@ -12,6 +12,7 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Build exposing (viewFullBuild, viewRepositoryBuilds)
 import Crumbs
+import DateFormat.Relative exposing (relativeTime)
 import Dict exposing (Dict)
 import Errors exposing (detailedErrorToString)
 import FeatherIcons
@@ -67,7 +68,7 @@ import RepoSettings
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
-import Time exposing (Posix, utc)
+import Time exposing (Posix, Zone, utc)
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Url.Builder as UB exposing (QueryParameter)
@@ -818,7 +819,7 @@ viewContent model =
 
         Pages.RepoHooks org repo ->
             ( "Repository Hooks"
-            , viewRepositoryHooks model.hooks model.time org repo
+            , viewRepositoryHooks model.hooks model.time model.zone org repo
             )
 
         Pages.RepoSettings _ _ ->
@@ -1322,13 +1323,23 @@ navButton model =
                 ]
 
         Pages.RepositoryBuilds org repo ->
-            a
-                [ class "-btn"
-                , class "-inverted"
-                , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                , Routes.href <| Routes.RepoSettings org repo
+            div [ class "nav-buttons" ]
+                [ a
+                    [ class "-btn"
+                    , class "-inverted"
+                    , class "-hooks"
+                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.RepoHooks org repo
+                    ]
+                    [ text "Hooks" ]
+                , a
+                    [ class "-btn"
+                    , class "-inverted"
+                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.RepoSettings org repo
+                    ]
+                    [ text "Repo Settings" ]
                 ]
-                [ text "Repo Settings" ]
 
         Pages.RepoSettings org repo ->
             button
@@ -1394,8 +1405,8 @@ viewHeader maybeSession { feedbackLink, docsLink } =
 
 {-| viewRepositoryHooks : renders hooks
 -}
-viewRepositoryHooks : WebData Hooks -> Posix -> String -> String -> Html msg
-viewRepositoryHooks hooks now org repo =
+viewRepositoryHooks : WebData Hooks -> Posix -> Zone -> String -> String -> Html msg
+viewRepositoryHooks hooks now timezone org repo =
     let
         none =
             div []
@@ -1414,7 +1425,31 @@ viewRepositoryHooks hooks now org repo =
                 none
 
             else
-                div [ class "hooks", Util.testAttribute "hooks" ] <| List.map (\hook -> viewHook now org repo hook) hooks_
+                div [ class "hooks", Util.testAttribute "hooks" ] <|
+                    List.append
+                        [ div [ class "hook-row", class "headers" ]
+                            [ div [ class "header", class "source-id" ]
+                                [ text "source id"
+                                ]
+                            , div [ class "header" ]
+                                [ text "created"
+                                ]
+                            , div [ class "header" ]
+                                [ text "host"
+                                ]
+                            , div [ class "header" ]
+                                [ text "branch"
+                                ]
+                            , div [ class "header" ]
+                                [ text "event"
+                                ]
+                            , div [ class "header" ]
+                                [ text "build"
+                                ]
+                            ]
+                        ]
+                    <|
+                        List.map (\hook -> viewHook now timezone org repo hook) hooks_
 
         RemoteData.Loading ->
             Util.largeLoader
@@ -1431,31 +1466,53 @@ viewRepositoryHooks hooks now org repo =
                 ]
 
 
-viewHook : Posix -> Org -> Repo -> Hook -> Html msg
-viewHook now org repo hook =
-    div [ class "hook" ]
-        [ div [ class "detail", class "source-id" ]
-            [ text hook.source_id
+viewHook : Posix -> Zone -> Org -> Repo -> Hook -> Html msg
+viewHook now timezone org repo hook =
+    let
+        h =
+            div [ class "hook-row" ]
+                [ div [ class "detail", class "source-id" ]
+                    [ text hook.source_id
+                    ]
+                , div [ class "detail", class "created" ]
+                    [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis hook.created
+                    ]
+                , div [ class "detail", class "host" ]
+                    [ text hook.host
+                    ]
+                , div [ class "detail", class "branch" ]
+                    [ text hook.branch
+                    ]
+                , div [ class "detail", class "event" ]
+                    [ text hook.event
+                    ]
+                , div [ class "detail", class "build" ]
+                    [ hookBuild org repo hook.build_id
+                    ]
+                ]
+    in
+    details [ class "hook" ]
+        [ summary [ class "hook-summary" ]
+            [ h
+            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
-        , div [ class "detail", class "created" ]
-            [ text <| String.fromInt hook.created
-            ]
-        , div [ class "detail", class "host" ]
-            [ text hook.host
-            ]
-        , div [ class "detail", class "branch" ]
-            [ text hook.branch
-            ]
-        , div [ class "detail", class "event" ]
-            [ text hook.event
-            ]
-        , div [ class "detail", class "link" ]
-            [ a [ href hook.link ] [ text <| "" ++ String.fromInt hook.build_id ]
-            ]
-        , div [ class "detail", class "link" ]
-            [ a [ href hook.link ] [ text "View Webhook" ]
-            ]
+        , hookLogs "No logs to display"
         ]
+
+
+hookLogs : String -> Html msg
+hookLogs logs =
+    div [ class "logs" ] [ code [] [ text logs ] ]
+
+
+hookBuild : Org -> Repo -> Int -> Html msg
+hookBuild org repo buildNumber =
+    case buildNumber of
+        0 ->
+            span [ class "failure" ] [ text "failure" ]
+
+        _ ->
+            a [ Routes.href <| Routes.Build org repo <| String.fromInt buildNumber ] [ text <| String.join "/" [ org, repo, String.fromInt buildNumber ] ]
 
 
 
