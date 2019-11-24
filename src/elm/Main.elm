@@ -556,7 +556,7 @@ update msg model =
                             Just t
 
                         Nothing ->
-                            Nothing
+                            Just 0
             in
             ( { model | inTimeout = newTimeout }, Cmd.none )
 

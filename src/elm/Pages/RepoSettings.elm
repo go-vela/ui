@@ -37,6 +37,7 @@ import Html.Attributes
         , for
         , id
         , type_
+        , value
         )
 import Html.Events exposing (onCheck, onClick, onInput)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -211,6 +212,7 @@ timeoutInput repo inTimeout inputMsg clickMsg =
             , type_ "number"
             , Html.Attributes.min "30"
             , Html.Attributes.max "90"
+            , value <| String.fromInt <| Maybe.withDefault repo.timeout inTimeout
             ]
             []
         , label [ for "repo-timeout" ] [ span [ class "label" ] [ text "minutes" ] ]
