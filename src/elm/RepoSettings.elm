@@ -5,11 +5,15 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module RepoSettings exposing
-    ( repoUpdatedAlert
-    , updateRepoCheckbox
-    , updateRepoRadio
-    , updateRepoTimeoutHelp
-    , updateRepoTimeoutInput
+    ( access
+    , alert
+    , checkbox
+    , events
+    , radio
+    , timeout
+    , timeoutInput
+    , timeoutWarning
+    , view
     )
 
 import Html
@@ -19,6 +23,7 @@ import Html
         , div
         , input
         , label
+        , p
         , span
         , text
         )
@@ -32,77 +37,214 @@ import Html.Attributes
         , for
         , id
         , type_
-        , value
         )
 import Html.Events exposing (onCheck, onClick, onInput)
+import RemoteData exposing (RemoteData(..), WebData)
 import SvgBuilder
 import Util
 import Vela exposing (Field, Repository)
 
 
 
+-- TYPES
+
+
+{-| CheckboxUpdate : type that takes Msg for forwarding checkbox input callback to Main.elm
+-}
+type alias CheckboxUpdate msg =
+    String -> String -> String -> (Bool -> msg)
+
+
+{-| RadioUpdate : type that takes Msg for forwarding radio input callback to Main.elm
+-}
+type alias RadioUpdate msg =
+    String -> String -> String -> (String -> msg)
+
+
+{-| IntUpdate : type that takes Msg for forwarding number input callback to Main.elm
+-}
+type alias IntUpdate msg =
+    String -> String -> String -> Int -> msg
+
+
+
 -- VIEW
 
 
-{-| updateRepoCheckbox : takes field name, id, state and click action, and renders an input checkbox.
+{-| view : takes model, org and repo and renders page for updating repo settings
 -}
-updateRepoCheckbox : String -> Field -> Bool -> (Bool -> msg) -> Html msg
-updateRepoCheckbox name field state action =
+view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> IntUpdate msg -> (String -> msg) -> Html msg
+view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange =
+    let
+        loading =
+            div []
+                [ Util.largeLoader
+                ]
+    in
+    case repo of
+        Success repo_ ->
+            div [ class "repo-settings", Util.testAttribute "repo-settings" ]
+                [ div [ class "-row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
+                , div [ class "-row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange ]
+                ]
+
+        Loading ->
+            loading
+
+        NotAsked ->
+            loading
+
+        Failure _ ->
+            div []
+                [ p []
+                    [ text <|
+                        "There was an error fetching your repo settings... Click Refresh or try again later!"
+                    ]
+                ]
+
+
+{-| access : takes model and repo and renders the settings category for updating repo access
+-}
+access : Repository -> RadioUpdate msg -> Html msg
+access repo msg =
+    div [ class "category", Util.testAttribute "repo-settings-access" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Access" ] ]
+        , div [ class "description" ] [ text "Change who can access build information" ]
+        , div [ class "inputs", class "radios" ]
+            [ radio repo.visibility "private" "Private" <| msg repo.org repo.name "visibility" "private"
+            , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
+            ]
+        ]
+
+
+{-| events : takes model and repo and renders the settings category for updating repo webhook events
+-}
+events : Repository -> CheckboxUpdate msg -> Html msg
+events repo msg =
+    div [ class "category", Util.testAttribute "repo-settings-events" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Webhook Events" ] ]
+        , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines" ]
+        , div [ class "inputs" ]
+            [ checkbox "Push"
+                "allow_push"
+                repo.allow_push
+              <|
+                msg repo.org repo.name "allow_push"
+            , checkbox "Pull Request"
+                "allow_pull"
+                repo.allow_pull
+              <|
+                msg repo.org repo.name "allow_pull"
+            , checkbox "Deploy"
+                "allow_deploy"
+                repo.allow_deploy
+              <|
+                msg repo.org repo.name "allow_deploy"
+            , checkbox "Tag"
+                "allow_tag"
+                repo.allow_tag
+              <|
+                msg repo.org repo.name "allow_tag"
+            ]
+        ]
+
+
+{-| timeout : takes model and repo and renders the settings category for updating repo build timeout
+-}
+timeout : Maybe Int -> Repository -> IntUpdate msg -> (String -> msg) -> Html msg
+timeout inTimeout repo clickMsg inputMsg =
+    div [ class "category", Util.testAttribute "repo-settings-timeout" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Build Timeout" ] ]
+        , div [ class "description" ] [ text "Builds that reach this timeout setting will be stopped" ]
+        , timeoutInput repo
+            inTimeout
+            inputMsg
+          <|
+            clickMsg repo.org repo.name "timeout" <|
+                Maybe.withDefault 0 inTimeout
+        , timeoutWarning inTimeout
+        ]
+
+
+{-| checkbox : takes field name, id, state and click action, and renders an input checkbox.
+-}
+checkbox : String -> Field -> Bool -> (Bool -> msg) -> Html msg
+checkbox name field state msg =
     div [ class "checkbox", Util.testAttribute <| "repo-checkbox-" ++ field ]
         [ SvgBuilder.checkbox state |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
         , input
             [ type_ "checkbox"
             , id <| "checkbox-" ++ field
             , checked state
-            , onCheck action
+            , onCheck msg
             ]
             []
         , label [ for <| "checkbox-" ++ field ] [ span [ class "label" ] [ text name ] ]
         ]
 
 
-{-| updateRepoRadio : takes current value, field id, title for label, and click action and renders an input radio.
+{-| radio : takes current value, field id, title for label, and click action and renders an input radio.
 -}
-updateRepoRadio : String -> String -> Field -> msg -> Html msg
-updateRepoRadio value field title action =
+radio : String -> String -> Field -> msg -> Html msg
+radio value field title msg =
     div [ class "checkbox", class "radio", Util.testAttribute <| "repo-radio-" ++ field ]
         [ SvgBuilder.radio (value == field) |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
         , input
             [ type_ "radio"
             , id <| "radio-" ++ field
             , checked (value == field)
-            , onClick action
+            , onClick msg
             ]
             []
-        , label [ for <| "radio-" ++ field ] [ span [ class "label" ] [ text title, updateRepoFieldTip field ] ]
+        , label [ for <| "radio-" ++ field ] [ span [ class "label" ] [ text title, updateTip field ] ]
         ]
 
 
-{-| updateRepoTimeoutInput : takes repo, user input, and button action and renders the text input for updating build timeout.
+{-| timeoutInput : takes repo, user input, and button action and renders the text input for updating build timeout.
 -}
-updateRepoTimeoutInput : Repository -> Maybe String -> (String -> msg) -> msg -> Html msg
-updateRepoTimeoutInput repo inTimeout inputAction buttonAction =
+timeoutInput : Repository -> Maybe Int -> (String -> msg) -> msg -> Html msg
+timeoutInput repo inTimeout inputMsg clickMsg =
     div [ class "inputs", class "repo-timeout", Util.testAttribute "repo-timeout" ]
         [ input
             [ id <| "repo-timeout"
-            , value <| buildTimeoutString inTimeout repo.timeout
-            , onInput inputAction
+            , onInput inputMsg
             , type_ "number"
             , Html.Attributes.min "30"
             , Html.Attributes.max "90"
             ]
             []
         , label [ for "repo-timeout" ] [ span [ class "label" ] [ text "minutes" ] ]
-        , buildTimeoutUpdateButton inTimeout
+        , updateTimeout inTimeout
             repo.timeout
-            buttonAction
+            clickMsg
         ]
 
 
-{-| updateRepoTimeoutHelp : takes maybe string of user entered timeout and renders a disclaimer on updating the build timeout.
+{-| updateTimeout : takes maybe int of user entered timeout and current repo timeout and renders the button to submit the update.
 -}
-updateRepoTimeoutHelp : Maybe String -> Html msg
-updateRepoTimeoutHelp inTimeout =
+updateTimeout : Maybe Int -> Int -> msg -> Html msg
+updateTimeout inTimeout repoTimeout msg =
+    case inTimeout of
+        Just _ ->
+            button
+                [ classList
+                    [ ( "-btn", True )
+                    , ( "-inverted", True )
+                    , ( "-repo-timeout", True )
+                    ]
+                , onClick msg
+                , disabled <| not <| validTimeout inTimeout <| Just repoTimeout
+                ]
+                [ text "update" ]
+
+        Nothing ->
+            text ""
+
+
+{-| timeoutWarning : takes maybe string of user entered timeout and renders a disclaimer on updating the build timeout.
+-}
+timeoutWarning : Maybe Int -> Html msg
+timeoutWarning inTimeout =
     case inTimeout of
         Just _ ->
             div [ class "timeout-help" ]
@@ -113,72 +255,53 @@ updateRepoTimeoutHelp inTimeout =
             text ""
 
 
-{-| buildTimeoutUpdateButton : takes maybe string of user entered timeout and current repo timeout and renders the button to submit the update.
--}
-buildTimeoutUpdateButton : Maybe String -> Int -> msg -> Html msg
-buildTimeoutUpdateButton inTimeout repoTimeout m =
-    case inTimeout of
-        Just _ ->
-            button
-                [ classList
-                    [ ( "-btn", True )
-                    , ( "-inverted", True )
-                    , ( "-repo-timeout", True )
-                    ]
-                , onClick m
-                , disabled <| not <| validTimeoutUpdate inTimeout <| Just repoTimeout
-                ]
-                [ text "update" ]
-
-        Nothing ->
-            text ""
-
-
 
 -- HELPERS
 
 
-{-| validTimeoutUpdate : takes maybe string of user entered timeout and returns whether or not it is a valid update.
+{-| alert : takes update field and updated repo and returns how to alert the user.
 -}
-validTimeoutUpdate : Maybe String -> Maybe Int -> Bool
-validTimeoutUpdate inTimeout repoTimeout =
+alert : Field -> Repository -> String
+alert field repo =
+    let
+        prefix =
+            msgPrefix field
+
+        suffix =
+            msgSuffix field repo
+    in
+    String.replace "$" repo.full_name <| prefix ++ suffix
+
+
+{-| validTimeout : takes maybe string of user entered timeout and returns whether or not it is a valid update.
+-}
+validTimeout : Maybe Int -> Maybe Int -> Bool
+validTimeout inTimeout repoTimeout =
     case inTimeout of
-        Just timeout ->
-            case String.toInt timeout of
-                Just t ->
-                    if t >= 30 && t <= 90 then
-                        case repoTimeout of
-                            Just ti ->
-                                if t /= ti then
-                                    True
+        Just t ->
+            if t >= 30 && t <= 90 then
+                case repoTimeout of
+                    Just ti ->
+                        if t /= ti then
+                            True
 
-                                else
-                                    False
+                        else
+                            False
 
-                            Nothing ->
-                                True
+                    Nothing ->
+                        True
 
-                    else
-                        False
-
-                Nothing ->
-                    False
+            else
+                False
 
         Nothing ->
             True
 
 
-{-| buildTimeoutString : takes maybe string of user entered timeout and current repo timeout and returns the potential update.
+{-| updateTip : takes field and returns the tip to display after the label.
 -}
-buildTimeoutString : Maybe String -> Int -> String
-buildTimeoutString inTimeout repoTimeout =
-    Maybe.withDefault (String.fromInt repoTimeout) inTimeout
-
-
-{-| updateRepoFieldTip : takes field and returns the tip to display after the label.
--}
-updateRepoFieldTip : Field -> Html msg
-updateRepoFieldTip field =
+updateTip : Field -> Html msg
+updateTip field =
     span [ class "field-info" ] <|
         case field of
             "private" ->
@@ -189,20 +312,6 @@ updateRepoFieldTip field =
 
             _ ->
                 []
-
-
-{-| repoUpdatedAlert : takes update field and updated repo and returns how to alert the user.
--}
-repoUpdatedAlert : Field -> Repository -> String
-repoUpdatedAlert field repo =
-    let
-        prefix =
-            msgPrefix field
-
-        suffix =
-            msgSuffix field repo
-    in
-    String.replace "$" repo.full_name <| prefix ++ suffix
 
 
 {-| msgPrefix : takes update field and returns alert prefix.
