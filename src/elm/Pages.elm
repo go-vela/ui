@@ -14,6 +14,7 @@ type Page
     = Overview
     | AddRepositories
     | RepoHooks Org Repo
+    | RepoSettings Org Repo
     | RepositoryBuilds Org Repo
     | Build Org Repo BuildNumber
     | Login
@@ -39,6 +40,9 @@ toRoute page =
 
         RepoHooks org repo ->
             Routes.RepoHooks org repo
+
+        RepoSettings org repo ->
+            Routes.RepoSettings org repo
 
         RepositoryBuilds org repo ->
             Routes.RepositoryBuilds org repo

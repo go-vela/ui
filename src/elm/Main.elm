@@ -56,6 +56,14 @@ import Json.Encode as Encode
 import List.Extra exposing (setIf)
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
+import RepoSettings
+    exposing
+        ( repoUpdatedAlert
+        , updateRepoCheckbox
+        , updateRepoRadio
+        , updateRepoTimeoutHelp
+        , updateRepoTimeoutInput
+        )
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
@@ -72,6 +80,7 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
+        , Field
         , Hook
         , Hooks
         , Log
@@ -86,14 +95,20 @@ import Vela
         , Step
         , StepNumber
         , Steps
+        , UpdateRepositoryPayload
         , User
+        , buildUpdateRepoBoolPayload
+        , buildUpdateRepoIntPayload
+        , buildUpdateRepoStringPayload
         , decodeHooks
         , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
+        , defaultRepository
         , defaultSession
         , encodeAddRepository
         , encodeSession
+        , encodeUpdateRepository
         )
 
 
@@ -130,8 +145,10 @@ type alias Model =
     , velaDocsURL : String
     , navigationKey : Navigation.Key
     , zone : Time.Zone
-    , time : Posix
-    , source_search_filters : RepoSearchFilters
+    , time : Time.Posix
+    , sourceSearchFilters : RepoSearchFilters
+    , repo : WebData Repository
+    , buildTimeout : Maybe String
     , entryURL : Url
     }
 
@@ -189,7 +206,9 @@ init flags url navKey =
             , toasties = Alerting.initialState
             , zone = Time.utc
             , time = Time.millisToPosix 0
-            , source_search_filters = Dict.empty
+            , sourceSearchFilters = Dict.empty
+            , repo = RemoteData.succeed defaultRepository
+            , buildTimeout = Nothing
             , entryURL = url
             }
 
@@ -221,10 +240,16 @@ type Msg
     | NewRoute Routes.Route
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
+    | ChangeBuildTimeout Repository String
+    | RefreshRepoSettings Org Repo
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
+    | FetchRepo Org Repo
     | AddRepo Repository
+    | UpdateRepoBool Org Repo Field Bool
+    | UpdateRepoString Org Repo Field String
+    | UpdateRepoBuildTimeout Org Repo String
     | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
@@ -232,9 +257,11 @@ type Msg
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
+    | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | RepoAddedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
+    | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -308,8 +335,19 @@ update msg model =
                 Err error ->
                     ( { model | currentRepos = toFailure error }, addError error )
 
+        RepoResponse response ->
+            case response of
+                Ok ( _, repoResponse ) ->
+                    ( { model | repo = RemoteData.succeed repoResponse }, Cmd.none )
+
+                Err error ->
+                    ( { model | repo = toFailure error }, addError error )
+
         FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, source_search_filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+            ( { model | sourceRepos = Loading, sourceSearchFilters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+
+        FetchRepo org repo ->
+            ( { model | repo = Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -327,6 +365,15 @@ update msg model =
 
                 Err error ->
                     ( { model | sourceRepos = updateSourceRepoStatus repo (toFailure error) model.sourceRepos updateSourceRepoListByRepoName }, addError error )
+
+        RepoUpdatedResponse field response ->
+            case response of
+                Ok ( _, updatedRepo ) ->
+                    ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
+                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (repoUpdatedAlert field updatedRepo) Nothing)
+
+                Err error ->
+                    ( { model | repo = toFailure error }, addError error )
 
         RemoveRepo repo ->
             ( model, Api.try (RepoRemovedResponse repo) <| Api.deleteRepo model repo )
@@ -435,6 +482,48 @@ update msg model =
             , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
             )
 
+        UpdateRepoBool org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoBoolPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+            in
+            ( model
+            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            )
+
+        UpdateRepoString org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoStringPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+            in
+            ( model
+            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            )
+
+        UpdateRepoBuildTimeout org repo timeout ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoIntPayload "timeout" <| Maybe.withDefault 0 <| String.toInt timeout
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+            in
+            ( model
+            , Api.try (RepoUpdatedResponse "timeout") (Api.updateRepository model org repo body)
+            )
+
         AddOrgRepos repos ->
             ( model
             , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
@@ -480,9 +569,28 @@ update msg model =
         SearchSourceRepos org searchBy ->
             let
                 filters =
-                    Dict.update org (\_ -> Just searchBy) model.source_search_filters
+                    Dict.update org (\_ -> Just searchBy) model.sourceSearchFilters
             in
-            ( { model | source_search_filters = filters }, Cmd.none )
+            ( { model | sourceSearchFilters = filters }, Cmd.none )
+
+        ChangeBuildTimeout _ inTimeout ->
+            let
+                newTimeout =
+                    case String.toInt inTimeout of
+                        Just _ ->
+                            Just inTimeout
+
+                        Nothing ->
+                            if String.isEmpty inTimeout then
+                                Just inTimeout
+
+                            else
+                                model.buildTimeout
+            in
+            ( { model | buildTimeout = newTimeout }, Cmd.none )
+
+        RefreshRepoSettings org repo ->
+            ( { model | buildTimeout = Nothing, repo = Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
@@ -713,6 +821,11 @@ viewContent model =
             , viewRepositoryHooks model.hooks model.time org repo
             )
 
+        Pages.RepoSettings _ _ ->
+            ( "Repository Settings"
+            , viewRepoSettings model
+            )
+
         Pages.RepositoryBuilds org repo ->
             ( "Repository Builds"
             , viewRepositoryBuilds model.builds.builds model.time org repo
@@ -809,7 +922,14 @@ viewSingleRepo repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
-            [ button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| RemoveRepo repo ] [ text "Remove" ]
+            [ a
+                [ class "-btn"
+                , class "-inverted"
+                , class "-view"
+                , Routes.href <| Routes.RepoSettings repo.org repo.name
+                ]
+                [ text "Settings" ]
+            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| RemoveRepo repo ] [ text "Remove" ]
             , a
                 [ class "-btn"
                 , class "-inverted"
@@ -889,13 +1009,108 @@ viewAddRepos model =
                 ]
 
 
+{-| viewRepoSettings : takes model, org and repo and renders page for updating repo settings
+-}
+viewRepoSettings : Model -> Html Msg
+viewRepoSettings model =
+    let
+        loading =
+            div []
+                [ Util.largeLoader
+                ]
+    in
+    case model.repo of
+        Success repo ->
+            div [ class "repo-settings", Util.testAttribute "repo-settings" ]
+                [ div [ class "-row" ] [ repoSettingsCategoryEvents repo, repoSettingsCategoryAccess repo ]
+                , div [ class "-row" ] [ repoSettingsCategoryBuildTimeout model repo ]
+                ]
+
+        Loading ->
+            loading
+
+        NotAsked ->
+            loading
+
+        Failure _ ->
+            div []
+                [ p []
+                    [ text <|
+                        "There was an error fetching your repo settings... Click Refresh or try again later!"
+                    ]
+                ]
+
+
+{-| repoSettingsCategoryEvents : takes model and repo and renders the settings category for updating repo webhook events
+-}
+repoSettingsCategoryEvents : Repository -> Html Msg
+repoSettingsCategoryEvents repo =
+    div [ class "category", Util.testAttribute "repo-settings-events" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Webhook Events" ] ]
+        , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines" ]
+        , div [ class "inputs" ]
+            [ updateRepoCheckbox "Push"
+                "allow_push"
+                repo.allow_push
+              <|
+                UpdateRepoBool repo.org repo.name "allow_push"
+            , updateRepoCheckbox "Pull Request"
+                "allow_pull"
+                repo.allow_pull
+              <|
+                UpdateRepoBool repo.org repo.name "allow_pull"
+            , updateRepoCheckbox "Deploy"
+                "allow_deploy"
+                repo.allow_deploy
+              <|
+                UpdateRepoBool repo.org repo.name "allow_deploy"
+            , updateRepoCheckbox "Tag"
+                "allow_tag"
+                repo.allow_tag
+              <|
+                UpdateRepoBool repo.org repo.name "allow_tag"
+            ]
+        ]
+
+
+{-| repoSettingsCategoryAccess : takes model and repo and renders the settings category for updating repo access
+-}
+repoSettingsCategoryAccess : Repository -> Html Msg
+repoSettingsCategoryAccess repo =
+    div [ class "category", Util.testAttribute "repo-settings-access" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Access" ] ]
+        , div [ class "description" ] [ text "Change who can access build information" ]
+        , div [ class "inputs", class "radios" ]
+            [ updateRepoRadio repo.visibility "private" "Private" <| UpdateRepoString repo.org repo.name "visibility" "private"
+            , updateRepoRadio repo.visibility "public" "Any" <| UpdateRepoString repo.org repo.name "visibility" "public"
+            ]
+        ]
+
+
+{-| repoSettingsCategoryBuildTimeout : takes model and repo and renders the settings category for updating repo build timeout
+-}
+repoSettingsCategoryBuildTimeout : Model -> Repository -> Html Msg
+repoSettingsCategoryBuildTimeout model repo =
+    div [ class "category", Util.testAttribute "repo-settings-timeout" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Build Timeout" ] ]
+        , div [ class "description" ] [ text "Builds that reach this timeout setting will be stopped" ]
+        , updateRepoTimeoutInput repo
+            model.buildTimeout
+            (ChangeBuildTimeout repo)
+          <|
+            UpdateRepoBuildTimeout repo.org repo.name <|
+                Maybe.withDefault "" model.buildTimeout
+        , updateRepoTimeoutHelp model.buildTimeout
+        ]
+
+
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
 viewSourceRepos : Model -> SourceRepositories -> Html Msg
 viewSourceRepos model sourceRepos =
-    if shouldSearch <| searchFilterGlobal model.source_search_filters then
+    if shouldSearch <| searchFilterGlobal model.sourceSearchFilters then
         -- Search and render repos using the global filter
-        searchReposGlobal model.source_search_filters sourceRepos
+        searchReposGlobal model.sourceSearchFilters sourceRepos
 
     else
         -- Render repos normally
@@ -912,9 +1127,9 @@ viewSourceOrg : Model -> Org -> Repositories -> Html Msg
 viewSourceOrg model org repos =
     let
         ( repos_, filtered, content ) =
-            if shouldSearch <| searchFilterLocal org model.source_search_filters then
+            if shouldSearch <| searchFilterLocal org model.sourceSearchFilters then
                 -- Search and render repos using the global filter
-                searchReposLocal org model.source_search_filters repos
+                searchReposLocal org model.sourceSearchFilters repos
 
             else
                 -- Render repos normally
@@ -1028,7 +1243,7 @@ repoSearchBarGlobal model =
         , input
             [ Util.testAttribute "global-search-input"
             , placeholder "Type to filter all repositories..."
-            , value <| searchFilterGlobal model.source_search_filters
+            , value <| searchFilterGlobal model.sourceSearchFilters
             , onInput <| SearchSourceRepos ""
             ]
             []
@@ -1047,7 +1262,7 @@ repoSearchBarLocal model org =
                 "Type to filter repositories in "
                     ++ org
                     ++ "..."
-            , value <| searchFilterLocal org model.source_search_filters
+            , value <| searchFilterLocal org model.sourceSearchFilters
             , onInput <| SearchSourceRepos org
             ]
             []
@@ -1106,6 +1321,27 @@ navButton model =
                         text "Refresh List"
                 ]
 
+        Pages.RepositoryBuilds org repo ->
+            a
+                [ class "-btn"
+                , class "-inverted"
+                , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
+                , Routes.href <| Routes.RepoSettings org repo
+                ]
+                [ text "Repo Settings" ]
+
+        Pages.RepoSettings org repo ->
+            button
+                [ classList
+                    [ ( "btn-refresh", True )
+                    , ( "-inverted", True )
+                    ]
+                , onClick <| RefreshRepoSettings org repo
+                , Util.testAttribute "refresh-repo-settings"
+                ]
+                [ text "Refresh Settings"
+                ]
+
         Pages.Build org repo buildNumber ->
             button
                 [ classList
@@ -1149,8 +1385,8 @@ viewHeader maybeSession { feedbackLink, docsLink } =
                         ]
             ]
         , div [ class "help-links" ]
-            [ a [ href feedbackLink ] [ text "feedback" ]
-            , a [ href docsLink ] [ text "docs" ]
+            [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ]
+            , a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ]
             , FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml []
             ]
         ]
@@ -1180,10 +1416,12 @@ viewRepositoryHooks hooks now org repo =
             else
                 div [ class "hooks", Util.testAttribute "hooks" ] <| List.map (\hook -> viewHook now org repo hook) hooks_
 
-        -- RemoteData.Loading ->
-        --     largeLoader
-        -- RemoteData.NotAsked ->
-        --     largeLoader
+        RemoteData.Loading ->
+            Util.largeLoader
+
+        RemoteData.NotAsked ->
+            Util.largeLoader
+
         RemoteData.Failure _ ->
             div []
                 [ p []
@@ -1191,9 +1429,6 @@ viewRepositoryHooks hooks now org repo =
                         "There was an error fetching hooks for this repository, please try again later!"
                     ]
                 ]
-
-        _ ->
-            text ""
 
 
 viewHook : Posix -> Org -> Repo -> Hook -> Html msg
@@ -1294,6 +1529,9 @@ setNewPage route model =
         ( Routes.RepoHooks org repo, True ) ->
             loadRepoHooksPage model org repo
 
+        ( Routes.RepoSettings org repo, _ ) ->
+            loadRepoSettingsPage model org repo
+
         ( Routes.RepositoryBuilds org repo, True ) ->
             loadRepoBuildsPage model org repo
 
@@ -1331,6 +1569,16 @@ loadRepoHooksPage model org repo =
     , Cmd.batch
         [ getHooks model org repo
         ]
+    )
+
+
+{-| loadRepoSettingsPage : takes model org and repo and loads the page for updating repo configurations
+-}
+loadRepoSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadRepoSettingsPage model org repo =
+    -- Fetch repo from Api
+    ( { model | page = Pages.RepoSettings org repo, repo = Loading, buildTimeout = Nothing }
+    , getRepo model org repo
     )
 
 
@@ -1599,6 +1847,11 @@ shouldSearch filter =
 getHooks : Model -> Org -> Repo -> Cmd Msg
 getHooks model org repo =
     Api.tryAll (HooksResponse org repo) <| Api.getAllHooks model org repo
+
+
+getRepo : Model -> Org -> Repo -> Cmd Msg
+getRepo model org repo =
+    Api.try RepoResponse <| Api.getRepo model org repo
 
 
 getBuilds : Model -> Org -> Repo -> Cmd Msg

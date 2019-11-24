@@ -2,6 +2,10 @@
 
 vela ui
 
+> Vela is in active development and is a pre-release product. Please use at your own risk in production.
+>
+> Feel free to send us feedback at https://github.com/go-vela/community/issues/new.
+
 ## Documentation
 
 For local development, please [visit this repo's docs](DOCS.md).

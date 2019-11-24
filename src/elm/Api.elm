@@ -13,6 +13,7 @@ module Api exposing
     , getAllRepositories
     , getBuild
     , getBuilds
+    , getRepo
     , getRepositories
     , getSourceRepositories
     , getStep
@@ -22,6 +23,7 @@ module Api exposing
     , restartBuild
     , try
     , tryAll
+    , updateRepository
     )
 
 import Api.Endpoint as Endpoint exposing (Endpoint(..))
@@ -349,6 +351,14 @@ getAllRepositories model =
         |> withAuth model.session
 
 
+{-| getRepo : fetches single repo by org and repo name
+-}
+getRepo : PartialModel a -> Org -> Repo -> Request Repository
+getRepo model org repo =
+    get model.velaAPI (Endpoint.Repository org repo) decodeRepository
+        |> withAuth model.session
+
+
 {-| getSourceRepositories : fetches source repositories by username for creating them via api
 -}
 getSourceRepositories : PartialModel a -> Request SourceRepositories
@@ -370,6 +380,14 @@ deleteRepo model repository =
 addRepository : PartialModel a -> Http.Body -> Request Repository
 addRepository model body =
     post model.velaAPI (Endpoint.Repositories Nothing Nothing) body decodeRepository
+        |> withAuth model.session
+
+
+{-| updateRepository : updates a repository
+-}
+updateRepository : PartialModel a -> Org -> Repo -> Http.Body -> Request Repository
+updateRepository model org repo body =
+    put model.velaAPI (Endpoint.Repository org repo) body decodeRepository
         |> withAuth model.session
 
 

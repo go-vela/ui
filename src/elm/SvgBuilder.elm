@@ -16,6 +16,8 @@ module SvgBuilder exposing
     , buildStatusAnimation
     , buildStatusToIcon
     , buildSuccess
+    , checkbox
+    , radio
     , recentBuildStatusToIcon
     , stepFailure
     , stepPending
@@ -36,10 +38,12 @@ import Svg.Attributes
         , d
         , fill
         , height
+        , id
         , r
         , stroke
         , strokeLinecap
         , strokeLinejoin
+        , strokeMiterlimit
         , strokeWidth
         , viewBox
         , width
@@ -320,7 +324,7 @@ stepFailure =
 {-| buildHistoryPending : produces svg icon for build history status - pending
 -}
 buildHistoryPending : Int -> Icon
-buildHistoryPending idx =
+buildHistoryPending _ =
     let
         attrs =
             IconAttributes 28 "" 2 (Just "-icon -pending") "0 0 28 28"
@@ -334,7 +338,7 @@ buildHistoryPending idx =
         src =
             [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-pending" ]
                 [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g [ recentBuildFade idx ]
+                , Svg.g []
                     [ Svg.path [ class "-path-2", d strokeB ] []
                     , Svg.circle [ class "-path-3", cx "14", cy "14", r "2" ] []
                     ]
@@ -347,7 +351,7 @@ buildHistoryPending idx =
 {-| buildHistoryRunning : produces svg icon for build history status - running
 -}
 buildHistoryRunning : Int -> Icon
-buildHistoryRunning idx =
+buildHistoryRunning _ =
     let
         attrs =
             IconAttributes 28 "" 2 (Just "-icon -running") "0 0 28 28"
@@ -364,7 +368,7 @@ buildHistoryRunning idx =
         src =
             [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-running" ]
                 [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g [ recentBuildFade idx ]
+                , Svg.g []
                     [ Svg.path [ class "-path-2", d strokeB ] []
                     , Svg.path [ class "-path-3", d strokeC ] []
                     ]
@@ -377,7 +381,7 @@ buildHistoryRunning idx =
 {-| buildHistorySuccess : produces svg icon for build history status - running
 -}
 buildHistorySuccess : Int -> Icon
-buildHistorySuccess idx =
+buildHistorySuccess _ =
     let
         attrs =
             IconAttributes 28 "" 2 (Just "-icon -success") "0 0 28 28"
@@ -394,7 +398,7 @@ buildHistorySuccess idx =
         src =
             [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-success" ]
                 [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g [ recentBuildFade idx ]
+                , Svg.g []
                     [ Svg.path [ class "-path-2", d strokeB ] []
                     , Svg.path [ class "-path-3", d strokeC ] []
                     ]
@@ -407,7 +411,7 @@ buildHistorySuccess idx =
 {-| buildHistoryFailure : produces svg icon for build history status - failure
 -}
 buildHistoryFailure : Int -> Icon
-buildHistoryFailure idx =
+buildHistoryFailure _ =
     let
         attrs =
             IconAttributes 28 "" 2 (Just "-icon -failure") "0 0 28 28"
@@ -424,7 +428,7 @@ buildHistoryFailure idx =
         src =
             [ Svg.g [ class "build-history-svg", class "-build-history-icon" ]
                 [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g [ recentBuildFade idx ]
+                , Svg.g []
                     [ Svg.path [ class "-path-2", d strokeB ] []
                     , Svg.path [ class "-path-3", d strokeC ] []
                     ]
@@ -434,21 +438,59 @@ buildHistoryFailure idx =
     Icon { attrs = attrs, src = src }
 
 
-recentBuildFade : Int -> Html.Attribute msg
-recentBuildFade idx =
-    case idx of
-        -- 9 ->
-        --     class "-fade-5"
-        -- 8 ->
-        --     class "-fade-4"
-        -- 7 ->
-        --     class "-fade-3"
-        -- 6 ->
-        --     class "-fade-2"
-        -- 5 ->
-        --     class "-fade-1"
-        _ ->
-            class "-fade-0"
+{-| radio : produces svg icon for input radio select
+-}
+radio : Bool -> Icon
+radio checked =
+    let
+        attrs =
+            IconAttributes 22 "" 1 (Just "-icon -radio") "0 0 28 28"
+
+        src =
+            if checked then
+                [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
+                    [ Svg.path [ fill "#282828", d "M-414-909h1440V115H-414z" ] []
+                    , Svg.g []
+                        [ Svg.circle [ stroke "#0CF", cx "14", cy "14", r "13.5" ] []
+                        , Svg.circle [ fill "#0CF", stroke "#0CF", cx "14", cy "14", r "7" ] []
+                        ]
+                    ]
+                ]
+
+            else
+                [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
+                    [ Svg.circle [ stroke "#0CF", cx "14", cy "14", r "13.5" ] []
+                    , Svg.circle [ stroke "#0CF", cx "14", cy "14", r "13.5" ] []
+                    , Svg.path [ stroke "none", d "M.5.5h27v27H.5z" ] []
+                    ]
+                ]
+    in
+    Icon { attrs = attrs, src = src }
+
+
+{-| checkbox : produces svg icon for input checkbox select
+-}
+checkbox : Bool -> Icon
+checkbox checked =
+    let
+        attrs =
+            IconAttributes 22 "" 1 (Just "-icon -radio") "0 0 28 28"
+
+        src =
+            if checked then
+                [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
+                    [ Svg.path [ stroke "#0CF", fill "#0CF", d "M.5.5h27v27H.5z" ] []
+                    , Svg.path [ stroke "#282828", Svg.Attributes.fillRule "2", Svg.Attributes.strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] []
+                    ]
+                ]
+
+            else
+                [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
+                    [ Svg.path [ stroke "#0CF", fill "none", d "M.5.5h27v27H.5z" ] []
+                    ]
+                ]
+    in
+    Icon { attrs = attrs, src = src }
 
 
 {-| statusToIcon : takes build status string and returns Icon from SvgBuilder

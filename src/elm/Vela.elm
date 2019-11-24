@@ -11,6 +11,7 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
+    , Field
     , Hook
     , Hooks
     , Log
@@ -26,7 +27,11 @@ module Vela exposing
     , Step
     , StepNumber
     , Steps
+    , UpdateRepositoryPayload
     , User
+    , buildUpdateRepoBoolPayload
+    , buildUpdateRepoIntPayload
+    , buildUpdateRepoStringPayload
     , decodeBuild
     , decodeBuilds
     , decodeHook
@@ -43,9 +48,11 @@ module Vela exposing
     , defaultBuilds
     , defaultRepository
     , defaultSession
+    , defaultUpdateRepositoryPayload
     , defaultUser
     , encodeAddRepository
     , encodeSession
+    , encodeUpdateRepository
     )
 
 import Dict exposing (Dict)
@@ -158,7 +165,7 @@ type alias Repository =
     , private : Bool
     , trusted : Bool
     , active : Bool
-    , allow_pr : Bool
+    , allow_pull : Bool
     , allow_push : Bool
     , allow_deploy : Bool
     , allow_tag : Bool
@@ -188,7 +195,7 @@ decodeRepository =
         |> optional "private" bool False
         |> optional "trusted" bool False
         |> optional "active" bool False
-        |> optional "allow_pr" bool False
+        |> optional "allow_pull" bool False
         |> optional "allow_push" bool False
         |> optional "allow_deploy" bool False
         |> optional "allow_tag" bool False
@@ -265,6 +272,101 @@ type alias AddRepositoryPayload =
 defaultAddRepositoryPayload : AddRepositoryPayload
 defaultAddRepositoryPayload =
     AddRepositoryPayload "" "" "" "" "" 60 False True True True True False False
+
+
+type alias UpdateRepositoryPayload =
+    { private : Maybe Bool
+    , trusted : Maybe Bool
+    , active : Maybe Bool
+    , allow_pull : Maybe Bool
+    , allow_push : Maybe Bool
+    , allow_deploy : Maybe Bool
+    , allow_tag : Maybe Bool
+    , visibility : Maybe String
+    , timeout : Maybe Int
+    }
+
+
+type alias Field =
+    String
+
+
+defaultUpdateRepositoryPayload : UpdateRepositoryPayload
+defaultUpdateRepositoryPayload =
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+
+
+encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
+encodeUpdateRepository repo =
+    Encode.object
+        [ ( "active", encodeOptional Encode.bool repo.active )
+        , ( "private", encodeOptional Encode.bool repo.private )
+        , ( "trusted", encodeOptional Encode.bool repo.trusted )
+        , ( "allow_pull", encodeOptional Encode.bool repo.allow_pull )
+        , ( "allow_push", encodeOptional Encode.bool repo.allow_push )
+        , ( "allow_deploy", encodeOptional Encode.bool repo.allow_deploy )
+        , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
+        , ( "visibility", encodeOptional Encode.string repo.visibility )
+        , ( "timeout", encodeOptional Encode.int repo.timeout )
+        ]
+
+
+encodeOptional : (a -> Encode.Value) -> Maybe a -> Encode.Value
+encodeOptional encoder value =
+    case value of
+        Just value_ ->
+            encoder value_
+
+        Nothing ->
+            Encode.null
+
+
+buildUpdateRepoBoolPayload : Field -> Bool -> UpdateRepositoryPayload
+buildUpdateRepoBoolPayload field value =
+    case field of
+        "private" ->
+            { defaultUpdateRepositoryPayload | private = Just value }
+
+        "trusted" ->
+            { defaultUpdateRepositoryPayload | trusted = Just value }
+
+        "active" ->
+            { defaultUpdateRepositoryPayload | active = Just value }
+
+        "allow_pull" ->
+            { defaultUpdateRepositoryPayload | allow_pull = Just value }
+
+        "allow_push" ->
+            { defaultUpdateRepositoryPayload | allow_push = Just value }
+
+        "allow_deploy" ->
+            { defaultUpdateRepositoryPayload | allow_deploy = Just value }
+
+        "allow_tag" ->
+            { defaultUpdateRepositoryPayload | allow_tag = Just value }
+
+        _ ->
+            defaultUpdateRepositoryPayload
+
+
+buildUpdateRepoStringPayload : Field -> String -> UpdateRepositoryPayload
+buildUpdateRepoStringPayload field value =
+    case field of
+        "visibility" ->
+            { defaultUpdateRepositoryPayload | visibility = Just value }
+
+        _ ->
+            defaultUpdateRepositoryPayload
+
+
+buildUpdateRepoIntPayload : Field -> Int -> UpdateRepositoryPayload
+buildUpdateRepoIntPayload field value =
+    case field of
+        "timeout" ->
+            { defaultUpdateRepositoryPayload | timeout = Just value }
+
+        _ ->
+            defaultUpdateRepositoryPayload
 
 
 
