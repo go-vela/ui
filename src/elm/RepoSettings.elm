@@ -61,9 +61,9 @@ type alias RadioUpdate msg =
     String -> String -> String -> (String -> msg)
 
 
-{-| IntUpdate : type that takes Msg for forwarding number input callback to Main.elm
+{-| NumberInputChange : type that takes Msg for forwarding number input callback to Main.elm
 -}
-type alias IntUpdate msg =
+type alias NumberInputChange msg =
     String -> String -> String -> Int -> msg
 
 
@@ -73,7 +73,7 @@ type alias IntUpdate msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> IntUpdate msg -> (String -> msg) -> Html msg
+view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> Html msg
 view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange =
     let
         loading =
@@ -151,7 +151,7 @@ events repo msg =
 
 {-| timeout : takes model and repo and renders the settings category for updating repo build timeout
 -}
-timeout : Maybe Int -> Repository -> IntUpdate msg -> (String -> msg) -> Html msg
+timeout : Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) -> Html msg
 timeout inTimeout repo clickMsg inputMsg =
     div [ class "category", Util.testAttribute "repo-settings-timeout" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Build Timeout" ] ]
