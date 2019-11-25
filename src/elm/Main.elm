@@ -1323,7 +1323,7 @@ setNewPage route model =
                 _ ->
                     ( { model | page = Pages.AddRepositories }, Cmd.none )
 
-        ( Routes.RepoSettings org repo, _ ) ->
+        ( Routes.RepoSettings org repo, True ) ->
             loadRepoSettingsPage model org repo
 
         ( Routes.RepositoryBuilds org repo, True ) ->
