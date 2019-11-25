@@ -82,7 +82,7 @@ context("Repo Settings", () => {
         cy.get("@repoTimeoutInput")
           .should("be.visible")
           .type("cat");
-        cy.get("@repoTimeoutInput").should("not.have.value", "60cat");
+        cy.get("@repoTimeoutInput").should("not.have.value", "cat");
         cy.get("@repoTimeoutInput").type("12cat34");
         cy.get("@repoTimeoutInput").should("have.value", "601234");
       });
