@@ -93,6 +93,7 @@ import Vela
         , Session
         , SourceRepoUpdateFunction
         , SourceRepositories
+        , Status
         , Step
         , StepNumber
         , Steps
@@ -151,6 +152,7 @@ type alias Model =
     , repo : WebData Repository
     , buildTimeout : Maybe String
     , entryURL : Url
+    , hookBuilds : HookBuilds
     }
 
 
@@ -173,6 +175,14 @@ type alias RefreshData =
     , build_number : Maybe BuildNumber
     , steps : Maybe Steps
     }
+
+
+type alias HookBuilds =
+    Dict BuildIdentifier (WebData Build)
+
+
+type alias BuildIdentifier =
+    ( Org, Repo, BuildNumber )
 
 
 init : Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
@@ -211,6 +221,7 @@ init flags url navKey =
             , repo = RemoteData.succeed defaultRepository
             , buildTimeout = Nothing
             , entryURL = url
+            , hookBuilds = Dict.empty
             }
 
         ( newModel, newPage ) =
@@ -254,13 +265,14 @@ type Msg
     | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
-    | GetBuilds Org Repo
+    | GetHookBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
+    | HookBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | RepoAddedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
@@ -530,13 +542,35 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
             )
 
-        GetBuilds org repo ->
+        GetHookBuild org repo buildNumber ->
             let
-                currentBuilds =
-                    model.builds
+                ( hookBuilds, action ) =
+                    if buildNumber == "0" then
+                        ( model.hookBuilds
+                        , Cmd.none
+                        )
+
+                    else
+                        let
+                            buildStatus =
+                                case Dict.get ( org, repo, buildNumber ) model.hookBuilds of
+                                    Just webdataBuild ->
+                                        case webdataBuild of
+                                            Success build ->
+                                                Just <| RemoteData.succeed build
+
+                                            _ ->
+                                                Just Loading
+
+                                    _ ->
+                                        Just Loading
+                        in
+                        ( Dict.update ( org, repo, buildNumber ) (\_ -> buildStatus) model.hookBuilds
+                        , getHookBuild model org repo buildNumber
+                        )
             in
-            ( { model | builds = { currentBuilds | org = org, repo = repo, builds = Loading } }
-            , getBuilds model org repo
+            ( { model | hookBuilds = hookBuilds }
+            , action
             )
 
         RestartBuild org repo buildNumber ->
@@ -552,6 +586,18 @@ update msg model =
             case response of
                 Ok ( _, hooks ) ->
                     ( { model | hooks = RemoteData.succeed hooks }, Cmd.none )
+
+                Err error ->
+                    ( model, addError error )
+
+        HookBuildResponse org repo buildNumber response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        hookBuilds =
+                            Dict.update ( org, repo, buildNumber ) (\_ -> Just <| RemoteData.succeed build) model.hookBuilds
+                    in
+                    ( { model | hookBuilds = hookBuilds }, Cmd.none )
 
                 Err error ->
                     ( model, addError error )
@@ -819,7 +865,7 @@ viewContent model =
 
         Pages.RepoHooks org repo ->
             ( "Repository Hooks"
-            , viewRepositoryHooks model.hooks model.time model.zone org repo
+            , viewRepositoryHooks model.hooks model.hookBuilds model.time org repo GetHookBuild
             )
 
         Pages.RepoSettings _ _ ->
@@ -1405,8 +1451,8 @@ viewHeader maybeSession { feedbackLink, docsLink } =
 
 {-| viewRepositoryHooks : renders hooks
 -}
-viewRepositoryHooks : WebData Hooks -> Posix -> Zone -> String -> String -> Html msg
-viewRepositoryHooks hooks now timezone org repo =
+viewRepositoryHooks : WebData Hooks -> HookBuilds -> Posix -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+viewRepositoryHooks hooks hookBuilds now org repo msg =
     let
         none =
             div []
@@ -1425,11 +1471,23 @@ viewRepositoryHooks hooks now timezone org repo =
                 none
 
             else
+                let
+                    last =
+                        case List.head <| List.reverse hooks_ of
+                            Just h ->
+                                h.id
+
+                            Nothing ->
+                                -1
+                in
                 div [ class "hooks", Util.testAttribute "hooks" ] <|
                     List.append
                         [ div [ class "hook-row", class "headers" ]
                             [ div [ class "header", class "source-id" ]
                                 [ text "source id"
+                                ]
+                            , div [ class "header" ]
+                                [ text "status"
                                 ]
                             , div [ class "header" ]
                                 [ text "created"
@@ -1438,18 +1496,15 @@ viewRepositoryHooks hooks now timezone org repo =
                                 [ text "host"
                                 ]
                             , div [ class "header" ]
-                                [ text "branch"
-                                ]
-                            , div [ class "header" ]
                                 [ text "event"
                                 ]
                             , div [ class "header" ]
-                                [ text "build"
+                                [ text "branch"
                                 ]
                             ]
                         ]
                     <|
-                        List.map (\hook -> viewHook now timezone org repo hook) hooks_
+                        List.map (\hook -> viewHook now org repo hook hookBuilds (last == hook.id) msg) hooks_
 
         RemoteData.Loading ->
             Util.largeLoader
@@ -1466,13 +1521,17 @@ viewRepositoryHooks hooks now timezone org repo =
                 ]
 
 
-viewHook : Posix -> Zone -> Org -> Repo -> Hook -> Html msg
-viewHook now timezone org repo hook =
+viewHook : Posix -> Org -> Repo -> Hook -> HookBuilds -> Bool -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+viewHook now org repo hook hookBuilds last clickAction =
     let
         h =
             div [ class "hook-row" ]
                 [ div [ class "detail", class "source-id" ]
                     [ text hook.source_id
+                    ]
+                , div [ class "detail" ]
+                    [ span [ class "status", hookStatusClass hook.status ]
+                        [ text hook.status ]
                     ]
                 , div [ class "detail", class "created" ]
                     [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis hook.created
@@ -1480,24 +1539,105 @@ viewHook now timezone org repo hook =
                 , div [ class "detail", class "host" ]
                     [ text hook.host
                     ]
-                , div [ class "detail", class "branch" ]
-                    [ text hook.branch
-                    ]
                 , div [ class "detail", class "event" ]
                     [ text hook.event
                     ]
-                , div [ class "detail", class "build" ]
-                    [ hookBuild org repo hook.build_id
+                , div [ class "detail", class "branch" ]
+                    [ text hook.branch
                     ]
                 ]
     in
     details [ class "hook" ]
-        [ summary [ class "hook-summary" ]
+        [ summary [ class "hook-summary", onClick (clickAction org repo <| String.fromInt hook.build_id) ]
             [ h
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
-        , hookLogs org repo hook.build_id hook.status "No logs to display" hook.link
+        , hookSummary now ( org, repo, String.fromInt hook.build_id ) hookBuilds "No logs to display" last
         ]
+
+
+hookSummary : Posix -> BuildIdentifier -> HookBuilds -> String -> Bool -> Html msg
+hookSummary now buildIdentifier hookBuilds logs last =
+    div [ classList [ ( "summary", True ), ( "-last", last ) ] ]
+        [ code []
+            [ hookBuild now buildIdentifier hookBuilds
+            ]
+        , div [ class "logs" ] [ code [] [ text logs ] ]
+        ]
+
+
+hookBuild : Posix -> BuildIdentifier -> HookBuilds -> Html msg
+hookBuild now ( org, repo, buildNumber ) hookBuilds =
+    case fromID ( org, repo, buildNumber ) hookBuilds of
+        NotAsked ->
+            text ""
+
+        Failure _ ->
+            div [ class "error" ] [ text <| "error fetching build " ++ String.join "/" [ org, repo, buildNumber ] ]
+
+        Loading ->
+            div [ class "loading" ] [ Util.smallLoaderWithText "loading build..." ]
+
+        Success build ->
+            viewHookBuild now ( org, repo, buildNumber ) build
+
+
+viewHookBuild : Posix -> BuildIdentifier -> Build -> Html msg
+viewHookBuild now ( org, repo, buildNumber ) build =
+    div [ class "hook-build" ]
+        [ text "build:"
+        , a [ class "item", Routes.href <| Routes.Build org repo buildNumber ] [ text buildNumber ]
+        , span []
+            [ span []
+                [ text "status:"
+                ]
+            , span [ hookBuildStatusClass build.status, class "item", class "status" ] [ text <| statusToString build.status ]
+            ]
+        , span []
+            [ span []
+                [ text "duration:"
+                ]
+            , span [ hookBuildStatusClass build.status, class "item", class "duration" ] [ text <| Util.formatRunTime now build.started build.finished ]
+            ]
+        ]
+
+
+statusToString : Status -> String
+statusToString status =
+    case status of
+        Vela.Pending ->
+            "pending"
+
+        Vela.Running ->
+            "running"
+
+        Vela.Success ->
+            "success"
+
+        Vela.Error ->
+            "server error"
+
+        Vela.Failure ->
+            "failed"
+
+
+hookBuildStatusClass : Status -> Html.Attribute msg
+hookBuildStatusClass status =
+    case status of
+        Vela.Pending ->
+            class "-pending"
+
+        Vela.Running ->
+            class "-running"
+
+        Vela.Success ->
+            class "-success"
+
+        Vela.Failure ->
+            class "-failure"
+
+        Vela.Error ->
+            class "-error"
 
 
 hookStatusClass : String -> Html.Attribute msg
@@ -1510,36 +1650,9 @@ hookStatusClass status =
             class "-failure"
 
 
-hookLogs : Org -> Repo -> Int -> String -> String -> String -> Html msg
-hookLogs org repo buildNumber status logs link =
-    div [ class "logs" ]
-        [ code []
-            [ div []
-                [ text "status:"
-                , span [ class "status", hookStatusClass status ]
-                    [ text status ]
-                ]
-            , div [ class "view-build" ]
-                [ text "build:"
-                , hookBuild org repo buildNumber
-                ]
-
-            -- , a
-            --     [ href link, class "link" ]
-            --     [ text "view webhook" ]
-            ]
-        , div [] [ code [] [ text logs ] ]
-        ]
-
-
-hookBuild : Org -> Repo -> Int -> Html msg
-hookBuild org repo buildNumber =
-    case buildNumber of
-        0 ->
-            span [ class "failure" ] [ text "failure" ]
-
-        _ ->
-            a [ Routes.href <| Routes.Build org repo <| String.fromInt buildNumber ] [ text <| String.join "/" [ org, repo, String.fromInt buildNumber ] ]
+fromID : BuildIdentifier -> HookBuilds -> WebData Build
+fromID buildIdentifier hookBuilds =
+    Maybe.withDefault NotAsked <| Dict.get buildIdentifier hookBuilds
 
 
 
@@ -1649,7 +1762,7 @@ setNewPage route model =
 loadRepoHooksPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadRepoHooksPage model org repo =
     -- Fetch builds from Api
-    ( { model | page = Pages.RepoHooks org repo, hooks = Loading }
+    ( { model | page = Pages.RepoHooks org repo, hooks = Loading, hookBuilds = Dict.empty }
     , Cmd.batch
         [ getHooks model org repo
         ]
@@ -1931,6 +2044,11 @@ shouldSearch filter =
 getHooks : Model -> Org -> Repo -> Cmd Msg
 getHooks model org repo =
     Api.tryAll (HooksResponse org repo) <| Api.getAllHooks model org repo
+
+
+getHookBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+getHookBuild model org repo buildNumber =
+    Api.try (HookBuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
 
 
 getRepo : Model -> Org -> Repo -> Cmd Msg

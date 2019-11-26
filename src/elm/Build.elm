@@ -108,7 +108,7 @@ viewBuildItem now org repo build =
             [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
 
         duration =
-            [ text <| formatRunTime now build.started build.finished ]
+            [ text <| Util.formatRunTime now build.started build.finished ]
 
         statusClass =
             animationStatusClass build.status
@@ -238,7 +238,7 @@ viewStepDetails now step logs =
             [ summary [ class "summary", Util.testAttribute "step-header" ]
                 [ div [ class "-info" ]
                     [ div [ class "-name" ] [ text step.name ]
-                    , div [ class "-duration" ] [ text <| formatRunTime now step.started step.finished ]
+                    , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
                     ]
                 ]
             , viewStepLogs step logs
@@ -293,7 +293,7 @@ viewLogs log =
                                 div []
                                     [ div [ class "-code" ]
                                         [ span [ class "-line-num" ]
-                                            [ text <| toTwoDigits <| idx + 1 ]
+                                            [ text <| Util.toTwoDigits <| idx + 1 ]
                                         , code [] [ text line ]
                                         ]
                                     ]
@@ -367,7 +367,7 @@ recentBuild now timezone org repo build idx =
                     ]
                 , div [ class "-line" ] [ span [ class "-label" ] [ text "started:" ], span [ class "-content" ] [ text <| Util.dateToHumanReadable timezone build.started ] ]
                 , div [ class "-line" ] [ span [ class "-label" ] [ text "finished:" ], span [ class "-content" ] [ text <| Util.dateToHumanReadable timezone build.finished ] ]
-                , div [ class "-line" ] [ span [ class "-label" ] [ text "duration:" ], span [ class "-content" ] [ text <| formatRunTime now build.started build.finished ] ]
+                , div [ class "-line" ] [ span [ class "-label" ] [ text "duration:" ], span [ class "-content" ] [ text <| Util.formatRunTime now build.started build.finished ] ]
                 ]
             ]
         ]
@@ -503,70 +503,6 @@ buildBranchUrl clone branch =
 trimCommitHash : String -> String
 trimCommitHash commit =
     String.left 7 commit
-
-
-{-| formatRunTime : calculates build runtime using current application time and build times
--}
-formatRunTime : Posix -> Int -> Int -> String
-formatRunTime now started finished =
-    let
-        runtime =
-            buildRunTime now started finished
-
-        minutes =
-            runTimeMinutes runtime
-
-        seconds =
-            runTimeSeconds runtime
-    in
-    String.join ":" [ minutes, seconds ]
-
-
-{-| buildRunTime : calculates build runtime using current application time and build times, returned in seconds
--}
-buildRunTime : Posix -> Int -> Int -> Int
-buildRunTime now started finished =
-    let
-        start =
-            started
-
-        end =
-            if finished /= 0 then
-                finished
-
-            else if started == 0 then
-                start
-
-            else
-                Util.millisToSeconds <| Time.posixToMillis now
-    in
-    end - start
-
-
-{-| runTimeMinutes : takes runtime in seconds, extracts minutes, and pads with necessary 0's
--}
-runTimeMinutes : Int -> String
-runTimeMinutes seconds =
-    toTwoDigits <| seconds // 60
-
-
-{-| runTimeSeconds : takes runtime in seconds, extracts seconds, and pads with necessary 0's
--}
-runTimeSeconds : Int -> String
-runTimeSeconds seconds =
-    toTwoDigits <| Basics.remainderBy 60 seconds
-
-
-{-| toTwoDigits : takes an integer of time and pads with necessary 0's
-
-    0  seconds -> "00"
-    9  seconds -> "09"
-    15 seconds -> "15"
-
--}
-toTwoDigits : Int -> String
-toTwoDigits int =
-    String.padLeft 2 '0' <| String.fromInt int
 
 
 {-| stepClasses : returns css classes for a particular step

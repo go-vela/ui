@@ -9,6 +9,7 @@ module Util exposing
     , dispatch
     , filterEmptyLists
     , fiveSecondsMillis
+    , formatRunTime
     , formatTestTag
     , isLoading
     , isSuccess
@@ -17,15 +18,17 @@ module Util exposing
     , oneSecondMillis
     , secondsToMillis
     , smallLoader
+    , smallLoaderWithText
     , testAttribute
+    , toTwoDigits
     )
 
 import DateFormat exposing (monthNameFull)
-import Html exposing (Attribute, Html, div)
+import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
 import RemoteData exposing (WebData)
 import Task exposing (perform, succeed)
-import Time exposing (Posix, Zone)
+import Time exposing (Posix, Zone, posixToMillis)
 
 
 {-| testAttribute : returns an html attribute that produces msgs for selecting the element during automated testing
@@ -67,6 +70,70 @@ humanReadableDateFormatter =
         , DateFormat.text ", "
         , DateFormat.yearNumber
         ]
+
+
+{-| formatRunTime : calculates build runtime using current application time and build times
+-}
+formatRunTime : Posix -> Int -> Int -> String
+formatRunTime now started finished =
+    let
+        runtime =
+            buildRunTime now started finished
+
+        minutes =
+            runTimeMinutes runtime
+
+        seconds =
+            runTimeSeconds runtime
+    in
+    String.join ":" [ minutes, seconds ]
+
+
+{-| buildRunTime : calculates build runtime using current application time and build times, returned in seconds
+-}
+buildRunTime : Posix -> Int -> Int -> Int
+buildRunTime now started finished =
+    let
+        start =
+            started
+
+        end =
+            if finished /= 0 then
+                finished
+
+            else if started == 0 then
+                start
+
+            else
+                millisToSeconds <| posixToMillis now
+    in
+    end - start
+
+
+{-| runTimeMinutes : takes runtime in seconds, extracts minutes, and pads with necessary 0's
+-}
+runTimeMinutes : Int -> String
+runTimeMinutes seconds =
+    toTwoDigits <| seconds // 60
+
+
+{-| runTimeSeconds : takes runtime in seconds, extracts seconds, and pads with necessary 0's
+-}
+runTimeSeconds : Int -> String
+runTimeSeconds seconds =
+    toTwoDigits <| Basics.remainderBy 60 seconds
+
+
+{-| toTwoDigits : takes an integer of time and pads with necessary 0's
+
+    0  seconds -> "00"
+    9  seconds -> "09"
+    15 seconds -> "15"
+
+-}
+toTwoDigits : Int -> String
+toTwoDigits int =
+    String.padLeft 2 '0' <| String.fromInt int
 
 
 {-| formatTestTag : formats a test attribute tag by lower casing and replacing spaces with '-'
@@ -134,6 +201,13 @@ dispatch msg =
 smallLoader : Html msg
 smallLoader =
     div [ class "small-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
+
+
+{-| smallLoaderWithText : renders a small loading spinner for better transitioning UX with additional loading text
+-}
+smallLoaderWithText : String -> Html msg
+smallLoaderWithText label =
+    div [ class "small-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [ text label ] ]
 
 
 {-| largeLoader : renders a small loading spinner for better transitioning UX

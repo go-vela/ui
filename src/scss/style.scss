@@ -666,6 +666,10 @@ button.-solid {
   border-radius: 50%;
 }
 
+.small-loader .-label {
+  margin-left: 0.8em;
+}
+
 .build-container {
   overflow: hidden;
 
@@ -1314,8 +1318,8 @@ button.-solid {
 }
 .hook {
   background: var(--color-darkcoal);
-  margin-bottom: 0.2em;
-
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
   > .hook-summary {
     padding: 0;
     position: relative;
@@ -1336,7 +1340,7 @@ button.-solid {
   }
   .details-icon-expand {
     position: absolute;
-    top: 0.8em;
+    top: 0.35em;
     left: 0.4em;
 
     transition: all 0.2s;
@@ -1353,7 +1357,7 @@ button.-solid {
   display: flex;
   flex-direction: row;
   align-items: center;
-  height: 3em;
+  height: 2em;
   width: 100%;
   font-size: 16px;
   font-weight: 300;
@@ -1362,8 +1366,8 @@ button.-solid {
   padding-left: 2.2em;
 }
 
-.hook-row .headers {
-  padding-bottom: 0.4em;
+.hook-row.headers {
+  height: 3em;
   border-bottom: 1px solid var(--color-gray);
 }
 
@@ -1388,7 +1392,6 @@ button.-solid {
 
 .hook-row .detail.source-id{
   background: var(--color-gray);
-  padding: 4px 8px;
   text-decoration: none;
   color: var(--color-offwhite);
 }
@@ -1397,32 +1400,62 @@ button.-solid {
   min-width: 300px;
 }
 
-.hook .logs {
-  padding: 0.8em 1.8em;
+.hook .summary {
   font-size: 14px;
   border-bottom: 1px solid var(--color-gray);
+  padding: 0.8em 1.8em;
 }
 
-.hook .logs .status {
+.hook .summary .logs {
+}
+.hook .summary.-last {
+  border-bottom: 0;
+}
+.hook .summary .status {
   margin-left: 0.4em;
 }
 
-.hook .logs .status.-success {
+.hook .status.-success {
   color: var(--color-green);
 }
 
-.hook .logs .status.-failure {
+.hook .status.-failure {
   color: var(--color-red);
 }
 
-.hook .logs .view-build {
-  & > a {
-    margin-left: 0.4em;
-  }
+.hook .summary .hook-build {
+  display: flex;
+  flex-direction: row;
   & .failure {
     margin-left: 0.4em;
     color: var(--color-red);
   }
+}
+.hook .summary .hook-build {
+  height: 2em;
+  width: 100%;
+}
+
+.hook .summary .hook-build .item {
+  margin-left: 0.4em;
+  margin-right: 1.2em;
+}
+
+.hook .summary .hook-build .status.-pending {
+  // color: pink;
+  // font-size: 18em;
+}
+
+.hook .summary .hook-build .status.-running {
+  color: var(--color-yellow);
+}
+
+.hook .summary .hook-build .status.-success {
+  color: var(--color-green);
+}
+
+.hook .summary .hook-build .status.-failure {
+  color: var(--color-red);
 }
 
 
