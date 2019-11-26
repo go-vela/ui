@@ -30,7 +30,7 @@ type Route
     = Overview
     | AddRepositories
     | RepoHooks Org Repo
-    | RepoSettings Org Repo
+    | Settings Org Repo
     | RepositoryBuilds Org Repo
     | Build Org Repo BuildNumber
     | Login
@@ -52,7 +52,7 @@ routes =
         , map Logout (s "account" </> s "logout")
         , parseAuth
         , map RepoHooks (string </> string </> s "hooks")
-        , map RepoSettings (string </> string </> s "settings")
+        , map Settings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string)
         , map Build (string </> string </> string)
         , map NotFound (s "404")
@@ -90,7 +90,7 @@ routeToUrl route =
         AddRepositories ->
             "/account/add-repos"
 
-        RepoSettings org repo ->
+        Settings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
         RepositoryBuilds org repo ->

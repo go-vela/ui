@@ -108,7 +108,7 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, repoBuilds, repoHooks ]
 
-                Pages.RepoSettings org repo ->
+                Pages.Settings org repo ->
                     let
                         organizationPage =
                             ( org, Nothing )

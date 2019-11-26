@@ -176,7 +176,7 @@ type alias Repository =
 
 defaultRepository : Repository
 defaultRepository =
-    Repository -1 -1 "" "" "" "" "" "" -1 "" False False False False False False False NotAsked NotAsked
+    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False NotAsked NotAsked
 
 
 decodeRepository : Decoder Repository
@@ -190,7 +190,7 @@ decodeRepository =
         |> optional "link" string ""
         |> optional "clone" string ""
         |> optional "branch" string ""
-        |> optional "timeout" int -1
+        |> optional "timeout" int 0
         |> optional "visibility" string ""
         |> optional "private" bool False
         |> optional "trusted" bool False
