@@ -16,8 +16,8 @@ services:
   #   depends_on:
   #     - api
 
-  api:
-    container_name: api
+  server:
+    container_name: server
     image: target/vela-server
     networks:
       - vela
@@ -43,6 +43,30 @@ services:
       - postgres
       - redis
       - vault
+
+  # worker:
+  #   container_name: worker
+  #   image: target/vela-worker
+  #   networks:
+  #     - vela
+  #   environment:
+  #     VELA_ADDR: http://server:8080
+  #     VELA_EXECUTOR_THREADS: 1
+  #     VELA_LOG_LEVEL: debug
+  #     VELA_QUEUE_DRIVER: redis
+  #     VELA_QUEUE_CONFIG: redis://redis:6379
+  #     VELA_QUEUE_WORKER_ROUTES: larger,docker,large:docker
+  #     VELA_RUNTIME_DRIVER: docker
+  #     VELA_SECRET: zB7mrKDTZqNeNTD8z47yG4DHywspAh
+  #     VELA_VAULT_ADDR: http://vault:8200
+  #     VELA_VAULT_TOKEN: vela
+  #   restart: always
+  #   ports:
+  #     - "8081:8080"
+  #   volumes:
+  #     - "/var/run/docker.sock:/var/run/docker.sock"
+  #   depends_on:
+  #     - server
 
   redis:
     container_name: redis
