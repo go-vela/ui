@@ -10,9 +10,13 @@ import Alerts exposing (Alert)
 import Api
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
-import Build exposing (viewFullBuild, viewRepositoryBuilds)
+import Build
+    exposing
+        ( statusToClass
+        , viewFullBuild
+        , viewRepositoryBuilds
+        )
 import Crumbs
-import DateFormat.Relative exposing (relativeTime)
 import Dict exposing (Dict)
 import Errors exposing (detailedErrorToString)
 import FeatherIcons
@@ -102,7 +106,6 @@ import Vela
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
-        , decodeHooks
         , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
@@ -257,7 +260,6 @@ type Msg
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
-    | FetchRepo Org Repo
     | AddRepo Repository
     | UpdateRepoBool Org Repo Field Bool
     | UpdateRepoString Org Repo Field String
@@ -358,9 +360,6 @@ update msg model =
 
         FetchSourceRepositories ->
             ( { model | sourceRepos = Loading, sourceSearchFilters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
-
-        FetchRepo org repo ->
-            ( { model | repo = Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -582,7 +581,7 @@ update msg model =
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Error "Error" error)
 
-        HooksResponse org repo response ->
+        HooksResponse _ _ response ->
             case response of
                 Ok ( _, hooks ) ->
                     ( { model | hooks = RemoteData.succeed hooks }, Cmd.none )
@@ -709,6 +708,12 @@ refreshPage model _ =
                 , refreshLogs model org repo buildNumber model.steps
                 ]
 
+        Pages.RepoHooks org repo ->
+            Cmd.batch
+                [ getHooks model org repo
+                , refreshHookBuilds model
+                ]
+
         _ ->
             Cmd.none
 
@@ -766,6 +771,23 @@ refreshBuildSteps model org repo buildNumber =
 
     else
         Cmd.none
+
+
+{-| refreshHookBuilds : takes model org and repo and refreshes the hook builds being viewed by the user
+-}
+refreshHookBuilds : Model -> Cmd Msg
+refreshHookBuilds model =
+    let
+        builds =
+            Dict.keys model.hookBuilds
+
+        buildsToRefresh =
+            List.filter (\build -> shouldRefresh (Maybe.withDefault NotAsked <| Dict.get build model.hookBuilds)) builds
+
+        refreshCmds =
+            List.map (\( org, repo, buildNumber ) -> getHookBuild model org repo buildNumber) buildsToRefresh
+    in
+    Cmd.batch refreshCmds
 
 
 {-| shouldRefresh : takes build and returns true if a refresh is required
@@ -1534,7 +1556,7 @@ viewHook now org repo hook hookBuilds last clickAction =
                         [ text hook.status ]
                     ]
                 , div [ class "detail", class "created" ]
-                    [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis hook.created
+                    [ text <| Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created
                     ]
                 , div [ class "detail", class "host" ]
                     [ text hook.host
@@ -1591,13 +1613,13 @@ viewHookBuild now ( org, repo, buildNumber ) build =
             [ span []
                 [ text "status:"
                 ]
-            , span [ hookBuildStatusClass build.status, class "item", class "status" ] [ text <| statusToString build.status ]
+            , span [ statusToClass build.status, class "item", class "status" ] [ text <| statusToString build.status ]
             ]
         , span []
             [ span []
                 [ text "duration:"
                 ]
-            , span [ hookBuildStatusClass build.status, class "item", class "duration" ] [ text <| Util.formatRunTime now build.started build.finished ]
+            , span [ statusToClass build.status, class "item", class "duration" ] [ text <| Util.formatRunTime now build.started build.finished ]
             ]
         ]
 
@@ -1619,25 +1641,6 @@ statusToString status =
 
         Vela.Failure ->
             "failed"
-
-
-hookBuildStatusClass : Status -> Html.Attribute msg
-hookBuildStatusClass status =
-    case status of
-        Vela.Pending ->
-            class "-pending"
-
-        Vela.Running ->
-            class "-running"
-
-        Vela.Success ->
-            class "-success"
-
-        Vela.Failure ->
-            class "-failure"
-
-        Vela.Error ->
-            class "-error"
 
 
 hookStatusClass : String -> Html.Attribute msg

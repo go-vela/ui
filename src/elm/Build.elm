@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Build exposing
-    ( viewBuildHistory
+    ( statusToClass
+    , viewBuildHistory
     , viewBuildItem
     , viewFullBuild
     , viewRepositoryBuilds
@@ -111,7 +112,7 @@ viewBuildItem now org repo build =
             [ text <| Util.formatRunTime now build.started build.finished ]
 
         statusClass =
-            animationStatusClass build.status
+            statusToClass build.status
 
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
@@ -377,10 +378,8 @@ recentBuild now timezone org repo build idx =
 -- HELPERS
 
 
-{-| animationStatusClass : takes build status and returns the appropriate css class
--}
-animationStatusClass : Status -> Html.Attribute msg
-animationStatusClass status =
+statusToClass : Status -> Html.Attribute msg
+statusToClass status =
     case status of
         Vela.Pending ->
             class "-pending"
@@ -395,7 +394,7 @@ animationStatusClass status =
             class "-failure"
 
         Vela.Error ->
-            class "-failure"
+            class "-error"
 
 
 {-| buildStatusStyles : takes build markdown and adds styled flair based on running status
@@ -409,7 +408,7 @@ buildStatusStyles markdown buildStatus buildNumber =
                     List.append (topParticles buildNumber) (bottomParticles buildNumber)
 
                 _ ->
-                    [ div [ class "build-animation", class "-not-running", animationStatusClass buildStatus ] []
+                    [ div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
                     ]
     in
     List.append animation markdown

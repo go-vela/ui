@@ -16,6 +16,7 @@ module Util exposing
     , largeLoader
     , millisToSeconds
     , oneSecondMillis
+    , relativeTimeNoSeconds
     , secondsToMillis
     , smallLoader
     , smallLoaderWithText
@@ -24,6 +25,7 @@ module Util exposing
     )
 
 import DateFormat exposing (monthNameFull)
+import DateFormat.Relative exposing (RelativeTimeOptions, defaultRelativeOptions, relativeTimeWithOptions)
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
 import RemoteData exposing (WebData)
@@ -70,6 +72,20 @@ humanReadableDateFormatter =
         , DateFormat.text ", "
         , DateFormat.yearNumber
         ]
+
+
+{-| relativeTimeNoSeconds : helper for using DateFormat.Relative.relativeTime with no seconds granularity
+-}
+relativeTimeNoSeconds : Posix -> Posix -> String
+relativeTimeNoSeconds now then_ =
+    relativeTimeWithOptions { defaultRelativeOptions | someSecondsAgo = noSomeSecondsAgo } now then_
+
+
+{-| noSomeSecondsAgo : helper for configurating DateFormat.Relative.relativeTime
+-}
+noSomeSecondsAgo : Int -> String
+noSomeSecondsAgo _ =
+    "just now"
 
 
 {-| formatRunTime : calculates build runtime using current application time and build times
