@@ -8,11 +8,13 @@ module Vela exposing
     ( AddRepositoryPayload
     , AuthParams
     , Build
+    , BuildIdentifier
     , BuildNumber
     , Builds
     , BuildsModel
     , Field
     , Hook
+    , HookBuilds
     , Hooks
     , Log
     , Logs
@@ -629,3 +631,11 @@ decodeHooks =
 
 type alias Hooks =
     List Hook
+
+
+type alias HookBuilds =
+    Dict BuildIdentifier (WebData Build)
+
+
+type alias BuildIdentifier =
+    ( Org, Repo, BuildNumber )
