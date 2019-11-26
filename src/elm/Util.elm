@@ -25,7 +25,7 @@ module Util exposing
     )
 
 import DateFormat exposing (monthNameFull)
-import DateFormat.Relative exposing (RelativeTimeOptions, defaultRelativeOptions, relativeTimeWithOptions)
+import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
 import RemoteData exposing (WebData)

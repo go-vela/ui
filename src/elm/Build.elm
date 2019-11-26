@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Build exposing
     ( statusToClass
+    , statusToString
     , viewBuildHistory
     , viewBuildItem
     , viewFullBuild
@@ -378,6 +379,29 @@ recentBuild now timezone org repo build idx =
 -- HELPERS
 
 
+{-| statusToString : takes build status and returns string
+-}
+statusToString : Status -> String
+statusToString status =
+    case status of
+        Vela.Pending ->
+            "pending"
+
+        Vela.Running ->
+            "running"
+
+        Vela.Success ->
+            "success"
+
+        Vela.Error ->
+            "server error"
+
+        Vela.Failure ->
+            "failed"
+
+
+{-| statusToClass : takes build status and returns css class
+-}
 statusToClass : Status -> Html.Attribute msg
 statusToClass status =
     case status of

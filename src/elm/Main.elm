@@ -13,6 +13,7 @@ import Browser.Navigation as Navigation
 import Build
     exposing
         ( statusToClass
+        , statusToString
         , viewFullBuild
         , viewRepositoryBuilds
         )
@@ -1622,25 +1623,6 @@ viewHookBuild now ( org, repo, buildNumber ) build =
             , span [ statusToClass build.status, class "item", class "duration" ] [ text <| Util.formatRunTime now build.started build.finished ]
             ]
         ]
-
-
-statusToString : Status -> String
-statusToString status =
-    case status of
-        Vela.Pending ->
-            "pending"
-
-        Vela.Running ->
-            "running"
-
-        Vela.Success ->
-            "success"
-
-        Vela.Error ->
-            "server error"
-
-        Vela.Failure ->
-            "failed"
 
 
 hookStatusClass : String -> Html.Attribute msg
