@@ -60,10 +60,8 @@ view hooks hookBuilds now org repo clickAction =
                 noHooks
 
             else
-                div [ class "hooks-wrapper" ]
-                    [ div [ class "hooks", Util.testAttribute "hooks" ] <|
-                        hooksTable now org repo hookBuilds hooks_ clickAction
-                    ]
+                div [ class "hooks", Util.testAttribute "hooks" ] <|
+                    hooksTable now org repo hookBuilds hooks_ clickAction
 
         RemoteData.Loading ->
             Util.largeLoader

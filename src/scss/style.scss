@@ -668,6 +668,8 @@ button.-solid {
 
 .small-loader .-label {
   margin-left: 0.8em;
+  font-size: 14px;
+  font-weight: 300;
 }
 
 .build-container {
@@ -1312,25 +1314,31 @@ button.-solid {
   border: 1px solid var(--color-red);
 }
 
-.hooks-wrapper {
-  width: 100%;
-  background: var(--color-darkcoal);
-  padding-bottom: 0.5em;
-}
 .hooks {
   width: 100%;
+  padding-bottom: 0.5em;
+
+  background: var(--color-darkcoal);
+}
+
+.hooks .loading {
+  display: flex;
+  margin-left: 0.4em;
+  margin-top: 0.5em;
 }
 
 .hooks .row {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  flex-direction: row;
+
   margin: 0.3em 0;
   > .hook-summary {
-    padding: 0;
     position: relative;
 
     overflow: hidden;
+
+    padding: 0;
 
     cursor: pointer;
 
@@ -1346,6 +1354,7 @@ button.-solid {
   }
   .chevron {
     margin: 0 8px;
+
     transition: all 0.2s;
     transform-origin: 50% 49%;
 
@@ -1358,44 +1367,51 @@ button.-solid {
 
 .hooks .row.preview {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  flex-direction: row;
 }
 
 .hooks .headers {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  flex-direction: row;
+
+  margin-top: 0.3em;
   padding-top: 0.3em;
   padding-bottom: 0.3em;
   padding-left: 36px; // match chevron size
-  margin-top: 0.3em;
+
   border-bottom: 1px solid var(--color-gray);
 }
 
 .hooks .header {
-  font-size: 18px;
   flex: 1;
+
   text-align: center;
+
+  font-size: 18px;
 }
 .hooks .source-id {
   min-width: 300px;
 }
 
 .hooks .row .preview {
-  font-size: 14px;
   margin: 0.4em 0;
+
+  font-size: 14px;
 }
 
 .hooks .row .cell {
   flex: 1;
+
   text-align: center;
 }
 
 .hooks .row .cell.source-id {
-  background: var(--color-gray);
-  color: var(--color-offwhite);
   text-align: center;
+
+  color: var(--color-offwhite);
+  background: var(--color-gray);
 }
 
 .preview .status.success {
@@ -1407,17 +1423,21 @@ button.-solid {
 }
 
 .hooks .row .info {
-  font-size: 14px;
   width: 100%;
+
   border-bottom: 1px solid var(--color-gray);
+
+  font-size: 14px;
 }
 
 .hooks .row .info {
   display: flex;
-  flex-direction: row;
   display: inline-block;
-  border-left: 1px solid var(--color-gray);
+  flex-direction: row;
+
   padding: 0.4em 1em;
+
+  border-left: 1px solid var(--color-gray);
 }
 
 .hooks .row .info.-pending {
@@ -1524,9 +1544,10 @@ button.-solid {
 .inputs.repo-timeout input {
   width: 5em;
   padding-top: 0.5em;
-  padding-bottom: 0.5em;
   padding-right: 0em;
+  padding-bottom: 0.5em;
   padding-left: 1em;
+
   text-align: center;
 
   color: white;
@@ -1570,10 +1591,11 @@ button.-solid {
 }
 
 .checkbox input[type="checkbox"], .checkbox input[type="radio"] {
-  opacity: 0;
   position: relative;
   right: 1.55em;
   bottom: 0.1em;
+
+  opacity: 0;
 }
 
 .checkbox label {
