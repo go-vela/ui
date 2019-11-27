@@ -46,6 +46,10 @@ import Vela
         )
 
 
+
+-- VIEW
+
+
 {-| view : renders hooks
 -}
 view : WebData Hooks -> HookBuilds -> Posix -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
@@ -53,11 +57,13 @@ view hooks hookBuilds now org repo clickAction =
     case hooks of
         RemoteData.Success hooks_ ->
             if List.length hooks_ == 0 then
-                viewNoHooks
+                noHooks
 
             else
-                div [ class "hooks", Util.testAttribute "hooks" ] <|
-                    viewHooksTable now org repo hookBuilds hooks_ clickAction
+                div [ class "hooks-wrapper" ]
+                    [ div [ class "hooks", Util.testAttribute "hooks" ] <|
+                        hooksTable now org repo hookBuilds hooks_ clickAction
+                    ]
 
         RemoteData.Loading ->
             Util.largeLoader
@@ -74,123 +80,129 @@ view hooks hookBuilds now org repo clickAction =
                 ]
 
 
-viewHooksTable : Posix -> Org -> Repo -> HookBuilds -> Hooks -> (Org -> Repo -> BuildNumber -> msg) -> List (Html msg)
-viewHooksTable now org repo hookBuilds hooks clickAction =
-    let
-        rows =
-            List.map (\hook -> viewRow now org repo hook hookBuilds (lastHookID hooks == hook.id) clickAction) hooks
-    in
-    List.append [ viewHeaders ] rows
+{-| hooksTable : renders hooks table
+-}
+hooksTable : Posix -> Org -> Repo -> HookBuilds -> Hooks -> (Org -> Repo -> BuildNumber -> msg) -> List (Html msg)
+hooksTable now org repo hookBuilds hooks clickAction =
+    headers :: rows now org repo hookBuilds hooks clickAction
 
 
-viewHeaders : Html msg
-viewHeaders =
-    div [ class "hook-row", class "-headers" ]
-        [ div [ class "header", class "source-id" ]
-            [ text "source id"
-            ]
-        , div [ class "header" ]
-            [ text "status"
-            ]
-        , div [ class "header" ]
-            [ text "created"
-            ]
-        , div [ class "header" ]
-            [ text "host"
-            ]
-        , div [ class "header" ]
-            [ text "event"
-            ]
-        , div [ class "header" ]
-            [ text "branch"
-            ]
+{-| headers : renders hooks table headers
+-}
+headers : Html msg
+headers =
+    div [ class "headers" ]
+        [ div [ class "header", class "source-id" ] [ text "source id" ]
+        , div [ class "header" ] [ text "created" ]
+        , div [ class "header" ] [ text "status" ]
+        , div [ class "header" ] [ text "host" ]
+        , div [ class "header" ] [ text "event" ]
+        , div [ class "header" ] [ text "branch" ]
         ]
 
 
-viewRow : Posix -> Org -> Repo -> Hook -> HookBuilds -> Bool -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
-viewRow now org repo hook hookBuilds last clickAction =
-    details [ class "hook" ]
+{-| rows : renders hooks table rows
+-}
+rows : Posix -> Org -> Repo -> HookBuilds -> Hooks -> (Org -> Repo -> BuildNumber -> msg) -> List (Html msg)
+rows now org repo hookBuilds hooks clickAction =
+    List.map (\hook -> row now org repo hook hookBuilds clickAction) hooks
+
+
+{-| row : renders hooks table row wrapped in details element
+-}
+row : Posix -> Org -> Repo -> Hook -> HookBuilds -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+row now org repo hook hookBuilds clickAction =
+    details [ class "row" ]
         [ summary [ class "hook-summary", onClick (clickAction org repo <| String.fromInt hook.build_id) ]
-            [ viewHookPreview now hook
-            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-            ]
-        , viewHookSummary now ( org, repo, String.fromInt hook.build_id ) hookBuilds "No logs to display" last
+            [ preview now hook ]
+        , build now ( org, repo, String.fromInt hook.build_id ) hookBuilds
         ]
 
 
-viewHookPreview : Posix -> Hook -> Html msg
-viewHookPreview now hook =
-    div [ class "hook-row" ]
-        [ div [ class "detail", class "source-id" ]
-            [ text hook.source_id
-            ]
-        , div [ class "detail" ]
-            [ span [ class "status", hookStatusClass hook.status ]
-                [ text hook.status ]
-            ]
-        , div [ class "detail", class "created" ]
-            [ text <| Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created
-            ]
-        , div [ class "detail", class "host" ]
-            [ text hook.host
-            ]
-        , div [ class "detail", class "event" ]
-            [ text hook.event
-            ]
-        , div [ class "detail", class "branch" ]
-            [ text hook.branch
-            ]
+{-| chevron : renders the expansion chevron icon
+-}
+chevron : Html msg
+chevron =
+    FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "chevron" |> FeatherIcons.toHtml []
+
+
+{-| preview : renders the hook preview displayed as the clickable row
+-}
+preview : Posix -> Hook -> Html msg
+preview now hook =
+    div [ class "row", class "preview" ]
+        [ chevron
+        , cell hook.source_id (Just <| class "source-id") Nothing
+        , cell (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) (Just <| class "created") Nothing
+        , cell hook.status Nothing <| Just <| classList [ ( "status", True ), ( hookStatus hook.status, True ) ]
+        , cell hook.host (Just <| class "host") Nothing
+        , cell hook.event (Just <| class "event") Nothing
+        , cell hook.branch (Just <| class "branch") Nothing
         ]
 
 
-viewHookSummary : Posix -> BuildIdentifier -> HookBuilds -> String -> Bool -> Html msg
-viewHookSummary now buildIdentifier hookBuilds logs last =
-    div [ classList [ ( "summary", True ), ( "-last", last ) ] ]
-        [ code []
-            [ hookBuild now buildIdentifier hookBuilds
-            ]
-        , div [ class "logs" ] [ code [] [ text logs ] ]
-        ]
+{-| cell : takes text and maybe attributes and renders cell data for hooks table row
+-}
+cell : String -> Maybe (Html.Attribute msg) -> Maybe (Html.Attribute msg) -> Html msg
+cell txt outerAttrs innerAttrs =
+    div [ class "cell", Maybe.withDefault (class "") outerAttrs ]
+        [ span [ Maybe.withDefault (class "") innerAttrs ] [ text txt ] ]
 
 
-viewHookBuild : Posix -> BuildIdentifier -> HookBuilds -> Html msg
-viewHookBuild now ( org, repo, buildNumber ) hookBuilds =
-    case fromID ( org, repo, buildNumber ) hookBuilds of
+{-| build : renders the hook build details, part of the content displayed when clicking/expanding a hook row
+-}
+build : Posix -> BuildIdentifier -> HookBuilds -> Html msg
+build now buildIdentifier hookBuilds =
+    case fromID buildIdentifier hookBuilds of
         NotAsked ->
             text ""
 
         Failure _ ->
-            div [ class "error" ] [ text <| "error fetching build " ++ String.join "/" [ org, repo, buildNumber ] ]
+            div [ class "error" ] [ text <| "error fetching build " ++ buildPath buildIdentifier ]
 
         Loading ->
             div [ class "loading" ] [ Util.smallLoaderWithText "loading build..." ]
 
-        Success build ->
-            viewBuildInfo now ( org, repo, buildNumber ) build
+        Success b ->
+            info now buildIdentifier b
 
 
-viewBuildInfo : Posix -> BuildIdentifier -> Build -> Html msg
-viewBuildInfo now ( org, repo, buildNumber ) build =
-    div [ class "hook-build" ]
-        [ text "build:"
-        , a [ class "item", Routes.href <| Routes.Build org repo buildNumber ] [ text buildNumber ]
-        , span []
-            [ span []
-                [ text "status:"
+{-| info : renders the specific hook build information
+-}
+info : Posix -> BuildIdentifier -> Build -> Html msg
+info now buildIdentifier b =
+    let
+        ( org, repo, buildNumber ) =
+            buildIdentifier
+    in
+    div [ class "info", statusToClass b.status ]
+        [ div [ class "wrapper" ]
+            [ code [ class "element" ]
+                [ span [ class "-m-r" ] [ text "build:" ]
+                , a [ class "-m-r", Routes.href <| Routes.Build org repo buildNumber ]
+                    [ text <| buildPath buildIdentifier
+                    ]
                 ]
-            , span [ statusToClass build.status, class "item", class "status" ] [ text <| statusToString build.status ]
-            ]
-        , span []
-            [ span []
-                [ text "duration:"
+            , code [ class "element" ]
+                [ span [ class "-m-l", class "-m-r" ] [ text "status:" ]
+                , span [ statusToClass b.status, class "-m-r", class "status" ]
+                    [ text <| statusToString b.status
+                    ]
                 ]
-            , span [ statusToClass build.status, class "item", class "duration" ] [ text <| Util.formatRunTime now build.started build.finished ]
+            , code [ class "element" ]
+                [ span [ class "-m-l", class "-m-r" ] [ text "duration:" ]
+                , span [ statusToClass b.status, class "-m-r", class "duration" ]
+                    [ text <| Util.formatRunTime now b.started b.finished
+                    ]
+                ]
             ]
         ]
 
 
-viewNoHooks : Html msg
-viewNoHooks =
+{-| noHooks : renders the page shown when no hooks are returned by the server
+-}
+noHooks : Html msg
+noHooks =
     div []
         [ h1 []
             [ text "No Hooks Found"
@@ -202,26 +214,32 @@ viewNoHooks =
         ]
 
 
-hookStatusClass : String -> Html.Attribute msg
-hookStatusClass status =
-    case status of
-        "success" ->
-            class "-success"
 
-        _ ->
-            class "-failure"
+-- HELPERS
 
 
+{-| buildPath : takes build identifier and returns the string path to the build
+-}
+buildPath : BuildIdentifier -> String
+buildPath ( org, repo, buildNumber ) =
+    String.join "/" [ org, repo, buildNumber ]
+
+
+{-| fromID : takes build identifier and hook builds and returns the potential build
+-}
 fromID : BuildIdentifier -> HookBuilds -> WebData Build
 fromID buildIdentifier hookBuilds =
     Maybe.withDefault NotAsked <| Dict.get buildIdentifier hookBuilds
 
 
-lastHookID : Hooks -> Int
-lastHookID hooks =
-    case List.head <| List.reverse hooks of
-        Just h ->
-            h.id
+{-| hookStatus : takes hook status and maps it to a string, for strict typing.
+TODO: this is used while finalizing Hook Status logic.
+-}
+hookStatus : String -> String
+hookStatus status =
+    case status of
+        "success" ->
+            "success"
 
-        Nothing ->
-            -1
+        _ ->
+            "failure"

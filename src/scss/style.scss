@@ -1311,15 +1311,21 @@ button.-solid {
 .alert-container.-error {
   border: 1px solid var(--color-red);
 }
-.hooks {
+
+.hooks-wrapper {
   width: 100%;
   background: var(--color-darkcoal);
-  padding-bottom: 0.4em;
+  padding-bottom: 0.5em;
 }
-.hook {
-  background: var(--color-darkcoal);
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
+.hooks {
+  width: 100%;
+}
+
+.hooks .row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 0.3em 0;
   > .hook-summary {
     padding: 0;
     position: relative;
@@ -1338,133 +1344,130 @@ button.-solid {
       list-style-type: none !important;
     }
   }
-  .details-icon-expand {
-    position: absolute;
-    top: 0.35em;
-    left: 0.4em;
-
+  .chevron {
+    margin: 0 8px;
     transition: all 0.2s;
     transform-origin: 50% 49%;
 
     color: var(--color-primary);
   }
-  &[open] .details-icon-expand {
+  &[open] .chevron {
     transform: rotate(0.5turn);
   }
 }
 
-.hook-row {
+.hooks .row.preview {
   display: flex;
   flex-direction: row;
   align-items: center;
-  height: 2em;
-  width: 100%;
-  font-size: 16px;
-  font-weight: 300;
-  text-align: center;
-  padding: 0 1em;
-  padding-left: 2.2em;
 }
 
-.hook-row.-headers {
-  height: 3em;
+.hooks .headers {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+  padding-left: 36px; // match chevron size
+  margin-top: 0.3em;
   border-bottom: 1px solid var(--color-gray);
 }
 
-.hook-row .header {
-  flex: 1;
+.hooks .header {
   font-size: 18px;
-}
-
-.hook-row .detail {
   flex: 1;
-  font-size: 14px;
-  & a {
-    margin: 0 auto;
-  }
+  text-align: center;
 }
-
-.hook-row .detail .failure {
-  color: var(--color-red);
-  padding: 4px 8px;
-  margin: 0 auto;
-}
-
-.hook-row .detail.source-id{
-  background: var(--color-gray);
-  text-decoration: none;
-  color: var(--color-offwhite);
-}
-
-.hook-row .source-id {
+.hooks .source-id {
   min-width: 300px;
 }
 
-.hook .summary {
+.hooks .row .preview {
   font-size: 14px;
-  border-bottom: 1px solid var(--color-gray);
-  padding: 0.8em 1.8em;
+  margin: 0.4em 0;
 }
 
-.hook .summary .logs {
-}
-.hook .summary.-last {
-  border-bottom: 0;
-}
-.hook .summary .status {
-  margin-left: 0.4em;
+.hooks .row .cell {
+  flex: 1;
+  text-align: center;
 }
 
-.hook .status.-success {
+.hooks .row .cell.source-id {
+  background: var(--color-gray);
+  color: var(--color-offwhite);
+  text-align: center;
+}
+
+.preview .status.success {
   color: var(--color-green);
 }
 
-.hook .status.-failure {
+.preview .status.failure {
   color: var(--color-red);
 }
 
-.hook .summary .hook-build {
+.hooks .row .info {
+  font-size: 14px;
+  width: 100%;
+  border-bottom: 1px solid var(--color-gray);
+}
+
+.hooks .row .info {
   display: flex;
   flex-direction: row;
-  & .failure {
-    margin-left: 0.4em;
-    color: var(--color-red);
-  }
-}
-.hook .summary .hook-build {
-  height: 2em;
-  width: 100%;
+  display: inline-block;
+  border-left: 1px solid var(--color-gray);
+  padding: 0.4em 1em;
 }
 
-.hook .summary .hook-build .item {
+.hooks .row .info.-pending {
+  border-left-color: var(--color-gray);
+}
+
+.hooks .row .info.-running {
+  border-left-color: var(--color-yellow);
+}
+
+.hooks .row .info.-success {
+  border-left-color: var(--color-green);
+}
+
+.hooks .row .info.-failure {
+  border-left-color: var(--color-red);
+}
+
+.hooks .row .info .element span.-m-l,
+.hooks .row .info .element .-m-l {
   margin-left: 0.4em;
-  margin-right: 1.2em;
 }
 
-.hook .summary .hook-build .status.-pending {
-  // color: pink;
-  // font-size: 18em;
+.hooks .row .info .element span.-m-r,
+.hook-build .details .element .-m-r {
+  margin-right: 0.4em;
 }
 
-.hook .summary .hook-build .status.-running {
+.hooks .row .info .element .status.-pending {
+  color: var(--color-offwhite);
+}
+
+.hooks .row .info .element .status.-running {
   color: var(--color-yellow);
 }
 
-.hook .summary .hook-build .status.-success {
+.hooks .row .info .element .status.-success {
   color: var(--color-green);
 }
 
-.hook .summary .hook-build .status.-failure {
+.hooks .row .info .element .status.-failure {
   color: var(--color-red);
 }
-
 
 .repo-settings {
   display: flex;
   flex-direction: column;
 }
 
-.repo-settings .-row {
+.repo-settings .row {
   display: flex;
   flex-direction: row;
 }
