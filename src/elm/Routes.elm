@@ -29,7 +29,7 @@ type alias Repo =
 type Route
     = Overview
     | AddRepositories
-    | RepoHooks Org Repo
+    | Hooks Org Repo
     | Settings Org Repo
     | RepositoryBuilds Org Repo
     | Build Org Repo BuildNumber
@@ -51,7 +51,7 @@ routes =
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , parseAuth
-        , map RepoHooks (string </> string </> s "hooks")
+        , map Hooks (string </> string </> s "hooks")
         , map Settings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string)
         , map Build (string </> string </> string)
@@ -96,7 +96,7 @@ routeToUrl route =
         RepositoryBuilds org repo ->
             "/" ++ org ++ "/" ++ repo
 
-        RepoHooks org repo ->
+        Hooks org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks"
 
         Build org repo num ->

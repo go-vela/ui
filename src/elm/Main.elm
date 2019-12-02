@@ -670,7 +670,7 @@ refreshPage model _ =
                 , refreshLogs model org repo buildNumber model.steps
                 ]
 
-        Pages.RepoHooks org repo ->
+        Pages.Hooks org repo ->
             Cmd.batch
                 [ getHooks model org repo
                 , refreshHookBuilds model
@@ -847,7 +847,7 @@ viewContent model =
             , viewAddRepos model
             )
 
-        Pages.RepoHooks org repo ->
+        Pages.Hooks org repo ->
             ( "Repository Hooks"
             , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo GetHookBuild
             )
@@ -966,7 +966,7 @@ viewSingleRepo repo =
                 , class "-inverted"
                 , class "-view"
                 , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.RepoHooks repo.org repo.name
+                , Routes.href <| Routes.Hooks repo.org repo.name
                 ]
                 [ text "Hooks" ]
             , a
@@ -1264,7 +1264,7 @@ navButton model =
                     , class "-inverted"
                     , class "-hooks"
                     , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoHooks org repo
+                    , Routes.href <| Routes.Hooks org repo
                     ]
                     [ text "Hooks" ]
                 , a
@@ -1406,8 +1406,8 @@ setNewPage route model =
                 _ ->
                     ( { model | page = Pages.AddRepositories }, Cmd.none )
 
-        ( Routes.RepoHooks org repo, True ) ->
-            loadRepoHooksPage model org repo
+        ( Routes.Hooks org repo, True ) ->
+            loadHooksPage model org repo
 
         ( Routes.Settings org repo, True ) ->
             loadSettingsPage model org repo
@@ -1440,12 +1440,12 @@ setNewPage route model =
             )
 
 
-{-| loadRepoHooksPage : takes model org and repo and loads the hooks page.
+{-| loadHooksPage : takes model org and repo and loads the hooks page.
 -}
-loadRepoHooksPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
-loadRepoHooksPage model org repo =
+loadHooksPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadHooksPage model org repo =
     -- Fetch builds from Api
-    ( { model | page = Pages.RepoHooks org repo, hooks = Loading, hookBuilds = Dict.empty }
+    ( { model | page = Pages.Hooks org repo, hooks = Loading, hookBuilds = Dict.empty }
     , Cmd.batch
         [ getHooks model org repo
         ]
