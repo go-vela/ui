@@ -749,8 +749,9 @@ button.-solid {
   background: var(--color-green);
 }
 
-.build .status.-failure {
-  background: var(--color-red);
+.build .status.-failure,
+.build .status.-error {
+    background: var(--color-red);
 }
 
 .build .info {
@@ -898,7 +899,8 @@ button.-solid {
   width: 100%;
 }
 
-.build-animation.-not-running.-failure {
+.build-animation.-not-running.-failure,
+.build-animation.-not-running.-error {
   border-top: 2px solid var(--color-red);
   border-bottom: 2px solid var(--color-red);
 }
@@ -942,7 +944,8 @@ button.-solid {
   fill: var(--color-yellow);
 }
 
-.build-history .-build .-icon.-failure {
+.build-history .-build .-icon.-failure,
+.build-history .-build .-icon.-error {
   stroke: var(--color-red);
 }
 
@@ -968,11 +971,13 @@ button.-solid {
   stroke: var(--color-green);
 }
 
-.build-history .-build .-icon.-failure .-path-1 {
+.build-history .-build .-icon.-failure .-path-1,
+.build-history .-build .-icon.-error .-path-1 {
   fill: var(--color-bg-darker);
 }
 
-.build-history .-build .-icon.-failure .-path-2 {
+.build-history .-build .-icon.-failure .-path-2,
+.build-history .-build .-icon.-error .-path-2 {
   fill: var(--color-red);
 }
 
@@ -988,7 +993,8 @@ button.-solid {
   fill: var(--color-yellow);
 }
 
-.build-history .-build .-icon.-failure .-path-3 {
+.build-history .-build .-icon.-failure .-path-3,
+.build-history .-build .-icon.-error .-path-3 {
   stroke: var(--color-bg-darker);
   stroke-width: 2;
   stroke-linecap: square;
@@ -1143,7 +1149,8 @@ button.-solid {
   stroke: var(--color-green);
 }
 
-.-step-icon.-failure {
+.-step-icon.-failure,
+.-step-icon.-error {
   stroke: var(--color-red);
 }
 
@@ -1452,7 +1459,8 @@ button.-solid {
   border-left-color: var(--color-green);
 }
 
-.hooks .row .info.-failure {
+.hooks .row .info.-failure,
+.hooks .row .info.-error {
   border-left-color: var(--color-red);
 }
 
@@ -1470,19 +1478,20 @@ button.-solid {
   color: var(--color-red);
 }
 
-.hooks .row .info .element .build-status.-pending {
+.hooks .row .info .element .hook-build-status.-pending {
   color: var(--color-offwhite);
 }
 
-.hooks .row .info .element .build-status.-running {
+.hooks .row .info .element .hook-build-status.-running {
   color: var(--color-yellow);
 }
 
-.hooks .row .info .element .build-status.-success {
+.hooks .row .info .element .hook-build-status.-success {
   color: var(--color-green);
 }
 
-.hooks .row .info .element .build-status.-failure {
+.hooks .row .info .element .hook-build-status.-failure,
+.hooks .row .info .element .hook-build-status.-error {
   color: var(--color-red);
 }
 

@@ -153,7 +153,7 @@ info : Posix -> BuildIdentifier -> Hook -> HookBuilds -> Html msg
 info now buildIdentifier hook hookBuilds =
     case fromID buildIdentifier hookBuilds of
         NotAsked ->
-            error hook.error
+            hookFailure hook.error
 
         Failure _ ->
             div [ class "error" ] [ text <| "error fetching build " ++ buildPath buildIdentifier ]
@@ -183,7 +183,7 @@ build now buildIdentifier b =
                 ]
             , code [ class "element" ]
                 [ span [ class "-m-l", class "-m-r" ] [ text "status:" ]
-                , span [ class "build-status", statusToClass b.status, class "-m-r" ]
+                , span [ class "hook-build-status", statusToClass b.status, class "-m-r" ]
                     [ text <| statusToString b.status
                     ]
                 ]
@@ -197,10 +197,10 @@ build now buildIdentifier b =
         ]
 
 
-{-| error : renders hook error
+{-| hookFailure : renders hook failure error msg
 -}
-error : String -> Html msg
-error err =
+hookFailure : String -> Html msg
+hookFailure err =
     if not <| String.isEmpty err then
         div [ class "info", class "-failure" ]
             [ div [ class "wrapper" ]

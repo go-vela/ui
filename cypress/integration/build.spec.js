@@ -242,8 +242,8 @@ context("org/repo/build View Build Page", () => {
           .as("buildStatus");
       });
 
-      it("build should have failure style", () => {
-        cy.get("@buildStatus").should("have.class", "-failure");
+      it("build should have error style", () => {
+        cy.get("@buildStatus").should("have.class", "-error");
       });
 
       it("build error should show", () => {

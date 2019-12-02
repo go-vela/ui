@@ -99,7 +99,7 @@ context("Hooks", () => {
             });
             it("should be running", () => {
               cy.get("@build")
-                .get(".build-status")
+                .get(".hook-build-status")
                 .should("have.class", "-running");
             });
             it("should show duration", () => {
