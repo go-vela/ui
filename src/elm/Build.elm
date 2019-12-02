@@ -67,10 +67,10 @@ viewRepositoryBuilds model now org repo =
                 div [ class "builds", Util.testAttribute "builds" ] <| List.map (\build -> viewBuildItem now org repo build) builds
 
         RemoteData.Loading ->
-            largeLoader
+            Util.largeLoader
 
         RemoteData.NotAsked ->
-            largeLoader
+            Util.largeLoader
 
         RemoteData.Failure _ ->
             div []
@@ -180,7 +180,7 @@ viewFullBuild now org repo build steps logs =
                     viewBuildItem now org repo bld
 
                 _ ->
-                    largeLoader
+                    Util.largeLoader
 
         buildSteps =
             case steps of
@@ -196,7 +196,7 @@ viewFullBuild now org repo build steps logs =
                         text ""
 
                     else
-                        smallLoader
+                        Util.smallLoader
 
         markdown =
             [ buildPreview, buildSteps ]
@@ -335,10 +335,10 @@ viewBuildHistory now timezone page org repo builds =
                     text ""
 
             RemoteData.Loading ->
-                div [ class "build-history" ] [ smallLoader ]
+                div [ class "build-history" ] [ Util.smallLoader ]
 
             RemoteData.NotAsked ->
-                div [ class "build-history" ] [ smallLoader ]
+                div [ class "build-history" ] [ Util.smallLoader ]
 
             _ ->
                 text ""
@@ -580,17 +580,3 @@ logNotEmpty log =
 getStepLog : Step -> Logs -> Maybe Log
 getStepLog step logs =
     List.head (List.filter (\log -> log.step_id == step.id) logs)
-
-
-{-| smallLoader : renders a small loading spinner for better transitioning UX
--}
-smallLoader : Html msg
-smallLoader =
-    div [ class "small-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
-
-
-{-| largeLoader : renders a small loading spinner for better transitioning UX
--}
-largeLoader : Html msg
-largeLoader =
-    div [ class "large-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
