@@ -110,7 +110,7 @@ rows now org repo hookBuilds hooks clickAction =
 -}
 row : Posix -> Org -> Repo -> Hook -> HookBuilds -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
 row now org repo hook hookBuilds clickAction =
-    details [ class "row" ]
+    details [ class "row", Util.testAttribute "hook" ]
         [ summary [ class "hook-summary", onClick (clickAction org repo <| String.fromInt hook.build_id) ]
             [ preview now hook ]
         , info now ( org, repo, String.fromInt hook.build_id ) hook hookBuilds
@@ -177,13 +177,13 @@ build now buildIdentifier b =
         [ div [ class "wrapper" ]
             [ code [ class "element" ]
                 [ span [ class "-m-r" ] [ text "build:" ]
-                , a [ class "-m-r", Routes.href <| Routes.Build org repo buildNumber ]
+                , a [ Util.testAttribute "build-link", class "-m-r", Routes.href <| Routes.Build org repo buildNumber ]
                     [ text <| buildPath buildIdentifier
                     ]
                 ]
             , code [ class "element" ]
                 [ span [ class "-m-l", class "-m-r" ] [ text "status:" ]
-                , span [ statusToClass b.status, class "-m-r", class "status" ]
+                , span [ class "build-status", statusToClass b.status, class "-m-r" ]
                     [ text <| statusToString b.status
                     ]
                 ]

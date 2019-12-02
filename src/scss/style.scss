@@ -1470,19 +1470,19 @@ button.-solid {
   color: var(--color-red);
 }
 
-.hooks .row .info .element .status.-pending {
+.hooks .row .info .element .build-status.-pending {
   color: var(--color-offwhite);
 }
 
-.hooks .row .info .element .status.-running {
+.hooks .row .info .element .build-status.-running {
   color: var(--color-yellow);
 }
 
-.hooks .row .info .element .status.-success {
+.hooks .row .info .element .build-status.-success {
   color: var(--color-green);
 }
 
-.hooks .row .info .element .status.-failure {
+.hooks .row .info .element .build-status.-failure {
   color: var(--color-red);
 }
 

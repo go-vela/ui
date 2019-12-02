@@ -1,5 +1,18 @@
 [
   {
+    "id": 5,
+    "repo_id": 1,
+    "build_id": 3,
+    "source_id": "7bd477e4-4415-11e9-9359-0d41fdf9567e",
+    "created": 1574699277,
+    "host": "github.com",
+    "event": "push",
+    "branch": "master",
+    "error": "",
+    "status": "success",
+    "link": "https://github.com/github/octocat/settings/hooks"
+  },
+  {
     "id": 4,
     "repo_id": 1,
     "build_id": 2,
@@ -45,9 +58,9 @@
     "source_id": "7bd477e4-4415-11e9-9359-0d41fdf9567e",
     "created": 1574444067,
     "host": "github.com",
-    "event": "push",
+    "event": "tag",
     "branch": "master",
-    "error": "encountered error fetching secrets",
+    "error": "unable to process webhook: github/octocat does not have tag events enabled",
     "status": "failure",
     "link": "https://github.com/github/octocat/settings/hooks"
   }
