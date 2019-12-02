@@ -557,7 +557,7 @@ update msg model =
                     ( { model | hooks = RemoteData.succeed hooks }, Cmd.none )
 
                 Err error ->
-                    ( model, addError error )
+                    ( { model | hooks = toFailure error }, addError error )
 
         HookBuildResponse org repo buildNumber response ->
             case response of

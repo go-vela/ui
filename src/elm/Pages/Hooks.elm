@@ -70,7 +70,7 @@ view hooks hookBuilds now org repo clickAction =
             Util.largeLoader
 
         RemoteData.Failure _ ->
-            div []
+            div [ Util.testAttribute "hooks-error" ]
                 [ p []
                     [ text <|
                         "There was an error fetching hooks for this repository, please try again later!"

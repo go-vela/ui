@@ -4,6 +4,32 @@
  */
 
 context("Hooks", () => {
+  context("server returning hooks error", () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route({
+        method: "GET",
+        url: "*api/v1/hooks/github/octocat*",
+        status: 500,
+        response: "server error"
+      });
+      cy.login("/github/octocat/hooks");
+    });
+
+    it("hooks table should not show", () => {
+      cy.get("[data-test=hooks]").should("not.be.visible");
+    });
+    it("error should show", () => {
+      cy.get("[data-test=alerts]")
+        .should("exist")
+        .contains("Error");
+    });
+    it("error banner should show", () => {
+      cy.get("[data-test=hooks-error]")
+        .should("exist")
+        .contains("sorry");
+    });
+  });
   context("server returning 5 hooks", () => {
     beforeEach(() => {
       cy.server();
