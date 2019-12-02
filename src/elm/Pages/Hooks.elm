@@ -251,7 +251,6 @@ fromID buildIdentifier hookBuilds =
 
 
 {-| hookStatus : takes hook status and maps it to a string, for strict typing.
-TODO: this is used while finalizing Hook Status logic.
 -}
 hookStatus : String -> String
 hookStatus status =

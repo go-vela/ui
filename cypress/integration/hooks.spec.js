@@ -131,7 +131,9 @@ context("Hooks", () => {
               });
             });
             it("should show error", () => {
-              cy.get("@error").contains("github/octocat does not have tag events enabled");
+              cy.get("@error").contains(
+                "github/octocat does not have tag events enabled"
+              );
             });
           });
         });
