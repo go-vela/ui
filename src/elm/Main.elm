@@ -536,29 +536,7 @@ update msg model =
         GetHookBuild org repo buildNumber ->
             let
                 ( hookBuilds, action ) =
-                    if buildNumber == "0" then
-                        ( model.hookBuilds
-                        , Cmd.none
-                        )
-
-                    else
-                        let
-                            buildStatus =
-                                case Dict.get ( org, repo, buildNumber ) model.hookBuilds of
-                                    Just webdataBuild ->
-                                        case webdataBuild of
-                                            Success build ->
-                                                Just <| RemoteData.succeed build
-
-                                            _ ->
-                                                Just Loading
-
-                                    _ ->
-                                        Just Loading
-                        in
-                        ( Dict.update ( org, repo, buildNumber ) (\_ -> buildStatus) model.hookBuilds
-                        , getHookBuild model org repo buildNumber
-                        )
+                    fetchHookBuild model org repo buildNumber
             in
             ( { model | hookBuilds = hookBuilds }
             , action
@@ -584,11 +562,7 @@ update msg model =
         HookBuildResponse org repo buildNumber response ->
             case response of
                 Ok ( _, build ) ->
-                    let
-                        hookBuilds =
-                            Dict.update ( org, repo, buildNumber ) (\_ -> Just <| RemoteData.succeed build) model.hookBuilds
-                    in
-                    ( { model | hookBuilds = hookBuilds }, Cmd.none )
+                    ( { model | hookBuilds = receiveHookBuild org repo buildNumber build model.hookBuilds }, Cmd.none )
 
                 Err error ->
                     ( model, addError error )
@@ -1744,6 +1718,42 @@ searchFilterLocal org filters =
 shouldSearch : SearchFilter -> Bool
 shouldSearch filter =
     String.length filter > 2
+
+
+{-| fetchHookBuild : takes model org repo and build number and fetches build information from the api
+-}
+fetchHookBuild : Model -> Org -> Repo -> BuildNumber -> ( HookBuilds, Cmd Msg )
+fetchHookBuild model org repo buildNumber =
+    if buildNumber == "0" then
+        ( model.hookBuilds
+        , Cmd.none
+        )
+
+    else
+        let
+            buildStatus =
+                case Dict.get ( org, repo, buildNumber ) model.hookBuilds of
+                    Just webdataBuild ->
+                        case webdataBuild of
+                            Success build ->
+                                Just <| RemoteData.succeed build
+
+                            _ ->
+                                Just Loading
+
+                    _ ->
+                        Just Loading
+        in
+        ( Dict.update ( org, repo, buildNumber ) (\_ -> buildStatus) model.hookBuilds
+        , getHookBuild model org repo buildNumber
+        )
+
+
+{-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
+-}
+receiveHookBuild : Org -> Repo -> BuildNumber -> Build -> HookBuilds -> HookBuilds
+receiveHookBuild org repo buildNumber build hookBuilds =
+    Dict.update ( org, repo, buildNumber ) (\_ -> Just <| RemoteData.succeed build) hookBuilds
 
 
 

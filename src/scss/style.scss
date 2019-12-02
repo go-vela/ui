@@ -668,6 +668,7 @@ button.-solid {
 
 .small-loader .-label {
   margin-left: 0.8em;
+
   font-size: 14px;
   font-weight: 300;
 }
@@ -1323,8 +1324,9 @@ button.-solid {
 
 .hooks .loading {
   display: flex;
-  margin-left: 0.4em;
+
   margin-top: 0.5em;
+  margin-left: 0.4em;
 }
 
 .hooks .row {
@@ -1405,6 +1407,8 @@ button.-solid {
   flex: 1;
 
   text-align: center;
+
+  font-weight: 300;
 }
 
 .hooks .row .cell.source-id {
@@ -1423,21 +1427,17 @@ button.-solid {
 }
 
 .hooks .row .info {
-  width: 100%;
-
-  border-bottom: 1px solid var(--color-gray);
-
-  font-size: 14px;
-}
-
-.hooks .row .info {
   display: flex;
   display: inline-block;
   flex-direction: row;
 
+  width: 100%;
   padding: 0.4em 1em;
 
+  border-bottom: 1px solid var(--color-gray);
   border-left: 1px solid var(--color-gray);
+
+  font-size: 14px;
 }
 
 .hooks .row .info.-pending {
@@ -1464,6 +1464,10 @@ button.-solid {
 .hooks .row .info .element span.-m-r,
 .hook-build .details .element .-m-r {
   margin-right: 0.4em;
+}
+
+.hooks .row .info .element span.-error {
+  color: var(--color-red);
 }
 
 .hooks .row .info .element .status.-pending {

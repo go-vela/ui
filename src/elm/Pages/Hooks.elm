@@ -113,7 +113,7 @@ row now org repo hook hookBuilds clickAction =
     details [ class "row" ]
         [ summary [ class "hook-summary", onClick (clickAction org repo <| String.fromInt hook.build_id) ]
             [ preview now hook ]
-        , build now ( org, repo, String.fromInt hook.build_id ) hookBuilds
+        , info now ( org, repo, String.fromInt hook.build_id ) hook hookBuilds
         ]
 
 
@@ -147,13 +147,13 @@ cell txt outerAttrs innerAttrs =
         [ span [ Maybe.withDefault (class "") innerAttrs ] [ text txt ] ]
 
 
-{-| build : renders the hook build details, part of the content displayed when clicking/expanding a hook row
+{-| info : renders the table row details when clicking/expanding a row
 -}
-build : Posix -> BuildIdentifier -> HookBuilds -> Html msg
-build now buildIdentifier hookBuilds =
+info : Posix -> BuildIdentifier -> Hook -> HookBuilds -> Html msg
+info now buildIdentifier hook hookBuilds =
     case fromID buildIdentifier hookBuilds of
         NotAsked ->
-            text ""
+            error hook.error
 
         Failure _ ->
             div [ class "error" ] [ text <| "error fetching build " ++ buildPath buildIdentifier ]
@@ -162,13 +162,13 @@ build now buildIdentifier hookBuilds =
             div [ class "loading" ] [ Util.smallLoaderWithText "loading build..." ]
 
         Success b ->
-            info now buildIdentifier b
+            build now buildIdentifier b
 
 
-{-| info : renders the specific hook build information
+{-| build : renders the specific hook build information
 -}
-info : Posix -> BuildIdentifier -> Build -> Html msg
-info now buildIdentifier b =
+build : Posix -> BuildIdentifier -> Build -> Html msg
+build now buildIdentifier b =
     let
         ( org, repo, buildNumber ) =
             buildIdentifier
@@ -195,6 +195,26 @@ info now buildIdentifier b =
                 ]
             ]
         ]
+
+
+{-| error : renders hook error
+-}
+error : String -> Html msg
+error err =
+    if not <| String.isEmpty err then
+        div [ class "info", class "-failure" ]
+            [ div [ class "wrapper" ]
+                [ code [ class "element" ]
+                    [ span [ class "-m-r" ] [ text "error:" ]
+                    , span [ class "-error" ]
+                        [ text err
+                        ]
+                    ]
+                ]
+            ]
+
+    else
+        text ""
 
 
 {-| noHooks : renders the page shown when no hooks are returned by the server
