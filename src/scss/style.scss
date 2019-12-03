@@ -1461,7 +1461,6 @@ button.-solid {
 }
 
 .preview .status.failure {
-  color: var(--color-red);
   color: var(--color-scarlet);
 }
 
@@ -1493,9 +1492,7 @@ button.-solid {
 
 .hooks .row .info.-failure,
 .hooks .row .info.-error {
-  // border-left-color: var(--color-red);
   border-left-color: var(--color-scarlet);
-
 }
 
 .hooks .row .info .element span.-m-l,
@@ -1509,7 +1506,6 @@ button.-solid {
 }
 
 .hooks .row .info .element .error-label {
-  // color: var(--color-red);
   color: var(--color-scarlet);
 
 }
@@ -1528,7 +1524,6 @@ button.-solid {
 
 .hooks .row .info .element .hook-build-status.-failure,
 .hooks .row .info .element .hook-build-status.-error {
-  // color: var(--color-red);
   color: var(--color-scarlet);
 }
 
