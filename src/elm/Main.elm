@@ -10,7 +10,11 @@ import Alerts exposing (Alert)
 import Api
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
-import Build exposing (viewFullBuild, viewRepositoryBuilds)
+import Build
+    exposing
+        ( viewFullBuild
+        , viewRepositoryBuilds
+        )
 import Crumbs
 import Dict exposing (Dict)
 import Errors exposing (detailedErrorToString)
@@ -55,12 +59,21 @@ import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
 import List.Extra exposing (setIf)
 import Pages exposing (Page(..))
-import Pages.RepoSettings
+import Pages.Hooks
+import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
-import Time exposing (utc)
+import Time
+    exposing
+        ( Posix
+        , Zone
+        , every
+        , here
+        , millisToPosix
+        , utc
+        )
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Url.Builder as UB exposing (QueryParameter)
@@ -74,6 +87,8 @@ import Vela
         , Builds
         , BuildsModel
         , Field
+        , HookBuilds
+        , Hooks
         , Log
         , Logs
         , Org
@@ -123,6 +138,7 @@ type alias Model =
     , currentRepos : WebData Repositories
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
+    , hooks : WebData Hooks
     , builds : BuildsModel
     , build : WebData Build
     , steps : WebData Steps
@@ -133,12 +149,13 @@ type alias Model =
     , velaFeedbackURL : String
     , velaDocsURL : String
     , navigationKey : Navigation.Key
-    , zone : Time.Zone
-    , time : Time.Posix
+    , zone : Zone
+    , time : Posix
     , sourceSearchFilters : RepoSearchFilters
     , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
+    , hookBuilds : HookBuilds
     }
 
 
@@ -173,6 +190,7 @@ init flags url navKey =
             , currentRepos = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
+            , hooks = NotAsked
             , builds = defaultBuilds
             , build = NotAsked
             , steps = NotAsked
@@ -192,19 +210,20 @@ init flags url navKey =
             , velaDocsURL = flags.velaDocsURL
             , navigationKey = navKey
             , toasties = Alerting.initialState
-            , zone = Time.utc
-            , time = Time.millisToPosix 0
+            , zone = utc
+            , time = millisToPosix 0
             , sourceSearchFilters = Dict.empty
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
             , entryURL = url
+            , hookBuilds = Dict.empty
             }
 
         ( newModel, newPage ) =
             setNewPage (Routes.match url) model
 
         setTimeZone =
-            Task.perform AdjustTimeZone Time.here
+            Task.perform AdjustTimeZone here
 
         setTime =
             Task.perform AdjustTime Time.now
@@ -229,7 +248,7 @@ type Msg
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
     | ChangeRepoTimeout String
-    | RefreshRepoSettings Org Repo
+    | RefreshSettings Org Repo
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -240,12 +259,14 @@ type Msg
     | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
-    | GetBuilds Org Repo
+    | GetHookBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
+    | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
+    | HookBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | RepoAddedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
@@ -260,9 +281,9 @@ type Msg
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
       -- Time
-    | AdjustTimeZone Time.Zone
-    | AdjustTime Time.Posix
-    | Tick Interval Time.Posix
+    | AdjustTimeZone Zone
+    | AdjustTime Posix
+    | Tick Interval Posix
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -353,7 +374,7 @@ update msg model =
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
-                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
+                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (Pages.Settings.alert field updatedRepo) Nothing)
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
@@ -512,13 +533,13 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
             )
 
-        GetBuilds org repo ->
+        GetHookBuild org repo buildNumber ->
             let
-                currentBuilds =
-                    model.builds
+                ( hookBuilds, action ) =
+                    fetchHookBuild model org repo buildNumber
             in
-            ( { model | builds = { currentBuilds | org = org, repo = repo, builds = Loading } }
-            , getBuilds model org repo
+            ( { model | hookBuilds = hookBuilds }
+            , action
             )
 
         RestartBuild org repo buildNumber ->
@@ -529,6 +550,22 @@ update msg model =
         Error error ->
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Error "Error" error)
+
+        HooksResponse _ _ response ->
+            case response of
+                Ok ( _, hooks ) ->
+                    ( { model | hooks = RemoteData.succeed hooks }, Cmd.none )
+
+                Err error ->
+                    ( { model | hooks = toFailure error }, addError error )
+
+        HookBuildResponse org repo buildNumber response ->
+            case response of
+                Ok ( _, build ) ->
+                    ( { model | hookBuilds = receiveHookBuild org repo buildNumber build model.hookBuilds }, Cmd.none )
+
+                Err error ->
+                    ( model, addError error )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -560,7 +597,7 @@ update msg model =
             in
             ( { model | inTimeout = newTimeout }, Cmd.none )
 
-        RefreshRepoSettings org repo ->
+        RefreshSettings org repo ->
             ( { model | inTimeout = Nothing, repo = Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
 
         AdjustTimeZone newZone ->
@@ -593,8 +630,8 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Interop.onSessionChange decodeOnSessionChange
-        , Time.every Util.oneSecondMillis <| Tick OneSecond
-        , Time.every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
+        , every Util.oneSecondMillis <| Tick OneSecond
+        , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
         ]
 
 
@@ -631,6 +668,12 @@ refreshPage model _ =
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber
                 , refreshLogs model org repo buildNumber model.steps
+                ]
+
+        Pages.Hooks org repo ->
+            Cmd.batch
+                [ getHooks model org repo
+                , refreshHookBuilds model
                 ]
 
         _ ->
@@ -690,6 +733,23 @@ refreshBuildSteps model org repo buildNumber =
 
     else
         Cmd.none
+
+
+{-| refreshHookBuilds : takes model org and repo and refreshes the hook builds being viewed by the user
+-}
+refreshHookBuilds : Model -> Cmd Msg
+refreshHookBuilds model =
+    let
+        builds =
+            Dict.keys model.hookBuilds
+
+        buildsToRefresh =
+            List.filter (\build -> shouldRefresh (Maybe.withDefault NotAsked <| Dict.get build model.hookBuilds)) builds
+
+        refreshCmds =
+            List.map (\( org, repo, buildNumber ) -> getHookBuild model org repo buildNumber) buildsToRefresh
+    in
+    Cmd.batch refreshCmds
 
 
 {-| shouldRefresh : takes build and returns true if a refresh is required
@@ -787,9 +847,14 @@ viewContent model =
             , viewAddRepos model
             )
 
-        Pages.RepoSettings _ _ ->
+        Pages.Hooks org repo ->
+            ( "Repository Hooks"
+            , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo GetHookBuild
+            )
+
+        Pages.Settings _ _ ->
             ( "Repository Settings"
-            , Pages.RepoSettings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout
+            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout
             )
 
         Pages.RepositoryBuilds org repo ->
@@ -892,10 +957,18 @@ viewSingleRepo repo =
                 [ class "-btn"
                 , class "-inverted"
                 , class "-view"
-                , Routes.href <| Routes.RepoSettings repo.org repo.name
+                , Routes.href <| Routes.Settings repo.org repo.name
                 ]
                 [ text "Settings" ]
             , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| RemoveRepo repo ] [ text "Remove" ]
+            , a
+                [ class "-btn"
+                , class "-inverted"
+                , class "-view"
+                , Util.testAttribute "repo-hooks"
+                , Routes.href <| Routes.Hooks repo.org repo.name
+                ]
+                [ text "Hooks" ]
             , a
                 [ class "-btn"
                 , class "-solid"
@@ -1185,21 +1258,31 @@ navButton model =
                 ]
 
         Pages.RepositoryBuilds org repo ->
-            a
-                [ class "-btn"
-                , class "-inverted"
-                , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                , Routes.href <| Routes.RepoSettings org repo
+            div [ class "nav-buttons" ]
+                [ a
+                    [ class "-btn"
+                    , class "-inverted"
+                    , class "-hooks"
+                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.Hooks org repo
+                    ]
+                    [ text "Hooks" ]
+                , a
+                    [ class "-btn"
+                    , class "-inverted"
+                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.Settings org repo
+                    ]
+                    [ text "Repo Settings" ]
                 ]
-                [ text "Repo Settings" ]
 
-        Pages.RepoSettings org repo ->
+        Pages.Settings org repo ->
             button
                 [ classList
                     [ ( "btn-refresh", True )
                     , ( "-inverted", True )
                     ]
-                , onClick <| RefreshRepoSettings org repo
+                , onClick <| RefreshSettings org repo
                 , Util.testAttribute "refresh-repo-settings"
                 ]
                 [ text "Refresh Settings"
@@ -1323,8 +1406,11 @@ setNewPage route model =
                 _ ->
                     ( { model | page = Pages.AddRepositories }, Cmd.none )
 
-        ( Routes.RepoSettings org repo, True ) ->
-            loadRepoSettingsPage model org repo
+        ( Routes.Hooks org repo, True ) ->
+            loadHooksPage model org repo
+
+        ( Routes.Settings org repo, True ) ->
+            loadSettingsPage model org repo
 
         ( Routes.RepositoryBuilds org repo, True ) ->
             loadRepoBuildsPage model org repo
@@ -1354,12 +1440,24 @@ setNewPage route model =
             )
 
 
-{-| loadRepoSettingsPage : takes model org and repo and loads the page for updating repo configurations
+{-| loadHooksPage : takes model org and repo and loads the hooks page.
 -}
-loadRepoSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
-loadRepoSettingsPage model org repo =
+loadHooksPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadHooksPage model org repo =
+    -- Fetch builds from Api
+    ( { model | page = Pages.Hooks org repo, hooks = Loading, hookBuilds = Dict.empty }
+    , Cmd.batch
+        [ getHooks model org repo
+        ]
+    )
+
+
+{-| loadSettingsPage : takes model org and repo and loads the page for updating repo configurations
+-}
+loadSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadSettingsPage model org repo =
     -- Fetch repo from Api
-    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }
+    ( { model | page = Pages.Settings org repo, repo = Loading, inTimeout = Nothing }
     , getRepo model org repo
     )
 
@@ -1622,8 +1720,54 @@ shouldSearch filter =
     String.length filter > 2
 
 
+{-| fetchHookBuild : takes model org repo and build number and fetches build information from the api
+-}
+fetchHookBuild : Model -> Org -> Repo -> BuildNumber -> ( HookBuilds, Cmd Msg )
+fetchHookBuild model org repo buildNumber =
+    if buildNumber == "0" then
+        ( model.hookBuilds
+        , Cmd.none
+        )
+
+    else
+        let
+            buildStatus =
+                case Dict.get ( org, repo, buildNumber ) model.hookBuilds of
+                    Just webdataBuild ->
+                        case webdataBuild of
+                            Success build ->
+                                Just <| RemoteData.succeed build
+
+                            _ ->
+                                Just Loading
+
+                    _ ->
+                        Just Loading
+        in
+        ( Dict.update ( org, repo, buildNumber ) (\_ -> buildStatus) model.hookBuilds
+        , getHookBuild model org repo buildNumber
+        )
+
+
+{-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
+-}
+receiveHookBuild : Org -> Repo -> BuildNumber -> Build -> HookBuilds -> HookBuilds
+receiveHookBuild org repo buildNumber build hookBuilds =
+    Dict.update ( org, repo, buildNumber ) (\_ -> Just <| RemoteData.succeed build) hookBuilds
+
+
 
 -- API HELPERS
+
+
+getHooks : Model -> Org -> Repo -> Cmd Msg
+getHooks model org repo =
+    Api.tryAll (HooksResponse org repo) <| Api.getAllHooks model org repo
+
+
+getHookBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+getHookBuild model org repo buildNumber =
+    Api.try (HookBuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
 
 
 getRepo : Model -> Org -> Repo -> Cmd Msg

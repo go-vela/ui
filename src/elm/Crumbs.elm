@@ -84,6 +84,9 @@ toPath page =
         notFoundPage =
             ( "Not Found", Nothing )
 
+        hooks =
+            ( "Hooks", Nothing )
+
         repoSettings =
             ( "Settings", Nothing )
 
@@ -95,7 +98,17 @@ toPath page =
                 Pages.AddRepositories ->
                     [ overviewPage, accountPage, addRepositoriesPage ]
 
-                Pages.RepoSettings org repo ->
+                Pages.Hooks org repo ->
+                    let
+                        organizationPage =
+                            ( org, Nothing )
+
+                        repoBuilds =
+                            ( repo, Just <| Pages.RepositoryBuilds org repo )
+                    in
+                    [ overviewPage, organizationPage, repoBuilds, hooks ]
+
+                Pages.Settings org repo ->
                     let
                         organizationPage =
                             ( org, Nothing )

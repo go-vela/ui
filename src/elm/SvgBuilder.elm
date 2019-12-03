@@ -17,6 +17,7 @@ module SvgBuilder exposing
     , buildStatusToIcon
     , buildSuccess
     , checkbox
+    , hookStatusToIcon
     , radio
     , recentBuildStatusToIcon
     , stepFailure
@@ -29,6 +30,7 @@ module SvgBuilder exposing
     )
 
 import Html exposing (Html)
+import Html.Attributes exposing (attribute)
 import Svg exposing (Svg, circle, svg)
 import Svg.Attributes
     exposing
@@ -535,7 +537,7 @@ recentBuildStatusToIcon status index =
             buildHistoryFailure index
 
 
-{-| stepStatusToIcon : takes build status string and returns Icon from SvgBuilder
+{-| stepStatusToIcon : takes build status and returns Icon from SvgBuilder
 -}
 stepStatusToIcon : Status -> Icon
 stepStatusToIcon status =
@@ -554,3 +556,47 @@ stepStatusToIcon status =
 
         Vela.Error ->
             stepFailure
+
+
+{-| hookStatusToIcon : takes hook status string and returns Icon from SvgBuilder
+-}
+hookStatusToIcon : String -> Html msg
+hookStatusToIcon status =
+    case status of
+        "success" ->
+            hookSuccess
+
+        _ ->
+            hookFailure
+
+
+{-| hookSuccess: produces the svg for the hook status success
+-}
+hookSuccess : Html msg
+hookSuccess =
+    Icon
+        { attrs = IconAttributes 20 "" 2 (Just "hook-status -success") "0 0 44 44"
+        , src =
+            [ Svg.g []
+                [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
+                , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+                ]
+            ]
+        }
+        |> toHtml [ attribute "aria-hidden" "true" ] []
+
+
+{-| hookFailure: produces the svg for the hook status failure
+-}
+hookFailure : Html msg
+hookFailure =
+    Icon
+        { attrs = IconAttributes 20 "" 2 (Just "hook-status -failure") "0 0 44 44"
+        , src =
+            [ Svg.g []
+                [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+                , Svg.path [ d "M15 15l14 14M29 15L15 29" ] []
+                ]
+            ]
+        }
+        |> toHtml [ attribute "aria-hidden" "true" ] []

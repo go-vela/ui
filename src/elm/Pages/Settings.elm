@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.RepoSettings exposing
+module Pages.Settings exposing
     ( access
     , alert
     , checkbox
@@ -85,8 +85,8 @@ view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange =
     case repo of
         Success repo_ ->
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
-                [ div [ class "-row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
-                , div [ class "-row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange ]
+                [ div [ class "row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
+                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange ]
                 ]
 
         Loading ->
