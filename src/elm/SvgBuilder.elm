@@ -575,7 +575,7 @@ hookStatusToIcon status =
 hookSuccess : Html msg
 hookSuccess =
     Icon
-        { attrs = IconAttributes 20 "" 2 (Just "hook-success") "0 0 44 44"
+        { attrs = IconAttributes 20 "" 2 (Just "hook-status -success") "0 0 44 44"
         , src =
             [ Svg.g []
                 [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
@@ -591,7 +591,7 @@ hookSuccess =
 hookFailure : Html msg
 hookFailure =
     Icon
-        { attrs = IconAttributes 20 "" 2 (Just "hook-failure") "0 0 44 44"
+        { attrs = IconAttributes 20 "" 2 (Just "hook-status -failure") "0 0 44 44"
         , src =
             [ Svg.g []
                 [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []

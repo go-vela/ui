@@ -90,14 +90,11 @@ context("Hooks", () => {
       context("success", () => {
         beforeEach(() => {
           cy.get("@firstHook").within(() => {
-            cy.get(".status").as("success");
+            cy.get(".hook-status").as("success");
           });
         });
-        it("should contain success", () => {
-          cy.get("@success").contains("success");
-        });
         it("should have success styles", () => {
-          cy.get("@success").should("have.class", "success");
+          cy.get("@success").should("have.class", "-success");
         });
         context("expanded", () => {
           beforeEach(() => {
@@ -137,14 +134,11 @@ context("Hooks", () => {
       context("failure", () => {
         beforeEach(() => {
           cy.get("@lastHook").within(() => {
-            cy.get(".status").as("failure");
+            cy.get(".hook-status").as("failure");
           });
         });
-        it("should contain failure", () => {
-          cy.get("@failure").contains("failure");
-        });
         it("should have failure styles", () => {
-          cy.get("@failure").should("have.class", "failure");
+          cy.get("@failure").should("have.class", "-failure");
         });
         context("expanded", () => {
           beforeEach(() => {
