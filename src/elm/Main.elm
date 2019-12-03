@@ -793,12 +793,12 @@ viewContent model =
             )
 
         Pages.RepositoryBuilds org repo ->
-            ( "Repository Builds"
+            ( String.join "/" [ org, repo ] ++ " builds"
             , viewRepositoryBuilds model.builds.builds model.time org repo
             )
 
-        Pages.Build org repo _ ->
-            ( "Build"
+        Pages.Build org repo num ->
+            ( "Build #" ++ num ++ " - " ++ String.join "/" [ org, repo ]
             , viewFullBuild model.time org repo model.build model.steps model.logs
             )
 
