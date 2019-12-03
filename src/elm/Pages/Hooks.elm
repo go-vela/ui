@@ -24,13 +24,14 @@ import Html
         )
 import Html.Attributes
     exposing
-        ( class
-        , classList
+        ( attribute
+        , class
         , href
         )
 import Html.Events exposing (onClick)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
+import SvgBuilder exposing (hookStatusToIcon)
 import Time exposing (Posix)
 import Util
 import Vela
@@ -90,9 +91,9 @@ hooksTable now org repo hookBuilds hooks clickAction =
 headers : Html msg
 headers =
     div [ class "headers" ]
-        [ div [ class "header", class "source-id" ] [ text "source id" ]
+        [ div [ class "first-cell" ] [ text "" ]
+        , div [ class "header", class "source-id" ] [ text "source id" ]
         , div [ class "header" ] [ text "created" ]
-        , div [ class "header" ] [ text "status" ]
         , div [ class "header" ] [ text "host" ]
         , div [ class "header" ] [ text "event" ]
         , div [ class "header" ] [ text "branch" ]
@@ -117,11 +118,14 @@ row now org repo hook hookBuilds clickAction =
         ]
 
 
-{-| chevron : renders the expansion chevron icon
+{-| firstCell : renders the expansion chevron icon
 -}
-chevron : Html msg
-chevron =
-    FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "chevron" |> FeatherIcons.toHtml []
+firstCell : String -> Html msg
+firstCell status =
+    div [ class "first-cell" ]
+        [ FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "chevron" |> FeatherIcons.toHtml []
+        , hookStatusToIcon status
+        ]
 
 
 {-| preview : renders the hook preview displayed as the clickable row
@@ -129,22 +133,30 @@ chevron =
 preview : Posix -> Hook -> Html msg
 preview now hook =
     div [ class "row", class "preview" ]
-        [ chevron
-        , cell hook.source_id (Just <| class "source-id") Nothing
-        , cell (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) (Just <| class "created") Nothing
-        , cell hook.status Nothing <| Just <| classList [ ( "status", True ), ( hookStatus hook.status, True ) ]
-        , cell hook.host (Just <| class "host") Nothing
-        , cell hook.event (Just <| class "event") Nothing
-        , cell hook.branch (Just <| class "branch") Nothing
+        [ firstCell hook.status
+        , sourceID hook
+        , cell (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) <| class "created"
+        , cell hook.host <| class "host"
+        , cell hook.event <| class "event"
+        , cell hook.branch <| class "branch"
         ]
 
 
 {-| cell : takes text and maybe attributes and renders cell data for hooks table row
 -}
-cell : String -> Maybe (Html.Attribute msg) -> Maybe (Html.Attribute msg) -> Html msg
-cell txt outerAttrs innerAttrs =
-    div [ class "cell", Maybe.withDefault (class "") outerAttrs ]
-        [ span [ Maybe.withDefault (class "") innerAttrs ] [ text txt ] ]
+cell : String -> Html.Attribute msg -> Html msg
+cell txt cls =
+    div [ class "cell", cls ]
+        [ span [] [ text txt ] ]
+
+
+{-| sourceID : takes text and maybe attributes and renders cell data for hooks table row
+-}
+sourceID : Hook -> Html msg
+sourceID hook =
+    div [ class "cell", class "source-id" ]
+        [ span [ class "text" ] [ text hook.source_id ]
+        ]
 
 
 {-| info : renders the table row details when clicking/expanding a row
@@ -175,22 +187,28 @@ build now buildIdentifier b =
     in
     div [ class "info", statusToClass b.status ]
         [ div [ class "wrapper" ]
-            [ code [ class "element" ]
-                [ span [ class "-m-r" ] [ text "build:" ]
-                , a [ Util.testAttribute "build-link", class "-m-r", Routes.href <| Routes.Build org repo buildNumber ]
-                    [ text <| buildPath buildIdentifier
+            [ div []
+                [ code [ class "element" ]
+                    [ span [ class "-m-r" ] [ text "build:" ]
+                    , a [ Util.testAttribute "build-link", class "-m-r", Routes.href <| Routes.Build org repo buildNumber ]
+                        [ text <| buildPath buildIdentifier
+                        ]
                     ]
                 ]
-            , code [ class "element" ]
-                [ span [ class "-m-l", class "-m-r" ] [ text "status:" ]
-                , span [ class "hook-build-status", statusToClass b.status, class "-m-r" ]
-                    [ text <| statusToString b.status
+            , div []
+                [ code [ class "element" ]
+                    [ span [ class "-m-l", class "-m-r" ] [ text "status:" ]
+                    , span [ class "hook-build-status", statusToClass b.status, class "-m-r" ]
+                        [ text <| statusToString b.status
+                        ]
                     ]
                 ]
-            , code [ class "element" ]
-                [ span [ class "-m-l", class "-m-r" ] [ text "duration:" ]
-                , span [ statusToClass b.status, class "-m-r", class "duration" ]
-                    [ text <| Util.formatRunTime now b.started b.finished
+            , div []
+                [ code [ class "element" ]
+                    [ span [ class "-m-l", class "-m-r" ] [ text "duration:" ]
+                    , span [ statusToClass b.status, class "-m-r", class "duration" ]
+                        [ text <| Util.formatRunTime now b.started b.finished
+                        ]
                     ]
                 ]
             ]
@@ -205,8 +223,8 @@ hookFailure err =
         div [ class "info", class "-failure" ]
             [ div [ class "wrapper" ]
                 [ code [ class "element" ]
-                    [ span [ class "-m-r" ] [ text "error:" ]
-                    , span [ class "-error" ]
+                    [ span [ class "error-label", class "-m-r" ] [ text "error:" ]
+                    , span [ class "error-text" ]
                         [ text err
                         ]
                     ]
