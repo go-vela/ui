@@ -25,6 +25,7 @@ type Endpoint
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Repository Org Repo
     | UserSourceRepositories
+    | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
     | Build Org Repo BuildNumber
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
@@ -48,6 +49,9 @@ toUrl api endpoint =
 
         UserSourceRepositories ->
             url api [ "user", "source", "repos" ] []
+
+        Hooks maybePage maybePerPage org repo ->
+            url api [ "hooks", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
         Builds maybePage maybePerPage org repo ->
             url api [ "repos", org, repo, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage

@@ -560,6 +560,12 @@ button.-inverted {
     }
   }
 }
+.nav-buttons {
+  display: flex;
+}
+.-btn.-hooks {
+  margin-right: 0.4em;
+}
 
 .-btn.-overview {
   margin: 1em 1em 1em 0;
@@ -660,6 +666,13 @@ button.-solid {
   border-radius: 50%;
 }
 
+.small-loader .-label {
+  margin-left: 0.8em;
+
+  font-size: 14px;
+  font-weight: 300;
+}
+
 .build-container {
   overflow: hidden;
 
@@ -736,8 +749,9 @@ button.-solid {
   background: var(--color-green);
 }
 
-.build .status.-failure {
-  background: var(--color-red);
+.build .status.-failure,
+.build .status.-error {
+    background: var(--color-red);
 }
 
 .build .info {
@@ -885,7 +899,8 @@ button.-solid {
   width: 100%;
 }
 
-.build-animation.-not-running.-failure {
+.build-animation.-not-running.-failure,
+.build-animation.-not-running.-error {
   border-top: 2px solid var(--color-red);
   border-bottom: 2px solid var(--color-red);
 }
@@ -929,7 +944,8 @@ button.-solid {
   fill: var(--color-yellow);
 }
 
-.build-history .-build .-icon.-failure {
+.build-history .-build .-icon.-failure,
+.build-history .-build .-icon.-error {
   stroke: var(--color-red);
 }
 
@@ -955,11 +971,13 @@ button.-solid {
   stroke: var(--color-green);
 }
 
-.build-history .-build .-icon.-failure .-path-1 {
+.build-history .-build .-icon.-failure .-path-1,
+.build-history .-build .-icon.-error .-path-1 {
   fill: var(--color-bg-darker);
 }
 
-.build-history .-build .-icon.-failure .-path-2 {
+.build-history .-build .-icon.-failure .-path-2,
+.build-history .-build .-icon.-error .-path-2 {
   fill: var(--color-red);
 }
 
@@ -975,7 +993,8 @@ button.-solid {
   fill: var(--color-yellow);
 }
 
-.build-history .-build .-icon.-failure .-path-3 {
+.build-history .-build .-icon.-failure .-path-3,
+.build-history .-build .-icon.-error .-path-3 {
   stroke: var(--color-bg-darker);
   stroke-width: 2;
   stroke-linecap: square;
@@ -1130,7 +1149,8 @@ button.-solid {
   stroke: var(--color-green);
 }
 
-.-step-icon.-failure {
+.-step-icon.-failure,
+.-step-icon.-error {
   stroke: var(--color-red);
 }
 
@@ -1302,12 +1322,216 @@ button.-solid {
   border: 1px solid var(--color-red);
 }
 
+.hooks {
+  width: 100%;
+  padding-bottom: 0.5em;
+
+  background: var(--color-darkcoal);
+}
+
+.hooks .loading {
+  display: flex;
+
+  margin-top: 0.5em;
+  margin-left: 0.4em;
+}
+
+.hooks .row {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+
+  margin: 0.3em 0;
+  > .hook-summary {
+    position: relative;
+
+    overflow: hidden;
+
+    padding: 0;
+
+    cursor: pointer;
+
+    // hide details marker on Chrome
+    &::-webkit-details-marker {
+      display: none !important;
+    }
+
+    //hide details marker on Firefox
+    &:first-of-type {
+      list-style-type: none !important;
+    }
+  }
+  .chevron {
+    margin-left: 1em;
+
+    transition: all 0.2s;
+    transform-origin: 50% 49%;
+
+    color: var(--color-primary);
+  }
+  &[open] .chevron {
+    transform: rotate(0.5turn);
+  }
+}
+
+.hooks .row.preview {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+}
+
+.hooks .headers {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+
+  margin-top: 0.3em;
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+
+  border-bottom: 1px solid var(--color-gray);
+}
+
+.hooks .header {
+  flex: 1;
+
+  text-align: center;
+
+  font-size: 18px;
+}
+
+.hooks .row .preview {
+  margin: 0.4em 0;
+
+  font-size: 14px;
+}
+
+.hook-status.-success {
+  color: var(--color-green);
+}
+
+.hook-status.-failure {
+  color: var(--color-scarlet);
+}
+
+.hooks .row .cell {
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+
+  text-align: center;
+
+  font-weight: 300;
+}
+
+.hooks .source-id {
+  min-width: 330px;
+}
+
+.hooks .filler-cell {
+  width: 80px;
+}
+
+.hooks .row .first-cell {
+  width: 80px;
+}
+
+.hooks .row .first-cell .chevron {
+  margin-right: 8px;
+}
+
+.hooks .row .cell.source-id {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.hooks .row .cell.source-id .text {
+  padding: 3px 12px;
+
+  text-align: center;
+
+  color: var(--color-offwhite);
+  background: var(--color-gray);
+}
+
+.preview .status.success {
+  color: var(--color-green);
+}
+
+.preview .status.failure {
+  color: var(--color-scarlet);
+}
+
+.hooks .row .info {
+  display: flex;
+  display: inline-block;
+  flex-direction: row;
+
+  width: 100%;
+  padding: 0.4em 1em;
+
+  border-bottom: 1px solid var(--color-gray);
+  border-left: 1px solid var(--color-gray);
+
+  font-size: 14px;
+}
+
+.hooks .row .info.-pending {
+  border-left-color: var(--color-gray);
+}
+
+.hooks .row .info.-running {
+  border-left-color: var(--color-yellow);
+}
+
+.hooks .row .info.-success {
+  border-left-color: var(--color-green);
+}
+
+.hooks .row .info.-failure,
+.hooks .row .info.-error {
+  border-left-color: var(--color-scarlet);
+}
+
+.hooks .row .info .element span.-m-l,
+.hooks .row .info .element .-m-l {
+  margin-left: 0.4em;
+}
+
+.hooks .row .info .element span.-m-r,
+.hook-build .details .element .-m-r {
+  margin-right: 0.4em;
+}
+
+.hooks .row .info .element .error-label {
+  color: var(--color-scarlet);
+
+}
+
+.hooks .row .info .element .hook-build-status.-pending {
+  color: var(--color-offwhite);
+}
+
+.hooks .row .info .element .hook-build-status.-running {
+  color: var(--color-yellow);
+}
+
+.hooks .row .info .element .hook-build-status.-success {
+  color: var(--color-green);
+}
+
+.hooks .row .info .element .hook-build-status.-failure,
+.hooks .row .info .element .hook-build-status.-error {
+  color: var(--color-scarlet);
+}
+
 .repo-settings {
   display: flex;
   flex-direction: column;
 }
 
-.repo-settings .-row {
+.repo-settings .row {
   display: flex;
   flex-direction: row;
 }
@@ -1364,9 +1588,10 @@ button.-solid {
 .inputs.repo-timeout input {
   width: 5em;
   padding-top: 0.5em;
-  padding-bottom: 0.5em;
   padding-right: 0em;
+  padding-bottom: 0.5em;
   padding-left: 1em;
+
   text-align: center;
 
   color: white;
@@ -1410,10 +1635,11 @@ button.-solid {
 }
 
 .checkbox input[type="checkbox"], .checkbox input[type="radio"] {
-  opacity: 0;
   position: relative;
   right: 1.55em;
   bottom: 0.1em;
+
+  opacity: 0;
 }
 
 .checkbox label {

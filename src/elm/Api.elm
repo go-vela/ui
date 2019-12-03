@@ -9,6 +9,7 @@ module Api exposing
     , addRepository
     , deleteRepo
     , getAllBuilds
+    , getAllHooks
     , getAllRepositories
     , getBuild
     , getBuilds
@@ -38,6 +39,7 @@ import Vela
         , Build
         , BuildNumber
         , Builds
+        , Hook
         , Log
         , Org
         , Repo
@@ -51,6 +53,7 @@ import Vela
         , User
         , decodeBuild
         , decodeBuilds
+        , decodeHook
         , decodeLog
         , decodeRepositories
         , decodeRepository
@@ -445,4 +448,16 @@ getStep model org repository buildNumber stepNumber =
 getStepLogs : PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> Request Log
 getStepLogs model org repository buildNumber stepNumber =
     get model.velaAPI (Endpoint.StepLogs org repository buildNumber stepNumber) decodeLog
+        |> withAuth model.session
+
+
+{-| getAllHooks : used in conjuction with 'tryAll', it retrieves all pages of the resource
+
+    Note: the singular version of the type/decoder is needed in this case as it turns it into a list
+
+-}
+getAllHooks : PartialModel a -> Org -> Repo -> Request Hook
+getAllHooks model org repository =
+    -- we are using the max perPage setting of 100 to reduce the number of calls
+    get model.velaAPI (Endpoint.Hooks (Just 1) (Just 100) org repository) decodeHook
         |> withAuth model.session
