@@ -7,7 +7,7 @@ const A11Y_OPTS = {
 
 context("Accessibility (a11y)", () => {
   context("Logged out", () => {
-    it("overview", () => {
+    it.skip("overview", () => {
       cy.clearSession();
       cy.visit("/account/login");
       cy.injectAxe();
@@ -53,27 +53,27 @@ context("Accessibility (a11y)", () => {
       );
     });
 
-    it("overview", () => {
+    it.skip("overview", () => {
       cy.checkA11yForPage("/", A11Y_OPTS);
     });
 
-    it("add repos", () => {
+    it.skip("add repos", () => {
       cy.checkA11yForPage("/account/add-repos", A11Y_OPTS);
     });
 
-    it("settings", () => {
+    it.skip("settings", () => {
       cy.checkA11yForPage("/github/octocat/settings", A11Y_OPTS);
     });
 
-    it("repo page", () => {
+    it.skip("repo page", () => {
       cy.checkA11yForPage("/someorg/somerepo", A11Y_OPTS);
     });
 
-    it("hooks page", () => {
+    it.skip("hooks page", () => {
       cy.checkA11yForPage("/github/octocat/hooks", A11Y_OPTS);
     });
 
-    it("build page", () => {
+    it.skip("build page", () => {
       cy.login("/someorg/somerepo/1");
       cy.injectAxe();
       cy.wait(500);
