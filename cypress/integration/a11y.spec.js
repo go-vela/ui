@@ -70,14 +70,18 @@ context("Accessibility (a11y)", () => {
     });
 
     it.skip("hooks page", () => {
-      cy.checkA11yForPage("/github/octocat/hooks", A11Y_OPTS);
+      cy.login("/github/octocat/hooks");
+      cy.injectAxe();
+      cy.wait(500);
+      cy.get("[data-test=hook]").click({ multiple: true });
+      cy.checkA11y(A11Y_OPTS);
     });
 
     it.skip("build page", () => {
       cy.login("/someorg/somerepo/1");
       cy.injectAxe();
       cy.wait(500);
-      cy.get(".-last [data-test=step-header]").click();
+      cy.get("[data-test=step-header]").click({ multiple: true });
       cy.checkA11y(A11Y_OPTS);
     });
   });
