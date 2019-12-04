@@ -7,7 +7,7 @@ const A11Y_OPTS = {
 
 context("Accessibility (a11y)", () => {
   context("Logged out", () => {
-    it.skip("overview", () => {
+    it("overview", () => {
       cy.clearSession();
       cy.visit("/account/login");
       cy.injectAxe();
@@ -34,25 +34,46 @@ context("Accessibility (a11y)", () => {
       cy.stubBuilds();
       cy.stubBuild();
       cy.stubStepsWithLogs();
+      // hooks page
+      cy.route("GET", "*api/v1/hooks/github/octocat*", "fixture:hooks_5.json");
+      cy.route(
+        "GET",
+        "*api/v1/repos/*/octocat/builds/1*",
+        "fixture:build_success.json"
+      );
+      cy.route(
+        "GET",
+        "*api/v1/repos/*/octocat/builds/2*",
+        "fixture:build_failure.json"
+      );
+      cy.route(
+        "GET",
+        "*api/v1/repos/*/octocat/builds/3*",
+        "fixture:build_running.json"
+      );
     });
 
-    it.skip("overview", () => {
+    it("overview", () => {
       cy.checkA11yForPage("/", A11Y_OPTS);
     });
 
-    it.skip("add repos", () => {
+    it("add repos", () => {
       cy.checkA11yForPage("/account/add-repos", A11Y_OPTS);
     });
 
-    it.skip("settings", () => {
+    it("settings", () => {
       cy.checkA11yForPage("/github/octocat/settings", A11Y_OPTS);
     });
 
-    it.skip("repo page", () => {
+    it("repo page", () => {
       cy.checkA11yForPage("/someorg/somerepo", A11Y_OPTS);
     });
 
-    it.skip("build page", () => {
+    it("hooks page", () => {
+      cy.checkA11yForPage("/github/octocat/hooks", A11Y_OPTS);
+    });
+
+    it("build page", () => {
       cy.login("/someorg/somerepo/1");
       cy.injectAxe();
       cy.wait(500);
