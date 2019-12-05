@@ -83,10 +83,12 @@ import Vela
         ( AddRepositoryPayload
         , AuthParams
         , Build
+        , BuildIdentifier
         , BuildNumber
         , Builds
         , BuildsModel
         , Field
+        , Hook
         , HookBuilds
         , Hooks
         , Log
@@ -103,6 +105,7 @@ import Vela
         , Steps
         , UpdateRepositoryPayload
         , User
+        , Viewing
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
@@ -562,10 +565,10 @@ update msg model =
         HookBuildResponse org repo buildNumber response ->
             case response of
                 Ok ( _, build ) ->
-                    ( { model | hookBuilds = receiveHookBuild org repo buildNumber (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
+                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
 
                 Err error ->
-                    ( { model | hookBuilds = receiveHookBuild org repo buildNumber (toFailure error) model.hookBuilds }, addError error )
+                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, addError error )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -744,7 +747,7 @@ refreshHookBuilds model =
             Dict.keys model.hookBuilds
 
         buildsToRefresh =
-            List.filter (\build -> shouldRefresh (Maybe.withDefault NotAsked <| Dict.get build model.hookBuilds)) builds
+            List.filter (\build -> shouldRefresh <| Tuple.first (Maybe.withDefault ( NotAsked, False ) <| Dict.get build model.hookBuilds)) builds
 
         refreshCmds =
             List.map (\( org, repo, buildNumber ) -> getHookBuild model org repo buildNumber) buildsToRefresh
@@ -772,10 +775,10 @@ shouldRefresh build =
         NotAsked ->
             True
 
+        -- Do not refresh a Failed or Loading build
         Failure _ ->
-            True
+            False
 
-        -- Do not refresh a Loading build
         Loading ->
             False
 
@@ -1731,29 +1734,42 @@ fetchHookBuild model org repo buildNumber =
 
     else
         let
-            buildStatus =
+            build =
                 case Dict.get ( org, repo, buildNumber ) model.hookBuilds of
                     Just webdataBuild ->
-                        case webdataBuild of
-                            Success build ->
-                                Just <| RemoteData.succeed build
+                        case Tuple.first webdataBuild of
+                            Success b ->
+                                RemoteData.succeed b
 
                             _ ->
-                                Just Loading
+                                Loading
 
                     _ ->
-                        Just Loading
+                        Loading
+
+            viewing =
+                True
         in
-        ( Dict.update ( org, repo, buildNumber ) (\_ -> buildStatus) model.hookBuilds
+        ( Dict.update ( org, repo, buildNumber ) (\_ -> Just ( build, viewing )) model.hookBuilds
         , getHookBuild model org repo buildNumber
         )
 
 
 {-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
 -}
-receiveHookBuild : Org -> Repo -> BuildNumber -> WebData Build -> HookBuilds -> HookBuilds
-receiveHookBuild org repo buildNumber build hookBuilds =
-    Dict.update ( org, repo, buildNumber ) (\_ -> Just build) hookBuilds
+receiveHookBuild : BuildIdentifier -> WebData Build -> HookBuilds -> HookBuilds
+receiveHookBuild buildIdentifier build hookBuilds =
+    Dict.update buildIdentifier (\_ -> Just ( build, viewingHook buildIdentifier hookBuilds )) hookBuilds
+
+
+viewingHook : BuildIdentifier -> HookBuilds -> Bool
+viewingHook buildIdentifier hookBuilds =
+    case Dict.get buildIdentifier hookBuilds of
+        Just ( _, viewing ) ->
+            viewing
+
+        Nothing ->
+            False
 
 
 

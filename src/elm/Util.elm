@@ -16,6 +16,7 @@ module Util exposing
     , largeLoader
     , millisToSeconds
     , oneSecondMillis
+    , open
     , relativeTimeNoSeconds
     , secondsToMillis
     , smallLoader
@@ -210,6 +211,17 @@ dispatch : msg -> Cmd msg
 dispatch msg =
     succeed msg
         |> perform identity
+
+
+{-| open : returns html attribute for open/closed details summaries
+-}
+open : Bool -> Html.Attribute msg
+open isOpen =
+    if isOpen then
+        attribute "open" ""
+
+    else
+        class ""
 
 
 {-| smallLoader : renders a small loading spinner for better transitioning UX
