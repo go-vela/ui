@@ -155,7 +155,7 @@ cell txt cls =
 sourceID : Hook -> Html msg
 sourceID hook =
     div [ class "cell", class "source-id" ]
-        [ span [ class "text" ] [ text hook.source_id ]
+        [ code [ class "text" ] [ text hook.source_id ]
         ]
 
 
