@@ -562,10 +562,10 @@ update msg model =
         HookBuildResponse org repo buildNumber response ->
             case response of
                 Ok ( _, build ) ->
-                    ( { model | hookBuilds = receiveHookBuild org repo buildNumber build model.hookBuilds }, Cmd.none )
+                    ( { model | hookBuilds = receiveHookBuild org repo buildNumber (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
 
                 Err error ->
-                    ( model, addError error )
+                    ( { model | hookBuilds = receiveHookBuild org repo buildNumber (toFailure error) model.hookBuilds }, addError error )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -1751,9 +1751,9 @@ fetchHookBuild model org repo buildNumber =
 
 {-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
 -}
-receiveHookBuild : Org -> Repo -> BuildNumber -> Build -> HookBuilds -> HookBuilds
+receiveHookBuild : Org -> Repo -> BuildNumber -> WebData Build -> HookBuilds -> HookBuilds
 receiveHookBuild org repo buildNumber build hookBuilds =
-    Dict.update ( org, repo, buildNumber ) (\_ -> Just <| RemoteData.succeed build) hookBuilds
+    Dict.update ( org, repo, buildNumber ) (\_ -> Just build) hookBuilds
 
 
 

@@ -165,10 +165,10 @@ info : Posix -> BuildIdentifier -> Hook -> HookBuilds -> Html msg
 info now buildIdentifier hook hookBuilds =
     case fromID buildIdentifier hookBuilds of
         NotAsked ->
-            hookFailure hook.error
+            error hook.error
 
         Failure _ ->
-            div [ class "error" ] [ text <| "error fetching build " ++ buildPath buildIdentifier ]
+            error "failed to fetch a build for this hook"
 
         Loading ->
             div [ class "loading" ] [ Util.smallLoaderWithText "loading build..." ]
@@ -215,10 +215,10 @@ build now buildIdentifier b =
         ]
 
 
-{-| hookFailure : renders hook failure error msg
+{-| error : renders hook failure error msg
 -}
-hookFailure : String -> Html msg
-hookFailure err =
+error : String -> Html msg
+error err =
     if not <| String.isEmpty err then
         div [ class "info", class "-failure" ]
             [ div [ class "wrapper" ]
