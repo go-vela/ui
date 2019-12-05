@@ -83,10 +83,12 @@ import Vela
         ( AddRepositoryPayload
         , AuthParams
         , Build
+        , BuildIdentifier
         , BuildNumber
         , Builds
         , BuildsModel
         , Field
+        , Hook
         , HookBuilds
         , Hooks
         , Log
@@ -103,6 +105,7 @@ import Vela
         , Steps
         , UpdateRepositoryPayload
         , User
+        , Viewing
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
@@ -249,6 +252,7 @@ type Msg
     | SearchSourceRepos Org String
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
+    | ClickHook Org Repo BuildNumber
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -259,7 +263,6 @@ type Msg
     | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
-    | GetHookBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
@@ -533,10 +536,10 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
             )
 
-        GetHookBuild org repo buildNumber ->
+        ClickHook org repo buildNumber ->
             let
                 ( hookBuilds, action ) =
-                    fetchHookBuild model org repo buildNumber
+                    clickHook model org repo buildNumber
             in
             ( { model | hookBuilds = hookBuilds }
             , action
@@ -562,10 +565,10 @@ update msg model =
         HookBuildResponse org repo buildNumber response ->
             case response of
                 Ok ( _, build ) ->
-                    ( { model | hookBuilds = receiveHookBuild org repo buildNumber (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
+                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
 
                 Err error ->
-                    ( { model | hookBuilds = receiveHookBuild org repo buildNumber (toFailure error) model.hookBuilds }, addError error )
+                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, addError error )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -744,7 +747,9 @@ refreshHookBuilds model =
             Dict.keys model.hookBuilds
 
         buildsToRefresh =
-            List.filter (\build -> shouldRefresh (Maybe.withDefault NotAsked <| Dict.get build model.hookBuilds)) builds
+            List.filter
+                (\build -> shouldRefreshHookBuild <| Maybe.withDefault ( NotAsked, False ) <| Dict.get build model.hookBuilds)
+                builds
 
         refreshCmds =
             List.map (\( org, repo, buildNumber ) -> getHookBuild model org repo buildNumber) buildsToRefresh
@@ -772,12 +777,19 @@ shouldRefresh build =
         NotAsked ->
             True
 
+        -- Do not refresh a Failed or Loading build
         Failure _ ->
-            True
+            False
 
-        -- Do not refresh a Loading build
         Loading ->
             False
+
+
+{-| shouldRefreshHookBuild : takes build and viewing state and returns true if a refresh is required
+-}
+shouldRefreshHookBuild : ( WebData Build, Viewing ) -> Bool
+shouldRefreshHookBuild ( build, viewing ) =
+    viewing && shouldRefresh build
 
 
 {-| filterCompletedSteps : filters out completed steps based on success and failure
@@ -849,7 +861,7 @@ viewContent model =
 
         Pages.Hooks org repo ->
             ( "Repository Hooks"
-            , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo GetHookBuild
+            , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo ClickHook
             )
 
         Pages.Settings _ _ ->
@@ -1720,10 +1732,10 @@ shouldSearch filter =
     String.length filter > 2
 
 
-{-| fetchHookBuild : takes model org repo and build number and fetches build information from the api
+{-| clickHook : takes model org repo and build number and fetches build information from the api
 -}
-fetchHookBuild : Model -> Org -> Repo -> BuildNumber -> ( HookBuilds, Cmd Msg )
-fetchHookBuild model org repo buildNumber =
+clickHook : Model -> Org -> Repo -> BuildNumber -> ( HookBuilds, Cmd Msg )
+clickHook model org repo buildNumber =
     if buildNumber == "0" then
         ( model.hookBuilds
         , Cmd.none
@@ -1731,29 +1743,42 @@ fetchHookBuild model org repo buildNumber =
 
     else
         let
-            buildStatus =
+            ( buildInfo, action ) =
                 case Dict.get ( org, repo, buildNumber ) model.hookBuilds of
-                    Just webdataBuild ->
+                    Just ( webdataBuild, viewing ) ->
                         case webdataBuild of
-                            Success build ->
-                                Just <| RemoteData.succeed build
+                            Success _ ->
+                                ( ( webdataBuild, not viewing ), Cmd.none )
+
+                            Failure err ->
+                                ( ( Failure err, not viewing ), Cmd.none )
 
                             _ ->
-                                Just Loading
+                                ( ( Loading, not viewing ), Cmd.none )
 
                     _ ->
-                        Just Loading
+                        ( ( Loading, True ), getHookBuild model org repo buildNumber )
         in
-        ( Dict.update ( org, repo, buildNumber ) (\_ -> buildStatus) model.hookBuilds
-        , getHookBuild model org repo buildNumber
+        ( Dict.update ( org, repo, buildNumber ) (\_ -> Just buildInfo) model.hookBuilds
+        , action
         )
 
 
 {-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
 -}
-receiveHookBuild : Org -> Repo -> BuildNumber -> WebData Build -> HookBuilds -> HookBuilds
-receiveHookBuild org repo buildNumber build hookBuilds =
-    Dict.update ( org, repo, buildNumber ) (\_ -> Just build) hookBuilds
+receiveHookBuild : BuildIdentifier -> WebData Build -> HookBuilds -> HookBuilds
+receiveHookBuild buildIdentifier build hookBuilds =
+    Dict.update buildIdentifier (\_ -> Just ( build, viewingHook buildIdentifier hookBuilds )) hookBuilds
+
+
+viewingHook : BuildIdentifier -> HookBuilds -> Bool
+viewingHook buildIdentifier hookBuilds =
+    case Dict.get buildIdentifier hookBuilds of
+        Just ( _, viewing ) ->
+            viewing
+
+        Nothing ->
+            False
 
 
 

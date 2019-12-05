@@ -24,8 +24,7 @@ import Html
         )
 import Html.Attributes
     exposing
-        ( attribute
-        , class
+        ( class
         , href
         )
 import Html.Events exposing (onClick)
@@ -44,6 +43,7 @@ import Vela
         , Hooks
         , Org
         , Repo
+        , Viewing
         )
 
 
@@ -111,7 +111,7 @@ rows now org repo hookBuilds hooks clickAction =
 -}
 row : Posix -> Org -> Repo -> Hook -> HookBuilds -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
 row now org repo hook hookBuilds clickAction =
-    details [ class "row", Util.testAttribute "hook" ]
+    details [ class "row", Util.testAttribute "hook", Util.open <| hookOpen ( org, repo, String.fromInt hook.build_id ) hookBuilds ]
         [ summary [ class "hook-summary", onClick (clickAction org repo <| String.fromInt hook.build_id) ]
             [ preview now hook ]
         , info now ( org, repo, String.fromInt hook.build_id ) hook hookBuilds
@@ -163,7 +163,7 @@ sourceID hook =
 -}
 info : Posix -> BuildIdentifier -> Hook -> HookBuilds -> Html msg
 info now buildIdentifier hook hookBuilds =
-    case fromID buildIdentifier hookBuilds of
+    case Tuple.first <| fromID buildIdentifier hookBuilds of
         NotAsked ->
             error hook.error
 
@@ -263,9 +263,9 @@ buildPath ( org, repo, buildNumber ) =
 
 {-| fromID : takes build identifier and hook builds and returns the potential build
 -}
-fromID : BuildIdentifier -> HookBuilds -> WebData Build
+fromID : BuildIdentifier -> HookBuilds -> ( WebData Build, Viewing )
 fromID buildIdentifier hookBuilds =
-    Maybe.withDefault NotAsked <| Dict.get buildIdentifier hookBuilds
+    Maybe.withDefault ( NotAsked, False ) <| Dict.get buildIdentifier hookBuilds
 
 
 {-| hookStatus : takes hook status and maps it to a string, for strict typing.
@@ -278,3 +278,10 @@ hookStatus status =
 
         _ ->
             "failure"
+
+
+{-| hookOpen : returns true/false whether hook is being viewed
+-}
+hookOpen : BuildIdentifier -> HookBuilds -> Bool
+hookOpen buildIdentifier hookBuilds =
+    Tuple.second <| Maybe.withDefault ( NotAsked, False ) <| Dict.get buildIdentifier hookBuilds

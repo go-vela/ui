@@ -31,6 +31,7 @@ module Vela exposing
     , Steps
     , UpdateRepositoryPayload
     , User
+    , Viewing
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
@@ -633,8 +634,12 @@ type alias Hooks =
     List Hook
 
 
+type alias Viewing =
+    Bool
+
+
 type alias HookBuilds =
-    Dict BuildIdentifier (WebData Build)
+    Dict BuildIdentifier ( WebData Build, Viewing )
 
 
 type alias BuildIdentifier =
