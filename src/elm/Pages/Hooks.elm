@@ -107,11 +107,6 @@ rows now org repo hookBuilds hooks clickAction =
     List.map (\hook -> row now org repo hook hookBuilds clickAction) hooks
 
 
-hookOpen : BuildIdentifier -> HookBuilds -> Bool
-hookOpen buildIdentifier hookBuilds =
-    Tuple.second <| Maybe.withDefault ( NotAsked, False ) <| Dict.get buildIdentifier hookBuilds
-
-
 {-| row : renders hooks table row wrapped in details element
 -}
 row : Posix -> Org -> Repo -> Hook -> HookBuilds -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
@@ -283,3 +278,10 @@ hookStatus status =
 
         _ ->
             "failure"
+
+
+{-| hookOpen : returns true/false whether hook is being viewed
+-}
+hookOpen : BuildIdentifier -> HookBuilds -> Bool
+hookOpen buildIdentifier hookBuilds =
+    Tuple.second <| Maybe.withDefault ( NotAsked, False ) <| Dict.get buildIdentifier hookBuilds

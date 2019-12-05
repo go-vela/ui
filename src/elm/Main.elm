@@ -252,6 +252,7 @@ type Msg
     | SearchSourceRepos Org String
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
+    | ClickHook Org Repo BuildNumber
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -262,7 +263,6 @@ type Msg
     | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
-    | GetHookBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
@@ -536,10 +536,10 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
             )
 
-        GetHookBuild org repo buildNumber ->
+        ClickHook org repo buildNumber ->
             let
                 ( hookBuilds, action ) =
-                    fetchHookBuild model org repo buildNumber
+                    clickHook model org repo buildNumber
             in
             ( { model | hookBuilds = hookBuilds }
             , action
@@ -852,7 +852,7 @@ viewContent model =
 
         Pages.Hooks org repo ->
             ( "Repository Hooks"
-            , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo GetHookBuild
+            , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo ClickHook
             )
 
         Pages.Settings _ _ ->
@@ -1723,10 +1723,10 @@ shouldSearch filter =
     String.length filter > 2
 
 
-{-| fetchHookBuild : takes model org repo and build number and fetches build information from the api
+{-| clickHook : takes model org repo and build number and fetches build information from the api
 -}
-fetchHookBuild : Model -> Org -> Repo -> BuildNumber -> ( HookBuilds, Cmd Msg )
-fetchHookBuild model org repo buildNumber =
+clickHook : Model -> Org -> Repo -> BuildNumber -> ( HookBuilds, Cmd Msg )
+clickHook model org repo buildNumber =
     if buildNumber == "0" then
         ( model.hookBuilds
         , Cmd.none
@@ -1734,24 +1734,24 @@ fetchHookBuild model org repo buildNumber =
 
     else
         let
-            build =
+            ( buildInfo, action ) =
                 case Dict.get ( org, repo, buildNumber ) model.hookBuilds of
-                    Just webdataBuild ->
-                        case Tuple.first webdataBuild of
-                            Success b ->
-                                RemoteData.succeed b
+                    Just ( webdataBuild, viewing ) ->
+                        case webdataBuild of
+                            Success _ ->
+                                ( ( webdataBuild, not viewing ), Cmd.none )
+
+                            Failure err ->
+                                ( ( Failure err, not viewing ), Cmd.none )
 
                             _ ->
-                                Loading
+                                ( ( Loading, not viewing ), Cmd.none )
 
                     _ ->
-                        Loading
-
-            viewing =
-                True
+                        ( ( Loading, True ), getHookBuild model org repo buildNumber )
         in
-        ( Dict.update ( org, repo, buildNumber ) (\_ -> Just ( build, viewing )) model.hookBuilds
-        , getHookBuild model org repo buildNumber
+        ( Dict.update ( org, repo, buildNumber ) (\_ -> Just buildInfo) model.hookBuilds
+        , action
         )
 
 
