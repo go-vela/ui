@@ -1362,6 +1362,7 @@ button.-solid {
     }
   }
   .chevron {
+    margin-right: 0.8em;
     margin-left: 1em;
 
     transition: all 0.2s;
@@ -1428,16 +1429,8 @@ button.-solid {
   min-width: 330px;
 }
 
-.hooks .filler-cell {
-  width: 80px;
-}
-
-.hooks .row .first-cell {
-  width: 80px;
-}
-
-.hooks .row .first-cell .chevron {
-  margin-right: 8px;
+.hooks .first-cell {
+  width: 84px;
 }
 
 .hooks .row .cell.source-id {
@@ -1448,9 +1441,8 @@ button.-solid {
 
 .hooks .row .cell.source-id .text {
   padding: 3px 12px;
-
+  flex: 1;
   text-align: center;
-
   color: var(--color-offwhite);
   background: var(--color-gray);
 }
