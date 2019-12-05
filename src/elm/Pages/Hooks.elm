@@ -91,7 +91,7 @@ hooksTable now org repo hookBuilds hooks clickAction =
 headers : Html msg
 headers =
     div [ class "headers" ]
-        [ div [ class "first-cell" ] [ text "" ]
+        [ div [ class "filler-cell" ] [ text "" ]
         , div [ class "header", class "source-id" ] [ text "source id" ]
         , div [ class "header" ] [ text "created" ]
         , div [ class "header" ] [ text "host" ]
