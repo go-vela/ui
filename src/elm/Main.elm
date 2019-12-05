@@ -747,7 +747,9 @@ refreshHookBuilds model =
             Dict.keys model.hookBuilds
 
         buildsToRefresh =
-            List.filter (\build -> shouldRefresh <| Tuple.first (Maybe.withDefault ( NotAsked, False ) <| Dict.get build model.hookBuilds)) builds
+            List.filter
+                (\build -> shouldRefreshHookBuild <| Maybe.withDefault ( NotAsked, False ) <| Dict.get build model.hookBuilds)
+                builds
 
         refreshCmds =
             List.map (\( org, repo, buildNumber ) -> getHookBuild model org repo buildNumber) buildsToRefresh
@@ -781,6 +783,13 @@ shouldRefresh build =
 
         Loading ->
             False
+
+
+{-| shouldRefreshHookBuild : takes build and viewing state and returns true if a refresh is required
+-}
+shouldRefreshHookBuild : ( WebData Build, Viewing ) -> Bool
+shouldRefreshHookBuild ( build, viewing ) =
+    viewing && shouldRefresh build
 
 
 {-| filterCompletedSteps : filters out completed steps based on success and failure
