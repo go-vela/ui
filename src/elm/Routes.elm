@@ -31,7 +31,7 @@ type alias Repo =
 type Route
     = Overview
     | AddRepositories
-    | Hooks Org Repo
+    | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Build Org Repo BuildNumber
@@ -53,7 +53,7 @@ routes =
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , parseAuth
-        , map Hooks (string </> string </> s "hooks")
+        , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
         , map Settings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page")
         , map Build (string </> string </> string)
@@ -98,8 +98,8 @@ routeToUrl route =
         RepositoryBuilds org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
-        Hooks org repo ->
-            "/" ++ org ++ "/" ++ repo ++ "/hooks"
+        Hooks org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         Build org repo num ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ num

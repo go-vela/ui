@@ -64,7 +64,7 @@ viewRepositoryBuilds model now org repo =
                 none
 
             else
-                div [ class "builds", Util.testAttribute "builds" ] <| List.map (\build -> viewBuildItem now org repo build) builds
+                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewBuildItem now org repo) builds
 
         RemoteData.Loading ->
             Util.largeLoader

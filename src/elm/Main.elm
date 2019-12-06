@@ -674,9 +674,9 @@ refreshPage model _ =
                 , refreshLogs model org repo buildNumber model.steps
                 ]
 
-        Pages.Hooks org repo ->
+        Pages.Hooks org repo maybePage maybePerPage ->
             Cmd.batch
-                [ getHooks model org repo
+                [ getHooks model org repo maybePage maybePerPage
                 , refreshHookBuilds model
                 ]
 
@@ -860,18 +860,38 @@ viewContent model =
             , viewAddRepos model
             )
 
-        Pages.Hooks org repo ->
-            ( "Repository Hooks"
+        Pages.Hooks org repo maybePage _ ->
+            let
+                page : String
+                page =
+                    case maybePage of
+                        Nothing ->
+                            ""
+
+                        Just p ->
+                            " (page " ++ String.fromInt p ++ ")"
+            in
+            ( String.join "/" [ org, repo ] ++ " hooks" ++ page
             , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo ClickHook
             )
 
-        Pages.Settings _ _ ->
-            ( "Repository Settings"
+        Pages.Settings org repo ->
+            ( String.join "/" [ org, repo ] ++ " settings"
             , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout
             )
 
-        Pages.RepositoryBuilds org repo maybePage maybePerPage ->
-            ( String.join "/" [ org, repo ] ++ " builds"
+        Pages.RepositoryBuilds org repo maybePage _ ->
+            let
+                page : String
+                page =
+                    case maybePage of
+                        Nothing ->
+                            ""
+
+                        Just p ->
+                            " (page " ++ String.fromInt p ++ ")"
+            in
+            ( String.join "/" [ org, repo ] ++ " builds" ++ page
             , viewRepositoryBuilds model.builds.builds model.time org repo
             )
 
@@ -979,7 +999,7 @@ viewSingleRepo repo =
                 , class "-inverted"
                 , class "-view"
                 , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks repo.org repo.name
+                , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
                 ]
                 [ text "Hooks" ]
             , a
@@ -1277,7 +1297,7 @@ navButton model =
                     , class "-inverted"
                     , class "-hooks"
                     , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo
+                    , Routes.href <| Routes.Hooks org repo maybePage maybePerPage
                     ]
                     [ text "Hooks" ]
                 , a
@@ -1419,8 +1439,8 @@ setNewPage route model =
                 _ ->
                     ( { model | page = Pages.AddRepositories }, Cmd.none )
 
-        ( Routes.Hooks org repo, True ) ->
-            loadHooksPage model org repo
+        ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
+            loadHooksPage model org repo maybePage maybePerPage
 
         ( Routes.Settings org repo, True ) ->
             loadSettingsPage model org repo
@@ -1455,12 +1475,12 @@ setNewPage route model =
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.
 -}
-loadHooksPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
-loadHooksPage model org repo =
+loadHooksPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadHooksPage model org repo maybePage maybePerPage =
     -- Fetch builds from Api
-    ( { model | page = Pages.Hooks org repo, hooks = Loading, hookBuilds = Dict.empty }
+    ( { model | page = Pages.Hooks org repo maybePage maybePerPage, hooks = Loading, hookBuilds = Dict.empty }
     , Cmd.batch
-        [ getHooks model org repo
+        [ getHooks model org repo maybePage maybePerPage
         ]
     )
 
@@ -1786,9 +1806,9 @@ viewingHook buildIdentifier hookBuilds =
 -- API HELPERS
 
 
-getHooks : Model -> Org -> Repo -> Cmd Msg
-getHooks model org repo =
-    Api.tryAll (HooksResponse org repo) <| Api.getAllHooks model org repo
+getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
+getHooks model org repo maybePage maybePerPage =
+    Api.try (HooksResponse org repo) <| Api.getHooks model maybePage maybePerPage org repo
 
 
 getHookBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
@@ -1803,7 +1823,6 @@ getRepo model org repo =
 
 getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getBuilds model org repo maybePage maybePerPage =
-    -- Api.tryAll (BuildsResponse org repo) <| Api.getAllBuilds model org repo
     Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage org repo
 
 

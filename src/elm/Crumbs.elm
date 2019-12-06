@@ -98,7 +98,7 @@ toPath page =
                 Pages.AddRepositories ->
                     [ overviewPage, accountPage, addRepositoriesPage ]
 
-                Pages.Hooks org repo ->
+                Pages.Hooks org repo _ _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
