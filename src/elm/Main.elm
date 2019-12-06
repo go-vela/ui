@@ -8,6 +8,7 @@ module Main exposing (main)
 
 import Alerts exposing (Alert)
 import Api
+import Api.Pagination as Pagination
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Build
@@ -413,7 +414,7 @@ update msg model =
                             String.join "/" [ "", org, repo, newBuildNumber ]
                     in
                     ( model
-                    , getBuilds model org repo
+                    , getBuilds model org repo Nothing Nothing
                     )
                         |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
 
@@ -662,12 +663,12 @@ refreshPage model _ =
             model.page
     in
     case page of
-        Pages.RepositoryBuilds org repo ->
-            getBuilds model org repo
+        Pages.RepositoryBuilds org repo maybePage maybePerPage ->
+            getBuilds model org repo maybePage maybePerPage
 
         Pages.Build org repo buildNumber ->
             Cmd.batch
-                [ getBuilds model org repo
+                [ getBuilds model org repo Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber
                 , refreshLogs model org repo buildNumber model.steps
@@ -869,7 +870,7 @@ viewContent model =
             , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout
             )
 
-        Pages.RepositoryBuilds org repo ->
+        Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             ( String.join "/" [ org, repo ] ++ " builds"
             , viewRepositoryBuilds model.builds.builds model.time org repo
             )
@@ -986,7 +987,7 @@ viewSingleRepo repo =
                 , class "-solid"
                 , class "-view"
                 , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds repo.org repo.name
+                , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing
                 ]
                 [ text "View" ]
             ]
@@ -1175,7 +1176,7 @@ buildAddRepoElement repo =
             if addedStatus then
                 div [ class "-added-container" ]
                     [ div [ class "repo-add--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Added" ] ]
-                    , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name ] [ text "View" ]
+                    , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
                     ]
 
             else
@@ -1269,7 +1270,7 @@ navButton model =
                         text "Refresh List"
                 ]
 
-        Pages.RepositoryBuilds org repo ->
+        Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "nav-buttons" ]
                 [ a
                     [ class "-btn"
@@ -1424,8 +1425,8 @@ setNewPage route model =
         ( Routes.Settings org repo, True ) ->
             loadSettingsPage model org repo
 
-        ( Routes.RepositoryBuilds org repo, True ) ->
-            loadRepoBuildsPage model org repo
+        ( Routes.RepositoryBuilds org repo maybePage maybePerPage, True ) ->
+            loadRepoBuildsPage model org repo maybePage maybePerPage
 
         ( Routes.Build org repo buildNumber, True ) ->
             loadBuildPage model org repo buildNumber
@@ -1479,8 +1480,8 @@ loadSettingsPage model org repo =
     loadRepoBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
 -}
-loadRepoBuildsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
-loadRepoBuildsPage model org repo =
+loadRepoBuildsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadRepoBuildsPage model org repo maybePage maybePerPage =
     let
         -- Builds already loaded
         loadedBuilds =
@@ -1491,9 +1492,9 @@ loadRepoBuildsPage model org repo =
             { loadedBuilds | org = org, repo = repo, builds = Loading }
     in
     -- Fetch builds from Api
-    ( { model | page = Pages.RepositoryBuilds org repo, builds = loadingBuilds }
+    ( { model | page = Pages.RepositoryBuilds org repo maybePage maybePerPage, builds = loadingBuilds }
     , Cmd.batch
-        [ getBuilds model org repo
+        [ getBuilds model org repo maybePage maybePerPage
         ]
     )
 
@@ -1519,7 +1520,7 @@ loadBuildPage model org repo buildNumber =
     -- Fetch build from Api
     ( { model | page = Pages.Build org repo buildNumber, builds = builds, build = Loading, steps = NotAsked, logs = [] }
     , Cmd.batch
-        [ getBuilds model org repo
+        [ getBuilds model org repo Nothing Nothing
         , getBuild model org repo buildNumber
         , getAllBuildSteps model org repo buildNumber
         ]
@@ -1800,9 +1801,10 @@ getRepo model org repo =
     Api.try RepoResponse <| Api.getRepo model org repo
 
 
-getBuilds : Model -> Org -> Repo -> Cmd Msg
-getBuilds model org repo =
-    Api.tryAll (BuildsResponse org repo) <| Api.getAllBuilds model org repo
+getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
+getBuilds model org repo maybePage maybePerPage =
+    -- Api.tryAll (BuildsResponse org repo) <| Api.getAllBuilds model org repo
+    Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage org repo
 
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg

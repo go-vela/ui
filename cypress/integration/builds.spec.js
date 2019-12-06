@@ -1,5 +1,5 @@
 context("org/repo View Repository Builds Page", () => {
-  context("logged in and server returning 55 builds and running build", () => {
+  context("logged in and server returning 10 builds and running build", () => {
     beforeEach(() => {
       cy.server();
       cy.stubBuilds();
@@ -27,7 +27,7 @@ context("org/repo View Repository Builds Page", () => {
         .should("contain", "#1");
       cy.get("@lastBuild")
         .should("exist")
-        .should("contain", "#105");
+        .should("contain", "#10");
     });
 
     it("builds should show commit hash", () => {
@@ -41,7 +41,7 @@ context("org/repo View Repository Builds Page", () => {
         .should("contain", "infra");
       cy.get("@lastBuild")
         .should("be.visible")
-        .should("contain", "feature/demo");
+        .should("contain", "terra");
     });
 
     it("build should having running style", () => {
@@ -74,7 +74,7 @@ context("org/repo View Repository Builds Page", () => {
     });
   });
 
-  context("logged out and server returning 55 builds", () => {
+  context("logged out and server returning 10 builds", () => {
     beforeEach(() => {
       cy.clearSession();
       cy.server();

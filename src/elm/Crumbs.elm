@@ -104,7 +104,7 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo )
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing )
                     in
                     [ overviewPage, organizationPage, repoBuilds, hooks ]
 
@@ -114,23 +114,23 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo )
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing )
                     in
                     [ overviewPage, organizationPage, repoBuilds, repoSettings ]
 
-                Pages.RepositoryBuilds org repo ->
+                Pages.RepositoryBuilds org repo maybePage maybePerPage ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage ) ]
 
                 Pages.Build org repo buildNumber ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber ) ]
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]

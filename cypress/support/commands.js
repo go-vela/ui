@@ -69,21 +69,21 @@ Cypress.Commands.add("stubBuild", () => {
 
 Cypress.Commands.add("stubBuilds", () => {
   cy.server();
-  cy.fixture("builds_50.json").as("buildsPage1");
-  cy.fixture("builds_5.json").as("buildsPage2");
+  cy.fixture("builds_10a.json").as("buildsPage1");
+  cy.fixture("builds_10b.json").as("buildsPage2");
   cy.route({
     method: "GET",
-    url: "*api/v1/repos/*/*/builds?page=1&per_page=100",
+    url: "*api/v1/repos/*/*/builds",
     headers: {
-      link: `<http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=2&per_page=100>; rel="next", <http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=2&per_page=100>; rel="last",`
+      link: `<http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=2&per_page=10>; rel="last",`
     },
     response: "@buildsPage1"
   });
   cy.route({
     method: "GET",
-    url: "*api/v1/repos/*/*/builds?page=2&per_page=100*",
+    url: "*api/v1/repos/*/*/builds?page=2*",
     headers: {
-      link: `<http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=1&per_page=100>; rel="first", <http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=1&per_page=100>; rel="prev",`
+      link: `<http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=1&per_page=10>; rel="prev",`
     },
     response: "@buildsPage2"
   });
