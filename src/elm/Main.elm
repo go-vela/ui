@@ -89,7 +89,6 @@ import Vela
         , Builds
         , BuildsModel
         , Field
-        , Hook
         , HookBuilds
         , Hooks
         , Log
