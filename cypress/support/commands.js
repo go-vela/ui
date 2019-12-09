@@ -158,6 +158,28 @@ Cypress.Commands.add("stubStepsErrors", () => {
   });
 });
 
+Cypress.Commands.add("hookPages", () => {
+  cy.server();
+  cy.fixture("hooks_10a.json").as("hooksPage1");
+  cy.fixture("hooks_10b.json").as("hooksPage2");
+  cy.route({
+    method: "GET",
+    url: "*api/v1/hooks/github/octocat*",
+    headers: {
+      link: `<http://localhost:8888/api/v1/hooks/someorg/somerepo?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/hooks/someorg/somerepo?page=2&per_page=10>; rel="last",`
+    },
+    response: "@hooksPage1"
+  });
+  cy.route({
+    method: "GET",
+    url: "*api/v1/hooks/github/octocat?page=2*",
+    headers: {
+      link: `<http://localhost:8888/api/v1/hooks/someorg/somerepo?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/hooks/someorg/somerepo?page=1&per_page=10>; rel="prev",`
+    },
+    response: "@hooksPage2"
+  });
+});
+
 Cypress.Commands.add("checkA11yForPage", (path = "/", opts = {}) => {
   cy.login(path);
   cy.injectAxe();

@@ -30,6 +30,19 @@ context("org/repo View Repository Builds Page", () => {
         .should("contain", "#10");
     });
 
+    it("build page 2 should show the next set of results", () => {
+      cy.visit("/someorg/somerepo?page=2");
+      cy.get("@firstBuild")
+        .should("exist")
+        .should("contain", "#11");
+      cy.get("@lastBuild")
+        .should("exist")
+        .should("contain", "#20");
+      cy.get('[data-test="crumb-somerepo-(page-2)"]')
+        .should("exist")
+        .should("contain", "page 2");
+    });
+
     it("builds should show commit hash", () => {
       cy.get("@firstBuild").should("contain", "9b1d8bd");
       cy.get("@lastBuild").should("contain", "7bd468e");

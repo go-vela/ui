@@ -84,9 +84,6 @@ toPath page =
         notFoundPage =
             ( "Not Found", Nothing )
 
-        hooks =
-            ( "Hooks", Nothing )
-
         repoSettings =
             ( "Settings", Nothing )
 
@@ -98,15 +95,23 @@ toPath page =
                 Pages.AddRepositories ->
                     [ overviewPage, accountPage, addRepositoriesPage ]
 
-                Pages.Hooks org repo _ _ ->
+                Pages.Hooks org repo maybePage maybePerPage ->
                     let
                         organizationPage =
                             ( org, Nothing )
 
                         repoBuilds =
                             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing )
+
+                        pageNumber =
+                            case maybePage of
+                                Nothing ->
+                                    ""
+
+                                Just num ->
+                                    " (page " ++ String.fromInt num ++ ")"
                     in
-                    [ overviewPage, organizationPage, repoBuilds, hooks ]
+                    [ overviewPage, organizationPage, repoBuilds, ( "Hooks" ++ pageNumber, Nothing ) ]
 
                 Pages.Settings org repo ->
                     let
@@ -122,8 +127,16 @@ toPath page =
                     let
                         organizationPage =
                             ( org, Nothing )
+
+                        pageNumber =
+                            case maybePage of
+                                Nothing ->
+                                    ""
+
+                                Just num ->
+                                    " (page " ++ String.fromInt num ++ ")"
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage ) ]
+                    [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage ) ]
 
                 Pages.Build org repo buildNumber ->
                     let
