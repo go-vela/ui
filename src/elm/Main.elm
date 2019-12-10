@@ -1617,6 +1617,8 @@ logIDs logs =
     List.map (\log -> log.id) <| successfulLogs logs
 
 
+{-| logIDs : extracts successful logs from list of logs and returns List Log
+-}
 successfulLogs : Logs -> List Log
 successfulLogs logs =
     List.filterMap
@@ -1675,12 +1677,14 @@ updateLogs model incomingLog =
         { model | logs = updateLog incomingLog logs }
 
     else if incomingLog.id /= 0 then
-        { model | logs = RemoteData.succeed incomingLog :: logs }
+        { model | logs = addLog incomingLog logs }
 
     else
         model
 
 
+{-| updateLogs : takes incoming log and logs and updates the appropriate log data
+-}
 updateLog : Log -> Logs -> Logs
 updateLog incomingLog logs =
     setIf
@@ -1694,6 +1698,13 @@ updateLog incomingLog logs =
         )
         (RemoteData.succeed incomingLog)
         logs
+
+
+{-| addLog : takes incoming log and logs and adds log when not present
+-}
+addLog : Log -> Logs -> Logs
+addLog incomingLog logs =
+    RemoteData.succeed incomingLog :: logs
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
