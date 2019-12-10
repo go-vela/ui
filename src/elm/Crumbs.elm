@@ -125,12 +125,12 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo ) ]
 
-                Pages.Build org repo buildNumber ->
+                Pages.Build org repo buildNumber frag ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber frag ) ]
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]

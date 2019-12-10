@@ -674,7 +674,7 @@ refreshPage model _ =
         Pages.RepositoryBuilds org repo ->
             getBuilds model org repo
 
-        Pages.Build org repo buildNumber ->
+        Pages.Build org repo buildNumber frag ->
             Cmd.batch
                 [ getBuilds model org repo
                 , refreshBuild model org repo buildNumber
@@ -883,7 +883,7 @@ viewContent model =
             , viewRepositoryBuilds model.builds.builds model.time org repo
             )
 
-        Pages.Build org repo num ->
+        Pages.Build org repo num frag ->
             ( "Build #" ++ num ++ " - " ++ String.join "/" [ org, repo ]
             , viewFullBuild model.time org repo model.build model.steps model.logs ClickStep
             )
@@ -1309,7 +1309,7 @@ navButton model =
                 [ text "Refresh Settings"
                 ]
 
-        Pages.Build org repo buildNumber ->
+        Pages.Build org repo buildNumber frag ->
             button
                 [ classList
                     [ ( "btn-restart-build", True )
@@ -1436,8 +1436,8 @@ setNewPage route model =
         ( Routes.RepositoryBuilds org repo, True ) ->
             loadRepoBuildsPage model org repo
 
-        ( Routes.Build org repo buildNumber, True ) ->
-            loadBuildPage model org repo buildNumber
+        ( Routes.Build org repo buildNumber frag, True ) ->
+            loadBuildPage model org repo buildNumber frag
 
         ( Routes.Logout, True ) ->
             ( { model | session = Nothing }
@@ -1512,8 +1512,8 @@ loadRepoBuildsPage model org repo =
     loadBuildPage   Checks if the build has already been loaded from the repo view. If not, fetches the build from the Api.
 
 -}
-loadBuildPage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
-loadBuildPage model org repo buildNumber =
+loadBuildPage : Model -> Org -> Repo -> BuildNumber -> Maybe String -> ( Model, Cmd Msg )
+loadBuildPage model org repo buildNumber frag =
     let
         modelBuilds =
             model.builds
@@ -1526,7 +1526,7 @@ loadBuildPage model org repo buildNumber =
                 model.builds
     in
     -- Fetch build from Api
-    ( { model | page = Pages.Build org repo buildNumber, builds = builds, build = Loading, steps = NotAsked, logs = [] }
+    ( { model | page = Pages.Build org repo buildNumber frag, builds = builds, build = Loading, steps = NotAsked, logs = [] }
     , Cmd.batch
         [ getBuilds model org repo
         , getBuild model org repo buildNumber

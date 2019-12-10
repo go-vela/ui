@@ -9,7 +9,7 @@ module Routes exposing (Org, Repo, Route(..), href, match, routeToUrl)
 import Html
 import Html.Attributes as Attr
 import Url exposing (Url)
-import Url.Parser exposing ((</>), (<?>), Parser, map, oneOf, parse, s, string, top)
+import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
 import Vela exposing (AuthParams, BuildNumber)
 
@@ -32,7 +32,7 @@ type Route
     | Hooks Org Repo
     | Settings Org Repo
     | RepositoryBuilds Org Repo
-    | Build Org Repo BuildNumber
+    | Build Org Repo BuildNumber (Maybe String)
     | Login
     | Logout
     | Authenticate AuthParams
@@ -54,7 +54,7 @@ routes =
         , map Hooks (string </> string </> s "hooks")
         , map Settings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string)
-        , map Build (string </> string </> string)
+        , map Build (string </> string </> string </> fragment identity)
         , map NotFound (s "404")
         ]
 
@@ -99,8 +99,8 @@ routeToUrl route =
         Hooks org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks"
 
-        Build org repo num ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ num
+        Build org repo num frag ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ num ++ Maybe.withDefault "" frag
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

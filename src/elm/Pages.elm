@@ -16,7 +16,7 @@ type Page
     | Hooks Org Repo
     | Settings Org Repo
     | RepositoryBuilds Org Repo
-    | Build Org Repo BuildNumber
+    | Build Org Repo BuildNumber (Maybe String)
     | Login
     | Logout
     | Authenticate AuthParams
@@ -47,8 +47,8 @@ toRoute page =
         RepositoryBuilds org repo ->
             Routes.RepositoryBuilds org repo
 
-        Build org repo buildNumber ->
-            Routes.Build org repo buildNumber
+        Build org repo buildNumber frag ->
+            Routes.Build org repo buildNumber frag
 
         Login ->
             Routes.Login

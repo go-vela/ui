@@ -107,7 +107,7 @@ viewBuildItem now org repo build =
             [ text build.sender ]
 
         id =
-            [ a [ Util.testAttribute "build-number", Routes.href <| Routes.Build org repo <| String.fromInt build.number ] [ text <| "#" ++ String.fromInt build.number ] ]
+            [ a [ Util.testAttribute "build-number", Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing ] [ text <| "#" ++ String.fromInt build.number ] ]
 
         age =
             [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
@@ -331,7 +331,7 @@ viewBuildHistory now timezone page org repo builds =
     let
         show =
             case page of
-                Pages.Build _ _ _ ->
+                Pages.Build _ _ _ _ ->
                     True
 
                 _ ->
@@ -371,7 +371,7 @@ recentBuild now timezone org repo build idx =
     in
     a
         [ class "-build"
-        , Routes.href <| Routes.Build org repo <| String.fromInt build.number
+        , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
         ]
         [ icon |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
