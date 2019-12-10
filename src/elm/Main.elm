@@ -276,7 +276,7 @@ type Msg
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
-    | StepsResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
+    | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
       -- Other
@@ -452,12 +452,12 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        StepsResponse org repo buildNumber response ->
+        StepsResponse org repo buildNumber frag response ->
             case response of
                 Ok ( _, stepsResponse ) ->
                     let
                         steps =
-                            RemoteData.succeed stepsResponse
+                            RemoteData.succeed <| expandStepFrag frag stepsResponse
 
                         cmd =
                             getBuildStepsLogs model org repo buildNumber steps
@@ -632,6 +632,19 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
+
+
+expandStepFrag : Maybe String -> Steps -> Steps
+expandStepFrag frag steps =
+    let
+        frags =
+            String.split (Maybe.withDefault "" frag) ":"
+    in
+    if List.length frags > 0 then
+        updateIf (\_ -> True) (\step -> step) steps
+
+    else
+        steps
 
 
 
@@ -1530,7 +1543,7 @@ loadBuildPage model org repo buildNumber frag =
     , Cmd.batch
         [ getBuilds model org repo
         , getBuild model org repo buildNumber
-        , getAllBuildSteps model org repo buildNumber
+        , getAllBuildSteps model org repo buildNumber frag
         ]
     )
 
@@ -1902,9 +1915,9 @@ getBuild model org repo buildNumber =
     Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
 
 
-getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-getAllBuildSteps model org repo buildNumber =
-    Api.try (StepsResponse org repo buildNumber) <| Api.getSteps model Nothing Nothing org repo buildNumber
+getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> Maybe String -> Cmd Msg
+getAllBuildSteps model org repo buildNumber frag =
+    Api.try (StepsResponse org repo buildNumber frag) <| Api.getSteps model Nothing Nothing org repo buildNumber
 
 
 getBuildStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg
