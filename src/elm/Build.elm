@@ -283,13 +283,13 @@ viewStepLogs step logs =
                 ]
 
         _ ->
-            viewLogs <| getStepLog step logs
+            viewLogs step.lineFocus <| getStepLog step logs
 
 
 {-| viewLogs : renders a build step logs
 -}
-viewLogs : Maybe (WebData Log) -> Html msg
-viewLogs log =
+viewLogs : Maybe Int -> Maybe (WebData Log) -> Html msg
+viewLogs lineFocus log =
     let
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
@@ -300,10 +300,10 @@ viewLogs log =
                                 (\idx ->
                                     \line ->
                                         div []
-                                            [ div [ class "-code" ]
+                                            [ div [ class "-code", lineFocusClass lineFocus (idx + 1) ]
                                                 [ span [ class "-line-num" ]
                                                     [ text <| Util.toTwoDigits <| idx + 1 ]
-                                                , code [] [ text line ]
+                                                , code [] [ text <| String.trim line ]
                                                 ]
                                             ]
                                 )
@@ -322,6 +322,20 @@ viewLogs log =
                     Util.smallLoaderWithText "loading logs..."
     in
     div [ class "log" ] [ content ]
+
+
+lineFocusClass : Maybe Int -> Int -> Html.Attribute msg
+lineFocusClass lineFocus lineNumber =
+    case lineFocus of
+        Just line ->
+            if line == lineNumber then
+                class "-focus"
+
+            else
+                class ""
+
+        Nothing ->
+            class ""
 
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page

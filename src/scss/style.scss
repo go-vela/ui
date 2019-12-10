@@ -1111,9 +1111,9 @@ button.-solid {
   background-size: 100% 2em;
 }
 .step .-status {
-  margin-top: 18px;
-  margin-right: 36px;
-  margin-left: 36px;
+  margin-top: 0.65em;
+  margin-right: 1em;
+  margin-left: 2.35em;
 }
 
 .step .-icon-container {
@@ -1179,8 +1179,8 @@ button.-solid {
 }
 
 .step .summary {
-  padding-top: 0.7em;
-  padding-bottom: 0.7em;
+  padding-top: 0.35em;
+  padding-bottom: 0.35em;
 }
 
 .step .-info {
@@ -1197,23 +1197,28 @@ button.-solid {
 
 .log {
   margin: 1px;
-  padding: 1em;
+  padding-bottom: 1em;
   padding-top: 0.5em;
 
   background-color: var(--color-bg-darker);
 
-  font-size: 0.9em;
+  font-size: 14px;
   font-weight: 300;
 }
 
-.log-line {
-  margin: 0 1em;
+.log .-code {
+  margin: 0 0.5em;
+  padding-left: 1em;
+}
+
+.log .-code.-focus {
+  background: var(--color-gray);
 }
 
 .log .-code .-line-num {
-  margin-right: 0.5em;
+  margin-right: 1em;
 
-  color: var(--color-gray);
+  color: var(--color-offwhite);
 
   font-family: var(--font-code);
 }

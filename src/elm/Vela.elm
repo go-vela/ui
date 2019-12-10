@@ -522,6 +522,7 @@ type alias Step =
     , runtime : String
     , distribution : String
     , viewing : Bool
+    , lineFocus : Maybe Int
     }
 
 
@@ -545,7 +546,10 @@ decodeStep =
         |> optional "host" string ""
         |> optional "runtime" string ""
         |> optional "distribution" string ""
-        |> optional "viewing" bool False
+        -- "viewing"
+        |> hardcoded False
+        -- "lineFocus"
+        |> hardcoded Nothing
 
 
 {-| decodeSteps : decodes json from vela into list of steps

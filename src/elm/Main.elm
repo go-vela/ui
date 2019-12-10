@@ -8,6 +8,7 @@ module Main exposing (main)
 
 import Alerts exposing (Alert)
 import Api
+import Array
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Build
@@ -457,7 +458,7 @@ update msg model =
                 Ok ( _, stepsResponse ) ->
                     let
                         steps =
-                            RemoteData.succeed <| expandStepFrag frag stepsResponse
+                            RemoteData.succeed <| expandBuildFrag frag stepsResponse
 
                         cmd =
                             getBuildStepsLogs model org repo buildNumber steps
@@ -634,17 +635,32 @@ update msg model =
             ( model, Cmd.none )
 
 
-expandStepFrag : Maybe String -> Steps -> Steps
-expandStepFrag frag steps =
+expandBuildFrag : Maybe String -> Steps -> Steps
+expandBuildFrag frag steps =
     let
         frags =
-            String.split (Maybe.withDefault "" frag) ":"
-    in
-    if List.length frags > 0 then
-        updateIf (\_ -> True) (\step -> step) steps
+            Array.fromList <| String.split ":" (Maybe.withDefault "" frag)
 
-    else
-        steps
+        target =
+            Maybe.withDefault "" <| Array.get 0 frags
+
+        number =
+            String.toInt <| Maybe.withDefault "" <| Array.get 1 frags
+
+        line =
+            String.toInt <| Maybe.withDefault "" <| Array.get 2 frags
+    in
+    case target of
+        "step" ->
+            case number of
+                Just n ->
+                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = line }) steps
+
+                Nothing ->
+                    steps
+
+        _ ->
+            steps
 
 
 
