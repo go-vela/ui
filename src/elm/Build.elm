@@ -315,8 +315,8 @@ viewLogs log =
                     else
                         code [] [ text "No logs for this step." ]
 
-                RemoteData.Failure err ->
-                    code [] [ text "error:" ]
+                RemoteData.Failure _ ->
+                    code [] [ text "error fetching logs for this step." ]
 
                 _ ->
                     Util.smallLoaderWithText "loading logs..."

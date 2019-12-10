@@ -7,10 +7,11 @@ context("org/repo Builds Page", () => {
       cy.login("/someorg/somerepo/1");
       cy.get("[data-test=steps]").as("steps");
       cy.get("[data-test=step]").as("step");
-      cy.get("[data-test=logs]").as("logs");
       cy.get("[data-test=step-header]")
         .children()
         .as("stepHeaders");
+      cy.get("@stepHeaders").children().click({multiple: true, force: true});
+      cy.get("[data-test=logs]").as("logs");
     });
 
     it("steps should show", () => {
@@ -71,10 +72,11 @@ context("org/repo Builds Page", () => {
       cy.login("/someorg/somerepo/5");
       cy.get("[data-test=steps]").as("steps");
       cy.get("[data-test=step]").as("step");
-      cy.get("[data-test=logs]").as("logs");
       cy.get("[data-test=step-header]")
         .children()
         .as("stepHeaders");
+      cy.get("@stepHeaders").children().click({multiple: true, force: true});
+      cy.get("[data-test=logs]").as("logs");
       cy.get("[data-test=full-build]").as("build");
       cy.get("@build")
         .get("[data-test=build-status]")
