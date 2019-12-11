@@ -57,7 +57,7 @@ import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
-import List.Extra exposing (setIf)
+import List.Extra exposing (setIf, updateIf)
 import Pages exposing (Page(..))
 import Pages.Hooks
 import Pages.Settings
@@ -88,7 +88,6 @@ import Vela
         , Builds
         , BuildsModel
         , Field
-        , Hook
         , HookBuilds
         , Hooks
         , Log
@@ -253,6 +252,7 @@ type Msg
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
+    | ClickStep Org Repo BuildNumber StepNumber
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -278,7 +278,7 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | StepsResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
-    | StepLogResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
+    | StepLogResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
@@ -467,7 +467,7 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        StepLogResponse _ _ _ _ response ->
+        StepLogResponse response ->
             case response of
                 Ok ( _, log ) ->
                     ( updateLogs model log, Cmd.none )
@@ -542,6 +542,15 @@ update msg model =
                     clickHook model org repo buildNumber
             in
             ( { model | hookBuilds = hookBuilds }
+            , action
+            )
+
+        ClickStep org repo buildNumber stepNumber ->
+            let
+                ( steps, action ) =
+                    clickStep model org repo buildNumber stepNumber
+            in
+            ( { model | steps = steps }
             , action
             )
 
@@ -876,7 +885,7 @@ viewContent model =
 
         Pages.Build org repo num ->
             ( "Build #" ++ num ++ " - " ++ String.join "/" [ org, repo ]
-            , viewFullBuild model.time org repo model.build model.steps model.logs
+            , viewFullBuild model.time org repo model.build model.steps model.logs ClickStep
             )
 
         Pages.Login ->
@@ -1605,7 +1614,23 @@ stepsIDs steps =
 -}
 logIDs : Logs -> List Int
 logIDs logs =
-    List.map (\log -> log.id) logs
+    List.map (\log -> log.id) <| successfulLogs logs
+
+
+{-| logIDs : extracts successful logs from list of logs and returns List Log
+-}
+successfulLogs : Logs -> List Log
+successfulLogs logs =
+    List.filterMap
+        (\log ->
+            case log of
+                Success log_ ->
+                    Just log_
+
+                _ ->
+                    Nothing
+        )
+        logs
 
 
 {-| updateStep : takes model and incoming step and updates the list of steps if necessary
@@ -1625,7 +1650,13 @@ updateStep model incomingStep =
             List.member incomingStep.number <| stepsIDs steps
     in
     if stepExists then
-        { model | steps = RemoteData.succeed <| setIf (\step -> incomingStep.number == step.number) incomingStep steps }
+        { model
+            | steps =
+                RemoteData.succeed <|
+                    updateIf (\step -> incomingStep.number == step.number)
+                        (\step -> { incomingStep | viewing = step.viewing })
+                        steps
+        }
 
     else
         { model | steps = RemoteData.succeed <| incomingStep :: steps }
@@ -1643,10 +1674,37 @@ updateLogs model incomingLog =
             List.member incomingLog.id <| logIDs logs
     in
     if logExists then
-        { model | logs = setIf (\log -> incomingLog.id == log.id && incomingLog.data /= log.data) incomingLog logs }
+        { model | logs = updateLog incomingLog logs }
+
+    else if incomingLog.id /= 0 then
+        { model | logs = addLog incomingLog logs }
 
     else
-        { model | logs = incomingLog :: logs }
+        model
+
+
+{-| updateLogs : takes incoming log and logs and updates the appropriate log data
+-}
+updateLog : Log -> Logs -> Logs
+updateLog incomingLog logs =
+    setIf
+        (\log ->
+            case log of
+                Success log_ ->
+                    incomingLog.id == log_.id && incomingLog.data /= log_.data
+
+                _ ->
+                    True
+        )
+        (RemoteData.succeed incomingLog)
+        logs
+
+
+{-| addLog : takes incoming log and logs and adds log when not present
+-}
+addLog : Log -> Logs -> Logs
+addLog incomingLog logs =
+    RemoteData.succeed incomingLog :: logs
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
@@ -1764,6 +1822,40 @@ clickHook model org repo buildNumber =
         )
 
 
+{-| clickStep : takes model org repo and step number and fetches step information from the api
+-}
+clickStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> ( WebData Steps, Cmd Msg )
+clickStep model org repo buildNumber stepNumber =
+    if stepNumber == "0" then
+        ( model.steps
+        , Cmd.none
+        )
+
+    else
+        let
+            ( steps, action ) =
+                case model.steps of
+                    Success steps_ ->
+                        ( RemoteData.succeed <| toggleStepView steps_ stepNumber
+                        , getBuildStepLogs model org repo buildNumber stepNumber
+                        )
+
+                    _ ->
+                        ( model.steps, Cmd.none )
+        in
+        ( steps
+        , action
+        )
+
+
+toggleStepView : Steps -> String -> Steps
+toggleStepView steps stepNumber =
+    List.Extra.updateIf
+        (\step -> String.fromInt step.number == stepNumber)
+        (\step -> { step | viewing = not step.viewing })
+        steps
+
+
 {-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
 -}
 receiveHookBuild : BuildIdentifier -> WebData Build -> HookBuilds -> HookBuilds
@@ -1822,7 +1914,7 @@ getBuildStep model org repo buildNumber stepNumber =
 
 getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg
 getBuildStepLogs model org repo buildNumber stepNumber =
-    Api.try (StepLogResponse org repo buildNumber stepNumber) <| Api.getStepLogs model org repo buildNumber stepNumber
+    Api.try StepLogResponse <| Api.getStepLogs model org repo buildNumber stepNumber
 
 
 getBuildStepsLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> Cmd Msg
@@ -1839,7 +1931,7 @@ getBuildStepsLogs model org repo buildNumber steps =
     Cmd.batch <|
         List.map
             (\step ->
-                if True then
+                if step.viewing then
                     getBuildStepLogs model org repo buildNumber <| String.fromInt step.number
 
                 else

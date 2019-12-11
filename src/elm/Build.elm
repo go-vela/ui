@@ -17,6 +17,7 @@ import Base64 exposing (decode)
 import DateFormat.Relative exposing (relativeTime)
 import Html exposing (Html, a, code, details, div, h1, p, span, summary, text)
 import Html.Attributes exposing (attribute, class, classList, href)
+import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
@@ -27,6 +28,7 @@ import Util
 import Vela
     exposing
         ( Build
+        , BuildNumber
         , Builds
         , Log
         , Logs
@@ -34,6 +36,7 @@ import Vela
         , Repo
         , Status
         , Step
+        , StepNumber
         , Steps
         )
 
@@ -171,21 +174,21 @@ buildError build =
 
 {-| viewFullBuild : renders entire build based on current application time
 -}
-viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> Html msg
-viewFullBuild now org repo build steps logs =
+viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
+viewFullBuild now org repo build steps logs clickAction =
     let
-        buildPreview =
+        ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    viewBuildItem now org repo bld
+                    ( viewBuildItem now org repo bld, String.fromInt bld.number )
 
                 _ ->
-                    Util.largeLoader
+                    ( Util.largeLoader, "0" )
 
         buildSteps =
             case steps of
                 RemoteData.Success steps_ ->
-                    viewSteps now steps_ logs
+                    viewSteps now org repo buildNumber steps_ logs clickAction
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
@@ -206,13 +209,13 @@ viewFullBuild now org repo build steps logs =
 
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Steps -> Logs -> Html msg
-viewSteps now steps logs =
+viewSteps : Posix -> Org -> Repo -> BuildNumber -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
+viewSteps now org repo buildNumber steps logs clickAction =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
                 (\step ->
-                    viewStep now step steps logs
+                    viewStep now org repo buildNumber step steps logs clickAction
                 )
             <|
                 List.sortBy (\step -> step.number) <|
@@ -222,22 +225,27 @@ viewSteps now steps logs =
 
 {-| viewStep : renders single build step
 -}
-viewStep : Posix -> Step -> Steps -> Logs -> Html msg
-viewStep now step steps logs =
+viewStep : Posix -> Org -> Repo -> BuildNumber -> Step -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
+viewStep now org repo buildNumber step steps logs clickAction =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
-        , div [ classList [ ( "-view", True ), ( "-running", step.status == Vela.Running ) ] ] [ viewStepDetails now step logs ]
+        , div [ classList [ ( "-view", True ), ( "-running", step.status == Vela.Running ) ] ]
+            [ viewStepDetails now org repo buildNumber step logs clickAction ]
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : Posix -> Step -> Logs -> Html msg
-viewStepDetails now step logs =
+viewStepDetails : Posix -> Org -> Repo -> BuildNumber -> Step -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
+viewStepDetails now org repo buildNumber step logs clickAction =
     let
         stepSummary =
-            [ summary [ class "summary", Util.testAttribute "step-header" ]
+            [ summary
+                [ class "summary"
+                , Util.testAttribute "step-header"
+                , onClick (clickAction org repo buildNumber <| String.fromInt step.number)
+                ]
                 [ div [ class "-info" ]
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
@@ -246,7 +254,7 @@ viewStepDetails now step logs =
             , viewStepLogs step logs
             ]
     in
-    details [ class "details" ] stepSummary
+    details [ class "details", Util.open step.viewing ] stepSummary
 
 
 {-| viewStepIcon : renders a build step status icon
@@ -280,32 +288,38 @@ viewStepLogs step logs =
 
 {-| viewLogs : renders a build step logs
 -}
-viewLogs : Maybe Log -> Html msg
+viewLogs : Maybe (WebData Log) -> Html msg
 viewLogs log =
     let
-        decoded =
-            decodeLog log
-
         content =
-            if logNotEmpty decoded then
-                div [ Util.testAttribute "logs" ] <|
-                    List.indexedMap
-                        (\idx ->
-                            \line ->
-                                div []
-                                    [ div [ class "-code" ]
-                                        [ span [ class "-line-num" ]
-                                            [ text <| Util.toTwoDigits <| idx + 1 ]
-                                        , code [] [ text line ]
-                                        ]
-                                    ]
-                        )
-                    <|
-                        List.filter (\line -> not <| String.isEmpty line) <|
-                            String.lines decoded
+            case Maybe.withDefault RemoteData.NotAsked log of
+                RemoteData.Success _ ->
+                    if logNotEmpty <| decodeLog log then
+                        div [ Util.testAttribute "logs" ] <|
+                            List.indexedMap
+                                (\idx ->
+                                    \line ->
+                                        div []
+                                            [ div [ class "-code" ]
+                                                [ span [ class "-line-num" ]
+                                                    [ text <| Util.toTwoDigits <| idx + 1 ]
+                                                , code [] [ text line ]
+                                                ]
+                                            ]
+                                )
+                            <|
+                                List.filter (\line -> not <| String.isEmpty line) <|
+                                    String.lines <|
+                                        decodeLog log
 
-            else
-                code [] [ text "No logs for this step." ]
+                    else
+                        code [] [ text "No logs for this step." ]
+
+                RemoteData.Failure _ ->
+                    code [] [ text "error fetching logs for this step." ]
+
+                _ ->
+                    Util.smallLoaderWithText "loading logs..."
     in
     div [ class "log" ] [ content ]
 
@@ -546,7 +560,7 @@ stepClasses step steps =
 
 {-| decodeLog : returns a string from a Maybe Log and decodes it from base64
 -}
-decodeLog : Maybe Log -> String
+decodeLog : Maybe (WebData Log) -> String
 decodeLog log =
     case decode <| toString log of
         Ok str ->
@@ -558,11 +572,16 @@ decodeLog log =
 
 {-| toString : returns a string from a Maybe Log
 -}
-toString : Maybe Log -> String
+toString : Maybe (WebData Log) -> String
 toString log =
     case log of
         Just log_ ->
-            log_.data
+            case log_ of
+                RemoteData.Success l ->
+                    l.data
+
+                _ ->
+                    ""
 
         Nothing ->
             ""
@@ -577,6 +596,17 @@ logNotEmpty log =
 
 {-| getStepLog : takes step and logs and returns the log corresponding to that step
 -}
-getStepLog : Step -> Logs -> Maybe Log
+getStepLog : Step -> Logs -> Maybe (WebData Log)
 getStepLog step logs =
-    List.head (List.filter (\log -> log.step_id == step.id) logs)
+    List.head
+        (List.filter
+            (\log ->
+                case log of
+                    RemoteData.Success log_ ->
+                        log_.step_id == step.id
+
+                    _ ->
+                        False
+            )
+            logs
+        )

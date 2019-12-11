@@ -521,6 +521,7 @@ type alias Step =
     , host : String
     , runtime : String
     , distribution : String
+    , viewing : Bool
     }
 
 
@@ -544,6 +545,7 @@ decodeStep =
         |> optional "host" string ""
         |> optional "runtime" string ""
         |> optional "distribution" string ""
+        |> optional "viewing" bool False
 
 
 {-| decodeSteps : decodes json from vela into list of steps
@@ -583,7 +585,7 @@ decodeLog =
 
 
 type alias Logs =
-    List Log
+    List (WebData Log)
 
 
 
