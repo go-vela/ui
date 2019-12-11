@@ -458,7 +458,6 @@ getStepLogs model org repository buildNumber stepNumber =
 -}
 getHooks : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Hooks
 getHooks model maybePage maybePerPage org repository =
-    -- we are using the max perPage setting of 100 to reduce the number of calls
     get model.velaAPI (Endpoint.Hooks maybePage maybePerPage org repository) decodeHooks
         |> withAuth model.session
 
