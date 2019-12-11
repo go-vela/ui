@@ -556,10 +556,24 @@ update msg model =
         GotoPage pageNumber ->
             case model.page of
                 Pages.RepositoryBuilds org repo _ maybePerPage ->
-                    ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage )
+                    let
+                        currentBuilds =
+                            model.builds
+
+                        loadingBuilds =
+                            { currentBuilds | builds = Loading }
+                    in
+                    ( { model | builds = loadingBuilds }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage )
 
                 Pages.Hooks org repo _ maybePerPage ->
-                    ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage )
+                    let
+                        currentHooks =
+                            model.hooks
+
+                        loadingHooks =
+                            { currentHooks | hooks = Loading }
+                    in
+                    ( { model | hooks = loadingHooks }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage )
 
                 _ ->
                     ( model, Cmd.none )
