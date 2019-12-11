@@ -898,7 +898,7 @@ viewContent model =
                             " (page " ++ String.fromInt p ++ ")"
             in
             ( String.join "/" [ org, repo ] ++ " hooks" ++ page
-            , div [] 
+            , div []
                 [ Pager.view model.hooks.pager GotoPage
                 , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo ClickHook
                 , Pager.view model.hooks.pager GotoPage
