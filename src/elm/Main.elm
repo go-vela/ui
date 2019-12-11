@@ -59,6 +59,7 @@ import Interop
 import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
 import List.Extra exposing (setIf)
+import Pager
 import Pages exposing (Page(..))
 import Pages.Hooks
 import Pages.Settings
@@ -91,6 +92,7 @@ import Vela
         , Field
         , HookBuilds
         , Hooks
+        , HooksModel
         , Log
         , Logs
         , Org
@@ -112,6 +114,7 @@ import Vela
         , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
+        , defaultHooks
         , defaultRepository
         , defaultSession
         , encodeAddRepository
@@ -141,7 +144,7 @@ type alias Model =
     , currentRepos : WebData Repositories
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
-    , hooks : WebData Hooks
+    , hooks : HooksModel
     , builds : BuildsModel
     , build : WebData Build
     , steps : WebData Steps
@@ -193,7 +196,7 @@ init flags url navKey =
             , currentRepos = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
-            , hooks = NotAsked
+            , hooks = defaultHooks
             , builds = defaultBuilds
             , build = NotAsked
             , steps = NotAsked
@@ -253,6 +256,7 @@ type Msg
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
+    | GotoPage Pagination.Page
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -433,16 +437,20 @@ update msg model =
                     ( model, addError error )
 
         BuildsResponse org repo response ->
+            let
+                currentBuilds =
+                    model.builds
+            in
             case response of
-                Ok ( _, builds ) ->
+                Ok ( meta, builds ) ->
                     let
-                        currentBuilds =
-                            model.builds
+                        pager =
+                            Pagination.get meta.headers
                     in
-                    ( { model | builds = { currentBuilds | org = org, repo = repo, builds = RemoteData.succeed builds } }, Cmd.none )
+                    ( { model | builds = { currentBuilds | org = org, repo = repo, builds = RemoteData.succeed builds, pager = pager } }, Cmd.none )
 
                 Err error ->
-                    ( model, addError error )
+                    ( { model | builds = { currentBuilds | builds = toFailure error } }, addError error )
 
         StepResponse _ _ _ _ response ->
             case response of
@@ -545,6 +553,17 @@ update msg model =
             , action
             )
 
+        GotoPage pageNumber ->
+            case model.page of
+                Pages.RepositoryBuilds org repo _ maybePerPage ->
+                    ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage )
+
+                Pages.Hooks org repo _ maybePerPage ->
+                    ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage )
+
+                _ ->
+                    ( model, Cmd.none )
+
         RestartBuild org repo buildNumber ->
             ( model
             , restartBuild model org repo buildNumber
@@ -555,12 +574,20 @@ update msg model =
                 |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Error "Error" error)
 
         HooksResponse _ _ response ->
+            let
+                currentHooks =
+                    model.hooks
+            in
             case response of
-                Ok ( _, hooks ) ->
-                    ( { model | hooks = RemoteData.succeed hooks }, Cmd.none )
+                Ok ( meta, hooks ) ->
+                    let
+                        pager =
+                            Pagination.get meta.headers
+                    in
+                    ( { model | hooks = { currentHooks | hooks = RemoteData.succeed hooks, pager = pager } }, Cmd.none )
 
                 Err error ->
-                    ( { model | hooks = toFailure error }, addError error )
+                    ( { model | hooks = { currentHooks | hooks = toFailure error } }, addError error )
 
         HookBuildResponse org repo buildNumber response ->
             case response of
@@ -871,7 +898,11 @@ viewContent model =
                             " (page " ++ String.fromInt p ++ ")"
             in
             ( String.join "/" [ org, repo ] ++ " hooks" ++ page
-            , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo ClickHook
+            , div [] 
+                [ Pager.view model.hooks.pager GotoPage
+                , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo ClickHook
+                , Pager.view model.hooks.pager GotoPage
+                ]
             )
 
         Pages.Settings org repo ->
@@ -891,7 +922,7 @@ viewContent model =
                             " (page " ++ String.fromInt p ++ ")"
             in
             ( String.join "/" [ org, repo ] ++ " builds" ++ page
-            , viewRepositoryBuilds model.builds.builds model.time org repo
+            , div [] [ Pager.view model.builds.pager GotoPage, viewRepositoryBuilds model.builds model.time org repo, Pager.view model.builds.pager GotoPage ]
             )
 
         Pages.Build org repo num ->
@@ -1477,7 +1508,14 @@ setNewPage route model =
 loadHooksPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadHooksPage model org repo maybePage maybePerPage =
     -- Fetch builds from Api
-    ( { model | page = Pages.Hooks org repo maybePage maybePerPage, hooks = Loading, hookBuilds = Dict.empty }
+    let
+        loadedHooks =
+            model.hooks
+
+        loadingHooks =
+            { loadedHooks | hooks = Loading }
+    in
+    ( { model | page = Pages.Hooks org repo maybePage maybePerPage, hooks = loadingHooks, hookBuilds = Dict.empty }
     , Cmd.batch
         [ getHooks model org repo maybePage maybePerPage
         ]

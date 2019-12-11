@@ -73,7 +73,7 @@ Cypress.Commands.add("stubBuilds", () => {
   cy.fixture("builds_10b.json").as("buildsPage2");
   cy.route({
     method: "GET",
-    url: "*api/v1/repos/*/*/builds",
+    url: "*api/v1/repos/*/*/builds*",
     headers: {
       link: `<http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=2&per_page=10>; rel="last",`
     },

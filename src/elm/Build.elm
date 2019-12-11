@@ -28,6 +28,7 @@ import Vela
     exposing
         ( Build
         , Builds
+        , BuildsModel
         , Log
         , Logs
         , Org
@@ -44,8 +45,8 @@ import Vela
 
 {-| viewRepositoryBuilds : renders builds
 -}
-viewRepositoryBuilds : WebData Builds -> Posix -> String -> String -> Html msg
-viewRepositoryBuilds model now org repo =
+viewRepositoryBuilds : BuildsModel -> Posix -> String -> String -> Html msg
+viewRepositoryBuilds buildsModel now org repo =
     let
         none =
             div []
@@ -58,7 +59,7 @@ viewRepositoryBuilds model now org repo =
                     ]
                 ]
     in
-    case model of
+    case buildsModel.builds of
         RemoteData.Success builds ->
             if List.length builds == 0 then
                 none

@@ -1,4 +1,27 @@
 context("org/repo View Repository Builds Page", () => {
+  context("logged in and server returning 5 builds", () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route({
+        method: "GET",
+        url: "*api/v1/repos/*/*/builds*",
+        response: "fixture:builds_5.json"
+      });
+      cy.stubBuild();
+      cy.login("/someorg/somerepo");
+
+      cy.get("[data-test=builds]").as("builds");
+    });
+
+    it("builds should show", () => {
+      cy.get("@builds").should("be.visible");
+    });
+
+    it("pagination controls should not show", () => {
+      cy.get("[data-test=pager-previous]").should("not.be.visible");
+    });
+  });
+
   context("logged in and server returning 10 builds and running build", () => {
     beforeEach(() => {
       cy.server();
@@ -41,6 +64,15 @@ context("org/repo View Repository Builds Page", () => {
       cy.get('[data-test="crumb-somerepo-(page-2)"]')
         .should("exist")
         .should("contain", "page 2");
+    });
+
+    it("loads the first page when hitting the 'previous' button", () => {
+      cy.visit("/someorg/somerepo?page=2");
+      cy.get("[data-test=pager-previous]")
+        .should("have.length", 2)
+        .first()
+        .click();
+      cy.location("pathname").should("eq", "/someorg/somerepo");
     });
 
     it("builds should show commit hash", () => {

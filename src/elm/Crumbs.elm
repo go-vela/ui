@@ -95,7 +95,7 @@ toPath page =
                 Pages.AddRepositories ->
                     [ overviewPage, accountPage, addRepositoriesPage ]
 
-                Pages.Hooks org repo maybePage maybePerPage ->
+                Pages.Hooks org repo maybePage _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -104,12 +104,7 @@ toPath page =
                             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing )
 
                         pageNumber =
-                            case maybePage of
-                                Nothing ->
-                                    ""
-
-                                Just num ->
-                                    " (page " ++ String.fromInt num ++ ")"
+                            pageToString maybePage
                     in
                     [ overviewPage, organizationPage, repoBuilds, ( "Hooks" ++ pageNumber, Nothing ) ]
 
@@ -129,12 +124,7 @@ toPath page =
                             ( org, Nothing )
 
                         pageNumber =
-                            case maybePage of
-                                Nothing ->
-                                    ""
-
-                                Just num ->
-                                    " (page " ++ String.fromInt num ++ ")"
+                            pageToString maybePage
                     in
                     [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage ) ]
 
@@ -152,3 +142,19 @@ toPath page =
                     []
     in
     pages
+
+
+{-| renderPageNumber : small helper to turn page number to a string to display in crumbs
+-}
+pageToString : Maybe Int -> String
+pageToString maybePage =
+    case maybePage of
+        Nothing ->
+            ""
+
+        Just num ->
+            if num > 1 then
+                " (page " ++ String.fromInt num ++ ")"
+
+            else
+                ""

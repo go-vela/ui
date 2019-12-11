@@ -63,6 +63,11 @@ context("Hooks", () => {
     it("hooks table should show 5 hooks", () => {
       cy.get("[data-test=hook]").should("have.length", 5);
     });
+
+    it("pagination controls should not show", () => {
+      cy.get("[data-test=pager-previous]").should("not.be.visible");
+    });
+
     context("hook", () => {
       beforeEach(() => {
         cy.get("[data-test=hook]")
@@ -179,6 +184,15 @@ context("Hooks", () => {
       cy.get('[data-test="crumb-hooks-(page-2)"]')
         .should("exist")
         .should("contain", "page 2");
+    });
+
+    it("loads the first page when hitting the 'previous' button", () => {
+      cy.visit("/github/octocat/hooks?page=2");
+      cy.get("[data-test=pager-previous]")
+        .should("have.length", 2)
+        .first()
+        .click();
+      cy.location("pathname").should("eq", "/github/octocat/hooks");
     });
   });
 });
