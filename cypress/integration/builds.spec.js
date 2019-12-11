@@ -1,4 +1,32 @@
 context("org/repo View Repository Builds Page", () => {
+  context("server returning builds error", () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route({
+        method: "GET",
+        url: "*api/v1/repos/*/*/builds*",
+        status: 500,
+        response: "server error"
+      });
+      cy.stubBuild();
+      cy.login("/someorg/somerepo");
+    });
+
+    it("builds should not show", () => {
+      cy.get("[data-test=builds]").should("not.be.visible");
+    });
+    it("error should show", () => {
+      cy.get("[data-test=alerts]")
+        .should("exist")
+        .contains("Error");
+    });
+    it("error banner should show", () => {
+      cy.get("[data-test=builds-error]")
+        .should("exist")
+        .contains("try again later");
+    });
+  });
+
   context("logged in and server returning 5 builds", () => {
     beforeEach(() => {
       cy.server();

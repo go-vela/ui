@@ -77,7 +77,7 @@ viewRepositoryBuilds buildsModel now org repo =
             Util.largeLoader
 
         RemoteData.Failure _ ->
-            div []
+            div [ Util.testAttribute "builds-error" ]
                 [ p []
                     [ text <|
                         "There was an error fetching builds for this repository, please try again later!"
