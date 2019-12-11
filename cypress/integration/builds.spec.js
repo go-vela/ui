@@ -64,6 +64,8 @@ context("org/repo View Repository Builds Page", () => {
       cy.get('[data-test="crumb-somerepo-(page-2)"]')
         .should("exist")
         .should("contain", "page 2");
+
+      cy.get("[data-test=pager-next]").should("be.disabled");
     });
 
     it("loads the first page when hitting the 'previous' button", () => {
