@@ -1211,8 +1211,13 @@ button.-solid {
   padding-left: 1em;
 }
 
-.log .-code.-focus {
-  background: var(--color-gray);
+.log .-code .-line {
+  padding-left: 1em;
+}
+
+.log .-code .-focus {
+  background: var(--color-focus);
+  display: block;
 }
 
 .log .-code .-line-num {
@@ -1223,10 +1228,11 @@ button.-solid {
   font-family: var(--font-code);
   > button {
     font-size: 14px;
-    color: var(--color-offwhite);
+    color: var(--color-cyan);
     background: none;
     transition: none;
     padding: 0;
+    margin: 0;
     font-family: inherit;
     font-weight: 300;
     &:hover {

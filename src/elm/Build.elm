@@ -318,10 +318,12 @@ viewLogs stepNumber lineFocus log clickAction =
                                 (\idx ->
                                     \line ->
                                         div []
-                                            [ div [ class "-code", lineFocusClass lineFocus (idx + 1) ]
-                                                [ span [ class "-line-num" ]
-                                                    [ button [ onClick <| clickAction stepNumber (idx + 1) ] [ text <| Util.toTwoDigits <| idx + 1 ] ]
-                                                , code [] [ text <| String.trim line ]
+                                            [ div [ class "-code" ]
+                                                [ span [ class "-line", lineFocusClass lineFocus (idx + 1) ]
+                                                    [ span [ class "-line-num" ]
+                                                        [ button [ onClick <| clickAction stepNumber (idx + 1) ] [ text <| Util.toTwoDigits <| idx + 1 ] ]
+                                                    , code [] [ text <| String.trim line ]
+                                                    ]
                                                 ]
                                             ]
                                 )
