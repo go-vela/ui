@@ -15,7 +15,20 @@ module Build exposing
 
 import Base64 exposing (decode)
 import DateFormat.Relative exposing (relativeTime)
-import Html exposing (Html, a, code, details, div, h1, p, span, summary, text)
+import Html
+    exposing
+        ( Html
+        , a
+        , button
+        , code
+        , details
+        , div
+        , h1
+        , p
+        , span
+        , summary
+        , text
+        )
 import Html.Attributes exposing (attribute, class, classList, href)
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
@@ -174,8 +187,8 @@ buildError build =
 
 {-| viewFullBuild : renders entire build based on current application time
 -}
-viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
-viewFullBuild now org repo build steps logs clickAction =
+viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
+viewFullBuild now org repo build steps logs expandAction lineFocusAction =
     let
         ( buildPreview, buildNumber ) =
             case build of
@@ -188,7 +201,7 @@ viewFullBuild now org repo build steps logs clickAction =
         buildSteps =
             case steps of
                 RemoteData.Success steps_ ->
-                    viewSteps now org repo buildNumber steps_ logs clickAction
+                    viewSteps now org repo buildNumber steps_ logs expandAction lineFocusAction
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
@@ -209,13 +222,13 @@ viewFullBuild now org repo build steps logs clickAction =
 
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Org -> Repo -> BuildNumber -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
-viewSteps now org repo buildNumber steps logs clickAction =
+viewSteps : Posix -> Org -> Repo -> BuildNumber -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
+viewSteps now org repo buildNumber steps logs expandAction lineFocusAction =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
                 (\step ->
-                    viewStep now org repo buildNumber step steps logs clickAction
+                    viewStep now org repo buildNumber step steps logs expandAction lineFocusAction
                 )
             <|
                 List.sortBy (\step -> step.number) <|
@@ -225,33 +238,33 @@ viewSteps now org repo buildNumber steps logs clickAction =
 
 {-| viewStep : renders single build step
 -}
-viewStep : Posix -> Org -> Repo -> BuildNumber -> Step -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
-viewStep now org repo buildNumber step steps logs clickAction =
+viewStep : Posix -> Org -> Repo -> BuildNumber -> Step -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
+viewStep now org repo buildNumber step steps logs expandAction lineFocusAction =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
         , div [ classList [ ( "-view", True ), ( "-running", step.status == Vela.Running ) ] ]
-            [ viewStepDetails now org repo buildNumber step logs clickAction ]
+            [ viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction ]
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : Posix -> Org -> Repo -> BuildNumber -> Step -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
-viewStepDetails now org repo buildNumber step logs clickAction =
+viewStepDetails : Posix -> Org -> Repo -> BuildNumber -> Step -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
+viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction =
     let
         stepSummary =
             [ summary
                 [ class "summary"
                 , Util.testAttribute "step-header"
-                , onClick (clickAction org repo buildNumber <| String.fromInt step.number)
+                , onClick (expandAction org repo buildNumber <| String.fromInt step.number)
                 ]
                 [ div [ class "-info" ]
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
                     ]
                 ]
-            , viewStepLogs step logs
+            , viewStepLogs step logs lineFocusAction
             ]
     in
     details [ class "details", Util.open step.viewing ] stepSummary
@@ -266,8 +279,8 @@ viewStepIcon step =
 
 {-| viewStepLogs : takes step and logs and renders step logs or step error
 -}
-viewStepLogs : Step -> Logs -> Html msg
-viewStepLogs step logs =
+viewStepLogs : Step -> Logs -> (StepNumber -> Int -> msg) -> Html msg
+viewStepLogs step logs clickAction =
     case step.status of
         Vela.Error ->
             div [ class "log", class "error", Util.testAttribute "step-error" ]
@@ -283,13 +296,18 @@ viewStepLogs step logs =
                 ]
 
         _ ->
-            viewLogs step.lineFocus <| getStepLog step logs
+            viewLogs (String.fromInt step.number) step.lineFocus (getStepLog step logs) clickAction
+
+
+setLineFocus : Int -> msg -> msg
+setLineFocus line msg =
+    msg
 
 
 {-| viewLogs : renders a build step logs
 -}
-viewLogs : Maybe Int -> Maybe (WebData Log) -> Html msg
-viewLogs lineFocus log =
+viewLogs : StepNumber -> Maybe Int -> Maybe (WebData Log) -> (StepNumber -> Int -> msg) -> Html msg
+viewLogs stepNumber lineFocus log clickAction =
     let
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
@@ -302,7 +320,7 @@ viewLogs lineFocus log =
                                         div []
                                             [ div [ class "-code", lineFocusClass lineFocus (idx + 1) ]
                                                 [ span [ class "-line-num" ]
-                                                    [ text <| Util.toTwoDigits <| idx + 1 ]
+                                                    [ button [ onClick <| clickAction stepNumber (idx + 1) ] [ text <| Util.toTwoDigits <| idx + 1 ] ]
                                                 , code [] [ text <| String.trim line ]
                                                 ]
                                             ]

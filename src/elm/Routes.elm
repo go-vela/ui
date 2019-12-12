@@ -99,8 +99,8 @@ routeToUrl route =
         Hooks org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks"
 
-        Build org repo num frag ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ num ++ Maybe.withDefault "" frag
+        Build org repo buildNumber frag ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" frag
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

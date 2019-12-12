@@ -254,6 +254,7 @@ type Msg
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
     | ClickStep Org Repo BuildNumber StepNumber
+    | ClickLogLine Org Repo BuildNumber StepNumber Int
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -555,6 +556,15 @@ update msg model =
             , action
             )
 
+        ClickLogLine org repo buildNumber stepNumber lineNumber ->
+            let
+                ( steps, action ) =
+                    clickLogLine model org repo buildNumber stepNumber lineNumber
+            in
+            ( { model | steps = steps }
+            , action
+            )
+
         RestartBuild org repo buildNumber ->
             ( model
             , restartBuild model org repo buildNumber
@@ -638,17 +648,8 @@ update msg model =
 expandBuildFrag : Maybe String -> Steps -> Steps
 expandBuildFrag frag steps =
     let
-        frags =
-            Array.fromList <| String.split ":" (Maybe.withDefault "" frag)
-
-        target =
-            Maybe.withDefault "" <| Array.get 0 frags
-
-        number =
-            String.toInt <| Maybe.withDefault "" <| Array.get 1 frags
-
-        line =
-            String.toInt <| Maybe.withDefault "" <| Array.get 2 frags
+        ( target, number, line ) =
+            parseLineFocusFrag frag
     in
     case target of
         "step" ->
@@ -661,6 +662,33 @@ expandBuildFrag frag steps =
 
         _ ->
             steps
+
+
+parseLineFocusFrag : Maybe String -> ( String, Maybe Int, Maybe Int )
+parseLineFocusFrag frag =
+    let
+        frags =
+            Array.fromList <| String.split ":" (Maybe.withDefault "" frag)
+    in
+    ( focusTarget frags
+    , focusTargetNumber frags
+    , focusLineNumber frags
+    )
+
+
+focusTarget : Array.Array String -> String
+focusTarget frags =
+    Maybe.withDefault "" <| Array.get 0 frags
+
+
+focusTargetNumber : Array.Array String -> Maybe Int
+focusTargetNumber frags =
+    String.toInt <| Maybe.withDefault "" <| Array.get 1 frags
+
+
+focusLineNumber : Array.Array String -> Maybe Int
+focusLineNumber frags =
+    String.toInt <| Maybe.withDefault "" <| Array.get 2 frags
 
 
 
@@ -703,7 +731,7 @@ refreshPage model _ =
         Pages.RepositoryBuilds org repo ->
             getBuilds model org repo
 
-        Pages.Build org repo buildNumber frag ->
+        Pages.Build org repo buildNumber _ ->
             Cmd.batch
                 [ getBuilds model org repo
                 , refreshBuild model org repo buildNumber
@@ -912,9 +940,9 @@ viewContent model =
             , viewRepositoryBuilds model.builds.builds model.time org repo
             )
 
-        Pages.Build org repo num frag ->
-            ( "Build #" ++ num ++ " - " ++ String.join "/" [ org, repo ]
-            , viewFullBuild model.time org repo model.build model.steps model.logs ClickStep
+        Pages.Build org repo buildNumber frag ->
+            ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+            , viewFullBuild model.time org repo model.build model.steps model.logs ClickStep (ClickLogLine org repo buildNumber)
             )
 
         Pages.Login ->
@@ -1466,7 +1494,12 @@ setNewPage route model =
             loadRepoBuildsPage model org repo
 
         ( Routes.Build org repo buildNumber frag, True ) ->
-            loadBuildPage model org repo buildNumber frag
+            case model.page of
+                Pages.Build _ _ _ _ ->
+                    setLogLineFocus model org repo buildNumber frag
+
+                _ ->
+                    loadBuildPage model org repo buildNumber frag
 
         ( Routes.Logout, True ) ->
             ( { model | session = Nothing }
@@ -1561,6 +1594,24 @@ loadBuildPage model org repo buildNumber frag =
         , getBuild model org repo buildNumber
         , getAllBuildSteps model org repo buildNumber frag
         ]
+    )
+
+
+{-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+-}
+setLogLineFocus : Model -> Org -> Repo -> BuildNumber -> Maybe String -> ( Model, Cmd Msg )
+setLogLineFocus model org repo buildNumber frag =
+    let
+        steps =
+            case model.steps of
+                Success steps_ ->
+                    RemoteData.succeed <| setLineFocus steps_ frag
+
+                _ ->
+                    model.steps
+    in
+    ( { model | page = Pages.Build org repo buildNumber frag, steps = steps }
+    , Cmd.none
     )
 
 
@@ -1877,12 +1928,53 @@ clickStep model org repo buildNumber stepNumber =
         )
 
 
+{-| clickLogLine : takes model and line number and sets the focus on the log line
+-}
+clickLogLine : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd Msg )
+clickLogLine model org repo buildNumber stepNumber lineNumber =
+    ( model.steps
+    , Navigation.replaceUrl model.navigationKey <|
+        Routes.routeToUrl
+            (Routes.Build org repo buildNumber <|
+                Just <|
+                    "#step:"
+                        ++ stepNumber
+                        ++ ":"
+                        ++ String.fromInt lineNumber
+            )
+    )
+
+
 toggleStepView : Steps -> String -> Steps
 toggleStepView steps stepNumber =
     List.Extra.updateIf
         (\step -> String.fromInt step.number == stepNumber)
         (\step -> { step | viewing = not step.viewing })
         steps
+
+
+setLineFocus : Steps -> Maybe String -> Steps
+setLineFocus steps frag =
+    let
+        ( target, stepNumber, lineNumber ) =
+            parseLineFocusFrag frag
+    in
+    case target of
+        "step" ->
+            case stepNumber of
+                Just n ->
+                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = lineNumber }) <| clearLineFocus steps
+
+                Nothing ->
+                    steps
+
+        _ ->
+            steps
+
+
+clearLineFocus : Steps -> Steps
+clearLineFocus steps =
+    List.map (\step -> { step | lineFocus = Nothing }) steps
 
 
 {-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
