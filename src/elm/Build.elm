@@ -299,11 +299,6 @@ viewStepLogs step logs clickAction =
             viewLogs (String.fromInt step.number) step.lineFocus (getStepLog step logs) clickAction
 
 
-setLineFocus : Int -> msg -> msg
-setLineFocus line msg =
-    msg
-
-
 {-| viewLogs : renders a build step logs
 -}
 viewLogs : StepNumber -> Maybe Int -> Maybe (WebData Log) -> (StepNumber -> Int -> msg) -> Html msg
@@ -313,7 +308,7 @@ viewLogs stepNumber lineFocus log clickAction =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
                     if logNotEmpty <| decodeLog log then
-                        div [ Util.testAttribute "logs" ] <|
+                        div [ Util.testAttribute "logs", class "logs-container" ] <|
                             List.indexedMap
                                 (\idx ->
                                     \line ->
@@ -321,7 +316,12 @@ viewLogs stepNumber lineFocus log clickAction =
                                             [ div [ class "-code" ]
                                                 [ span [ class "-line", lineFocusClass lineFocus (idx + 1) ]
                                                     [ span [ class "-line-num" ]
-                                                        [ button [ onClick <| clickAction stepNumber (idx + 1) ] [ text <| Util.toTwoDigits <| idx + 1 ] ]
+                                                        [ a
+                                                            [ href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| idx + 1)
+                                                            , onClick <| clickAction stepNumber (idx + 1)
+                                                            ]
+                                                            [ text <| Util.toTwoDigits <| idx + 1 ]
+                                                        ]
                                                     , code [] [ text <| String.trim line ]
                                                     ]
                                                 ]
@@ -339,7 +339,7 @@ viewLogs stepNumber lineFocus log clickAction =
                     code [] [ text "error:" ]
 
                 _ ->
-                    Util.smallLoaderWithText "loading logs..."
+                    div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
     in
     div [ class "log" ] [ content ]
 
