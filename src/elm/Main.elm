@@ -1597,24 +1597,6 @@ loadBuildPage model org repo buildNumber frag =
     )
 
 
-{-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
--}
-setLogLineFocus : Model -> Org -> Repo -> BuildNumber -> Maybe String -> ( Model, Cmd Msg )
-setLogLineFocus model org repo buildNumber frag =
-    let
-        steps =
-            case model.steps of
-                Success steps_ ->
-                    RemoteData.succeed <| setLineFocus steps_ frag
-
-                _ ->
-                    model.steps
-    in
-    ( { model | page = Pages.Build org repo buildNumber frag, steps = steps }
-    , Cmd.none
-    )
-
-
 {-| updateSourceRepoStatus : update the UI state for source repos, single or by org
 -}
 updateSourceRepoStatus : Repository -> WebData Bool -> WebData SourceRepositories -> SourceRepoUpdateFunction -> WebData SourceRepositories
@@ -1785,6 +1767,32 @@ updateLog incomingLog logs =
 addLog : Log -> Logs -> Logs
 addLog incomingLog logs =
     RemoteData.succeed incomingLog :: logs
+
+
+{-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+-}
+setLogLineFocus : Model -> Org -> Repo -> BuildNumber -> Maybe String -> ( Model, Cmd Msg )
+setLogLineFocus model org repo buildNumber frag =
+    let
+        ( steps, action ) =
+            case model.steps of
+                Success steps_ ->
+                    let
+                        focusedSteps =
+                            RemoteData.succeed <| setLineFocus steps_ frag
+                    in
+                    ( focusedSteps
+                    , getBuildStepsLogs model org repo buildNumber focusedSteps
+                    )
+
+                _ ->
+                    ( model.steps
+                    , Cmd.none
+                    )
+    in
+    ( { model | page = Pages.Build org repo buildNumber frag, steps = steps }
+    , action
+    )
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
