@@ -15,7 +15,7 @@ _\* this will install globally; we prefer to not have them as local dev dependen
 
 ```bash
 # Rename the existing example .env.example to .env
-mv .env.example .env
+cp .env.example .env
 ```
 
 Now, edit the values for each of the environment variables in the newly created `.env` file.
