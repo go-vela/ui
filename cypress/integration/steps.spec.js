@@ -11,7 +11,7 @@ context("org/repo Builds Page", () => {
         .children()
         .as("stepHeaders");
       cy.get("@stepHeaders").click({ force: true, multiple: true });
-      cy.get("[data-test=logs]").as("logs");
+      cy.get("[data-test=logs-1]").as("logs");
       cy.get("@stepHeaders").click({ force: true, multiple: true });
     });
 
@@ -37,8 +37,13 @@ context("org/repo Builds Page", () => {
         .should("contain", "echo");
     });
 
-    it("all steps should have logs", () => {
-      cy.get("@logs").should("have.length", 5);
+    it("all 5 steps should have logs", () => {
+      cy.get("[data-test=logs-1]").should("exist").contains("$");
+      cy.get("[data-test=logs-2]").should("exist").contains("$");
+      cy.get("[data-test=logs-3]").should("exist").contains("$");
+      cy.get("[data-test=logs-4]").should("exist").contains("$");
+      cy.get("[data-test=logs-5]").should("exist").contains("$");
+      cy.get("[data-test=logs-6]").should("not.exist");
     });
 
     it("logs should be base64 decoded", () => {
@@ -47,7 +52,6 @@ context("org/repo Builds Page", () => {
         .children()
         .should("contain", "$");
     });
-
     it("clicking steps should show/hide logs", () => {
       cy.get("@logs")
         .children()
@@ -64,24 +68,59 @@ context("org/repo Builds Page", () => {
         .children()
         .should("be.not.visible");
     });
+    context("click log line number", () => {
+      beforeEach(() => {
+        cy.get("@stepHeaders").click({ force: true, multiple: true });
+        cy.get("@logs")
+          .first()
+          .within(() => {
+            cy.get("[data-test=log-line-3]").as("line");
+            cy.get("[data-test=log-line-num-3]").as("lineNumber");
+          });
+        cy.get("@lineNumber").click({ force: true });
+      });
+      it("line should be highlighted", () => {
+        cy.get("@stepHeaders").click({ force: true, multiple: true });
+        cy.get("@line").should("have.class", "-focus");
+      });
 
-    it("clicking log line number should highlight the line", () => {
-      cy.get("@logs")
-        .children()
-        .should("be.not.visible");
-
-      cy.get("@stepHeaders").click({ force: true, multiple: true });
-
-      cy.get("@logs")
-        .first()
-        .within(() => {
-          cy.get("[data-test=log-line-3]").as("line");
-          cy.get("[data-test=log-line-num-3]").as("lineNumber");
+      it("browser path should contain step and line fragment", () => {
+        cy.hash().should("eq", "#step:1:3");
+      });
+      context("click other log line number", () => {
+        beforeEach(() => {
+          cy.get("[data-test=logs-5]")
+            .within(() => {
+              cy.get("[data-test=log-line-2]").as("otherLine");
+              cy.get("[data-test=log-line-num-2]").as("otherLineNumber");
+            });
+          cy.get("@otherLineNumber").click({ force: true });
+          cy.get("@stepHeaders").click({ force: true, multiple: true });
         });
-      cy.get("@lineNumber").click({ force: true });
-      cy.get("@line")
-        .first()
-        .should("have.class", "-focus");
+        it("original line should not be highlighted", () => {
+          cy.get("@line").should("not.have.class", "-focus");
+        });
+        it("other line should be highlighted", () => {
+          cy.get("@otherLine").should("have.class", "-focus");
+        });
+        it("browser path should contain other step and line fragment", () => {
+          cy.hash().should("eq", "#step:5:2");
+        });
+        context("from Build visit log line with fragment", () => {
+          beforeEach(() => {
+            cy.visit("/someorg/somerepo/1#step:2:2");
+          });
+          it("line should be highlighted", () => {
+            cy.get("@stepHeaders").click({ force: true, multiple: true });
+            cy.get("[data-test=logs-2]")
+            .within(() => {
+              cy.get("[data-test=log-line-2]").as("otherLine");
+              cy.get("[data-test=log-line-num-2]").as("otherLineNumber");
+            });
+            
+          });
+        });
+      });
     });
   });
   context("visit build/steps with server error", () => {
@@ -96,7 +135,7 @@ context("org/repo Builds Page", () => {
         .children()
         .as("stepHeaders");
       cy.get("@stepHeaders").click({ force: true, multiple: true });
-      cy.get("[data-test=logs]").as("logs");
+      cy.get("[data-test=logs-2]").as("logs");
       cy.get("@stepHeaders").click({ force: true, multiple: true });
       cy.get("[data-test=full-build]").as("build");
       cy.get("@build")
@@ -128,6 +167,13 @@ context("org/repo Builds Page", () => {
       cy.get("@cloneStep").contains("problem starting container");
     });
 
+
+    it("first step should not have 'last' styles", () => {
+      cy.get("[data-test=step]")
+        .first()
+        .should("not.have.class", "-last");
+    });
+
     it("last step should not contain error", () => {
       cy.get("[data-test=step]")
         .last()
@@ -137,6 +183,13 @@ context("org/repo Builds Page", () => {
         .click({ force: true });
       cy.get("@echoStep").should("not.contain", "error:");
       cy.get("@echoStep").contains("$");
+    });
+
+
+    it("last step should have 'last' styles", () => {
+      cy.get("[data-test=step]")
+        .last()
+        .should("have.class", "-last");
     });
   });
 });

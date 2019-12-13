@@ -231,8 +231,7 @@ viewSteps now org repo buildNumber steps logs expandAction lineFocusAction =
                     viewStep now org repo buildNumber step steps logs expandAction lineFocusAction
                 )
             <|
-                List.sortBy (\step -> step.number) <|
-                    steps
+                steps
         ]
 
 
@@ -264,17 +263,10 @@ viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction 
                     , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
                     ]
                 ]
-            , viewStepLogs step logs lineFocusAction
+            , div [ class "logs-container" ] [ viewStepLogs step logs lineFocusAction ]
             ]
     in
     details [ class "details", Util.open step.viewing ] stepSummary
-
-
-{-| viewStepIcon : renders a build step status icon
--}
-viewStepIcon : Step -> Html msg
-viewStepIcon step =
-    stepStatusToIcon step.status |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
 
 
 {-| viewStepLogs : takes step and logs and renders step logs or step error
@@ -283,27 +275,10 @@ viewStepLogs : Step -> Logs -> (StepNumber -> Int -> msg) -> Html msg
 viewStepLogs step logs clickAction =
     case step.status of
         Vela.Error ->
-            div [ class "log", class "error", Util.testAttribute "step-error" ]
-                [ span [ class "label" ] [ text "error:" ]
-                , span [ class "message" ]
-                    [ text <|
-                        if String.isEmpty step.error then
-                            "no error msg"
-
-                        else
-                            step.error
-                    ]
-                ]
+            stepError step
 
         _ ->
             viewLogs (String.fromInt step.number) step.lineFocus (getStepLog step logs) clickAction
-
-
-{-| logLineHref : takes stepnumber and line number and renders the link href for clicking a log line without redirecting
--}
-logLineHref : StepNumber -> Int -> Html.Attribute msg
-logLineHref stepNumber lineNumber =
-    href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber + 1)
 
 
 {-| viewLogs : takes stepnumber linefocus log and clickaction and renders logs for a build step
@@ -321,23 +296,42 @@ viewLogs stepNumber lineFocus log clickAction =
                         code [] [ text "No logs for this step." ]
 
                 RemoteData.Failure err ->
-                    code [] [ text "error:" ]
+                    code [ Util.testAttribute "logs-error" ] [ text "error:" ]
 
                 _ ->
                     div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
     in
-    div [ class "log" ] [ content ]
+    div [ class "logs" ] [ content ]
 
 
 {-| logLines : takes step number, line focus information and click action and renders logs
 -}
 logLines : StepNumber -> Maybe Int -> Maybe (WebData Log) -> (StepNumber -> Int -> msg) -> Html msg
 logLines stepNumber lineFocus log clickAction =
-    div [ Util.testAttribute "logs", class "logs-container" ] <|
+    div [ Util.testAttribute <| "logs-" ++ stepNumber, class "lines" ] <|
         List.indexedMap
             (\idx -> \line -> logLine stepNumber line lineFocus (idx + 1) clickAction)
         <|
             decodeLogLine log
+
+
+{-| lineFocusStyle : takes step number, line focus information, and click action and renders a log line
+-}
+logLine : StepNumber -> String -> Maybe Int -> Int -> (StepNumber -> Int -> msg) -> Html msg
+logLine stepNumber line lineFocus lineNumber clickAction =
+    div [ class "line" ]
+        [ span [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber, class "wrapper", lineFocusStyle lineFocus lineNumber ]
+            [ span [ class "-line-num" ]
+                [ a
+                    [ logLineHref stepNumber lineNumber
+                    , onClick <| clickAction stepNumber lineNumber
+                    , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+                    ]
+                    [ text <| Util.toTwoDigits <| lineNumber ]
+                ]
+            , code [] [ text <| String.trim line ]
+            ]
+        ]
 
 
 {-| decodeLogLine : takes maybe log and decodes it based on
@@ -349,25 +343,28 @@ decodeLogLine log =
             decodeLog log
 
 
-{-| lineFocusStyle : takes step number, line focus information, and click action and renders a log line
+{-| stepError : checks for build error and renders message
 -}
-logLine : StepNumber -> String -> Maybe Int -> Int -> (StepNumber -> Int -> msg) -> Html msg
-logLine stepNumber line lineFocus lineNumber clickAction =
-    div []
-        [ div [ class "-code" ]
-            [ span [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber, class "-line", lineFocusStyle lineFocus lineNumber ]
-                [ span [ class "-line-num" ]
-                    [ a
-                        [ logLineHref stepNumber lineNumber
-                        , onClick <| clickAction stepNumber lineNumber
-                        , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
-                        ]
-                        [ text <| Util.toTwoDigits <| lineNumber ]
-                    ]
-                , code [] [ text <| String.trim line ]
-                ]
+stepError : Step -> Html msg
+stepError step =
+    div [ class "step-error", Util.testAttribute "step-error" ]
+        [ span [ class "label" ] [ text "error:" ]
+        , span [ class "message" ]
+            [ text <|
+                if String.isEmpty step.error then
+                    "no error msg"
+
+                else
+                    step.error
             ]
         ]
+
+
+{-| viewStepIcon : renders a build step status icon
+-}
+viewStepIcon : Step -> Html msg
+viewStepIcon step =
+    stepStatusToIcon step.status |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
 
 
 {-| lineFocusStyle : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
@@ -610,7 +607,7 @@ stepClasses : Step -> Steps -> Html.Attribute msg
 stepClasses step steps =
     let
         last =
-            case List.head steps of
+            case List.head <| List.reverse steps of
                 Just s ->
                     s.number
 
@@ -672,3 +669,10 @@ getStepLog step logs =
             )
             logs
         )
+
+
+{-| logLineHref : takes stepnumber and line number and renders the link href for clicking a log line without redirecting
+-}
+logLineHref : StepNumber -> Int -> Html.Attribute msg
+logLineHref stepNumber lineNumber =
+    href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber + 1)

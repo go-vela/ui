@@ -458,8 +458,11 @@ update msg model =
             case response of
                 Ok ( _, stepsResponse ) ->
                     let
+                        sortedSteps =
+                            List.sortBy (\step -> step.number) stepsResponse
+
                         steps =
-                            RemoteData.succeed <| expandBuildFrag frag stepsResponse
+                            RemoteData.succeed <| expandBuildFrag frag sortedSteps
 
                         cmd =
                             getBuildStepsLogs model org repo buildNumber steps
