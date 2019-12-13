@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages exposing (Page(..), toRoute)
 
+import Api.Pagination as Pagination
 import Routes exposing (Route(..))
 import Vela exposing (AuthParams, BuildNumber, Org, Repo)
 
@@ -13,9 +14,9 @@ import Vela exposing (AuthParams, BuildNumber, Org, Repo)
 type Page
     = Overview
     | AddRepositories
-    | Hooks Org Repo
+    | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
-    | RepositoryBuilds Org Repo
+    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Build Org Repo BuildNumber
     | Login
     | Logout
@@ -38,14 +39,14 @@ toRoute page =
         AddRepositories ->
             Routes.AddRepositories
 
-        Hooks org repo ->
-            Routes.Hooks org repo
+        Hooks org repo maybePage maybePerPage ->
+            Routes.Hooks org repo maybePage maybePerPage
 
         Settings org repo ->
             Routes.Settings org repo
 
-        RepositoryBuilds org repo ->
-            Routes.RepositoryBuilds org repo
+        RepositoryBuilds org repo maybePage maybePerPage ->
+            Routes.RepositoryBuilds org repo maybePage maybePerPage
 
         Build org repo buildNumber ->
             Routes.Build org repo buildNumber
