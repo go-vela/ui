@@ -940,7 +940,7 @@ viewContent model =
             , viewRepositoryBuilds model.builds.builds model.time org repo
             )
 
-        Pages.Build org repo buildNumber frag ->
+        Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
             , viewFullBuild model.time org repo model.build model.steps model.logs ClickStep (ClickLogLine org repo buildNumber)
             )

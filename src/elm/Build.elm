@@ -299,7 +299,14 @@ viewStepLogs step logs clickAction =
             viewLogs (String.fromInt step.number) step.lineFocus (getStepLog step logs) clickAction
 
 
-{-| viewLogs : renders a build step logs
+{-| logLineHref : takes stepnumber and line number and renders the link href for clicking a log line without redirecting
+-}
+logLineHref : StepNumber -> Int -> Html.Attribute msg
+logLineHref stepNumber lineNumber =
+    href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber + 1)
+
+
+{-| viewLogs : takes stepnumber linefocus log and clickaction and renders logs for a build step
 -}
 viewLogs : StepNumber -> Maybe Int -> Maybe (WebData Log) -> (StepNumber -> Int -> msg) -> Html msg
 viewLogs stepNumber lineFocus log clickAction =
@@ -308,29 +315,7 @@ viewLogs stepNumber lineFocus log clickAction =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
                     if logNotEmpty <| decodeLog log then
-                        div [ Util.testAttribute "logs", class "logs-container" ] <|
-                            List.indexedMap
-                                (\idx ->
-                                    \line ->
-                                        div []
-                                            [ div [ class "-code" ]
-                                                [ span [ class "-line", lineFocusClass lineFocus (idx + 1) ]
-                                                    [ span [ class "-line-num" ]
-                                                        [ a
-                                                            [ href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| idx + 1)
-                                                            , onClick <| clickAction stepNumber (idx + 1)
-                                                            ]
-                                                            [ text <| Util.toTwoDigits <| idx + 1 ]
-                                                        ]
-                                                    , code [] [ text <| String.trim line ]
-                                                    ]
-                                                ]
-                                            ]
-                                )
-                            <|
-                                List.filter (\line -> not <| String.isEmpty line) <|
-                                    String.lines <|
-                                        decodeLog log
+                        logLines stepNumber lineFocus log clickAction
 
                     else
                         code [] [ text "No logs for this step." ]
@@ -344,8 +329,51 @@ viewLogs stepNumber lineFocus log clickAction =
     div [ class "log" ] [ content ]
 
 
-lineFocusClass : Maybe Int -> Int -> Html.Attribute msg
-lineFocusClass lineFocus lineNumber =
+{-| logLines : takes step number, line focus information and click action and renders logs
+-}
+logLines : StepNumber -> Maybe Int -> Maybe (WebData Log) -> (StepNumber -> Int -> msg) -> Html msg
+logLines stepNumber lineFocus log clickAction =
+    div [ Util.testAttribute "logs", class "logs-container" ] <|
+        List.indexedMap
+            (\idx -> \line -> logLine stepNumber line lineFocus (idx + 1) clickAction)
+        <|
+            decodeLogLine log
+
+
+{-| decodeLogLine : takes maybe log and decodes it based on
+-}
+decodeLogLine : Maybe (WebData Log) -> List String
+decodeLogLine log =
+    List.filter (\line -> not <| String.isEmpty line) <|
+        String.lines <|
+            decodeLog log
+
+
+{-| lineFocusStyle : takes step number, line focus information, and click action and renders a log line
+-}
+logLine : StepNumber -> String -> Maybe Int -> Int -> (StepNumber -> Int -> msg) -> Html msg
+logLine stepNumber line lineFocus lineNumber clickAction =
+    div []
+        [ div [ class "-code" ]
+            [ span [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber, class "-line", lineFocusStyle lineFocus lineNumber ]
+                [ span [ class "-line-num" ]
+                    [ a
+                        [ logLineHref stepNumber lineNumber
+                        , onClick <| clickAction stepNumber lineNumber
+                        , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+                        ]
+                        [ text <| Util.toTwoDigits <| lineNumber ]
+                    ]
+                , code [] [ text <| String.trim line ]
+                ]
+            ]
+        ]
+
+
+{-| lineFocusStyle : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
+-}
+lineFocusStyle : Maybe Int -> Int -> Html.Attribute msg
+lineFocusStyle lineFocus lineNumber =
     case lineFocus of
         Just line ->
             if line == lineNumber then

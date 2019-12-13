@@ -7,10 +7,12 @@ context("org/repo Builds Page", () => {
       cy.login("/someorg/somerepo/1");
       cy.get("[data-test=steps]").as("steps");
       cy.get("[data-test=step]").as("step");
-      cy.get("[data-test=logs]").as("logs");
       cy.get("[data-test=step-header]")
         .children()
         .as("stepHeaders");
+      cy.get("@stepHeaders").click({ force: true, multiple: true });
+      cy.get("[data-test=logs]").as("logs");
+      cy.get("@stepHeaders").click({ force: true, multiple: true });
     });
 
     it("steps should show", () => {
@@ -62,6 +64,25 @@ context("org/repo Builds Page", () => {
         .children()
         .should("be.not.visible");
     });
+
+    it("clicking log line number should highlight the line", () => {
+      cy.get("@logs")
+        .children()
+        .should("be.not.visible");
+
+      cy.get("@stepHeaders").click({ force: true, multiple: true });
+
+      cy.get("@logs")
+        .first()
+        .within(() => {
+          cy.get("[data-test=log-line-3]").as("line");
+          cy.get("[data-test=log-line-num-3]").as("lineNumber");
+        });
+      cy.get("@lineNumber").click({ force: true });
+      cy.get("@line")
+        .first()
+        .should("have.class", "-focus");
+    });
   });
   context("visit build/steps with server error", () => {
     beforeEach(() => {
@@ -71,10 +92,12 @@ context("org/repo Builds Page", () => {
       cy.login("/someorg/somerepo/5");
       cy.get("[data-test=steps]").as("steps");
       cy.get("[data-test=step]").as("step");
-      cy.get("[data-test=logs]").as("logs");
       cy.get("[data-test=step-header]")
         .children()
         .as("stepHeaders");
+      cy.get("@stepHeaders").click({ force: true, multiple: true });
+      cy.get("[data-test=logs]").as("logs");
+      cy.get("@stepHeaders").click({ force: true, multiple: true });
       cy.get("[data-test=full-build]").as("build");
       cy.get("@build")
         .get("[data-test=build-status]")
@@ -112,8 +135,8 @@ context("org/repo Builds Page", () => {
       cy.get("@echoStep")
         .should("be.visible")
         .click({ force: true });
-      cy.get("@echoStep").should("not.contain",  "error:");
+      cy.get("@echoStep").should("not.contain", "error:");
       cy.get("@echoStep").contains("$");
-      });
+    });
   });
 });
