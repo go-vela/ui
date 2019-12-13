@@ -2,13 +2,16 @@
 #
 # Use of this source code is governed by the LICENSE file in this repository.
 
+# name of the action
 name: release
 
+# trigger on push events with `v*` in tag
 on:
   push:
     tags:
-      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+      - "v*"
 
+# pipeline to execute
 jobs:
   release:
     name: release tagged image

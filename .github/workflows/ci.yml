@@ -2,8 +2,10 @@
 #
 # Use of this source code is governed by the LICENSE file in this repository.
 
+# name of the action
 name: ci
 
+# trigger on pull_request or push events
 on:
   push:
     branches:
@@ -14,6 +16,7 @@ env:
   USE_NODE_VER: "10.15.3"
   CI: 1
 
+# pipeline to execute
 jobs:
   # ┌─┐┬  ┌┬┐   ┌─┐┌─┐┬─┐┌┬┐┌─┐┌┬┐
   # ├┤ │  │││───├┤ │ │├┬┘│││├─┤ │
