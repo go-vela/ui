@@ -6,9 +6,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Routes exposing (Org, Repo, Route(..), href, match, routeToUrl)
 
+import Api.Pagination as Pagination
 import Html
 import Html.Attributes as Attr
 import Url exposing (Url)
+import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
 import Vela exposing (AuthParams, BuildNumber)
@@ -29,9 +31,9 @@ type alias Repo =
 type Route
     = Overview
     | AddRepositories
-    | Hooks Org Repo
+    | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
-    | RepositoryBuilds Org Repo
+    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Build Org Repo BuildNumber
     | Login
     | Logout
@@ -51,9 +53,9 @@ routes =
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , parseAuth
-        , map Hooks (string </> string </> s "hooks")
+        , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
         , map Settings (string </> string </> s "settings")
-        , map RepositoryBuilds (string </> string)
+        , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page")
         , map Build (string </> string </> string)
         , map NotFound (s "404")
         ]
@@ -93,11 +95,11 @@ routeToUrl route =
         Settings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
-        RepositoryBuilds org repo ->
-            "/" ++ org ++ "/" ++ repo
+        RepositoryBuilds org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
-        Hooks org repo ->
-            "/" ++ org ++ "/" ++ repo ++ "/hooks"
+        Hooks org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         Build org repo num ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ num

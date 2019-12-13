@@ -4,7 +4,7 @@ services:
   #   container_name: ui
   #   build:
   #     context: .
-  #     dockerfile: Dockerfile
+  #     dockerfile: Dockerfile.local
   #   networks:
   #     - vela
   #   env_file:
@@ -14,7 +14,7 @@ services:
   #   volumes:
   #     - ./dist:/usr/share/nginx/html
   #   depends_on:
-  #     - api
+  #     - server
 
   server:
     container_name: server

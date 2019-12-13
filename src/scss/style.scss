@@ -256,6 +256,10 @@ button,
       color: var(--color-lightcyan);
       border-color: var(--color-lightcyan);
     }
+    &:disabled {
+      color: var(--color-gray);
+      border-color: var(--color-gray);
+    }
   }
 }
 
@@ -751,7 +755,7 @@ button.-solid {
 
 .build .status.-failure,
 .build .status.-error {
-    background: var(--color-red);
+  background: var(--color-red);
 }
 
 .build .info {
@@ -781,7 +785,7 @@ button.-solid {
   font-size: 0.9em;
 }
 
-.build .error .message{
+.build .error .message {
   margin-left: 0.2em;
 }
 
@@ -1013,8 +1017,6 @@ button.-solid {
   stroke: var(--color-bg-darker);
 }
 
-
-
 .build-history .-build .-tooltip {
   position: absolute;
   // not sure what to here to display the tooltip on top!
@@ -1227,7 +1229,7 @@ button.-solid {
   font-size: 0.9em;
 }
 
-.log.error .message{
+.log.error .message {
   margin-left: 0.2em;
 }
 
@@ -1498,7 +1500,6 @@ button.-solid {
 
 .hooks .row .info .element .error-label {
   color: var(--color-scarlet);
-
 }
 
 .hooks .row .info .element .hook-build-status.-pending {
@@ -1626,7 +1627,8 @@ button.-solid {
   font-weight: 300;
 }
 
-.checkbox input[type="checkbox"], .checkbox input[type="radio"] {
+.checkbox input[type="checkbox"],
+.checkbox input[type="radio"] {
   position: relative;
   right: 1.55em;
   bottom: 0.1em;
@@ -1643,8 +1645,8 @@ button.-solid {
   position: absolute;
 }
 
-.checkbox label::before{
-  top: calc(50% - .45em);
+.checkbox label::before {
+  top: calc(50% - 0.45em);
   left: -1.875em;
 
   width: 1.15em;
@@ -1653,9 +1655,8 @@ button.-solid {
   content: "";
 }
 
-
-.checkbox.radio label::before{
-  top: calc(50% - .575em);
+.checkbox.radio label::before {
+  top: calc(50% - 0.575em);
   left: -1.8em;
 
   width: 1.15em;
@@ -1664,10 +1665,17 @@ button.-solid {
   content: "";
 }
 
-.checkbox input[type="checkbox"] + label::after, .checkbox input[type="radio"] + label::after {
+.checkbox input[type="checkbox"] + label::after,
+.checkbox input[type="radio"] + label::after {
   content: none;
 }
 
-.checkbox input[type="checkbox"]:focus + label::before, .checkbox input[type="radio"]:focus + label::before {
+.checkbox input[type="checkbox"]:focus + label::before,
+.checkbox input[type="radio"]:focus + label::before {
   outline: var(--color-cyan) auto 5px;
+}
+
+.pager-actions {
+  display: flex;
+  justify-content: space-between;
 }
