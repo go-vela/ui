@@ -1565,8 +1565,12 @@ setNewPage route model =
 
         ( Routes.Build org repo buildNumber lineFocus, True ) ->
             case model.page of
-                Pages.Build _ _ _ _ ->
-                    setLogLineFocus model org repo buildNumber lineFocus
+                Pages.Build o r b _ ->
+                    if not <| buildChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                        setLogLineFocus model org repo buildNumber lineFocus
+
+                    else
+                        loadBuildPage model org repo buildNumber lineFocus
 
                 _ ->
                     loadBuildPage model org repo buildNumber lineFocus
@@ -1591,6 +1595,17 @@ setNewPage route model =
                 , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
                 ]
             )
+
+
+{-| buildChanged : takes two build identifiers and returns if the build has changed
+-}
+buildChanged : BuildIdentifier -> BuildIdentifier -> Bool
+buildChanged ( orgA, repoA, buildNumA ) ( orgB, repoB, buildNumB ) =
+    if orgA == orgB && repoA == repoB && buildNumA == buildNumB then
+        False
+
+    else
+        True
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.
