@@ -128,7 +128,8 @@ context("Steps", () => {
     context("visit Build, then visit log line with fragment", () => {
       beforeEach(() => {
         cy.visit("/someorg/somerepo/1");
-        cy.visit({ url: "/someorg/somerepo/1#step:2:2" });
+        cy.visit("/someorg/somerepo/1#step:2:2");
+        cy.reload();
       });
       it("line should be highlighted", () => {
         cy.get("@stepHeaders").click({ force: true, multiple: true });
@@ -156,7 +157,8 @@ context("Steps", () => {
             cy.get("[data-test=log-line-num-2]").as("lineNumber2:2");
           });
           cy.get("@lineNumber1:3").click({ force: true });
-          cy.visit({ url: "/someorg/somerepo/1#step:2:2" });
+          cy.visit("/someorg/somerepo/1#step:2:2");
+          cy.reload();
         });
         it("original line should not be highlighted", () => {
           cy.get("@line1:3").should("not.have.class", "-focus");
