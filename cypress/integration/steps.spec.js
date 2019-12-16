@@ -38,11 +38,21 @@ context("org/repo Builds Page", () => {
     });
 
     it("all 5 steps should have logs", () => {
-      cy.get("[data-test=logs-1]").should("exist").contains("$");
-      cy.get("[data-test=logs-2]").should("exist").contains("$");
-      cy.get("[data-test=logs-3]").should("exist").contains("$");
-      cy.get("[data-test=logs-4]").should("exist").contains("$");
-      cy.get("[data-test=logs-5]").should("exist").contains("$");
+      cy.get("[data-test=logs-1]")
+        .should("exist")
+        .contains("$");
+      cy.get("[data-test=logs-2]")
+        .should("exist")
+        .contains("$");
+      cy.get("[data-test=logs-3]")
+        .should("exist")
+        .contains("$");
+      cy.get("[data-test=logs-4]")
+        .should("exist")
+        .contains("$");
+      cy.get("[data-test=logs-5]")
+        .should("exist")
+        .contains("$");
       cy.get("[data-test=logs-6]").should("not.exist");
     });
 
@@ -95,11 +105,10 @@ context("org/repo Builds Page", () => {
 
       context("click other log line number", () => {
         beforeEach(() => {
-          cy.get("[data-test=logs-5]")
-            .within(() => {
-              cy.get("[data-test=log-line-2]").as("otherLine");
-              cy.get("[data-test=log-line-num-2]").as("otherLineNumber");
-            });
+          cy.get("[data-test=logs-5]").within(() => {
+            cy.get("[data-test=log-line-2]").as("otherLine");
+            cy.get("[data-test=log-line-num-2]").as("otherLineNumber");
+          });
           cy.get("@otherLineNumber").click({ force: true });
           cy.get("@stepHeaders").click({ force: true, multiple: true });
         });
@@ -119,42 +128,44 @@ context("org/repo Builds Page", () => {
     context("visit Build, then visit log line with fragment", () => {
       beforeEach(() => {
         cy.visit("/someorg/somerepo/1");
-        cy.visit({'url': "/someorg/somerepo/1#step:2:2"});
+        cy.visit({ url: "/someorg/somerepo/1#step:2:2" });
       });
       it("line should be highlighted", () => {
         cy.get("@stepHeaders").click({ force: true, multiple: true });
-        cy.get("[data-test=logs-2]")
-        .within(() => {
+        cy.get("[data-test=logs-2]").within(() => {
           cy.get("[data-test=log-line-2]").as("line2:2");
           cy.get("[data-test=log-line-num-2]").as("lineNumber2:2");
         });
         cy.get("@line2:2").should("have.class", "-focus");
       });
     });
-    context("visit Build, click log line, then visit log line with fragment", () => {
-      beforeEach(() => {
-        cy.visit("/someorg/somerepo/1");
-        cy.get("@stepHeaders").first().click({ force: true, multiple: true });
-        cy.get("[data-test=logs-1]")
-          .within(() => {
+    context(
+      "visit Build, click log line, then visit log line with fragment",
+      () => {
+        beforeEach(() => {
+          cy.visit("/someorg/somerepo/1");
+          cy.get("@stepHeaders")
+            .first()
+            .click({ force: true, multiple: true });
+          cy.get("[data-test=logs-1]").within(() => {
             cy.get("[data-test=log-line-3]").as("line1:3");
             cy.get("[data-test=log-line-num-3]").as("lineNumber1:3");
           });
-          cy.get("[data-test=logs-2]")
-          .within(() => {
+          cy.get("[data-test=logs-2]").within(() => {
             cy.get("[data-test=log-line-2]").as("line2:2");
             cy.get("[data-test=log-line-num-2]").as("lineNumber2:2");
           });
-        cy.get("@lineNumber1:3").click({ force: true });
-        cy.visit({'url': "/someorg/somerepo/1#step:2:2"});
-      });
-      it("original line should not be highlighted", () => {
-        cy.get("@line1:3").should("not.have.class", "-focus");
-      });
-      it("other line should be highlighted", () => {
-        cy.get("@line2:2").should("have.class", "-focus");
-      });
-    });
+          cy.get("@lineNumber1:3").click({ force: true });
+          cy.visit({ url: "/someorg/somerepo/1#step:2:2" });
+        });
+        it("original line should not be highlighted", () => {
+          cy.get("@line1:3").should("not.have.class", "-focus");
+        });
+        it("other line should be highlighted", () => {
+          cy.get("@line2:2").should("have.class", "-focus");
+        });
+      }
+    );
   });
   context("visit build/steps with server error", () => {
     beforeEach(() => {
@@ -200,7 +211,6 @@ context("org/repo Builds Page", () => {
       cy.get("@cloneStep").contains("problem starting container");
     });
 
-
     it("first step should not have 'last' styles", () => {
       cy.get("[data-test=step]")
         .first()
@@ -217,7 +227,6 @@ context("org/repo Builds Page", () => {
       cy.get("@echoStep").should("not.contain", "error:");
       cy.get("@echoStep").contains("$");
     });
-
 
     it("last step should have 'last' styles", () => {
       cy.get("[data-test=step]")
