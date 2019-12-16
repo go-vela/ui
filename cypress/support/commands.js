@@ -105,7 +105,7 @@ Cypress.Commands.add("stubStepsWithLogs", () => {
         url: "api/v1/repos/*/*/builds/*/steps/" + logs[i]["step_id"] + "/logs",
         status: 200,
         response: logs[i]
-      });
+      }).as("getLogs-" + logs[i]["step_id"]);
     }
   });
 });

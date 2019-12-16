@@ -12,6 +12,7 @@
   --color-lightcyan: hsla(192, 100%, 75%, 1);
   --color-lavender: hsla(286, 29%, 55%, 1);
   --color-scarlet: hsla(8, 100%, 50%, 1);
+  --color-slate: hsla(211.8,8.8%,37.8%, 0.5);
 
   // for status indications
   --color-red: hsla(353, 69%, 45%, 1);
@@ -24,6 +25,7 @@
   --color-text: var(--color-offwhite);
   --color-primary: var(--color-cyan);
   --color-secondary: var(--color-lavender);
+  --color-focus: var(--color-slate);
 
   // some common attributes
   --horizontal-pad: 3em;
