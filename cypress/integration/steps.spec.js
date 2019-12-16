@@ -146,7 +146,6 @@ context("Steps", () => {
         beforeEach(() => {
           cy.visit("/someorg/somerepo/1");
           cy.get("@stepHeaders")
-            .first()
             .click({ force: true, multiple: true });
           cy.get("[data-test=logs-1]").within(() => {
             cy.get("[data-test=log-line-3]").as("line1:3");
@@ -169,6 +168,7 @@ context("Steps", () => {
       }
     );
   });
+
   context("visit build/steps with server error", () => {
     beforeEach(() => {
       cy.server();
