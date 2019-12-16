@@ -4,7 +4,7 @@
   "description": "Vela UI",
   "author": "Vela Team",
   "engines": {
-    "node": ">=10.15.0"
+    "node": ">=12.13.1"
   },
   "dependencies": {
     "@fullhuman/postcss-purgecss": "^1.3.0",

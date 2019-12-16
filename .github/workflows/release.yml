@@ -11,13 +11,15 @@ on:
     tags:
       - "v*"
 
+env:
+  NODE_ENV: production
+  USE_NODE_VER: "12.13.1"
+
 # pipeline to execute
 jobs:
   release:
     name: release tagged image
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: production
 
     steps:
       - uses: actions/checkout@v1
