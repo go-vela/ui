@@ -9,12 +9,13 @@ module Main exposing (main)
 import Alerts exposing (Alert)
 import Api
 import Api.Pagination as Pagination
-import Array
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Build
     exposing
-        ( viewFullBuild
+        ( expandBuildLineFocus
+        , parseLineFocus
+        , viewFullBuild
         , viewRepositoryBuilds
         )
 import Crumbs
@@ -689,52 +690,6 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
-
-
-expandBuildLineFocus : LineFocus -> Steps -> Steps
-expandBuildLineFocus lineFocus steps =
-    let
-        ( target, number, line ) =
-            parseLineFocus lineFocus
-    in
-    case target of
-        "step" ->
-            case number of
-                Just n ->
-                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = line }) steps
-
-                Nothing ->
-                    steps
-
-        _ ->
-            steps
-
-
-parseLineFocus : LineFocus -> ( String, Maybe Int, Maybe Int )
-parseLineFocus lineFocus =
-    let
-        lineFocuses =
-            Array.fromList <| String.split ":" (Maybe.withDefault "" lineFocus)
-    in
-    ( focusTarget lineFocuses
-    , focusTargetNumber lineFocuses
-    , focusLineNumber lineFocuses
-    )
-
-
-focusTarget : Array.Array String -> String
-focusTarget lineFocuses =
-    Maybe.withDefault "" <| Array.get 0 lineFocuses
-
-
-focusTargetNumber : Array.Array String -> Maybe Int
-focusTargetNumber lineFocuses =
-    String.toInt <| Maybe.withDefault "" <| Array.get 1 lineFocuses
-
-
-focusLineNumber : Array.Array String -> Maybe Int
-focusLineNumber lineFocuses =
-    String.toInt <| Maybe.withDefault "" <| Array.get 2 lineFocuses
 
 
 
@@ -2069,7 +2024,7 @@ setLineFocus steps lineFocus =
         ( target, stepNumber, lineNumber ) =
             parseLineFocus lineFocus
     in
-    case target of
+    case Maybe.withDefault "" target of
         "step" ->
             case stepNumber of
                 Just n ->

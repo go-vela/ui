@@ -5,7 +5,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Build exposing
-    ( statusToClass
+    ( expandBuildLineFocus
+    , parseLineFocus
+    , statusToClass
     , statusToString
     , viewBuildHistory
     , viewBuildItem
@@ -19,7 +21,6 @@ import Html
     exposing
         ( Html
         , a
-        , button
         , code
         , details
         , div
@@ -32,6 +33,7 @@ import Html
 import Html.Attributes exposing (attribute, class, classList, href)
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
+import List.Extra exposing (updateIf)
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
@@ -44,6 +46,7 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
+        , LineFocus
         , Log
         , Logs
         , Org
@@ -67,7 +70,7 @@ type alias ExpandStep msg =
 
 {-| LineFocus : update action for focusing a log line
 -}
-type alias LineFocus msg =
+type alias SetLineFocus msg =
     StepNumber -> Int -> msg
 
 
@@ -209,7 +212,7 @@ buildError build =
 
 {-| viewFullBuild : renders entire build based on current application time
 -}
-viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> ExpandStep msg -> LineFocus msg -> Html msg
+viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> ExpandStep msg -> SetLineFocus msg -> Html msg
 viewFullBuild now org repo build steps logs expandAction lineFocusAction =
     let
         ( buildPreview, buildNumber ) =
@@ -244,7 +247,7 @@ viewFullBuild now org repo build steps logs expandAction lineFocusAction =
 
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> ExpandStep msg -> LineFocus msg -> Html msg
+viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> ExpandStep msg -> SetLineFocus msg -> Html msg
 viewSteps now org repo buildNumber steps logs expandAction lineFocusAction =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
@@ -259,7 +262,7 @@ viewSteps now org repo buildNumber steps logs expandAction lineFocusAction =
 
 {-| viewStep : renders single build step
 -}
-viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> ExpandStep msg -> LineFocus msg -> Html msg
+viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> ExpandStep msg -> SetLineFocus msg -> Html msg
 viewStep now org repo buildNumber step steps logs expandAction lineFocusAction =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
@@ -271,7 +274,7 @@ viewStep now org repo buildNumber step steps logs expandAction lineFocusAction =
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> ExpandStep msg -> LineFocus msg -> Html msg
+viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> ExpandStep msg -> SetLineFocus msg -> Html msg
 viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction =
     let
         stepSummary =
@@ -293,7 +296,7 @@ viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction 
 
 {-| viewStepLogs : takes step and logs and renders step logs or step error
 -}
-viewStepLogs : Step -> Logs -> LineFocus msg -> Html msg
+viewStepLogs : Step -> Logs -> SetLineFocus msg -> Html msg
 viewStepLogs step logs clickAction =
     case step.status of
         Vela.Error ->
@@ -305,7 +308,7 @@ viewStepLogs step logs clickAction =
 
 {-| viewLogs : takes stepnumber linefocus log and clickaction and renders logs for a build step
 -}
-viewLogs : StepNumber -> Maybe Int -> Maybe (WebData Log) -> LineFocus msg -> Html msg
+viewLogs : StepNumber -> Maybe Int -> Maybe (WebData Log) -> SetLineFocus msg -> Html msg
 viewLogs stepNumber lineFocus log clickAction =
     let
         content =
@@ -328,7 +331,7 @@ viewLogs stepNumber lineFocus log clickAction =
 
 {-| logLines : takes step number, line focus information and click action and renders logs
 -}
-logLines : StepNumber -> Maybe Int -> Maybe (WebData Log) -> LineFocus msg -> Html msg
+logLines : StepNumber -> Maybe Int -> Maybe (WebData Log) -> SetLineFocus msg -> Html msg
 logLines stepNumber lineFocus log clickAction =
     div [ class "lines" ] <|
         List.indexedMap
@@ -339,7 +342,7 @@ logLines stepNumber lineFocus log clickAction =
 
 {-| lineFocusStyle : takes step number, line focus information, and click action and renders a log line
 -}
-logLine : StepNumber -> String -> Maybe Int -> Int -> LineFocus msg -> Html msg
+logLine : StepNumber -> String -> Maybe Int -> Int -> SetLineFocus msg -> Html msg
 logLine stepNumber line lineFocus lineNumber clickAction =
     div [ class "line" ]
         [ span [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber, class "wrapper", lineFocusStyle lineFocus lineNumber ]
@@ -691,6 +694,42 @@ getStepLog step logs =
             )
             logs
         )
+
+
+{-| expandBuildLineFocus : takes LineFocus URL fragment and expands the appropriate step to automatically view
+-}
+expandBuildLineFocus : LineFocus -> Steps -> Steps
+expandBuildLineFocus lineFocus steps =
+    let
+        ( target, number, line ) =
+            parseLineFocus lineFocus
+    in
+    case Maybe.withDefault "" target of
+        "step" ->
+            case number of
+                Just n ->
+                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = line }) steps
+
+                Nothing ->
+                    steps
+
+        _ ->
+            steps
+
+
+{-| parseLineFocus : takes URL fragment and parses it into appropriate line focus chunks
+-}
+parseLineFocus : LineFocus -> ( Maybe String, Maybe Int, Maybe Int )
+parseLineFocus lineFocus =
+    case String.split ":" (Maybe.withDefault "" lineFocus) of
+        target :: step :: line :: _ ->
+            ( Just target, String.toInt step, String.toInt line )
+
+        target :: step :: _ ->
+            ( Just target, String.toInt step, Nothing )
+
+        _ ->
+            ( Nothing, Nothing, Nothing )
 
 
 {-| logLineHref : takes stepnumber and line number and renders the link href for clicking a log line without redirecting
