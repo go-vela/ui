@@ -187,16 +187,16 @@ buildError build =
 
 {-| viewFullBuild : renders entire build based on current application time
 -}
-viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
+viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> (Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
 viewFullBuild now org repo build steps logs expandAction lineFocusAction =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewBuildItem now org repo bld, String.fromInt bld.number )
+                    ( viewBuildItem now org repo bld, Just <| String.fromInt bld.number )
 
                 _ ->
-                    ( Util.largeLoader, "0" )
+                    ( Util.largeLoader, Nothing )
 
         buildSteps =
             case steps of
@@ -222,7 +222,7 @@ viewFullBuild now org repo build steps logs expandAction lineFocusAction =
 
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Org -> Repo -> BuildNumber -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
+viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> (Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
 viewSteps now org repo buildNumber steps logs expandAction lineFocusAction =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
@@ -237,7 +237,7 @@ viewSteps now org repo buildNumber steps logs expandAction lineFocusAction =
 
 {-| viewStep : renders single build step
 -}
-viewStep : Posix -> Org -> Repo -> BuildNumber -> Step -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
+viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> (Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
 viewStep now org repo buildNumber step steps logs expandAction lineFocusAction =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
@@ -249,14 +249,14 @@ viewStep now org repo buildNumber step steps logs expandAction lineFocusAction =
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : Posix -> Org -> Repo -> BuildNumber -> Step -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
+viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> (Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> msg) -> (StepNumber -> Int -> msg) -> Html msg
 viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction =
     let
         stepSummary =
             [ summary
                 [ class "summary"
                 , Util.testAttribute "step-header"
-                , onClick (expandAction org repo buildNumber <| String.fromInt step.number)
+                , onClick (expandAction org repo buildNumber <| Just <| String.fromInt step.number)
                 ]
                 [ div [ class "-info" ]
                     [ div [ class "-name" ] [ text step.name ]

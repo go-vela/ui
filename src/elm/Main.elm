@@ -253,7 +253,7 @@ type Msg
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
-    | ClickStep Org Repo BuildNumber StepNumber
+    | ClickStep Org Repo (Maybe BuildNumber) (Maybe StepNumber)
     | ClickLogLine Org Repo BuildNumber StepNumber Int
       -- Outgoing HTTP requests
     | SignInRequested
@@ -1915,28 +1915,34 @@ clickHook model org repo buildNumber =
 
 {-| clickStep : takes model org repo and step number and fetches step information from the api
 -}
-clickStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> ( WebData Steps, Cmd Msg )
+clickStep : Model -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> ( WebData Steps, Cmd Msg )
 clickStep model org repo buildNumber stepNumber =
-    if stepNumber == "0" then
-        ( model.steps
-        , Cmd.none
-        )
+    case stepNumber of
+        Nothing ->
+            ( model.steps
+            , Cmd.none
+            )
 
-    else
-        let
-            ( steps, action ) =
-                case model.steps of
-                    Success steps_ ->
-                        ( RemoteData.succeed <| toggleStepView steps_ stepNumber
-                        , getBuildStepLogs model org repo buildNumber stepNumber
-                        )
+        Just stepNum ->
+            let
+                ( steps, action ) =
+                    case model.steps of
+                        Success steps_ ->
+                            ( RemoteData.succeed <| toggleStepView steps_ stepNum
+                            , case buildNumber of
+                                Just buildNum ->
+                                    getBuildStepLogs model org repo buildNum stepNum
 
-                    _ ->
-                        ( model.steps, Cmd.none )
-        in
-        ( steps
-        , action
-        )
+                                Nothing ->
+                                    Cmd.none
+                            )
+
+                        _ ->
+                            ( model.steps, Cmd.none )
+            in
+            ( steps
+            , action
+            )
 
 
 {-| clickLogLine : takes model and line number and sets the focus on the log line
