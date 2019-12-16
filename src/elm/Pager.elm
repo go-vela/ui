@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pager exposing (view)
+module Pager exposing (defaultLabels, view)
 
 import Api.Pagination as Pagination
 import FeatherIcons
@@ -15,10 +15,23 @@ import LinkHeader exposing (WebLink)
 import Util
 
 
+type alias Labels =
+    { previousLabel : String
+    , nextLabel : String
+    }
+
+
+defaultLabels : Labels
+defaultLabels =
+    { previousLabel = "newer"
+    , nextLabel = "older"
+    }
+
+
 {-| view : renders pager controls
 -}
-view : List WebLink -> (Pagination.Page -> msg) -> Html msg
-view links toMsg =
+view : List WebLink -> Labels -> (Pagination.Page -> msg) -> Html msg
+view links labels toMsg =
     let
         linkRels : List LinkHeader.LinkRel
         linkRels =
@@ -91,10 +104,10 @@ view links toMsg =
                 [ FeatherIcons.chevronLeft
                     |> FeatherIcons.withSize 14
                     |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
-                , text "previous"
+                , text labels.previousLabel
                 ]
             , button [ disabled isLast, Util.testAttribute "pager-next", class "inverted", onClick (toMsg nextPage) ]
-                [ text "next"
+                [ text labels.nextLabel
                 , FeatherIcons.chevronRight
                     |> FeatherIcons.withSize 14
                     |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
