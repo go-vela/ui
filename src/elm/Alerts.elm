@@ -92,7 +92,7 @@ config =
     Alerts.config
         |> Alerting.delay (Util.oneSecondMillis * 30)
         |> Alerting.containerAttrs [ class "alert-container-attributes" ]
-        |> Alerting.itemAttrs [ Util.testAttribute "alert", class "alert-item-attributes" ]
+        |> Alerting.itemAttrs [ Util.testAttribute "alert", class "animated", class "alert-item-attributes" ]
 
 
 {-| toHyperlink : takes Link and produces an Html hyperlink
