@@ -1,4 +1,4 @@
-context("org/repo/build View Build Page", () => {
+context("Build", () => {
   context("logged in and server returning build error", () => {
     beforeEach(() => {
       cy.server();
@@ -19,7 +19,7 @@ context("org/repo/build View Build Page", () => {
       cy.fixture("builds_5.json").as("builds5");
       cy.route({
         method: "GET",
-        url: "api/v1/repos/*/*/builds?page=1&per_page=100",
+        url: "api/v1/repos/*/*/builds",
         response: "@builds5"
       });
       cy.login("/someorg/somerepo/1");

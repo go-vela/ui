@@ -2,18 +2,22 @@
 #
 # Use of this source code is governed by the LICENSE file in this repository.
 
+# name of the action
 name: ci
 
+# trigger on pull_request or push events
 on:
   push:
     branches:
   pull_request:
 
 env:
+  NODE_ENV: development
+  USE_NODE_VER: "12.13.1"
   ELM_HOME: "${GITHUB_WORKSPACE}"
-  USE_NODE_VER: "10.15.3"
   CI: 1
 
+# pipeline to execute
 jobs:
   # ┌─┐┬  ┌┬┐   ┌─┐┌─┐┬─┐┌┬┐┌─┐┌┬┐
   # ├┤ │  │││───├┤ │ │├┬┘│││├─┤ │

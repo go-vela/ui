@@ -42,12 +42,10 @@ import Svg.Attributes
         , d
         , fill
         , height
-        , id
         , r
         , stroke
         , strokeLinecap
         , strokeLinejoin
-        , strokeMiterlimit
         , strokeWidth
         , viewBox
         , width
@@ -287,7 +285,7 @@ stepPending : Icon
 stepPending =
     let
         attrs =
-            IconAttributes 44 "" 2 (Just "-icon -pending") "0 0 408 408"
+            IconAttributes 32 "" 2 (Just "-icon -pending") "0 0 408 408"
 
         src =
             [ Svg.g [ class "status-svg", class "-step-icon", class "-pending" ]
@@ -305,7 +303,7 @@ stepRunning : Icon
 stepRunning =
     let
         attrs =
-            IconAttributes 44 "" 2 (Just "-icon") "0 0 44 44"
+            IconAttributes 32 "" 2 (Just "-icon") "0 0 44 44"
 
         src =
             [ Svg.g [ class "status-svg", class "-step-icon", class "-running" ]
@@ -323,7 +321,7 @@ stepSuccess : Icon
 stepSuccess =
     let
         attrs =
-            IconAttributes 44 "" 2 (Just "-icon") "0 0 44 44"
+            IconAttributes 32 "" 2 (Just "-icon") "0 0 44 44"
 
         src =
             [ Svg.g [ class "status-svg", class "-linecap-square", class "-step-icon", class "-success" ]
@@ -341,7 +339,7 @@ stepFailure : Icon
 stepFailure =
     let
         attrs =
-            IconAttributes 44 "" 2 (Just "-icon") "0 0 44 44"
+            IconAttributes 32 "" 2 (Just "-icon") "0 0 44 44"
 
         strokeA =
             "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"

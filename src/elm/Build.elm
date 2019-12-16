@@ -5,7 +5,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Build exposing
-    ( statusToClass
+    ( expandBuildLineFocus
+    , parseLineFocus
+    , statusToClass
     , statusToString
     , viewBuildHistory
     , viewBuildItem
@@ -15,10 +17,23 @@ module Build exposing
 
 import Base64 exposing (decode)
 import DateFormat.Relative exposing (relativeTime)
-import Html exposing (Html, a, code, details, div, h1, p, span, summary, text)
+import Html
+    exposing
+        ( Html
+        , a
+        , code
+        , details
+        , div
+        , h1
+        , p
+        , span
+        , summary
+        , text
+        )
 import Html.Attributes exposing (attribute, class, classList, href)
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
+import List.Extra exposing (updateIf)
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
@@ -30,6 +45,8 @@ import Vela
         ( Build
         , BuildNumber
         , Builds
+        , BuildsModel
+        , LineFocus
         , Log
         , Logs
         , Org
@@ -42,13 +59,29 @@ import Vela
 
 
 
+-- TYPES
+
+
+{-| ExpandStep : update action for expanding a build step
+-}
+type alias ExpandStep msg =
+    Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> msg
+
+
+{-| LineFocus : update action for focusing a log line
+-}
+type alias SetLineFocus msg =
+    StepNumber -> Int -> msg
+
+
+
 -- VIEW
 
 
 {-| viewRepositoryBuilds : renders builds
 -}
-viewRepositoryBuilds : WebData Builds -> Posix -> String -> String -> Html msg
-viewRepositoryBuilds model now org repo =
+viewRepositoryBuilds : BuildsModel -> Posix -> String -> String -> Html msg
+viewRepositoryBuilds buildsModel now org repo =
     let
         none =
             div []
@@ -61,13 +94,13 @@ viewRepositoryBuilds model now org repo =
                     ]
                 ]
     in
-    case model of
+    case buildsModel.builds of
         RemoteData.Success builds ->
             if List.length builds == 0 then
                 none
 
             else
-                div [ class "builds", Util.testAttribute "builds" ] <| List.map (\build -> viewBuildItem now org repo build) builds
+                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewBuildItem now org repo) builds
 
         RemoteData.Loading ->
             Util.largeLoader
@@ -76,7 +109,7 @@ viewRepositoryBuilds model now org repo =
             Util.largeLoader
 
         RemoteData.Failure _ ->
-            div []
+            div [ Util.testAttribute "builds-error" ]
                 [ p []
                     [ text <|
                         "There was an error fetching builds for this repository, please try again later!"
@@ -107,7 +140,12 @@ viewBuildItem now org repo build =
             [ text build.sender ]
 
         id =
-            [ a [ Util.testAttribute "build-number", Routes.href <| Routes.Build org repo <| String.fromInt build.number ] [ text <| "#" ++ String.fromInt build.number ] ]
+            [ a
+                [ Util.testAttribute "build-number"
+                , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
+                ]
+                [ text <| "#" ++ String.fromInt build.number ]
+            ]
 
         age =
             [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
@@ -174,21 +212,21 @@ buildError build =
 
 {-| viewFullBuild : renders entire build based on current application time
 -}
-viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
-viewFullBuild now org repo build steps logs clickAction =
+viewFullBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> ExpandStep msg -> SetLineFocus msg -> Html msg
+viewFullBuild now org repo build steps logs expandAction lineFocusAction =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewBuildItem now org repo bld, String.fromInt bld.number )
+                    ( viewBuildItem now org repo bld, Just <| String.fromInt bld.number )
 
                 _ ->
-                    ( Util.largeLoader, "0" )
+                    ( Util.largeLoader, Nothing )
 
         buildSteps =
             case steps of
                 RemoteData.Success steps_ ->
-                    viewSteps now org repo buildNumber steps_ logs clickAction
+                    viewSteps now org repo buildNumber steps_ logs expandAction lineFocusAction
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
@@ -209,52 +247,142 @@ viewFullBuild now org repo build steps logs clickAction =
 
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Org -> Repo -> BuildNumber -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
-viewSteps now org repo buildNumber steps logs clickAction =
+viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> ExpandStep msg -> SetLineFocus msg -> Html msg
+viewSteps now org repo buildNumber steps logs expandAction lineFocusAction =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
                 (\step ->
-                    viewStep now org repo buildNumber step steps logs clickAction
+                    viewStep now org repo buildNumber step steps logs expandAction lineFocusAction
                 )
             <|
-                List.sortBy (\step -> step.number) <|
-                    steps
+                steps
         ]
 
 
 {-| viewStep : renders single build step
 -}
-viewStep : Posix -> Org -> Repo -> BuildNumber -> Step -> Steps -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
-viewStep now org repo buildNumber step steps logs clickAction =
+viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> ExpandStep msg -> SetLineFocus msg -> Html msg
+viewStep now org repo buildNumber step steps logs expandAction lineFocusAction =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
         , div [ classList [ ( "-view", True ), ( "-running", step.status == Vela.Running ) ] ]
-            [ viewStepDetails now org repo buildNumber step logs clickAction ]
+            [ viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction ]
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : Posix -> Org -> Repo -> BuildNumber -> Step -> Logs -> (Org -> Repo -> BuildNumber -> StepNumber -> msg) -> Html msg
-viewStepDetails now org repo buildNumber step logs clickAction =
+viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> ExpandStep msg -> SetLineFocus msg -> Html msg
+viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction =
     let
         stepSummary =
             [ summary
                 [ class "summary"
                 , Util.testAttribute "step-header"
-                , onClick (clickAction org repo buildNumber <| String.fromInt step.number)
+                , onClick (expandAction org repo buildNumber <| Just <| String.fromInt step.number)
                 ]
                 [ div [ class "-info" ]
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
                     ]
                 ]
-            , viewStepLogs step logs
+            , div [ class "logs-container" ] [ viewStepLogs step logs lineFocusAction ]
             ]
     in
     details [ class "details", Util.open step.viewing ] stepSummary
+
+
+{-| viewStepLogs : takes step and logs and renders step logs or step error
+-}
+viewStepLogs : Step -> Logs -> SetLineFocus msg -> Html msg
+viewStepLogs step logs clickAction =
+    case step.status of
+        Vela.Error ->
+            stepError step
+
+        _ ->
+            viewLogs (String.fromInt step.number) step.lineFocus (getStepLog step logs) clickAction
+
+
+{-| viewLogs : takes stepnumber linefocus log and clickaction and renders logs for a build step
+-}
+viewLogs : StepNumber -> Maybe Int -> Maybe (WebData Log) -> SetLineFocus msg -> Html msg
+viewLogs stepNumber lineFocus log clickAction =
+    let
+        content =
+            case Maybe.withDefault RemoteData.NotAsked log of
+                RemoteData.Success _ ->
+                    if logNotEmpty <| decodeLog log then
+                        logLines stepNumber lineFocus log clickAction
+
+                    else
+                        code [] [ text "No logs for this step." ]
+
+                RemoteData.Failure err ->
+                    code [ Util.testAttribute "logs-error" ] [ text "error:" ]
+
+                _ ->
+                    div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
+    in
+    div [ class "logs", Util.testAttribute <| "logs-" ++ stepNumber ] [ content ]
+
+
+{-| logLines : takes step number, line focus information and click action and renders logs
+-}
+logLines : StepNumber -> Maybe Int -> Maybe (WebData Log) -> SetLineFocus msg -> Html msg
+logLines stepNumber lineFocus log clickAction =
+    div [ class "lines" ] <|
+        List.indexedMap
+            (\idx -> \line -> logLine stepNumber line lineFocus (idx + 1) clickAction)
+        <|
+            decodeLogLine log
+
+
+{-| lineFocusStyle : takes step number, line focus information, and click action and renders a log line
+-}
+logLine : StepNumber -> String -> Maybe Int -> Int -> SetLineFocus msg -> Html msg
+logLine stepNumber line lineFocus lineNumber clickAction =
+    div [ class "line" ]
+        [ span [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber, class "wrapper", lineFocusStyle lineFocus lineNumber ]
+            [ span [ class "-line-num" ]
+                [ a
+                    [ logLineHref stepNumber lineNumber
+                    , onClick <| clickAction stepNumber lineNumber
+                    , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+                    ]
+                    [ text <| Util.toTwoDigits <| lineNumber ]
+                ]
+            , code [] [ text <| String.trim line ]
+            ]
+        ]
+
+
+{-| decodeLogLine : takes maybe log and decodes it based on
+-}
+decodeLogLine : Maybe (WebData Log) -> List String
+decodeLogLine log =
+    List.filter (\line -> not <| String.isEmpty line) <|
+        String.lines <|
+            decodeLog log
+
+
+{-| stepError : checks for build error and renders message
+-}
+stepError : Step -> Html msg
+stepError step =
+    div [ class "step-error", Util.testAttribute "step-error" ]
+        [ span [ class "label" ] [ text "error:" ]
+        , span [ class "message" ]
+            [ text <|
+                if String.isEmpty step.error then
+                    "no error msg"
+
+                else
+                    step.error
+            ]
+        ]
 
 
 {-| viewStepIcon : renders a build step status icon
@@ -264,64 +392,20 @@ viewStepIcon step =
     stepStatusToIcon step.status |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
 
 
-{-| viewStepLogs : takes step and logs and renders step logs or step error
+{-| lineFocusStyle : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
 -}
-viewStepLogs : Step -> Logs -> Html msg
-viewStepLogs step logs =
-    case step.status of
-        Vela.Error ->
-            div [ class "log", class "error", Util.testAttribute "step-error" ]
-                [ span [ class "label" ] [ text "error:" ]
-                , span [ class "message" ]
-                    [ text <|
-                        if String.isEmpty step.error then
-                            "no error msg"
+lineFocusStyle : Maybe Int -> Int -> Html.Attribute msg
+lineFocusStyle lineFocus lineNumber =
+    case lineFocus of
+        Just line ->
+            if line == lineNumber then
+                class "-focus"
 
-                        else
-                            step.error
-                    ]
-                ]
+            else
+                class ""
 
-        _ ->
-            viewLogs <| getStepLog step logs
-
-
-{-| viewLogs : renders a build step logs
--}
-viewLogs : Maybe (WebData Log) -> Html msg
-viewLogs log =
-    let
-        content =
-            case Maybe.withDefault RemoteData.NotAsked log of
-                RemoteData.Success _ ->
-                    if logNotEmpty <| decodeLog log then
-                        div [ Util.testAttribute "logs" ] <|
-                            List.indexedMap
-                                (\idx ->
-                                    \line ->
-                                        div []
-                                            [ div [ class "-code" ]
-                                                [ span [ class "-line-num" ]
-                                                    [ text <| Util.toTwoDigits <| idx + 1 ]
-                                                , code [] [ text line ]
-                                                ]
-                                            ]
-                                )
-                            <|
-                                List.filter (\line -> not <| String.isEmpty line) <|
-                                    String.lines <|
-                                        decodeLog log
-
-                    else
-                        code [] [ text "No logs for this step." ]
-
-                RemoteData.Failure _ ->
-                    code [] [ text "error fetching logs for this step." ]
-
-                _ ->
-                    Util.smallLoaderWithText "loading logs..."
-    in
-    div [ class "log" ] [ content ]
+        Nothing ->
+            class ""
 
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
@@ -331,7 +415,7 @@ viewBuildHistory now timezone page org repo builds =
     let
         show =
             case page of
-                Pages.Build _ _ _ ->
+                Pages.Build _ _ _ _ ->
                     True
 
                 _ ->
@@ -371,7 +455,7 @@ recentBuild now timezone org repo build idx =
     in
     a
         [ class "-build"
-        , Routes.href <| Routes.Build org repo <| String.fromInt build.number
+        , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
         ]
         [ icon |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
@@ -548,7 +632,7 @@ stepClasses : Step -> Steps -> Html.Attribute msg
 stepClasses step steps =
     let
         last =
-            case List.head steps of
+            case List.head <| List.reverse steps of
                 Just s ->
                     s.number
 
@@ -610,3 +694,46 @@ getStepLog step logs =
             )
             logs
         )
+
+
+{-| expandBuildLineFocus : takes LineFocus URL fragment and expands the appropriate step to automatically view
+-}
+expandBuildLineFocus : LineFocus -> Steps -> Steps
+expandBuildLineFocus lineFocus steps =
+    let
+        ( target, number, line ) =
+            parseLineFocus lineFocus
+    in
+    case Maybe.withDefault "" target of
+        "step" ->
+            case number of
+                Just n ->
+                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = line }) steps
+
+                Nothing ->
+                    steps
+
+        _ ->
+            steps
+
+
+{-| parseLineFocus : takes URL fragment and parses it into appropriate line focus chunks
+-}
+parseLineFocus : LineFocus -> ( Maybe String, Maybe Int, Maybe Int )
+parseLineFocus lineFocus =
+    case String.split ":" (Maybe.withDefault "" lineFocus) of
+        target :: step :: line :: _ ->
+            ( Just target, String.toInt step, String.toInt line )
+
+        target :: step :: _ ->
+            ( Just target, String.toInt step, Nothing )
+
+        _ ->
+            ( Nothing, Nothing, Nothing )
+
+
+{-| logLineHref : takes stepnumber and line number and renders the link href for clicking a log line without redirecting
+-}
+logLineHref : StepNumber -> Int -> Html.Attribute msg
+logLineHref stepNumber lineNumber =
+    href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber)

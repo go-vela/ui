@@ -13,6 +13,7 @@ module Api exposing
     , getAllRepositories
     , getBuild
     , getBuilds
+    , getHooks
     , getRepo
     , getRepositories
     , getSourceRepositories
@@ -40,6 +41,7 @@ import Vela
         , BuildNumber
         , Builds
         , Hook
+        , Hooks
         , Log
         , Org
         , Repo
@@ -54,6 +56,7 @@ import Vela
         , decodeBuild
         , decodeBuilds
         , decodeHook
+        , decodeHooks
         , decodeLog
         , decodeRepositories
         , decodeRepository
@@ -448,6 +451,14 @@ getStep model org repository buildNumber stepNumber =
 getStepLogs : PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> Request Log
 getStepLogs model org repository buildNumber stepNumber =
     get model.velaAPI (Endpoint.StepLogs org repository buildNumber stepNumber) decodeLog
+        |> withAuth model.session
+
+
+{-| getHooks : fetches hooks for the given repository
+-}
+getHooks : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Hooks
+getHooks model maybePage maybePerPage org repository =
+    get model.velaAPI (Endpoint.Hooks maybePage maybePerPage org repository) decodeHooks
         |> withAuth model.session
 
 

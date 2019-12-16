@@ -1,0 +1,57 @@
+# Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+#
+# Use of this source code is governed by the LICENSE file in this repository.
+
+# name of the action
+name: publish
+
+# trigger on push events with `v*` in tag
+# ignore push events with `v*-rc*` in tag
+on:
+  push:
+    tags:
+      - 'v*'
+      - '!v*-rc*'
+
+# pipeline to execute
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:latest
+    steps:
+    - name: clone
+      uses: actions/checkout@v1
+
+    - name: tags
+      run: |
+        git fetch --tags
+
+    - name: version
+      id: version
+      run: |
+        echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+    - name: install
+      run: |
+        go get github.com/git-chglog/git-chglog/cmd/git-chglog
+        go get github.com/itchio/gothub
+
+    - name: changelog
+      run: |
+        # https://github.com/git-chglog/git-chglog#git-chglog
+        $(go env GOPATH)/bin/git-chglog \
+          -o $GITHUB_WORKSPACE/CHANGELOG.md \
+          ${{ steps.version.outputs.VERSION }}
+
+    - name: release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # https://github.com/itchio/gothub#gothub
+        $(go env GOPATH)/bin/gothub edit \
+          --user go-vela \
+          --repo ui \
+          --tag ${{ steps.version.outputs.VERSION }} \
+          --name ${{ steps.version.outputs.VERSION }} \
+          --description "$(cat $GITHUB_WORKSPACE/CHANGELOG.md)"
