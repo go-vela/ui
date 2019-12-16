@@ -11,7 +11,7 @@ import Html.Attributes as Attr
 import Url exposing (Url)
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber)
+import Vela exposing (AuthParams, BuildNumber, LineFocus)
 
 
 
@@ -32,7 +32,7 @@ type Route
     | Hooks Org Repo
     | Settings Org Repo
     | RepositoryBuilds Org Repo
-    | Build Org Repo BuildNumber (Maybe String)
+    | Build Org Repo BuildNumber LineFocus
     | Login
     | Logout
     | Authenticate AuthParams
@@ -99,8 +99,8 @@ routeToUrl route =
         Hooks org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks"
 
-        Build org repo buildNumber frag ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" frag
+        Build org repo buildNumber lineFocus ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" lineFocus
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

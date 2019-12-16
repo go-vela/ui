@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages exposing (Page(..), toRoute)
 
 import Routes exposing (Route(..))
-import Vela exposing (AuthParams, BuildNumber, Org, Repo)
+import Vela exposing (AuthParams, BuildNumber, LineFocus, Org, Repo)
 
 
 type Page
@@ -16,7 +16,7 @@ type Page
     | Hooks Org Repo
     | Settings Org Repo
     | RepositoryBuilds Org Repo
-    | Build Org Repo BuildNumber (Maybe String)
+    | Build Org Repo BuildNumber LineFocus
     | Login
     | Logout
     | Authenticate AuthParams

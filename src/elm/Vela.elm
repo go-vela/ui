@@ -16,6 +16,7 @@ module Vela exposing
     , Hook
     , HookBuilds
     , Hooks
+    , LineFocus
     , Log
     , Logs
     , Org
@@ -590,6 +591,10 @@ decodeLog =
 
 type alias Logs =
     List (WebData Log)
+
+
+type alias LineFocus =
+    Maybe String
 
 
 

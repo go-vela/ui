@@ -190,7 +190,11 @@ build now buildIdentifier b =
             [ div []
                 [ code [ class "element" ]
                     [ span [ class "-m-r" ] [ text "build:" ]
-                    , a [ Util.testAttribute "build-link", class "-m-r", Routes.href <| Routes.Build org repo buildNumber Nothing ]
+                    , a
+                        [ Util.testAttribute "build-link"
+                        , class "-m-r"
+                        , Routes.href <| Routes.Build org repo buildNumber Nothing
+                        ]
                         [ text <| buildPath buildIdentifier
                         ]
                     ]
