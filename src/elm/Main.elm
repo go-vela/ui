@@ -528,9 +528,16 @@ update msg model =
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
+
+                action =
+                    if accessChanged model.repo payload then
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        Cmd.none
             in
             ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            , action
             )
 
         UpdateRepoTimeout org repo field value ->
@@ -1927,6 +1934,27 @@ searchFilterLocal org filters =
 shouldSearch : SearchFilter -> Bool
 shouldSearch filter =
     String.length filter > 2
+
+
+{-| refreshPage : takes model webdata repo and repo visibility update and determines if an update is necessary
+-}
+accessChanged : WebData Repository -> UpdateRepositoryPayload -> Bool
+accessChanged originalRepo repoUpdate =
+    case originalRepo of
+        RemoteData.Success repo ->
+            case repoUpdate.visibility of
+                Just visibility ->
+                    if repo.visibility /= visibility then
+                        True
+
+                    else
+                        False
+
+                Nothing ->
+                    False
+
+        _ ->
+            False
 
 
 {-| clickHook : takes model org repo and build number and fetches build information from the api
