@@ -81,6 +81,7 @@ context("Steps", () => {
     context("click log line number", () => {
       beforeEach(() => {
         cy.get("@stepHeaders").click({ force: true, multiple: true });
+        cy.wait("@getLogs-1");
         cy.get("@logs")
           .first()
           .within(() => {
@@ -133,6 +134,7 @@ context("Steps", () => {
       });
       it("line should be highlighted", () => {
         cy.get("@stepHeaders").click({ force: true, multiple: true });
+        cy.wait("@getLogs-2");
         cy.get("[data-test=logs-2]").within(() => {
           cy.get("[data-test=log-line-2]").as("line2:2");
           cy.get("[data-test=log-line-num-2]").as("lineNumber2:2");
