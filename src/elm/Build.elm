@@ -675,4 +675,4 @@ getStepLog step logs =
 -}
 logLineHref : StepNumber -> Int -> Html.Attribute msg
 logLineHref stepNumber lineNumber =
-    href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber + 1)
+    href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber)
