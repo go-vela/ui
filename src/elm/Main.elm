@@ -94,6 +94,7 @@ import Vela
         , HookBuilds
         , Hooks
         , HooksModel
+        , LineFocus
         , Log
         , Logs
         , Org
@@ -463,7 +464,7 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        StepsResponse org repo buildNumber frag response ->
+        StepsResponse org repo buildNumber lineFocus response ->
             case response of
                 Ok ( _, stepsResponse ) ->
                     let
@@ -471,7 +472,7 @@ update msg model =
                             List.sortBy (\step -> step.number) stepsResponse
 
                         steps =
-                            RemoteData.succeed <| expandBuildFrag frag sortedSteps
+                            RemoteData.succeed <| expandBuildLineFocus lineFocus sortedSteps
 
                         cmd =
                             getBuildStepsLogs model org repo buildNumber steps
@@ -690,11 +691,11 @@ update msg model =
             ( model, Cmd.none )
 
 
-expandBuildFrag : Maybe String -> Steps -> Steps
-expandBuildFrag frag steps =
+expandBuildLineFocus : LineFocus -> Steps -> Steps
+expandBuildLineFocus lineFocus steps =
     let
         ( target, number, line ) =
-            parseLineFocusFrag frag
+            parseLineFocus lineFocus
     in
     case target of
         "step" ->
@@ -709,31 +710,31 @@ expandBuildFrag frag steps =
             steps
 
 
-parseLineFocusFrag : Maybe String -> ( String, Maybe Int, Maybe Int )
-parseLineFocusFrag frag =
+parseLineFocus : LineFocus -> ( String, Maybe Int, Maybe Int )
+parseLineFocus lineFocus =
     let
-        frags =
-            Array.fromList <| String.split ":" (Maybe.withDefault "" frag)
+        lineFocuses =
+            Array.fromList <| String.split ":" (Maybe.withDefault "" lineFocus)
     in
-    ( focusTarget frags
-    , focusTargetNumber frags
-    , focusLineNumber frags
+    ( focusTarget lineFocuses
+    , focusTargetNumber lineFocuses
+    , focusLineNumber lineFocuses
     )
 
 
 focusTarget : Array.Array String -> String
-focusTarget frags =
-    Maybe.withDefault "" <| Array.get 0 frags
+focusTarget lineFocuses =
+    Maybe.withDefault "" <| Array.get 0 lineFocuses
 
 
 focusTargetNumber : Array.Array String -> Maybe Int
-focusTargetNumber frags =
-    String.toInt <| Maybe.withDefault "" <| Array.get 1 frags
+focusTargetNumber lineFocuses =
+    String.toInt <| Maybe.withDefault "" <| Array.get 1 lineFocuses
 
 
 focusLineNumber : Array.Array String -> Maybe Int
-focusLineNumber frags =
-    String.toInt <| Maybe.withDefault "" <| Array.get 2 frags
+focusLineNumber lineFocuses =
+    String.toInt <| Maybe.withDefault "" <| Array.get 2 lineFocuses
 
 
 
@@ -1435,7 +1436,7 @@ navButton model =
                 [ text "Refresh Settings"
                 ]
 
-        Pages.Build org repo buildNumber frag ->
+        Pages.Build org repo buildNumber lineFocus ->
             button
                 [ classList
                     [ ( "btn-restart-build", True )
@@ -1562,13 +1563,13 @@ setNewPage route model =
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage, True ) ->
             loadRepoBuildsPage model org repo maybePage maybePerPage
 
-        ( Routes.Build org repo buildNumber frag, True ) ->
+        ( Routes.Build org repo buildNumber lineFocus, True ) ->
             case model.page of
                 Pages.Build _ _ _ _ ->
-                    setLogLineFocus model org repo buildNumber frag
+                    setLogLineFocus model org repo buildNumber lineFocus
 
                 _ ->
-                    loadBuildPage model org repo buildNumber frag
+                    loadBuildPage model org repo buildNumber lineFocus
 
         ( Routes.Logout, True ) ->
             ( { model | session = Nothing }
@@ -1650,8 +1651,8 @@ loadRepoBuildsPage model org repo maybePage maybePerPage =
     loadBuildPage   Checks if the build has already been loaded from the repo view. If not, fetches the build from the Api.
 
 -}
-loadBuildPage : Model -> Org -> Repo -> BuildNumber -> Maybe String -> ( Model, Cmd Msg )
-loadBuildPage model org repo buildNumber frag =
+loadBuildPage : Model -> Org -> Repo -> BuildNumber -> LineFocus -> ( Model, Cmd Msg )
+loadBuildPage model org repo buildNumber lineFocus =
     let
         modelBuilds =
             model.builds
@@ -1664,11 +1665,11 @@ loadBuildPage model org repo buildNumber frag =
                 model.builds
     in
     -- Fetch build from Api
-    ( { model | page = Pages.Build org repo buildNumber frag, builds = builds, build = Loading, steps = NotAsked, logs = [] }
+    ( { model | page = Pages.Build org repo buildNumber lineFocus, builds = builds, build = Loading, steps = NotAsked, logs = [] }
     , Cmd.batch
         [ getBuilds model org repo Nothing Nothing
         , getBuild model org repo buildNumber
-        , getAllBuildSteps model org repo buildNumber frag
+        , getAllBuildSteps model org repo buildNumber lineFocus
         ]
     )
 
@@ -1847,15 +1848,15 @@ addLog incomingLog logs =
 
 {-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
 -}
-setLogLineFocus : Model -> Org -> Repo -> BuildNumber -> Maybe String -> ( Model, Cmd Msg )
-setLogLineFocus model org repo buildNumber frag =
+setLogLineFocus : Model -> Org -> Repo -> BuildNumber -> LineFocus -> ( Model, Cmd Msg )
+setLogLineFocus model org repo buildNumber lineFocus =
     let
         ( steps, action ) =
             case model.steps of
                 Success steps_ ->
                     let
                         focusedSteps =
-                            RemoteData.succeed <| setLineFocus steps_ frag
+                            RemoteData.succeed <| setLineFocus steps_ lineFocus
                     in
                     ( focusedSteps
                     , getBuildStepsLogs model org repo buildNumber focusedSteps
@@ -1866,7 +1867,7 @@ setLogLineFocus model org repo buildNumber frag =
                     , Cmd.none
                     )
     in
-    ( { model | page = Pages.Build org repo buildNumber frag, steps = steps }
+    ( { model | page = Pages.Build org repo buildNumber lineFocus, steps = steps }
     , action
     )
 
@@ -2043,11 +2044,11 @@ toggleStepView steps stepNumber =
         steps
 
 
-setLineFocus : Steps -> Maybe String -> Steps
-setLineFocus steps frag =
+setLineFocus : Steps -> LineFocus -> Steps
+setLineFocus steps lineFocus =
     let
         ( target, stepNumber, lineNumber ) =
-            parseLineFocusFrag frag
+            parseLineFocus lineFocus
     in
     case target of
         "step" ->
@@ -2113,9 +2114,9 @@ getBuild model org repo buildNumber =
     Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
 
 
-getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> Maybe String -> Cmd Msg
-getAllBuildSteps model org repo buildNumber frag =
-    Api.try (StepsResponse org repo buildNumber frag) <| Api.getSteps model Nothing Nothing org repo buildNumber
+getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> LineFocus -> Cmd Msg
+getAllBuildSteps model org repo buildNumber lineFocus =
+    Api.try (StepsResponse org repo buildNumber lineFocus) <| Api.getSteps model Nothing Nothing org repo buildNumber
 
 
 getBuildStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg
