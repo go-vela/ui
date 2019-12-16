@@ -164,3 +164,9 @@ Cypress.Commands.add("checkA11yForPage", (path = "/", opts = {}) => {
   cy.wait(500);
   cy.checkA11y(opts);
 });
+
+Cypress.Commands.add("setTheme", theme => {
+  cy.window().then(win => {
+    win.localStorage.setItem("vela-theme", theme);
+  });
+});

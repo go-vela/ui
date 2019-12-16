@@ -29,6 +29,7 @@ module Vela exposing
     , Step
     , StepNumber
     , Steps
+    , Theme(..)
     , UpdateRepositoryPayload
     , User
     , Viewing
@@ -46,6 +47,7 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeSteps
+    , decodeTheme
     , decodeUser
     , defaultAddRepositoryPayload
     , defaultBuilds
@@ -55,7 +57,9 @@ module Vela exposing
     , defaultUser
     , encodeAddRepository
     , encodeSession
+    , encodeTheme
     , encodeUpdateRepository
+    , stringToTheme
     )
 
 import Dict exposing (Dict)
@@ -67,6 +71,11 @@ import RemoteData exposing (RemoteData(..), WebData)
 
 
 -- COMMON
+
+
+type Theme
+    = Light
+    | Dark
 
 
 type alias Org =
@@ -83,6 +92,39 @@ type alias BuildNumber =
 
 type alias StepNumber =
     String
+
+
+
+-- THEME
+
+
+stringToTheme : String -> Theme
+stringToTheme theme =
+    case theme of
+        "theme-light" ->
+            Light
+
+        _ ->
+            Dark
+
+
+decodeTheme : Decoder Theme
+decodeTheme =
+    Decode.string
+        |> Decode.andThen
+            (\str ->
+                Decode.succeed <| stringToTheme str
+            )
+
+
+encodeTheme : Theme -> Encode.Value
+encodeTheme theme =
+    case theme of
+        Light ->
+            Encode.string "theme-light"
+
+        _ ->
+            Encode.string "theme-dark"
 
 
 

@@ -2,8 +2,9 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-@import "reset";
 @import "variables";
+@import "themes";
+@import "reset";
 @import "animations";
 @import "mixins";
 
@@ -19,7 +20,7 @@ body {
 }
 
 a {
-  color: var(--color-cyan);
+  color: var(--color-primary);
   &:hover {
     text-decoration: none;
   }
@@ -51,7 +52,7 @@ header {
   border-image-slice: 1;
   background: radial-gradient(
     circle at 50% -200%,
-    var(--color-gray) -7%,
+    var(--color-bg-light) -7%,
     transparent 50%
   );
 }
@@ -127,7 +128,7 @@ header {
     fill: var(--color-lavender);
   }
   &-outer {
-    fill: var(--color-lightcyan);
+    fill: var(--color-cyan);
   }
   &-inner {
     fill: var(--color-text);
@@ -174,8 +175,8 @@ header {
 
     list-style: none;
 
-    border: 1px solid var(--color-gray);
-    background-color: var(--color-bg-darker);
+    border: 1px solid var(--color-bg-light);
+    background-color: var(--color-bg-dark);
     box-shadow: 0 0 2px black;
 
     font-size: 80%;
@@ -206,6 +207,10 @@ header {
   }
 }
 
+.theme-light .identity-name ul {
+  background: var(--color-white);
+}
+
 .content-wrap {
   margin: 0 var(--horizontal-pad);
 }
@@ -216,7 +221,6 @@ button,
   padding: 0.5em 2em;
 
   cursor: pointer;
-  transition: background 0.5s;
   text-decoration: none;
 
   color: var(--color-bg);
@@ -240,21 +244,21 @@ button,
     background-position: right center;
   }
   &:disabled {
-    color: var(--color-darkcoal);
-    border-color: var(--color-gray);
-    background-color: var(--color-gray);
+    color: var(--color-bg-dark);
+    border-color: var(--color-bg-light);
+    background-color: var(--color-bg-light);
     background-image: none;
   }
   &.inverted {
-    color: var(--color-cyan);
+    color: var(--color-primary);
     border-width: var(--line-width);
     border-style: solid;
-    border-color: var(--color-cyan);
+    border-color: var(--color-primary);
     background-color: var(--color-bg);
     background-image: none;
     &:hover {
-      color: var(--color-lightcyan);
-      border-color: var(--color-lightcyan);
+      color: var(--color-primary-light);
+      border-color: var(--color-primary-light);
     }
   }
 }
@@ -271,11 +275,11 @@ button,
   border-left-width: 0;
   border-image-source: linear-gradient(
     to right,
-    var(--color-gray) 15%,
+    var(--color-bg-light) 15%,
     transparent 15%,
     transparent 18%,
-    var(--color-gray) 18%,
-    var(--color-gray) 18.8%,
+    var(--color-bg-light) 18%,
+    var(--color-bg-light) 18.8%,
     transparent 18.8%
   );
   border-image-slice: 1;
@@ -319,11 +323,11 @@ button,
   border-left: var(--line-width) solid;
   border-image-source: linear-gradient(
     to right,
-    var(--color-gray) 75%,
+    var(--color-bg-light) 75%,
     transparent 75%,
     transparent 77%,
-    var(--color-gray) 77%,
-    var(--color-gray) 84%,
+    var(--color-bg-light) 77%,
+    var(--color-bg-light) 84%,
     transparent 84%
   );
   border-image-slice: 1;
@@ -343,7 +347,11 @@ button,
   margin: 0.5em 0 0 1em;
   padding: 0.5em 1em;
 
-  background-color: var(--color-darkcoal);
+  background-color: var(--color-bg-dark);
+}
+
+.theme-light .-item {
+  background-color: var(--color-white);
 }
 
 .-item .-actions {
@@ -411,7 +419,7 @@ button,
 
   font-size: 18px;
   &::placeholder {
-    color: var(--color-gray);
+    color: var(--color-bg-light);
   }
 }
 
@@ -437,7 +445,7 @@ button,
   margin: 0.5em 0 0 1em;
   padding: 1.2em 1em;
 
-  background-color: var(--color-bg-darker);
+  background-color: var(--color-bg-dark);
 }
 
 .org-header {
@@ -537,8 +545,8 @@ button.-inverted {
   background-color: var(--color-bg);
   background-image: none;
   &:hover {
-    color: var(--color-lightcyan);
-    border-color: var(--color-lightcyan);
+    color: var(--color-primary-accent);
+    border-color: var(--color-primary-accent);
   }
 }
 
@@ -550,9 +558,9 @@ button.-inverted {
   font-size: 12px;
   font-weight: 300;
   &:disabled {
-    color: var(--color-offwhite);
-    border: var(--line-width) solid var(--color-gray);
-    background-color: var(--color-coal);
+    color: var(--color-bg);
+    border: var(--line-width) solid var(--color-bg-light);
+    background-color: var(--color-bg);
     background-image: none;
     &:hover {
       color: inherit;
@@ -573,23 +581,21 @@ button.-inverted {
 
 .-btn.-solid,
 button.-solid {
-  transition: 0.1s;
-
-  color: var(--color-bg-darker);
+  color: var(--color-bg);
   border-width: var(--line-width);
   border-style: solid;
   border-color: var(--color-primary);
   background-color: var(--color-primary);
   background-image: none;
   &:hover {
-    color: var(--color-lightcyan);
-    border-color: var(--color-lightcyan);
-    background-color: var(--color-bg-darker);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background-color: var(--color-bg);
   }
 
   &.loading {
-    color: var(--color--gray);
-    border: var(--line-width) dashed var(--color-gray);
+    color: var(--color-bg-light);
+    border: var(--line-width) dashed var(--color-bg-light);
     &:hover {
       color: inherit;
       border-color: inherit;
@@ -603,8 +609,8 @@ button.-solid {
 
 .btn-refresh {
   &.loading {
-    color: var(--color--gray);
-    border: var(--line-width) dashed var(--color-gray);
+    color: var(--color-bg-light);
+    border: var(--line-width) dashed var(--color-bg-light);
     &:hover {
       color: inherit;
       border-color: inherit;
@@ -687,7 +693,7 @@ button.-solid {
   flex-direction: row;
   justify-content: space-between;
 
-  border: 2px solid var(--color-bg-darker);
+  border: 2px solid var(--color-bg-dark);
   border-right: 0px;
   border-left: 0px;
 
@@ -714,12 +720,12 @@ button.-solid {
 .build-icon.-pending {
   padding: 8px;
 
-  border: 2px solid var(--color-bg-darker);
+  border: 2px solid var(--color-bg-dark);
   border-radius: 7px;
 }
 
 .-build-status-icon.-pending {
-  fill: var(--color-bg-darker);
+  fill: var(--color-bg-dark);
 }
 
 .status-svg {
@@ -738,7 +744,7 @@ button.-solid {
 }
 
 .build .status.-pending {
-  background: var(--color-gray);
+  background: var(--color-bg-light);
 }
 
 .build .status.-running {
@@ -751,7 +757,7 @@ button.-solid {
 
 .build .status.-failure,
 .build .status.-error {
-    background: var(--color-red);
+  background: var(--color-red);
 }
 
 .build .info {
@@ -764,7 +770,11 @@ button.-solid {
 
   padding: 12px 0;
 
-  background: var(--color-bg-darker);
+  background: var(--color-bg-dark);
+}
+
+.theme-light .build .info {
+  background: var(--color-white);
 }
 
 .build .row {
@@ -781,7 +791,7 @@ button.-solid {
   font-size: 0.9em;
 }
 
-.build .error .message{
+.build .error .message {
   margin-left: 0.2em;
 }
 
@@ -950,7 +960,7 @@ button.-solid {
 }
 
 .build-history .-build .-icon.-success {
-  stroke: var(--color-bg-darker);
+  stroke: var(--color-bg-dark);
 }
 
 .build-history-svg.-build-history-icon {
@@ -959,8 +969,8 @@ button.-solid {
 }
 
 .build-history-svg.-build-history-icon.-pending {
-  fill: var(--color-gray);
-  stroke: var(--color-gray);
+  fill: var(--color-bg-light);
+  stroke: var(--color-bg-light);
 }
 
 .build-history-svg.-build-history-icon.-running {
@@ -973,7 +983,7 @@ button.-solid {
 
 .build-history .-build .-icon.-failure .-path-1,
 .build-history .-build .-icon.-error .-path-1 {
-  fill: var(--color-bg-darker);
+  fill: var(--color-bg-dark);
 }
 
 .build-history .-build .-icon.-failure .-path-2,
@@ -995,25 +1005,23 @@ button.-solid {
 
 .build-history .-build .-icon.-failure .-path-3,
 .build-history .-build .-icon.-error .-path-3 {
-  stroke: var(--color-bg-darker);
+  stroke: var(--color-bg-dark);
   stroke-width: 2;
   stroke-linecap: square;
 }
 
 .build-history .-build .-icon.-pending .-path-3 {
-  stroke: var(--color-bg-darker);
-  fill: var(--color-bg-darker);
+  stroke: var(--color-bg-dark);
+  fill: var(--color-bg-dark);
 }
 
 .build-history .-build .-icon.-success .-path-3 {
-  stroke: var(--color-bg-darker);
+  stroke: var(--color-bg-dark);
 }
 
 .build-history .-build .-icon.-running .-path-3 {
-  stroke: var(--color-bg-darker);
+  stroke: var(--color-bg-dark);
 }
-
-
 
 .build-history .-build .-tooltip {
   position: absolute;
@@ -1031,9 +1039,9 @@ button.-solid {
   text-align: center;
 
   color: var(--color-text);
-  border: solid 1px var(--color-gray);
+  border: solid 1px var(--color-bg-light);
   border-radius: 3px;
-  background-color: var(--color-bg-darker);
+  background-color: var(--color-bg-dark);
 
   font-weight: 300;
 }
@@ -1052,7 +1060,7 @@ button.-solid {
 
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent var(--color-gray) transparent;
+  border-color: transparent transparent var(--color-bg-light) transparent;
 }
 
 .build-history .-build .-info {
@@ -1132,13 +1140,13 @@ button.-solid {
 .step .-icon.-pending {
   padding: 8px;
 
-  border: 2px solid var(--color-gray);
+  border: 2px solid var(--color-bg-light);
   border-radius: 7px;
 }
 
 .-step-icon.-pending {
-  stroke: var(--color-gray);
-  fill: var(--color-gray);
+  stroke: var(--color-bg-light);
+  fill: var(--color-bg-light);
 }
 
 .-step-icon.-running {
@@ -1164,11 +1172,11 @@ button.-solid {
   border-left: var(--line-width) solid;
   border-image-source: linear-gradient(
     to right,
-    var(--color-gray) 75%,
+    var(--color-bg-light) 75%,
     transparent 75%,
     transparent 77%,
-    var(--color-gray) 77%,
-    var(--color-gray) 84%,
+    var(--color-bg-light) 77%,
+    var(--color-bg-light) 84%,
     transparent 84%
   );
   border-image-slice: 1;
@@ -1200,10 +1208,14 @@ button.-solid {
   padding: 1em;
   padding-top: 0.5em;
 
-  background-color: var(--color-bg-darker);
+  background-color: var(--color-bg-dark);
 
   font-size: 0.9em;
   font-weight: 300;
+}
+
+.theme-light .log {
+  background-color: var(--color-white);
 }
 
 .log-line {
@@ -1213,7 +1225,7 @@ button.-solid {
 .log .-code .-line-num {
   margin-right: 0.5em;
 
-  color: var(--color-gray);
+  color: var(--color-bg-light);
 
   font-family: var(--font-code);
 }
@@ -1227,7 +1239,7 @@ button.-solid {
   font-size: 0.9em;
 }
 
-.log.error .message{
+.log.error .message {
   margin-left: 0.2em;
 }
 
@@ -1285,7 +1297,7 @@ button.-solid {
   color: white;
   border-radius: 5px;
   border-radius: 0px;
-  background-color: var(--color-bg-darker);
+  background-color: var(--color-bg-dark);
   box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
 
   font-size: 14px;
@@ -1326,7 +1338,11 @@ button.-solid {
   width: 100%;
   padding-bottom: 0.5em;
 
-  background: var(--color-darkcoal);
+  background: var(--color-bg-dark);
+}
+
+.theme-light .hooks {
+  background: var(--color-white);
 }
 
 .hooks .loading {
@@ -1390,7 +1406,7 @@ button.-solid {
   padding-top: 0.3em;
   padding-bottom: 0.3em;
 
-  border-bottom: 1px solid var(--color-gray);
+  border-bottom: 1px solid var(--color-bg-light);
 }
 
 .hooks .header {
@@ -1412,7 +1428,7 @@ button.-solid {
 }
 
 .hook-status.-failure {
-  color: var(--color-scarlet);
+  color: var(--color-red);
 }
 
 .hooks .row .cell {
@@ -1443,8 +1459,7 @@ button.-solid {
   padding: 3px 12px;
   flex: 1;
   text-align: center;
-  color: var(--color-offwhite);
-  background: var(--color-gray);
+  background: var(--color-bg);
 }
 
 .preview .status.success {
@@ -1452,7 +1467,17 @@ button.-solid {
 }
 
 .preview .status.failure {
-  color: var(--color-scarlet);
+  color: var(--color-red-light);
+}
+
+.theme-light {
+  .preview .status.success {
+    color: var(--color-green-dark);
+  }
+
+  .preview .status.failure {
+    color: var(--color-red);
+  }
 }
 
 .hooks .row .info {
@@ -1463,14 +1488,14 @@ button.-solid {
   width: 100%;
   padding: 0.4em 1em;
 
-  border-bottom: 1px solid var(--color-gray);
-  border-left: 1px solid var(--color-gray);
+  border-bottom: 1px solid var(--color-bg-light);
+  border-left: 1px solid var(--color-bg-light);
 
   font-size: 14px;
 }
 
 .hooks .row .info.-pending {
-  border-left-color: var(--color-gray);
+  border-left-color: var(--color-bg-light);
 }
 
 .hooks .row .info.-running {
@@ -1483,7 +1508,22 @@ button.-solid {
 
 .hooks .row .info.-failure,
 .hooks .row .info.-error {
-  border-left-color: var(--color-scarlet);
+  border-left-color: var(--color-red-light);
+}
+
+.theme-light {
+  .hooks .row .info.-running {
+    border-left-color: var(--color-yellow-dark);
+  }
+
+  .hooks .row .info.-success {
+    border-left-color: var(--color-green-dark);
+  }
+
+  .hooks .row .info.-failure,
+  .hooks .row .info.-error {
+    border-left-color: var(--color-red);
+  }
 }
 
 .hooks .row .info .element span.-m-l,
@@ -1497,8 +1537,13 @@ button.-solid {
 }
 
 .hooks .row .info .element .error-label {
-  color: var(--color-scarlet);
+  color: var(--color-red-light);
+}
 
+.theme-light {
+  .hooks .row .info .element .error-label {
+    color: var(--color-red);
+  }
 }
 
 .hooks .row .info .element .hook-build-status.-pending {
@@ -1515,7 +1560,22 @@ button.-solid {
 
 .hooks .row .info .element .hook-build-status.-failure,
 .hooks .row .info .element .hook-build-status.-error {
-  color: var(--color-scarlet);
+  color: var(--color-red-light);
+}
+
+.theme-light {
+  .hooks .row .info .element .hook-build-status.-running {
+    color: var(--color-yellow-dark);
+  }
+
+  .hooks .row .info .element .hook-build-status.-success {
+    color: var(--color-green-dark);
+  }
+
+  .hooks .row .info .element .hook-build-status.-failure,
+  .hooks .row .info .element .hook-build-status.-error {
+    color: var(--color-red);
+  }
 }
 
 .repo-settings {
@@ -1537,7 +1597,7 @@ button.-solid {
   margin-bottom: 0.5em;
   padding-bottom: 0.2em;
 
-  border-bottom: 2px solid var(--color-lavender);
+  border-bottom: 2px solid var(--color-secondary);
 }
 
 .repo-settings .category .header .text {
@@ -1566,6 +1626,19 @@ button.-solid {
   align-items: center;
 }
 
+.-icon.-radio {
+  stroke: var(--color-primary);
+
+  .-inner {
+    fill: var(--color-primary);
+  }
+}
+
+.-icon.-check {
+  stroke: var(--color-bg);
+  fill: var(--color-primary);
+}
+
 .checkbox .label {
   font-size: 16px;
   font-weight: bold;
@@ -1586,16 +1659,16 @@ button.-solid {
 
   text-align: center;
 
-  color: white;
+  color: var(--color-text);
   border: none;
-  border-bottom: 1px solid var(--color-lavender);
+  border-bottom: 1px solid var(--color-primary);
   background: none;
 
   font-size: 14px;
 }
 
 .repo-timeout input:focus {
-  border-color: var(--color-cyan);
+  border-color: var(--color-primary);
 }
 
 .repo-timeout {
@@ -1620,13 +1693,14 @@ button.-solid {
   padding: 8px 12px;
 
   border-radius: 4px;
-  background: var(--color-gray);
+  background: var(--color-bg-light);
 
   font-size: 14px;
   font-weight: 300;
 }
 
-.checkbox input[type="checkbox"], .checkbox input[type="radio"] {
+.checkbox input[type="checkbox"],
+.checkbox input[type="radio"] {
   position: relative;
   right: 1.55em;
   bottom: 0.1em;
@@ -1643,8 +1717,8 @@ button.-solid {
   position: absolute;
 }
 
-.checkbox label::before{
-  top: calc(50% - .45em);
+.checkbox label::before {
+  top: calc(50% - 0.45em);
   left: -1.875em;
 
   width: 1.15em;
@@ -1653,9 +1727,8 @@ button.-solid {
   content: "";
 }
 
-
-.checkbox.radio label::before{
-  top: calc(50% - .575em);
+.checkbox.radio label::before {
+  top: calc(50% - 0.575em);
   left: -1.8em;
 
   width: 1.15em;
@@ -1664,10 +1737,26 @@ button.-solid {
   content: "";
 }
 
-.checkbox input[type="checkbox"] + label::after, .checkbox input[type="radio"] + label::after {
+.checkbox input[type="checkbox"] + label::after,
+.checkbox input[type="radio"] + label::after {
   content: none;
 }
 
-.checkbox input[type="checkbox"]:focus + label::before, .checkbox input[type="radio"]:focus + label::before {
-  outline: var(--color-cyan) auto 5px;
+.checkbox input[type="checkbox"]:focus + label::before,
+.checkbox input[type="radio"]:focus + label::before {
+  outline: var(--color-primary) auto 5px;
+}
+
+.theme-toggle {
+  display: inline-block;
+  position: relative;
+  margin: 0 1em 0 0;
+  padding: 0;
+  font-weight: normal;
+  background: none;
+  color: var(--color-bg-light);
+}
+
+.theme-light .theme-toggle {
+  color: var(--color-gray-light);
 }

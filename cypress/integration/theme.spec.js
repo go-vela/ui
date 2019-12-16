@@ -9,6 +9,7 @@ context("Accessibility (a11y)", () => {
   context("Logged out", () => {
     it("overview", () => {
       cy.clearSession();
+      cy.setTheme("theme-light");
       cy.visit("/account/login");
       cy.injectAxe();
       cy.wait(500);
@@ -19,6 +20,7 @@ context("Accessibility (a11y)", () => {
   context("Logged in", () => {
     beforeEach(() => {
       cy.clearSession();
+      cy.setTheme("theme-light");
       cy.server();
       // overview page
       cy.route("GET", "*api/v1/repos*", "fixture:overview_page.json");
@@ -51,6 +53,10 @@ context("Accessibility (a11y)", () => {
         "*api/v1/repos/*/octocat/builds/3*",
         "fixture:build_running.json"
       );
+    });
+    after(() => {
+      cy.visit("/");
+      cy.server({ enable: false });
     });
 
     it("overview", () => {

@@ -2,7 +2,7 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-import { Elm, Flags, App, Config, Session } from "../elm/Main";
+import { Elm, Flags, App, Config, Session, Theme } from "../elm/Main";
 import "../scss/style.scss";
 
 // Vela consts
@@ -15,6 +15,13 @@ const storedSessionState: string | null = sessionStorage.getItem(storageKey);
 const currentSessionState: Session | null = storedSessionState
   ? JSON.parse(storedSessionState)
   : null;
+
+// setup for stored theme
+const themeKey: string = "vela-theme";
+const defaultTheme: string = "theme-dark";
+const storedThemeState: string | null = localStorage.getItem(themeKey);
+const currentThemeState: Theme =
+  (storedThemeState as Theme) || (defaultTheme as Theme);
 
 // Vela flags; configuration for bootstrapping Vela Elm UI
 const flags: Flags = {
@@ -30,7 +37,8 @@ const flags: Flags = {
     process.env.VELA_DOCS_URL ||
     envOrNull("VELA_DOCS_URL", "$VELA_DOCS_URL") ||
     docsURL,
-  velaSession: currentSessionState || null
+  velaSession: currentSessionState || null,
+  velaTheme: currentThemeState || (defaultTheme as Theme)
 };
 
 // create the configuration object for Elm
@@ -51,6 +59,18 @@ app.ports.storeSession.subscribe(sessionMessage => {
   }
 
   setTimeout(() => app.ports.onSessionChange.send(sessionMessage), 0);
+});
+
+app.ports.setTheme.subscribe(theme => {
+  let body: HTMLElement = document.getElementsByTagName("body")[0];
+
+  if (!body.classList.contains(theme)) {
+    body.className = "";
+    body.classList.add(theme);
+  }
+
+  localStorage.setItem(themeKey, theme);
+  setTimeout(() => app.ports.onThemeChange.send(theme), 0);
 });
 
 /**

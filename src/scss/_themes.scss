@@ -1,0 +1,42 @@
+// Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// Notes;
+// - don't use --color-secondary for text unless you confirmed contrast
+
+// dark theme (default)
+body,
+body.theme-dark {
+  --color-bg-dark: var(--color-coal-dark);
+  --color-bg: var(--color-coal);
+  --color-bg-light: var(--color-coal-light);
+
+  --color-text: var(--color-offwhite);
+
+  --color-primary-dark: var(--color-cyan-dark);
+  --color-primary: var(--color-cyan);
+  --color-primary-light: var(--color-cyan-light);
+
+  --color-secondary-dark: var(--color-lavender-dark);
+  --color-secondary: var(--color-lavender);
+  --color-secondary-light: var(--color-lavender-light);
+}
+
+// light theme
+body.theme-light {
+  --color-bg-dark: var(--color-gray-light);
+  --color-bg: var(--color-offwhite);
+  //   --color-bg-light: var(--color-white);
+  --color-bg-light: var(--color-bg-dark);
+
+  --color-text: var(--color-coal);
+
+  --color-primary-dark: var(--color-lavender-dark);
+  --color-primary: var(--color-lavender); // ok for text
+  --color-primary-light: var(--color-lavender-light);
+
+  --color-secondary-dark: var(--color-cyan-dark);
+  --color-secondary: var(--color-cyan);
+  --color-secondary-light: var(--color-cyan-light);
+}

@@ -4,21 +4,35 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-port module Interop exposing (onSessionChange, storeSession)
+port module Interop exposing (onSessionChange, onThemeChange, setTheme, storeSession)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
 
 
 
--- inbound port
+-- SESSION
 
 
+{-| inbound
+-}
 port onSessionChange : (Decode.Value -> msg) -> Sub msg
 
 
-
--- outbound port
-
-
+{-| outbound
+-}
 port storeSession : Encode.Value -> Cmd msg
+
+
+
+-- THEME
+
+
+{-| inbound
+-}
+port onThemeChange : (Decode.Value -> msg) -> Sub msg
+
+
+{-| outbound
+-}
+port setTheme : Encode.Value -> Cmd msg
