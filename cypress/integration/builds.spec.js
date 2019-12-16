@@ -1,4 +1,4 @@
-context("org/repo View Repository Builds Page", () => {
+context("Builds", () => {
   context("server returning builds error", () => {
     beforeEach(() => {
       cy.server();
