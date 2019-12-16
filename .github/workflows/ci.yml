@@ -12,8 +12,9 @@ on:
   pull_request:
 
 env:
+  NODE_ENV: development
+  USE_NODE_VER: "12.13.1"
   ELM_HOME: "${GITHUB_WORKSPACE}"
-  USE_NODE_VER: "10.15.3"
   CI: 1
 
 # pipeline to execute
