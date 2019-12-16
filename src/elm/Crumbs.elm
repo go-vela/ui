@@ -84,9 +84,6 @@ toPath page =
         notFoundPage =
             ( "Not Found", Nothing )
 
-        hooks =
-            ( "Hooks", Nothing )
-
         repoSettings =
             ( "Settings", Nothing )
 
@@ -98,15 +95,18 @@ toPath page =
                 Pages.AddRepositories ->
                     [ overviewPage, accountPage, addRepositoriesPage ]
 
-                Pages.Hooks org repo ->
+                Pages.Hooks org repo maybePage _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
 
                         repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo )
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing )
+
+                        pageNumber =
+                            pageToString maybePage
                     in
-                    [ overviewPage, organizationPage, repoBuilds, hooks ]
+                    [ overviewPage, organizationPage, repoBuilds, ( "Hooks" ++ pageNumber, Nothing ) ]
 
                 Pages.Settings org repo ->
                     let
@@ -114,23 +114,26 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo )
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing )
                     in
                     [ overviewPage, organizationPage, repoBuilds, repoSettings ]
 
-                Pages.RepositoryBuilds org repo ->
+                Pages.RepositoryBuilds org repo maybePage maybePerPage ->
                     let
                         organizationPage =
                             ( org, Nothing )
+
+                        pageNumber =
+                            pageToString maybePage
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo ) ]
+                    [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage ) ]
 
                 Pages.Build org repo buildNumber frag ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber frag ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber frag ) ]
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]
@@ -139,3 +142,19 @@ toPath page =
                     []
     in
     pages
+
+
+{-| renderPageNumber : small helper to turn page number to a string to display in crumbs
+-}
+pageToString : Maybe Int -> String
+pageToString maybePage =
+    case maybePage of
+        Nothing ->
+            ""
+
+        Just num ->
+            if num > 1 then
+                " (page " ++ String.fromInt num ++ ")"
+
+            else
+                ""

@@ -16,6 +16,7 @@ module Vela exposing
     , Hook
     , HookBuilds
     , Hooks
+    , HooksModel
     , LineFocus
     , Log
     , Logs
@@ -50,6 +51,7 @@ module Vela exposing
     , decodeUser
     , defaultAddRepositoryPayload
     , defaultBuilds
+    , defaultHooks
     , defaultRepository
     , defaultSession
     , defaultUpdateRepositoryPayload
@@ -63,6 +65,7 @@ import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
+import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 
 
@@ -381,6 +384,7 @@ type alias BuildsModel =
     { org : Org
     , repo : Repo
     , builds : WebData Builds
+    , pager : List WebLink
     }
 
 
@@ -461,7 +465,7 @@ buildStatusDecoder =
 
 defaultBuilds : BuildsModel
 defaultBuilds =
-    BuildsModel "" "" RemoteData.NotAsked
+    BuildsModel "" "" RemoteData.NotAsked []
 
 
 type alias Builds =
@@ -599,6 +603,17 @@ type alias LineFocus =
 
 
 -- HOOKS
+
+
+type alias HooksModel =
+    { hooks : WebData Hooks
+    , pager : List WebLink
+    }
+
+
+defaultHooks : HooksModel
+defaultHooks =
+    HooksModel RemoteData.NotAsked []
 
 
 {-| Hook : record type for vela repo hooks

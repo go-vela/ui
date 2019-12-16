@@ -43,6 +43,7 @@ import Vela
         ( Build
         , BuildNumber
         , Builds
+        , BuildsModel
         , Log
         , Logs
         , Org
@@ -76,8 +77,8 @@ type alias LineFocus msg =
 
 {-| viewRepositoryBuilds : renders builds
 -}
-viewRepositoryBuilds : WebData Builds -> Posix -> String -> String -> Html msg
-viewRepositoryBuilds model now org repo =
+viewRepositoryBuilds : BuildsModel -> Posix -> String -> String -> Html msg
+viewRepositoryBuilds buildsModel now org repo =
     let
         none =
             div []
@@ -90,13 +91,13 @@ viewRepositoryBuilds model now org repo =
                     ]
                 ]
     in
-    case model of
+    case buildsModel.builds of
         RemoteData.Success builds ->
             if List.length builds == 0 then
                 none
 
             else
-                div [ class "builds", Util.testAttribute "builds" ] <| List.map (\build -> viewBuildItem now org repo build) builds
+                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewBuildItem now org repo) builds
 
         RemoteData.Loading ->
             Util.largeLoader
@@ -105,7 +106,7 @@ viewRepositoryBuilds model now org repo =
             Util.largeLoader
 
         RemoteData.Failure _ ->
-            div []
+            div [ Util.testAttribute "builds-error" ]
                 [ p []
                     [ text <|
                         "There was an error fetching builds for this repository, please try again later!"

@@ -41,6 +41,7 @@ import Vela
         , Hook
         , HookBuilds
         , Hooks
+        , HooksModel
         , Org
         , Repo
         , Viewing
@@ -53,16 +54,16 @@ import Vela
 
 {-| view : renders hooks
 -}
-view : WebData Hooks -> HookBuilds -> Posix -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
-view hooks hookBuilds now org repo clickAction =
-    case hooks of
-        RemoteData.Success hooks_ ->
-            if List.length hooks_ == 0 then
+view : HooksModel -> HookBuilds -> Posix -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+view hooksModel hookBuilds now org repo clickAction =
+    case hooksModel.hooks of
+        RemoteData.Success hooks ->
+            if List.length hooks == 0 then
                 noHooks
 
             else
                 div [ class "hooks", Util.testAttribute "hooks" ] <|
-                    hooksTable now org repo hookBuilds hooks_ clickAction
+                    hooksTable now org repo hookBuilds hooks clickAction
 
         RemoteData.Loading ->
             Util.largeLoader
