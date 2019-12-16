@@ -323,14 +323,14 @@ viewLogs stepNumber lineFocus log clickAction =
                 _ ->
                     div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
     in
-    div [ class "logs" ] [ content ]
+    div [ class "logs", Util.testAttribute <| "logs-" ++ stepNumber ] [ content ]
 
 
 {-| logLines : takes step number, line focus information and click action and renders logs
 -}
 logLines : StepNumber -> Maybe Int -> Maybe (WebData Log) -> LineFocus msg -> Html msg
 logLines stepNumber lineFocus log clickAction =
-    div [ Util.testAttribute <| "logs-" ++ stepNumber, class "lines" ] <|
+    div [ class "lines" ] <|
         List.indexedMap
             (\idx -> \line -> logLine stepNumber line lineFocus (idx + 1) clickAction)
         <|

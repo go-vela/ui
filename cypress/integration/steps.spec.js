@@ -1,4 +1,4 @@
-context("org/repo Builds Page", () => {
+context("Steps", () => {
   context("logged in and server returning builds, steps, and logs", () => {
     beforeEach(() => {
       cy.server();

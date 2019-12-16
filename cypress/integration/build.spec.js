@@ -1,4 +1,4 @@
-context("org/repo/build View Build Page", () => {
+context("Build", () => {
   context("logged in and server returning build error", () => {
     beforeEach(() => {
       cy.server();
