@@ -13,7 +13,9 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Build
     exposing
-        ( viewFullBuild
+        ( expandBuildLineFocus
+        , parseLineFocus
+        , viewFullBuild
         , viewRepositoryBuilds
         )
 import Crumbs
@@ -93,6 +95,7 @@ import Vela
         , HookBuilds
         , Hooks
         , HooksModel
+        , LineFocus
         , Log
         , Logs
         , Org
@@ -256,7 +259,8 @@ type Msg
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
-    | ClickStep Org Repo BuildNumber StepNumber
+    | ClickLogLine Org Repo BuildNumber StepNumber Int
+    | ClickStep Org Repo (Maybe BuildNumber) (Maybe StepNumber)
     | GotoPage Pagination.Page
       -- Outgoing HTTP requests
     | SignInRequested
@@ -281,7 +285,7 @@ type Msg
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
-    | StepsResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
+    | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
       -- Other
@@ -461,12 +465,15 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        StepsResponse org repo buildNumber response ->
+        StepsResponse org repo buildNumber lineFocus response ->
             case response of
                 Ok ( _, stepsResponse ) ->
                     let
+                        sortedSteps =
+                            List.sortBy (\step -> step.number) stepsResponse
+
                         steps =
-                            RemoteData.succeed stepsResponse
+                            RemoteData.succeed <| expandBuildLineFocus lineFocus sortedSteps
 
                         cmd =
                             getBuildStepsLogs model org repo buildNumber steps
@@ -558,6 +565,15 @@ update msg model =
             let
                 ( steps, action ) =
                     clickStep model org repo buildNumber stepNumber
+            in
+            ( { model | steps = steps }
+            , action
+            )
+
+        ClickLogLine org repo buildNumber stepNumber lineNumber ->
+            let
+                ( steps, action ) =
+                    clickLogLine model org repo buildNumber stepNumber lineNumber
             in
             ( { model | steps = steps }
             , action
@@ -716,7 +732,7 @@ refreshPage model _ =
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             getBuilds model org repo maybePage maybePerPage
 
-        Pages.Build org repo buildNumber ->
+        Pages.Build org repo buildNumber _ ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing
                 , refreshBuild model org repo buildNumber
@@ -953,9 +969,9 @@ viewContent model =
                 ]
             )
 
-        Pages.Build org repo num ->
-            ( "Build #" ++ num ++ " - " ++ String.join "/" [ org, repo ]
-            , viewFullBuild model.time org repo model.build model.steps model.logs ClickStep
+        Pages.Build org repo buildNumber _ ->
+            ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+            , viewFullBuild model.time org repo model.build model.steps model.logs ClickStep (ClickLogLine org repo buildNumber)
             )
 
         Pages.Login ->
@@ -1379,7 +1395,7 @@ navButton model =
                 [ text "Refresh Settings"
                 ]
 
-        Pages.Build org repo buildNumber ->
+        Pages.Build org repo buildNumber lineFocus ->
             button
                 [ classList
                     [ ( "btn-restart-build", True )
@@ -1506,8 +1522,17 @@ setNewPage route model =
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage, True ) ->
             loadRepoBuildsPage model org repo maybePage maybePerPage
 
-        ( Routes.Build org repo buildNumber, True ) ->
-            loadBuildPage model org repo buildNumber
+        ( Routes.Build org repo buildNumber lineFocus, True ) ->
+            case model.page of
+                Pages.Build o r b _ ->
+                    if not <| buildChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                        setLogLineFocus model org repo buildNumber lineFocus
+
+                    else
+                        loadBuildPage model org repo buildNumber lineFocus
+
+                _ ->
+                    loadBuildPage model org repo buildNumber lineFocus
 
         ( Routes.Logout, True ) ->
             ( { model | session = Nothing }
@@ -1529,6 +1554,17 @@ setNewPage route model =
                 , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
                 ]
             )
+
+
+{-| buildChanged : takes two build identifiers and returns if the build has changed
+-}
+buildChanged : BuildIdentifier -> BuildIdentifier -> Bool
+buildChanged ( orgA, repoA, buildNumA ) ( orgB, repoB, buildNumB ) =
+    if orgA == orgB && repoA == repoB && buildNumA == buildNumB then
+        False
+
+    else
+        True
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.
@@ -1589,8 +1625,8 @@ loadRepoBuildsPage model org repo maybePage maybePerPage =
     loadBuildPage   Checks if the build has already been loaded from the repo view. If not, fetches the build from the Api.
 
 -}
-loadBuildPage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
-loadBuildPage model org repo buildNumber =
+loadBuildPage : Model -> Org -> Repo -> BuildNumber -> LineFocus -> ( Model, Cmd Msg )
+loadBuildPage model org repo buildNumber lineFocus =
     let
         modelBuilds =
             model.builds
@@ -1603,11 +1639,11 @@ loadBuildPage model org repo buildNumber =
                 model.builds
     in
     -- Fetch build from Api
-    ( { model | page = Pages.Build org repo buildNumber, builds = builds, build = Loading, steps = NotAsked, logs = [] }
+    ( { model | page = Pages.Build org repo buildNumber lineFocus, builds = builds, build = Loading, steps = NotAsked, logs = [] }
     , Cmd.batch
         [ getBuilds model org repo Nothing Nothing
         , getBuild model org repo buildNumber
-        , getAllBuildSteps model org repo buildNumber
+        , getAllBuildSteps model org repo buildNumber lineFocus
         ]
     )
 
@@ -1784,6 +1820,32 @@ addLog incomingLog logs =
     RemoteData.succeed incomingLog :: logs
 
 
+{-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+-}
+setLogLineFocus : Model -> Org -> Repo -> BuildNumber -> LineFocus -> ( Model, Cmd Msg )
+setLogLineFocus model org repo buildNumber lineFocus =
+    let
+        ( steps, action ) =
+            case model.steps of
+                Success steps_ ->
+                    let
+                        focusedSteps =
+                            RemoteData.succeed <| setLineFocus steps_ lineFocus
+                    in
+                    ( focusedSteps
+                    , getBuildStepsLogs model org repo buildNumber focusedSteps
+                    )
+
+                _ ->
+                    ( model.steps
+                    , Cmd.none
+                    )
+    in
+    ( { model | page = Pages.Build org repo buildNumber lineFocus, steps = steps }
+    , action
+    )
+
+
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
 searchReposGlobal : RepoSearchFilters -> SourceRepositories -> Html Msg
@@ -1901,28 +1963,51 @@ clickHook model org repo buildNumber =
 
 {-| clickStep : takes model org repo and step number and fetches step information from the api
 -}
-clickStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> ( WebData Steps, Cmd Msg )
+clickStep : Model -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> ( WebData Steps, Cmd Msg )
 clickStep model org repo buildNumber stepNumber =
-    if stepNumber == "0" then
-        ( model.steps
-        , Cmd.none
-        )
+    case stepNumber of
+        Nothing ->
+            ( model.steps
+            , Cmd.none
+            )
 
-    else
-        let
-            ( steps, action ) =
-                case model.steps of
-                    Success steps_ ->
-                        ( RemoteData.succeed <| toggleStepView steps_ stepNumber
-                        , getBuildStepLogs model org repo buildNumber stepNumber
-                        )
+        Just stepNum ->
+            let
+                ( steps, action ) =
+                    case model.steps of
+                        Success steps_ ->
+                            ( RemoteData.succeed <| toggleStepView steps_ stepNum
+                            , case buildNumber of
+                                Just buildNum ->
+                                    getBuildStepLogs model org repo buildNum stepNum
 
-                    _ ->
-                        ( model.steps, Cmd.none )
-        in
-        ( steps
-        , action
-        )
+                                Nothing ->
+                                    Cmd.none
+                            )
+
+                        _ ->
+                            ( model.steps, Cmd.none )
+            in
+            ( steps
+            , action
+            )
+
+
+{-| clickLogLine : takes model and line number and sets the focus on the log line
+-}
+clickLogLine : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd Msg )
+clickLogLine model org repo buildNumber stepNumber lineNumber =
+    ( model.steps
+    , Navigation.replaceUrl model.navigationKey <|
+        Routes.routeToUrl
+            (Routes.Build org repo buildNumber <|
+                Just <|
+                    "#step:"
+                        ++ stepNumber
+                        ++ ":"
+                        ++ String.fromInt lineNumber
+            )
+    )
 
 
 toggleStepView : Steps -> String -> Steps
@@ -1931,6 +2016,30 @@ toggleStepView steps stepNumber =
         (\step -> String.fromInt step.number == stepNumber)
         (\step -> { step | viewing = not step.viewing })
         steps
+
+
+setLineFocus : Steps -> LineFocus -> Steps
+setLineFocus steps lineFocus =
+    let
+        ( target, stepNumber, lineNumber ) =
+            parseLineFocus lineFocus
+    in
+    case Maybe.withDefault "" target of
+        "step" ->
+            case stepNumber of
+                Just n ->
+                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = lineNumber }) <| clearLineFocus steps
+
+                Nothing ->
+                    steps
+
+        _ ->
+            steps
+
+
+clearLineFocus : Steps -> Steps
+clearLineFocus steps =
+    List.map (\step -> { step | lineFocus = Nothing }) steps
 
 
 {-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
@@ -1979,9 +2088,9 @@ getBuild model org repo buildNumber =
     Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
 
 
-getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-getAllBuildSteps model org repo buildNumber =
-    Api.try (StepsResponse org repo buildNumber) <| Api.getSteps model Nothing Nothing org repo buildNumber
+getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> LineFocus -> Cmd Msg
+getAllBuildSteps model org repo buildNumber lineFocus =
+    Api.try (StepsResponse org repo buildNumber lineFocus) <| Api.getSteps model Nothing Nothing org repo buildNumber
 
 
 getBuildStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg

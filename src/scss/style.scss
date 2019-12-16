@@ -780,9 +780,9 @@ button.-solid {
 }
 
 .build .error {
-  color: var(--color-red);
+  color: var(--color-scarlet);
 
-  font-size: 0.9em;
+  font-size: 16px;
 }
 
 .build .error .message {
@@ -924,12 +924,6 @@ button.-solid {
 
 .-animation-dashes-3 {
   stroke-dasharray: 1 240 8 220 12 400 10 180;
-}
-
-.animated {
-  animation-duration: 1s;
-
-  animation-fill-mode: both;
 }
 
 .build-history {
@@ -1113,9 +1107,9 @@ button.-solid {
   background-size: 100% 2em;
 }
 .step .-status {
-  margin-top: 18px;
-  margin-right: 36px;
-  margin-left: 36px;
+  margin-top: 0.65em;
+  margin-right: 1em;
+  margin-left: 2.35em;
 }
 
 .step .-icon-container {
@@ -1181,8 +1175,8 @@ button.-solid {
 }
 
 .step .summary {
-  padding-top: 0.7em;
-  padding-bottom: 0.7em;
+  padding-top: 0.35em;
+  padding-bottom: 0.35em;
 }
 
 .step .-info {
@@ -1197,39 +1191,59 @@ button.-solid {
   font-family: var(--font-code);
 }
 
-.log {
-  margin: 1px;
-  padding: 1em;
-  padding-top: 0.5em;
+.loading-logs {
+  padding: 0.5em 0;
+  margin-left: 0.3em;
+  margin-top: 0.3em;
+}
 
+.logs-container {
   background-color: var(--color-bg-darker);
+  padding: 0.5em 0;
+}
 
-  font-size: 0.9em;
+.logs {
+  font-size: 14px;
   font-weight: 300;
 }
 
-.log-line {
-  margin: 0 1em;
+.logs .line {
+  margin: 0 0.5em;
+  display: flex;
 }
 
-.log .-code .-line-num {
-  margin-right: 0.5em;
+.logs .line .wrapper {
+  padding-left: 1em;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+}
 
-  color: var(--color-gray);
+.logs .wrapper.-focus {
+  background: var(--color-focus);
+}
+
+.logs .line .-line-num {
+  margin-right: 1em;
+
+  color: var(--color-offwhite);
 
   font-family: var(--font-code);
+  > a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
-.log.error {
-  padding-top: 0.8em;
-  padding-bottom: 0.8em;
-
-  color: var(--color-red);
-
-  font-size: 0.9em;
+.step-error {
+  color: var(--color-scarlet);
+  font-size: 14px;
+  margin-left: 1.5em;
 }
 
-.log.error .message {
+.step-error .message{
   margin-left: 0.2em;
 }
 
