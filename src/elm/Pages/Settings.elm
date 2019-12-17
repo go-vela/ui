@@ -172,7 +172,7 @@ timeout inTimeout repo clickMsg inputMsg =
 checkbox : String -> Field -> Bool -> (Bool -> msg) -> Html msg
 checkbox name field state msg =
     div [ class "checkbox", Util.testAttribute <| "repo-checkbox-" ++ field ]
-        [ SvgBuilder.checkbox state |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+        [ SvgBuilder.checkbox state
         , input
             [ type_ "checkbox"
             , id <| "checkbox-" ++ field
@@ -189,7 +189,7 @@ checkbox name field state msg =
 radio : String -> String -> Field -> msg -> Html msg
 radio value field title msg =
     div [ class "checkbox", class "radio", Util.testAttribute <| "repo-radio-" ++ field ]
-        [ SvgBuilder.radio (value == field) |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+        [ SvgBuilder.radio (value == field)
         , input
             [ type_ "radio"
             , id <| "radio-" ++ field
