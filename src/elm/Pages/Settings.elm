@@ -23,6 +23,7 @@ import Html
         ( Html
         , button
         , div
+        , em
         , input
         , label
         , p
@@ -112,7 +113,7 @@ access : Repository -> RadioUpdate msg -> Html msg
 access repo msg =
     div [ class "category", Util.testAttribute "repo-settings-access" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Access" ] ]
-        , div [ class "description" ] [ text "Change who can access build information" ]
+        , div [ class "description" ] [ text "Change who can access build information." ]
         , div [ class "inputs", class "radios" ]
             [ radio repo.visibility "private" "Private" <| msg repo.org repo.name "visibility" "private"
             , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
@@ -126,8 +127,8 @@ events : Repository -> CheckboxUpdate msg -> Html msg
 events repo msg =
     div [ class "category", Util.testAttribute "repo-settings-events" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Webhook Events" ] ]
-        , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines" ]
-        , div [ class "description", class "italic" ] [ text "Active repos must have at least one event enabled" ]
+        , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines." ]
+        , div [ class "description" ] [ em [] [ text "Active repositories must have at least one event enabled." ] ]
         , div [ class "inputs" ]
             [ checkbox "Push"
                 "allow_push"
@@ -159,7 +160,7 @@ timeout : Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) ->
 timeout inTimeout repo clickMsg inputMsg =
     div [ class "category", Util.testAttribute "repo-settings-timeout" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Build Timeout" ] ]
-        , div [ class "description" ] [ text "Builds that reach this timeout setting will be stopped" ]
+        , div [ class "description" ] [ text "Builds that reach this timeout setting will be stopped." ]
         , timeoutInput repo
             inTimeout
             inputMsg
