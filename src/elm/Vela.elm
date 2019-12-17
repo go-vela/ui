@@ -12,6 +12,9 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
+    , Favorite
+    , Favorites
+    , FavoritesModel
     , Field
     , Hook
     , HookBuilds
@@ -39,6 +42,8 @@ module Vela exposing
     , buildUpdateRepoStringPayload
     , decodeBuild
     , decodeBuilds
+    , decodeFavorite
+    , decodeFavorites
     , decodeHook
     , decodeHooks
     , decodeLog
@@ -51,6 +56,7 @@ module Vela exposing
     , decodeUser
     , defaultAddRepositoryPayload
     , defaultBuilds
+    , defaultFavorites
     , defaultHooks
     , defaultRepository
     , defaultSession
@@ -670,3 +676,46 @@ type alias HookBuilds =
 
 type alias BuildIdentifier =
     ( Org, Repo, BuildNumber )
+
+
+
+-- FAVORITES
+
+
+type alias FavoritesModel =
+    { favorites : WebData Favorites
+    , pager : List WebLink
+    }
+
+
+defaultFavorites : FavoritesModel
+defaultFavorites =
+    FavoritesModel RemoteData.NotAsked []
+
+
+type alias Favorites =
+    List Favorite
+
+
+{-| Favorite : record type for vela user favorites
+-}
+type alias Favorite =
+    { id : Int
+    , repo_id : Int
+    }
+
+
+{-| decodeFavorite : decodes json from vela into a user favorite
+-}
+decodeFavorite : Decoder Favorite
+decodeFavorite =
+    Decode.succeed Favorite
+        |> optional "id" int -1
+        |> optional "repo_id" int -1
+
+
+{-| decodeFavorites : decodes json from vela into list of user favorites
+-}
+decodeFavorites : Decoder Favorites
+decodeFavorites =
+    Decode.list decodeFavorite

@@ -91,6 +91,8 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
+        , Favorites
+        , FavoritesModel
         , Field
         , HookBuilds
         , Hooks
@@ -117,6 +119,7 @@ import Vela
         , decodeSession
         , defaultAddRepositoryPayload
         , defaultBuilds
+        , defaultFavorites
         , defaultHooks
         , defaultRepository
         , defaultSession
@@ -165,6 +168,7 @@ type alias Model =
     , inTimeout : Maybe Int
     , entryURL : Url
     , hookBuilds : HookBuilds
+    , favorites : FavoritesModel
     }
 
 
@@ -226,6 +230,7 @@ init flags url navKey =
             , inTimeout = Nothing
             , entryURL = url
             , hookBuilds = Dict.empty
+            , favorites = defaultFavorites
             }
 
         ( newModel, newPage ) =
@@ -288,6 +293,7 @@ type Msg
     | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
+    | FavoritesResponse User (Result (Http.Detailed.Error String) ( Http.Metadata, Favorites ))
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
@@ -643,6 +649,22 @@ update msg model =
 
                 Err error ->
                     ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, Cmd.none )
+
+        FavoritesResponse _ response ->
+            let
+                currentFavorites =
+                    model.favorites
+            in
+            case response of
+                Ok ( meta, favorites ) ->
+                    let
+                        pager =
+                            Pagination.get meta.headers
+                    in
+                    ( { model | favorites = { currentFavorites | favorites = RemoteData.succeed favorites, pager = pager } }, Cmd.none )
+
+                Err error ->
+                    ( { model | favorites = { currentFavorites | favorites = toFailure error } }, addError error )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -2089,6 +2111,11 @@ viewingHook buildIdentifier hookBuilds =
 
 
 -- API HELPERS
+
+
+getFavorites : Model -> User -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
+getFavorites model user maybePage maybePerPage =
+    Api.try (FavoritesResponse user) <| Api.getFavorites model maybePage maybePerPage user
 
 
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
