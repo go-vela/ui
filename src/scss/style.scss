@@ -566,6 +566,7 @@ button.-inverted {
 }
 .nav-buttons {
   display: flex;
+  align-items: center;
 }
 .-btn.-hooks {
   margin-right: 0.4em;
@@ -1692,4 +1693,17 @@ button.-solid {
 .pager-actions {
   display: flex;
   justify-content: space-between;
+}
+button.-favorite-toggle {
+  background: none;
+}
+.icon.favorite-star {
+  fill: none;
+  stroke: var(--color-yellow);
+  cursor: pointer;
+  margin: 0 0.5em;
+}
+
+.icon.favorite-star.favorited {
+  fill: var(--color-yellow);
 }

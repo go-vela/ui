@@ -63,6 +63,7 @@ import Json.Encode as Encode
 import List.Extra exposing (setIf, updateIf)
 import Pager
 import Pages exposing (Page(..))
+import Pages.Favorites
 import Pages.Hooks
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
@@ -112,6 +113,7 @@ import Vela
         , Steps
         , UpdateRepositoryPayload
         , User
+        , UserID
         , Viewing
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
@@ -293,7 +295,7 @@ type Msg
     | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
-    | FavoritesResponse User (Result (Http.Detailed.Error String) ( Http.Metadata, Favorites ))
+    | FavoritesResponse UserID (Result (Http.Detailed.Error String) ( Http.Metadata, Favorites ))
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
@@ -664,7 +666,9 @@ update msg model =
                     ( { model | favorites = { currentFavorites | favorites = RemoteData.succeed favorites, pager = pager } }, Cmd.none )
 
                 Err error ->
-                    ( { model | favorites = { currentFavorites | favorites = toFailure error } }, addError error )
+                    -- ( { model | favorites = { currentFavorites | favorites = toFailure error } }, addError error )
+                    -- TODO: unmock when server is ready
+                    ( { model | favorites = { currentFavorites | favorites = RemoteData.succeed mockedFavorites } }, Cmd.none )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -719,6 +723,15 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
+
+
+mockedFavorites : Favorites
+mockedFavorites =
+    [ { defaultRepository | org = "github", name = "octocat" }
+    , { defaultRepository | org = "vela", name = "plugins" }
+    , { defaultRepository | org = "vela", name = "ui" }
+    , { defaultRepository | org = "github", name = "actions" }
+    ]
 
 
 
@@ -950,6 +963,11 @@ viewContent model =
             , viewOverview model
             )
 
+        Pages.Favorites userID ->
+            ( "Favorites"
+            , Pages.Favorites.view model.favorites RemoveRepo
+            )
+
         Pages.AddRepositories ->
             ( "Add Repositories"
             , viewAddRepos model
@@ -1089,7 +1107,8 @@ viewSingleRepo repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
-            [ a
+            [ SvgBuilder.favoritesStar [] False
+            , a
                 [ class "-btn"
                 , class "-inverted"
                 , class "-view"
@@ -1395,7 +1414,8 @@ navButton model =
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "nav-buttons" ]
-                [ a
+                [ SvgBuilder.favoritesStar [] False
+                , a
                     [ class "-btn"
                     , class "-inverted"
                     , class "-hooks"
@@ -1462,7 +1482,8 @@ viewHeader maybeSession { feedbackLink, docsLink } =
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
                         , ul [ attribute "aria-hidden" "true", attribute "role" "menu" ]
-                            [ li [] [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
+                            [ li [] [ a [ Routes.href Routes.Favorites, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Favorites" ] ]
+                            , li [] [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]
             ]
@@ -1526,6 +1547,14 @@ setNewPage route model =
         -- "Normal" page handling below
         ( Routes.Overview, True ) ->
             ( { model | page = Pages.Overview }, Api.tryAll RepositoriesResponse <| Api.getAllRepositories model )
+
+        ( Routes.Favorites, True ) ->
+            let
+                currentSession : Session
+                currentSession =
+                    Maybe.withDefault defaultSession model.session
+            in
+            ( { model | page = Pages.Favorites currentSession.token }, Api.tryAll (FavoritesResponse currentSession.token) <| Api.getAllFavorites model currentSession.token )
 
         ( Routes.AddRepositories, True ) ->
             case model.sourceRepos of
@@ -2113,9 +2142,9 @@ viewingHook buildIdentifier hookBuilds =
 -- API HELPERS
 
 
-getFavorites : Model -> User -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
-getFavorites model user maybePage maybePerPage =
-    Api.try (FavoritesResponse user) <| Api.getFavorites model maybePage maybePerPage user
+getFavorites : Model -> UserID -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
+getFavorites model userID maybePage maybePerPage =
+    Api.try (FavoritesResponse userID) <| Api.getFavorites model maybePage maybePerPage userID
 
 
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg

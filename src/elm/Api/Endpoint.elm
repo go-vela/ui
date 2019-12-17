@@ -8,7 +8,7 @@ module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
 import Url.Builder as UB exposing (QueryParameter, string)
-import Vela exposing (AuthParams, BuildNumber, Org, Repo, StepNumber, User)
+import Vela exposing (AuthParams, BuildNumber, Org, Repo, StepNumber, UserID)
 
 
 {-| apiBase : is the versioned base of all API paths
@@ -31,7 +31,7 @@ type Endpoint
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | Step Org Repo BuildNumber StepNumber
     | StepLogs Org Repo BuildNumber StepNumber
-    | Favorites (Maybe Pagination.Page) (Maybe Pagination.PerPage) User
+    | Favorites (Maybe Pagination.Page) (Maybe Pagination.PerPage) UserID
 
 
 {-| toUrl : turns and Endpoint into a URL string

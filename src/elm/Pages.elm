@@ -8,11 +8,12 @@ module Pages exposing (Page(..), toRoute)
 
 import Api.Pagination as Pagination
 import Routes exposing (Route(..))
-import Vela exposing (AuthParams, BuildNumber, LineFocus, Org, Repo)
+import Vela exposing (AuthParams, BuildNumber, LineFocus, Org, Repo, UserID)
 
 
 type Page
     = Overview
+    | Favorites UserID
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
@@ -35,6 +36,9 @@ toRoute page =
     case page of
         Overview ->
             Routes.Overview
+
+        Favorites userID ->
+            Routes.Favorites
 
         AddRepositories ->
             Routes.AddRepositories
