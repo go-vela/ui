@@ -13,6 +13,8 @@ module Pages.Settings exposing
     , timeout
     , timeoutInput
     , timeoutWarning
+    , validAccessUpdate
+    , validEventsUpdate
     , view
     )
 
@@ -43,7 +45,7 @@ import Html.Events exposing (onCheck, onClick, onInput)
 import RemoteData exposing (RemoteData(..), WebData)
 import SvgBuilder
 import Util
-import Vela exposing (Field, Repository)
+import Vela exposing (Field, Repository, UpdateRepositoryPayload)
 
 
 
@@ -125,7 +127,7 @@ events repo msg =
     div [ class "category", Util.testAttribute "repo-settings-events" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Webhook Events" ] ]
         , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines" ]
-        , div [ class "sub-description" ] [ text "Active repos must have at least one event enabled" ]
+        , div [ class "description", class "italic" ] [ text "Active repos must have at least one event enabled" ]
         , div [ class "inputs" ]
             [ checkbox "Push"
                 "allow_push"
@@ -299,6 +301,42 @@ validTimeout inTimeout repoTimeout =
 
         Nothing ->
             True
+
+
+{-| validAccessUpdate : takes model webdata repo and repo visibility update and determines if an update is necessary
+-}
+validAccessUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
+validAccessUpdate originalRepo repoUpdate =
+    case originalRepo of
+        RemoteData.Success repo ->
+            case repoUpdate.visibility of
+                Just visibility ->
+                    if repo.visibility /= visibility then
+                        True
+
+                    else
+                        False
+
+                Nothing ->
+                    False
+
+        _ ->
+            False
+
+
+{-| validEventsUpdate : takes model webdata repo and repo events update and determines if an update is necessary
+-}
+validEventsUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
+validEventsUpdate originalRepo repoUpdate =
+    case originalRepo of
+        RemoteData.Success repo ->
+            Maybe.withDefault repo.allow_push repoUpdate.allow_push
+                || Maybe.withDefault repo.allow_pull repoUpdate.allow_pull
+                || Maybe.withDefault repo.allow_deploy repoUpdate.allow_deploy
+                || Maybe.withDefault repo.allow_tag repoUpdate.allow_tag
+
+        _ ->
+            False
 
 
 {-| updateTip : takes field and returns the tip to display after the label.

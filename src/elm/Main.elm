@@ -516,7 +516,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 action =
-                    if validEventsUpdate model.repo payload then
+                    if Pages.Settings.validEventsUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -537,7 +537,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 action =
-                    if accessChanged model.repo payload then
+                    if Pages.Settings.validAccessUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1950,57 +1950,6 @@ searchFilterLocal org filters =
 shouldSearch : SearchFilter -> Bool
 shouldSearch filter =
     String.length filter > 2
-
-
-{-| accessChanged : takes model webdata repo and repo visibility update and determines if an update is necessary
--}
-accessChanged : WebData Repository -> UpdateRepositoryPayload -> Bool
-accessChanged originalRepo repoUpdate =
-    case originalRepo of
-        RemoteData.Success repo ->
-            case repoUpdate.visibility of
-                Just visibility ->
-                    if repo.visibility /= visibility then
-                        True
-
-                    else
-                        False
-
-                Nothing ->
-                    False
-
-        _ ->
-            False
-
-
-{-| validEventsUpdate : takes model webdata repo and repo events update and determines if an update is necessary
--}
-validEventsUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
-validEventsUpdate originalRepo repoUpdate =
-    case originalRepo of
-        RemoteData.Success repo ->
-            Maybe.withDefault repo.allow_push repoUpdate.allow_push
-                || Maybe.withDefault repo.allow_pull repoUpdate.allow_pull
-                || Maybe.withDefault repo.allow_deploy repoUpdate.allow_deploy
-                || Maybe.withDefault repo.allow_tag repoUpdate.allow_tag
-
-        _ ->
-            False
-
-
-
--- case originalRepo of
---     RemoteData.Success repo ->
---         case repoUpdate.allow_pull of
---             Just allow_pull ->
---                 if repo.allow_pull /= allow_pull then
---                     True
---                 else
---                     False
---             Nothing ->
---                 False
---     _ ->
---         False
 
 
 {-| clickHook : takes model org repo and build number and fetches build information from the api
