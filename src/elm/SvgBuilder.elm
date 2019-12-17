@@ -28,6 +28,7 @@ module SvgBuilder exposing
     )
 
 import Html exposing (Html)
+import Html.Attributes exposing (attribute)
 import Svg exposing (circle, svg)
 import Svg.Attributes
     exposing
@@ -48,6 +49,7 @@ import Svg.Attributes
         , y1
         , y2
         )
+import Util exposing (ariaHidden)
 import Vela exposing (Status)
 
 
@@ -77,6 +79,7 @@ buildPending =
         , viewBox "0 0 408 408"
         , width "44"
         , height "44"
+        , ariaHidden
         ]
         [ Svg.g [ class "status-svg", class "-build-status-icon", class "-pending" ]
             [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
@@ -95,6 +98,7 @@ buildRunning =
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
+        , ariaHidden
         ]
         [ Svg.g [ class "status-svg" ]
             [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
@@ -113,6 +117,7 @@ buildSuccess =
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
+        , ariaHidden
         ]
         [ Svg.g [ class "status-svg", class "-linecap-square" ]
             [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
@@ -131,6 +136,7 @@ buildFailure =
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
+        , ariaHidden
         ]
         [ Svg.g [ class "status-svg" ]
             [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
@@ -161,6 +167,7 @@ buildStatusAnimation dashes y classNames =
                 , width "144"
                 , height "144"
                 , viewBox ""
+                , ariaHidden
                 ]
     in
     svg
@@ -179,6 +186,7 @@ stepPending =
         , viewBox "0 0 408 408"
         , width "32"
         , height "32"
+        , ariaHidden
         ]
         [ Svg.g [ class "status-svg", class "-step-icon", class "-pending" ]
             [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
@@ -197,6 +205,7 @@ stepRunning =
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
+        , ariaHidden
         ]
         [ Svg.g [ class "status-svg", class "-step-icon", class "-running" ]
             [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
@@ -215,6 +224,7 @@ stepSuccess =
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
+        , ariaHidden
         ]
         [ Svg.g [ class "status-svg", class "-linecap-square", class "-step-icon", class "-success" ]
             [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
@@ -233,6 +243,7 @@ stepFailure =
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
+        , ariaHidden
         ]
         [ Svg.g [ class "status-svg", class "-step-icon", class "-failure" ]
             [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
@@ -253,6 +264,7 @@ hookSuccess =
         , viewBox "0 0 44 44"
         , width "20"
         , height "20"
+        , ariaHidden
         ]
         [ Svg.g []
             [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
