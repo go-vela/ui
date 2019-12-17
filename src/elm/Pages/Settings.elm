@@ -125,6 +125,7 @@ events repo msg =
     div [ class "category", Util.testAttribute "repo-settings-events" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Webhook Events" ] ]
         , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines" ]
+        , div [ class "sub-description" ] [ text "Active repos must have at least one event enabled" ]
         , div [ class "inputs" ]
             [ checkbox "Push"
                 "allow_push"

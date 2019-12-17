@@ -514,9 +514,16 @@ update msg model =
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
+
+                action =
+                    if validEventsUpdate model.repo payload then
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        addErrorString "Could not disable webhook event. At least one event must be active."
             in
             ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            , action
             )
 
         UpdateRepoAccess org repo field value ->
@@ -1716,6 +1723,15 @@ addError error =
         |> perform identity
 
 
+{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module
+-}
+addErrorString : String -> Cmd Msg
+addErrorString error =
+    succeed
+        (Error <| error)
+        |> perform identity
+
+
 {-| toFailure : maps a detailed error into a WebData Failure value
 -}
 toFailure : Http.Detailed.Error String -> WebData a
@@ -1936,7 +1952,7 @@ shouldSearch filter =
     String.length filter > 2
 
 
-{-| refreshPage : takes model webdata repo and repo visibility update and determines if an update is necessary
+{-| accessChanged : takes model webdata repo and repo visibility update and determines if an update is necessary
 -}
 accessChanged : WebData Repository -> UpdateRepositoryPayload -> Bool
 accessChanged originalRepo repoUpdate =
@@ -1955,6 +1971,36 @@ accessChanged originalRepo repoUpdate =
 
         _ ->
             False
+
+
+{-| validEventsUpdate : takes model webdata repo and repo events update and determines if an update is necessary
+-}
+validEventsUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
+validEventsUpdate originalRepo repoUpdate =
+    case originalRepo of
+        RemoteData.Success repo ->
+            Maybe.withDefault repo.allow_push repoUpdate.allow_push
+                || Maybe.withDefault repo.allow_pull repoUpdate.allow_pull
+                || Maybe.withDefault repo.allow_deploy repoUpdate.allow_deploy
+                || Maybe.withDefault repo.allow_tag repoUpdate.allow_tag
+
+        _ ->
+            False
+
+
+
+-- case originalRepo of
+--     RemoteData.Success repo ->
+--         case repoUpdate.allow_pull of
+--             Just allow_pull ->
+--                 if repo.allow_pull /= allow_pull then
+--                     True
+--                 else
+--                     False
+--             Nothing ->
+--                 False
+--     _ ->
+--         False
 
 
 {-| clickHook : takes model org repo and build number and fetches build information from the api
