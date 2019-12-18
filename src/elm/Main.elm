@@ -63,7 +63,7 @@ import Json.Encode as Encode
 import List.Extra exposing (setIf, updateIf)
 import Pager
 import Pages exposing (Page(..))
-import Pages.Favorites
+import Pages.Home
 import Pages.Hooks
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
@@ -1004,12 +1004,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , viewOverview model
-            )
-
-        Pages.Favorites userID ->
-            ( "Favorites"
-            , Pages.Favorites.view model.favorites FavoriteRepo
+            , Pages.Home.view model.currentRepos model.favorites RemoveRepo FavoriteRepo
             )
 
         Pages.AddRepositories ->
@@ -1100,102 +1095,6 @@ viewLogin =
             ]
         , p [] [ text "You will be taken to Github to authenticate." ]
         ]
-
-
-viewOverview : Model -> Html Msg
-viewOverview model =
-    let
-        blankMessage : Html Msg
-        blankMessage =
-            div [ class "overview" ]
-                [ h1 [] [ text "Let's get Started!" ]
-                , p []
-                    [ text "To have Vela start building your projects we need to get them added."
-                    , br [] []
-                    , text "Add repositories from your GitHub account to Vela now!"
-                    ]
-                , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
-                ]
-    in
-    div []
-        [ case model.currentRepos of
-            Success repos ->
-                let
-                    activeRepos : Repositories
-                    activeRepos =
-                        List.filter .active repos
-                in
-                if List.length activeRepos > 0 then
-                    activeRepos
-                        |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg
-
-                else
-                    blankMessage
-
-            Loading ->
-                div []
-                    [ h1 [] [ text "Loading your Repositories", span [ class "loading-ellipsis" ] [] ]
-                    ]
-
-            NotAsked ->
-                blankMessage
-
-            Failure _ ->
-                text ""
-        ]
-
-
-viewSingleRepo : Repository -> Html Msg
-viewSingleRepo repo =
-    div [ class "-item", Util.testAttribute "repo-item" ]
-        [ div [] [ text repo.name ]
-        , div [ class "-actions" ]
-            [ a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
-                , Routes.href <| Routes.Settings repo.org repo.name
-                ]
-                [ text "Settings" ]
-            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| RemoveRepo repo ] [ text "Remove" ]
-            , a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
-                , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
-                ]
-                [ text "Hooks" ]
-            , a
-                [ class "-btn"
-                , class "-solid"
-                , class "-view"
-                , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing
-                ]
-                [ text "View" ]
-            ]
-        ]
-
-
-viewOrg : String -> Repositories -> Html Msg
-viewOrg org repos =
-    div [ class "repo-org", Util.testAttribute "repo-org" ]
-        [ details [ class "details", class "repo-item", attribute "open" "open" ]
-            (summary [ class "summary" ] [ text org ]
-                :: List.map viewSingleRepo repos
-            )
-        ]
-
-
-viewCurrentRepoListByOrg : Dict String Repositories -> Html Msg
-viewCurrentRepoListByOrg repoList =
-    repoList
-        |> Dict.toList
-        |> Util.filterEmptyLists
-        |> List.map (\( org, repos ) -> viewOrg org repos)
-        |> div [ class "repo-list" ]
 
 
 {-| viewAddRepos : takes model and renders account page for adding repos to overview
@@ -1525,8 +1424,7 @@ viewHeader maybeSession { feedbackLink, docsLink } =
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
                         , ul [ attribute "aria-hidden" "true", attribute "role" "menu" ]
-                            [ li [] [ a [ Routes.href Routes.Favorites, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Favorites" ] ]
-                            , li [] [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
+                            [ li [] [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]
             ]
@@ -1545,16 +1443,6 @@ viewHeader maybeSession { feedbackLink, docsLink } =
 buildUrl : String -> List String -> List QueryParameter -> String
 buildUrl base paths params =
     UB.crossOrigin base paths params
-
-
-{-| recordsGroupBy takes a list of records and groups them by the provided key
-
-    recordsGroupBy .lastname listOfFullNames
-
--}
-recordsGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
-recordsGroupBy key recordList =
-    List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
 
 
 setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
@@ -1589,17 +1477,17 @@ setNewPage route model =
 
         -- "Normal" page handling below
         ( Routes.Overview, True ) ->
-            ( { model | page = Pages.Overview }, Api.tryAll RepositoriesResponse <| Api.getAllRepositories model )
-
-        ( Routes.Favorites, True ) ->
             let
                 currentSession : Session
                 currentSession =
                     Maybe.withDefault defaultSession model.session
             in
-            ( { model | page = Pages.Favorites currentSession.token }
-            , Api.tryAll (FavoritesResponse currentSession.token) <|
-                Api.getAllFavorites model currentSession.token
+            ( { model | page = Pages.Overview }
+            , Cmd.batch
+                [ Api.tryAll RepositoriesResponse <| Api.getAllRepositories model
+                , Api.tryAll (FavoritesResponse currentSession.token) <|
+                    Api.getAllFavorites model currentSession.token
+                ]
             )
 
         ( Routes.AddRepositories, True ) ->

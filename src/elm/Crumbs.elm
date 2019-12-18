@@ -81,9 +81,6 @@ toPath page =
         addRepositoriesPage =
             ( "Add Repositories", Just Pages.AddRepositories )
 
-        favoritesPage =
-            ( "Favorites", Nothing )
-
         notFoundPage =
             ( "Not Found", Nothing )
 
@@ -97,9 +94,6 @@ toPath page =
 
                 Pages.AddRepositories ->
                     [ overviewPage, accountPage, addRepositoriesPage ]
-
-                Pages.Favorites _ ->
-                    [ overviewPage, accountPage, favoritesPage ]
 
                 Pages.Hooks org repo maybePage _ ->
                     let

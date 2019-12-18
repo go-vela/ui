@@ -30,7 +30,6 @@ type alias Repo =
 
 type Route
     = Overview
-    | Favorites
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
@@ -50,7 +49,6 @@ routes : Parser (Route -> a) a
 routes =
     oneOf
         [ map Overview top
-        , map Favorites (s "account" </> s "favorites")
         , map AddRepositories (s "account" </> s "add-repos")
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
@@ -90,9 +88,6 @@ routeToUrl route =
     case route of
         Overview ->
             "/"
-
-        Favorites ->
-            "/account/favorites"
 
         AddRepositories ->
             "/account/add-repos"
