@@ -525,9 +525,16 @@ update msg model =
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
+
+                action =
+                    if Pages.Settings.validEventsUpdate model.repo payload then
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        addErrorString "Could not disable webhook event. At least one event must be active."
             in
             ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            , action
             )
 
         UpdateRepoAccess org repo field value ->
@@ -539,9 +546,16 @@ update msg model =
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
+
+                action =
+                    if Pages.Settings.validAccessUpdate model.repo payload then
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        Cmd.none
             in
             ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            , action
             )
 
         UpdateRepoTimeout org repo field value ->
@@ -653,7 +667,7 @@ update msg model =
                     ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
 
                 Err error ->
-                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, addError error )
+                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, Cmd.none )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -1750,6 +1764,15 @@ addError : Http.Detailed.Error String -> Cmd Msg
 addError error =
     succeed
         (Error <| detailedErrorToString error)
+        |> perform identity
+
+
+{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module
+-}
+addErrorString : String -> Cmd Msg
+addErrorString error =
+    succeed
+        (Error <| error)
         |> perform identity
 
 

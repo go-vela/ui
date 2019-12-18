@@ -5,8 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module SvgBuilder exposing
-    ( Icon
-    , buildFailure
+    ( buildFailure
     , buildHistoryFailure
     , buildHistoryPending
     , buildHistoryRunning
@@ -27,13 +26,12 @@ module SvgBuilder exposing
     , stepSuccess
     , themeDark
     , themeLight
-    , toHtml
     , velaLogo
     )
 
 import Html exposing (Html)
 import Html.Attributes exposing (attribute)
-import Svg exposing (Svg, circle, svg)
+import Svg exposing (circle, svg)
 import Svg.Attributes
     exposing
         ( class
@@ -45,7 +43,6 @@ import Svg.Attributes
         , r
         , stroke
         , strokeLinecap
-        , strokeLinejoin
         , strokeWidth
         , viewBox
         , width
@@ -54,73 +51,8 @@ import Svg.Attributes
         , y1
         , y2
         )
+import Util exposing (ariaHidden)
 import Vela exposing (Status)
-
-
-{-| IconAttributes : customizable attributes of an svg icon
--}
-type alias IconAttributes =
-    { size : Float
-    , sizeUnit : String
-    , strokeWidth : Float
-    , class : Maybe String
-    , viewBox : String
-    }
-
-
-{-| Icon : type representing icon builder
--}
-type Icon
-    = Icon
-        { attrs : IconAttributes
-        , src : List (Svg Never)
-        }
-
-
-{-| toHtml : takes list of svg attributes and classes and maps it to Html that produces generic
--}
-toHtml : List (Svg.Attribute msg) -> List String -> Icon -> Html msg
-toHtml attributes classNames (Icon { src, attrs }) =
-    let
-        strSize =
-            attrs.size |> String.fromFloat
-
-        baseAttributes =
-            [ fill "none"
-            , height <| strSize ++ attrs.sizeUnit
-            , width <| strSize ++ attrs.sizeUnit
-            , stroke "currentColor"
-            , strokeLinecap "round"
-            , strokeLinejoin "round"
-            , strokeWidth <| String.fromFloat attrs.strokeWidth
-            ]
-
-        attributesWithViewBox =
-            if attrs.viewBox /= "" then
-                viewBox attrs.viewBox :: baseAttributes
-
-            else
-                baseAttributes
-
-        combinedAttributes =
-            (case attrs.class of
-                Just c ->
-                    class c :: attributesWithViewBox
-
-                Nothing ->
-                    attributesWithViewBox
-            )
-                ++ attributes
-
-        classes =
-            List.map (\c -> class c) classNames
-
-        svgAttributes =
-            List.append combinedAttributes classes
-    in
-    src
-        |> List.map (Svg.map never)
-        |> svg svgAttributes
 
 
 {-| velaLogo: produces the svg for the Vela logo
@@ -175,79 +107,77 @@ themeLight size =
 
 {-| buildPending : produces svg icon for build status - pending
 -}
-buildPending : Icon
+buildPending : Html msg
 buildPending =
-    let
-        attrs =
-            IconAttributes 44 "" 2 (Just "build-icon -pending") "0 0 408 408"
-
-        src =
-            [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
-                []
-            ]
-    in
-    Icon { attrs = attrs, src = src }
+    svg
+        [ class "build-icon -pending"
+        , strokeWidth "2"
+        , viewBox "0 0 408 408"
+        , width "44"
+        , height "44"
+        , ariaHidden
+        ]
+        [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
+            []
+        ]
 
 
 {-| buildRunning : produces svg icon for build status - running
 -}
-buildRunning : Icon
+buildRunning : Html msg
 buildRunning =
-    let
-        attrs =
-            IconAttributes 44 "" 2 (Just "build-icon -running") "0 0 44 44"
-
-        src =
-            [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-            , Svg.path [ class "-linecap-square", d "M22 10v12.75L30 27" ] []
-            ]
-    in
-    Icon { attrs = attrs, src = src }
+    svg
+        [ class "build-icon -running"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "44"
+        , height "44"
+        , ariaHidden
+        ]
+        [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ class "-linecap-square", d "M22 10v12.75L30 27" ] []
+        ]
 
 
 {-| buildSuccess : produces svg icon for build status - success
 -}
-buildSuccess : Icon
+buildSuccess : Html msg
 buildSuccess =
-    let
-        attrs =
-            IconAttributes 44 "" 2 (Just "build-icon -success") "0 0 44 44"
-
-        src =
-            [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-            , Svg.path [ class "-linecap-round", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
-            ]
-    in
-    Icon { attrs = attrs, src = src }
+    svg
+        [ class "build-icon -success"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "44"
+        , height "44"
+        , ariaHidden
+        ]
+        [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
+        , Svg.path [ class "-linecap-round", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+        ]
 
 
 {-| buildFailure : produces svg icon for build status - failure
 -}
-buildFailure : Icon
+buildFailure : Html msg
 buildFailure =
-    let
-        attrs =
-            IconAttributes 44 "" 2 (Just "build-icon -failure") "0 0 44 44"
-
-        src =
-            [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-            , Svg.path [ class "-linecap-square", d "M15 15l14 14M29 15L15 29" ] []
-            ]
-    in
-    Icon { attrs = attrs, src = src }
+    svg
+        [ class "build-icon -failure"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "44"
+        , height "44"
+        , ariaHidden
+        ]
+        [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ class "-linecap-square", d "M15 15l14 14M29 15L15 29" ] []
+        ]
 
 
 {-| buildStatusAnimation : takes dashes as particles an svg meant to parallax scroll on a running build
 -}
-buildStatusAnimation : String -> String -> Icon
-buildStatusAnimation dashes y =
+buildStatusAnimation : String -> String -> List String -> Html msg
+buildStatusAnimation dashes y classNames =
     let
-        viewSize =
-            144
-
-        strokeWidth =
-            4
-
         runningAnimationClass =
             if dashes == "none" then
                 class "-running-start"
@@ -255,210 +185,260 @@ buildStatusAnimation dashes y =
             else
                 class "-running-particles"
 
-        attrs =
-            IconAttributes viewSize "" strokeWidth (Just "build-animation") ""
+        classes =
+            List.map (\c -> class c) classNames
 
-        src =
-            [ Svg.line [ runningAnimationClass, class dashes, x1 "0%", x2 "100%", y1 y, y2 y ] []
-            ]
+        attrs =
+            List.append classes
+                [ class "build-animation"
+                , strokeWidth "4"
+                , width "144"
+                , height "144"
+                , viewBox ""
+                , ariaHidden
+                ]
     in
-    Icon { attrs = attrs, src = src }
+    svg
+        attrs
+        [ Svg.line [ runningAnimationClass, class dashes, x1 "0%", x2 "100%", y1 y, y2 y ] []
+        ]
 
 
 {-| stepPending : produces svg icon for step status - pending
 -}
-stepPending : Icon
+stepPending : Html msg
 stepPending =
-    let
-        attrs =
-            IconAttributes 32 "" 2 (Just "-icon -pending") "0 0 408 408"
-
-        src =
-            [ Svg.path
-                [ attribute "vector-effect" "non-scaling-stroke"
-                , d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z"
-                ]
-                []
+    svg
+        [ class "-icon -pending"
+        , strokeWidth "2"
+        , viewBox "0 0 408 408"
+        , width "32"
+        , height "32"
+        , ariaHidden
+        ]
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z"
             ]
-    in
-    Icon { attrs = attrs, src = src }
+            []
+        ]
 
 
 {-| stepRunning : produces svg icon for step status - running
 -}
-stepRunning : Icon
+stepRunning : Html msg
 stepRunning =
-    let
-        attrs =
-            IconAttributes 32 "" 2 (Just "-icon -running") "0 0 44 44"
-
-        src =
-            [ Svg.path
-                [ class "-linecap-round"
-                , attribute "vector-effect" "non-scaling-stroke"
-                , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
-                ]
-                []
-            , Svg.path
-                [ class "-linecap-square"
-                , attribute "vector-effect" "non-scaling-stroke"
-                , d "M22 10v12.75L30 27"
-                ]
-                []
+    svg
+        [ class "-icon -running"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "32"
+        , height "32"
+        , ariaHidden
+        ]
+        [ Svg.path
+            [ class "-linecap-round"
+            , attribute "vector-effect" "non-scaling-stroke"
+            , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
             ]
-    in
-    Icon { attrs = attrs, src = src }
+            []
+        , Svg.path
+            [ class "-linecap-square"
+            , attribute "vector-effect" "non-scaling-stroke"
+            , d "M22 10v12.75L30 27"
+            ]
+            []
+        ]
 
 
 {-| stepSuccess : produces svg icon for step status - success
 -}
-stepSuccess : Icon
+stepSuccess : Html msg
 stepSuccess =
-    let
-        attrs =
-            IconAttributes 32 "" 2 (Just "-icon -success") "0 0 44 44"
-
-        src =
-            [ Svg.path
-                [ attribute "vector-effect" "non-scaling-stroke"
-                , d "M15 20.1l6.923 6.9L42 5"
-                ]
-                []
-            , Svg.path
-                [ class "-linecap-round"
-                , attribute "vector-effect" "non-scaling-stroke"
-                , d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666"
-                ]
-                []
+    svg
+        [ class "-icon -success"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "32"
+        , height "32"
+        , ariaHidden
+        ]
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M15 20.1l6.923 6.9L42 5"
             ]
-    in
-    Icon { attrs = attrs, src = src }
+            []
+        , Svg.path
+            [ class "-linecap-round"
+            , attribute "vector-effect" "non-scaling-stroke"
+            , d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666"
+            ]
+            []
+        ]
 
 
 {-| stepFailure : produces svg icon for step status - failure
 -}
-stepFailure : Icon
+stepFailure : Html msg
 stepFailure =
-    let
-        attrs =
-            IconAttributes 32 "" 2 (Just "-icon -failure") "0 0 44 44"
-
-        src =
-            [ Svg.path
-                [ class "-linecap-round"
-                , attribute "vector-effect" "non-scaling-stroke"
-                , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
-                ]
-                []
-            , Svg.path
-                [ class "-linecap-square"
-                , attribute "vector-effect" "non-scaling-stroke"
-                , d "M15 15l14 14M29 15L15 29"
-                ]
-                []
+    svg
+        [ class "-icon -failure"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "32"
+        , height "32"
+        , ariaHidden
+        ]
+        [ Svg.path
+            [ class "-linecap-round"
+            , attribute "vector-effect" "non-scaling-stroke"
+            , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
             ]
-    in
-    Icon { attrs = attrs, src = src }
+            []
+        , Svg.path
+            [ class "-linecap-square"
+            , attribute "vector-effect" "non-scaling-stroke"
+            , d "M15 15l14 14M29 15L15 29"
+            ]
+            []
+        ]
+
+
+{-| hookSuccess: produces the svg for the hook status success
+-}
+hookSuccess : Html msg
+hookSuccess =
+    svg
+        [ class "hook-status"
+        , class "-success"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "20"
+        , height "20"
+        , ariaHidden
+        ]
+        [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 20.1l6.923 6.9L42 5" ] []
+        , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+        ]
+
+
+{-| hookFailure: produces the svg for the hook status failure
+-}
+hookFailure : Html msg
+hookFailure =
+    svg
+        [ class "hook-status"
+        , class "-failure"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "20"
+        , height "20"
+        ]
+        [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 15l14 14M29 15L15 29" ] []
+        ]
 
 
 {-| buildHistoryPending : produces svg icon for build history status - pending
 -}
-buildHistoryPending : Int -> Icon
+buildHistoryPending : Int -> Html msg
 buildHistoryPending _ =
-    let
-        attrs =
-            IconAttributes 26 "" 2 (Just "-icon -pending") "0 0 28 28"
-
-        src =
-            [ Svg.circle [ cx "14", cy "14", r "2" ] [] ]
-    in
-    Icon { attrs = attrs, src = src }
+    svg
+        [ class "-icon -pending"
+        , strokeWidth "2"
+        , viewBox "0 0 28 28"
+        , width "26"
+        , height "26"
+        ]
+        [ Svg.circle [ cx "14", cy "14", r "2" ] [] ]
 
 
 {-| buildHistoryRunning : produces svg icon for build history status - running
 -}
-buildHistoryRunning : Int -> Icon
+buildHistoryRunning : Int -> Html msg
 buildHistoryRunning _ =
-    let
-        attrs =
-            IconAttributes 26 "" 2 (Just "-icon -running") "0 0 28 28"
-
-        src =
-            [ Svg.path [ d "M14 7v7.5l5 2.5" ] [] ]
-    in
-    Icon { attrs = attrs, src = src }
+    svg
+        [ class "-icon -running"
+        , strokeWidth "2"
+        , viewBox "0 0 28 28"
+        , width "26"
+        , height "26"
+        ]
+        [ Svg.path [ d "M14 7v7.5l5 2.5" ] [] ]
 
 
 {-| buildHistorySuccess : produces svg icon for build history status - running
 -}
-buildHistorySuccess : Int -> Icon
+buildHistorySuccess : Int -> Html msg
 buildHistorySuccess _ =
-    let
-        attrs =
-            IconAttributes 26 "" 2 (Just "-icon -success") "0 0 28 28"
-
-        src =
-            [ Svg.path [ d "M6 15.9227L10.1026 20 22 7" ] [] ]
-    in
-    Icon { attrs = attrs, src = src }
+    svg
+        [ class "-icon -success"
+        , strokeWidth "2"
+        , viewBox "0 0 28 28"
+        , width "26"
+        , height "26"
+        ]
+        [ Svg.path [ d "M6 15.9227L10.1026 20 22 7" ] [] ]
 
 
 {-| buildHistoryFailure : produces svg icon for build history status - failure
 -}
-buildHistoryFailure : Int -> Icon
+buildHistoryFailure : Int -> Html msg
 buildHistoryFailure _ =
-    let
-        attrs =
-            IconAttributes 26 "" 2 (Just "-icon -failure") "0 0 28 28"
-
-        src =
-            [ Svg.path [ d "M8 8l12 12M20 8L8 20" ] [] ]
-    in
-    Icon { attrs = attrs, src = src }
+    svg
+        [ class "-icon -failure"
+        , strokeWidth "2"
+        , viewBox "0 0 28 28"
+        , width "26"
+        , height "26"
+        ]
+        [ Svg.path [ d "M8 8l12 12M20 8L8 20" ] [] ]
 
 
 {-| radio : produces svg icon for input radio select
 -}
-radio : Bool -> Icon
+radio : Bool -> Html msg
 radio checked =
-    let
-        attrs =
-            IconAttributes 22 "" 2 (Just "-icon -radio") "0 0 30 30"
+    svg
+        [ class "-icon -radio"
+        , strokeWidth "2"
+        , viewBox "0 0 30 30"
+        , width "22"
+        , height "22"
+        ]
+    <|
+        if checked then
+            [ Svg.circle [ cx "15", cy "15", r "13" ] []
+            , Svg.circle [ class "-inner", cx "15", cy "15", r "6" ] []
+            ]
 
-        src =
-            if checked then
-                [ Svg.circle [ cx "15", cy "15", r "13" ] []
-                , Svg.circle [ class "-inner", cx "15", cy "15", r "6" ] []
-                ]
-
-            else
-                [ Svg.circle [ cx "15", cy "15", r "13" ] []
-                ]
-    in
-    Icon { attrs = attrs, src = src }
+        else
+            [ Svg.circle [ cx "15", cy "15", r "13" ] []
+            ]
 
 
 {-| checkbox : produces svg icon for input checkbox select
 -}
-checkbox : Bool -> Icon
+checkbox : Bool -> Html msg
 checkbox checked =
-    let
-        attrs =
-            IconAttributes 22 "" 2 (Just "-icon -check") "0 0 28 28"
+    svg
+        [ class "-icon -check"
+        , strokeWidth "2"
+        , viewBox "0 0 28 28"
+        , width "22"
+        , height "22"
+        ]
+    <|
+        if checked then
+            [ Svg.path [ class "-checked", Svg.Attributes.strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] [] ]
 
-        src =
-            if checked then
-                [ Svg.path [ class "-checked", Svg.Attributes.strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] [] ]
-
-            else
-                []
-    in
-    Icon { attrs = attrs, src = src }
+        else
+            []
 
 
 {-| statusToIcon : takes build status string and returns Icon from SvgBuilder
 -}
-buildStatusToIcon : Status -> Icon
+buildStatusToIcon : Status -> Html msg
 buildStatusToIcon status =
     case status of
         Vela.Pending ->
@@ -479,7 +459,7 @@ buildStatusToIcon status =
 
 {-| recentBuildStatusToIcon : takes build status string and returns Icon from SvgBuilder
 -}
-recentBuildStatusToIcon : Status -> Int -> Icon
+recentBuildStatusToIcon : Status -> Int -> Html msg
 recentBuildStatusToIcon status index =
     case status of
         Vela.Pending ->
@@ -500,7 +480,7 @@ recentBuildStatusToIcon status index =
 
 {-| stepStatusToIcon : takes build status and returns Icon from SvgBuilder
 -}
-stepStatusToIcon : Status -> Icon
+stepStatusToIcon : Status -> Html msg
 stepStatusToIcon status =
     case status of
         Vela.Pending ->
@@ -529,31 +509,3 @@ hookStatusToIcon status =
 
         _ ->
             hookFailure
-
-
-{-| hookSuccess: produces the svg for the hook status success
--}
-hookSuccess : Html msg
-hookSuccess =
-    Icon
-        { attrs = IconAttributes 20 "" 2 (Just "hook-status -success") "0 0 44 44"
-        , src =
-            [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 20.1l6.923 6.9L42 5" ] []
-            , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
-            ]
-        }
-        |> toHtml [ attribute "aria-hidden" "true" ] []
-
-
-{-| hookFailure: produces the svg for the hook status failure
--}
-hookFailure : Html msg
-hookFailure =
-    Icon
-        { attrs = IconAttributes 20 "" 2 (Just "hook-status -failure") "0 0 44 44"
-        , src =
-            [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-            , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 15l14 14M29 15L15 29" ] []
-            ]
-        }
-        |> toHtml [ attribute "aria-hidden" "true" ] []

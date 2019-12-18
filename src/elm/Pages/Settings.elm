@@ -13,6 +13,8 @@ module Pages.Settings exposing
     , timeout
     , timeoutInput
     , timeoutWarning
+    , validAccessUpdate
+    , validEventsUpdate
     , view
     )
 
@@ -21,6 +23,7 @@ import Html
         ( Html
         , button
         , div
+        , em
         , input
         , label
         , p
@@ -43,7 +46,7 @@ import Html.Events exposing (onCheck, onClick, onInput)
 import RemoteData exposing (RemoteData(..), WebData)
 import SvgBuilder
 import Util
-import Vela exposing (Field, Repository)
+import Vela exposing (Field, Repository, UpdateRepositoryPayload)
 
 
 
@@ -110,7 +113,7 @@ access : Repository -> RadioUpdate msg -> Html msg
 access repo msg =
     div [ class "category", Util.testAttribute "repo-settings-access" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Access" ] ]
-        , div [ class "description" ] [ text "Change who can access build information" ]
+        , div [ class "description" ] [ text "Change who can access build information." ]
         , div [ class "inputs", class "radios" ]
             [ radio repo.visibility "private" "Private" <| msg repo.org repo.name "visibility" "private"
             , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
@@ -124,7 +127,8 @@ events : Repository -> CheckboxUpdate msg -> Html msg
 events repo msg =
     div [ class "category", Util.testAttribute "repo-settings-events" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Webhook Events" ] ]
-        , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines" ]
+        , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines." ]
+        , div [ class "description" ] [ em [] [ text "Active repositories must have at least one event enabled." ] ]
         , div [ class "inputs" ]
             [ checkbox "Push"
                 "allow_push"
@@ -156,7 +160,7 @@ timeout : Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) ->
 timeout inTimeout repo clickMsg inputMsg =
     div [ class "category", Util.testAttribute "repo-settings-timeout" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Build Timeout" ] ]
-        , div [ class "description" ] [ text "Builds that reach this timeout setting will be stopped" ]
+        , div [ class "description" ] [ text "Builds that reach this timeout setting will be stopped." ]
         , timeoutInput repo
             inTimeout
             inputMsg
@@ -172,7 +176,7 @@ timeout inTimeout repo clickMsg inputMsg =
 checkbox : String -> Field -> Bool -> (Bool -> msg) -> Html msg
 checkbox name field state msg =
     div [ class "checkbox", Util.testAttribute <| "repo-checkbox-" ++ field ]
-        [ SvgBuilder.checkbox state |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+        [ SvgBuilder.checkbox state
         , input
             [ type_ "checkbox"
             , id <| "checkbox-" ++ field
@@ -189,7 +193,7 @@ checkbox name field state msg =
 radio : String -> String -> Field -> msg -> Html msg
 radio value field title msg =
     div [ class "checkbox", class "radio", Util.testAttribute <| "repo-radio-" ++ field ]
-        [ SvgBuilder.radio (value == field) |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+        [ SvgBuilder.radio (value == field)
         , input
             [ type_ "radio"
             , id <| "radio-" ++ field
@@ -298,6 +302,42 @@ validTimeout inTimeout repoTimeout =
 
         Nothing ->
             True
+
+
+{-| validAccessUpdate : takes model webdata repo and repo visibility update and determines if an update is necessary
+-}
+validAccessUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
+validAccessUpdate originalRepo repoUpdate =
+    case originalRepo of
+        RemoteData.Success repo ->
+            case repoUpdate.visibility of
+                Just visibility ->
+                    if repo.visibility /= visibility then
+                        True
+
+                    else
+                        False
+
+                Nothing ->
+                    False
+
+        _ ->
+            False
+
+
+{-| validEventsUpdate : takes model webdata repo and repo events update and determines if an update is necessary
+-}
+validEventsUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
+validEventsUpdate originalRepo repoUpdate =
+    case originalRepo of
+        RemoteData.Success repo ->
+            Maybe.withDefault repo.allow_push repoUpdate.allow_push
+                || Maybe.withDefault repo.allow_pull repoUpdate.allow_pull
+                || Maybe.withDefault repo.allow_deploy repoUpdate.allow_deploy
+                || Maybe.withDefault repo.allow_tag repoUpdate.allow_tag
+
+        _ ->
+            False
 
 
 {-| updateTip : takes field and returns the tip to display after the label.
