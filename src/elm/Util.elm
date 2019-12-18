@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Util exposing
-    ( dateToHumanReadable
+    ( ariaHidden
+    , dateToHumanReadable
     , dispatch
     , filterEmptyLists
     , fiveSecondsMillis
@@ -222,6 +223,13 @@ open isOpen =
 
     else
         class ""
+
+
+{-| ariaHidden: returns the html attribute for setting aria-hidden=true
+-}
+ariaHidden : Html.Attribute msg
+ariaHidden =
+    attribute "aria-hidden" "true"
 
 
 {-| smallLoader : renders a small loading spinner for better transitioning UX

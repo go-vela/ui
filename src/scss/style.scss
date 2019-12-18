@@ -1423,11 +1423,17 @@ button.-solid {
   font-size: 14px;
 }
 
+.hook-status.-no-fill {
+  fill: none;
+}
+
 .hook-status.-success {
+  stroke: var(--color-green);
   color: var(--color-green);
 }
 
 .hook-status.-failure {
+  stroke: var(--color-scarlet);
   color: var(--color-scarlet);
 }
 
