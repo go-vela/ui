@@ -248,7 +248,6 @@ encodeAddRepository repo =
         , ( "full_name", Encode.string <| repo.full_name )
         , ( "link", Encode.string <| repo.link )
         , ( "clone", Encode.string <| repo.clone )
-        , ( "timeout", Encode.int <| repo.timeout )
         , ( "private", Encode.bool <| repo.private )
         , ( "trusted", Encode.bool <| repo.trusted )
         , ( "active", Encode.bool <| repo.active )
@@ -265,7 +264,6 @@ type alias AddRepositoryPayload =
     , full_name : String
     , link : String
     , clone : String
-    , timeout : Int
     , private : Bool
     , trusted : Bool
     , active : Bool
@@ -278,7 +276,7 @@ type alias AddRepositoryPayload =
 
 defaultAddRepositoryPayload : AddRepositoryPayload
 defaultAddRepositoryPayload =
-    AddRepositoryPayload "" "" "" "" "" 60 False True True True True False False
+    AddRepositoryPayload "" "" "" "" "" False True True True True False False
 
 
 type alias UpdateRepositoryPayload =
