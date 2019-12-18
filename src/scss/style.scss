@@ -359,6 +359,7 @@ button,
 
 .theme-light .-item {
   background-color: var(--color-white);
+  border: 1px solid var(--color-bg-dark);
 }
 
 .-item .-actions {
@@ -783,6 +784,7 @@ button.-solid {
 
 .theme-light .build .info {
   background: var(--color-white);
+  border: 1px solid var(--color-bg-dark);
 }
 
 .build .row {
@@ -1160,6 +1162,9 @@ button.-solid {
 
 .theme-light .logs-container {
   background-color: var(--color-white);
+  border-top: 1px solid var(--color-bg-dark);
+  border-right: 1px solid var(--color-bg-dark);
+  border-bottom: 1px solid var(--color-bg-dark);
 }
 
 .logs {
@@ -1307,6 +1312,7 @@ button.-solid {
 
 .theme-light .hooks {
   background: var(--color-white);
+  border: 1px solid var(--color-bg-dark);
 }
 
 .hooks .loading {
@@ -1476,10 +1482,6 @@ button.-solid {
 }
 
 .theme-light {
-  .hooks .row .info.-running {
-    border-left-color: var(--color-yellow-dark);
-  }
-
   .hooks .row .info.-success {
     border-left-color: var(--color-green-dark);
   }
