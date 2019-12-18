@@ -68,6 +68,7 @@ import Pages.Hooks
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
+import Svg.Attributes
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
 import Time
@@ -92,6 +93,7 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
+        , Favorite
         , Favorites
         , FavoritesModel
         , Field
@@ -279,6 +281,7 @@ type Msg
     | AddOrgRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
+    | FavoriteRepo Org Repo
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
@@ -624,6 +627,19 @@ update msg model =
             , restartBuild model org repo buildNumber
             )
 
+        FavoriteRepo org repo ->
+            let
+                favorites =
+                    model.favorites
+
+                ( favs, alert ) =
+                    favoriteRepo org repo favorites
+            in
+            ( { model | favorites = favs }
+            , Cmd.none
+            )
+                |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" alert Nothing)
+
         Error error ->
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Error "Error" error)
@@ -668,7 +684,12 @@ update msg model =
                 Err error ->
                     -- ( { model | favorites = { currentFavorites | favorites = toFailure error } }, addError error )
                     -- TODO: unmock when server is ready
-                    ( { model | favorites = { currentFavorites | favorites = RemoteData.succeed mockedFavorites } }, Cmd.none )
+                    -- ( { model | favorites = { currentFavorites | favorites = RemoteData.succeed mockedFavorites } }, Cmd.none )
+                    let
+                        favorites =
+                            model.favorites
+                    in
+                    ( model, Cmd.none )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -725,13 +746,36 @@ update msg model =
             ( model, Cmd.none )
 
 
-mockedFavorites : Favorites
-mockedFavorites =
-    [ { defaultRepository | org = "github", name = "octocat" }
-    , { defaultRepository | org = "vela", name = "plugins" }
-    , { defaultRepository | org = "vela", name = "ui" }
-    , { defaultRepository | org = "github", name = "actions" }
-    ]
+favoriteRepo : Org -> Repo -> FavoritesModel -> ( FavoritesModel, String )
+favoriteRepo org repo favorites =
+    case favorites.favorites of
+        RemoteData.Success repos ->
+            if not <| repoFavorited org repo favorites then
+                ( { favorites | favorites = RemoteData.succeed <| Favorite 1 1 org repo :: repos }
+                , org ++ "/" ++ repo ++ " added to favorites."
+                )
+
+            else
+                let
+                    newFavs =
+                        List.filter (\r -> r.org /= org || r.repo_name /= repo) repos
+                in
+                ( { favorites | favorites = RemoteData.succeed newFavs }
+                , org ++ "/" ++ repo ++ " removed from favorites."
+                )
+
+        _ ->
+            ( favorites, "" )
+
+
+repoFavorited : Org -> Repo -> FavoritesModel -> Bool
+repoFavorited org repo favorites =
+    case favorites.favorites of
+        Success repos ->
+            (\id -> id /= -1) <| .repo_id <| Maybe.withDefault (Favorite -1 -1 "" "") <| List.head <| List.filter (\r -> r.org == org && r.repo_name == repo) repos
+
+        _ ->
+            False
 
 
 
@@ -965,7 +1009,7 @@ viewContent model =
 
         Pages.Favorites userID ->
             ( "Favorites"
-            , Pages.Favorites.view model.favorites RemoveRepo
+            , Pages.Favorites.view model.favorites FavoriteRepo
             )
 
         Pages.AddRepositories ->
@@ -1107,8 +1151,7 @@ viewSingleRepo repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
-            [ SvgBuilder.favoritesStar [] False
-            , a
+            [ a
                 [ class "-btn"
                 , class "-inverted"
                 , class "-view"
@@ -1414,7 +1457,7 @@ navButton model =
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "nav-buttons" ]
-                [ SvgBuilder.favoritesStar [] False
+                [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| FavoriteRepo org repo ] <| repoFavorited org repo model.favorites
                 , a
                     [ class "-btn"
                     , class "-inverted"
@@ -1554,7 +1597,10 @@ setNewPage route model =
                 currentSession =
                     Maybe.withDefault defaultSession model.session
             in
-            ( { model | page = Pages.Favorites currentSession.token }, Api.tryAll (FavoritesResponse currentSession.token) <| Api.getAllFavorites model currentSession.token )
+            ( { model | page = Pages.Favorites currentSession.token }
+            , Api.tryAll (FavoritesResponse currentSession.token) <|
+                Api.getAllFavorites model currentSession.token
+            )
 
         ( Routes.AddRepositories, True ) ->
             case model.sourceRepos of
@@ -1578,7 +1624,12 @@ setNewPage route model =
             loadSettingsPage model org repo
 
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage, True ) ->
-            loadRepoBuildsPage model org repo maybePage maybePerPage
+            let
+                currentSession : Session
+                currentSession =
+                    Maybe.withDefault defaultSession model.session
+            in
+            loadRepoBuildsPage model org repo currentSession maybePage maybePerPage
 
         ( Routes.Build org repo buildNumber lineFocus, True ) ->
             case model.page of
@@ -1659,8 +1710,8 @@ loadSettingsPage model org repo =
     loadRepoBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
 -}
-loadRepoBuildsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
-loadRepoBuildsPage model org repo maybePage maybePerPage =
+loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadRepoBuildsPage model org repo currentSession maybePage maybePerPage =
     let
         -- Builds already loaded
         loadedBuilds =
@@ -1674,6 +1725,8 @@ loadRepoBuildsPage model org repo maybePage maybePerPage =
     ( { model | page = Pages.RepositoryBuilds org repo maybePage maybePerPage, builds = loadingBuilds }
     , Cmd.batch
         [ getBuilds model org repo maybePage maybePerPage
+        , Api.tryAll (FavoritesResponse currentSession.token) <|
+            Api.getAllFavorites model currentSession.token
         ]
     )
 

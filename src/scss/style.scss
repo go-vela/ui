@@ -1700,8 +1700,11 @@ button.-favorite-toggle {
 .icon.favorite-star {
   fill: none;
   stroke: var(--color-yellow);
-  cursor: pointer;
   margin: 0 0.5em;
+}
+
+.icon.favorite-star.-cursor {
+  cursor: pointer;
 }
 
 .icon.favorite-star.favorited {

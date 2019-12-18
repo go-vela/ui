@@ -42,6 +42,7 @@ import Vela
         , Build
         , BuildNumber
         , Builds
+        , Favorite
         , Favorites
         , Hook
         , Hooks
@@ -59,6 +60,7 @@ import Vela
         , UserID
         , decodeBuild
         , decodeBuilds
+        , decodeFavorite
         , decodeFavorites
         , decodeHook
         , decodeHooks
@@ -492,8 +494,8 @@ getFavorites model maybePage maybePerPage userID =
     Note: the singular version of the type/decoder is needed in this case as it turns it into a list
 
 -}
-getAllFavorites : PartialModel a -> UserID -> Request Repository
+getAllFavorites : PartialModel a -> UserID -> Request Favorite
 getAllFavorites model userID =
     -- we are using the max perPage setting of 100 to reduce the number of calls
-    get model.velaAPI (Endpoint.Favorites (Just 1) (Just 100) userID) decodeRepository
+    get model.velaAPI (Endpoint.Favorites (Just 1) (Just 100) userID) decodeFavorite
         |> withAuth model.session

@@ -33,33 +33,30 @@ import Routes
 import Svg.Attributes
 import SvgBuilder exposing (favoritesStar)
 import Util
-import Vela exposing (FavoritesModel, Repositories, Repository)
+import Vela exposing (Favorite, Favorites, FavoritesModel, Org, Repo, Repositories, Repository)
 
 
-view : FavoritesModel -> (Repository -> msg) -> Html msg
+view : FavoritesModel -> (Org -> Repo -> msg) -> Html msg
 view model action =
     let
         blankMessage : Html msg
         blankMessage =
-            div [ class "overview" ]
-                [ h1 [] [ text "Let's get Started!" ]
+            div [ class "favorites" ]
+                [ h1 [] [ text "You have no favorites!" ]
                 , p []
                     [ text "To display your projects here we need to get them favorited."
                     , br [] []
-                    , text "Favorite a repository by clicking the star in the top right of the page!"
+                    , text "Favorite a repository by clicking the star"
+                    , SvgBuilder.favoritesStar [] False
+                    , text "in the top right of the repository builds page!"
                     ]
                 ]
     in
     div []
         [ case model.favorites of
-            Success repos ->
-                let
-                    activeRepos : Repositories
-                    activeRepos =
-                        repos
-                in
-                if List.length activeRepos > 0 then
-                    activeRepos
+            Success favorites ->
+                if List.length favorites > 0 then
+                    favorites
                         |> recordsGroupBy .org
                         |> viewCurrentRepoListByOrg action
 
@@ -89,26 +86,25 @@ recordsGroupBy key recordList =
     List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
 
 
-viewSingleRepo : (Repository -> msg) -> Repository -> Html msg
+viewSingleRepo : (Org -> Repo -> msg) -> Favorite -> Html msg
 viewSingleRepo action repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
-        [ div [] [ text repo.name ]
+        [ div [] [ text repo.repo_name ]
         , div [ class "-actions" ]
-            [ favoritesStar [ onClick <| action repo ] False
-            , a
+            [ a
                 [ class "-btn"
                 , class "-inverted"
                 , class "-view"
-                , Routes.href <| Routes.Settings repo.org repo.name
+                , Routes.href <| Routes.Settings repo.org repo.repo_name
                 ]
                 [ text "Settings" ]
-            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| action repo ] [ text "Remove" ]
+            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| action repo.org repo.repo_name ] [ text "Remove" ]
             , a
                 [ class "-btn"
                 , class "-inverted"
                 , class "-view"
                 , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
+                , Routes.href <| Routes.Hooks repo.org repo.repo_name Nothing Nothing
                 ]
                 [ text "Hooks" ]
             , a
@@ -116,14 +112,14 @@ viewSingleRepo action repo =
                 , class "-solid"
                 , class "-view"
                 , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing
+                , Routes.href <| Routes.RepositoryBuilds repo.org repo.repo_name Nothing Nothing
                 ]
                 [ text "View" ]
             ]
         ]
 
 
-viewOrg : String -> Repositories -> (Repository -> msg) -> Html msg
+viewOrg : String -> Favorites -> (Org -> Repo -> msg) -> Html msg
 viewOrg org repos action =
     div [ class "repo-org", Util.testAttribute "repo-org" ]
         [ details [ class "details", class "repo-item", attribute "open" "open" ]
@@ -133,7 +129,7 @@ viewOrg org repos action =
         ]
 
 
-viewCurrentRepoListByOrg : (Repository -> msg) -> Dict String Repositories -> Html msg
+viewCurrentRepoListByOrg : (Org -> Repo -> msg) -> Dict String Favorites -> Html msg
 viewCurrentRepoListByOrg action repoList =
     repoList
         |> Dict.toList
