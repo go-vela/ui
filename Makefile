@@ -38,7 +38,8 @@ compose-down:
 .PHONY: clean
 clean:
 	@echo "cleaning crew, coming through..."
-	@rm -rf ./{elm-stuff,node_modules,dist}
+	@rm -rf ./{elm-stuff,node_modules}
+	@npm run clean
 	@echo "nice and shiny; don't forget to run 'npm install'"
 
 .PHONY: build
