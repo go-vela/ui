@@ -16,6 +16,9 @@ body {
   color: var(--color-text);
   background-color: var(--color-bg);
 
+  transition-property: background-color, color;
+  transition-duration: 0.5s;
+
   font-size: 18px;
 }
 
@@ -261,8 +264,8 @@ button,
       border-color: var(--color-primary-light);
     }
     &:disabled {
-      color: var(--color-gray);
-      border-color: var(--color-gray);
+      color: var(--color-bg-light);
+      border-color: var(--color-bg-light);
     }
   }
 }
@@ -549,8 +552,8 @@ button.-inverted {
   background-color: var(--color-bg);
   background-image: none;
   &:hover {
-    color: var(--color-primary-accent);
-    border-color: var(--color-primary-accent);
+    color: var(--color-primary-light);
+    border-color: var(--color-primary-light);
   }
 }
 
@@ -719,6 +722,7 @@ button.-solid {
 
 .build-icon {
   margin: 36px;
+  stroke: var(--color-bg);
 }
 
 .build-icon.-pending {
@@ -790,7 +794,7 @@ button.-solid {
 }
 
 .build .error {
-  color: var(--color-scarlet);
+  color: var(--color-red);
 
   font-size: 16px;
 }
@@ -948,77 +952,20 @@ button.-solid {
   position: relative;
 }
 
-.build-history .-build .-icon.-running {
-  fill: var(--color-yellow);
-}
+.build-history .-build .-icon {
+  stroke: var(--color-bg);
+  &.-running {
+    background-color: var(--color-yellow);
+  }
 
-.build-history .-build .-icon.-failure,
-.build-history .-build .-icon.-error {
-  stroke: var(--color-red);
-}
+  &.-failure,
+  &.-error {
+    background-color: var(--color-red);
+  }
 
-.build-history .-build .-icon.-success {
-  stroke: var(--color-bg-dark);
-}
-
-.build-history-svg.-build-history-icon {
-  fill: none;
-  fill-rule: evenodd;
-}
-
-.build-history-svg.-build-history-icon.-pending {
-  fill: var(--color-bg-light);
-  stroke: var(--color-bg-light);
-}
-
-.build-history-svg.-build-history-icon.-running {
-  stroke: var(--color-yellow);
-}
-
-.build-history-svg.-build-history-icon.-success {
-  stroke: var(--color-green);
-}
-
-.build-history .-build .-icon.-failure .-path-1,
-.build-history .-build .-icon.-error .-path-1 {
-  fill: var(--color-bg-dark);
-}
-
-.build-history .-build .-icon.-failure .-path-2,
-.build-history .-build .-icon.-error .-path-2 {
-  fill: var(--color-red);
-}
-
-.build-history .-build .-icon.-success .-path-2 {
-  fill: var(--color-green);
-}
-
-.build-history .-build .-icon.-running .-path-2 {
-  fill: var(--color-yellow);
-}
-
-.build-history .-build .-icon.-running .-path-2 {
-  fill: var(--color-yellow);
-}
-
-.build-history .-build .-icon.-failure .-path-3,
-.build-history .-build .-icon.-error .-path-3 {
-  stroke: var(--color-bg-dark);
-  stroke-width: 2;
-  stroke-linecap: square;
-}
-
-.build-history .-build .-icon.-pending .-path-3 {
-  stroke: var(--color-bg-dark);
-  fill: var(--color-bg-dark);
-}
-
-.build-history .-build .-icon.-success .-path-3 {
-  stroke: var(--color-bg-dark);
-}
-
-.build-history .-build .-icon.-running .-path-3 {
-  stroke: var(--color-bg-dark);
+  &.-success {
+    background-color: var(--color-green);
+  }
 }
 
 .build-history .-build .-tooltip {
@@ -1142,22 +1089,21 @@ button.-solid {
   border-radius: 7px;
 }
 
-.-step-icon.-pending {
-  stroke: var(--color-bg-light);
-  fill: var(--color-bg-light);
-}
-
-.-step-icon.-running {
-  stroke: var(--color-yellow);
-}
-
-.-step-icon.-success {
-  stroke: var(--color-green);
-}
-
-.-step-icon.-failure,
-.-step-icon.-error {
-  stroke: var(--color-red);
+.-icon {
+  &.-success {
+    stroke: var(--color-green);
+  }
+  &.-running {
+    stroke: var(--color-yellow);
+  }
+  &.-failure,
+  &.-error {
+    stroke: var(--color-red);
+  }
+  &.-pending {
+    stroke: var(--color-bg-light);
+    fill: var(--color-bg-light);
+  }
 }
 
 .step .-view {
@@ -1212,6 +1158,10 @@ button.-solid {
   padding: 0.5em 0;
 }
 
+.theme-light .logs-container {
+  background-color: var(--color-white);
+}
+
 .logs {
   font-size: 14px;
   font-weight: 300;
@@ -1248,7 +1198,7 @@ button.-solid {
 }
 
 .step-error {
-  color: var(--color-scarlet);
+  color: var(--color-red);
   font-size: 14px;
   margin-left: 1.5em;
 }
@@ -1641,7 +1591,8 @@ button.-solid {
 }
 
 .-icon.-radio {
-  stroke: var(--color-primary);
+  // stroke: var(--color-primary);
+  color: var(--color-primary);
 
   .-inner {
     fill: var(--color-primary);
@@ -1650,7 +1601,8 @@ button.-solid {
 
 .-icon.-check {
   stroke: var(--color-bg);
-  fill: var(--color-primary);
+  // fill: var(--color-primary);
+  background-color: var(--color-primary);
 }
 
 .checkbox .label {

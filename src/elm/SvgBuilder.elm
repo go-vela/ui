@@ -182,10 +182,8 @@ buildPending =
             IconAttributes 44 "" 2 (Just "build-icon -pending") "0 0 408 408"
 
         src =
-            [ Svg.g [ class "status-svg", class "-build-status-icon", class "-pending" ]
-                [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
-                    []
-                ]
+            [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
+                []
             ]
     in
     Icon { attrs = attrs, src = src }
@@ -197,13 +195,11 @@ buildRunning : Icon
 buildRunning =
     let
         attrs =
-            IconAttributes 44 "" 2 (Just "build-icon") "0 0 44 44"
+            IconAttributes 44 "" 2 (Just "build-icon -running") "0 0 44 44"
 
         src =
-            [ Svg.g [ class "status-svg" ]
-                [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-                , Svg.path [ class "-linecap-square", d "M22 10v12.75L30 27" ] []
-                ]
+            [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+            , Svg.path [ class "-linecap-square", d "M22 10v12.75L30 27" ] []
             ]
     in
     Icon { attrs = attrs, src = src }
@@ -215,13 +211,11 @@ buildSuccess : Icon
 buildSuccess =
     let
         attrs =
-            IconAttributes 44 "" 2 (Just "build-icon") "0 0 44 44"
+            IconAttributes 44 "" 2 (Just "build-icon -success") "0 0 44 44"
 
         src =
-            [ Svg.g [ class "status-svg", class "-linecap-square" ]
-                [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-                , Svg.path [ class "-linecap-round", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
-                ]
+            [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
+            , Svg.path [ class "-linecap-round", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
             ]
     in
     Icon { attrs = attrs, src = src }
@@ -233,19 +227,11 @@ buildFailure : Icon
 buildFailure =
     let
         attrs =
-            IconAttributes 44 "" 2 (Just "build-icon") "0 0 44 44"
-
-        strokeA =
-            "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
-
-        strokeB =
-            "M15 15l14 14M29 15L15 29"
+            IconAttributes 44 "" 2 (Just "build-icon -failure") "0 0 44 44"
 
         src =
-            [ Svg.g [ class "status-svg" ]
-                [ Svg.path [ class "-linecap-round", d strokeA ] []
-                , Svg.path [ class "-linecap-square", d strokeB ] []
-                ]
+            [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+            , Svg.path [ class "-linecap-square", d "M15 15l14 14M29 15L15 29" ] []
             ]
     in
     Icon { attrs = attrs, src = src }
@@ -288,10 +274,11 @@ stepPending =
             IconAttributes 32 "" 2 (Just "-icon -pending") "0 0 408 408"
 
         src =
-            [ Svg.g [ class "status-svg", class "-step-icon", class "-pending" ]
-                [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
-                    []
+            [ Svg.path
+                [ attribute "vector-effect" "non-scaling-stroke"
+                , d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z"
                 ]
+                []
             ]
     in
     Icon { attrs = attrs, src = src }
@@ -303,13 +290,21 @@ stepRunning : Icon
 stepRunning =
     let
         attrs =
-            IconAttributes 32 "" 2 (Just "-icon") "0 0 44 44"
+            IconAttributes 32 "" 2 (Just "-icon -running") "0 0 44 44"
 
         src =
-            [ Svg.g [ class "status-svg", class "-step-icon", class "-running" ]
-                [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-                , Svg.path [ class "-linecap-square", d "M22 10v12.75L30 27" ] []
+            [ Svg.path
+                [ class "-linecap-round"
+                , attribute "vector-effect" "non-scaling-stroke"
+                , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
                 ]
+                []
+            , Svg.path
+                [ class "-linecap-square"
+                , attribute "vector-effect" "non-scaling-stroke"
+                , d "M22 10v12.75L30 27"
+                ]
+                []
             ]
     in
     Icon { attrs = attrs, src = src }
@@ -321,13 +316,20 @@ stepSuccess : Icon
 stepSuccess =
     let
         attrs =
-            IconAttributes 32 "" 2 (Just "-icon") "0 0 44 44"
+            IconAttributes 32 "" 2 (Just "-icon -success") "0 0 44 44"
 
         src =
-            [ Svg.g [ class "status-svg", class "-linecap-square", class "-step-icon", class "-success" ]
-                [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-                , Svg.path [ class "-linecap-round", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+            [ Svg.path
+                [ attribute "vector-effect" "non-scaling-stroke"
+                , d "M15 20.1l6.923 6.9L42 5"
                 ]
+                []
+            , Svg.path
+                [ class "-linecap-round"
+                , attribute "vector-effect" "non-scaling-stroke"
+                , d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666"
+                ]
+                []
             ]
     in
     Icon { attrs = attrs, src = src }
@@ -339,19 +341,21 @@ stepFailure : Icon
 stepFailure =
     let
         attrs =
-            IconAttributes 32 "" 2 (Just "-icon") "0 0 44 44"
-
-        strokeA =
-            "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
-
-        strokeB =
-            "M15 15l14 14M29 15L15 29"
+            IconAttributes 32 "" 2 (Just "-icon -failure") "0 0 44 44"
 
         src =
-            [ Svg.g [ class "status-svg", class "-step-icon", class "-failure" ]
-                [ Svg.path [ class "-linecap-round", d strokeA ] []
-                , Svg.path [ class "-linecap-square", d strokeB ] []
+            [ Svg.path
+                [ class "-linecap-round"
+                , attribute "vector-effect" "non-scaling-stroke"
+                , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
                 ]
+                []
+            , Svg.path
+                [ class "-linecap-square"
+                , attribute "vector-effect" "non-scaling-stroke"
+                , d "M15 15l14 14M29 15L15 29"
+                ]
+                []
             ]
     in
     Icon { attrs = attrs, src = src }
@@ -363,23 +367,10 @@ buildHistoryPending : Int -> Icon
 buildHistoryPending _ =
     let
         attrs =
-            IconAttributes 28 "" 2 (Just "-icon -pending") "0 0 28 28"
-
-        strokeA =
-            "M-281-124h1440V900H-281z"
-
-        strokeB =
-            "M0 0h28v28H0z"
+            IconAttributes 26 "" 2 (Just "-icon -pending") "0 0 28 28"
 
         src =
-            [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-pending" ]
-                [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g []
-                    [ Svg.path [ class "-path-2", d strokeB ] []
-                    , Svg.circle [ class "-path-3", cx "14", cy "14", r "2" ] []
-                    ]
-                ]
-            ]
+            [ Svg.circle [ cx "14", cy "14", r "2" ] [] ]
     in
     Icon { attrs = attrs, src = src }
 
@@ -390,26 +381,10 @@ buildHistoryRunning : Int -> Icon
 buildHistoryRunning _ =
     let
         attrs =
-            IconAttributes 28 "" 2 (Just "-icon -running") "0 0 28 28"
-
-        strokeA =
-            "M-309-124h1440V900H-309z"
-
-        strokeB =
-            "M0 0h28v28H0z"
-
-        strokeC =
-            "M14 7v7.5l5 2.5"
+            IconAttributes 26 "" 2 (Just "-icon -running") "0 0 28 28"
 
         src =
-            [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-running" ]
-                [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g []
-                    [ Svg.path [ class "-path-2", d strokeB ] []
-                    , Svg.path [ class "-path-3", d strokeC ] []
-                    ]
-                ]
-            ]
+            [ Svg.path [ d "M14 7v7.5l5 2.5" ] [] ]
     in
     Icon { attrs = attrs, src = src }
 
@@ -420,26 +395,10 @@ buildHistorySuccess : Int -> Icon
 buildHistorySuccess _ =
     let
         attrs =
-            IconAttributes 28 "" 2 (Just "-icon -success") "0 0 28 28"
-
-        strokeA =
-            "M-113-124h1440V900H-113z"
-
-        strokeB =
-            "M0 0h28v28H0z"
-
-        strokeC =
-            "M6 15.9227L10.1026 20 22 7"
+            IconAttributes 26 "" 2 (Just "-icon -success") "0 0 28 28"
 
         src =
-            [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-success" ]
-                [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g []
-                    [ Svg.path [ class "-path-2", d strokeB ] []
-                    , Svg.path [ class "-path-3", d strokeC ] []
-                    ]
-                ]
-            ]
+            [ Svg.path [ d "M6 15.9227L10.1026 20 22 7" ] [] ]
     in
     Icon { attrs = attrs, src = src }
 
@@ -450,26 +409,10 @@ buildHistoryFailure : Int -> Icon
 buildHistoryFailure _ =
     let
         attrs =
-            IconAttributes 28 "" 2 (Just "-icon -failure") "0 0 28 28"
-
-        strokeA =
-            "M-253-124h1440V900H-253z"
-
-        strokeB =
-            "M0 0h28v28H0z"
-
-        strokeC =
-            "M8 8l12 12M20 8L8 20"
+            IconAttributes 26 "" 2 (Just "-icon -failure") "0 0 28 28"
 
         src =
-            [ Svg.g [ class "build-history-svg", class "-build-history-icon" ]
-                [ Svg.path [ class "-path-1", d strokeA ] []
-                , Svg.g []
-                    [ Svg.path [ class "-path-2", d strokeB ] []
-                    , Svg.path [ class "-path-3", d strokeC ] []
-                    ]
-                ]
-            ]
+            [ Svg.path [ d "M8 8l12 12M20 8L8 20" ] [] ]
     in
     Icon { attrs = attrs, src = src }
 
@@ -484,12 +427,12 @@ radio checked =
 
         src =
             if checked then
-                [ Svg.circle [ cx "14", cy "14", r "13.5" ] []
-                , Svg.circle [ class "-inner", cx "14", cy "14", r "7" ] []
+                [ Svg.circle [ cx "15", cy "15", r "13" ] []
+                , Svg.circle [ class "-inner", cx "15", cy "15", r "6" ] []
                 ]
 
             else
-                [ Svg.circle [ cx "14", cy "14", r "13.5" ] []
+                [ Svg.circle [ cx "15", cy "15", r "13" ] []
                 ]
     in
     Icon { attrs = attrs, src = src }
@@ -505,13 +448,10 @@ checkbox checked =
 
         src =
             if checked then
-                [ Svg.path [ d "M.5.5h27v27H.5z" ] []
-                , Svg.path [ class "-checked", Svg.Attributes.strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] []
-                ]
+                [ Svg.path [ class "-checked", Svg.Attributes.strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] [] ]
 
             else
-                [ Svg.path [ d "M.5.5h27v27H.5z" ] []
-                ]
+                []
     in
     Icon { attrs = attrs, src = src }
 
@@ -596,10 +536,10 @@ hookStatusToIcon status =
 hookSuccess : Html msg
 hookSuccess =
     Icon
-        { attrs = IconAttributes 20 "" 3 (Just "hook-status -success") "0 0 44 44"
+        { attrs = IconAttributes 20 "" 2 (Just "hook-status -success") "0 0 44 44"
         , src =
-            [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-            , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+            [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 20.1l6.923 6.9L42 5" ] []
+            , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
             ]
         }
         |> toHtml [ attribute "aria-hidden" "true" ] []
@@ -610,10 +550,10 @@ hookSuccess =
 hookFailure : Html msg
 hookFailure =
     Icon
-        { attrs = IconAttributes 20 "" 3 (Just "hook-status -failure") "0 0 44 44"
+        { attrs = IconAttributes 20 "" 2 (Just "hook-status -failure") "0 0 44 44"
         , src =
-            [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-            , Svg.path [ d "M15 15l14 14M29 15L15 29" ] []
+            [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+            , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 15l14 14M29 15L15 29" ] []
             ]
         }
         |> toHtml [ attribute "aria-hidden" "true" ] []

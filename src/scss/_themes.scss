@@ -21,6 +21,8 @@ body.theme-dark {
   --color-secondary-dark: var(--color-lavender-dark);
   --color-secondary: var(--color-lavender);
   --color-secondary-light: var(--color-lavender-light);
+
+  --color-focus: var(--color-slate);
 }
 
 // light theme
@@ -39,4 +41,6 @@ body.theme-light {
   --color-secondary-dark: var(--color-cyan-dark);
   --color-secondary: var(--color-cyan);
   --color-secondary-light: var(--color-cyan-light);
+
+  --color-focus: var(--color-slate);
 }
