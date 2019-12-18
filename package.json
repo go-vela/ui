@@ -40,7 +40,7 @@
     "test:cy-open": "start-test 8888 cypress:open",
     "cypress": "cypress run",
     "cypress:open": "cypress open",
-    "clean": "rimraf ./dist/*"
+    "clean": "rimraf ./.cache/*; rimraf ./dist/*"
   },
   "repository": {
     "type": "git",
