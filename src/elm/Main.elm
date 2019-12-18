@@ -514,9 +514,16 @@ update msg model =
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
+
+                action =
+                    if Pages.Settings.validEventsUpdate model.repo payload then
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        addErrorString "Could not disable webhook event. At least one event must be active."
             in
             ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            , action
             )
 
         UpdateRepoAccess org repo field value ->
@@ -530,7 +537,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 action =
-                    if accessChanged model.repo payload then
+                    if Pages.Settings.validAccessUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1716,6 +1723,15 @@ addError error =
         |> perform identity
 
 
+{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module
+-}
+addErrorString : String -> Cmd Msg
+addErrorString error =
+    succeed
+        (Error <| error)
+        |> perform identity
+
+
 {-| toFailure : maps a detailed error into a WebData Failure value
 -}
 toFailure : Http.Detailed.Error String -> WebData a
@@ -1934,27 +1950,6 @@ searchFilterLocal org filters =
 shouldSearch : SearchFilter -> Bool
 shouldSearch filter =
     String.length filter > 2
-
-
-{-| refreshPage : takes model webdata repo and repo visibility update and determines if an update is necessary
--}
-accessChanged : WebData Repository -> UpdateRepositoryPayload -> Bool
-accessChanged originalRepo repoUpdate =
-    case originalRepo of
-        RemoteData.Success repo ->
-            case repoUpdate.visibility of
-                Just visibility ->
-                    if repo.visibility /= visibility then
-                        True
-
-                    else
-                        False
-
-                Nothing ->
-                    False
-
-        _ ->
-            False
 
 
 {-| clickHook : takes model org repo and build number and fetches build information from the api
