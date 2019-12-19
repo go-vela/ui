@@ -24,6 +24,8 @@ module SvgBuilder exposing
     , stepRunning
     , stepStatusToIcon
     , stepSuccess
+    , themeDark
+    , themeLight
     , velaLogo
     )
 
@@ -69,22 +71,53 @@ velaLogo size =
         ]
 
 
+themeDark : Int -> Html msg
+themeDark size =
+    svg
+        [ width <| String.fromInt size
+        , height <| String.fromInt size
+        , viewBox "0 0 24 24"
+        , class "theme-dark-icon"
+        ]
+        [ Svg.path [ d "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" ] []
+        ]
+
+
+themeLight : Int -> Html msg
+themeLight size =
+    svg
+        [ width <| String.fromInt size
+        , height <| String.fromInt size
+        , stroke "currentColor"
+        , strokeWidth "2"
+        , viewBox "0 0 24 24"
+        , class "theme-light-icon"
+        ]
+        [ Svg.circle [ cx "12", cy "12", r "5" ] []
+        , Svg.line [ x1 "12", y1 "1", x2 "12", y2 "3" ] []
+        , Svg.line [ x1 "12", y1 "21", x2 "12", y2 "23" ] []
+        , Svg.line [ x1 "4.22", y1 "4.22", x2 "5.64", y2 "5.64" ] []
+        , Svg.line [ x1 "18.36", y1 "18.36", x2 "19.78", y2 "19.78" ] []
+        , Svg.line [ x1 "1", y1 "12", x2 "3", y2 "12" ] []
+        , Svg.line [ x1 "21", y1 "12", x2 "23", y2 "12" ] []
+        , Svg.line [ x1 "4.22", y1 "19.78", x2 "5.64", y2 "18.36" ] []
+        , Svg.line [ x1 "18.36", y1 "5.64", x2 "19.78", y2 "4.22" ] []
+        ]
+
+
 {-| buildPending : produces svg icon for build status - pending
 -}
 buildPending : Html msg
 buildPending =
     svg
         [ class "build-icon -pending"
-        , strokeWidth "2"
         , viewBox "0 0 408 408"
         , width "44"
         , height "44"
         , ariaHidden
         ]
-        [ Svg.g [ class "status-svg", class "-build-status-icon", class "-pending" ]
-            [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
-                []
-            ]
+        [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
+            []
         ]
 
 
@@ -93,17 +126,15 @@ buildPending =
 buildRunning : Html msg
 buildRunning =
     svg
-        [ class "build-icon"
+        [ class "build-icon -running"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
         , ariaHidden
         ]
-        [ Svg.g [ class "status-svg" ]
-            [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-            , Svg.path [ class "-linecap-square", d "M22 10v12.75L30 27" ] []
-            ]
+        [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ d "M22 10v12.75L30 27" ] []
         ]
 
 
@@ -112,17 +143,15 @@ buildRunning =
 buildSuccess : Html msg
 buildSuccess =
     svg
-        [ class "build-icon"
+        [ class "build-icon -success"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
         , ariaHidden
         ]
-        [ Svg.g [ class "status-svg", class "-linecap-square" ]
-            [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-            , Svg.path [ class "-linecap-round", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
-            ]
+        [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
+        , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
         ]
 
 
@@ -131,17 +160,15 @@ buildSuccess =
 buildFailure : Html msg
 buildFailure =
     svg
-        [ class "build-icon"
+        [ class "build-icon -failure"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "44"
         , height "44"
         , ariaHidden
         ]
-        [ Svg.g [ class "status-svg" ]
-            [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-            , Svg.path [ class "-linecap-square", d "M15 15l14 14M29 15L15 29" ] []
-            ]
+        [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ d "M15 15l14 14M29 15L15 29" ] []
         ]
 
 
@@ -164,8 +191,8 @@ buildStatusAnimation dashes y classNames =
             List.append classes
                 [ class "build-animation"
                 , strokeWidth "4"
-                , width "144"
-                , height "144"
+                , width ""
+                , height "4"
                 , viewBox ""
                 , ariaHidden
                 ]
@@ -182,16 +209,16 @@ stepPending : Html msg
 stepPending =
     svg
         [ class "-icon -pending"
-        , strokeWidth "2"
         , viewBox "0 0 408 408"
         , width "32"
         , height "32"
         , ariaHidden
         ]
-        [ Svg.g [ class "status-svg", class "-step-icon", class "-pending" ]
-            [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
-                []
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z"
             ]
+            []
         ]
 
 
@@ -200,17 +227,23 @@ stepPending =
 stepRunning : Html msg
 stepRunning =
     svg
-        [ class "-icon"
+        [ class "-icon -running"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
         , ariaHidden
         ]
-        [ Svg.g [ class "status-svg", class "-step-icon", class "-running" ]
-            [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-            , Svg.path [ class "-linecap-square", d "M22 10v12.75L30 27" ] []
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
             ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M22 10v12.75L30 27"
+            ]
+            []
         ]
 
 
@@ -219,17 +252,23 @@ stepRunning =
 stepSuccess : Html msg
 stepSuccess =
     svg
-        [ class "-icon"
+        [ class "-icon -success"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
         , ariaHidden
         ]
-        [ Svg.g [ class "status-svg", class "-linecap-square", class "-step-icon", class "-success" ]
-            [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-            , Svg.path [ class "-linecap-round", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M15 20.1l6.923 6.9L42 5"
             ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666"
+            ]
+            []
         ]
 
 
@@ -238,17 +277,23 @@ stepSuccess =
 stepFailure : Html msg
 stepFailure =
     svg
-        [ class "-icon"
+        [ class "-icon -failure"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "32"
         , height "32"
         , ariaHidden
         ]
-        [ Svg.g [ class "status-svg", class "-step-icon", class "-failure" ]
-            [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-            , Svg.path [ class "-linecap-square", d "M15 15l14 14M29 15L15 29" ] []
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
             ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M15 15l14 14M29 15L15 29"
+            ]
+            []
         ]
 
 
@@ -259,17 +304,14 @@ hookSuccess =
     svg
         [ class "hook-status"
         , class "-success"
-        , class "-no-fill"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "20"
         , height "20"
         , ariaHidden
         ]
-        [ Svg.g []
-            [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-            , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
-            ]
+        [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 20.1l6.923 6.9L42 5" ] []
+        , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
         ]
 
 
@@ -280,16 +322,13 @@ hookFailure =
     svg
         [ class "hook-status"
         , class "-failure"
-        , class "-no-fill"
         , strokeWidth "2"
         , viewBox "0 0 44 44"
         , width "20"
         , height "20"
         ]
-        [ Svg.g []
-            [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-            , Svg.path [ d "M15 15l14 14M29 15L15 29" ] []
-            ]
+        [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 15l14 14M29 15L15 29" ] []
         ]
 
 
@@ -299,19 +338,11 @@ buildHistoryPending : Int -> Html msg
 buildHistoryPending _ =
     svg
         [ class "-icon -pending"
-        , strokeWidth "2"
         , viewBox "0 0 28 28"
-        , width "28"
-        , height "28"
+        , width "26"
+        , height "26"
         ]
-        [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-pending" ]
-            [ Svg.path [ class "-path-1", d "M-281-124h1440V900H-281z" ] []
-            , Svg.g []
-                [ Svg.path [ class "-path-2", d "M0 0h28v28H0z" ] []
-                , Svg.circle [ class "-path-3", cx "14", cy "14", r "2" ] []
-                ]
-            ]
-        ]
+        [ Svg.circle [ cx "14", cy "14", r "2" ] [] ]
 
 
 {-| buildHistoryRunning : produces svg icon for build history status - running
@@ -322,17 +353,10 @@ buildHistoryRunning _ =
         [ class "-icon -running"
         , strokeWidth "2"
         , viewBox "0 0 28 28"
-        , width "28"
-        , height "28"
+        , width "26"
+        , height "26"
         ]
-        [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-running" ]
-            [ Svg.path [ class "-path-1", d "M-309-124h1440V900H-309z" ] []
-            , Svg.g []
-                [ Svg.path [ class "-path-2", d "M0 0h28v28H0z" ] []
-                , Svg.path [ class "-path-3", d "M14 7v7.5l5 2.5" ] []
-                ]
-            ]
-        ]
+        [ Svg.path [ d "M14 7v7.5l5 2.5" ] [] ]
 
 
 {-| buildHistorySuccess : produces svg icon for build history status - running
@@ -343,17 +367,10 @@ buildHistorySuccess _ =
         [ class "-icon -success"
         , strokeWidth "2"
         , viewBox "0 0 28 28"
-        , width "28"
-        , height "28"
+        , width "26"
+        , height "26"
         ]
-        [ Svg.g [ class "build-history-svg", class "-build-history-icon", class "-success" ]
-            [ Svg.path [ class "-path-1", d "M-113-124h1440V900H-113z" ] []
-            , Svg.g []
-                [ Svg.path [ class "-path-2", d "M0 0h28v28H0z" ] []
-                , Svg.path [ class "-path-3", d "M6 15.9227L10.1026 20 22 7" ] []
-                ]
-            ]
-        ]
+        [ Svg.path [ d "M6 15.9227L10.1026 20 22 7" ] [] ]
 
 
 {-| buildHistoryFailure : produces svg icon for build history status - failure
@@ -364,17 +381,10 @@ buildHistoryFailure _ =
         [ class "-icon -failure"
         , strokeWidth "2"
         , viewBox "0 0 28 28"
-        , width "28"
-        , height "28"
+        , width "26"
+        , height "26"
         ]
-        [ Svg.g [ class "build-history-svg", class "-build-history-icon" ]
-            [ Svg.path [ class "-path-1", d "M-253-124h1440V900H-253z" ] []
-            , Svg.g []
-                [ Svg.path [ class "-path-2", d "M0 0h28v28H0z" ] []
-                , Svg.path [ class "-path-3", d "M8 8l12 12M20 8L8 20" ] []
-                ]
-            ]
-        ]
+        [ Svg.path [ d "M8 8l12 12M20 8L8 20" ] [] ]
 
 
 {-| radio : produces svg icon for input radio select
@@ -382,29 +392,21 @@ buildHistoryFailure _ =
 radio : Bool -> Html msg
 radio checked =
     svg
-        [ class "-icon -radio"
-        , strokeWidth "1"
-        , viewBox "0 0 28 28"
+        [ class "-icon"
+        , class "-radio"
+        , strokeWidth "2"
+        , viewBox "0 0 30 30"
         , width "22"
         , height "22"
         ]
     <|
         if checked then
-            [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
-                [ Svg.path [ fill "#282828", d "M-414-909h1440V115H-414z" ] []
-                , Svg.g []
-                    [ Svg.circle [ stroke "#0CF", cx "14", cy "14", r "13.5" ] []
-                    , Svg.circle [ fill "#0CF", stroke "#0CF", cx "14", cy "14", r "7" ] []
-                    ]
-                ]
+            [ Svg.circle [ cx "15", cy "15", r "13" ] []
+            , Svg.circle [ class "-inner", cx "15", cy "15", r "6" ] []
             ]
 
         else
-            [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
-                [ Svg.circle [ stroke "#0CF", cx "14", cy "14", r "13.5" ] []
-                , Svg.circle [ stroke "#0CF", cx "14", cy "14", r "13.5" ] []
-                , Svg.path [ stroke "none", d "M.5.5h27v27H.5z" ] []
-                ]
+            [ Svg.circle [ cx "15", cy "15", r "13" ] []
             ]
 
 
@@ -413,25 +415,18 @@ radio checked =
 checkbox : Bool -> Html msg
 checkbox checked =
     svg
-        [ class "-icon -radio"
-        , strokeWidth "1"
+        [ class "-icon -check"
+        , strokeWidth "2"
         , viewBox "0 0 28 28"
         , width "22"
         , height "22"
         ]
     <|
         if checked then
-            [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
-                [ Svg.path [ stroke "#0CF", fill "#0CF", d "M.5.5h27v27H.5z" ] []
-                , Svg.path [ stroke "#282828", Svg.Attributes.fillRule "2", Svg.Attributes.strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] []
-                ]
-            ]
+            [ Svg.path [ class "-checked", strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] [] ]
 
         else
-            [ Svg.g [ fill "none", Svg.Attributes.fillRule "evenodd" ]
-                [ Svg.path [ stroke "#0CF", fill "none", d "M.5.5h27v27H.5z" ] []
-                ]
-            ]
+            []
 
 
 {-| statusToIcon : takes build status string and returns Icon from SvgBuilder

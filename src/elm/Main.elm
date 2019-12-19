@@ -108,6 +108,7 @@ import Vela
         , Step
         , StepNumber
         , Steps
+        , Theme(..)
         , UpdateRepositoryPayload
         , User
         , Viewing
@@ -115,6 +116,7 @@ import Vela
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
         , decodeSession
+        , decodeTheme
         , defaultAddRepositoryPayload
         , defaultBuilds
         , defaultHooks
@@ -122,7 +124,9 @@ import Vela
         , defaultSession
         , encodeAddRepository
         , encodeSession
+        , encodeTheme
         , encodeUpdateRepository
+        , stringToTheme
         )
 
 
@@ -138,6 +142,7 @@ type alias Flags =
     , velaFeedbackURL : String
     , velaDocsURL : String
     , velaSession : Maybe Session
+    , velaTheme : String
     }
 
 
@@ -165,6 +170,7 @@ type alias Model =
     , inTimeout : Maybe Int
     , entryURL : Url
     , hookBuilds : HookBuilds
+    , theme : Theme
     }
 
 
@@ -226,6 +232,7 @@ init flags url navKey =
             , inTimeout = Nothing
             , entryURL = url
             , hookBuilds = Dict.empty
+            , theme = stringToTheme flags.velaTheme
             }
 
         ( newModel, newPage ) =
@@ -240,6 +247,9 @@ init flags url navKey =
     ( newModel
     , Cmd.batch
         [ newPage
+
+        -- for themes, we rely on ports to apply the class on <body>
+        , Interop.setTheme <| encodeTheme model.theme
         , setTimeZone
         , setTime
         ]
@@ -259,6 +269,7 @@ type Msg
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
+    | SetTheme Theme
     | ClickLogLine Org Repo BuildNumber StepNumber Int
     | ClickStep Org Repo (Maybe BuildNumber) (Maybe StepNumber)
     | GotoPage Pagination.Page
@@ -584,6 +595,13 @@ update msg model =
             , action
             )
 
+        SetTheme theme ->
+            if theme == model.theme then
+                ( model, Cmd.none )
+
+            else
+                ( { model | theme = theme }, Interop.setTheme <| encodeTheme theme )
+
         ClickLogLine org repo buildNumber stepNumber lineNumber ->
             let
                 ( steps, action ) =
@@ -714,6 +732,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Interop.onSessionChange decodeOnSessionChange
+        , Interop.onThemeChange decodeOnThemeChange
         , every Util.oneSecondMillis <| Tick OneSecond
         , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
         ]
@@ -732,6 +751,16 @@ decodeOnSessionChange sessionJson =
         Err _ ->
             -- typically you end up here when getting logged out where we return null
             SessionChanged Nothing
+
+
+decodeOnThemeChange : Decode.Value -> Msg
+decodeOnThemeChange inTheme =
+    case Decode.decodeValue decodeTheme inTheme of
+        Ok theme ->
+            SetTheme theme
+
+        Err _ ->
+            SetTheme Dark
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
@@ -917,7 +946,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL }
+        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
         , viewNav model
         , div [ class "util" ] [ Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds ]
         , main_ []
@@ -1425,8 +1454,8 @@ navButton model =
             text ""
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String } -> Html Msg
-viewHeader maybeSession { feedbackLink, docsLink } =
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme } -> Html Msg
+viewHeader maybeSession { feedbackLink, docsLink, theme } =
     let
         session : Session
         session =
@@ -1452,11 +1481,26 @@ viewHeader maybeSession { feedbackLink, docsLink } =
                         ]
             ]
         , div [ class "help-links" ]
-            [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ]
+            [ viewThemeToggle theme
+            , a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ]
             , a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ]
             , FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml []
             ]
         ]
+
+
+viewThemeToggle : Theme -> Html Msg
+viewThemeToggle theme =
+    let
+        ( newTheme, icon, themeAria ) =
+            case theme of
+                Dark ->
+                    ( Light, SvgBuilder.themeLight, "activate light mode" )
+
+                Light ->
+                    ( Dark, SvgBuilder.themeDark, "activate dark mode" )
+    in
+    button [ class "theme-toggle", attribute "aria-label" themeAria, onClick (SetTheme newTheme) ] [ icon 24 ]
 
 
 
