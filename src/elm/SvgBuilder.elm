@@ -133,8 +133,8 @@ buildRunning =
         , height "44"
         , ariaHidden
         ]
-        [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-        , Svg.path [ class "-linecap-square", d "M22 10v12.75L30 27" ] []
+        [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ d "M22 10v12.75L30 27" ] []
         ]
 
 
@@ -151,7 +151,7 @@ buildSuccess =
         , ariaHidden
         ]
         [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-        , Svg.path [ class "-linecap-round", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+        , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
         ]
 
 
@@ -167,8 +167,8 @@ buildFailure =
         , height "44"
         , ariaHidden
         ]
-        [ Svg.path [ class "-linecap-round", d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
-        , Svg.path [ class "-linecap-square", d "M15 15l14 14M29 15L15 29" ] []
+        [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ d "M15 15l14 14M29 15L15 29" ] []
         ]
 
 
@@ -235,14 +235,12 @@ stepRunning =
         , ariaHidden
         ]
         [ Svg.path
-            [ class "-linecap-round"
-            , attribute "vector-effect" "non-scaling-stroke"
+            [ attribute "vector-effect" "non-scaling-stroke"
             , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
             ]
             []
         , Svg.path
-            [ class "-linecap-square"
-            , attribute "vector-effect" "non-scaling-stroke"
+            [ attribute "vector-effect" "non-scaling-stroke"
             , d "M22 10v12.75L30 27"
             ]
             []
@@ -267,8 +265,7 @@ stepSuccess =
             ]
             []
         , Svg.path
-            [ class "-linecap-round"
-            , attribute "vector-effect" "non-scaling-stroke"
+            [ attribute "vector-effect" "non-scaling-stroke"
             , d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666"
             ]
             []
@@ -288,14 +285,12 @@ stepFailure =
         , ariaHidden
         ]
         [ Svg.path
-            [ class "-linecap-round"
-            , attribute "vector-effect" "non-scaling-stroke"
+            [ attribute "vector-effect" "non-scaling-stroke"
             , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
             ]
             []
         , Svg.path
-            [ class "-linecap-square"
-            , attribute "vector-effect" "non-scaling-stroke"
+            [ attribute "vector-effect" "non-scaling-stroke"
             , d "M15 15l14 14M29 15L15 29"
             ]
             []
@@ -428,7 +423,7 @@ checkbox checked =
         ]
     <|
         if checked then
-            [ Svg.path [ class "-checked", Svg.Attributes.strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] [] ]
+            [ Svg.path [ class "-checked", strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] [] ]
 
         else
             []

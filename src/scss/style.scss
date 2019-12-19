@@ -738,14 +738,6 @@ button.-solid {
   fill: var(--color-bg);
 }
 
-.status-svg.-linecap-square {
-  stroke-linecap: square;
-}
-
-.status-svg.-linecap-round {
-  stroke-linecap: round;
-}
-
 .build .status.-pending {
   background: var(--color-bg-light);
 }
