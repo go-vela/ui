@@ -1280,6 +1280,10 @@ button.-solid {
   font-size: 0.9em;
 }
 
+.alert-container {
+  color: var(--color-text);
+}
+
 .alert-container.-success {
   border: 1px solid var(--color-green);
 }

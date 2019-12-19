@@ -74,7 +74,7 @@ wrapAlert variantClass title message link =
             text ""
 
           else
-            p [ class "-message" ] [ text message, hyperlink ]
+            p [] [ text message, hyperlink ]
         ]
 
 
