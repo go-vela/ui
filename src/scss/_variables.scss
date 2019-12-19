@@ -3,29 +3,37 @@
 // Use of this source code is governed by the LICENSE file in this repository.
 
 :root {
-  // main colors
-  --color-offwhite: hsla(0, 0%, 90%, 1);
-  --color-gray: hsla(0, 0%, 34%, 1);
-  --color-darkcoal: hsla(0, 0%, 12%, 1);
-  --color-coal: hsla(0, 0%, 16%, 1);
-  --color-cyan: hsla(192, 100%, 50%, 1);
-  --color-lightcyan: hsla(192, 100%, 75%, 1);
-  --color-lavender: hsla(286, 29%, 55%, 1);
-  --color-scarlet: hsla(8, 100%, 50%, 1);
-  --color-slate: hsla(211.8,8.8%,37.8%, 0.5);
+  // primary colors
+  --color-cyan-dark: hsl(192, 100%, 30%); // good for text on offwhite
+  --color-cyan: hsl(192, 100%, 50%); // good for text on coal
+  --color-cyan-light: hsl(192, 100%, 65%);
+  --color-lavender-dark: hsl(286, 29%, 40%);
+  --color-lavender: hsl(286, 29%, 51%); // good for text on offwhite
+  --color-lavender-light: hsl(286, 29%, 65%); // good for text on coal
 
-  // for status indications
-  --color-red: hsla(353, 69%, 45%, 1);
-  --color-green: hsla(89, 63%, 44%, 1);
-  --color-yellow: hsla(56, 100%, 50%, 1);
+  // grays
+  --color-coal-dark: hsl(0, 0%, 12%);
+  --color-coal: hsl(0, 0%, 16%); // main dark bg
+  --color-coal-light: hsl(0, 0%, 34%);
 
-  // dark theme (default)
-  --color-bg: var(--color-coal);
-  --color-bg-darker: var(--color-darkcoal);
-  --color-text: var(--color-offwhite);
-  --color-primary: var(--color-cyan);
-  --color-secondary: var(--color-lavender);
-  --color-focus: var(--color-slate);
+  --color-white: hsl(0, 0%, 100%);
+  --color-offwhite: hsl(0, 0%, 98%); // main light bg
+  --color-gray-light: hsl(0, 0%, 85%);
+
+  // status indications
+  --color-red-dark: hsl(353, 77%, 40%);
+  --color-red: hsl(353, 77%, 50%); // passes contrast on light bg
+  --color-red-light: hsl(353, 77%, 66%); // passes contrast on coal bg
+
+  --color-green-dark: hsl(89, 71%, 29.6%); // passes contrast on light
+  --color-green: hsl(89, 71%, 48%); // passes contrast on coal
+  --color-green-light: hsl(89, 71%, 60%);
+
+  --color-yellow-dark: hsl(48, 100%, 27%); // passes contrast on light
+  --color-yellow: hsl(48, 100%, 50%); // passes contrast on dark
+  --color-yellow-light: hsl(48, 100%, 75%);
+
+  --color-slate: hsla(211.8, 8.8%, 37.8%, 0.5);
 
   // some common attributes
   --horizontal-pad: 3em;

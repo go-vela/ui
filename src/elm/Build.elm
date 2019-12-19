@@ -122,13 +122,8 @@ viewRepositoryBuilds buildsModel now org repo =
 viewBuildItem : Posix -> Org -> Repo -> Build -> Html msg
 viewBuildItem now org repo build =
     let
-        icon =
-            buildStatusToIcon build.status
-
         status =
-            [ icon
-                |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
-            ]
+            [ buildStatusToIcon build.status ]
 
         commit =
             [ text "commit ", a [ href build.source ] [ text <| trimCommitHash build.commit ] ]
@@ -389,7 +384,7 @@ stepError step =
 -}
 viewStepIcon : Step -> Html msg
 viewStepIcon step =
-    stepStatusToIcon step.status |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+    stepStatusToIcon step.status
 
 
 {-| lineFocusStyle : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
@@ -458,7 +453,7 @@ recentBuild now timezone org repo build idx =
         , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
         ]
-        [ icon |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] []
+        [ icon
         , div [ class "-tooltip", Util.testAttribute "build-history-tooltip" ]
             [ div [ class "-info" ]
                 [ div [ class "-line", class "-header" ]
@@ -533,7 +528,7 @@ buildStatusStyles markdown buildStatus buildNumber =
                     [ div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
                     ]
     in
-    List.append animation markdown
+    markdown ++ animation
 
 
 {-| topParticles : returns an svg frame to parallax scroll on a running build, set to the top of the build
@@ -548,14 +543,10 @@ topParticles buildNumber =
         y =
             "0%"
     in
-    [ SvgBuilder.buildStatusAnimation "" y
-        |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] [ "-frame-0", "-top", "-cover" ]
-    , SvgBuilder.buildStatusAnimation "none" y
-        |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] [ "-frame-0", "-top", "-start" ]
-    , SvgBuilder.buildStatusAnimation dashes y
-        |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] [ "-frame-1", "-top", "-running" ]
-    , SvgBuilder.buildStatusAnimation dashes y
-        |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] [ "-frame-2", "-top", "-running" ]
+    [ SvgBuilder.buildStatusAnimation "" y [ "-frame-0", "-top", "-cover" ]
+    , SvgBuilder.buildStatusAnimation "none" y [ "-frame-0", "-top", "-start" ]
+    , SvgBuilder.buildStatusAnimation dashes y [ "-frame-1", "-top", "-running" ]
+    , SvgBuilder.buildStatusAnimation dashes y [ "-frame-2", "-top", "-running" ]
     ]
 
 
@@ -571,14 +562,10 @@ bottomParticles buildNumber =
         y =
             "100%"
     in
-    [ SvgBuilder.buildStatusAnimation "" y
-        |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] [ "-frame-0", "-bottom", "-cover" ]
-    , SvgBuilder.buildStatusAnimation "none" y
-        |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] [ "-frame-0", "-bottom", "-start" ]
-    , SvgBuilder.buildStatusAnimation dashes y
-        |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] [ "-frame-1", "-bottom", "-running" ]
-    , SvgBuilder.buildStatusAnimation dashes y
-        |> SvgBuilder.toHtml [ attribute "aria-hidden" "true" ] [ "-frame-2", "-bottom", "-running" ]
+    [ SvgBuilder.buildStatusAnimation "" y [ "-frame-0", "-bottom", "-cover" ]
+    , SvgBuilder.buildStatusAnimation "none" y [ "-frame-0", "-bottom", "-start" ]
+    , SvgBuilder.buildStatusAnimation dashes y [ "-frame-1", "-bottom", "-running" ]
+    , SvgBuilder.buildStatusAnimation dashes y [ "-frame-2", "-bottom", "-running" ]
     ]
 
 

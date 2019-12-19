@@ -113,6 +113,7 @@ import Vela
         , Step
         , StepNumber
         , Steps
+        , Theme(..)
         , UpdateRepositoryPayload
         , User
         , UserID
@@ -121,6 +122,7 @@ import Vela
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
         , decodeSession
+        , decodeTheme
         , defaultAddRepositoryPayload
         , defaultBuilds
         , defaultFavorites
@@ -129,7 +131,9 @@ import Vela
         , defaultSession
         , encodeAddRepository
         , encodeSession
+        , encodeTheme
         , encodeUpdateRepository
+        , stringToTheme
         )
 
 
@@ -145,6 +149,7 @@ type alias Flags =
     , velaFeedbackURL : String
     , velaDocsURL : String
     , velaSession : Maybe Session
+    , velaTheme : String
     }
 
 
@@ -173,6 +178,7 @@ type alias Model =
     , entryURL : Url
     , hookBuilds : HookBuilds
     , favorites : FavoritesModel
+    , theme : Theme
     }
 
 
@@ -235,6 +241,7 @@ init flags url navKey =
             , entryURL = url
             , hookBuilds = Dict.empty
             , favorites = defaultFavorites
+            , theme = stringToTheme flags.velaTheme
             }
 
         ( newModel, newPage ) =
@@ -249,6 +256,9 @@ init flags url navKey =
     ( newModel
     , Cmd.batch
         [ newPage
+
+        -- for themes, we rely on ports to apply the class on <body>
+        , Interop.setTheme <| encodeTheme model.theme
         , setTimeZone
         , setTime
         ]
@@ -268,6 +278,7 @@ type Msg
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
+    | SetTheme Theme
     | ClickLogLine Org Repo BuildNumber StepNumber Int
     | ClickStep Org Repo (Maybe BuildNumber) (Maybe StepNumber)
     | GotoPage Pagination.Page
@@ -525,9 +536,16 @@ update msg model =
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
+
+                action =
+                    if Pages.Settings.validEventsUpdate model.repo payload then
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        addErrorString "Could not disable webhook event. At least one event must be active."
             in
             ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            , action
             )
 
         UpdateRepoAccess org repo field value ->
@@ -541,7 +559,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 action =
-                    if accessChanged model.repo payload then
+                    if Pages.Settings.validAccessUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -587,6 +605,13 @@ update msg model =
             ( { model | steps = steps }
             , action
             )
+
+        SetTheme theme ->
+            if theme == model.theme then
+                ( model, Cmd.none )
+
+            else
+                ( { model | theme = theme }, Interop.setTheme <| encodeTheme theme )
 
         ClickLogLine org repo buildNumber stepNumber lineNumber ->
             let
@@ -786,6 +811,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Interop.onSessionChange decodeOnSessionChange
+        , Interop.onThemeChange decodeOnThemeChange
         , every Util.oneSecondMillis <| Tick OneSecond
         , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
         ]
@@ -804,6 +830,16 @@ decodeOnSessionChange sessionJson =
         Err _ ->
             -- typically you end up here when getting logged out where we return null
             SessionChanged Nothing
+
+
+decodeOnThemeChange : Decode.Value -> Msg
+decodeOnThemeChange inTheme =
+    case Decode.decodeValue decodeTheme inTheme of
+        Ok theme ->
+            SetTheme theme
+
+        Err _ ->
+            SetTheme Dark
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
@@ -989,7 +1025,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL }
+        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
         , viewNav model
         , div [ class "util" ] [ Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds ]
         , main_ []
@@ -1402,8 +1438,8 @@ navButton model =
             text ""
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String } -> Html Msg
-viewHeader maybeSession { feedbackLink, docsLink } =
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme } -> Html Msg
+viewHeader maybeSession { feedbackLink, docsLink, theme } =
     let
         session : Session
         session =
@@ -1429,11 +1465,26 @@ viewHeader maybeSession { feedbackLink, docsLink } =
                         ]
             ]
         , div [ class "help-links" ]
-            [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ]
+            [ viewThemeToggle theme
+            , a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ]
             , a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ]
             , FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml []
             ]
         ]
+
+
+viewThemeToggle : Theme -> Html Msg
+viewThemeToggle theme =
+    let
+        ( newTheme, icon, themeAria ) =
+            case theme of
+                Dark ->
+                    ( Light, SvgBuilder.themeLight, "activate light mode" )
+
+                Light ->
+                    ( Dark, SvgBuilder.themeDark, "activate dark mode" )
+    in
+    button [ class "theme-toggle", attribute "aria-label" themeAria, onClick (SetTheme newTheme) ] [ icon 24 ]
 
 
 
@@ -1708,6 +1759,15 @@ addError error =
         |> perform identity
 
 
+{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module
+-}
+addErrorString : String -> Cmd Msg
+addErrorString error =
+    succeed
+        (Error <| error)
+        |> perform identity
+
+
 {-| toFailure : maps a detailed error into a WebData Failure value
 -}
 toFailure : Http.Detailed.Error String -> WebData a
@@ -1926,27 +1986,6 @@ searchFilterLocal org filters =
 shouldSearch : SearchFilter -> Bool
 shouldSearch filter =
     String.length filter > 2
-
-
-{-| refreshPage : takes model webdata repo and repo visibility update and determines if an update is necessary
--}
-accessChanged : WebData Repository -> UpdateRepositoryPayload -> Bool
-accessChanged originalRepo repoUpdate =
-    case originalRepo of
-        RemoteData.Success repo ->
-            case repoUpdate.visibility of
-                Just visibility ->
-                    if repo.visibility /= visibility then
-                        True
-
-                    else
-                        False
-
-                Nothing ->
-                    False
-
-        _ ->
-            False
 
 
 {-| clickHook : takes model org repo and build number and fetches build information from the api

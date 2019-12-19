@@ -34,6 +34,7 @@ module Vela exposing
     , Step
     , StepNumber
     , Steps
+    , Theme(..)
     , UpdateRepositoryPayload
     , User
     , UserID
@@ -54,6 +55,7 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeSteps
+    , decodeTheme
     , decodeUser
     , defaultAddRepositoryPayload
     , defaultBuilds
@@ -65,7 +67,9 @@ module Vela exposing
     , defaultUser
     , encodeAddRepository
     , encodeSession
+    , encodeTheme
     , encodeUpdateRepository
+    , stringToTheme
     )
 
 import Dict exposing (Dict)
@@ -78,6 +82,11 @@ import RemoteData exposing (RemoteData(..), WebData)
 
 
 -- COMMON
+
+
+type Theme
+    = Light
+    | Dark
 
 
 type alias Org =
@@ -94,6 +103,39 @@ type alias BuildNumber =
 
 type alias StepNumber =
     String
+
+
+
+-- THEME
+
+
+stringToTheme : String -> Theme
+stringToTheme theme =
+    case theme of
+        "theme-light" ->
+            Light
+
+        _ ->
+            Dark
+
+
+decodeTheme : Decoder Theme
+decodeTheme =
+    Decode.string
+        |> Decode.andThen
+            (\str ->
+                Decode.succeed <| stringToTheme str
+            )
+
+
+encodeTheme : Theme -> Encode.Value
+encodeTheme theme =
+    case theme of
+        Light ->
+            Encode.string "theme-light"
+
+        _ ->
+            Encode.string "theme-dark"
 
 
 
@@ -255,7 +297,6 @@ encodeAddRepository repo =
         , ( "full_name", Encode.string <| repo.full_name )
         , ( "link", Encode.string <| repo.link )
         , ( "clone", Encode.string <| repo.clone )
-        , ( "timeout", Encode.int <| repo.timeout )
         , ( "private", Encode.bool <| repo.private )
         , ( "trusted", Encode.bool <| repo.trusted )
         , ( "active", Encode.bool <| repo.active )
@@ -272,7 +313,6 @@ type alias AddRepositoryPayload =
     , full_name : String
     , link : String
     , clone : String
-    , timeout : Int
     , private : Bool
     , trusted : Bool
     , active : Bool
@@ -285,7 +325,7 @@ type alias AddRepositoryPayload =
 
 defaultAddRepositoryPayload : AddRepositoryPayload
 defaultAddRepositoryPayload =
-    AddRepositoryPayload "" "" "" "" "" 60 False True True True True False False
+    AddRepositoryPayload "" "" "" "" "" False True True True True False False
 
 
 type alias UpdateRepositoryPayload =

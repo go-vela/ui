@@ -2,13 +2,6 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-@import "variables";
-@import "reset";
-@import "mixins";
-@import "animations";
-@import "main";
-@import "themes";
-
 html {
   font-family: var(--font-family);
 }
@@ -17,11 +10,14 @@ body {
   color: var(--color-text);
   background-color: var(--color-bg);
 
+  transition-property: background-color, color;
+  transition-duration: 0.2s;
+
   font-size: 18px;
 }
 
 a {
-  color: var(--color-cyan);
+  color: var(--color-primary);
   &:hover {
     text-decoration: none;
   }
@@ -53,7 +49,7 @@ header {
   border-image-slice: 1;
   background: radial-gradient(
     circle at 50% -200%,
-    var(--color-gray) -7%,
+    var(--color-bg-light) -7%,
     transparent 50%
   );
 }
@@ -129,7 +125,7 @@ header {
     fill: var(--color-lavender);
   }
   &-outer {
-    fill: var(--color-lightcyan);
+    fill: var(--color-cyan);
   }
   &-inner {
     fill: var(--color-text);
@@ -176,8 +172,8 @@ header {
 
     list-style: none;
 
-    border: 1px solid var(--color-gray);
-    background-color: var(--color-bg-darker);
+    border: 1px solid var(--color-bg-light);
+    background-color: var(--color-bg-dark);
     box-shadow: 0 0 2px black;
 
     font-size: 80%;
@@ -208,8 +204,12 @@ header {
   }
 }
 
+.theme-light .identity-name ul {
+  background: var(--color-white);
+}
+
 .content-wrap {
-  margin: 0 var(--horizontal-pad);
+  margin: 0 var(--horizontal-pad) var(--horizontal-pad);
 }
 
 button,
@@ -218,7 +218,6 @@ button,
   padding: 0.5em 2em;
 
   cursor: pointer;
-  transition: background 0.5s;
   text-decoration: none;
 
   color: var(--color-bg);
@@ -242,25 +241,26 @@ button,
     background-position: right center;
   }
   &:disabled {
-    color: var(--color-darkcoal);
-    border-color: var(--color-gray);
-    background-color: var(--color-gray);
+    color: var(--color-bg-dark);
+    border-color: var(--color-bg-light);
+    background-color: var(--color-bg-light);
     background-image: none;
   }
   &.inverted {
-    color: var(--color-cyan);
+    color: var(--color-primary);
     border-width: var(--line-width);
     border-style: solid;
-    border-color: var(--color-cyan);
+    border-color: var(--color-primary);
     background-color: var(--color-bg);
     background-image: none;
-    &:hover {
-      color: var(--color-lightcyan);
-      border-color: var(--color-lightcyan);
+    &:not([disabled]):hover {
+      color: var(--color-text);
+      border-color: var(--color-text);
     }
     &:disabled {
-      color: var(--color-gray);
-      border-color: var(--color-gray);
+      pointer-events: none;
+      color: var(--color-bg-light);
+      border-color: var(--color-bg-light);
     }
   }
 }
@@ -277,11 +277,11 @@ button,
   border-left-width: 0;
   border-image-source: linear-gradient(
     to right,
-    var(--color-gray) 15%,
+    var(--color-bg-light) 15%,
     transparent 15%,
     transparent 18%,
-    var(--color-gray) 18%,
-    var(--color-gray) 18.8%,
+    var(--color-bg-light) 18%,
+    var(--color-bg-light) 18.8%,
     transparent 18.8%
   );
   border-image-slice: 1;
@@ -325,11 +325,11 @@ button,
   border-left: var(--line-width) solid;
   border-image-source: linear-gradient(
     to right,
-    var(--color-gray) 75%,
+    var(--color-bg-light) 75%,
     transparent 75%,
     transparent 77%,
-    var(--color-gray) 77%,
-    var(--color-gray) 84%,
+    var(--color-bg-light) 77%,
+    var(--color-bg-light) 84%,
     transparent 84%
   );
   border-image-slice: 1;
@@ -349,7 +349,12 @@ button,
   margin: 0.5em 0 0 1em;
   padding: 0.5em 1em;
 
-  background-color: var(--color-darkcoal);
+  background-color: var(--color-bg-dark);
+}
+
+.theme-light .-item {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-bg-dark);
 }
 
 .-item .-actions {
@@ -403,7 +408,7 @@ button,
 
   margin: 0 1em;
 
-  border-bottom: 1px solid var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
 }
 
 .source-actions .-filter input,
@@ -417,7 +422,7 @@ button,
 
   font-size: 18px;
   &::placeholder {
-    color: var(--color-gray);
+    color: var(--color-bg-light);
   }
 }
 
@@ -443,7 +448,7 @@ button,
   margin: 0.5em 0 0 1em;
   padding: 1.2em 1em;
 
-  background-color: var(--color-bg-darker);
+  background-color: var(--color-bg-dark);
 }
 
 .org-header {
@@ -542,9 +547,13 @@ button.-inverted {
   border-color: var(--color-primary);
   background-color: var(--color-bg);
   background-image: none;
-  &:hover {
-    color: var(--color-lightcyan);
-    border-color: var(--color-lightcyan);
+  &:not([disabled]):hover {
+    color: var(--color-text);
+    border-color: var(--color-text);
+  }
+  &:disabled {
+    color: var(--color-bg-light);
+    border-color: var(--color-bg-light);
   }
 }
 
@@ -556,9 +565,9 @@ button.-inverted {
   font-size: 12px;
   font-weight: 300;
   &:disabled {
-    color: var(--color-offwhite);
-    border: var(--line-width) solid var(--color-gray);
-    background-color: var(--color-coal);
+    color: var(--color-bg);
+    border: var(--line-width) solid var(--color-bg-light);
+    background-color: var(--color-bg);
     background-image: none;
     &:hover {
       color: inherit;
@@ -568,7 +577,6 @@ button.-inverted {
 }
 .nav-buttons {
   display: flex;
-  align-items: center;
 }
 .-btn.-hooks {
   margin-right: 0.4em;
@@ -580,23 +588,21 @@ button.-inverted {
 
 .-btn.-solid,
 button.-solid {
-  transition: 0.1s;
-
-  color: var(--color-bg-darker);
+  color: var(--color-bg);
   border-width: var(--line-width);
   border-style: solid;
   border-color: var(--color-primary);
   background-color: var(--color-primary);
   background-image: none;
   &:hover {
-    color: var(--color-lightcyan);
-    border-color: var(--color-lightcyan);
-    background-color: var(--color-bg-darker);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    background-color: var(--color-bg);
   }
 
   &.loading {
-    color: var(--color--gray);
-    border: var(--line-width) dashed var(--color-gray);
+    color: var(--color-bg-light);
+    border: var(--line-width) dashed var(--color-bg-light);
     &:hover {
       color: inherit;
       border-color: inherit;
@@ -610,9 +616,9 @@ button.-solid {
 
 .btn-refresh {
   &.loading {
-    color: var(--color--gray);
-    border: var(--line-width) dashed var(--color-gray);
-    &:hover {
+    color: var(--color-bg-light);
+    border: var(--line-width) dashed var(--color-bg-light);
+    &:not([disabled]):hover {
       color: inherit;
       border-color: inherit;
     }
@@ -694,7 +700,7 @@ button.-solid {
   flex-direction: row;
   justify-content: space-between;
 
-  border: 2px solid var(--color-bg-darker);
+  border: 2px solid var(--color-bg-dark);
   border-right: 0px;
   border-left: 0px;
 
@@ -716,36 +722,26 @@ button.-solid {
 
 .build-icon {
   margin: 36px;
+  stroke: var(--color-bg);
+
+  * {
+    fill: none;
+  }
 }
 
 .build-icon.-pending {
   padding: 8px;
-
-  border: 2px solid var(--color-bg-darker);
+  fill: var(--color-bg);
+  border: 2px solid var(--color-bg-dark);
   border-radius: 7px;
 }
 
 .-build-status-icon.-pending {
-  fill: var(--color-bg-darker);
-}
-
-.status-svg {
-  stroke: var(--color-bg);
-  stroke-width: 2;
-  fill: none;
-  fill-rule: evenodd;
-}
-
-.status-svg.-linecap-square {
-  stroke-linecap: square;
-}
-
-.status-svg.-linecap-round {
-  stroke-linecap: round;
+  fill: var(--color-bg);
 }
 
 .build .status.-pending {
-  background: var(--color-gray);
+  background: var(--color-bg-light);
 }
 
 .build .status.-running {
@@ -771,7 +767,13 @@ button.-solid {
 
   padding: 12px 0;
 
-  background: var(--color-bg-darker);
+  background: var(--color-bg-dark);
+}
+
+.theme-light .build .info {
+  background: var(--color-white);
+  border: 1px solid var(--color-bg-dark);
+  border-left: none;
 }
 
 .build .row {
@@ -783,9 +785,15 @@ button.-solid {
 }
 
 .build .error {
-  color: var(--color-scarlet);
+  color: var(--color-red-light);
 
   font-size: 16px;
+}
+
+.theme-light {
+  .build .error {
+    color: var(--color-red);
+  }
 }
 
 .build .error .message {
@@ -846,12 +854,8 @@ button.-solid {
   stroke: var(--color-yellow);
 }
 
-.build-animation.-top {
-  top: -2px;
-}
-
 .build-animation.-bottom {
-  bottom: -2px;
+  bottom: 0;
 }
 
 .build-animation.-bottom.-running {
@@ -898,23 +902,14 @@ button.-solid {
   left: -200%;
 }
 
-.build-animation.-not-running {
-  position: absolute;
-  top: -2px;
-  bottom: -2px;
-
-  width: 100%;
-}
-
-.build-animation.-not-running.-failure,
-.build-animation.-not-running.-error {
-  border-top: 2px solid var(--color-red);
-  border-bottom: 2px solid var(--color-red);
-}
-
-.build-animation.-not-running.-success {
+.build.-success {
   border-top: 2px solid var(--color-green);
   border-bottom: 2px solid var(--color-green);
+}
+
+.build.-failure {
+  border-top: 2px solid var(--color-red);
+  border-bottom: 2px solid var(--color-red);
 }
 
 .-animation-dashes-1 {
@@ -941,77 +936,21 @@ button.-solid {
   position: relative;
 }
 
-.build-history .-build .-icon.-running {
-  fill: var(--color-yellow);
-}
-
-.build-history .-build .-icon.-failure,
-.build-history .-build .-icon.-error {
-  stroke: var(--color-red);
-}
-
-.build-history .-build .-icon.-success {
-  stroke: var(--color-bg-darker);
-}
-
-.build-history-svg.-build-history-icon {
+.build-history .-build .-icon {
+  stroke: var(--color-bg);
   fill: none;
-  fill-rule: evenodd;
-}
+  &.-running {
+    background-color: var(--color-yellow);
+  }
 
-.build-history-svg.-build-history-icon.-pending {
-  fill: var(--color-gray);
-  stroke: var(--color-gray);
-}
+  &.-failure,
+  &.-error {
+    background-color: var(--color-red);
+  }
 
-.build-history-svg.-build-history-icon.-running {
-  stroke: var(--color-yellow);
-}
-
-.build-history-svg.-build-history-icon.-success {
-  stroke: var(--color-green);
-}
-
-.build-history .-build .-icon.-failure .-path-1,
-.build-history .-build .-icon.-error .-path-1 {
-  fill: var(--color-bg-darker);
-}
-
-.build-history .-build .-icon.-failure .-path-2,
-.build-history .-build .-icon.-error .-path-2 {
-  fill: var(--color-red);
-}
-
-.build-history .-build .-icon.-success .-path-2 {
-  fill: var(--color-green);
-}
-
-.build-history .-build .-icon.-running .-path-2 {
-  fill: var(--color-yellow);
-}
-
-.build-history .-build .-icon.-running .-path-2 {
-  fill: var(--color-yellow);
-}
-
-.build-history .-build .-icon.-failure .-path-3,
-.build-history .-build .-icon.-error .-path-3 {
-  stroke: var(--color-bg-darker);
-  stroke-width: 2;
-  stroke-linecap: square;
-}
-
-.build-history .-build .-icon.-pending .-path-3 {
-  stroke: var(--color-bg-darker);
-  fill: var(--color-bg-darker);
-}
-
-.build-history .-build .-icon.-success .-path-3 {
-  stroke: var(--color-bg-darker);
-}
-
-.build-history .-build .-icon.-running .-path-3 {
-  stroke: var(--color-bg-darker);
+  &.-success {
+    background-color: var(--color-green);
+  }
 }
 
 .build-history .-build .-tooltip {
@@ -1030,9 +969,9 @@ button.-solid {
   text-align: center;
 
   color: var(--color-text);
-  border: solid 1px var(--color-gray);
+  border: solid 1px var(--color-bg-light);
   border-radius: 3px;
-  background-color: var(--color-bg-darker);
+  background-color: var(--color-bg-dark);
 
   font-weight: 300;
 }
@@ -1051,7 +990,7 @@ button.-solid {
 
   border-width: 5px;
   border-style: solid;
-  border-color: transparent transparent var(--color-gray) transparent;
+  border-color: transparent transparent var(--color-bg-light) transparent;
 }
 
 .build-history .-build .-info {
@@ -1129,28 +1068,29 @@ button.-solid {
 }
 
 .step .-icon.-pending {
+  fill: var(--color-bg-light);
   padding: 8px;
 
-  border: 2px solid var(--color-gray);
+  border: 2px solid var(--color-bg-light);
   border-radius: 7px;
 }
 
-.-step-icon.-pending {
-  stroke: var(--color-gray);
-  fill: var(--color-gray);
-}
-
-.-step-icon.-running {
-  stroke: var(--color-yellow);
-}
-
-.-step-icon.-success {
-  stroke: var(--color-green);
-}
-
-.-step-icon.-failure,
-.-step-icon.-error {
-  stroke: var(--color-red);
+.-icon {
+  fill: none;
+  &.-success {
+    stroke: var(--color-green);
+  }
+  &.-running {
+    stroke: var(--color-yellow);
+  }
+  &.-failure,
+  &.-error {
+    stroke: var(--color-red);
+  }
+  &.-pending {
+    stroke: var(--color-bg-light);
+    fill: var(--color-bg-light);
+  }
 }
 
 .step .-view {
@@ -1163,11 +1103,11 @@ button.-solid {
   border-left: var(--line-width) solid;
   border-image-source: linear-gradient(
     to right,
-    var(--color-gray) 75%,
+    var(--color-bg-light) 75%,
     transparent 75%,
     transparent 77%,
-    var(--color-gray) 77%,
-    var(--color-gray) 84%,
+    var(--color-bg-light) 77%,
+    var(--color-bg-light) 84%,
     transparent 84%
   );
   border-image-slice: 1;
@@ -1201,8 +1141,15 @@ button.-solid {
 }
 
 .logs-container {
-  background-color: var(--color-bg-darker);
+  background-color: var(--color-bg-dark);
   padding: 0.5em 0;
+}
+
+.theme-light .logs-container {
+  background-color: var(--color-white);
+  border-top: 1px solid var(--color-bg-dark);
+  border-right: 1px solid var(--color-bg-dark);
+  border-bottom: 1px solid var(--color-bg-dark);
 }
 
 .logs {
@@ -1241,12 +1188,16 @@ button.-solid {
 }
 
 .step-error {
-  color: var(--color-scarlet);
+  color: var(--color-red-light);
   font-size: 14px;
   margin-left: 1.5em;
 }
 
-.step-error .message{
+.theme-light .step-error {
+  color: var(--color-red);
+}
+
+.step-error .message {
   margin-left: 0.2em;
 }
 
@@ -1304,7 +1255,7 @@ button.-solid {
   color: white;
   border-radius: 5px;
   border-radius: 0px;
-  background-color: var(--color-bg-darker);
+  background-color: var(--color-bg-dark);
   box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
 
   font-size: 14px;
@@ -1345,7 +1296,11 @@ button.-solid {
   width: 100%;
   padding-bottom: 0.5em;
 
-  background: var(--color-darkcoal);
+  background: var(--color-bg-dark);
+}
+
+.theme-light .hooks {
+  background: var(--color-white);
 }
 
 .hooks .loading {
@@ -1409,7 +1364,7 @@ button.-solid {
   padding-top: 0.3em;
   padding-bottom: 0.3em;
 
-  border-bottom: 1px solid var(--color-gray);
+  border-bottom: 1px solid var(--color-bg-light);
 }
 
 .hooks .header {
@@ -1426,12 +1381,16 @@ button.-solid {
   font-size: 14px;
 }
 
+.hook-status {
+  fill: none;
+}
+
 .hook-status.-success {
-  color: var(--color-green);
+  stroke: var(--color-green);
 }
 
 .hook-status.-failure {
-  color: var(--color-scarlet);
+  stroke: var(--color-red);
 }
 
 .hooks .row .cell {
@@ -1462,8 +1421,7 @@ button.-solid {
   padding: 3px 12px;
   flex: 1;
   text-align: center;
-  color: var(--color-offwhite);
-  background: var(--color-gray);
+  background: var(--color-bg);
 }
 
 .preview .status.success {
@@ -1471,7 +1429,17 @@ button.-solid {
 }
 
 .preview .status.failure {
-  color: var(--color-scarlet);
+  color: var(--color-red-light);
+}
+
+.theme-light {
+  .preview .status.success {
+    color: var(--color-green-dark);
+  }
+
+  .preview .status.failure {
+    color: var(--color-red);
+  }
 }
 
 .hooks .row .info {
@@ -1482,14 +1450,18 @@ button.-solid {
   width: 100%;
   padding: 0.4em 1em;
 
-  border-bottom: 1px solid var(--color-gray);
-  border-left: 1px solid var(--color-gray);
+  border-bottom: 1px solid var(--color-bg-light);
+  border-left: 2px solid var(--color-bg-light);
 
   font-size: 14px;
 }
 
+.hooks .row:last-child .info {
+  border-bottom: none;
+}
+
 .hooks .row .info.-pending {
-  border-left-color: var(--color-gray);
+  border-left-color: var(--color-bg-light);
 }
 
 .hooks .row .info.-running {
@@ -1502,7 +1474,7 @@ button.-solid {
 
 .hooks .row .info.-failure,
 .hooks .row .info.-error {
-  border-left-color: var(--color-scarlet);
+  border-left-color: var(--color-red);
 }
 
 .hooks .row .info .element span.-m-l,
@@ -1516,7 +1488,13 @@ button.-solid {
 }
 
 .hooks .row .info .element .error-label {
-  color: var(--color-scarlet);
+  color: var(--color-red-light);
+}
+
+.theme-light {
+  .hooks .row .info .element .error-label {
+    color: var(--color-red);
+  }
 }
 
 .hooks .row .info .element .hook-build-status.-pending {
@@ -1533,7 +1511,22 @@ button.-solid {
 
 .hooks .row .info .element .hook-build-status.-failure,
 .hooks .row .info .element .hook-build-status.-error {
-  color: var(--color-scarlet);
+  color: var(--color-red-light);
+}
+
+.theme-light {
+  .hooks .row .info .element .hook-build-status.-running {
+    color: var(--color-yellow-dark);
+  }
+
+  .hooks .row .info .element .hook-build-status.-success {
+    color: var(--color-green-dark);
+  }
+
+  .hooks .row .info .element .hook-build-status.-failure,
+  .hooks .row .info .element .hook-build-status.-error {
+    color: var(--color-red);
+  }
 }
 
 .repo-settings {
@@ -1555,7 +1548,7 @@ button.-solid {
   margin-bottom: 0.5em;
   padding-bottom: 0.2em;
 
-  border-bottom: 2px solid var(--color-lavender);
+  border-bottom: 2px solid var(--color-secondary);
 }
 
 .repo-settings .category .header .text {
@@ -1584,6 +1577,24 @@ button.-solid {
   align-items: center;
 }
 
+.-icon {
+  stroke: var(--color-primary);
+
+  &.-check {
+    background-color: var(--color-primary);
+    stroke: var(--color-bg);
+  }
+
+  &.-check,
+  &.-radio {
+    fill: none;
+  }
+
+  .-inner {
+    fill: var(--color-primary);
+  }
+}
+
 .checkbox .label {
   font-size: 16px;
   font-weight: bold;
@@ -1604,16 +1615,16 @@ button.-solid {
 
   text-align: center;
 
-  color: white;
+  color: var(--color-text);
   border: none;
-  border-bottom: 1px solid var(--color-lavender);
+  border-bottom: 2px solid var(--color-primary);
   background: none;
 
   font-size: 14px;
 }
 
 .repo-timeout input:focus {
-  border-color: var(--color-cyan);
+  border-color: var(--color-primary);
 }
 
 .repo-timeout {
@@ -1629,16 +1640,22 @@ button.-solid {
 }
 
 .repo-timeout input:invalid {
+  color: var(--color-red-light);
+
+  caret-color: var(--color-text);
+}
+
+.theme-light .repo-timeout input:invalid {
   color: var(--color-red);
 
-  caret-color: var(--color-offwhite);
+  caret-color: var(--color-text);
 }
 
 .timeout-help {
   padding: 8px 12px;
 
   border-radius: 4px;
-  background: var(--color-gray);
+  background: var(--color-bg-light);
 
   font-size: 14px;
   font-weight: 300;
@@ -1689,26 +1706,26 @@ button.-solid {
 
 .checkbox input[type="checkbox"]:focus + label::before,
 .checkbox input[type="radio"]:focus + label::before {
-  outline: var(--color-cyan) auto 5px;
+  outline: var(--color-primary) auto 5px;
+}
+
+.theme-toggle {
+  display: inline-block;
+  position: relative;
+  margin: 0 1em 0 0;
+  padding: 0;
+  font-weight: normal;
+  background: none;
+  color: var(--color-bg-light);
+  fill: var(--color-bg-light);
+}
+
+.theme-light .theme-toggle {
+  color: var(--color-gray-light);
+  fill: var(--color-gray-light);
 }
 
 .pager-actions {
   display: flex;
   justify-content: space-between;
-}
-button.-favorite-toggle {
-  background: none;
-}
-.icon.favorite-star {
-  fill: none;
-  stroke: var(--color-yellow);
-  margin: 0 0.5em;
-}
-
-.icon.favorite-star.-cursor {
-  cursor: pointer;
-}
-
-.icon.favorite-star.favorited {
-  fill: var(--color-yellow);
 }
