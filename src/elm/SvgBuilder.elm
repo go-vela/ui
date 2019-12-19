@@ -111,7 +111,6 @@ buildPending : Html msg
 buildPending =
     svg
         [ class "build-icon -pending"
-        , strokeWidth "2"
         , viewBox "0 0 408 408"
         , width "44"
         , height "44"
@@ -192,8 +191,8 @@ buildStatusAnimation dashes y classNames =
             List.append classes
                 [ class "build-animation"
                 , strokeWidth "4"
-                , width "144"
-                , height "144"
+                , width ""
+                , height "4"
                 , viewBox ""
                 , ariaHidden
                 ]
@@ -210,7 +209,6 @@ stepPending : Html msg
 stepPending =
     svg
         [ class "-icon -pending"
-        , strokeWidth "2"
         , viewBox "0 0 408 408"
         , width "32"
         , height "32"
@@ -345,7 +343,6 @@ buildHistoryPending : Int -> Html msg
 buildHistoryPending _ =
     svg
         [ class "-icon -pending"
-        , strokeWidth "2"
         , viewBox "0 0 28 28"
         , width "26"
         , height "26"

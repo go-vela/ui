@@ -212,7 +212,7 @@ header {
 }
 
 .content-wrap {
-  margin: 0 var(--horizontal-pad);
+  margin: 0 var(--horizontal-pad) var(--horizontal-pad);
 }
 
 button,
@@ -257,8 +257,8 @@ button,
     background-color: var(--color-bg);
     background-image: none;
     &:hover {
-      color: var(--color-primary-light);
-      border-color: var(--color-primary-light);
+      color: var(--color-text);
+      border-color: var(--color-text);
     }
     &:disabled {
       color: var(--color-bg-light);
@@ -410,7 +410,7 @@ button,
 
   margin: 0 1em;
 
-  border-bottom: 1px solid var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
 }
 
 .source-actions .-filter input,
@@ -550,8 +550,8 @@ button.-inverted {
   background-color: var(--color-bg);
   background-image: none;
   &:hover {
-    color: var(--color-primary-light);
-    border-color: var(--color-primary-light);
+    color: var(--color-text);
+    border-color: var(--color-text);
   }
 }
 
@@ -729,13 +729,13 @@ button.-solid {
 
 .build-icon.-pending {
   padding: 8px;
-
+  fill: var(--color-bg);
   border: 2px solid var(--color-bg-dark);
   border-radius: 7px;
 }
 
 .-build-status-icon.-pending {
-  fill: var(--color-bg-dark);
+  fill: var(--color-bg);
 }
 
 .status-svg.-linecap-square {
@@ -791,9 +791,15 @@ button.-solid {
 }
 
 .build .error {
-  color: var(--color-red);
+  color: var(--color-red-light);
 
   font-size: 16px;
+}
+
+.theme-light {
+  .build .error {
+    color: var(--color-red);
+  }
 }
 
 .build .error .message {
@@ -854,12 +860,8 @@ button.-solid {
   stroke: var(--color-yellow);
 }
 
-.build-animation.-top {
-  top: -2px;
-}
-
 .build-animation.-bottom {
-  bottom: -2px;
+  bottom: 0;
 }
 
 .build-animation.-bottom.-running {
@@ -906,23 +908,14 @@ button.-solid {
   left: -200%;
 }
 
-.build-animation.-not-running {
-  position: absolute;
-  top: -2px;
-  bottom: -2px;
-
-  width: 100%;
-}
-
-.build-animation.-not-running.-failure,
-.build-animation.-not-running.-error {
-  border-top: 2px solid var(--color-red);
-  border-bottom: 2px solid var(--color-red);
-}
-
-.build-animation.-not-running.-success {
+.build.-success {
   border-top: 2px solid var(--color-green);
   border-bottom: 2px solid var(--color-green);
+}
+
+.build.-failure {
+  border-top: 2px solid var(--color-red);
+  border-bottom: 2px solid var(--color-red);
 }
 
 .-animation-dashes-1 {
@@ -1081,6 +1074,7 @@ button.-solid {
 }
 
 .step .-icon.-pending {
+  fill: var(--color-bg-light);
   padding: 8px;
 
   border: 2px solid var(--color-bg-light);
@@ -1200,9 +1194,13 @@ button.-solid {
 }
 
 .step-error {
-  color: var(--color-red);
+  color: var(--color-red-light);
   font-size: 14px;
   margin-left: 1.5em;
+}
+
+.theme-light .step-error {
+  color: var(--color-red);
 }
 
 .step-error .message {
@@ -1309,7 +1307,6 @@ button.-solid {
 
 .theme-light .hooks {
   background: var(--color-white);
-  border: 1px solid var(--color-bg-dark);
 }
 
 .hooks .loading {
@@ -1460,9 +1457,13 @@ button.-solid {
   padding: 0.4em 1em;
 
   border-bottom: 1px solid var(--color-bg-light);
-  border-left: 1px solid var(--color-bg-light);
+  border-left: 2px solid var(--color-bg-light);
 
   font-size: 14px;
+}
+
+.hooks .row:last-child .info {
+  border-bottom: none;
 }
 
 .hooks .row .info.-pending {
@@ -1479,18 +1480,7 @@ button.-solid {
 
 .hooks .row .info.-failure,
 .hooks .row .info.-error {
-  border-left-color: var(--color-red-light);
-}
-
-.theme-light {
-  .hooks .row .info.-success {
-    border-left-color: var(--color-green-dark);
-  }
-
-  .hooks .row .info.-failure,
-  .hooks .row .info.-error {
-    border-left-color: var(--color-red);
-  }
+  border-left-color: var(--color-red);
 }
 
 .hooks .row .info .element span.-m-l,
@@ -1656,9 +1646,15 @@ button.-solid {
 }
 
 .repo-timeout input:invalid {
+  color: var(--color-red-light);
+
+  caret-color: var(--color-text);
+}
+
+.theme-light .repo-timeout input:invalid {
   color: var(--color-red);
 
-  caret-color: var(--color-offwhite);
+  caret-color: var(--color-text);
 }
 
 .timeout-help {

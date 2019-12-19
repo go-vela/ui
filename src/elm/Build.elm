@@ -528,7 +528,7 @@ buildStatusStyles markdown buildStatus buildNumber =
                     [ div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
                     ]
     in
-    List.append animation markdown
+    markdown ++ animation
 
 
 {-| topParticles : returns an svg frame to parallax scroll on a running build, set to the top of the build
