@@ -16,6 +16,9 @@ body {
   color: var(--color-text);
   background-color: var(--color-bg);
 
+  transition-property: background-color, color;
+  transition-duration: 0.2s;
+
   font-size: 18px;
 }
 
@@ -256,11 +259,12 @@ button,
     border-color: var(--color-primary);
     background-color: var(--color-bg);
     background-image: none;
-    &:hover {
+    &:not([disabled]):hover {
       color: var(--color-text);
       border-color: var(--color-text);
     }
     &:disabled {
+      pointer-events: none;
       color: var(--color-bg-light);
       border-color: var(--color-bg-light);
     }
@@ -549,9 +553,13 @@ button.-inverted {
   border-color: var(--color-primary);
   background-color: var(--color-bg);
   background-image: none;
-  &:hover {
+  &:not([disabled]):hover {
     color: var(--color-text);
     border-color: var(--color-text);
+  }
+  &:disabled {
+    color: var(--color-bg-light);
+    border-color: var(--color-bg-light);
   }
 }
 
@@ -616,7 +624,7 @@ button.-solid {
   &.loading {
     color: var(--color-bg-light);
     border: var(--line-width) dashed var(--color-bg-light);
-    &:hover {
+    &:not([disabled]):hover {
       color: inherit;
       border-color: inherit;
     }
