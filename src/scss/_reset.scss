@@ -249,14 +249,6 @@ img {
 }
 
 /**
-  * Change the fill color to match the text color in all browsers (opinionated).
-  */
-
-svg:not([fill]) {
-  fill: currentColor;
-}
-
-/**
   * Hide the overflow in IE.
   */
 

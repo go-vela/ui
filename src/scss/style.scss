@@ -721,6 +721,10 @@ button.-solid {
 .build-icon {
   margin: 36px;
   stroke: var(--color-bg);
+
+  * {
+    fill: none;
+  }
 }
 
 .build-icon.-pending {
@@ -732,13 +736,6 @@ button.-solid {
 
 .-build-status-icon.-pending {
   fill: var(--color-bg-dark);
-}
-
-.status-svg {
-  stroke: var(--color-bg);
-  stroke-width: 2;
-  fill: none;
-  fill-rule: evenodd;
 }
 
 .status-svg.-linecap-square {
@@ -953,6 +950,7 @@ button.-solid {
 
 .build-history .-build .-icon {
   stroke: var(--color-bg);
+  fill: none;
   &.-running {
     background-color: var(--color-yellow);
   }
@@ -1089,6 +1087,7 @@ button.-solid {
 }
 
 .-icon {
+  fill: none;
   &.-success {
     stroke: var(--color-green);
   }
@@ -1390,7 +1389,7 @@ button.-solid {
   font-size: 14px;
 }
 
-.hook-status.-no-fill {
+.hook-status {
   fill: none;
 }
 
@@ -1594,19 +1593,22 @@ button.-solid {
   align-items: center;
 }
 
-.-icon.-radio {
-  // stroke: var(--color-primary);
-  color: var(--color-primary);
+.-icon {
+  stroke: var(--color-primary);
+
+  &.-check {
+    background-color: var(--color-primary);
+    stroke: var(--color-bg);
+  }
+
+  &.-check,
+  &.-radio {
+    fill: none;
+  }
 
   .-inner {
     fill: var(--color-primary);
   }
-}
-
-.-icon.-check {
-  stroke: var(--color-bg);
-  // fill: var(--color-primary);
-  background-color: var(--color-primary);
 }
 
 .checkbox .label {
@@ -1631,7 +1633,7 @@ button.-solid {
 
   color: var(--color-text);
   border: none;
-  border-bottom: 1px solid var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
   background: none;
 
   font-size: 14px;
@@ -1725,10 +1727,12 @@ button.-solid {
   font-weight: normal;
   background: none;
   color: var(--color-bg-light);
+  fill: var(--color-bg-light);
 }
 
 .theme-light .theme-toggle {
   color: var(--color-gray-light);
+  fill: var(--color-gray-light);
 }
 
 .pager-actions {

@@ -400,7 +400,8 @@ buildHistoryFailure _ =
 radio : Bool -> Html msg
 radio checked =
     svg
-        [ class "-icon -radio"
+        [ class "-icon"
+        , class "-radio"
         , strokeWidth "2"
         , viewBox "0 0 30 30"
         , width "22"
