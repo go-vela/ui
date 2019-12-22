@@ -709,6 +709,10 @@ button.-solid {
   font-weight: 300;
 }
 
+.theme-light .build {
+  border-color: var(--color-white);
+}
+
 .build .status {
   position: relative;
 
@@ -772,7 +776,7 @@ button.-solid {
 
 .theme-light .build .info {
   background: var(--color-white);
-  border: 1px solid var(--color-bg-dark);
+  border-right: 1px solid var(--color-bg-dark);
   border-left: none;
 }
 
@@ -855,7 +859,11 @@ button.-solid {
 }
 
 .build-animation.-bottom {
-  bottom: 0;
+  bottom: -2px;
+}
+
+.build-animation.-top {
+  top: -2px;
 }
 
 .build-animation.-bottom.-running {
@@ -1278,6 +1286,10 @@ button.-solid {
   margin-bottom: 0;
 
   font-size: 0.9em;
+}
+
+.alert-container {
+  color: var(--color-text);
 }
 
 .alert-container.-success {
