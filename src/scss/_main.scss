@@ -1741,3 +1741,22 @@ button.-solid {
   display: flex;
   justify-content: space-between;
 }
+.favorites .header {
+  color: var(--color-yellow);
+}
+button.-favorite-toggle {
+  background: none;
+}
+.icon.favorite-star {
+  fill: none;
+  stroke: var(--color-yellow);
+  margin: 0 0.5em;
+}
+
+.icon.favorite-star.-cursor {
+  cursor: pointer;
+}
+
+.icon.favorite-star.favorited {
+  fill: var(--color-yellow);
+}
