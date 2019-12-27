@@ -13,7 +13,9 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Build
     exposing
-        ( expandBuildLineFocus
+        ( clickLogLine
+        , clickStep
+        , expandBuildLineFocus
         , parseLineFocus
         , viewFullBuild
         , viewRepositoryBuilds
@@ -594,7 +596,7 @@ update msg model =
         ClickStep org repo buildNumber stepNumber ->
             let
                 ( steps, action ) =
-                    clickStep model org repo buildNumber stepNumber
+                    clickStep model model.steps org repo buildNumber stepNumber getBuildStepLogs
             in
             ( { model | steps = steps }
             , action
@@ -610,7 +612,7 @@ update msg model =
         ClickLogLine org repo buildNumber stepNumber lineNumber ->
             let
                 ( steps, action ) =
-                    clickLogLine model org repo buildNumber stepNumber lineNumber
+                    clickLogLine model.steps model.navigationKey org repo buildNumber stepNumber lineNumber
             in
             ( { model | steps = steps }
             , action
@@ -682,10 +684,10 @@ update msg model =
         HookBuildResponse org repo buildNumber response ->
             case response of
                 Ok ( _, build ) ->
-                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
+                    ( { model | hookBuilds = Pages.Hooks.receiveHookBuild ( org, repo, buildNumber ) (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
 
                 Err error ->
-                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, Cmd.none )
+                    ( { model | hookBuilds = Pages.Hooks.receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, Cmd.none )
 
         FavoritesResponse _ response ->
             let
@@ -1698,6 +1700,30 @@ setLogLineFocus model org repo buildNumber lineFocus =
     )
 
 
+setLineFocus : Steps -> LineFocus -> Steps
+setLineFocus steps lineFocus =
+    let
+        ( target, stepNumber, lineNumber ) =
+            parseLineFocus lineFocus
+    in
+    case Maybe.withDefault "" target of
+        "step" ->
+            case stepNumber of
+                Just n ->
+                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = lineNumber }) <| clearLineFocus steps
+
+                Nothing ->
+                    steps
+
+        _ ->
+            steps
+
+
+clearLineFocus : Steps -> Steps
+clearLineFocus steps =
+    List.map (\step -> { step | lineFocus = Nothing }) steps
+
+
 {-| clickHook : takes model org repo and build number and fetches build information from the api
 -}
 clickHook : Model -> Org -> Repo -> BuildNumber -> ( HookBuilds, Cmd Msg )
@@ -1728,104 +1754,6 @@ clickHook model org repo buildNumber =
         ( Dict.update ( org, repo, buildNumber ) (\_ -> Just buildInfo) model.hookBuilds
         , action
         )
-
-
-{-| clickStep : takes model org repo and step number and fetches step information from the api
--}
-clickStep : Model -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> ( WebData Steps, Cmd Msg )
-clickStep model org repo buildNumber stepNumber =
-    case stepNumber of
-        Nothing ->
-            ( model.steps
-            , Cmd.none
-            )
-
-        Just stepNum ->
-            let
-                ( steps, action ) =
-                    case model.steps of
-                        Success steps_ ->
-                            ( RemoteData.succeed <| toggleStepView steps_ stepNum
-                            , case buildNumber of
-                                Just buildNum ->
-                                    getBuildStepLogs model org repo buildNum stepNum
-
-                                Nothing ->
-                                    Cmd.none
-                            )
-
-                        _ ->
-                            ( model.steps, Cmd.none )
-            in
-            ( steps
-            , action
-            )
-
-
-{-| clickLogLine : takes model and line number and sets the focus on the log line
--}
-clickLogLine : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd Msg )
-clickLogLine model org repo buildNumber stepNumber lineNumber =
-    ( model.steps
-    , Navigation.replaceUrl model.navigationKey <|
-        Routes.routeToUrl
-            (Routes.Build org repo buildNumber <|
-                Just <|
-                    "#step:"
-                        ++ stepNumber
-                        ++ ":"
-                        ++ String.fromInt lineNumber
-            )
-    )
-
-
-toggleStepView : Steps -> String -> Steps
-toggleStepView steps stepNumber =
-    List.Extra.updateIf
-        (\step -> String.fromInt step.number == stepNumber)
-        (\step -> { step | viewing = not step.viewing })
-        steps
-
-
-setLineFocus : Steps -> LineFocus -> Steps
-setLineFocus steps lineFocus =
-    let
-        ( target, stepNumber, lineNumber ) =
-            parseLineFocus lineFocus
-    in
-    case Maybe.withDefault "" target of
-        "step" ->
-            case stepNumber of
-                Just n ->
-                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = lineNumber }) <| clearLineFocus steps
-
-                Nothing ->
-                    steps
-
-        _ ->
-            steps
-
-
-clearLineFocus : Steps -> Steps
-clearLineFocus steps =
-    List.map (\step -> { step | lineFocus = Nothing }) steps
-
-
-{-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
--}
-receiveHookBuild : BuildIdentifier -> WebData Build -> HookBuilds -> HookBuilds
-receiveHookBuild buildIdentifier build hookBuilds =
-    Dict.update buildIdentifier (\_ -> Just ( build, viewingHook buildIdentifier hookBuilds )) hookBuilds
-
-
-viewingHook : BuildIdentifier -> HookBuilds -> Bool
-viewingHook buildIdentifier hookBuilds =
-    case Dict.get buildIdentifier hookBuilds of
-        Just ( _, viewing ) ->
-            viewing
-
-        Nothing ->
-            False
 
 
 

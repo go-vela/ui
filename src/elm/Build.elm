@@ -5,7 +5,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Build exposing
-    ( expandBuildLineFocus
+    ( clickLogLine
+    , clickStep
+    , expandBuildLineFocus
     , parseLineFocus
     , statusToClass
     , statusToString
@@ -16,6 +18,7 @@ module Build exposing
     )
 
 import Base64 exposing (decode)
+import Browser.Navigation as Navigation
 import DateFormat.Relative exposing (relativeTime)
 import Html
     exposing
@@ -724,3 +727,64 @@ parseLineFocus lineFocus =
 logLineHref : StepNumber -> Int -> Html.Attribute msg
 logLineHref stepNumber lineNumber =
     href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber)
+
+
+type alias GetLogs a msg =
+    a -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd msg
+
+
+{-| clickStep : takes model org repo and step number and fetches step information from the api
+-}
+clickStep : a -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogs a msg -> ( WebData Steps, Cmd msg )
+clickStep model steps org repo buildNumber stepNumber getLogs =
+    case stepNumber of
+        Nothing ->
+            ( steps
+            , Cmd.none
+            )
+
+        Just stepNum ->
+            let
+                ( stepsOut, action ) =
+                    case steps of
+                        RemoteData.Success steps_ ->
+                            ( RemoteData.succeed <| toggleStepView steps_ stepNum
+                            , case buildNumber of
+                                Just buildNum ->
+                                    getLogs model org repo buildNum stepNum
+
+                                Nothing ->
+                                    Cmd.none
+                            )
+
+                        _ ->
+                            ( steps, Cmd.none )
+            in
+            ( stepsOut
+            , action
+            )
+
+
+{-| clickLogLine : takes model and line number and sets the focus on the log line
+-}
+clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd msg )
+clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
+    ( steps
+    , Navigation.replaceUrl navKey <|
+        Routes.routeToUrl
+            (Routes.Build org repo buildNumber <|
+                Just <|
+                    "#step:"
+                        ++ stepNumber
+                        ++ ":"
+                        ++ String.fromInt lineNumber
+            )
+    )
+
+
+toggleStepView : Steps -> String -> Steps
+toggleStepView steps stepNumber =
+    List.Extra.updateIf
+        (\step -> String.fromInt step.number == stepNumber)
+        (\step -> { step | viewing = not step.viewing })
+        steps

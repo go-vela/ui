@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Hooks exposing (view)
+module Pages.Hooks exposing (receiveHookBuild, view)
 
 import Build exposing (statusToClass, statusToString)
 import Dict
@@ -290,3 +290,20 @@ hookStatus status =
 hookOpen : BuildIdentifier -> HookBuilds -> Bool
 hookOpen buildIdentifier hookBuilds =
     Tuple.second <| Maybe.withDefault ( NotAsked, False ) <| Dict.get buildIdentifier hookBuilds
+
+
+{-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
+-}
+receiveHookBuild : BuildIdentifier -> WebData Build -> HookBuilds -> HookBuilds
+receiveHookBuild buildIdentifier b hookBuilds =
+    Dict.update buildIdentifier (\_ -> Just ( b, viewingHook buildIdentifier hookBuilds )) hookBuilds
+
+
+viewingHook : BuildIdentifier -> HookBuilds -> Bool
+viewingHook buildIdentifier hookBuilds =
+    case Dict.get buildIdentifier hookBuilds of
+        Just ( _, viewing ) ->
+            viewing
+
+        Nothing ->
+            False
