@@ -264,7 +264,7 @@ decodeRepository =
         |> optional "allow_push" bool False
         |> optional "allow_deploy" bool False
         |> optional "allow_tag" bool False
-        -- "added"
+        -- "Activated"
         |> hardcoded NotAsked
         -- "removed"
         |> hardcoded NotAsked

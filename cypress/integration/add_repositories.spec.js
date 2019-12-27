@@ -44,9 +44,9 @@ context("Add Repositories", () => {
       cy.get("[data-test=source-org-cat]").click();
       cy.get("[data-test=source-repo-purr] > button").click();
 
-      cy.get("[data-test=source-repo-purr] .repo-activate--added")
+      cy.get("[data-test=source-repo-purr] .repo-activate--activated")
         .should("be.visible")
-        .and("contain", "Added");
+        .and("contain", "Activated");
     });
 
     it("shows the failed button and alert when the add is unsuccessful", () => {
@@ -60,7 +60,7 @@ context("Add Repositories", () => {
       cy.get("[data-test=source-org-cat]").click();
       cy.get("[data-test=source-repo-purr] > button").click();
 
-      cy.get("[data-test=source-repo-purr] .repo-activate--added").should(
+      cy.get("[data-test=source-repo-purr] .repo-activate--activated").should(
         "not.be.visible"
       );
 
@@ -82,7 +82,7 @@ context("Add Repositories", () => {
 
     it("shows the loading labels when all repos for org are added", () => {
       cy.get("[data-test=source-org-github]").click();
-      cy.get("[data-test=add-org-github]").click({ force: true });
+      cy.get("[data-test=activate-org-github]").click({ force: true });
 
       cy.get("[data-test=source-repo-octocat]")
       .should("be.visible")

@@ -165,8 +165,7 @@ viewSourceRepo favoritesModel activateRepo addRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
         , div []
-            [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| addRepo repo.org repo.name ] <| repoFavorited repo.org repo.name favoritesModel
-            , buildActivateRepoElement repo activateRepo
+            [ buildActivateRepoElement repo activateRepo
             ]
         ]
 
@@ -180,8 +179,7 @@ viewSearchedSourceRepo favoritesModel activateRepo addRepo repo =
             [ text <| repo.org ++ "/" ++ repo.name ]
         , div
             []
-            [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| addRepo repo.org repo.name ] <| repoFavorited repo.org repo.name favoritesModel
-            , buildActivateRepoElement repo activateRepo
+            [ buildActivateRepoElement repo activateRepo
             ]
         ]
 
@@ -197,13 +195,13 @@ viewRepoCount repos =
 -}
 activateReposBtn : Org -> Repositories -> Bool -> ActivateRepos msg -> Html msg
 activateReposBtn org repos filtered activateRepos =
-    button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (activateRepos repos) ]
+    button [ class "-inverted", Util.testAttribute <| "activate-org-" ++ org, onClick (activateRepos repos) ]
         [ text <|
             if filtered then
-                "Add Results"
+                "Activate Results"
 
             else
-                "Add All"
+                "Activate All"
         ]
 
 
@@ -223,8 +221,8 @@ buildActivateRepoElement repo activateRepo =
 
         RemoteData.Success addedStatus ->
             if addedStatus then
-                div [ class "-added-container" ]
-                    [ div [ class "repo-activate--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Added" ] ]
+                div [ class "-activated-container" ]
+                    [ div [ class "repo-activate--activated" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Activated" ] ]
                     , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
                     ]
 

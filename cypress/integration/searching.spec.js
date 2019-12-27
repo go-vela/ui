@@ -91,7 +91,7 @@ context("Searching", () => {
           cy.get("[data-test=source-repo-octocat]").should("be.visible");
         });
         it("add all button should contain Add Results", () => {
-          cy.get("[data-test=add-org-github]").contains("Add Results");
+          cy.get("[data-test=activate-org-github]").contains("Add Results");
         });
         context(
           "click Add All button, then clear github local search input",
@@ -102,7 +102,7 @@ context("Searching", () => {
                 "*api/v1/repos*",
                 "fixture:add_repo_response.json"
               );
-              cy.get("[data-test=add-org-github]").click({ force: true });
+              cy.get("[data-test=activate-org-github]").click({ force: true });
               cy.get("[data-test=local-search-input-github]")
                 .should("be.visible")
                 .clear();
@@ -133,7 +133,7 @@ context("Searching", () => {
                 .and("contain", "Activating");
             });
             it("without search input, add all button should contain Add All", () => {
-              cy.get("[data-test=add-org-github]").contains("Add All");
+              cy.get("[data-test=activate-org-github]").contains("Add All");
             });
           }
         );

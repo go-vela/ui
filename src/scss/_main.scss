@@ -485,12 +485,12 @@ button,
   }
 }
 
-.-added-container {
+.-activated-container {
   display: flex;
   flex-direction: row;
 }
 
-.repo-activate--added {
+.repo-activate--activated {
   color: var(--color-green);
   border: var(--line-width) solid var(--color-green);
 
