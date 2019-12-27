@@ -42,7 +42,7 @@ context("Add Repositories", () => {
 
     it("shows the added label when a repo is added", () => {
       cy.get("[data-test=source-org-cat]").click();
-      cy.get("[data-test=source-repo-purr] > button").click();
+      cy.get("[data-test=source-repo-purr] > div > button").click();
 
       cy.get("[data-test=source-repo-purr] .repo-add--added")
         .should("be.visible")
@@ -58,7 +58,7 @@ context("Add Repositories", () => {
       });
 
       cy.get("[data-test=source-org-cat]").click();
-      cy.get("[data-test=source-repo-purr] > button").click();
+      cy.get("[data-test=source-repo-purr] > div > button").click();
 
       cy.get("[data-test=source-repo-purr] .repo-add--added").should(
         "not.be.visible"
