@@ -5,7 +5,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( AddRepositoryPayload
+    ( AddRepo
+    , AddRepos
+    , AddRepositoryPayload
     , AuthParams
     , Build
     , BuildIdentifier
@@ -13,6 +15,7 @@ module Vela exposing
     , Builds
     , BuildsModel
     , Favorite
+    , FavoriteRepo
     , Favorites
     , FavoritesModel
     , Field
@@ -69,6 +72,7 @@ module Vela exposing
     , encodeSession
     , encodeTheme
     , encodeUpdateRepository
+    , repoFavorited
     , stringToTheme
     )
 
@@ -726,12 +730,13 @@ type alias BuildIdentifier =
 type alias FavoritesModel =
     { favorites : WebData Favorites
     , pager : List WebLink
+    , searchFilters : Dict String String
     }
 
 
 defaultFavorites : FavoritesModel
 defaultFavorites =
-    FavoritesModel (RemoteData.succeed []) <| []
+    FavoritesModel (RemoteData.succeed []) [] Dict.empty
 
 
 type alias Favorites =
@@ -764,7 +769,41 @@ decodeFavorites =
     Decode.list decodeFavorite
 
 
+{-| repoFavorited : takes org repo and favorites and returns true if repo has been favorited
+-}
+repoFavorited : Org -> Repo -> FavoritesModel -> Bool
+repoFavorited org repo favorites =
+    case favorites.favorites of
+        RemoteData.Success repos ->
+            (\id -> id /= -1) <| .repo_id <| Maybe.withDefault (Favorite -1 -1 "" "") <| List.head <| List.filter (\r -> r.org == org && r.repo_name == repo) repos
+
+        _ ->
+            False
+
+
 {-| UserID : type alias for UserID string
 -}
 type alias UserID =
     String
+
+
+
+-- UPDATES
+
+
+{-| AddRepo : takes repo and activates it on Vela
+-}
+type alias AddRepo msg =
+    Repository -> msg
+
+
+{-| AddRepos : takes repos and activates them on Vela
+-}
+type alias AddRepos msg =
+    Repositories -> msg
+
+
+{-| FavoriteRepo : takes repo and adds them to user's favorites
+-}
+type alias FavoriteRepo msg =
+    Org -> Repo -> msg

@@ -63,11 +63,13 @@ import Json.Encode as Encode
 import List.Extra exposing (setIf, updateIf)
 import Pager
 import Pages exposing (Page(..))
+import Pages.AddRepos
 import Pages.Home
 import Pages.Hooks
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
+import Search exposing (RepoSearchFilters)
 import Svg.Attributes
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
@@ -86,7 +88,9 @@ import Url.Builder as UB exposing (QueryParameter)
 import Util
 import Vela
     exposing
-        ( AddRepositoryPayload
+        ( AddRepo
+        , AddRepos
+        , AddRepositoryPayload
         , AuthParams
         , Build
         , BuildIdentifier
@@ -133,6 +137,7 @@ import Vela
         , encodeSession
         , encodeTheme
         , encodeUpdateRepository
+        , repoFavorited
         , stringToTheme
         )
 
@@ -173,6 +178,7 @@ type alias Model =
     , zone : Zone
     , time : Posix
     , sourceSearchFilters : RepoSearchFilters
+    , favoritesSearchFilters : RepoSearchFilters
     , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
@@ -180,14 +186,6 @@ type alias Model =
     , favorites : FavoritesModel
     , theme : Theme
     }
-
-
-type alias RepoSearchFilters =
-    Dict Org SearchFilter
-
-
-type alias SearchFilter =
-    String
 
 
 type Interval
@@ -236,6 +234,7 @@ init flags url navKey =
             , zone = utc
             , time = millisToPosix 0
             , sourceSearchFilters = Dict.empty
+            , favoritesSearchFilters = Dict.empty
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
             , entryURL = url
@@ -275,6 +274,7 @@ type Msg
     | NewRoute Routes.Route
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
+    | SearchFavorites Org String
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
@@ -289,7 +289,7 @@ type Msg
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
-    | AddOrgRepos Repositories
+    | AddRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
     | FavoriteRepo Org Repo
@@ -583,7 +583,7 @@ update msg model =
             , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
             )
 
-        AddOrgRepos repos ->
+        AddRepos repos ->
             ( model
             , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
             )
@@ -734,6 +734,13 @@ update msg model =
             in
             ( { model | sourceSearchFilters = filters }, Cmd.none )
 
+        SearchFavorites org searchBy ->
+            let
+                filters =
+                    Dict.update org (\_ -> Just searchBy) model.favoritesSearchFilters
+            in
+            ( { model | favoritesSearchFilters = filters }, Cmd.none )
+
         ChangeRepoTimeout inTimeout ->
             let
                 newTimeout =
@@ -791,16 +798,6 @@ favoriteRepo org repo favorites =
 
         _ ->
             ( favorites, "" )
-
-
-repoFavorited : Org -> Repo -> FavoritesModel -> Bool
-repoFavorited org repo favorites =
-    case favorites.favorites of
-        Success repos ->
-            (\id -> id /= -1) <| .repo_id <| Maybe.withDefault (Favorite -1 -1 "" "") <| List.head <| List.filter (\r -> r.org == org && r.repo_name == repo) repos
-
-        _ ->
-            False
 
 
 
@@ -1027,7 +1024,7 @@ view model =
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
         , viewNav model
-        , div [ class "util" ] [ Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds ]
+        , div [ class "util" ] [ Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
         , main_ []
             [ div [ class "content-wrap" ] [ content ] ]
         , div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.config Alerts.view AlertsUpdate model.toasties ]
@@ -1040,12 +1037,12 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.currentRepos model.favorites RemoveRepo FavoriteRepo
+            , Pages.Home.view model.currentRepos model.favorites FavoriteRepo RemoveRepo
             )
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , viewAddRepos model
+            , Pages.AddRepos.view model.sourceRepos model.favorites model.sourceSearchFilters SearchSourceRepos AddRepo AddRepos FavoriteRepo
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1133,211 +1130,6 @@ viewLogin =
         ]
 
 
-{-| viewAddRepos : takes model and renders account page for adding repos to overview
--}
-viewAddRepos : Model -> Html Msg
-viewAddRepos model =
-    let
-        loading =
-            div []
-                [ h1 []
-                    [ text "Loading your Repositories"
-                    , span [ class "loading-ellipsis" ] []
-                    ]
-                , p []
-                    [ text <|
-                        "Hang tight while we grab the list of repositories that you have access to from Github. If you have access to "
-                            ++ "a lot of organizations and repositories this might take a little while."
-                    ]
-                ]
-    in
-    case model.sourceRepos of
-        Success sourceRepos ->
-            div [ class "source-repos", Util.testAttribute "source-repos" ]
-                [ repoSearchBarGlobal model
-                , viewSourceRepos model sourceRepos
-                ]
-
-        Loading ->
-            loading
-
-        NotAsked ->
-            loading
-
-        Failure _ ->
-            div []
-                [ p []
-                    [ text <|
-                        "There was an error fetching your available repositories... Click Refresh or try again later!"
-                    ]
-                ]
-
-
-{-| viewSourceRepos : takes model and source repos and renders them based on user search
--}
-viewSourceRepos : Model -> SourceRepositories -> Html Msg
-viewSourceRepos model sourceRepos =
-    if shouldSearch <| searchFilterGlobal model.sourceSearchFilters then
-        -- Search and render repos using the global filter
-        searchReposGlobal model.sourceSearchFilters sourceRepos
-
-    else
-        -- Render repos normally
-        sourceRepos
-            |> Dict.toList
-            |> Util.filterEmptyLists
-            |> List.map (\( org, repos_ ) -> viewSourceOrg model org repos_)
-            |> div [ class "repo-list" ]
-
-
-{-| viewSourceOrg : renders the source repositories available to a user by org
--}
-viewSourceOrg : Model -> Org -> Repositories -> Html Msg
-viewSourceOrg model org repos =
-    let
-        ( repos_, filtered, content ) =
-            if shouldSearch <| searchFilterLocal org model.sourceSearchFilters then
-                -- Search and render repos using the global filter
-                searchReposLocal org model.sourceSearchFilters repos
-
-            else
-                -- Render repos normally
-                ( repos, False, List.map viewSourceRepo repos )
-    in
-    viewSourceOrgDetails model org repos_ filtered content
-
-
-{-| viewSourceOrgDetails : renders the source repositories by org as an html details element
--}
-viewSourceOrgDetails : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> Html Msg
-viewSourceOrgDetails model org repos filtered content =
-    div [ class "org" ]
-        [ details [ class "details", class "repo-item" ] <|
-            viewSourceOrgSummary model org repos filtered content
-        ]
-
-
-{-| viewSourceOrgSummary : renders the source repositories details summary
--}
-viewSourceOrgSummary : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> List (Html Msg)
-viewSourceOrgSummary model org repos filtered content =
-    summary [ class "summary", Util.testAttribute <| "source-org-" ++ org ]
-        [ div [ class "org-header" ]
-            [ text org
-            , viewRepoCount repos
-            ]
-        ]
-        :: div [ class "source-actions" ]
-            [ repoSearchBarLocal model org
-            , addReposBtn org repos filtered
-            ]
-        :: content
-
-
-{-| viewSourceRepo : renders single repo within a list of org repos
-
-    viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Add' button
-
--}
-viewSourceRepo : Repository -> Html Msg
-viewSourceRepo repo =
-    div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
-        [ div [] [ text repo.name ]
-        , buildAddRepoElement repo
-        ]
-
-
-{-| viewSearchedSourceRepo : renders single repo when searching across all repos
--}
-viewSearchedSourceRepo : Repository -> Html Msg
-viewSearchedSourceRepo repo =
-    div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
-        [ div [] [ text <| repo.org ++ "/" ++ repo.name ]
-        , buildAddRepoElement repo
-        ]
-
-
-{-| viewRepoCount : renders the amount of repos available within an org
--}
-viewRepoCount : List a -> Html Msg
-viewRepoCount repos =
-    span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
-
-
-{-| addReposBtn : takes List of repos and renders a button to add them all at once, texts depends on user input filter
--}
-addReposBtn : Org -> Repositories -> Bool -> Html Msg
-addReposBtn org repos filtered =
-    button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (AddOrgRepos repos) ]
-        [ text <|
-            if filtered then
-                "Add Results"
-
-            else
-                "Add All"
-        ]
-
-
-{-| buildAddRepoElement : builds action element for adding single repos
--}
-buildAddRepoElement : Repository -> Html Msg
-buildAddRepoElement repo =
-    case repo.added of
-        NotAsked ->
-            button [ class "-solid", onClick (AddRepo repo) ] [ text "Add" ]
-
-        Loading ->
-            div [ class "repo-add--adding" ] [ span [ class "repo-add--adding-text" ] [ text "Adding" ], span [ class "loading-ellipsis" ] [] ]
-
-        Failure _ ->
-            div [ class "repo-add--failed", onClick (AddRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
-
-        Success addedStatus ->
-            if addedStatus then
-                div [ class "-added-container" ]
-                    [ div [ class "repo-add--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Added" ] ]
-                    , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
-                    ]
-
-            else
-                div [ class "repo-add--failed", onClick (AddRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
-
-
-{-| repoSearchBarGlobal : renders a input bar for searching across all repos
--}
-repoSearchBarGlobal : Model -> Html Msg
-repoSearchBarGlobal model =
-    div [ class "-filter", Util.testAttribute "global-search-bar" ]
-        [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
-        , input
-            [ Util.testAttribute "global-search-input"
-            , placeholder "Type to filter all repositories..."
-            , value <| searchFilterGlobal model.sourceSearchFilters
-            , onInput <| SearchSourceRepos ""
-            ]
-            []
-        ]
-
-
-{-| repoSearchBarLocal : takes an org and placeholder text and renders a search bar for local repo filtering
--}
-repoSearchBarLocal : Model -> Org -> Html Msg
-repoSearchBarLocal model org =
-    div [ class "-filter", Util.testAttribute "local-search-bar" ]
-        [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
-        , input
-            [ Util.testAttribute <| "local-search-input-" ++ org
-            , placeholder <|
-                "Type to filter repositories in "
-                    ++ org
-                    ++ "..."
-            , value <| searchFilterLocal org model.sourceSearchFilters
-            , onInput <| SearchSourceRepos org
-            ]
-            []
-        ]
-
-
 {-| viewNav : uses current state to render navigation, such as breadcrumb
 -}
 viewNav : Model -> Html Msg
@@ -1392,7 +1184,9 @@ navButton model =
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "nav-buttons" ]
-                [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| FavoriteRepo org repo ] <| repoFavorited org repo model.favorites
+                [ div [ class "builds-favorite" ]
+                    [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| FavoriteRepo org repo ] <| repoFavorited org repo model.favorites
+                    ]
                 , a
                     [ class "-btn"
                     , class "-inverted"
@@ -1528,18 +1322,7 @@ setNewPage route model =
 
         -- "Normal" page handling below
         ( Routes.Overview, True ) ->
-            let
-                currentSession : Session
-                currentSession =
-                    Maybe.withDefault defaultSession model.session
-            in
-            ( { model | page = Pages.Overview }
-            , Cmd.batch
-                [ Api.tryAll RepositoriesResponse <| Api.getAllRepositories model
-                , Api.tryAll (FavoritesResponse currentSession.token) <|
-                    Api.getAllFavorites model currentSession.token
-                ]
-            )
+            loadOverviewPage model
 
         ( Routes.AddRepositories, True ) ->
             case model.sourceRepos of
@@ -1602,6 +1385,22 @@ setNewPage route model =
                 , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
                 ]
             )
+
+
+loadOverviewPage : Model -> ( Model, Cmd Msg )
+loadOverviewPage model =
+    let
+        currentSession : Session
+        currentSession =
+            Maybe.withDefault defaultSession model.session
+    in
+    ( { model | page = Pages.Overview }
+    , Cmd.batch
+        [ Api.tryAll RepositoriesResponse <| Api.getAllRepositories model
+        , Api.tryAll (FavoritesResponse currentSession.token) <|
+            Api.getAllFavorites model currentSession.token
+        ]
+    )
 
 
 {-| buildChanged : takes two build identifiers and returns if the build has changed
@@ -1903,89 +1702,6 @@ setLogLineFocus model org repo buildNumber lineFocus =
     ( { model | page = Pages.Build org repo buildNumber lineFocus, steps = steps }
     , action
     )
-
-
-{-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
--}
-searchReposGlobal : RepoSearchFilters -> SourceRepositories -> Html Msg
-searchReposGlobal filters repos =
-    let
-        filteredRepos =
-            repos
-                |> Dict.toList
-                |> Util.filterEmptyLists
-                |> List.map (\( _, repos_ ) -> repos_)
-                |> List.concat
-                |> List.filter (\repo -> filterRepo filters Nothing <| repo.org ++ "/" ++ repo.name)
-    in
-    div [ class "filtered-repos" ] <|
-        -- Render the found repositories
-        if not <| List.isEmpty filteredRepos then
-            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo repo)
-
-        else
-            -- No repos matched the search
-            [ div [ class "-no-repos" ] [ text "No results" ] ]
-
-
-{-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
--}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> ( Repositories, Bool, List (Html Msg) )
-searchReposLocal org filters repos =
-    -- Filter the repos if the user typed more than 2 characters
-    let
-        filteredRepos =
-            List.filter (\repo -> filterRepo filters (Just org) repo.name) repos
-    in
-    ( filteredRepos
-    , True
-    , if not <| List.isEmpty filteredRepos then
-        List.map viewSourceRepo filteredRepos
-
-      else
-        [ div [ class "-no-repos" ] [ text "No results" ] ]
-    )
-
-
-{-| filterRepo : takes org/repo display filters, the org and filters a single repo based on user-entered text
--}
-filterRepo : RepoSearchFilters -> Maybe Org -> String -> Bool
-filterRepo filters org filterOn =
-    let
-        org_ =
-            Maybe.withDefault "" <| org
-
-        filterBy =
-            Maybe.withDefault "" <| Dict.get org_ filters
-
-        by =
-            String.toLower filterBy
-
-        on =
-            String.toLower filterOn
-    in
-    String.contains by on
-
-
-{-| searchFilterGlobal : takes repo search filters and returns the global filter (org == "")
--}
-searchFilterGlobal : RepoSearchFilters -> SearchFilter
-searchFilterGlobal filters =
-    Maybe.withDefault "" <| Dict.get "" filters
-
-
-{-| searchFilterLocal : takes repo search filters and org and returns the local filter
--}
-searchFilterLocal : Org -> RepoSearchFilters -> SearchFilter
-searchFilterLocal org filters =
-    Maybe.withDefault "" <| Dict.get org filters
-
-
-{-| shouldSearch : takes repo search filter and returns if results should be filtered
--}
-shouldSearch : SearchFilter -> Bool
-shouldSearch filter =
-    String.length filter > 2
 
 
 {-| clickHook : takes model org repo and build number and fetches build information from the api

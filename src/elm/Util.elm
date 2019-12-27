@@ -18,6 +18,7 @@ module Util exposing
     , millisToSeconds
     , oneSecondMillis
     , open
+    , pluralize
     , relativeTimeNoSeconds
     , secondsToMillis
     , smallLoader
@@ -251,3 +252,14 @@ smallLoaderWithText label =
 largeLoader : Html msg
 largeLoader =
     div [ class "large-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
+
+
+{-| pluralize : takes num and string and adds pluralize s if needed
+-}
+pluralize : Int -> String -> String
+pluralize num str =
+    if num > 1 then
+        str ++ "s"
+
+    else
+        str

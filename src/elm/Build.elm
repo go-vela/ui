@@ -405,8 +405,8 @@ lineFocusStyle lineFocus lineNumber =
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
 -}
-viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Builds -> Html msg
-viewBuildHistory now timezone page org repo builds =
+viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Builds -> Int -> Html msg
+viewBuildHistory now timezone page org repo builds limit =
     let
         show =
             case page of
@@ -422,7 +422,7 @@ viewBuildHistory now timezone page org repo builds =
                 if List.length blds > 0 then
                     div [ class "build-history", Util.testAttribute "build-history" ] <|
                         List.indexedMap (\idx -> \build -> recentBuild now timezone org repo build idx) <|
-                            List.take 10 blds
+                            List.take limit blds
 
                 else
                     text ""

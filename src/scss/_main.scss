@@ -740,6 +740,10 @@ button.-solid {
   border-radius: 7px;
 }
 
+.build-icon.-pending .bg-fill {
+  fill: var(--color-bg);
+}
+
 .-build-status-icon.-pending {
   fill: var(--color-bg);
 }
@@ -958,6 +962,12 @@ button.-solid {
 
   &.-success {
     background-color: var(--color-green);
+  }
+
+  &.-pending {
+    fill: var(--color-bg);
+    stroke: var(--color-bg);
+    background-color: var(--color-bg-light);
   }
 }
 
@@ -1759,4 +1769,9 @@ button.-favorite-toggle {
 
 .icon.favorite-star.favorited {
   fill: var(--color-yellow);
+}
+
+.builds-favorite {
+  display: flex;
+  align-items: center;
 }
