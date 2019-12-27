@@ -17,6 +17,7 @@ import Build
         , clickStep
         , expandBuildLineFocus
         , parseLineFocus
+        , setLogLineFocus
         , viewFullBuild
         , viewRepositoryBuilds
         )
@@ -1353,7 +1354,11 @@ setNewPage route model =
             case model.page of
                 Pages.Build o r b _ ->
                     if not <| buildChanged ( org, repo, buildNumber ) ( o, r, b ) then
-                        setLogLineFocus model org repo buildNumber lineFocus
+                        let
+                            ( page, steps, action ) =
+                                setLogLineFocus model model.steps org repo buildNumber lineFocus getBuildStepsLogs
+                        in
+                        ( { model | page = page, steps = steps }, action )
 
                     else
                         loadBuildPage model org repo buildNumber lineFocus
@@ -1672,56 +1677,6 @@ updateLog incomingLog logs =
 addLog : Log -> Logs -> Logs
 addLog incomingLog logs =
     RemoteData.succeed incomingLog :: logs
-
-
-{-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
--}
-setLogLineFocus : Model -> Org -> Repo -> BuildNumber -> LineFocus -> ( Model, Cmd Msg )
-setLogLineFocus model org repo buildNumber lineFocus =
-    let
-        ( steps, action ) =
-            case model.steps of
-                Success steps_ ->
-                    let
-                        focusedSteps =
-                            RemoteData.succeed <| setLineFocus steps_ lineFocus
-                    in
-                    ( focusedSteps
-                    , getBuildStepsLogs model org repo buildNumber focusedSteps
-                    )
-
-                _ ->
-                    ( model.steps
-                    , Cmd.none
-                    )
-    in
-    ( { model | page = Pages.Build org repo buildNumber lineFocus, steps = steps }
-    , action
-    )
-
-
-setLineFocus : Steps -> LineFocus -> Steps
-setLineFocus steps lineFocus =
-    let
-        ( target, stepNumber, lineNumber ) =
-            parseLineFocus lineFocus
-    in
-    case Maybe.withDefault "" target of
-        "step" ->
-            case stepNumber of
-                Just n ->
-                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = lineNumber }) <| clearLineFocus steps
-
-                Nothing ->
-                    steps
-
-        _ ->
-            steps
-
-
-clearLineFocus : Steps -> Steps
-clearLineFocus steps =
-    List.map (\step -> { step | lineFocus = Nothing }) steps
 
 
 {-| clickHook : takes model org repo and build number and fetches build information from the api

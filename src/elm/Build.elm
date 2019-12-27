@@ -9,6 +9,7 @@ module Build exposing
     , clickStep
     , expandBuildLineFocus
     , parseLineFocus
+    , setLogLineFocus
     , statusToClass
     , statusToString
     , viewBuildHistory
@@ -75,6 +76,16 @@ type alias ExpandStep msg =
 -}
 type alias SetLineFocus msg =
     StepNumber -> Int -> msg
+
+
+{-| GetLogs : type alias for passing in logs fetch function from Main.elm
+-}
+type alias GetLogs a msg =
+    a -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd msg
+
+
+type alias GetLogs2 a msg =
+    a -> Org -> Repo -> BuildNumber -> WebData Steps -> Cmd msg
 
 
 
@@ -686,6 +697,120 @@ getStepLog step logs =
         )
 
 
+{-| clickStep : takes model org repo and step number and fetches step information from the api
+-}
+clickStep : a -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogs a msg -> ( WebData Steps, Cmd msg )
+clickStep model steps org repo buildNumber stepNumber getLogs =
+    case stepNumber of
+        Nothing ->
+            ( steps
+            , Cmd.none
+            )
+
+        Just stepNum ->
+            let
+                ( stepsOut, action ) =
+                    case steps of
+                        RemoteData.Success steps_ ->
+                            ( RemoteData.succeed <| toggleStepView steps_ stepNum
+                            , case buildNumber of
+                                Just buildNum ->
+                                    getLogs model org repo buildNum stepNum
+
+                                Nothing ->
+                                    Cmd.none
+                            )
+
+                        _ ->
+                            ( steps, Cmd.none )
+            in
+            ( stepsOut
+            , action
+            )
+
+
+{-| toggleStepView : takes steps and step number and toggles that steps viewing state
+-}
+toggleStepView : Steps -> String -> Steps
+toggleStepView steps stepNumber =
+    List.Extra.updateIf
+        (\step -> String.fromInt step.number == stepNumber)
+        (\step -> { step | viewing = not step.viewing })
+        steps
+
+
+{-| clickLogLine : takes model and line number and sets the focus on the log line
+-}
+clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd msg )
+clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
+    ( steps
+    , Navigation.replaceUrl navKey <|
+        Routes.routeToUrl
+            (Routes.Build org repo buildNumber <|
+                Just <|
+                    "#step:"
+                        ++ stepNumber
+                        ++ ":"
+                        ++ String.fromInt lineNumber
+            )
+    )
+
+
+{-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+-}
+setLogLineFocus : a -> WebData Steps -> Org -> Repo -> BuildNumber -> LineFocus -> GetLogs2 a msg -> ( Page, WebData Steps, Cmd msg )
+setLogLineFocus model steps org repo buildNumber lineFocus getLogs =
+    let
+        ( stepsOut, action ) =
+            case steps of
+                RemoteData.Success steps_ ->
+                    let
+                        focusedSteps =
+                            RemoteData.succeed <| setLineFocus steps_ lineFocus
+                    in
+                    ( focusedSteps
+                    , getLogs model org repo buildNumber focusedSteps
+                    )
+
+                _ ->
+                    ( steps
+                    , Cmd.none
+                    )
+    in
+    ( Pages.Build org repo buildNumber lineFocus
+    , stepsOut
+    , action
+    )
+
+
+{-| setLineFocus : takes steps and line focus and sets a new log line focus
+-}
+setLineFocus : Steps -> LineFocus -> Steps
+setLineFocus steps lineFocus =
+    let
+        ( target, stepNumber, lineNumber ) =
+            parseLineFocus lineFocus
+    in
+    case Maybe.withDefault "" target of
+        "step" ->
+            case stepNumber of
+                Just n ->
+                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = lineNumber }) <| clearLineFocus steps
+
+                Nothing ->
+                    steps
+
+        _ ->
+            steps
+
+
+{-| clearLineFocus : takes steps and clears all log line focus
+-}
+clearLineFocus : Steps -> Steps
+clearLineFocus steps =
+    List.map (\step -> { step | lineFocus = Nothing }) steps
+
+
 {-| expandBuildLineFocus : takes LineFocus URL fragment and expands the appropriate step to automatically view
 -}
 expandBuildLineFocus : LineFocus -> Steps -> Steps
@@ -727,64 +852,3 @@ parseLineFocus lineFocus =
 logLineHref : StepNumber -> Int -> Html.Attribute msg
 logLineHref stepNumber lineNumber =
     href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber)
-
-
-type alias GetLogs a msg =
-    a -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd msg
-
-
-{-| clickStep : takes model org repo and step number and fetches step information from the api
--}
-clickStep : a -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogs a msg -> ( WebData Steps, Cmd msg )
-clickStep model steps org repo buildNumber stepNumber getLogs =
-    case stepNumber of
-        Nothing ->
-            ( steps
-            , Cmd.none
-            )
-
-        Just stepNum ->
-            let
-                ( stepsOut, action ) =
-                    case steps of
-                        RemoteData.Success steps_ ->
-                            ( RemoteData.succeed <| toggleStepView steps_ stepNum
-                            , case buildNumber of
-                                Just buildNum ->
-                                    getLogs model org repo buildNum stepNum
-
-                                Nothing ->
-                                    Cmd.none
-                            )
-
-                        _ ->
-                            ( steps, Cmd.none )
-            in
-            ( stepsOut
-            , action
-            )
-
-
-{-| clickLogLine : takes model and line number and sets the focus on the log line
--}
-clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd msg )
-clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
-    ( steps
-    , Navigation.replaceUrl navKey <|
-        Routes.routeToUrl
-            (Routes.Build org repo buildNumber <|
-                Just <|
-                    "#step:"
-                        ++ stepNumber
-                        ++ ":"
-                        ++ String.fromInt lineNumber
-            )
-    )
-
-
-toggleStepView : Steps -> String -> Steps
-toggleStepView steps stepNumber =
-    List.Extra.updateIf
-        (\step -> String.fromInt step.number == stepNumber)
-        (\step -> { step | viewing = not step.viewing })
-        steps
