@@ -84,9 +84,9 @@ import Url.Builder as UB exposing (QueryParameter)
 import Util
 import Vela
     exposing
-        ( AddRepo
-        , AddRepos
-        , AddRepositoryPayload
+        ( ActivateRepo
+        , ActivateRepos
+        , ActivateRepositoryPayload
         , AuthParams
         , Build
         , BuildIdentifier
@@ -124,13 +124,13 @@ import Vela
         , buildUpdateRepoStringPayload
         , decodeSession
         , decodeTheme
-        , defaultAddRepositoryPayload
+        , defaultActivateRepositoryPayload
         , defaultBuilds
         , defaultFavorites
         , defaultHooks
         , defaultRepository
         , defaultSession
-        , encodeAddRepository
+        , encodeActivateRepository
         , encodeSession
         , encodeTheme
         , encodeUpdateRepository
@@ -282,11 +282,11 @@ type Msg
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
-    | AddRepo Repository
+    | ActivateRepo Repository
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
-    | AddRepos Repositories
+    | ActivateRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
     | FavoriteRepo Org Repo
@@ -510,18 +510,18 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        AddRepo repo ->
+        ActivateRepo repo ->
             let
-                payload : AddRepositoryPayload
+                payload : ActivateRepositoryPayload
                 payload =
-                    buildAddRepositoryPayload repo model.velaSourceBaseURL
+                    buildActivateRepositoryPayload repo model.velaSourceBaseURL
 
                 body : Http.Body
                 body =
-                    Http.jsonBody <| encodeAddRepository payload
+                    Http.jsonBody <| encodeActivateRepository payload
             in
             ( { model | sourceRepos = updateSourceRepoStatus repo Loading model.sourceRepos updateSourceRepoListByRepoName }
-            , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
+            , Api.try (RepoAddedResponse repo) <| Api.activateRepository model body
             )
 
         UpdateRepoEvent org repo field value ->
@@ -580,9 +580,9 @@ update msg model =
             , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
             )
 
-        AddRepos repos ->
+        ActivateRepos repos ->
             ( model
-            , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
+            , Cmd.batch <| List.map (Util.dispatch << ActivateRepo) repos
             )
 
         ClickHook org repo buildNumber ->
@@ -1039,7 +1039,7 @@ viewContent model =
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model.sourceRepos model.favorites model.sourceSearchFilters SearchSourceRepos AddRepo AddRepos FavoriteRepo
+            , Pages.AddRepos.view model.sourceRepos model.favorites model.sourceSearchFilters SearchSourceRepos ActivateRepo ActivateRepos FavoriteRepo
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1537,11 +1537,11 @@ updateSourceRepoListByRepoName repo status orgRepos =
         orgRepos
 
 
-{-| buildAddRepositoryPayload : builds the payload for adding a repository via the api
+{-| buildActivateRepositoryPayload : builds the payload for adding a repository via the api
 -}
-buildAddRepositoryPayload : Repository -> String -> AddRepositoryPayload
-buildAddRepositoryPayload repo velaSourceBaseURL =
-    { defaultAddRepositoryPayload
+buildActivateRepositoryPayload : Repository -> String -> ActivateRepositoryPayload
+buildActivateRepositoryPayload repo velaSourceBaseURL =
+    { defaultActivateRepositoryPayload
         | org = repo.org
         , name = repo.name
         , full_name = repo.org ++ "/" ++ repo.name

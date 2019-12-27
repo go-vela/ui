@@ -6,7 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Api exposing
     ( Request(..)
-    , addRepository
+    , activateRepository
     , deleteRepo
     , getAllBuilds
     , getAllFavorites
@@ -385,10 +385,10 @@ deleteRepo model repository =
         |> withAuth model.session
 
 
-{-| addRepository : adds a repository
+{-| activateRepository : adds a repository
 -}
-addRepository : PartialModel a -> Http.Body -> Request Repository
-addRepository model body =
+activateRepository : PartialModel a -> Http.Body -> Request Repository
+activateRepository model body =
     post model.velaAPI (Endpoint.Repositories Nothing Nothing) body decodeRepository
         |> withAuth model.session
 
