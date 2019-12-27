@@ -655,7 +655,7 @@ update msg model =
                     model.favorites
 
                 ( favs, alert ) =
-                    favoriteRepo org repo favorites
+                    addRepo org repo favorites
             in
             ( { model | favorites = favs }
             , Cmd.none
@@ -775,8 +775,8 @@ update msg model =
             ( model, Cmd.none )
 
 
-favoriteRepo : Org -> Repo -> FavoritesModel -> ( FavoritesModel, String )
-favoriteRepo org repo favorites =
+addRepo : Org -> Repo -> FavoritesModel -> ( FavoritesModel, String )
+addRepo org repo favorites =
     case favorites.favorites of
         RemoteData.Success repos ->
             if not <| repoFavorited org repo favorites then
@@ -1037,7 +1037,7 @@ viewContent model =
             , Pages.Home.view model.currentRepos model.favorites AddRepo DeactivateRepo
             )
 
-        Pages.AddRepositories ->
+        Pages.AddRepos ->
             ( "Add Repositories"
             , Pages.AddRepos.view model.sourceRepos model.favorites model.sourceSearchFilters SearchSourceRepos ActivateRepo ActivateRepos AddRepo
             )
@@ -1149,8 +1149,8 @@ navButton model =
                         a
                             [ class "-btn"
                             , class "-inverted"
-                            , Util.testAttribute "repo-add"
-                            , Routes.href <| Routes.AddRepositories
+                            , Util.testAttribute "repo-activate"
+                            , Routes.href <| Routes.AddRepos
                             ]
                             [ text "Add Repositories" ]
 
@@ -1160,7 +1160,7 @@ navButton model =
                 _ ->
                     text ""
 
-        Pages.AddRepositories ->
+        Pages.AddRepos ->
             button
                 [ classList
                     [ ( "btn-refresh", True )
@@ -1321,20 +1321,20 @@ setNewPage route model =
         ( Routes.Overview, True ) ->
             loadOverviewPage model
 
-        ( Routes.AddRepositories, True ) ->
+        ( Routes.AddRepos, True ) ->
             case model.sourceRepos of
                 NotAsked ->
-                    ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
+                    ( { model | page = Pages.AddRepos, sourceRepos = Loading }
                     , Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
                     )
 
                 Failure _ ->
-                    ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
+                    ( { model | page = Pages.AddRepos, sourceRepos = Loading }
                     , Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
                     )
 
                 _ ->
-                    ( { model | page = Pages.AddRepositories }, Cmd.none )
+                    ( { model | page = Pages.AddRepos }, Cmd.none )
 
         ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
             loadHooksPage model org repo maybePage maybePerPage
@@ -1537,7 +1537,7 @@ updateSourceRepoListByRepoName repo status orgRepos =
         orgRepos
 
 
-{-| buildActivateRepositoryPayload : builds the payload for adding a repository via the api
+{-| buildActivateRepositoryPayload : builds the payload for activating a repository via the api
 -}
 buildActivateRepositoryPayload : Repository -> String -> ActivateRepositoryPayload
 buildActivateRepositoryPayload repo velaSourceBaseURL =

@@ -35,16 +35,22 @@ import Routes
 import Svg.Attributes
 import SvgBuilder exposing (favoritesStar)
 import Util
-import Vela exposing (Favorite, FavoritesModel, Org, Repo, Repositories, Repository)
+import Vela
+    exposing
+        ( AddRepo
+        , DeactivateRepo
+        , Favorite
+        , FavoritesModel
+        , Org
+        , Repo
+        , Repositories
+        , Repository
+        )
 
 
-type alias AddRepo msg =
-    Org -> Repo -> msg
-
-
-view : WebData Repositories -> FavoritesModel -> AddRepo msg -> (Repository -> msg) -> Html msg
-view repos favoritesModel favoriteRepo deactivateRepo =
-    div [] [ viewFavorites favoritesModel repos favoriteRepo, viewOverview favoritesModel repos favoriteRepo deactivateRepo ]
+view : WebData Repositories -> FavoritesModel -> AddRepo msg -> DeactivateRepo msg -> Html msg
+view repos favoritesModel addRepo deactivateRepo =
+    div [] [ viewFavorites favoritesModel repos addRepo, viewOverview favoritesModel repos addRepo deactivateRepo ]
 
 
 numFavorites : FavoritesModel -> Int
@@ -53,7 +59,7 @@ numFavorites favoritesModel =
 
 
 viewFavorites : FavoritesModel -> WebData Repositories -> (Org -> Repo -> msg) -> Html msg
-viewFavorites favoritesModel repos favoriteRepo =
+viewFavorites favoritesModel repos addRepo =
     let
         noFavorites : Html msg
         noFavorites =
@@ -90,7 +96,7 @@ viewFavorites favoritesModel repos favoriteRepo =
                 , case favoritesModel.favorites of
                     Success favorites ->
                         if List.length favorites > 0 then
-                            div [] <| List.map (viewSearchedFavRepo favoriteRepo) favorites
+                            div [] <| List.map (viewSearchedFavRepo addRepo) favorites
 
                         else
                             noFavorites
@@ -125,13 +131,13 @@ repoFavorited org repo favorites =
 {-| viewSearchedFavRepo : renders single repo when searching across favorited repos
 -}
 viewSearchedFavRepo : AddRepo msg -> Favorite -> Html msg
-viewSearchedFavRepo favoriteRepo repo =
+viewSearchedFavRepo addRepo repo =
     div [ class "-item", class "favorited-repo", Util.testAttribute <| "source-repo-" ++ repo.repo_name ]
         [ div [] [ text <| repo.org ++ "/" ++ repo.repo_name ]
         , div [ class "-actions" ]
             [ SvgBuilder.favoritesStar
                 [ Svg.Attributes.class "-cursor"
-                , onClick <| favoriteRepo repo.org repo.repo_name
+                , onClick <| addRepo repo.org repo.repo_name
                 ]
                 True
             , a
@@ -174,7 +180,7 @@ recordsGroupBy key recordList =
 
 
 viewOverview : FavoritesModel -> WebData Repositories -> AddRepo msg -> (Repository -> msg) -> Html msg
-viewOverview favoritesModel currentRepos favoriteRepo deactivateRepo =
+viewOverview favoritesModel currentRepos addRepo deactivateRepo =
     let
         blankMessage : Html msg
         blankMessage =
@@ -185,7 +191,7 @@ viewOverview favoritesModel currentRepos favoriteRepo deactivateRepo =
                     , br [] []
                     , text "Add repositories from your GitHub account to Vela now!"
                     ]
-                , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
+                , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepos ] [ text "Add Repositories" ]
                 ]
 
         numFavs =
@@ -202,7 +208,7 @@ viewOverview favoritesModel currentRepos favoriteRepo deactivateRepo =
                 if List.length activeRepos > 0 then
                     activeRepos
                         |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg favoriteRepo deactivateRepo favoritesModel
+                        |> viewCurrentRepoListByOrg addRepo deactivateRepo favoritesModel
 
                 else if numFavs == 0 then
                     blankMessage
@@ -224,13 +230,13 @@ viewOverview favoritesModel currentRepos favoriteRepo deactivateRepo =
 
 
 viewSingleRepo : AddRepo msg -> (Repository -> msg) -> FavoritesModel -> Repository -> Html msg
-viewSingleRepo favoriteRepo deactivateRepo favoritesModel repo =
+viewSingleRepo addRepo deactivateRepo favoritesModel repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
             [ SvgBuilder.favoritesStar
                 [ Svg.Attributes.class "-cursor"
-                , onClick <| favoriteRepo repo.org repo.name
+                , onClick <| addRepo repo.org repo.name
                 ]
               <|
                 repoFavorited repo.org repo.name favoritesModel
@@ -263,19 +269,19 @@ viewSingleRepo favoriteRepo deactivateRepo favoritesModel repo =
 
 
 viewOrg : AddRepo msg -> (Repository -> msg) -> String -> Repositories -> FavoritesModel -> Html msg
-viewOrg favoriteRepo deactivateRepo org repos favoritesModel =
+viewOrg addRepo deactivateRepo org repos favoritesModel =
     div [ class "repo-org", Util.testAttribute "repo-org" ]
         [ details [ class "details", class "repo-item", attribute "open" "open" ]
             (summary [ class "summary" ] [ text org ]
-                :: List.map (viewSingleRepo favoriteRepo deactivateRepo favoritesModel) repos
+                :: List.map (viewSingleRepo addRepo deactivateRepo favoritesModel) repos
             )
         ]
 
 
 viewCurrentRepoListByOrg : AddRepo msg -> (Repository -> msg) -> FavoritesModel -> Dict String Repositories -> Html msg
-viewCurrentRepoListByOrg favoriteRepo deactivateRepo favoritesModel repoList =
+viewCurrentRepoListByOrg addRepo deactivateRepo favoritesModel repoList =
     repoList
         |> Dict.toList
         |> Util.filterEmptyLists
-        |> List.map (\( org, repos ) -> viewOrg favoriteRepo deactivateRepo org repos favoritesModel)
+        |> List.map (\( org, repos ) -> viewOrg addRepo deactivateRepo org repos favoritesModel)
         |> div [ class "repo-list" ]

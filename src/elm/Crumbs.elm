@@ -79,7 +79,7 @@ toPath page =
             ( "Account", Nothing )
 
         activateRepositoriesPage =
-            ( "Add Repositories", Just Pages.AddRepositories )
+            ( "Add Repositories", Just Pages.AddRepos )
 
         notFoundPage =
             ( "Not Found", Nothing )
@@ -92,7 +92,7 @@ toPath page =
                 Pages.Overview ->
                     [ overviewPage ]
 
-                Pages.AddRepositories ->
+                Pages.AddRepos ->
                     [ overviewPage, accountPage, activateRepositoriesPage ]
 
                 Pages.Hooks org repo maybePage _ ->

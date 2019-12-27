@@ -30,7 +30,7 @@ type alias Repo =
 
 type Route
     = Overview
-    | AddRepositories
+    | AddRepos
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -49,7 +49,7 @@ routes : Parser (Route -> a) a
 routes =
     oneOf
         [ map Overview top
-        , map AddRepositories (s "account" </> s "add-repos")
+        , map AddRepos (s "account" </> s "add-repos")
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , parseAuth
@@ -89,7 +89,7 @@ routeToUrl route =
         Overview ->
             "/"
 
-        AddRepositories ->
+        AddRepos ->
             "/account/add-repos"
 
         Settings org repo ->

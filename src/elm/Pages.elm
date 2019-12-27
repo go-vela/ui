@@ -13,7 +13,7 @@ import Vela exposing (AuthParams, BuildNumber, LineFocus, Org, Repo)
 
 type Page
     = Overview
-    | AddRepositories
+    | AddRepos
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -36,8 +36,8 @@ toRoute page =
         Overview ->
             Routes.Overview
 
-        AddRepositories ->
-            Routes.AddRepositories
+        AddRepos ->
+            Routes.AddRepos
 
         Hooks org repo maybePage maybePerPage ->
             Routes.Hooks org repo maybePage maybePerPage

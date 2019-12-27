@@ -45,7 +45,7 @@ npm run dev
 
 Visit [localhost:8888](http://localhost:8888/) to view the site.
 
-You're ready to start adding/editing code. It should auto-refresh in the browser.
+You're ready to start activating/editing code. It should auto-refresh in the browser.
 
 - Write your code and test locally
   - Please be sure to [follow our commit rules](https://chris.beams.io/posts/git-commit/#seven-rules)

@@ -54,10 +54,10 @@ import Vela
         )
 
 
-{-| view : takes model and renders account page for adding repos to overview
+{-| view : takes model and renders account page for activating repos to overview
 -}
 view : WebData SourceRepositories -> FavoritesModel -> RepoSearchFilters -> Search msg -> ActivateRepo msg -> ActivateRepos msg -> AddRepo msg -> Html msg
-view sourceRepos favorites sourceSearchFilters search activateRepo activateRepos favoriteRepo =
+view sourceRepos favorites sourceSearchFilters search activateRepo activateRepos addRepo =
     let
         loading =
             div []
@@ -76,7 +76,7 @@ view sourceRepos favorites sourceSearchFilters search activateRepo activateRepos
         RemoteData.Success repos ->
             div [ class "source-repos", Util.testAttribute "source-repos" ]
                 [ repoSearchBarGlobal sourceSearchFilters search
-                , viewSourceRepos repos favorites sourceSearchFilters search activateRepo activateRepos favoriteRepo
+                , viewSourceRepos repos favorites sourceSearchFilters search activateRepo activateRepos addRepo
                 ]
 
         RemoteData.Loading ->
@@ -97,33 +97,33 @@ view sourceRepos favorites sourceSearchFilters search activateRepo activateRepos
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
 viewSourceRepos : SourceRepositories -> FavoritesModel -> RepoSearchFilters -> Search msg -> ActivateRepo msg -> ActivateRepos msg -> AddRepo msg -> Html msg
-viewSourceRepos sourceRepos favorites sourceSearchFilters search activateRepo activateRepos favoriteRepo =
+viewSourceRepos sourceRepos favorites sourceSearchFilters search activateRepo activateRepos addRepo =
     if shouldSearch <| searchFilterGlobal sourceSearchFilters then
         -- Search and render repos using the global filter
-        searchReposGlobal favorites sourceSearchFilters sourceRepos activateRepo favoriteRepo
+        searchReposGlobal favorites sourceSearchFilters sourceRepos activateRepo addRepo
 
     else
         -- Render repos normally
         sourceRepos
             |> Dict.toList
             |> Util.filterEmptyLists
-            |> List.map (\( org, repos_ ) -> viewSourceOrg favorites sourceSearchFilters org repos_ search activateRepo activateRepos favoriteRepo)
+            |> List.map (\( org, repos_ ) -> viewSourceOrg favorites sourceSearchFilters org repos_ search activateRepo activateRepos addRepo)
             |> div [ class "repo-list" ]
 
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
 -}
 viewSourceOrg : FavoritesModel -> RepoSearchFilters -> Org -> Repositories -> Search msg -> ActivateRepo msg -> ActivateRepos msg -> AddRepo msg -> Html msg
-viewSourceOrg favorites sourceSearchFilters org repos search activateRepo activateRepos favoriteRepo =
+viewSourceOrg favorites sourceSearchFilters org repos search activateRepo activateRepos addRepo =
     let
         ( repos_, filtered, content ) =
             if shouldSearch <| searchFilterLocal org sourceSearchFilters then
                 -- Search and render repos using the global filter
-                searchReposLocal favorites org sourceSearchFilters repos activateRepo favoriteRepo
+                searchReposLocal favorites org sourceSearchFilters repos activateRepo addRepo
 
             else
                 -- Render repos normally
-                ( repos, False, List.map (viewSourceRepo favorites activateRepo favoriteRepo) repos )
+                ( repos, False, List.map (viewSourceRepo favorites activateRepo addRepo) repos )
     in
     viewSourceOrgDetails sourceSearchFilters org repos_ filtered content search activateRepos
 
@@ -161,12 +161,12 @@ viewSourceOrgSummary sourceSearchFilters org repos filtered content search activ
 
 -}
 viewSourceRepo : FavoritesModel -> ActivateRepo msg -> AddRepo msg -> Repository -> Html msg
-viewSourceRepo favoritesModel activateRepo favoriteRepo repo =
+viewSourceRepo favoritesModel activateRepo addRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
         , div []
-            [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| favoriteRepo repo.org repo.name ] <| repoFavorited repo.org repo.name favoritesModel
-            , buildAddRepoElement repo activateRepo
+            [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| addRepo repo.org repo.name ] <| repoFavorited repo.org repo.name favoritesModel
+            , buildActivateRepoElement repo activateRepo
             ]
         ]
 
@@ -174,14 +174,14 @@ viewSourceRepo favoritesModel activateRepo favoriteRepo repo =
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
 viewSearchedSourceRepo : FavoritesModel -> ActivateRepo msg -> AddRepo msg -> Repository -> Html msg
-viewSearchedSourceRepo favoritesModel activateRepo favoriteRepo repo =
+viewSearchedSourceRepo favoritesModel activateRepo addRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
             [ text <| repo.org ++ "/" ++ repo.name ]
         , div
             []
-            [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| favoriteRepo repo.org repo.name ] <| repoFavorited repo.org repo.name favoritesModel
-            , buildAddRepoElement repo activateRepo
+            [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| addRepo repo.org repo.name ] <| repoFavorited repo.org repo.name favoritesModel
+            , buildActivateRepoElement repo activateRepo
             ]
         ]
 
@@ -207,35 +207,35 @@ activateReposBtn org repos filtered activateRepos =
         ]
 
 
-{-| buildAddRepoElement : builds action element for adding single repos
+{-| buildActivateRepoElement : builds action element for activating a single repo
 -}
-buildAddRepoElement : Repository -> ActivateRepo msg -> Html msg
-buildAddRepoElement repo activateRepo =
+buildActivateRepoElement : Repository -> ActivateRepo msg -> Html msg
+buildActivateRepoElement repo activateRepo =
     case repo.added of
         RemoteData.NotAsked ->
-            button [ class "-solid", onClick (activateRepo repo) ] [ text "Add" ]
+            button [ class "-solid", onClick (activateRepo repo) ] [ text "Activate" ]
 
         RemoteData.Loading ->
-            div [ class "repo-add--adding" ] [ span [ class "repo-add--adding-text" ] [ text "Adding" ], span [ class "loading-ellipsis" ] [] ]
+            div [ class "repo-activate--activating" ] [ span [ class "repo-activate--activating-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
 
         RemoteData.Failure _ ->
-            div [ class "repo-add--failed", onClick (activateRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+            div [ class "repo-activate--failed", onClick (activateRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
         RemoteData.Success addedStatus ->
             if addedStatus then
                 div [ class "-added-container" ]
-                    [ div [ class "repo-add--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Added" ] ]
+                    [ div [ class "repo-activate--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Added" ] ]
                     , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
                     ]
 
             else
-                div [ class "repo-add--failed", onClick (activateRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+                div [ class "repo-activate--failed", onClick (activateRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
 searchReposGlobal : FavoritesModel -> RepoSearchFilters -> SourceRepositories -> ActivateRepo msg -> AddRepo msg -> Html msg
-searchReposGlobal favoritesModel filters repos activateRepo favoriteRepo =
+searchReposGlobal favoritesModel filters repos activateRepo addRepo =
     let
         filteredRepos =
             repos
@@ -248,7 +248,7 @@ searchReposGlobal favoritesModel filters repos activateRepo favoriteRepo =
     div [ class "filtered-repos" ] <|
         -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
-            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo favoritesModel activateRepo favoriteRepo repo)
+            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo favoritesModel activateRepo addRepo repo)
 
         else
             -- No repos matched the search
@@ -258,7 +258,7 @@ searchReposGlobal favoritesModel filters repos activateRepo favoriteRepo =
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
 searchReposLocal : FavoritesModel -> Org -> RepoSearchFilters -> Repositories -> ActivateRepo msg -> AddRepo msg -> ( Repositories, Bool, List (Html msg) )
-searchReposLocal favoritesModel org filters repos activateRepo favoriteRepo =
+searchReposLocal favoritesModel org filters repos activateRepo addRepo =
     -- Filter the repos if the user typed more than 2 characters
     let
         filteredRepos =
@@ -267,7 +267,7 @@ searchReposLocal favoritesModel org filters repos activateRepo favoriteRepo =
     ( filteredRepos
     , True
     , if not <| List.isEmpty filteredRepos then
-        List.map (viewSourceRepo favoritesModel activateRepo favoriteRepo) filteredRepos
+        List.map (viewSourceRepo favoritesModel activateRepo addRepo) filteredRepos
 
       else
         [ div [ class "-no-repos" ] [ text "No results" ] ]

@@ -15,6 +15,7 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
+    , DeactivateRepo
     , Favorite
     , Favorites
     , FavoritesModel
@@ -27,6 +28,7 @@ module Vela exposing
     , Log
     , Logs
     , Org
+    , RemoveRepo
     , Repo
     , RepoSearchFilters
     , Repositories
@@ -807,7 +809,7 @@ type alias SearchFilter =
 
 
 
--- UPDATES
+-- MSG UPDATES
 
 
 {-| ActivateRepo : takes repo and activates it on Vela
@@ -822,11 +824,25 @@ type alias ActivateRepos msg =
     Repositories -> msg
 
 
-{-| AddRepo : takes repo and adds them to user's favorites
+{-| DeactivateRepo : takes repo and deactivates it on Vela
+-}
+type alias DeactivateRepo msg =
+    Repository -> msg
+
+
+{-| AddRepo : takes org and repo and adds them to user's favorites
 -}
 type alias AddRepo msg =
     Org -> Repo -> msg
 
 
+{-| RemoveRepo : takes org and repo and removes them from user's favorites
+-}
+type alias RemoveRepo msg =
+    Org -> Repo -> msg
+
+
+{-| Search : takes org and user input to filter repos
+-}
 type alias Search msg =
     Org -> String -> msg
