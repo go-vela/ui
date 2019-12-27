@@ -289,7 +289,7 @@ type Msg
     | ActivateRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
-    | FavoriteRepo Org Repo
+    | AddRepo Org Repo
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
@@ -649,7 +649,7 @@ update msg model =
             , restartBuild model org repo buildNumber
             )
 
-        FavoriteRepo org repo ->
+        AddRepo org repo ->
             let
                 favorites =
                     model.favorites
@@ -1034,12 +1034,12 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.currentRepos model.favorites FavoriteRepo RemoveRepo
+            , Pages.Home.view model.currentRepos model.favorites AddRepo RemoveRepo
             )
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model.sourceRepos model.favorites model.sourceSearchFilters SearchSourceRepos ActivateRepo ActivateRepos FavoriteRepo
+            , Pages.AddRepos.view model.sourceRepos model.favorites model.sourceSearchFilters SearchSourceRepos ActivateRepo ActivateRepos AddRepo
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1182,7 +1182,7 @@ navButton model =
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "nav-buttons" ]
                 [ div [ class "builds-favorite" ]
-                    [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| FavoriteRepo org repo ] <| repoFavorited org repo model.favorites
+                    [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| AddRepo org repo ] <| repoFavorited org repo model.favorites
                     ]
                 , a
                     [ class "-btn"

@@ -8,6 +8,7 @@ module Vela exposing
     ( ActivateRepo
     , ActivateRepos
     , ActivateRepositoryPayload
+    , AddRepo
     , AuthParams
     , Build
     , BuildIdentifier
@@ -15,7 +16,6 @@ module Vela exposing
     , Builds
     , BuildsModel
     , Favorite
-    , FavoriteRepo
     , Favorites
     , FavoritesModel
     , Field
@@ -822,9 +822,9 @@ type alias ActivateRepos msg =
     Repositories -> msg
 
 
-{-| FavoriteRepo : takes repo and adds them to user's favorites
+{-| AddRepo : takes repo and adds them to user's favorites
 -}
-type alias FavoriteRepo msg =
+type alias AddRepo msg =
     Org -> Repo -> msg
 
 

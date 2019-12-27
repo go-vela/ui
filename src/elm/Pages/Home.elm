@@ -38,11 +38,11 @@ import Util
 import Vela exposing (Favorite, FavoritesModel, Org, Repo, Repositories, Repository)
 
 
-type alias FavoriteRepo msg =
+type alias AddRepo msg =
     Org -> Repo -> msg
 
 
-view : WebData Repositories -> FavoritesModel -> FavoriteRepo msg -> (Repository -> msg) -> Html msg
+view : WebData Repositories -> FavoritesModel -> AddRepo msg -> (Repository -> msg) -> Html msg
 view repos favoritesModel favoriteRepo removeRepo =
     div [] [ viewFavorites favoritesModel repos favoriteRepo, viewOverview favoritesModel repos favoriteRepo removeRepo ]
 
@@ -124,7 +124,7 @@ repoFavorited org repo favorites =
 
 {-| viewSearchedFavRepo : renders single repo when searching across favorited repos
 -}
-viewSearchedFavRepo : FavoriteRepo msg -> Favorite -> Html msg
+viewSearchedFavRepo : AddRepo msg -> Favorite -> Html msg
 viewSearchedFavRepo favoriteRepo repo =
     div [ class "-item", class "favorited-repo", Util.testAttribute <| "source-repo-" ++ repo.repo_name ]
         [ div [] [ text <| repo.org ++ "/" ++ repo.repo_name ]
@@ -173,7 +173,7 @@ recordsGroupBy key recordList =
     List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
 
 
-viewOverview : FavoritesModel -> WebData Repositories -> FavoriteRepo msg -> (Repository -> msg) -> Html msg
+viewOverview : FavoritesModel -> WebData Repositories -> AddRepo msg -> (Repository -> msg) -> Html msg
 viewOverview favoritesModel currentRepos favoriteRepo removeRepo =
     let
         blankMessage : Html msg
@@ -223,7 +223,7 @@ viewOverview favoritesModel currentRepos favoriteRepo removeRepo =
         ]
 
 
-viewSingleRepo : FavoriteRepo msg -> (Repository -> msg) -> FavoritesModel -> Repository -> Html msg
+viewSingleRepo : AddRepo msg -> (Repository -> msg) -> FavoritesModel -> Repository -> Html msg
 viewSingleRepo favoriteRepo removeRepo favoritesModel repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
@@ -262,7 +262,7 @@ viewSingleRepo favoriteRepo removeRepo favoritesModel repo =
         ]
 
 
-viewOrg : FavoriteRepo msg -> (Repository -> msg) -> String -> Repositories -> FavoritesModel -> Html msg
+viewOrg : AddRepo msg -> (Repository -> msg) -> String -> Repositories -> FavoritesModel -> Html msg
 viewOrg favoriteRepo removeRepo org repos favoritesModel =
     div [ class "repo-org", Util.testAttribute "repo-org" ]
         [ details [ class "details", class "repo-item", attribute "open" "open" ]
@@ -272,7 +272,7 @@ viewOrg favoriteRepo removeRepo org repos favoritesModel =
         ]
 
 
-viewCurrentRepoListByOrg : FavoriteRepo msg -> (Repository -> msg) -> FavoritesModel -> Dict String Repositories -> Html msg
+viewCurrentRepoListByOrg : AddRepo msg -> (Repository -> msg) -> FavoritesModel -> Dict String Repositories -> Html msg
 viewCurrentRepoListByOrg favoriteRepo removeRepo favoritesModel repoList =
     repoList
         |> Dict.toList

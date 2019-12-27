@@ -42,7 +42,7 @@ import Vela
     exposing
         ( ActivateRepo
         , ActivateRepos
-        , FavoriteRepo
+        , AddRepo
         , FavoritesModel
         , Org
         , RepoSearchFilters
@@ -56,7 +56,7 @@ import Vela
 
 {-| view : takes model and renders account page for adding repos to overview
 -}
-view : WebData SourceRepositories -> FavoritesModel -> RepoSearchFilters -> Search msg -> ActivateRepo msg -> ActivateRepos msg -> FavoriteRepo msg -> Html msg
+view : WebData SourceRepositories -> FavoritesModel -> RepoSearchFilters -> Search msg -> ActivateRepo msg -> ActivateRepos msg -> AddRepo msg -> Html msg
 view sourceRepos favorites sourceSearchFilters search activateRepo activateRepos favoriteRepo =
     let
         loading =
@@ -96,7 +96,7 @@ view sourceRepos favorites sourceSearchFilters search activateRepo activateRepos
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
-viewSourceRepos : SourceRepositories -> FavoritesModel -> RepoSearchFilters -> Search msg -> ActivateRepo msg -> ActivateRepos msg -> FavoriteRepo msg -> Html msg
+viewSourceRepos : SourceRepositories -> FavoritesModel -> RepoSearchFilters -> Search msg -> ActivateRepo msg -> ActivateRepos msg -> AddRepo msg -> Html msg
 viewSourceRepos sourceRepos favorites sourceSearchFilters search activateRepo activateRepos favoriteRepo =
     if shouldSearch <| searchFilterGlobal sourceSearchFilters then
         -- Search and render repos using the global filter
@@ -113,7 +113,7 @@ viewSourceRepos sourceRepos favorites sourceSearchFilters search activateRepo ac
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
 -}
-viewSourceOrg : FavoritesModel -> RepoSearchFilters -> Org -> Repositories -> Search msg -> ActivateRepo msg -> ActivateRepos msg -> FavoriteRepo msg -> Html msg
+viewSourceOrg : FavoritesModel -> RepoSearchFilters -> Org -> Repositories -> Search msg -> ActivateRepo msg -> ActivateRepos msg -> AddRepo msg -> Html msg
 viewSourceOrg favorites sourceSearchFilters org repos search activateRepo activateRepos favoriteRepo =
     let
         ( repos_, filtered, content ) =
@@ -160,7 +160,7 @@ viewSourceOrgSummary sourceSearchFilters org repos filtered content search activ
     viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Add' button
 
 -}
-viewSourceRepo : FavoritesModel -> ActivateRepo msg -> FavoriteRepo msg -> Repository -> Html msg
+viewSourceRepo : FavoritesModel -> ActivateRepo msg -> AddRepo msg -> Repository -> Html msg
 viewSourceRepo favoritesModel activateRepo favoriteRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
@@ -173,7 +173,7 @@ viewSourceRepo favoritesModel activateRepo favoriteRepo repo =
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : FavoritesModel -> ActivateRepo msg -> FavoriteRepo msg -> Repository -> Html msg
+viewSearchedSourceRepo : FavoritesModel -> ActivateRepo msg -> AddRepo msg -> Repository -> Html msg
 viewSearchedSourceRepo favoritesModel activateRepo favoriteRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
@@ -234,7 +234,7 @@ buildAddRepoElement repo activateRepo =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : FavoritesModel -> RepoSearchFilters -> SourceRepositories -> ActivateRepo msg -> FavoriteRepo msg -> Html msg
+searchReposGlobal : FavoritesModel -> RepoSearchFilters -> SourceRepositories -> ActivateRepo msg -> AddRepo msg -> Html msg
 searchReposGlobal favoritesModel filters repos activateRepo favoriteRepo =
     let
         filteredRepos =
@@ -257,7 +257,7 @@ searchReposGlobal favoritesModel filters repos activateRepo favoriteRepo =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : FavoritesModel -> Org -> RepoSearchFilters -> Repositories -> ActivateRepo msg -> FavoriteRepo msg -> ( Repositories, Bool, List (Html msg) )
+searchReposLocal : FavoritesModel -> Org -> RepoSearchFilters -> Repositories -> ActivateRepo msg -> AddRepo msg -> ( Repositories, Bool, List (Html msg) )
 searchReposLocal favoritesModel org filters repos activateRepo favoriteRepo =
     -- Filter the repos if the user typed more than 2 characters
     let
