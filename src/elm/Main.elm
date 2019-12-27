@@ -287,7 +287,7 @@ type Msg
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
     | ActivateRepos Repositories
-    | RemoveRepo Repository
+    | DeactivateRepo Repository
     | RestartBuild Org Repo BuildNumber
     | AddRepo Org Repo
       -- Inbound HTTP responses
@@ -410,7 +410,7 @@ update msg model =
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
 
-        RemoveRepo repo ->
+        DeactivateRepo repo ->
             ( model, Api.try (RepoRemovedResponse repo) <| Api.deleteRepo model repo )
 
         RepoRemovedResponse repo response ->
@@ -1034,7 +1034,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.currentRepos model.favorites AddRepo RemoveRepo
+            , Pages.Home.view model.currentRepos model.favorites AddRepo DeactivateRepo
             )
 
         Pages.AddRepositories ->

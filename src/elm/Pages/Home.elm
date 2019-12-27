@@ -43,8 +43,8 @@ type alias AddRepo msg =
 
 
 view : WebData Repositories -> FavoritesModel -> AddRepo msg -> (Repository -> msg) -> Html msg
-view repos favoritesModel favoriteRepo removeRepo =
-    div [] [ viewFavorites favoritesModel repos favoriteRepo, viewOverview favoritesModel repos favoriteRepo removeRepo ]
+view repos favoritesModel favoriteRepo deactivateRepo =
+    div [] [ viewFavorites favoritesModel repos favoriteRepo, viewOverview favoritesModel repos favoriteRepo deactivateRepo ]
 
 
 numFavorites : FavoritesModel -> Int
@@ -142,7 +142,7 @@ viewSearchedFavRepo favoriteRepo repo =
                 ]
                 [ text "Settings" ]
 
-            -- , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| removeRepo repo ] [ text "Remove" ]
+            -- , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| deactivateRepo repo ] [ text "Remove" ]
             , a
                 [ class "-btn"
                 , class "-inverted"
@@ -174,7 +174,7 @@ recordsGroupBy key recordList =
 
 
 viewOverview : FavoritesModel -> WebData Repositories -> AddRepo msg -> (Repository -> msg) -> Html msg
-viewOverview favoritesModel currentRepos favoriteRepo removeRepo =
+viewOverview favoritesModel currentRepos favoriteRepo deactivateRepo =
     let
         blankMessage : Html msg
         blankMessage =
@@ -202,7 +202,7 @@ viewOverview favoritesModel currentRepos favoriteRepo removeRepo =
                 if List.length activeRepos > 0 then
                     activeRepos
                         |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg favoriteRepo removeRepo favoritesModel
+                        |> viewCurrentRepoListByOrg favoriteRepo deactivateRepo favoritesModel
 
                 else if numFavs == 0 then
                     blankMessage
@@ -224,7 +224,7 @@ viewOverview favoritesModel currentRepos favoriteRepo removeRepo =
 
 
 viewSingleRepo : AddRepo msg -> (Repository -> msg) -> FavoritesModel -> Repository -> Html msg
-viewSingleRepo favoriteRepo removeRepo favoritesModel repo =
+viewSingleRepo favoriteRepo deactivateRepo favoritesModel repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
@@ -241,7 +241,7 @@ viewSingleRepo favoriteRepo removeRepo favoritesModel repo =
                 , Routes.href <| Routes.Settings repo.org repo.name
                 ]
                 [ text "Settings" ]
-            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| removeRepo repo ] [ text "Remove" ]
+            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| deactivateRepo repo ] [ text "Remove" ]
             , a
                 [ class "-btn"
                 , class "-inverted"
@@ -263,19 +263,19 @@ viewSingleRepo favoriteRepo removeRepo favoritesModel repo =
 
 
 viewOrg : AddRepo msg -> (Repository -> msg) -> String -> Repositories -> FavoritesModel -> Html msg
-viewOrg favoriteRepo removeRepo org repos favoritesModel =
+viewOrg favoriteRepo deactivateRepo org repos favoritesModel =
     div [ class "repo-org", Util.testAttribute "repo-org" ]
         [ details [ class "details", class "repo-item", attribute "open" "open" ]
             (summary [ class "summary" ] [ text org ]
-                :: List.map (viewSingleRepo favoriteRepo removeRepo favoritesModel) repos
+                :: List.map (viewSingleRepo favoriteRepo deactivateRepo favoritesModel) repos
             )
         ]
 
 
 viewCurrentRepoListByOrg : AddRepo msg -> (Repository -> msg) -> FavoritesModel -> Dict String Repositories -> Html msg
-viewCurrentRepoListByOrg favoriteRepo removeRepo favoritesModel repoList =
+viewCurrentRepoListByOrg favoriteRepo deactivateRepo favoritesModel repoList =
     repoList
         |> Dict.toList
         |> Util.filterEmptyLists
-        |> List.map (\( org, repos ) -> viewOrg favoriteRepo removeRepo org repos favoritesModel)
+        |> List.map (\( org, repos ) -> viewOrg favoriteRepo deactivateRepo org repos favoritesModel)
         |> div [ class "repo-list" ]
