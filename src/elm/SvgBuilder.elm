@@ -38,7 +38,6 @@ import Svg.Attributes
         , cx
         , cy
         , d
-        , fill
         , height
         , r
         , stroke
@@ -116,7 +115,7 @@ buildPending =
         , height "44"
         , ariaHidden
         ]
-        [ Svg.path [ d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
+        [ Svg.path [ class "bg-fill", d "M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" ]
             []
         ]
 
@@ -342,7 +341,7 @@ buildHistoryPending _ =
         , width "26"
         , height "26"
         ]
-        [ Svg.circle [ cx "14", cy "14", r "2" ] [] ]
+        [ Svg.circle [ class "pending-circle", cx "14", cy "14", r "2" ] [] ]
 
 
 {-| buildHistoryRunning : produces svg icon for build history status - running

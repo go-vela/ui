@@ -5,8 +5,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Build exposing
-    ( expandBuildLineFocus
+    ( clickLogLine
+    , clickStep
+    , expandBuildLineFocus
     , parseLineFocus
+    , setLogLineFocus
     , statusToClass
     , statusToString
     , viewBuildHistory
@@ -16,6 +19,7 @@ module Build exposing
     )
 
 import Base64 exposing (decode)
+import Browser.Navigation as Navigation
 import DateFormat.Relative exposing (relativeTime)
 import Html
     exposing
@@ -72,6 +76,16 @@ type alias ExpandStep msg =
 -}
 type alias SetLineFocus msg =
     StepNumber -> Int -> msg
+
+
+{-| GetLogs : type alias for passing in logs fetch function from Main.elm
+-}
+type alias GetLogsFromBuild a msg =
+    a -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd msg
+
+
+type alias GetLogsFromSteps a msg =
+    a -> Org -> Repo -> BuildNumber -> WebData Steps -> Cmd msg
 
 
 
@@ -315,8 +329,8 @@ viewLogs stepNumber lineFocus log clickAction =
                     else
                         code [] [ text "No logs for this step." ]
 
-                RemoteData.Failure err ->
-                    code [ Util.testAttribute "logs-error" ] [ text "error:" ]
+                RemoteData.Failure _ ->
+                    code [ Util.testAttribute "logs-error" ] [ text "error" ]
 
                 _ ->
                     div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
@@ -405,8 +419,8 @@ lineFocusStyle lineFocus lineNumber =
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
 -}
-viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Builds -> Html msg
-viewBuildHistory now timezone page org repo builds =
+viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Builds -> Int -> Html msg
+viewBuildHistory now timezone page org repo builds limit =
     let
         show =
             case page of
@@ -422,7 +436,7 @@ viewBuildHistory now timezone page org repo builds =
                 if List.length blds > 0 then
                     div [ class "build-history", Util.testAttribute "build-history" ] <|
                         List.indexedMap (\idx -> \build -> recentBuild now timezone org repo build idx) <|
-                            List.take 10 blds
+                            List.take limit blds
 
                 else
                     text ""
@@ -681,6 +695,120 @@ getStepLog step logs =
             )
             logs
         )
+
+
+{-| clickStep : takes model org repo and step number and fetches step information from the api
+-}
+clickStep : a -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogsFromBuild a msg -> ( WebData Steps, Cmd msg )
+clickStep model steps org repo buildNumber stepNumber getLogs =
+    case stepNumber of
+        Nothing ->
+            ( steps
+            , Cmd.none
+            )
+
+        Just stepNum ->
+            let
+                ( stepsOut, action ) =
+                    case steps of
+                        RemoteData.Success steps_ ->
+                            ( RemoteData.succeed <| toggleStepView steps_ stepNum
+                            , case buildNumber of
+                                Just buildNum ->
+                                    getLogs model org repo buildNum stepNum
+
+                                Nothing ->
+                                    Cmd.none
+                            )
+
+                        _ ->
+                            ( steps, Cmd.none )
+            in
+            ( stepsOut
+            , action
+            )
+
+
+{-| toggleStepView : takes steps and step number and toggles that steps viewing state
+-}
+toggleStepView : Steps -> String -> Steps
+toggleStepView steps stepNumber =
+    List.Extra.updateIf
+        (\step -> String.fromInt step.number == stepNumber)
+        (\step -> { step | viewing = not step.viewing })
+        steps
+
+
+{-| clickLogLine : takes model and line number and sets the focus on the log line
+-}
+clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd msg )
+clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
+    ( steps
+    , Navigation.replaceUrl navKey <|
+        Routes.routeToUrl
+            (Routes.Build org repo buildNumber <|
+                Just <|
+                    "#step:"
+                        ++ stepNumber
+                        ++ ":"
+                        ++ String.fromInt lineNumber
+            )
+    )
+
+
+{-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+-}
+setLogLineFocus : a -> WebData Steps -> Org -> Repo -> BuildNumber -> LineFocus -> GetLogsFromSteps a msg -> ( Page, WebData Steps, Cmd msg )
+setLogLineFocus model steps org repo buildNumber lineFocus getLogs =
+    let
+        ( stepsOut, action ) =
+            case steps of
+                RemoteData.Success steps_ ->
+                    let
+                        focusedSteps =
+                            RemoteData.succeed <| setLineFocus steps_ lineFocus
+                    in
+                    ( focusedSteps
+                    , getLogs model org repo buildNumber focusedSteps
+                    )
+
+                _ ->
+                    ( steps
+                    , Cmd.none
+                    )
+    in
+    ( Pages.Build org repo buildNumber lineFocus
+    , stepsOut
+    , action
+    )
+
+
+{-| setLineFocus : takes steps and line focus and sets a new log line focus
+-}
+setLineFocus : Steps -> LineFocus -> Steps
+setLineFocus steps lineFocus =
+    let
+        ( target, stepNumber, lineNumber ) =
+            parseLineFocus lineFocus
+    in
+    case Maybe.withDefault "" target of
+        "step" ->
+            case stepNumber of
+                Just n ->
+                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = lineNumber }) <| clearLineFocus steps
+
+                Nothing ->
+                    steps
+
+        _ ->
+            steps
+
+
+{-| clearLineFocus : takes steps and clears all log line focus
+-}
+clearLineFocus : Steps -> Steps
+clearLineFocus steps =
+    List.map (\step -> { step | lineFocus = Nothing }) steps
 
 
 {-| expandBuildLineFocus : takes LineFocus URL fragment and expands the appropriate step to automatically view

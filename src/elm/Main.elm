@@ -13,8 +13,10 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Build
     exposing
-        ( expandBuildLineFocus
-        , parseLineFocus
+        ( clickLogLine
+        , clickStep
+        , expandBuildLineFocus
+        , setLogLineFocus
         , viewFullBuild
         , viewRepositoryBuilds
         )
@@ -26,19 +28,15 @@ import Html
     exposing
         ( Html
         , a
-        , br
         , button
-        , code
         , details
         , div
         , h1
         , header
-        , input
         , li
         , main_
         , nav
         , p
-        , span
         , summary
         , text
         , ul
@@ -50,10 +48,8 @@ import Html.Attributes
         , classList
         , disabled
         , href
-        , placeholder
-        , value
         )
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy2)
 import Http exposing (Error(..))
 import Http.Detailed
@@ -63,6 +59,8 @@ import Json.Encode as Encode
 import List.Extra exposing (setIf, updateIf)
 import Pager
 import Pages exposing (Page(..))
+import Pages.AddRepos
+import Pages.Home
 import Pages.Hooks
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
@@ -84,7 +82,9 @@ import Url.Builder as UB exposing (QueryParameter)
 import Util
 import Vela
     exposing
-        ( AddRepositoryPayload
+        ( AddRepo
+        , AddRepos
+        , AddRepositoryPayload
         , AuthParams
         , Build
         , BuildIdentifier
@@ -100,6 +100,7 @@ import Vela
         , Logs
         , Org
         , Repo
+        , RepoSearchFilters
         , Repositories
         , Repository
         , Session
@@ -172,14 +173,6 @@ type alias Model =
     , hookBuilds : HookBuilds
     , theme : Theme
     }
-
-
-type alias RepoSearchFilters =
-    Dict Org SearchFilter
-
-
-type alias SearchFilter =
-    String
 
 
 type Interval
@@ -280,7 +273,7 @@ type Msg
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
-    | AddOrgRepos Repositories
+    | AddRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
@@ -572,7 +565,7 @@ update msg model =
             , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
             )
 
-        AddOrgRepos repos ->
+        AddRepos repos ->
             ( model
             , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
             )
@@ -589,7 +582,7 @@ update msg model =
         ClickStep org repo buildNumber stepNumber ->
             let
                 ( steps, action ) =
-                    clickStep model org repo buildNumber stepNumber
+                    clickStep model model.steps org repo buildNumber stepNumber getBuildStepLogs
             in
             ( { model | steps = steps }
             , action
@@ -605,7 +598,7 @@ update msg model =
         ClickLogLine org repo buildNumber stepNumber lineNumber ->
             let
                 ( steps, action ) =
-                    clickLogLine model org repo buildNumber stepNumber lineNumber
+                    clickLogLine model.steps model.navigationKey org repo buildNumber stepNumber lineNumber
             in
             ( { model | steps = steps }
             , action
@@ -664,10 +657,10 @@ update msg model =
         HookBuildResponse org repo buildNumber response ->
             case response of
                 Ok ( _, build ) ->
-                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
+                    ( { model | hookBuilds = Pages.Hooks.receiveHookBuild ( org, repo, buildNumber ) (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
 
                 Err error ->
-                    ( { model | hookBuilds = receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, Cmd.none )
+                    ( { model | hookBuilds = Pages.Hooks.receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, Cmd.none )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
@@ -948,7 +941,7 @@ view model =
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
         , viewNav model
-        , div [ class "util" ] [ Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds ]
+        , div [ class "util" ] [ Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
         , main_ []
             [ div [ class "content-wrap" ] [ content ] ]
         , div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.config Alerts.view AlertsUpdate model.toasties ]
@@ -961,12 +954,12 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , viewOverview model
+            , Pages.Home.view model.currentRepos RemoveRepo
             )
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , viewAddRepos model
+            , Pages.AddRepos.view model.sourceRepos model.sourceSearchFilters SearchSourceRepos AddRepo AddRepos
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1054,307 +1047,6 @@ viewLogin =
         ]
 
 
-viewOverview : Model -> Html Msg
-viewOverview model =
-    let
-        blankMessage : Html Msg
-        blankMessage =
-            div [ class "overview" ]
-                [ h1 [] [ text "Let's get Started!" ]
-                , p []
-                    [ text "To have Vela start building your projects we need to get them added."
-                    , br [] []
-                    , text "Add repositories from your GitHub account to Vela now!"
-                    ]
-                , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
-                ]
-    in
-    div []
-        [ case model.currentRepos of
-            Success repos ->
-                let
-                    activeRepos : Repositories
-                    activeRepos =
-                        List.filter .active repos
-                in
-                if List.length activeRepos > 0 then
-                    activeRepos
-                        |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg
-
-                else
-                    blankMessage
-
-            Loading ->
-                div []
-                    [ h1 [] [ text "Loading your Repositories", span [ class "loading-ellipsis" ] [] ]
-                    ]
-
-            NotAsked ->
-                blankMessage
-
-            Failure _ ->
-                text ""
-        ]
-
-
-viewSingleRepo : Repository -> Html Msg
-viewSingleRepo repo =
-    div [ class "-item", Util.testAttribute "repo-item" ]
-        [ div [] [ text repo.name ]
-        , div [ class "-actions" ]
-            [ a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
-                , Routes.href <| Routes.Settings repo.org repo.name
-                ]
-                [ text "Settings" ]
-            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| RemoveRepo repo ] [ text "Remove" ]
-            , a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
-                , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
-                ]
-                [ text "Hooks" ]
-            , a
-                [ class "-btn"
-                , class "-solid"
-                , class "-view"
-                , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing
-                ]
-                [ text "View" ]
-            ]
-        ]
-
-
-viewOrg : String -> Repositories -> Html Msg
-viewOrg org repos =
-    div [ class "repo-org", Util.testAttribute "repo-org" ]
-        [ details [ class "details", class "repo-item", attribute "open" "open" ]
-            (summary [ class "summary" ] [ text org ]
-                :: List.map viewSingleRepo repos
-            )
-        ]
-
-
-viewCurrentRepoListByOrg : Dict String Repositories -> Html Msg
-viewCurrentRepoListByOrg repoList =
-    repoList
-        |> Dict.toList
-        |> Util.filterEmptyLists
-        |> List.map (\( org, repos ) -> viewOrg org repos)
-        |> div [ class "repo-list" ]
-
-
-{-| viewAddRepos : takes model and renders account page for adding repos to overview
--}
-viewAddRepos : Model -> Html Msg
-viewAddRepos model =
-    let
-        loading =
-            div []
-                [ h1 []
-                    [ text "Loading your Repositories"
-                    , span [ class "loading-ellipsis" ] []
-                    ]
-                , p []
-                    [ text <|
-                        "Hang tight while we grab the list of repositories that you have access to from Github. If you have access to "
-                            ++ "a lot of organizations and repositories this might take a little while."
-                    ]
-                ]
-    in
-    case model.sourceRepos of
-        Success sourceRepos ->
-            div [ class "source-repos", Util.testAttribute "source-repos" ]
-                [ repoSearchBarGlobal model
-                , viewSourceRepos model sourceRepos
-                ]
-
-        Loading ->
-            loading
-
-        NotAsked ->
-            loading
-
-        Failure _ ->
-            div []
-                [ p []
-                    [ text <|
-                        "There was an error fetching your available repositories... Click Refresh or try again later!"
-                    ]
-                ]
-
-
-{-| viewSourceRepos : takes model and source repos and renders them based on user search
--}
-viewSourceRepos : Model -> SourceRepositories -> Html Msg
-viewSourceRepos model sourceRepos =
-    if shouldSearch <| searchFilterGlobal model.sourceSearchFilters then
-        -- Search and render repos using the global filter
-        searchReposGlobal model.sourceSearchFilters sourceRepos
-
-    else
-        -- Render repos normally
-        sourceRepos
-            |> Dict.toList
-            |> Util.filterEmptyLists
-            |> List.map (\( org, repos_ ) -> viewSourceOrg model org repos_)
-            |> div [ class "repo-list" ]
-
-
-{-| viewSourceOrg : renders the source repositories available to a user by org
--}
-viewSourceOrg : Model -> Org -> Repositories -> Html Msg
-viewSourceOrg model org repos =
-    let
-        ( repos_, filtered, content ) =
-            if shouldSearch <| searchFilterLocal org model.sourceSearchFilters then
-                -- Search and render repos using the global filter
-                searchReposLocal org model.sourceSearchFilters repos
-
-            else
-                -- Render repos normally
-                ( repos, False, List.map viewSourceRepo repos )
-    in
-    viewSourceOrgDetails model org repos_ filtered content
-
-
-{-| viewSourceOrgDetails : renders the source repositories by org as an html details element
--}
-viewSourceOrgDetails : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> Html Msg
-viewSourceOrgDetails model org repos filtered content =
-    div [ class "org" ]
-        [ details [ class "details", class "repo-item" ] <|
-            viewSourceOrgSummary model org repos filtered content
-        ]
-
-
-{-| viewSourceOrgSummary : renders the source repositories details summary
--}
-viewSourceOrgSummary : Model -> Org -> Repositories -> Bool -> List (Html Msg) -> List (Html Msg)
-viewSourceOrgSummary model org repos filtered content =
-    summary [ class "summary", Util.testAttribute <| "source-org-" ++ org ]
-        [ div [ class "org-header" ]
-            [ text org
-            , viewRepoCount repos
-            ]
-        ]
-        :: div [ class "source-actions" ]
-            [ repoSearchBarLocal model org
-            , addReposBtn org repos filtered
-            ]
-        :: content
-
-
-{-| viewSourceRepo : renders single repo within a list of org repos
-
-    viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Add' button
-
--}
-viewSourceRepo : Repository -> Html Msg
-viewSourceRepo repo =
-    div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
-        [ div [] [ text repo.name ]
-        , buildAddRepoElement repo
-        ]
-
-
-{-| viewSearchedSourceRepo : renders single repo when searching across all repos
--}
-viewSearchedSourceRepo : Repository -> Html Msg
-viewSearchedSourceRepo repo =
-    div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
-        [ div [] [ text <| repo.org ++ "/" ++ repo.name ]
-        , buildAddRepoElement repo
-        ]
-
-
-{-| viewRepoCount : renders the amount of repos available within an org
--}
-viewRepoCount : List a -> Html Msg
-viewRepoCount repos =
-    span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
-
-
-{-| addReposBtn : takes List of repos and renders a button to add them all at once, texts depends on user input filter
--}
-addReposBtn : Org -> Repositories -> Bool -> Html Msg
-addReposBtn org repos filtered =
-    button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (AddOrgRepos repos) ]
-        [ text <|
-            if filtered then
-                "Add Results"
-
-            else
-                "Add All"
-        ]
-
-
-{-| buildAddRepoElement : builds action element for adding single repos
--}
-buildAddRepoElement : Repository -> Html Msg
-buildAddRepoElement repo =
-    case repo.added of
-        NotAsked ->
-            button [ class "-solid", onClick (AddRepo repo) ] [ text "Add" ]
-
-        Loading ->
-            div [ class "repo-add--adding" ] [ span [ class "repo-add--adding-text" ] [ text "Adding" ], span [ class "loading-ellipsis" ] [] ]
-
-        Failure _ ->
-            div [ class "repo-add--failed", onClick (AddRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
-
-        Success addedStatus ->
-            if addedStatus then
-                div [ class "-added-container" ]
-                    [ div [ class "repo-add--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Added" ] ]
-                    , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
-                    ]
-
-            else
-                div [ class "repo-add--failed", onClick (AddRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
-
-
-{-| repoSearchBarGlobal : renders a input bar for searching across all repos
--}
-repoSearchBarGlobal : Model -> Html Msg
-repoSearchBarGlobal model =
-    div [ class "-filter", Util.testAttribute "global-search-bar" ]
-        [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
-        , input
-            [ Util.testAttribute "global-search-input"
-            , placeholder "Type to filter all repositories..."
-            , value <| searchFilterGlobal model.sourceSearchFilters
-            , onInput <| SearchSourceRepos ""
-            ]
-            []
-        ]
-
-
-{-| repoSearchBarLocal : takes an org and placeholder text and renders a search bar for local repo filtering
--}
-repoSearchBarLocal : Model -> Org -> Html Msg
-repoSearchBarLocal model org =
-    div [ class "-filter", Util.testAttribute "local-search-bar" ]
-        [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
-        , input
-            [ Util.testAttribute <| "local-search-input-" ++ org
-            , placeholder <|
-                "Type to filter repositories in "
-                    ++ org
-                    ++ "..."
-            , value <| searchFilterLocal org model.sourceSearchFilters
-            , onInput <| SearchSourceRepos org
-            ]
-            []
-        ]
-
-
 {-| viewNav : uses current state to render navigation, such as breadcrumb
 -}
 viewNav : Model -> Html Msg
@@ -1438,7 +1130,7 @@ navButton model =
                 [ text "Refresh Settings"
                 ]
 
-        Pages.Build org repo buildNumber lineFocus ->
+        Pages.Build org repo buildNumber _ ->
             button
                 [ classList
                     [ ( "btn-restart-build", True )
@@ -1512,16 +1204,6 @@ buildUrl base paths params =
     UB.crossOrigin base paths params
 
 
-{-| recordsGroupBy takes a list of records and groups them by the provided key
-
-    recordsGroupBy .lastname listOfFullNames
-
--}
-recordsGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
-recordsGroupBy key recordList =
-    List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
-
-
 setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
 setNewPage route model =
     let
@@ -1554,7 +1236,7 @@ setNewPage route model =
 
         -- "Normal" page handling below
         ( Routes.Overview, True ) ->
-            ( { model | page = Pages.Overview }, Api.tryAll RepositoriesResponse <| Api.getAllRepositories model )
+            loadOverviewPage model
 
         ( Routes.AddRepositories, True ) ->
             case model.sourceRepos of
@@ -1578,13 +1260,22 @@ setNewPage route model =
             loadSettingsPage model org repo
 
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage, True ) ->
-            loadRepoBuildsPage model org repo maybePage maybePerPage
+            let
+                currentSession : Session
+                currentSession =
+                    Maybe.withDefault defaultSession model.session
+            in
+            loadRepoBuildsPage model org repo currentSession maybePage maybePerPage
 
         ( Routes.Build org repo buildNumber lineFocus, True ) ->
             case model.page of
                 Pages.Build o r b _ ->
                     if not <| buildChanged ( org, repo, buildNumber ) ( o, r, b ) then
-                        setLogLineFocus model org repo buildNumber lineFocus
+                        let
+                            ( page, steps, action ) =
+                                setLogLineFocus model model.steps org repo buildNumber lineFocus getBuildStepsLogs
+                        in
+                        ( { model | page = page, steps = steps }, action )
 
                     else
                         loadBuildPage model org repo buildNumber lineFocus
@@ -1612,6 +1303,20 @@ setNewPage route model =
                 , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
                 ]
             )
+
+
+loadOverviewPage : Model -> ( Model, Cmd Msg )
+loadOverviewPage model =
+    -- let
+    --     currentSession : Session
+    --     currentSession =
+    --         Maybe.withDefault defaultSession model.session
+    -- in
+    ( { model | page = Pages.Overview }
+    , Cmd.batch
+        [ Api.tryAll RepositoriesResponse <| Api.getAllRepositories model
+        ]
+    )
 
 
 {-| buildChanged : takes two build identifiers and returns if the build has changed
@@ -1659,8 +1364,8 @@ loadSettingsPage model org repo =
     loadRepoBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
 -}
-loadRepoBuildsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
-loadRepoBuildsPage model org repo maybePage maybePerPage =
+loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadRepoBuildsPage model org repo _ maybePage maybePerPage =
     let
         -- Builds already loaded
         loadedBuilds =
@@ -1887,115 +1592,6 @@ addLog incomingLog logs =
     RemoteData.succeed incomingLog :: logs
 
 
-{-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
--}
-setLogLineFocus : Model -> Org -> Repo -> BuildNumber -> LineFocus -> ( Model, Cmd Msg )
-setLogLineFocus model org repo buildNumber lineFocus =
-    let
-        ( steps, action ) =
-            case model.steps of
-                Success steps_ ->
-                    let
-                        focusedSteps =
-                            RemoteData.succeed <| setLineFocus steps_ lineFocus
-                    in
-                    ( focusedSteps
-                    , getBuildStepsLogs model org repo buildNumber focusedSteps
-                    )
-
-                _ ->
-                    ( model.steps
-                    , Cmd.none
-                    )
-    in
-    ( { model | page = Pages.Build org repo buildNumber lineFocus, steps = steps }
-    , action
-    )
-
-
-{-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
--}
-searchReposGlobal : RepoSearchFilters -> SourceRepositories -> Html Msg
-searchReposGlobal filters repos =
-    let
-        filteredRepos =
-            repos
-                |> Dict.toList
-                |> Util.filterEmptyLists
-                |> List.map (\( _, repos_ ) -> repos_)
-                |> List.concat
-                |> List.filter (\repo -> filterRepo filters Nothing <| repo.org ++ "/" ++ repo.name)
-    in
-    div [ class "filtered-repos" ] <|
-        -- Render the found repositories
-        if not <| List.isEmpty filteredRepos then
-            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo repo)
-
-        else
-            -- No repos matched the search
-            [ div [ class "-no-repos" ] [ text "No results" ] ]
-
-
-{-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
--}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> ( Repositories, Bool, List (Html Msg) )
-searchReposLocal org filters repos =
-    -- Filter the repos if the user typed more than 2 characters
-    let
-        filteredRepos =
-            List.filter (\repo -> filterRepo filters (Just org) repo.name) repos
-    in
-    ( filteredRepos
-    , True
-    , if not <| List.isEmpty filteredRepos then
-        List.map viewSourceRepo filteredRepos
-
-      else
-        [ div [ class "-no-repos" ] [ text "No results" ] ]
-    )
-
-
-{-| filterRepo : takes org/repo display filters, the org and filters a single repo based on user-entered text
--}
-filterRepo : RepoSearchFilters -> Maybe Org -> String -> Bool
-filterRepo filters org filterOn =
-    let
-        org_ =
-            Maybe.withDefault "" <| org
-
-        filterBy =
-            Maybe.withDefault "" <| Dict.get org_ filters
-
-        by =
-            String.toLower filterBy
-
-        on =
-            String.toLower filterOn
-    in
-    String.contains by on
-
-
-{-| searchFilterGlobal : takes repo search filters and returns the global filter (org == "")
--}
-searchFilterGlobal : RepoSearchFilters -> SearchFilter
-searchFilterGlobal filters =
-    Maybe.withDefault "" <| Dict.get "" filters
-
-
-{-| searchFilterLocal : takes repo search filters and org and returns the local filter
--}
-searchFilterLocal : Org -> RepoSearchFilters -> SearchFilter
-searchFilterLocal org filters =
-    Maybe.withDefault "" <| Dict.get org filters
-
-
-{-| shouldSearch : takes repo search filter and returns if results should be filtered
--}
-shouldSearch : SearchFilter -> Bool
-shouldSearch filter =
-    String.length filter > 2
-
-
 {-| clickHook : takes model org repo and build number and fetches build information from the api
 -}
 clickHook : Model -> Org -> Repo -> BuildNumber -> ( HookBuilds, Cmd Msg )
@@ -2026,104 +1622,6 @@ clickHook model org repo buildNumber =
         ( Dict.update ( org, repo, buildNumber ) (\_ -> Just buildInfo) model.hookBuilds
         , action
         )
-
-
-{-| clickStep : takes model org repo and step number and fetches step information from the api
--}
-clickStep : Model -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> ( WebData Steps, Cmd Msg )
-clickStep model org repo buildNumber stepNumber =
-    case stepNumber of
-        Nothing ->
-            ( model.steps
-            , Cmd.none
-            )
-
-        Just stepNum ->
-            let
-                ( steps, action ) =
-                    case model.steps of
-                        Success steps_ ->
-                            ( RemoteData.succeed <| toggleStepView steps_ stepNum
-                            , case buildNumber of
-                                Just buildNum ->
-                                    getBuildStepLogs model org repo buildNum stepNum
-
-                                Nothing ->
-                                    Cmd.none
-                            )
-
-                        _ ->
-                            ( model.steps, Cmd.none )
-            in
-            ( steps
-            , action
-            )
-
-
-{-| clickLogLine : takes model and line number and sets the focus on the log line
--}
-clickLogLine : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd Msg )
-clickLogLine model org repo buildNumber stepNumber lineNumber =
-    ( model.steps
-    , Navigation.replaceUrl model.navigationKey <|
-        Routes.routeToUrl
-            (Routes.Build org repo buildNumber <|
-                Just <|
-                    "#step:"
-                        ++ stepNumber
-                        ++ ":"
-                        ++ String.fromInt lineNumber
-            )
-    )
-
-
-toggleStepView : Steps -> String -> Steps
-toggleStepView steps stepNumber =
-    List.Extra.updateIf
-        (\step -> String.fromInt step.number == stepNumber)
-        (\step -> { step | viewing = not step.viewing })
-        steps
-
-
-setLineFocus : Steps -> LineFocus -> Steps
-setLineFocus steps lineFocus =
-    let
-        ( target, stepNumber, lineNumber ) =
-            parseLineFocus lineFocus
-    in
-    case Maybe.withDefault "" target of
-        "step" ->
-            case stepNumber of
-                Just n ->
-                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = lineNumber }) <| clearLineFocus steps
-
-                Nothing ->
-                    steps
-
-        _ ->
-            steps
-
-
-clearLineFocus : Steps -> Steps
-clearLineFocus steps =
-    List.map (\step -> { step | lineFocus = Nothing }) steps
-
-
-{-| receiveHookBuild : takes org repo build and updates the appropriate build within hookbuilds
--}
-receiveHookBuild : BuildIdentifier -> WebData Build -> HookBuilds -> HookBuilds
-receiveHookBuild buildIdentifier build hookBuilds =
-    Dict.update buildIdentifier (\_ -> Just ( build, viewingHook buildIdentifier hookBuilds )) hookBuilds
-
-
-viewingHook : BuildIdentifier -> HookBuilds -> Bool
-viewingHook buildIdentifier hookBuilds =
-    case Dict.get buildIdentifier hookBuilds of
-        Just ( _, viewing ) ->
-            viewing
-
-        Nothing ->
-            False
 
 
 

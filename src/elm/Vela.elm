@@ -5,7 +5,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( AddRepositoryPayload
+    ( AddRepo
+    , AddRepos
+    , AddRepositoryPayload
     , AuthParams
     , Build
     , BuildIdentifier
@@ -22,8 +24,11 @@ module Vela exposing
     , Logs
     , Org
     , Repo
+    , RepoSearchFilters
     , Repositories
     , Repository
+    , Search
+    , SearchFilter
     , Session
     , SourceRepoUpdateFunction
     , SourceRepositories
@@ -710,3 +715,41 @@ type alias HookBuilds =
 
 type alias BuildIdentifier =
     ( Org, Repo, BuildNumber )
+
+
+
+-- SEARCH
+
+
+{-| RepoSearchFilters : type alias for filtering source repos
+-}
+type alias RepoSearchFilters =
+    Dict Org SearchFilter
+
+
+{-| SearchFilter : type alias for filtering source repos
+-}
+type alias SearchFilter =
+    String
+
+
+
+-- UPDATES
+
+
+{-| AddRepo : takes repo and activates it on Vela
+-}
+type alias AddRepo msg =
+    Repository -> msg
+
+
+{-| AddRepos : takes repos and activates them on Vela
+-}
+type alias AddRepos msg =
+    Repositories -> msg
+
+
+{-| Search : takes org and repo and searches/filters based on user input
+-}
+type alias Search msg =
+    Org -> String -> msg
