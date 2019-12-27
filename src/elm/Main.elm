@@ -93,9 +93,6 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
-        , Favorite
-        , Favorites
-        , FavoritesModel
         , Field
         , HookBuilds
         , Hooks
@@ -117,7 +114,6 @@ import Vela
         , Theme(..)
         , UpdateRepositoryPayload
         , User
-        , UserID
         , Viewing
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
@@ -126,7 +122,6 @@ import Vela
         , decodeTheme
         , defaultAddRepositoryPayload
         , defaultBuilds
-        , defaultFavorites
         , defaultHooks
         , defaultRepository
         , defaultSession
@@ -134,7 +129,6 @@ import Vela
         , encodeSession
         , encodeTheme
         , encodeUpdateRepository
-        , repoFavorited
         , stringToTheme
         )
 
@@ -180,7 +174,6 @@ type alias Model =
     , inTimeout : Maybe Int
     , entryURL : Url
     , hookBuilds : HookBuilds
-    , favorites : FavoritesModel
     , theme : Theme
     }
 
@@ -236,7 +229,6 @@ init flags url navKey =
             , inTimeout = Nothing
             , entryURL = url
             , hookBuilds = Dict.empty
-            , favorites = defaultFavorites
             , theme = stringToTheme flags.velaTheme
             }
 
@@ -271,7 +263,6 @@ type Msg
     | NewRoute Routes.Route
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
-    | SearchFavorites Org String
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
@@ -289,7 +280,6 @@ type Msg
     | AddRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
-    | FavoriteRepo Org Repo
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
@@ -306,7 +296,6 @@ type Msg
     | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
-    | FavoritesResponse UserID (Result (Http.Detailed.Error String) ( Http.Metadata, Favorites ))
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
@@ -649,19 +638,6 @@ update msg model =
             , restartBuild model org repo buildNumber
             )
 
-        FavoriteRepo org repo ->
-            let
-                favorites =
-                    model.favorites
-
-                ( favs, alert ) =
-                    favoriteRepo org repo favorites
-            in
-            ( { model | favorites = favs }
-            , Cmd.none
-            )
-                |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" alert Nothing)
-
         Error error ->
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Error "Error" error)
@@ -690,29 +666,6 @@ update msg model =
                 Err error ->
                     ( { model | hookBuilds = Pages.Hooks.receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, Cmd.none )
 
-        FavoritesResponse _ response ->
-            let
-                currentFavorites =
-                    model.favorites
-            in
-            case response of
-                Ok ( meta, favorites ) ->
-                    let
-                        pager =
-                            Pagination.get meta.headers
-                    in
-                    ( { model | favorites = { currentFavorites | favorites = RemoteData.succeed favorites, pager = pager } }, Cmd.none )
-
-                Err error ->
-                    -- ( { model | favorites = { currentFavorites | favorites = toFailure error } }, addError error )
-                    -- TODO: unmock when server is ready
-                    -- ( { model | favorites = { currentFavorites | favorites = RemoteData.succeed mockedFavorites } }, Cmd.none )
-                    let
-                        favorites =
-                            model.favorites
-                    in
-                    ( model, Cmd.none )
-
         AlertsUpdate subMsg ->
             Alerting.update Alerts.config AlertsUpdate subMsg model
 
@@ -730,13 +683,6 @@ update msg model =
                     Dict.update org (\_ -> Just searchBy) model.sourceSearchFilters
             in
             ( { model | sourceSearchFilters = filters }, Cmd.none )
-
-        SearchFavorites org searchBy ->
-            let
-                filters =
-                    Dict.update org (\_ -> Just searchBy) model.favoritesSearchFilters
-            in
-            ( { model | favoritesSearchFilters = filters }, Cmd.none )
 
         ChangeRepoTimeout inTimeout ->
             let
@@ -773,28 +719,6 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
-
-
-favoriteRepo : Org -> Repo -> FavoritesModel -> ( FavoritesModel, String )
-favoriteRepo org repo favorites =
-    case favorites.favorites of
-        RemoteData.Success repos ->
-            if not <| repoFavorited org repo favorites then
-                ( { favorites | favorites = RemoteData.succeed <| Favorite 1 1 org repo :: repos }
-                , org ++ "/" ++ repo ++ " added to favorites."
-                )
-
-            else
-                let
-                    newFavs =
-                        List.filter (\r -> r.org /= org || r.repo_name /= repo) repos
-                in
-                ( { favorites | favorites = RemoteData.succeed newFavs }
-                , org ++ "/" ++ repo ++ " removed from favorites."
-                )
-
-        _ ->
-            ( favorites, "" )
 
 
 
@@ -1034,12 +958,12 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.currentRepos model.favorites FavoriteRepo RemoveRepo
+            , Pages.Home.view model.currentRepos RemoveRepo
             )
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model.sourceRepos model.favorites model.sourceSearchFilters SearchSourceRepos AddRepo AddRepos FavoriteRepo
+            , Pages.AddRepos.view model.sourceRepos model.sourceSearchFilters SearchSourceRepos AddRepo AddRepos
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1181,10 +1105,7 @@ navButton model =
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "nav-buttons" ]
-                [ div [ class "builds-favorite" ]
-                    [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| FavoriteRepo org repo ] <| repoFavorited org repo model.favorites
-                    ]
-                , a
+                [ a
                     [ class "-btn"
                     , class "-inverted"
                     , class "-hooks"
@@ -1398,8 +1319,6 @@ loadOverviewPage model =
     ( { model | page = Pages.Overview }
     , Cmd.batch
         [ Api.tryAll RepositoriesResponse <| Api.getAllRepositories model
-        , Api.tryAll (FavoritesResponse currentSession.token) <|
-            Api.getAllFavorites model currentSession.token
         ]
     )
 
@@ -1464,8 +1383,6 @@ loadRepoBuildsPage model org repo currentSession maybePage maybePerPage =
     ( { model | page = Pages.RepositoryBuilds org repo maybePage maybePerPage, builds = loadingBuilds }
     , Cmd.batch
         [ getBuilds model org repo maybePage maybePerPage
-        , Api.tryAll (FavoritesResponse currentSession.token) <|
-            Api.getAllFavorites model currentSession.token
         ]
     )
 
@@ -1713,11 +1630,6 @@ clickHook model org repo buildNumber =
 
 
 -- API HELPERS
-
-
-getFavorites : Model -> UserID -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
-getFavorites model userID maybePage maybePerPage =
-    Api.try (FavoritesResponse userID) <| Api.getFavorites model maybePage maybePerPage userID
 
 
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg

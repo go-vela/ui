@@ -14,10 +14,7 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
-    , Favorite
     , FavoriteRepo
-    , Favorites
-    , FavoritesModel
     , Field
     , Hook
     , HookBuilds
@@ -43,15 +40,12 @@ module Vela exposing
     , Theme(..)
     , UpdateRepositoryPayload
     , User
-    , UserID
     , Viewing
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
     , decodeBuild
     , decodeBuilds
-    , decodeFavorite
-    , decodeFavorites
     , decodeHook
     , decodeHooks
     , decodeLog
@@ -65,7 +59,6 @@ module Vela exposing
     , decodeUser
     , defaultAddRepositoryPayload
     , defaultBuilds
-    , defaultFavorites
     , defaultHooks
     , defaultRepository
     , defaultSession
@@ -75,7 +68,6 @@ module Vela exposing
     , encodeSession
     , encodeTheme
     , encodeUpdateRepository
-    , repoFavorited
     , stringToTheme
     )
 
@@ -724,70 +716,6 @@ type alias HookBuilds =
 
 type alias BuildIdentifier =
     ( Org, Repo, BuildNumber )
-
-
-
--- FAVORITES
-
-
-type alias FavoritesModel =
-    { favorites : WebData Favorites
-    , pager : List WebLink
-    , searchFilters : Dict String String
-    }
-
-
-defaultFavorites : FavoritesModel
-defaultFavorites =
-    FavoritesModel (RemoteData.succeed []) [] Dict.empty
-
-
-type alias Favorites =
-    List Favorite
-
-
-{-| Favorite : type alias for vela user favorite
--}
-type alias Favorite =
-    { id : Int
-    , repo_id : Int
-    , org : String
-    , repo_name : String
-    }
-
-
-decodeFavorite : Decoder Favorite
-decodeFavorite =
-    Decode.succeed Favorite
-        |> optional "id" int -1
-        |> optional "repo_id" int -1
-        |> optional "org" string ""
-        |> optional "repo_name" string ""
-
-
-{-| decodeFavorites : decodes json from vela into list of user favorites
--}
-decodeFavorites : Decoder Favorites
-decodeFavorites =
-    Decode.list decodeFavorite
-
-
-{-| repoFavorited : takes org repo and favorites and returns true if repo has been favorited
--}
-repoFavorited : Org -> Repo -> FavoritesModel -> Bool
-repoFavorited org repo favorites =
-    case favorites.favorites of
-        RemoteData.Success repos ->
-            (\id -> id /= -1) <| .repo_id <| Maybe.withDefault (Favorite -1 -1 "" "") <| List.head <| List.filter (\r -> r.org == org && r.repo_name == repo) repos
-
-        _ ->
-            False
-
-
-{-| UserID : type alias for UserID string
--}
-type alias UserID =
-    String
 
 
 

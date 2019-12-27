@@ -42,22 +42,19 @@ import Vela
     exposing
         ( AddRepo
         , AddRepos
-        , FavoriteRepo
-        , FavoritesModel
         , Org
         , RepoSearchFilters
         , Repositories
         , Repository
         , Search
         , SourceRepositories
-        , repoFavorited
         )
 
 
 {-| view : takes model and renders account page for adding repos to overview
 -}
-view : WebData SourceRepositories -> FavoritesModel -> RepoSearchFilters -> Search msg -> AddRepo msg -> AddRepos msg -> FavoriteRepo msg -> Html msg
-view sourceRepos favorites sourceSearchFilters search addRepo addRepos favoriteRepo =
+view : WebData SourceRepositories -> RepoSearchFilters -> Search msg -> AddRepo msg -> AddRepos msg -> Html msg
+view sourceRepos sourceSearchFilters search addRepo addRepos =
     let
         loading =
             div []
@@ -76,7 +73,7 @@ view sourceRepos favorites sourceSearchFilters search addRepo addRepos favoriteR
         RemoteData.Success repos ->
             div [ class "source-repos", Util.testAttribute "source-repos" ]
                 [ repoSearchBarGlobal sourceSearchFilters search
-                , viewSourceRepos repos favorites sourceSearchFilters search addRepo addRepos favoriteRepo
+                , viewSourceRepos repos sourceSearchFilters search addRepo addRepos
                 ]
 
         RemoteData.Loading ->
@@ -96,34 +93,34 @@ view sourceRepos favorites sourceSearchFilters search addRepo addRepos favoriteR
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
-viewSourceRepos : SourceRepositories -> FavoritesModel -> RepoSearchFilters -> Search msg -> AddRepo msg -> AddRepos msg -> FavoriteRepo msg -> Html msg
-viewSourceRepos sourceRepos favorites sourceSearchFilters search addRepo addRepos favoriteRepo =
+viewSourceRepos : SourceRepositories -> RepoSearchFilters -> Search msg -> AddRepo msg -> AddRepos msg -> Html msg
+viewSourceRepos sourceRepos sourceSearchFilters search addRepo addRepos =
     if shouldSearch <| searchFilterGlobal sourceSearchFilters then
         -- Search and render repos using the global filter
-        searchReposGlobal favorites sourceSearchFilters sourceRepos addRepo favoriteRepo
+        searchReposGlobal sourceSearchFilters sourceRepos addRepo
 
     else
         -- Render repos normally
         sourceRepos
             |> Dict.toList
             |> Util.filterEmptyLists
-            |> List.map (\( org, repos_ ) -> viewSourceOrg favorites sourceSearchFilters org repos_ search addRepo addRepos favoriteRepo)
+            |> List.map (\( org, repos_ ) -> viewSourceOrg sourceSearchFilters org repos_ search addRepo addRepos)
             |> div [ class "repo-list" ]
 
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
 -}
-viewSourceOrg : FavoritesModel -> RepoSearchFilters -> Org -> Repositories -> Search msg -> AddRepo msg -> AddRepos msg -> FavoriteRepo msg -> Html msg
-viewSourceOrg favorites sourceSearchFilters org repos search addRepo addRepos favoriteRepo =
+viewSourceOrg : RepoSearchFilters -> Org -> Repositories -> Search msg -> AddRepo msg -> AddRepos msg -> Html msg
+viewSourceOrg sourceSearchFilters org repos search addRepo addRepos =
     let
         ( repos_, filtered, content ) =
             if shouldSearch <| searchFilterLocal org sourceSearchFilters then
                 -- Search and render repos using the global filter
-                searchReposLocal favorites org sourceSearchFilters repos addRepo favoriteRepo
+                searchReposLocal org sourceSearchFilters repos addRepo
 
             else
                 -- Render repos normally
-                ( repos, False, List.map (viewSourceRepo favorites addRepo favoriteRepo) repos )
+                ( repos, False, List.map (viewSourceRepo addRepo) repos )
     in
     viewSourceOrgDetails sourceSearchFilters org repos_ filtered content search addRepos
 
@@ -160,28 +157,26 @@ viewSourceOrgSummary sourceSearchFilters org repos filtered content search addRe
     viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Add' button
 
 -}
-viewSourceRepo : FavoritesModel -> AddRepo msg -> FavoriteRepo msg -> Repository -> Html msg
-viewSourceRepo favoritesModel addRepo favoriteRepo repo =
+viewSourceRepo : AddRepo msg -> Repository -> Html msg
+viewSourceRepo addRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
         , div []
-            [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| favoriteRepo repo.org repo.name ] <| repoFavorited repo.org repo.name favoritesModel
-            , buildAddRepoElement repo addRepo
+            [ buildAddRepoElement repo addRepo
             ]
         ]
 
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : FavoritesModel -> AddRepo msg -> FavoriteRepo msg -> Repository -> Html msg
-viewSearchedSourceRepo favoritesModel addRepo favoriteRepo repo =
+viewSearchedSourceRepo : AddRepo msg -> Repository -> Html msg
+viewSearchedSourceRepo addRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
             [ text <| repo.org ++ "/" ++ repo.name ]
         , div
             []
-            [ SvgBuilder.favoritesStar [ Svg.Attributes.class "-cursor", onClick <| favoriteRepo repo.org repo.name ] <| repoFavorited repo.org repo.name favoritesModel
-            , buildAddRepoElement repo addRepo
+            [ buildAddRepoElement repo addRepo
             ]
         ]
 
@@ -234,8 +229,8 @@ buildAddRepoElement repo addRepo =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : FavoritesModel -> RepoSearchFilters -> SourceRepositories -> AddRepo msg -> FavoriteRepo msg -> Html msg
-searchReposGlobal favoritesModel filters repos addRepo favoriteRepo =
+searchReposGlobal : RepoSearchFilters -> SourceRepositories -> AddRepo msg -> Html msg
+searchReposGlobal filters repos addRepo =
     let
         filteredRepos =
             repos
@@ -248,7 +243,7 @@ searchReposGlobal favoritesModel filters repos addRepo favoriteRepo =
     div [ class "filtered-repos" ] <|
         -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
-            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo favoritesModel addRepo favoriteRepo repo)
+            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo addRepo repo)
 
         else
             -- No repos matched the search
@@ -257,8 +252,8 @@ searchReposGlobal favoritesModel filters repos addRepo favoriteRepo =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : FavoritesModel -> Org -> RepoSearchFilters -> Repositories -> AddRepo msg -> FavoriteRepo msg -> ( Repositories, Bool, List (Html msg) )
-searchReposLocal favoritesModel org filters repos addRepo favoriteRepo =
+searchReposLocal : Org -> RepoSearchFilters -> Repositories -> AddRepo msg -> ( Repositories, Bool, List (Html msg) )
+searchReposLocal org filters repos addRepo =
     -- Filter the repos if the user typed more than 2 characters
     let
         filteredRepos =
@@ -267,7 +262,7 @@ searchReposLocal favoritesModel org filters repos addRepo favoriteRepo =
     ( filteredRepos
     , True
     , if not <| List.isEmpty filteredRepos then
-        List.map (viewSourceRepo favoritesModel addRepo favoriteRepo) filteredRepos
+        List.map (viewSourceRepo addRepo) filteredRepos
 
       else
         [ div [ class "-no-repos" ] [ text "No results" ] ]
