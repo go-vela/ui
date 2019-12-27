@@ -169,7 +169,6 @@ type alias Model =
     , zone : Zone
     , time : Posix
     , sourceSearchFilters : RepoSearchFilters
-    , favoritesSearchFilters : RepoSearchFilters
     , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
@@ -224,7 +223,6 @@ init flags url navKey =
             , zone = utc
             , time = millisToPosix 0
             , sourceSearchFilters = Dict.empty
-            , favoritesSearchFilters = Dict.empty
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
             , entryURL = url

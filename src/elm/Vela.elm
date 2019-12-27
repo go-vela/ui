@@ -14,7 +14,6 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
-    , FavoriteRepo
     , Field
     , Hook
     , HookBuilds
@@ -750,11 +749,7 @@ type alias AddRepos msg =
     Repositories -> msg
 
 
-{-| FavoriteRepo : takes repo and adds them to user's favorites
+{-| Search : takes org and repo and searches/filters based on user input
 -}
-type alias FavoriteRepo msg =
-    Org -> Repo -> msg
-
-
 type alias Search msg =
     Org -> String -> msg

@@ -13,7 +13,6 @@ import Html
         , a
         , br
         , button
-        , code
         , details
         , div
         , h1
@@ -32,10 +31,8 @@ import List
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
-import Svg.Attributes
-import SvgBuilder exposing (favoritesStar)
 import Util
-import Vela exposing (Org, Repo, Repositories, Repository)
+import Vela exposing (Repositories, Repository)
 
 
 {-| recordsGroupBy takes a list of records and groups them by the provided key

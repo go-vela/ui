@@ -6,7 +6,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Search exposing
     ( filterRepo
-    , repoSearchBarFavorites
     , repoSearchBarGlobal
     , repoSearchBarLocal
     , searchFilterGlobal
@@ -59,22 +58,6 @@ repoSearchBarLocal searchFilters org search =
                     ++ "..."
             , value <| searchFilterLocal org searchFilters
             , onInput <| search org
-            ]
-            []
-        ]
-
-
-{-| repoSearchBarFavorites : takes an org and placeholder text and renders a search bar for favorited repo filtering
--}
-repoSearchBarFavorites : RepoSearchFilters -> Search msg -> Html msg
-repoSearchBarFavorites searchFilters search =
-    div [ class "-filter", Util.testAttribute "favorites-search-bar" ]
-        [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
-        , input
-            [ Util.testAttribute "favorites-search-input"
-            , placeholder "Type to filter favorited repositories..."
-            , value <| searchFilterGlobal searchFilters
-            , onInput <| search ""
             ]
             []
         ]
