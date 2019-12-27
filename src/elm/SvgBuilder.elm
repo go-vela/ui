@@ -38,7 +38,6 @@ import Svg.Attributes
         , cx
         , cy
         , d
-        , fill
         , height
         , r
         , stroke

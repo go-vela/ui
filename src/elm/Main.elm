@@ -16,7 +16,6 @@ import Build
         ( clickLogLine
         , clickStep
         , expandBuildLineFocus
-        , parseLineFocus
         , setLogLineFocus
         , viewFullBuild
         , viewRepositoryBuilds
@@ -66,7 +65,6 @@ import Pages.Hooks
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import Svg.Attributes
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
 import Time
@@ -1309,11 +1307,11 @@ setNewPage route model =
 
 loadOverviewPage : Model -> ( Model, Cmd Msg )
 loadOverviewPage model =
-    let
-        currentSession : Session
-        currentSession =
-            Maybe.withDefault defaultSession model.session
-    in
+    -- let
+    --     currentSession : Session
+    --     currentSession =
+    --         Maybe.withDefault defaultSession model.session
+    -- in
     ( { model | page = Pages.Overview }
     , Cmd.batch
         [ Api.tryAll RepositoriesResponse <| Api.getAllRepositories model
@@ -1367,7 +1365,7 @@ loadSettingsPage model org repo =
 
 -}
 loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
-loadRepoBuildsPage model org repo currentSession maybePage maybePerPage =
+loadRepoBuildsPage model org repo _ maybePage maybePerPage =
     let
         -- Builds already loaded
         loadedBuilds =

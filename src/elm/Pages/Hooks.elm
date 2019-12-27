@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Hooks exposing (receiveHookBuild, view)
+module Pages.Hooks exposing (hookStatus, receiveHookBuild, view)
 
 import Build exposing (statusToClass, statusToString)
 import Dict

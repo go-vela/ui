@@ -35,8 +35,6 @@ import Search
         , searchFilterLocal
         , shouldSearch
         )
-import Svg.Attributes
-import SvgBuilder
 import Util
 import Vela
     exposing

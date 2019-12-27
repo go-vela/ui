@@ -329,8 +329,8 @@ viewLogs stepNumber lineFocus log clickAction =
                     else
                         code [] [ text "No logs for this step." ]
 
-                RemoteData.Failure err ->
-                    code [ Util.testAttribute "logs-error" ] [ text "error:" ]
+                RemoteData.Failure _ ->
+                    code [ Util.testAttribute "logs-error" ] [ text "error" ]
 
                 _ ->
                     div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
