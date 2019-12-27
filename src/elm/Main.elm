@@ -26,19 +26,15 @@ import Html
     exposing
         ( Html
         , a
-        , br
         , button
-        , code
         , details
         , div
         , h1
         , header
-        , input
         , li
         , main_
         , nav
         , p
-        , span
         , summary
         , text
         , ul
@@ -50,10 +46,8 @@ import Html.Attributes
         , classList
         , disabled
         , href
-        , placeholder
-        , value
         )
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy2)
 import Http exposing (Error(..))
 import Http.Detailed
@@ -69,7 +63,6 @@ import Pages.Hooks
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import Search exposing (RepoSearchFilters)
 import Svg.Attributes
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
@@ -109,6 +102,7 @@ import Vela
         , Logs
         , Org
         , Repo
+        , RepoSearchFilters
         , Repositories
         , Repository
         , Session
@@ -1216,7 +1210,7 @@ navButton model =
                 [ text "Refresh Settings"
                 ]
 
-        Pages.Build org repo buildNumber lineFocus ->
+        Pages.Build org repo buildNumber _ ->
             button
                 [ classList
                     [ ( "btn-restart-build", True )

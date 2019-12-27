@@ -5,10 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Search exposing
-    ( RepoSearchFilters
-    , Search
-    , SearchFilter
-    , filterRepo
+    ( filterRepo
     , repoSearchBarFavorites
     , repoSearchBarGlobal
     , repoSearchBarLocal
@@ -17,7 +14,7 @@ module Search exposing
     , shouldSearch
     )
 
-import Dict exposing (Dict)
+import Dict
 import FeatherIcons
 import Html exposing (Html, div, input)
 import Html.Attributes
@@ -29,19 +26,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onInput)
 import Util
-import Vela exposing (Org)
-
-
-type alias RepoSearchFilters =
-    Dict Org SearchFilter
-
-
-type alias SearchFilter =
-    String
-
-
-type alias Search msg =
-    Org -> String -> msg
+import Vela exposing (Org, RepoSearchFilters, Search, SearchFilter)
 
 
 {-| repoSearchBarGlobal : renders a input bar for searching across all repos

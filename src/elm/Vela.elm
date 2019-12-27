@@ -28,8 +28,11 @@ module Vela exposing
     , Logs
     , Org
     , Repo
+    , RepoSearchFilters
     , Repositories
     , Repository
+    , Search
+    , SearchFilter
     , Session
     , SourceRepoUpdateFunction
     , SourceRepositories
@@ -788,6 +791,22 @@ type alias UserID =
 
 
 
+-- SEARCH
+
+
+{-| RepoSearchFilters : type alias for filtering source repos
+-}
+type alias RepoSearchFilters =
+    Dict Org SearchFilter
+
+
+{-| SearchFilter : type alias for filtering source repos
+-}
+type alias SearchFilter =
+    String
+
+
+
 -- UPDATES
 
 
@@ -807,3 +826,7 @@ type alias AddRepos msg =
 -}
 type alias FavoriteRepo msg =
     Org -> Repo -> msg
+
+
+type alias Search msg =
+    Org -> String -> msg

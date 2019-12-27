@@ -28,9 +28,7 @@ import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import Search
     exposing
-        ( RepoSearchFilters
-        , Search
-        , filterRepo
+        ( filterRepo
         , repoSearchBarGlobal
         , repoSearchBarLocal
         , searchFilterGlobal
@@ -47,8 +45,10 @@ import Vela
         , FavoriteRepo
         , FavoritesModel
         , Org
+        , RepoSearchFilters
         , Repositories
         , Repository
+        , Search
         , SourceRepositories
         , repoFavorited
         )
