@@ -16,7 +16,6 @@ import Build
         ( clickLogLine
         , clickStep
         , expandBuildLineFocus
-        , parseLineFocus
         , setLogLineFocus
         , viewFullBuild
         , viewRepositoryBuilds
@@ -1722,10 +1721,6 @@ clickHook model org repo buildNumber =
         ( Dict.update ( org, repo, buildNumber ) (\_ -> Just buildInfo) model.hookBuilds
         , action
         )
-
-
-
--- API HELPERS
 
 
 getFavorites : Model -> UserID -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg

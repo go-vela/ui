@@ -32,8 +32,7 @@ import Html
         )
 import Html.Attributes
     exposing
-        ( attribute
-        , checked
+        ( checked
         , class
         , classList
         , disabled

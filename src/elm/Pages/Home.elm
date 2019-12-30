@@ -45,7 +45,6 @@ import Vela
         , Org
         , Repo
         , Repositories
-        , Repository
         )
 
 
@@ -62,19 +61,17 @@ numFavorites favoritesModel =
 viewFavorites : FavoritesModel -> WebData Repositories -> AddRepo msg -> DeactivateRepo msg -> Html msg
 viewFavorites favoritesModel repos addRepo deactivateRepo =
     let
-        noFavorites : Html msg
         noFavorites =
-            div [ class "-item" ]
-                [ div []
-                    [ p []
-                        [ p
-                            []
-                            [ text "You have no favorites! Star a repository by clicking the"
-                            , SvgBuilder.favoritesStar [] False
-                            , text "next to the repository below, or on the repository's builds page."
-                            ]
-                        ]
+            div [ class "overview" ]
+                [ h1 [] [ text "Let's get Started!" ]
+                , p []
+                    [ text "To have Vela start building your projects we need to get them added."
+                    , br [] []
+                    , text "To display those repositories on your home page, hit the"
+                    , SvgBuilder.favoritesStar [] False
+                    , text "on the repository's builds page."
                     ]
+                , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepos ] [ text "Add Repositories" ]
                 ]
 
         numFavs =
@@ -118,7 +115,7 @@ viewFavorites favoritesModel repos addRepo deactivateRepo =
             ]
 
     else
-        text ""
+        noFavorites
 
 
 repoFavorited : Org -> Repo -> FavoritesModel -> Bool

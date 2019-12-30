@@ -80,11 +80,11 @@ type alias SetLineFocus msg =
 
 {-| GetLogs : type alias for passing in logs fetch function from Main.elm
 -}
-type alias GetLogs a msg =
+type alias GetLogsFromBuild a msg =
     a -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd msg
 
 
-type alias GetLogs2 a msg =
+type alias GetLogsFromSteps a msg =
     a -> Org -> Repo -> BuildNumber -> WebData Steps -> Cmd msg
 
 
@@ -329,8 +329,8 @@ viewLogs stepNumber lineFocus log clickAction =
                     else
                         code [] [ text "No logs for this step." ]
 
-                RemoteData.Failure err ->
-                    code [ Util.testAttribute "logs-error" ] [ text "error:" ]
+                RemoteData.Failure _ ->
+                    code [ Util.testAttribute "logs-error" ] [ text "error" ]
 
                 _ ->
                     div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
@@ -699,7 +699,7 @@ getStepLog step logs =
 
 {-| clickStep : takes model org repo and step number and fetches step information from the api
 -}
-clickStep : a -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogs a msg -> ( WebData Steps, Cmd msg )
+clickStep : a -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogsFromBuild a msg -> ( WebData Steps, Cmd msg )
 clickStep model steps org repo buildNumber stepNumber getLogs =
     case stepNumber of
         Nothing ->
@@ -758,7 +758,7 @@ clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
 
 {-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
 -}
-setLogLineFocus : a -> WebData Steps -> Org -> Repo -> BuildNumber -> LineFocus -> GetLogs2 a msg -> ( Page, WebData Steps, Cmd msg )
+setLogLineFocus : a -> WebData Steps -> Org -> Repo -> BuildNumber -> LineFocus -> GetLogsFromSteps a msg -> ( Page, WebData Steps, Cmd msg )
 setLogLineFocus model steps org repo buildNumber lineFocus getLogs =
     let
         ( stepsOut, action ) =
