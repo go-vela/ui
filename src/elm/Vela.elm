@@ -754,7 +754,7 @@ type alias Favorite =
     { id : Int
     , repo_id : Int
     , org : String
-    , repo_name : String
+    , name : String
     }
 
 
@@ -764,7 +764,7 @@ decodeFavorite =
         |> optional "id" int -1
         |> optional "repo_id" int -1
         |> optional "org" string ""
-        |> optional "repo_name" string ""
+        |> optional "name" string ""
 
 
 {-| decodeFavorites : decodes json from vela into list of user favorites
@@ -780,7 +780,7 @@ repoFavorited : Org -> Repo -> FavoritesModel -> Bool
 repoFavorited org repo favorites =
     case favorites.favorites of
         RemoteData.Success repos ->
-            (\id -> id /= -1) <| .repo_id <| Maybe.withDefault (Favorite -1 -1 "" "") <| List.head <| List.filter (\r -> r.org == org && r.repo_name == repo) repos
+            (\id -> id /= -1) <| .repo_id <| Maybe.withDefault (Favorite -1 -1 "" "") <| List.head <| List.filter (\r -> r.org == org && r.name == repo) repos
 
         _ ->
             False
@@ -827,7 +827,7 @@ type alias ActivateRepos msg =
 {-| DeactivateRepo : takes repo and deactivates it on Vela
 -}
 type alias DeactivateRepo msg =
-    Repository -> msg
+    Org -> Repo -> msg
 
 
 {-| AddRepo : takes org and repo and adds them to user's favorites

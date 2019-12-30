@@ -288,6 +288,7 @@ type Msg
     | UpdateRepoTimeout Org Repo Field Int
     | ActivateRepos Repositories
     | DeactivateRepo Repository
+    | DeactivateOrgRepo Org Repo
     | RestartBuild Org Repo BuildNumber
     | AddRepo Org Repo
       -- Inbound HTTP responses
@@ -412,6 +413,13 @@ update msg model =
 
         DeactivateRepo repo ->
             ( model, Api.try (RepoRemovedResponse repo) <| Api.deleteRepo model repo )
+
+        DeactivateOrgRepo org repo ->
+            let
+                repo_ =
+                    { defaultRepository | org = org, name = repo }
+            in
+            ( model, Api.try (RepoRemovedResponse repo_) <| Api.deleteRepo model repo_ )
 
         RepoRemovedResponse repo response ->
             case response of
@@ -787,7 +795,7 @@ addRepo org repo favorites =
             else
                 let
                     newFavs =
-                        List.filter (\r -> r.org /= org || r.repo_name /= repo) repos
+                        List.filter (\r -> r.org /= org || r.name /= repo) repos
                 in
                 ( { favorites | favorites = RemoteData.succeed newFavs }
                 , org ++ "/" ++ repo ++ " removed from favorites."
@@ -1034,7 +1042,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.currentRepos model.favorites AddRepo DeactivateRepo
+            , Pages.Home.view model.currentRepos model.favorites AddRepo DeactivateOrgRepo
             )
 
         Pages.AddRepos ->
@@ -1322,19 +1330,7 @@ setNewPage route model =
             loadOverviewPage model
 
         ( Routes.AddRepos, True ) ->
-            case model.sourceRepos of
-                NotAsked ->
-                    ( { model | page = Pages.AddRepos, sourceRepos = Loading }
-                    , Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
-                    )
-
-                Failure _ ->
-                    ( { model | page = Pages.AddRepos, sourceRepos = Loading }
-                    , Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
-                    )
-
-                _ ->
-                    ( { model | page = Pages.AddRepos }, Cmd.none )
+            loadAddReposPage model
 
         ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
             loadHooksPage model org repo maybePage maybePerPage
@@ -1402,6 +1398,23 @@ loadOverviewPage model =
             Api.getAllFavorites model currentSession.token
         ]
     )
+
+
+loadAddReposPage : Model -> ( Model, Cmd Msg )
+loadAddReposPage model =
+    case model.sourceRepos of
+        NotAsked ->
+            ( { model | page = Pages.AddRepos, sourceRepos = Loading }
+            , Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
+            )
+
+        Failure _ ->
+            ( { model | page = Pages.AddRepos, sourceRepos = Loading }
+            , Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
+            )
+
+        _ ->
+            ( { model | page = Pages.AddRepos }, Cmd.none )
 
 
 {-| buildChanged : takes two build identifiers and returns if the build has changed

@@ -40,6 +40,7 @@ import Vela
         ( AddRepo
         , DeactivateRepo
         , Favorite
+        , Favorites
         , FavoritesModel
         , Org
         , Repo
@@ -50,7 +51,7 @@ import Vela
 
 view : WebData Repositories -> FavoritesModel -> AddRepo msg -> DeactivateRepo msg -> Html msg
 view repos favoritesModel addRepo deactivateRepo =
-    div [] [ viewFavorites favoritesModel repos addRepo, viewOverview favoritesModel repos addRepo deactivateRepo ]
+    div [] [ viewFavorites favoritesModel repos addRepo deactivateRepo ]
 
 
 numFavorites : FavoritesModel -> Int
@@ -58,8 +59,8 @@ numFavorites favoritesModel =
     List.length <| RemoteData.withDefault [] favoritesModel.favorites
 
 
-viewFavorites : FavoritesModel -> WebData Repositories -> (Org -> Repo -> msg) -> Html msg
-viewFavorites favoritesModel repos addRepo =
+viewFavorites : FavoritesModel -> WebData Repositories -> AddRepo msg -> DeactivateRepo msg -> Html msg
+viewFavorites favoritesModel repos addRepo deactivateRepo =
     let
         noFavorites : Html msg
         noFavorites =
@@ -96,7 +97,9 @@ viewFavorites favoritesModel repos addRepo =
                 , case favoritesModel.favorites of
                     Success favorites ->
                         if List.length favorites > 0 then
-                            div [] <| List.map (viewSearchedFavRepo addRepo) favorites
+                            favorites
+                                |> recordsGroupBy .org
+                                |> viewCurrentRepoListByOrg addRepo deactivateRepo favoritesModel
 
                         else
                             noFavorites
@@ -122,7 +125,7 @@ repoFavorited : Org -> Repo -> FavoritesModel -> Bool
 repoFavorited org repo favorites =
     case favorites.favorites of
         Success repos ->
-            (\id -> id /= -1) <| .repo_id <| Maybe.withDefault (Favorite -1 -1 "" "") <| List.head <| List.filter (\r -> r.org == org && r.repo_name == repo) repos
+            (\id -> id /= -1) <| .repo_id <| Maybe.withDefault (Favorite -1 -1 "" "") <| List.head <| List.filter (\r -> r.org == org && r.name == repo) repos
 
         _ ->
             False
@@ -132,114 +135,14 @@ repoFavorited org repo favorites =
 -}
 viewSearchedFavRepo : AddRepo msg -> Favorite -> Html msg
 viewSearchedFavRepo addRepo repo =
-    div [ class "-item", class "favorited-repo", Util.testAttribute <| "source-repo-" ++ repo.repo_name ]
-        [ div [] [ text <| repo.org ++ "/" ++ repo.repo_name ]
-        , div [ class "-actions" ]
-            [ SvgBuilder.favoritesStar
-                [ Svg.Attributes.class "-cursor"
-                , onClick <| addRepo repo.org repo.repo_name
-                ]
-                True
-            , a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
-                , Routes.href <| Routes.Settings repo.org repo.repo_name
-                ]
-                [ text "Settings" ]
-
-            -- , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| deactivateRepo repo ] [ text "Remove" ]
-            , a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
-                , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks repo.org repo.repo_name Nothing Nothing
-                ]
-                [ text "Hooks" ]
-            , a
-                [ class "-btn"
-                , class "-solid"
-                , class "-view"
-                , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds repo.org repo.repo_name Nothing Nothing
-                ]
-                [ text "View" ]
-            ]
-        ]
-
-
-{-| recordsGroupBy takes a list of records and groups them by the provided key
-
-    recordsGroupBy .lastname listOfFullNames
-
--}
-recordsGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
-recordsGroupBy key recordList =
-    List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
-
-
-viewOverview : FavoritesModel -> WebData Repositories -> AddRepo msg -> (Repository -> msg) -> Html msg
-viewOverview favoritesModel currentRepos addRepo deactivateRepo =
-    let
-        blankMessage : Html msg
-        blankMessage =
-            div [ class "overview" ]
-                [ h1 [] [ text "Let's get Started!" ]
-                , p []
-                    [ text "To have Vela start building your projects we need to get them added."
-                    , br [] []
-                    , text "Add repositories from your GitHub account to Vela now!"
-                    ]
-                , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepos ] [ text "Add Repositories" ]
-                ]
-
-        numFavs =
-            numFavorites favoritesModel
-    in
-    div []
-        [ case currentRepos of
-            Success repos ->
-                let
-                    activeRepos : Repositories
-                    activeRepos =
-                        List.filter (\repo -> not <| repoFavorited repo.org repo.name favoritesModel) <| List.filter .active repos
-                in
-                if List.length activeRepos > 0 then
-                    activeRepos
-                        |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg addRepo deactivateRepo favoritesModel
-
-                else if numFavs == 0 then
-                    blankMessage
-
-                else
-                    text ""
-
-            Loading ->
-                div []
-                    [ h1 [] [ text "Loading your Repositories", span [ class "loading-ellipsis" ] [] ]
-                    ]
-
-            NotAsked ->
-                blankMessage
-
-            Failure _ ->
-                text ""
-        ]
-
-
-viewSingleRepo : AddRepo msg -> (Repository -> msg) -> FavoritesModel -> Repository -> Html msg
-viewSingleRepo addRepo deactivateRepo favoritesModel repo =
-    div [ class "-item", Util.testAttribute "repo-item" ]
-        [ div [] [ text repo.name ]
+    div [ class "-item", class "favorited-repo", Util.testAttribute <| "source-repo-" ++ repo.name ]
+        [ div [] [ text <| repo.org ++ "/" ++ repo.name ]
         , div [ class "-actions" ]
             [ SvgBuilder.favoritesStar
                 [ Svg.Attributes.class "-cursor"
                 , onClick <| addRepo repo.org repo.name
                 ]
-              <|
-                repoFavorited repo.org repo.name favoritesModel
+                True
             , a
                 [ class "-btn"
                 , class "-inverted"
@@ -247,7 +150,8 @@ viewSingleRepo addRepo deactivateRepo favoritesModel repo =
                 , Routes.href <| Routes.Settings repo.org repo.name
                 ]
                 [ text "Settings" ]
-            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| deactivateRepo repo ] [ text "Remove" ]
+
+            -- , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| deactivateRepo repo ] [ text "Remove" ]
             , a
                 [ class "-btn"
                 , class "-inverted"
@@ -268,7 +172,91 @@ viewSingleRepo addRepo deactivateRepo favoritesModel repo =
         ]
 
 
-viewOrg : AddRepo msg -> (Repository -> msg) -> String -> Repositories -> FavoritesModel -> Html msg
+
+-- viewOverview : FavoritesModel -> WebData Repositories -> AddRepo msg -> (Repository -> msg) -> Html msg
+-- viewOverview favoritesModel currentRepos addRepo deactivateRepo =
+--     let
+--         blankMessage : Html msg
+--         blankMessage =
+--             div [ class "overview" ]
+--                 [ h1 [] [ text "Let's get Started!" ]
+--                 , p []
+--                     [ text "To have Vela start building your projects we need to get them added."
+--                     , br [] []
+--                     , text "Add repositories from your GitHub account to Vela now!"
+--                     ]
+--                 , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepos ] [ text "Add Repositories" ]
+--                 ]
+--         numFavs =
+--             numFavorites favoritesModel
+--     in
+--     div []
+--         [ case currentRepos of
+--             Success repos ->
+--                 let
+--                     activeRepos : Favorites
+--                     activeRepos =
+--                         List.filter (\repo -> not <| repoFavorited repo.org repo.name favoritesModel) <| List.filter .active repos
+--                 in
+--                 if List.length activeRepos > 0 then
+--                     activeRepos
+--                         |> recordsGroupBy .org
+--                         |> viewCurrentRepoListByOrg addRepo deactivateRepo favoritesModel
+--                 else if numFavs == 0 then
+--                     blankMessage
+--                 else
+--                     text ""
+--             Loading ->
+--                 div []
+--                     [ h1 [] [ text "Loading your Repositories", span [ class "loading-ellipsis" ] [] ]
+--                     ]
+--             NotAsked ->
+--                 blankMessage
+--             Failure _ ->
+--                 text ""
+--         ]
+
+
+viewSingleRepo : AddRepo msg -> DeactivateRepo msg -> FavoritesModel -> Favorite -> Html msg
+viewSingleRepo addRepo deactivateRepo favoritesModel repo =
+    div [ class "-item", Util.testAttribute "repo-item" ]
+        [ div [] [ text repo.name ]
+        , div [ class "-actions" ]
+            [ SvgBuilder.favoritesStar
+                [ Svg.Attributes.class "-cursor"
+                , onClick <| addRepo repo.org repo.name
+                ]
+              <|
+                repoFavorited repo.org repo.name favoritesModel
+            , a
+                [ class "-btn"
+                , class "-inverted"
+                , class "-view"
+                , Routes.href <| Routes.Settings repo.org repo.name
+                ]
+                [ text "Settings" ]
+            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| deactivateRepo repo.org repo.name ] [ text "Deactivate" ]
+            , a
+                [ class "-btn"
+                , class "-inverted"
+                , class "-view"
+                , Util.testAttribute "repo-hooks"
+                , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
+                ]
+                [ text "Hooks" ]
+            , a
+                [ class "-btn"
+                , class "-solid"
+                , class "-view"
+                , Util.testAttribute "repo-view"
+                , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing
+                ]
+                [ text "View" ]
+            ]
+        ]
+
+
+viewOrg : AddRepo msg -> DeactivateRepo msg -> String -> Favorites -> FavoritesModel -> Html msg
 viewOrg addRepo deactivateRepo org repos favoritesModel =
     div [ class "repo-org", Util.testAttribute "repo-org" ]
         [ details [ class "details", class "repo-item", attribute "open" "open" ]
@@ -278,7 +266,17 @@ viewOrg addRepo deactivateRepo org repos favoritesModel =
         ]
 
 
-viewCurrentRepoListByOrg : AddRepo msg -> (Repository -> msg) -> FavoritesModel -> Dict String Repositories -> Html msg
+{-| recordsGroupBy takes a list of records and groups them by the provided key
+
+    recordsGroupBy .lastname listOfFullNames
+
+-}
+recordsGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
+recordsGroupBy key recordList =
+    List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
+
+
+viewCurrentRepoListByOrg : AddRepo msg -> DeactivateRepo msg -> FavoritesModel -> Dict String Favorites -> Html msg
 viewCurrentRepoListByOrg addRepo deactivateRepo favoritesModel repoList =
     repoList
         |> Dict.toList
