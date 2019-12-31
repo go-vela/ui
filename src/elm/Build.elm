@@ -354,7 +354,12 @@ logLines stepNumber lineFocus log clickAction =
 logLine : StepNumber -> String -> Maybe Int -> Int -> SetLineFocus msg -> Html msg
 logLine stepNumber line lineFocus lineNumber clickAction =
     div [ class "line" ]
-        [ span [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber, class "wrapper", lineFocusStyle lineFocus lineNumber ]
+        [ span
+            [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber
+            , class "wrapper"
+            , lineFocusStyle lineFocus lineNumber
+            , onClick <| clickAction stepNumber lineNumber
+            ]
             [ span [ class "-line-num" ]
                 [ a
                     [ logLineHref stepNumber lineNumber
@@ -699,8 +704,8 @@ getStepLog step logs =
 
 {-| clickStep : takes model org repo and step number and fetches step information from the api
 -}
-clickStep : a -> Navigation.Key -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogsFromBuild a msg -> ( WebData Steps, Cmd msg )
-clickStep model navKey steps org repo buildNumber stepNumber getLogs =
+clickStep : a -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogsFromBuild a msg -> ( WebData Steps, Cmd msg )
+clickStep model steps org repo buildNumber stepNumber getLogs =
     case stepNumber of
         Nothing ->
             ( steps
@@ -715,15 +720,7 @@ clickStep model navKey steps org repo buildNumber stepNumber getLogs =
                             ( RemoteData.succeed <| toggleStepView steps_ stepNum
                             , case buildNumber of
                                 Just buildNum ->
-                                    Cmd.batch
-                                        [ getLogs model org repo buildNum stepNum
-                                        , Navigation.replaceUrl navKey <|
-                                            Routes.routeToUrl
-                                                (Routes.Build org repo buildNum <|
-                                                    Just <|
-                                                        lineFocusUrl stepNum Nothing
-                                                )
-                                        ]
+                                    getLogs model org repo buildNum stepNum
 
                                 Nothing ->
                                     Cmd.none

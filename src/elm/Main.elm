@@ -582,7 +582,7 @@ update msg model =
         ClickStep org repo buildNumber stepNumber ->
             let
                 ( steps, action ) =
-                    clickStep model model.navigationKey model.steps org repo buildNumber stepNumber getBuildStepLogs
+                    clickStep model model.steps org repo buildNumber stepNumber getBuildStepLogs
             in
             ( { model | steps = steps }
             , action
