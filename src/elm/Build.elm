@@ -746,29 +746,19 @@ toggleStepView steps stepNumber =
 
 {-| clickLogLine : takes model and line number and sets the focus on the log line
 -}
-clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Maybe Int -> ( WebData Steps, Cmd msg )
+clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd msg )
 clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
     ( steps
     , Navigation.replaceUrl navKey <|
         Routes.routeToUrl
             (Routes.Build org repo buildNumber <|
                 Just <|
-                    lineFocusUrl stepNumber lineNumber
+                    "#step:"
+                        ++ stepNumber
+                        ++ ":"
+                        ++ String.fromInt lineNumber
             )
     )
-
-
-lineFocusUrl : StepNumber -> Maybe Int -> String
-lineFocusUrl stepNumber lineNumber =
-    "#step:"
-        ++ stepNumber
-        ++ (case lineNumber of
-                Just l ->
-                    ":" ++ String.fromInt l
-
-                Nothing ->
-                    ""
-           )
 
 
 {-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
