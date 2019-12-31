@@ -699,8 +699,8 @@ getStepLog step logs =
 
 {-| clickStep : takes model org repo and step number and fetches step information from the api
 -}
-clickStep : a -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogsFromBuild a msg -> ( WebData Steps, Cmd msg )
-clickStep model steps org repo buildNumber stepNumber getLogs =
+clickStep : a -> Navigation.Key -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogsFromBuild a msg -> ( WebData Steps, Cmd msg )
+clickStep model navKey steps org repo buildNumber stepNumber getLogs =
     case stepNumber of
         Nothing ->
             ( steps
@@ -715,7 +715,15 @@ clickStep model steps org repo buildNumber stepNumber getLogs =
                             ( RemoteData.succeed <| toggleStepView steps_ stepNum
                             , case buildNumber of
                                 Just buildNum ->
-                                    getLogs model org repo buildNum stepNum
+                                    Cmd.batch
+                                        [ getLogs model org repo buildNum stepNum
+                                        , Navigation.replaceUrl navKey <|
+                                            Routes.routeToUrl
+                                                (Routes.Build org repo buildNum <|
+                                                    Just <|
+                                                        lineFocusUrl stepNum Nothing
+                                                )
+                                        ]
 
                                 Nothing ->
                                     Cmd.none
@@ -741,19 +749,29 @@ toggleStepView steps stepNumber =
 
 {-| clickLogLine : takes model and line number and sets the focus on the log line
 -}
-clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd msg )
+clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Maybe Int -> ( WebData Steps, Cmd msg )
 clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
     ( steps
     , Navigation.replaceUrl navKey <|
         Routes.routeToUrl
             (Routes.Build org repo buildNumber <|
                 Just <|
-                    "#step:"
-                        ++ stepNumber
-                        ++ ":"
-                        ++ String.fromInt lineNumber
+                    lineFocusUrl stepNumber lineNumber
             )
     )
+
+
+lineFocusUrl : StepNumber -> Maybe Int -> String
+lineFocusUrl stepNumber lineNumber =
+    "#step:"
+        ++ stepNumber
+        ++ (case lineNumber of
+                Just l ->
+                    ":" ++ String.fromInt l
+
+                Nothing ->
+                    ""
+           )
 
 
 {-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
