@@ -82,7 +82,8 @@ import Url.Builder as UB exposing (QueryParameter)
 import Util
 import Vela
     exposing
-        ( AddRepo
+        ( ActivationStatus(..)
+        , AddRepo
         , AddRepos
         , AddRepositoryPayload
         , AuthParams
@@ -104,7 +105,6 @@ import Vela
         , Repositories
         , Repository
         , Session
-        , SourceRepoUpdateFunction
         , SourceRepositories
         , Step
         , StepNumber
@@ -380,11 +380,16 @@ update msg model =
         RepoAddedResponse repo response ->
             case response of
                 Ok ( _, addedRepo ) ->
-                    ( { model | sourceRepos = updateSourceRepoStatus addedRepo (RemoteData.succeed True) model.sourceRepos updateSourceRepoListByRepoName }, Cmd.none )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (addedRepo.full_name ++ " added.") Nothing)
+                    ( { model
+                        | currentRepos = deactivateRepo repo Vela.Activated (RemoteData.withDefault [] model.currentRepos)
+                        , sourceRepos = repoAdded addedRepo (RemoteData.succeed True) model.sourceRepos
+                      }
+                    , Cmd.none
+                    )
+                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (addedRepo.full_name ++ " activated.") Nothing)
 
                 Err error ->
-                    ( { model | sourceRepos = updateSourceRepoStatus repo (toFailure error) model.sourceRepos updateSourceRepoListByRepoName }, addError error )
+                    ( { model | sourceRepos = repoAdded repo (toFailure error) model.sourceRepos }, addError error )
 
         RepoUpdatedResponse field response ->
             case response of
@@ -396,18 +401,50 @@ update msg model =
                     ( { model | repo = toFailure error }, addError error )
 
         RemoveRepo repo ->
-            ( model, Api.try (RepoRemovedResponse repo) <| Api.deleteRepo model repo )
+            let
+                payload : AddRepositoryPayload
+                payload =
+                    buildAddRepositoryPayload repo model.velaSourceBaseURL
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeAddRepository payload
+
+                ( status, action ) =
+                    case repo.removed of
+                        Vela.NotAsked_ ->
+                            ( Vela.Confirming, Cmd.none )
+
+                        Vela.Activated ->
+                            ( Vela.Confirming, Cmd.none )
+
+                        Vela.Deactivated ->
+                            ( Vela.Activating
+                            , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
+                            )
+
+                        Vela.Confirming ->
+                            ( Vela.Deactivating, Api.try (RepoRemovedResponse repo) <| Api.deleteRepo model repo )
+
+                        _ ->
+                            ( repo.removed, Cmd.none )
+            in
+            ( { model
+                | currentRepos = deactivateRepo repo status (RemoteData.withDefault [] model.currentRepos)
+              }
+            , action
+            )
 
         RepoRemovedResponse repo response ->
             case response of
                 Ok _ ->
                     ( { model
-                        | currentRepos = RemoteData.succeed (List.filter (\currentRepo -> currentRepo /= repo) (RemoteData.withDefault [] model.currentRepos))
-                        , sourceRepos = updateSourceRepoStatus repo NotAsked model.sourceRepos updateSourceRepoListByRepoName
+                        | currentRepos = deactivateRepo repo Vela.Deactivated (RemoteData.withDefault [] model.currentRepos)
+                        , sourceRepos = repoAdded repo NotAsked model.sourceRepos
                       }
                     , Cmd.none
                     )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " removed.") Nothing)
+                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " deactivated.") Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -505,7 +542,7 @@ update msg model =
                 body =
                     Http.jsonBody <| encodeAddRepository payload
             in
-            ( { model | sourceRepos = updateSourceRepoStatus repo Loading model.sourceRepos updateSourceRepoListByRepoName }
+            ( { model | sourceRepos = repoAdded repo Loading model.sourceRepos }
             , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
             )
 
@@ -954,7 +991,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.currentRepos RemoveRepo
+            , Pages.Home.view model.currentRepos
             )
 
         Pages.AddRepositories ->
@@ -983,7 +1020,7 @@ viewContent model =
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout
+            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout RemoveRepo
             )
 
         Pages.RepositoryBuilds org repo maybePage _ ->
@@ -1411,15 +1448,24 @@ loadBuildPage model org repo buildNumber lineFocus =
     )
 
 
-{-| updateSourceRepoStatus : update the UI state for source repos, single or by org
+deactivateRepo : Repository -> ActivationStatus -> Repositories -> WebData Repositories
+deactivateRepo repo status repos =
+    RemoteData.succeed
+        (List.Extra.updateIf (\currentRepo -> currentRepo.name == repo.name)
+            (\currentRepo -> { currentRepo | removed = status })
+            repos
+        )
+
+
+{-| repoAdded : update the UI state for source repos, single or by org
 -}
-updateSourceRepoStatus : Repository -> WebData Bool -> WebData SourceRepositories -> SourceRepoUpdateFunction -> WebData SourceRepositories
-updateSourceRepoStatus repo status sourceRepos updateFn =
+repoAdded : Repository -> WebData Bool -> WebData SourceRepositories -> WebData SourceRepositories
+repoAdded repo status sourceRepos =
     case sourceRepos of
         Success repos ->
             case Dict.get repo.org repos of
                 Just orgRepos ->
-                    RemoteData.succeed <| updateSourceRepoDict repo status repos orgRepos updateFn
+                    RemoteData.succeed <| repoAddedDictUpdate repo status repos orgRepos
 
                 _ ->
                     sourceRepos
@@ -1428,17 +1474,17 @@ updateSourceRepoStatus repo status sourceRepos updateFn =
             sourceRepos
 
 
-{-| updateSourceRepoDict : update the dictionary containing org source repo lists
+{-| repoAddedDictUpdate : update the dictionary containing org source repo lists
 -}
-updateSourceRepoDict : Repository -> WebData Bool -> Dict String Repositories -> Repositories -> SourceRepoUpdateFunction -> Dict String Repositories
-updateSourceRepoDict repo status repos orgRepos updateFn =
-    Dict.update repo.org (\_ -> Just <| updateFn repo status orgRepos) repos
+repoAddedDictUpdate : Repository -> WebData Bool -> Dict String Repositories -> Repositories -> Dict String Repositories
+repoAddedDictUpdate repo status repos orgRepos =
+    Dict.update repo.org (\_ -> Just <| repoAddedRepoUpdate repo status orgRepos) repos
 
 
-{-| updateSourceRepoListByRepoName : list map for updating single repo status by repo name
+{-| repoAddedRepoUpdate : list map for updating single repo status by repo name
 -}
-updateSourceRepoListByRepoName : Repository -> WebData Bool -> Repositories -> Repositories
-updateSourceRepoListByRepoName repo status orgRepos =
+repoAddedRepoUpdate : Repository -> WebData Bool -> Repositories -> Repositories
+repoAddedRepoUpdate repo status orgRepos =
     List.map
         (\sourceRepo ->
             if sourceRepo.name == repo.name then

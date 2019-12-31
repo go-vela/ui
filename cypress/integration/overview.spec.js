@@ -50,7 +50,7 @@ context("Overview/Repositories Page", () => {
     });
 
     it("Remove button should exist for all repos", () => {
-      cy.get("[data-test=repo-remove]").should("have.length", 3);
+      cy.get("[data-test=repo-deactivate]").should("have.length", 3);
     });
 
     it("should remove the only repo in the org and not show the org", () => {
@@ -59,7 +59,7 @@ context("Overview/Repositories Page", () => {
         url: "*api/v1/repos/DavidVader/**",
         response: `"Repo DavidVader/applications deleted"`
       });
-      cy.get("[data-test=repo-remove]")
+      cy.get("[data-test=repo-deactivate]")
         .first()
         .click();
       cy.get("[data-test=repo-org]").should("have.length", 1);
@@ -71,7 +71,7 @@ context("Overview/Repositories Page", () => {
         url: "*api/v1/repos/DavidVader/**",
         response: `"Repo DavidVader/applications deleted"`
       });
-      cy.get("[data-test=repo-remove]")
+      cy.get("[data-test=repo-deactivate]")
         .first()
         .click();
       cy.get("[data-test=alerts]").as("alert");

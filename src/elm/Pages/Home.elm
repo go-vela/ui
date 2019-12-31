@@ -25,6 +25,7 @@ import Html.Attributes
     exposing
         ( attribute
         , class
+        , disabled
         )
 import Html.Events exposing (onClick)
 import List
@@ -45,8 +46,8 @@ recordsGroupBy key recordList =
     List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
 
 
-view : WebData Repositories -> (Repository -> msg) -> Html msg
-view currentRepos removeRepo =
+view : WebData Repositories -> Html msg
+view currentRepos =
     let
         blankMessage : Html msg
         blankMessage =
@@ -71,7 +72,7 @@ view currentRepos removeRepo =
                 if List.length activeRepos > 0 then
                     activeRepos
                         |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg removeRepo
+                        |> viewCurrentRepoListByOrg
 
                 else
                     blankMessage
@@ -89,8 +90,30 @@ view currentRepos removeRepo =
         ]
 
 
-viewSingleRepo : (Repository -> msg) -> Repository -> Html msg
-viewSingleRepo removeRepo repo =
+deactivateButton : (Repository -> msg) -> (Repository -> msg) -> Repository -> Html msg
+deactivateButton deactivateRepo activateRepo repo =
+    case repo.removed of
+        Vela.Confirming ->
+            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivate-confirm", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Deactivate?" ]
+
+        Vela.Deactivating ->
+            div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Deactivating" ], span [ class "loading-ellipsis" ] [] ]
+
+        Vela.Activating ->
+            div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
+
+        Vela.Deactivated ->
+            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivated", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Activate" ]
+
+        Vela.Activated ->
+            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Deactivate" ]
+
+        Vela.NotAsked_ ->
+            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Deactivate" ]
+
+
+viewSingleRepo : Repository -> Html msg
+viewSingleRepo repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
@@ -101,7 +124,6 @@ viewSingleRepo removeRepo repo =
                 , Routes.href <| Routes.Settings repo.org repo.name
                 ]
                 [ text "Settings" ]
-            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| removeRepo repo ] [ text "Remove" ]
             , a
                 [ class "-btn"
                 , class "-inverted"
@@ -122,20 +144,20 @@ viewSingleRepo removeRepo repo =
         ]
 
 
-viewOrg : (Repository -> msg) -> String -> Repositories -> Html msg
-viewOrg removeRepo org repos =
+viewOrg : String -> Repositories -> Html msg
+viewOrg org repos =
     div [ class "repo-org", Util.testAttribute "repo-org" ]
         [ details [ class "details", class "repo-item", attribute "open" "open" ]
             (summary [ class "summary" ] [ text org ]
-                :: List.map (viewSingleRepo removeRepo) repos
+                :: List.map viewSingleRepo repos
             )
         ]
 
 
-viewCurrentRepoListByOrg : (Repository -> msg) -> Dict String Repositories -> Html msg
-viewCurrentRepoListByOrg removeRepo repoList =
+viewCurrentRepoListByOrg : Dict String Repositories -> Html msg
+viewCurrentRepoListByOrg repoList =
     repoList
         |> Dict.toList
         |> Util.filterEmptyLists
-        |> List.map (\( org, repos ) -> viewOrg removeRepo org repos)
+        |> List.map (\( org, repos ) -> viewOrg org repos)
         |> div [ class "repo-list" ]

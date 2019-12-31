@@ -45,7 +45,13 @@ import Html.Events exposing (onCheck, onClick, onInput)
 import RemoteData exposing (RemoteData(..), WebData)
 import SvgBuilder
 import Util
-import Vela exposing (Field, Repository, UpdateRepositoryPayload)
+import Vela
+    exposing
+        ( ActivationStatus
+        , Field
+        , Repository
+        , UpdateRepositoryPayload
+        )
 
 
 
@@ -76,8 +82,8 @@ type alias NumberInputChange msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> Html msg
-view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange =
+view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> (Repository -> msg) -> Html msg
+view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange deactivateRepo =
     let
         loading =
             div []
@@ -88,7 +94,7 @@ view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange =
         Success repo_ ->
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ div [ class "row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
-                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange ]
+                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, deactivate deactivateRepo repo_ ]
                 ]
 
         Loading ->
@@ -257,6 +263,59 @@ timeoutWarning inTimeout =
                 ]
 
         Nothing ->
+            text ""
+
+
+deactivate : (Repository -> msg) -> Repository -> Html msg
+deactivate deactivateRepo repo =
+    let
+        btn =
+            case repo.removed of
+                Vela.Confirming ->
+                    button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivate-confirm", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Really Remove?" ]
+
+                Vela.Deactivating ->
+                    div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Deactivating" ], span [ class "loading-ellipsis" ] [] ]
+
+                Vela.Activating ->
+                    div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
+
+                Vela.Deactivated ->
+                    button [ disabled True, class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivated", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Activate" ]
+
+                Vela.Activated ->
+                    button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Remove Repository" ]
+
+                Vela.NotAsked_ ->
+                    button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Remove Repository" ]
+    in
+    div [ class "category", Util.testAttribute "repo-settings-timeout" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Admin" ] ]
+        , div [ class "description" ] [ text "These configurations require admin privileges." ]
+        , btn
+        , deactivateWarning repo.removed
+        ]
+
+
+deactivateWarning : ActivationStatus -> Html msg
+deactivateWarning status =
+    let
+        w =
+            div [ class "timeout-help" ]
+                [ text "Disclaimer: this will remove the repository from Vela."
+                ]
+    in
+    case status of
+        Vela.Confirming ->
+            w
+
+        Vela.Deactivating ->
+            w
+
+        Vela.Deactivated ->
+            w
+
+        _ ->
             text ""
 
 

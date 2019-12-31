@@ -206,23 +206,23 @@ buildAddRepoElement : Repository -> AddRepo msg -> Html msg
 buildAddRepoElement repo addRepo =
     case repo.added of
         RemoteData.NotAsked ->
-            button [ class "-solid", onClick (addRepo repo) ] [ text "Add" ]
+            button [ class "repo-add-btn", class "-solid", onClick (addRepo repo) ] [ text "Add" ]
 
         RemoteData.Loading ->
-            div [ class "repo-add--adding" ] [ span [ class "repo-add--adding-text" ] [ text "Adding" ], span [ class "loading-ellipsis" ] [] ]
+            div [ class "repo-add-btn", class "repo-add--adding" ] [ span [ class "repo-add--adding-text" ] [ text "Adding" ], span [ class "loading-ellipsis" ] [] ]
 
         RemoteData.Failure _ ->
-            div [ class "repo-add--failed", onClick (addRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+            div [ class "repo-add-btn", class "repo-add--failed", onClick (addRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
         RemoteData.Success addedStatus ->
             if addedStatus then
                 div [ class "-added-container" ]
-                    [ div [ class "repo-add--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Added" ] ]
+                    [ div [ class "repo-add-btn", class "repo-add--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Added" ] ]
                     , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
                     ]
 
             else
-                div [ class "repo-add--failed", onClick (addRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+                div [ class "repo-add-btn", class "repo-add--failed", onClick (addRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos

@@ -364,7 +364,7 @@ button,
 
 .-actions .-view {
   padding: 0.33em 2em;
-
+  line-height: 1.5em;
   @extend .button;
 }
 
@@ -372,6 +372,13 @@ button,
   text-decoration: none;
 
   color: var(--color-bg);
+}
+
+.actions-divider {
+  width: 2px;
+  background: var(--color-bg-light);
+  height: 1.75em;
+  margin: 0 0.75em;
 }
 
 // loading ellipsis
@@ -490,6 +497,10 @@ button,
   flex-direction: row;
 }
 
+.repo-add-btn {
+  margin-right: 0.5em;
+}
+
 .repo-add--added {
   color: var(--color-green);
   border: var(--line-width) solid var(--color-green);
@@ -528,6 +539,7 @@ button,
     transition: transform 0.2s ease-in-out;
   }
 }
+
 
 a.-btn {
   margin: 0.5em 0;
@@ -575,6 +587,7 @@ button.-inverted {
     }
   }
 }
+
 .nav-buttons {
   display: flex;
 }
@@ -608,10 +621,6 @@ button.-solid {
       border-color: inherit;
     }
   }
-}
-
-.-btn.-view {
-  margin-left: 0.4em;
 }
 
 .btn-refresh {
@@ -1750,4 +1759,31 @@ button.-solid {
 .pager-actions {
   display: flex;
   justify-content: space-between;
+}
+
+.repo-deactivate-deactivating {
+  color: var(--color-yellow);
+  border: var(--line-width) solid var(--color-yellow);
+  min-width: 170px;
+
+  @extend .repo-add;
+}
+
+.repo-deactivate-deactivating-text {
+  margin-left: 12px;
+}
+
+button.-btn.-inverted.repo-deactivate-confirm {
+  transition: 0.2s;
+  color: var(--color-red);
+  border: var(--line-width) solid var(--color-red);
+  &:hover {
+    color: var(--color-red);
+    border: var(--line-width) solid var(--color-red);
+  }
+}
+
+button.repo-deactivated {
+  // border: var(--line-width) solid var(--color-red);
+  line-height: 1.5em;
 }

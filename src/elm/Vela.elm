@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( AddRepo
+    ( ActivationStatus(..)
+    , AddRepo
     , AddRepos
     , AddRepositoryPayload
     , AuthParams
@@ -30,7 +31,6 @@ module Vela exposing
     , Search
     , SearchFilter
     , Session
-    , SourceRepoUpdateFunction
     , SourceRepositories
     , Status(..)
     , Step
@@ -224,13 +224,22 @@ type alias Repository =
     , allow_deploy : Bool
     , allow_tag : Bool
     , added : WebData Bool
-    , removed : WebData Bool
+    , removed : ActivationStatus
     }
+
+
+type ActivationStatus
+    = Confirming
+    | Deactivating
+    | Deactivated
+    | Activating
+    | Activated
+    | NotAsked_
 
 
 defaultRepository : Repository
 defaultRepository =
-    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False NotAsked NotAsked
+    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False NotAsked NotAsked_
 
 
 decodeRepository : Decoder Repository
@@ -256,7 +265,7 @@ decodeRepository =
         -- "added"
         |> hardcoded NotAsked
         -- "removed"
-        |> hardcoded NotAsked
+        |> hardcoded NotAsked_
 
 
 decodeRepositories : Decoder Repositories
@@ -279,12 +288,6 @@ type alias Repositories =
 -}
 type alias SourceRepositories =
     Dict String Repositories
-
-
-{-| SourceRepoUpdateFunction : function alias for updating source repositories via org or repo name
--}
-type alias SourceRepoUpdateFunction =
-    Repository -> WebData Bool -> Repositories -> Repositories
 
 
 encodeAddRepository : AddRepositoryPayload -> Encode.Value
