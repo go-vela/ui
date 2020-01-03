@@ -145,7 +145,7 @@ viewSourceOrgSummary sourceSearchFilters org repos filtered content search activ
         ]
         :: div [ class "source-actions" ]
             [ repoSearchBarLocal sourceSearchFilters org search
-            , activateReposBtn org repos filtered activateRepos
+            , activateReposButton org repos filtered activateRepos
             ]
         :: content
 
@@ -160,7 +160,7 @@ viewSourceRepo activateRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
         , div []
-            [ buildActivateRepoElement repo activateRepo
+            [ activateRepoButton repo activateRepo
             ]
         ]
 
@@ -174,7 +174,7 @@ viewSearchedSourceRepo activateRepo repo =
             [ text <| repo.org ++ "/" ++ repo.name ]
         , div
             []
-            [ buildActivateRepoElement repo activateRepo
+            [ activateRepoButton repo activateRepo
             ]
         ]
 
@@ -186,10 +186,10 @@ viewRepoCount repos =
     span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
 
 
-{-| activateReposBtn : takes List of repos and renders a button to activate them all at once, texts depends on user input filter
+{-| activateReposButton : takes List of repos and renders a button to activate them all at once, texts depends on user input filter
 -}
-activateReposBtn : Org -> Repositories -> Bool -> ActivateRepos msg -> Html msg
-activateReposBtn org repos filtered activateRepos =
+activateReposButton : Org -> Repositories -> Bool -> ActivateRepos msg -> Html msg
+activateReposButton org repos filtered activateRepos =
     button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (activateRepos repos) ]
         [ text <|
             if filtered then
@@ -200,10 +200,10 @@ activateReposBtn org repos filtered activateRepos =
         ]
 
 
-{-| buildActivateRepoElement : builds action element for adding single repos
+{-| activateRepoButton : builds action button for adding single repos
 -}
-buildActivateRepoElement : Repository -> ActivateRepo msg -> Html msg
-buildActivateRepoElement repo activateRepo =
+activateRepoButton : Repository -> ActivateRepo msg -> Html msg
+activateRepoButton repo activateRepo =
     case repo.added of
         RemoteData.NotAsked ->
             button [ class "repo-activate-btn", class "-solid", onClick (activateRepo repo) ] [ text "Activate" ]
