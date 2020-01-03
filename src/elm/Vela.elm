@@ -224,7 +224,7 @@ type alias Repository =
     , allow_deploy : Bool
     , allow_tag : Bool
     , added : WebData Bool
-    , removed : ActivationStatus
+    , activation : ActivationStatus
     }
 
 
@@ -264,7 +264,7 @@ decodeRepository =
         |> optional "allow_tag" bool False
         -- "added"
         |> hardcoded NotAsked
-        -- "removed"
+        -- "activation"
         |> optional "active" activationStatusDecoder NotAsked_
 
 

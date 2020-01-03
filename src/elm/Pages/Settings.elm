@@ -13,11 +13,14 @@ module Pages.Settings exposing
     , timeout
     , timeoutInput
     , timeoutWarning
+    , updateRepoActivation
+    , updateSourceRepoActivation
     , validAccessUpdate
     , validEventsUpdate
     , view
     )
 
+import Dict exposing (Dict)
 import Html
     exposing
         ( Html
@@ -43,6 +46,7 @@ import Html.Attributes
         , value
         )
 import Html.Events exposing (onCheck, onClick, onInput)
+import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import SvgBuilder
 import Util
@@ -50,7 +54,9 @@ import Vela
     exposing
         ( ActivationStatus
         , Field
+        , Repositories
         , Repository
+        , SourceRepositories
         , UpdateRepositoryPayload
         )
 
@@ -84,7 +90,7 @@ type alias NumberInputChange msg =
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
 view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> (Repository -> msg) -> (Repository -> msg) -> Html msg
-view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange deactivateRepo activateRepo =
+view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange activateRepo deactivateRepo =
     let
         loading =
             div []
@@ -269,7 +275,7 @@ timeoutWarning inTimeout =
 
 activationButton : (Repository -> msg) -> (Repository -> msg) -> Repository -> Html msg
 activationButton deactivateRepo activateRepo repo =
-    case repo.removed of
+    case repo.activation of
         Vela.Activated ->
             button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Deactivate" ]
 
@@ -315,7 +321,7 @@ deactivate : (Repository -> msg) -> (Repository -> msg) -> Repository -> Html ms
 deactivate deactivateRepo activateRepo repo =
     let
         activationDetails =
-            if isDeactivatable repo.removed then
+            if isDeactivatable repo.activation then
                 ( "Deactivate Repository", "This will delete the Vela webhook from this repository." )
 
             else
@@ -516,3 +522,53 @@ toggleText field value =
 
     else
         disabled
+
+
+{-| updateRepoActivation : takes repo, activation status and repos and sets activation status of the specified repo
+-}
+updateRepoActivation : Repository -> ActivationStatus -> Repositories -> WebData Repositories
+updateRepoActivation repo status repos =
+    RemoteData.succeed
+        (List.Extra.updateIf (\currentRepo -> currentRepo.name == repo.name)
+            (\currentRepo -> { currentRepo | activation = status })
+            repos
+        )
+
+
+{-| updateSourceRepoActivation : takes repo, activation status and source repos and sets activation status of the specified repo
+-}
+updateSourceRepoActivation : Repository -> WebData Bool -> WebData SourceRepositories -> WebData SourceRepositories
+updateSourceRepoActivation repo status sourceRepos =
+    case sourceRepos of
+        Success repos ->
+            case Dict.get repo.org repos of
+                Just orgRepos ->
+                    RemoteData.succeed <| sourceRepoStatusUpdateDict repo status repos orgRepos
+
+                _ ->
+                    sourceRepos
+
+        _ ->
+            sourceRepos
+
+
+{-| sourceRepoStatusUpdateDict : update the dictionary containing org source repo lists
+-}
+sourceRepoStatusUpdateDict : Repository -> WebData Bool -> Dict String Repositories -> Repositories -> Dict String Repositories
+sourceRepoStatusUpdateDict repo status repos orgRepos =
+    Dict.update repo.org (\_ -> Just <| sourceRepoStatusUpdateRepo repo status orgRepos) repos
+
+
+{-| activationUpdateRepos : list map for updating single repo status by repo name
+-}
+sourceRepoStatusUpdateRepo : Repository -> WebData Bool -> Repositories -> Repositories
+sourceRepoStatusUpdateRepo repo status orgRepos =
+    List.map
+        (\sourceRepo ->
+            if sourceRepo.name == repo.name then
+                { sourceRepo | added = status }
+
+            else
+                sourceRepo
+        )
+        orgRepos

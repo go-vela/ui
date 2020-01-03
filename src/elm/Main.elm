@@ -62,7 +62,7 @@ import Pages exposing (Page(..))
 import Pages.AddRepos
 import Pages.Home
 import Pages.Hooks
-import Pages.Settings
+import Pages.Settings exposing (updateRepoActivation, updateSourceRepoActivation)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
@@ -274,7 +274,7 @@ type Msg
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
     | ActivateRepos Repositories
-    | RemoveRepo Repository
+    | DeactivateRepo Repository
     | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
@@ -285,7 +285,7 @@ type Msg
     | HookBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | RepoActivatedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
-    | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RepoDeactivatedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
@@ -391,8 +391,8 @@ update msg model =
                     RemoteData.withDefault defaultRepository model.repo
             in
             ( { model
-                | sourceRepos = repoActivated repo Loading model.sourceRepos
-                , repo = RemoteData.succeed <| { currentRepo | removed = Vela.Activating }
+                | sourceRepos = updateSourceRepoActivation repo Loading model.sourceRepos
+                , repo = RemoteData.succeed <| { currentRepo | activation = Vela.Activating }
               }
             , Api.try (RepoActivatedResponse repo) <| Api.addRepository model body
             )
@@ -405,16 +405,20 @@ update msg model =
             case response of
                 Ok ( _, activatedRepo ) ->
                     ( { model
-                        | currentRepos = deactivateRepo repo Vela.Activated (RemoteData.withDefault [] model.currentRepos)
-                        , sourceRepos = repoActivated activatedRepo (RemoteData.succeed True) model.sourceRepos
-                        , repo = RemoteData.succeed <| { currentRepo | removed = Vela.Activated }
+                        | currentRepos = updateRepoActivation repo Vela.Activated (RemoteData.withDefault [] model.currentRepos)
+                        , sourceRepos = updateSourceRepoActivation activatedRepo (RemoteData.succeed True) model.sourceRepos
+                        , repo = RemoteData.succeed <| { currentRepo | activation = Vela.Activated }
                       }
                     , Cmd.none
                     )
                         |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (activatedRepo.full_name ++ " activated.") Nothing)
 
                 Err error ->
-                    repoActivatedError model repo error
+                    let
+                        ( sourceRepos, action ) =
+                            repoActivatedError model.sourceRepos repo error addError
+                    in
+                    ( { model | sourceRepos = sourceRepos }, action )
 
         RepoUpdatedResponse field response ->
             case response of
@@ -425,29 +429,29 @@ update msg model =
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
 
-        RemoveRepo repo ->
+        DeactivateRepo repo ->
             let
                 currentRepo =
                     RemoteData.withDefault defaultRepository model.repo
 
                 ( status, action ) =
-                    case repo.removed of
+                    case repo.activation of
                         Vela.Activated ->
                             ( Vela.ConfirmDeactivation, Cmd.none )
 
                         Vela.ConfirmDeactivation ->
-                            ( Vela.Deactivating, Api.try (RepoRemovedResponse repo) <| Api.deleteRepo model repo )
+                            ( Vela.Deactivating, Api.try (RepoDeactivatedResponse repo) <| Api.deleteRepo model repo )
 
                         _ ->
-                            ( repo.removed, Cmd.none )
+                            ( repo.activation, Cmd.none )
             in
             ( { model
-                | repo = RemoteData.succeed <| { currentRepo | removed = status }
+                | repo = RemoteData.succeed <| { currentRepo | activation = status }
               }
             , action
             )
 
-        RepoRemovedResponse repo response ->
+        RepoDeactivatedResponse repo response ->
             let
                 currentRepo =
                     RemoteData.withDefault defaultRepository model.repo
@@ -455,8 +459,8 @@ update msg model =
             case response of
                 Ok _ ->
                     ( { model
-                        | repo = RemoteData.succeed <| { currentRepo | removed = Vela.Deactivated }
-                        , sourceRepos = repoActivated repo NotAsked model.sourceRepos
+                        | repo = RemoteData.succeed <| { currentRepo | activation = Vela.Deactivated }
+                        , sourceRepos = updateSourceRepoActivation repo NotAsked model.sourceRepos
                       }
                     , Cmd.none
                     )
@@ -1022,7 +1026,7 @@ viewContent model =
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout RemoveRepo ActivateRepo
+            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DeactivateRepo ActivateRepo
             )
 
         Pages.RepositoryBuilds org repo maybePage _ ->
@@ -1450,39 +1454,13 @@ loadBuildPage model org repo buildNumber lineFocus =
     )
 
 
-deactivateRepo : Repository -> ActivationStatus -> Repositories -> WebData Repositories
-deactivateRepo repo status repos =
-    RemoteData.succeed
-        (List.Extra.updateIf (\currentRepo -> currentRepo.name == repo.name)
-            (\currentRepo -> { currentRepo | removed = status })
-            repos
-        )
+{-| repoActivatedError : takes model repo and error and updates the source repos within the model
 
-
-{-| repoActivated : update the UI state for source repos, single or by org
--}
-repoActivated : Repository -> WebData Bool -> WebData SourceRepositories -> WebData SourceRepositories
-repoActivated repo status sourceRepos =
-    case sourceRepos of
-        Success repos ->
-            case Dict.get repo.org repos of
-                Just orgRepos ->
-                    RemoteData.succeed <| repoActivatedDictUpdate repo status repos orgRepos
-
-                _ ->
-                    sourceRepos
-
-        _ ->
-            sourceRepos
-
-
-{-| repoActivated : takes model repo and error and updates the source repos within the model
-
-    repoActivated : consumes 409 conflicts that result from the repo already being activated
+    repoActivatedError : consumes 409 conflicts that result from the repo already being activated
 
 -}
-repoActivatedError : Model -> Repository -> Http.Detailed.Error String -> ( Model, Cmd Msg )
-repoActivatedError model repo error =
+repoActivatedError : WebData SourceRepositories -> Repository -> Http.Detailed.Error String -> (Http.Detailed.Error String -> Cmd msg) -> ( WebData SourceRepositories, Cmd msg )
+repoActivatedError sourceRepos repo error ad =
     let
         ( activation, action ) =
             case error of
@@ -1492,39 +1470,14 @@ repoActivatedError model repo error =
                             ( RemoteData.succeed True, Cmd.none )
 
                         _ ->
-                            ( toFailure error, addError error )
+                            ( toFailure error, ad error )
 
                 _ ->
-                    ( toFailure error, addError error )
+                    ( toFailure error, ad error )
     in
-    ( { model
-        | sourceRepos =
-            repoActivated repo activation model.sourceRepos
-      }
+    ( updateSourceRepoActivation repo activation sourceRepos
     , action
     )
-
-
-{-| repoActivatedDictUpdate : update the dictionary containing org source repo lists
--}
-repoActivatedDictUpdate : Repository -> WebData Bool -> Dict String Repositories -> Repositories -> Dict String Repositories
-repoActivatedDictUpdate repo status repos orgRepos =
-    Dict.update repo.org (\_ -> Just <| repoActivatedRepoUpdate repo status orgRepos) repos
-
-
-{-| repoActivatedRepoUpdate : list map for updating single repo status by repo name
--}
-repoActivatedRepoUpdate : Repository -> WebData Bool -> Repositories -> Repositories
-repoActivatedRepoUpdate repo status orgRepos =
-    List.map
-        (\sourceRepo ->
-            if sourceRepo.name == repo.name then
-                { sourceRepo | added = status }
-
-            else
-                sourceRepo
-        )
-        orgRepos
 
 
 {-| buildActivateRepositoryPayload : builds the payload for adding a repository via the api
