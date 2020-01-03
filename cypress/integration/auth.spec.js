@@ -56,19 +56,19 @@ context("Authentication", () => {
       });
     });
 
-    it("empty values in sessionstorage object should redirect to login page", () => {
+    it("empty values in sessionstorage object should show login page", () => {
       cy.visit("/");
-      cy.location("pathname").should("eq", "/account/login");
+      cy.get("body").should("contain", "Authorize Via");
     });
 
-    it("no sessionstorage item should redirect to login page", () => {
+    it("no sessionstorage item should keep you on login page", () => {
       cy.visit("/account/login");
       cy.location("pathname").should("eq", "/account/login");
     });
 
-    it("visiting random pages sends you to login", () => {
+    it("visiting random pages should show login page", () => {
       cy.visit("/asdf");
-      cy.location("pathname").should("eq", "/account/login");
+      cy.get("body").should("contain", "Authorize Via");
     });
 
     it("should say the application name near the logo", () => {
@@ -131,8 +131,8 @@ context("Authentication", () => {
       cy.login("/Cookie/Cat", "redirect");
     });
 
-    it("should redirect to the login page", () => {
-      cy.location("pathname").should("eq", "/account/login");
+    it("should show login page", () => {
+      cy.get("body").should("contain", "Authorize Via");
     });
 
     it("shows the app name near the logo since no user has logged in yet", () => {
