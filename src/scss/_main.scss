@@ -478,7 +478,7 @@ button,
   }
 }
 
-.repo-add {
+.repo-activate {
   display: flex;
   align-items: center;
 
@@ -497,36 +497,36 @@ button,
   flex-direction: row;
 }
 
-.repo-add-btn {
+.repo-activate-btn {
   margin-right: 0.5em;
 }
 
-.repo-add--added {
+.repo-activate--added {
   color: var(--color-green);
   border: var(--line-width) solid var(--color-green);
 
-  @extend .repo-add;
+  @extend .repo-activate;
 }
 
-.repo-add--adding {
+.repo-activate--adding {
   color: var(--color-yellow);
   border: var(--line-width) solid var(--color-yellow);
 
-  @extend .repo-add;
+  @extend .repo-activate;
 }
 
-.repo-add--adding-text {
+.repo-activate--adding-text {
   margin-left: 12px;
 }
 
-.repo-add--failed {
+.repo-activate--failed {
   cursor: pointer;
 
   color: var(--color-red);
   border: var(--line-width) solid var(--color-red);
   background: none;
 
-  @extend .repo-add;
+  @extend .repo-activate;
 
   &:hover svg {
     transition: transform 0.2s ease-in-out;
@@ -1799,7 +1799,7 @@ button.-solid {
   border: var(--line-width) solid var(--color-yellow);
   min-width: 170px;
 
-  @extend .repo-add;
+  @extend .repo-activate;
 }
 
 .repo-deactivate-deactivating-text {

@@ -145,14 +145,14 @@ viewSourceOrgSummary sourceSearchFilters org repos filtered content search activ
         ]
         :: div [ class "source-actions" ]
             [ repoSearchBarLocal sourceSearchFilters org search
-            , addReposBtn org repos filtered activateRepos
+            , activateReposBtn org repos filtered activateRepos
             ]
         :: content
 
 
 {-| viewSourceRepo : renders single repo within a list of org repos
 
-    viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Add' button
+    viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Activate' button
 
 -}
 viewSourceRepo : ActivateRepo msg -> Repository -> Html msg
@@ -160,7 +160,7 @@ viewSourceRepo activateRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
         , div []
-            [ buildAddRepoElement repo activateRepo
+            [ buildActivateRepoElement repo activateRepo
             ]
         ]
 
@@ -174,7 +174,7 @@ viewSearchedSourceRepo activateRepo repo =
             [ text <| repo.org ++ "/" ++ repo.name ]
         , div
             []
-            [ buildAddRepoElement repo activateRepo
+            [ buildActivateRepoElement repo activateRepo
             ]
         ]
 
@@ -186,43 +186,43 @@ viewRepoCount repos =
     span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
 
 
-{-| addReposBtn : takes List of repos and renders a button to add them all at once, texts depends on user input filter
+{-| activateReposBtn : takes List of repos and renders a button to activate them all at once, texts depends on user input filter
 -}
-addReposBtn : Org -> Repositories -> Bool -> ActivateRepos msg -> Html msg
-addReposBtn org repos filtered activateRepos =
+activateReposBtn : Org -> Repositories -> Bool -> ActivateRepos msg -> Html msg
+activateReposBtn org repos filtered activateRepos =
     button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (activateRepos repos) ]
         [ text <|
             if filtered then
-                "Add Results"
+                "Activate Results"
 
             else
-                "Add All"
+                "Activate All"
         ]
 
 
-{-| buildAddRepoElement : builds action element for adding single repos
+{-| buildActivateRepoElement : builds action element for adding single repos
 -}
-buildAddRepoElement : Repository -> ActivateRepo msg -> Html msg
-buildAddRepoElement repo activateRepo =
+buildActivateRepoElement : Repository -> ActivateRepo msg -> Html msg
+buildActivateRepoElement repo activateRepo =
     case repo.added of
         RemoteData.NotAsked ->
-            button [ class "repo-add-btn", class "-solid", onClick (activateRepo repo) ] [ text "Activate" ]
+            button [ class "repo-activate-btn", class "-solid", onClick (activateRepo repo) ] [ text "Activate" ]
 
         RemoteData.Loading ->
-            div [ class "repo-add-btn", class "repo-add--adding" ] [ span [ class "repo-add--adding-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
+            div [ class "repo-activate-btn", class "repo-activate--adding" ] [ span [ class "repo-activate--adding-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
 
         RemoteData.Failure _ ->
-            div [ class "repo-add-btn", class "repo-add--failed", onClick (activateRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+            div [ class "repo-activate-btn", class "repo-activate--failed", onClick (activateRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
         RemoteData.Success activationStatus ->
             if activationStatus then
                 div [ class "-added-container" ]
-                    [ div [ class "repo-add-btn", class "repo-add--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Activated" ] ]
+                    [ div [ class "repo-activate-btn", class "repo-activate--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Activated" ] ]
                     , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
                     ]
 
             else
-                div [ class "repo-add-btn", class "repo-add--failed", onClick (activateRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+                div [ class "repo-activate-btn", class "repo-activate--failed", onClick (activateRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos

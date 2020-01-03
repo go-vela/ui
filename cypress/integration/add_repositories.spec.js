@@ -44,7 +44,7 @@ context("Add Repositories", () => {
       cy.get("[data-test=source-org-cat]").click();
       cy.get("[data-test=source-repo-purr] > div > button").click();
 
-      cy.get("[data-test=source-repo-purr] .repo-add--added")
+      cy.get("[data-test=source-repo-purr] .repo-activate--added")
         .should("be.visible")
         .and("contain", "Added");
     });
@@ -60,11 +60,11 @@ context("Add Repositories", () => {
       cy.get("[data-test=source-org-cat]").click();
       cy.get("[data-test=source-repo-purr] > div > button").click();
 
-      cy.get("[data-test=source-repo-purr] .repo-add--added").should(
+      cy.get("[data-test=source-repo-purr] .repo-activate--added").should(
         "not.be.visible"
       );
 
-      cy.get("[data-test=source-repo-purr] .repo-add--failed")
+      cy.get("[data-test=source-repo-purr] .repo-activate--failed")
         .should("be.visible")
         .and("contain", "Failed");
 

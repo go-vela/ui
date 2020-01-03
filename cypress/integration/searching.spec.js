@@ -90,11 +90,11 @@ context("Searching", () => {
         it("octocat should show", () => {
           cy.get("[data-test=source-repo-octocat]").should("be.visible");
         });
-        it("add all button should contain Add Results", () => {
-          cy.get("[data-test=add-org-github]").contains("Add Results");
+        it("add all button should contain Activate Results", () => {
+          cy.get("[data-test=add-org-github]").contains("Activate Results");
         });
         context(
-          "click Add All button, then clear github local search input",
+          "click Activate All button, then clear github local search input",
           () => {
             beforeEach(() => {
               cy.route(
@@ -132,8 +132,8 @@ context("Searching", () => {
                 .should("be.visible")
                 .and("contain", "Adding");
             });
-            it("without search input, add all button should contain Add All", () => {
-              cy.get("[data-test=add-org-github]").contains("Add All");
+            it("without search input, add all button should contain Activate All", () => {
+              cy.get("[data-test=add-org-github]").contains("Activate All");
             });
           }
         );

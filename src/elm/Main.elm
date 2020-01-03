@@ -1108,7 +1108,7 @@ navButton model =
                         a
                             [ class "-btn"
                             , class "-inverted"
-                            , Util.testAttribute "repo-add"
+                            , Util.testAttribute "repo-activate"
                             , Routes.href <| Routes.AddRepositories
                             ]
                             [ text "Add Repositories" ]
