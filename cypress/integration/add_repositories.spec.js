@@ -46,7 +46,7 @@ context("Add Repositories", () => {
 
       cy.get("[data-test=source-repo-purr] .repo-activate--added")
         .should("be.visible")
-        .and("contain", "Added");
+        .and("contain", "Activated");
     });
 
     it("shows the failed button and alert when the add is unsuccessful", () => {
