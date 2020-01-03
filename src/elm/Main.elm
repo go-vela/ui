@@ -82,8 +82,7 @@ import Url.Builder as UB exposing (QueryParameter)
 import Util
 import Vela
     exposing
-        ( EnableRepositoryPayload
-        , AuthParams
+        ( AuthParams
         , Build
         , BuildIdentifier
         , BuildNumber
@@ -91,6 +90,7 @@ import Vela
         , BuildsModel
         , EnableRepo
         , EnableRepos
+        , EnableRepositoryPayload
         , Enabled(..)
         , Field
         , HookBuilds
@@ -118,8 +118,8 @@ import Vela
         , buildUpdateRepoStringPayload
         , decodeSession
         , decodeTheme
-        , defaultEnableRepositoryPayload
         , defaultBuilds
+        , defaultEnableRepositoryPayload
         , defaultHooks
         , defaultRepository
         , defaultSession
