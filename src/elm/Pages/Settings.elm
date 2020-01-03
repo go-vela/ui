@@ -26,6 +26,7 @@ import Html
         , em
         , input
         , label
+        , li
         , p
         , span
         , text
@@ -82,8 +83,8 @@ type alias NumberInputChange msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> (Repository -> msg) -> Html msg
-view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange deactivateRepo =
+view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> (Repository -> msg) -> (Repository -> msg) -> Html msg
+view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange deactivateRepo activateRepo =
     let
         loading =
             div []
@@ -94,7 +95,7 @@ view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange deac
         Success repo_ ->
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ div [ class "row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
-                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, deactivate deactivateRepo repo_ ]
+                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, deactivate deactivateRepo activateRepo repo_ ]
                 ]
 
         Loading ->
@@ -266,57 +267,71 @@ timeoutWarning inTimeout =
             text ""
 
 
-deactivate : (Repository -> msg) -> Repository -> Html msg
-deactivate deactivateRepo repo =
+activationButton : (Repository -> msg) -> (Repository -> msg) -> Repository -> Html msg
+activationButton deactivateRepo activateRepo repo =
+    case repo.removed of
+        Vela.Activated ->
+            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Deactivate" ]
+
+        Vela.ConfirmDeactivation ->
+            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivate-confirm", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Really Deactivate?" ]
+
+        Vela.Deactivating ->
+            div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Deactivating" ], span [ class "loading-ellipsis" ] [] ]
+
+        Vela.Deactivated ->
+            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivated", Util.testAttribute "repo-deactivate", onClick <| activateRepo repo ] [ text "Activate" ]
+
+        Vela.Activating ->
+            div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
+
+        Vela.NotAsked_ ->
+            button [ disabled True, class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Error" ]
+
+
+isDeactivatable : ActivationStatus -> Bool
+isDeactivatable status =
+    case status of
+        Vela.Activated ->
+            True
+
+        Vela.ConfirmDeactivation ->
+            True
+
+        Vela.Deactivating ->
+            True
+
+        Vela.Activating ->
+            False
+
+        Vela.Deactivated ->
+            False
+
+        Vela.NotAsked_ ->
+            False
+
+
+deactivate : (Repository -> msg) -> (Repository -> msg) -> Repository -> Html msg
+deactivate deactivateRepo activateRepo repo =
     let
-        btn =
-            case repo.removed of
-                Vela.Confirming ->
-                    button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivate-confirm", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Really Remove?" ]
+        activationDetails =
+            if isDeactivatable repo.removed then
+                ( "Deactivate Repository", "This will delete the Vela webhook from this repository." )
 
-                Vela.Deactivating ->
-                    div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Deactivating" ], span [ class "loading-ellipsis" ] [] ]
-
-                Vela.Activating ->
-                    div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
-
-                Vela.Deactivated ->
-                    button [ disabled True, class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivated", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Activate" ]
-
-                Vela.Activated ->
-                    button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Remove Repository" ]
-
-                Vela.NotAsked_ ->
-                    button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Remove Repository" ]
+            else
+                ( "Activate Repository", "This will create the Vela webhook for this repository." )
     in
     div [ class "category", Util.testAttribute "repo-settings-timeout" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Admin" ] ]
         , div [ class "description" ] [ text "These configurations require admin privileges." ]
-        , btn
-        , deactivateWarning repo.removed
-        ]
-
-
-deactivateWarning : ActivationStatus -> Html msg
-deactivateWarning status =
-    let
-        w =
-            div [ class "timeout-help" ]
-                [ text "Disclaimer: this will remove the repository from Vela."
+        , li [ class "temp-box" ]
+            [ div [ class "temp-column-a" ]
+                [ span [ class "temp-btn-label-a" ] [ text <| Tuple.first activationDetails ]
+                , span [ class "temp-btn-label-b" ] [ text <| Tuple.second activationDetails ]
                 ]
-    in
-    case status of
-        Vela.Confirming ->
-            w
-
-        Vela.Deactivating ->
-            w
-
-        Vela.Deactivated ->
-            w
-
-        _ ->
-            text ""
+            , div [ class "temp-column-b" ] [ div [] [ activationButton deactivateRepo activateRepo repo ] ]
+            ]
+        ]
 
 
 

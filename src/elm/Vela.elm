@@ -5,10 +5,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( ActivationStatus(..)
-    , AddRepo
-    , AddRepos
-    , AddRepositoryPayload
+    ( ActivateRepo
+    , ActivateRepos
+    , ActivateRepositoryPayload
+    , ActivationStatus(..)
     , AuthParams
     , Build
     , BuildIdentifier
@@ -56,14 +56,14 @@ module Vela exposing
     , decodeSteps
     , decodeTheme
     , decodeUser
-    , defaultAddRepositoryPayload
+    , defaultActivateRepositoryPayload
     , defaultBuilds
     , defaultHooks
     , defaultRepository
     , defaultSession
     , defaultUpdateRepositoryPayload
     , defaultUser
-    , encodeAddRepository
+    , encodeActivateRepository
     , encodeSession
     , encodeTheme
     , encodeUpdateRepository
@@ -229,7 +229,7 @@ type alias Repository =
 
 
 type ActivationStatus
-    = Confirming
+    = ConfirmDeactivation
     | Deactivating
     | Deactivated
     | Activating
@@ -265,7 +265,25 @@ decodeRepository =
         -- "added"
         |> hardcoded NotAsked
         -- "removed"
-        |> hardcoded NotAsked_
+        |> optional "active" activationStatusDecoder NotAsked_
+
+
+{-| activationStatusDecoder : decodes string field "status" to the union type BuildStatus
+-}
+activationStatusDecoder : Decoder ActivationStatus
+activationStatusDecoder =
+    bool |> andThen toActivationStatus
+
+
+{-| toActivationStatus : helper to decode string to ActivationStatus
+-}
+toActivationStatus : Bool -> Decoder ActivationStatus
+toActivationStatus active =
+    if active then
+        succeed Activated
+
+    else
+        succeed Deactivated
 
 
 decodeRepositories : Decoder Repositories
@@ -290,8 +308,8 @@ type alias SourceRepositories =
     Dict String Repositories
 
 
-encodeAddRepository : AddRepositoryPayload -> Encode.Value
-encodeAddRepository repo =
+encodeActivateRepository : ActivateRepositoryPayload -> Encode.Value
+encodeActivateRepository repo =
     Encode.object
         [ ( "org", Encode.string <| repo.org )
         , ( "name", Encode.string <| repo.name )
@@ -308,7 +326,7 @@ encodeAddRepository repo =
         ]
 
 
-type alias AddRepositoryPayload =
+type alias ActivateRepositoryPayload =
     { org : String
     , name : String
     , full_name : String
@@ -324,9 +342,9 @@ type alias AddRepositoryPayload =
     }
 
 
-defaultAddRepositoryPayload : AddRepositoryPayload
-defaultAddRepositoryPayload =
-    AddRepositoryPayload "" "" "" "" "" False True True True True False False
+defaultActivateRepositoryPayload : ActivateRepositoryPayload
+defaultActivateRepositoryPayload =
+    ActivateRepositoryPayload "" "" "" "" "" False True True True True False False
 
 
 type alias UpdateRepositoryPayload =
@@ -740,15 +758,15 @@ type alias SearchFilter =
 -- UPDATES
 
 
-{-| AddRepo : takes repo and activates it on Vela
+{-| ActivateRepo : takes repo and activates it on Vela
 -}
-type alias AddRepo msg =
+type alias ActivateRepo msg =
     Repository -> msg
 
 
-{-| AddRepos : takes repos and activates them on Vela
+{-| ActivateRepos : takes repos and activates them on Vela
 -}
-type alias AddRepos msg =
+type alias ActivateRepos msg =
     Repositories -> msg
 
 

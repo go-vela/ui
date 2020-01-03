@@ -1761,6 +1761,39 @@ button.-solid {
   justify-content: space-between;
 }
 
+.temp-box {
+  margin-top: 1em;
+  display: flex;
+  flex-direction: row;
+  list-style: none;
+}
+
+.temp-btn-label-a {
+  font-weight: 300;
+  font-size: 18px;
+}
+
+.temp-btn-label-b {
+  font-weight: 300;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.temp-column-a {
+  display: flex;
+  // justify-content: space-between;
+  margin-right: 0.8em;
+  flex-direction: column;
+}
+.temp-column-b {
+  display: flex;
+  flex-direction: row;
+}
+
+.repo-deactivate {
+  min-width: 170px;
+}
+
 .repo-deactivate-deactivating {
   color: var(--color-yellow);
   border: var(--line-width) solid var(--color-yellow);
@@ -1774,16 +1807,15 @@ button.-solid {
 }
 
 button.-btn.-inverted.repo-deactivate-confirm {
-  transition: 0.2s;
-  color: var(--color-red);
-  border: var(--line-width) solid var(--color-red);
+  color: var(--color-red-light);
+  border: var(--line-width) solid var(--color-red-light);
   &:hover {
-    color: var(--color-red);
-    border: var(--line-width) solid var(--color-red);
+      color: var(--color-red);
+      border: var(--line-width) solid var(--color-red);
   }
 }
 
 button.repo-deactivated {
   // border: var(--line-width) solid var(--color-red);
-  line-height: 1.5em;
+  // line-height: 1.5em;
 }

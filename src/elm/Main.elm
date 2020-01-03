@@ -82,10 +82,10 @@ import Url.Builder as UB exposing (QueryParameter)
 import Util
 import Vela
     exposing
-        ( ActivationStatus(..)
-        , AddRepo
-        , AddRepos
-        , AddRepositoryPayload
+        ( ActivateRepo
+        , ActivateRepos
+        , ActivateRepositoryPayload
+        , ActivationStatus(..)
         , AuthParams
         , Build
         , BuildIdentifier
@@ -118,12 +118,12 @@ import Vela
         , buildUpdateRepoStringPayload
         , decodeSession
         , decodeTheme
-        , defaultAddRepositoryPayload
+        , defaultActivateRepositoryPayload
         , defaultBuilds
         , defaultHooks
         , defaultRepository
         , defaultSession
-        , encodeAddRepository
+        , encodeActivateRepository
         , encodeSession
         , encodeTheme
         , encodeUpdateRepository
@@ -269,11 +269,11 @@ type Msg
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
-    | AddRepo Repository
+    | ActivateRepo Repository
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
-    | AddRepos Repositories
+    | ActivateRepos Repositories
     | RemoveRepo Repository
     | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
@@ -283,7 +283,7 @@ type Msg
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | HookBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | RepoAddedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
+    | RepoActivatedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoRemovedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -377,19 +377,44 @@ update msg model =
                 Err error ->
                     ( { model | sourceRepos = toFailure error }, addError error )
 
-        RepoAddedResponse repo response ->
+        ActivateRepo repo ->
+            let
+                payload : ActivateRepositoryPayload
+                payload =
+                    buildActivateRepositoryPayload repo model.velaSourceBaseURL
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeActivateRepository payload
+
+                currentRepo =
+                    RemoteData.withDefault defaultRepository model.repo
+            in
+            ( { model
+                | sourceRepos = repoActivated repo Loading model.sourceRepos
+                , repo = RemoteData.succeed <| { currentRepo | removed = Vela.Activating }
+              }
+            , Api.try (RepoActivatedResponse repo) <| Api.addRepository model body
+            )
+
+        RepoActivatedResponse repo response ->
+            let
+                currentRepo =
+                    RemoteData.withDefault defaultRepository model.repo
+            in
             case response of
-                Ok ( _, addedRepo ) ->
+                Ok ( _, activatedRepo ) ->
                     ( { model
                         | currentRepos = deactivateRepo repo Vela.Activated (RemoteData.withDefault [] model.currentRepos)
-                        , sourceRepos = repoAdded addedRepo (RemoteData.succeed True) model.sourceRepos
+                        , sourceRepos = repoActivated activatedRepo (RemoteData.succeed True) model.sourceRepos
+                        , repo = RemoteData.succeed <| { currentRepo | removed = Vela.Activated }
                       }
                     , Cmd.none
                     )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (addedRepo.full_name ++ " activated.") Nothing)
+                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (activatedRepo.full_name ++ " activated.") Nothing)
 
                 Err error ->
-                    ( { model | sourceRepos = repoAdded repo (toFailure error) model.sourceRepos }, addError error )
+                    repoActivatedError model repo error
 
         RepoUpdatedResponse field response ->
             case response of
@@ -402,45 +427,36 @@ update msg model =
 
         RemoveRepo repo ->
             let
-                payload : AddRepositoryPayload
-                payload =
-                    buildAddRepositoryPayload repo model.velaSourceBaseURL
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeAddRepository payload
+                currentRepo =
+                    RemoteData.withDefault defaultRepository model.repo
 
                 ( status, action ) =
                     case repo.removed of
-                        Vela.NotAsked_ ->
-                            ( Vela.Confirming, Cmd.none )
-
                         Vela.Activated ->
-                            ( Vela.Confirming, Cmd.none )
+                            ( Vela.ConfirmDeactivation, Cmd.none )
 
-                        Vela.Deactivated ->
-                            ( Vela.Activating
-                            , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
-                            )
-
-                        Vela.Confirming ->
+                        Vela.ConfirmDeactivation ->
                             ( Vela.Deactivating, Api.try (RepoRemovedResponse repo) <| Api.deleteRepo model repo )
 
                         _ ->
                             ( repo.removed, Cmd.none )
             in
             ( { model
-                | currentRepos = deactivateRepo repo status (RemoteData.withDefault [] model.currentRepos)
+                | repo = RemoteData.succeed <| { currentRepo | removed = status }
               }
             , action
             )
 
         RepoRemovedResponse repo response ->
+            let
+                currentRepo =
+                    RemoteData.withDefault defaultRepository model.repo
+            in
             case response of
                 Ok _ ->
                     ( { model
-                        | currentRepos = deactivateRepo repo Vela.Deactivated (RemoteData.withDefault [] model.currentRepos)
-                        , sourceRepos = repoAdded repo NotAsked model.sourceRepos
+                        | repo = RemoteData.succeed <| { currentRepo | removed = Vela.Deactivated }
+                        , sourceRepos = repoActivated repo NotAsked model.sourceRepos
                       }
                     , Cmd.none
                     )
@@ -532,20 +548,6 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        AddRepo repo ->
-            let
-                payload : AddRepositoryPayload
-                payload =
-                    buildAddRepositoryPayload repo model.velaSourceBaseURL
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeAddRepository payload
-            in
-            ( { model | sourceRepos = repoAdded repo Loading model.sourceRepos }
-            , Api.try (RepoAddedResponse repo) <| Api.addRepository model body
-            )
-
         UpdateRepoEvent org repo field value ->
             let
                 payload : UpdateRepositoryPayload
@@ -602,9 +604,9 @@ update msg model =
             , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
             )
 
-        AddRepos repos ->
+        ActivateRepos repos ->
             ( model
-            , Cmd.batch <| List.map (Util.dispatch << AddRepo) repos
+            , Cmd.batch <| List.map (Util.dispatch << ActivateRepo) repos
             )
 
         ClickHook org repo buildNumber ->
@@ -996,7 +998,7 @@ viewContent model =
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model.sourceRepos model.sourceSearchFilters SearchSourceRepos AddRepo AddRepos
+            , Pages.AddRepos.view model.sourceRepos model.sourceSearchFilters SearchSourceRepos ActivateRepo ActivateRepos
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1020,7 +1022,7 @@ viewContent model =
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout RemoveRepo
+            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout RemoveRepo ActivateRepo
             )
 
         Pages.RepositoryBuilds org repo maybePage _ ->
@@ -1457,15 +1459,15 @@ deactivateRepo repo status repos =
         )
 
 
-{-| repoAdded : update the UI state for source repos, single or by org
+{-| repoActivated : update the UI state for source repos, single or by org
 -}
-repoAdded : Repository -> WebData Bool -> WebData SourceRepositories -> WebData SourceRepositories
-repoAdded repo status sourceRepos =
+repoActivated : Repository -> WebData Bool -> WebData SourceRepositories -> WebData SourceRepositories
+repoActivated repo status sourceRepos =
     case sourceRepos of
         Success repos ->
             case Dict.get repo.org repos of
                 Just orgRepos ->
-                    RemoteData.succeed <| repoAddedDictUpdate repo status repos orgRepos
+                    RemoteData.succeed <| repoActivatedDictUpdate repo status repos orgRepos
 
                 _ ->
                     sourceRepos
@@ -1474,17 +1476,46 @@ repoAdded repo status sourceRepos =
             sourceRepos
 
 
-{-| repoAddedDictUpdate : update the dictionary containing org source repo lists
+{-| repoActivated : takes model repo and error and updates the source repos within the model
+
+    repoActivated : consumes 409 conflicts that result from the repo already being activated
+
 -}
-repoAddedDictUpdate : Repository -> WebData Bool -> Dict String Repositories -> Repositories -> Dict String Repositories
-repoAddedDictUpdate repo status repos orgRepos =
-    Dict.update repo.org (\_ -> Just <| repoAddedRepoUpdate repo status orgRepos) repos
+repoActivatedError : Model -> Repository -> Http.Detailed.Error String -> ( Model, Cmd Msg )
+repoActivatedError model repo error =
+    let
+        ( activation, action ) =
+            case error of
+                Http.Detailed.BadStatus metadata _ ->
+                    case metadata.statusCode of
+                        409 ->
+                            ( RemoteData.succeed True, Cmd.none )
+
+                        _ ->
+                            ( toFailure error, addError error )
+
+                _ ->
+                    ( toFailure error, addError error )
+    in
+    ( { model
+        | sourceRepos =
+            repoActivated repo activation model.sourceRepos
+      }
+    , action
+    )
 
 
-{-| repoAddedRepoUpdate : list map for updating single repo status by repo name
+{-| repoActivatedDictUpdate : update the dictionary containing org source repo lists
 -}
-repoAddedRepoUpdate : Repository -> WebData Bool -> Repositories -> Repositories
-repoAddedRepoUpdate repo status orgRepos =
+repoActivatedDictUpdate : Repository -> WebData Bool -> Dict String Repositories -> Repositories -> Dict String Repositories
+repoActivatedDictUpdate repo status repos orgRepos =
+    Dict.update repo.org (\_ -> Just <| repoActivatedRepoUpdate repo status orgRepos) repos
+
+
+{-| repoActivatedRepoUpdate : list map for updating single repo status by repo name
+-}
+repoActivatedRepoUpdate : Repository -> WebData Bool -> Repositories -> Repositories
+repoActivatedRepoUpdate repo status orgRepos =
     List.map
         (\sourceRepo ->
             if sourceRepo.name == repo.name then
@@ -1496,11 +1527,11 @@ repoAddedRepoUpdate repo status orgRepos =
         orgRepos
 
 
-{-| buildAddRepositoryPayload : builds the payload for adding a repository via the api
+{-| buildActivateRepositoryPayload : builds the payload for adding a repository via the api
 -}
-buildAddRepositoryPayload : Repository -> String -> AddRepositoryPayload
-buildAddRepositoryPayload repo velaSourceBaseURL =
-    { defaultAddRepositoryPayload
+buildActivateRepositoryPayload : Repository -> String -> ActivateRepositoryPayload
+buildActivateRepositoryPayload repo velaSourceBaseURL =
+    { defaultActivateRepositoryPayload
         | org = repo.org
         , name = repo.name
         , full_name = repo.org ++ "/" ++ repo.name

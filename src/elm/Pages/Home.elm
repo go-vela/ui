@@ -90,28 +90,6 @@ view currentRepos =
         ]
 
 
-deactivateButton : (Repository -> msg) -> (Repository -> msg) -> Repository -> Html msg
-deactivateButton deactivateRepo activateRepo repo =
-    case repo.removed of
-        Vela.Confirming ->
-            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivate-confirm", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Deactivate?" ]
-
-        Vela.Deactivating ->
-            div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Deactivating" ], span [ class "loading-ellipsis" ] [] ]
-
-        Vela.Activating ->
-            div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
-
-        Vela.Deactivated ->
-            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivated", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Activate" ]
-
-        Vela.Activated ->
-            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Deactivate" ]
-
-        Vela.NotAsked_ ->
-            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Deactivate" ]
-
-
 viewSingleRepo : Repository -> Html msg
 viewSingleRepo repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
