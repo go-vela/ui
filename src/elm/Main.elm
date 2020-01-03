@@ -21,7 +21,7 @@ import Build
         , viewRepositoryBuilds
         )
 import Crumbs
-import Dict exposing (Dict)
+import Dict
 import Errors exposing (detailedErrorToString)
 import FeatherIcons
 import Html

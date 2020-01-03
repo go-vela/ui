@@ -12,7 +12,6 @@ import Html
         ( Html
         , a
         , br
-        , button
         , details
         , div
         , h1
@@ -25,9 +24,7 @@ import Html.Attributes
     exposing
         ( attribute
         , class
-        , disabled
         )
-import Html.Events exposing (onClick)
 import List
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
