@@ -86,15 +86,15 @@ context("Add Repositories", () => {
 
       cy.get("[data-test=source-repo-octocat]")
       .should("be.visible")
-      .and("contain", "Adding");
+      .and("contain", "Activating");
 
       cy.get("[data-test=source-repo-octocat-1]")
         .should("be.visible")
-        .and("contain", "Adding");
+        .and("contain", "Activating");
 
       cy.get("[data-test=source-repo-octocat-2]")
         .should("be.visible")
-        .and("contain", "Adding");
+        .and("contain", "Activating");
     });
   });
 

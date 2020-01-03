@@ -110,27 +110,27 @@ context("Searching", () => {
             it("filtered repos should show and display adding", () => {
               cy.get("[data-test=source-repo-octocat]")
                 .should("be.visible")
-                .and("contain", "Adding");
+                .and("contain", "Activating");
 
               cy.get("[data-test=source-repo-octocat-1]")
                 .should("be.visible")
-                .and("contain", "Adding");
+                .and("contain", "Activating");
 
               cy.get("[data-test=source-repo-octocat-2]")
                 .should("be.visible")
-                .and("contain", "Adding");
+                .and("contain", "Activating");
 
               cy.get("[data-test=source-repo-server]")
                 .should("be.visible")
-                .and("not.contain", "Adding");
+                .and("not.contain", "Activating");
             });
             it("non-filtered repos should show but not display adding", () => {
               cy.get("[data-test=source-repo-server]")
                 .should("be.visible")
-                .and("not.contain", "Adding");
+                .and("not.contain", "Activating");
               cy.get("[data-test=source-repo-octocat]")
                 .should("be.visible")
-                .and("contain", "Adding");
+                .and("contain", "Activating");
             });
             it("without search input, add all button should contain Activate All", () => {
               cy.get("[data-test=add-org-github]").contains("Activate All");
