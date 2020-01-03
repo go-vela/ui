@@ -15,6 +15,7 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
+    , DeactivateRepo
     , Field
     , Hook
     , HookBuilds
@@ -761,6 +762,12 @@ type alias SearchFilter =
 {-| ActivateRepo : takes repo and activates it on Vela
 -}
 type alias ActivateRepo msg =
+    Repository -> msg
+
+
+{-| DeactivateRepo : takes repo and deactivates it on Vela
+-}
+type alias DeactivateRepo msg =
     Repository -> msg
 
 
