@@ -161,8 +161,8 @@ context("Builds", () => {
       cy.get("[data-test=alerts]").should("be.not.visible");
     });
 
-    it("builds should redirect to login", () => {
-      cy.location("pathname").should("eq", "/account/login");
+    it("builds should show login page", () => {
+      cy.get("body").should("contain", "Authorize Via");
     });
   });
 });

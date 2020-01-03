@@ -1295,13 +1295,13 @@ setNewPage route model =
         ( Routes.NotFound, True ) ->
             ( { model | page = Pages.NotFound }, Cmd.none )
 
-        -- Hitting any page and not being logged in will land you on the login page
+        {-- Hitting any page and not being logged in will load the login page content
+            
+            Note: we're not using .pushUrl to retain ability for user to use brower's back button
+        --}
         ( _, False ) ->
-            ( model
-            , Cmd.batch
-                [ Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
-                , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
-                ]
+            ( { model | page = Pages.Login }
+            , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
             )
 
 
