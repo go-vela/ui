@@ -214,8 +214,8 @@ enableRepoButton repo enableRepo =
         RemoteData.Failure _ ->
             div [ class "repo-enable-btn", class "repo-enable--failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
-        RemoteData.Success activationStatus ->
-            if activationStatus then
+        RemoteData.Success enabledStatus ->
+            if enabledStatus then
                 div [ class "-added-container" ]
                     [ div [ class "repo-enable-btn", class "repo-enable--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Enabled" ] ]
                     , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]

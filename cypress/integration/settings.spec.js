@@ -110,7 +110,7 @@ context("Repo Settings", () => {
       cy.get("[data-test=repo-disable]").should("have.length", 1);
     });
 
-    it("clicking button should prompt deactivation confirmation", () => {
+    it("clicking button should prompt disable confirmation", () => {
       cy.route({
         method: "DELETE",
         url: "*api/v1/repos/DavidVader/**",
@@ -134,13 +134,13 @@ context("Repo Settings", () => {
       cy.get("[data-test=repo-disable]")
         .first()
         .click().click();
-      cy.get("[data-test=repo-deactivating]").should(
+      cy.get("[data-test=repo-disabling]").should(
         "contain",
         "Disabling"
       );
     });
 
-    it("clicking button three times should reenable the repo", () => {
+    it("clicking button three times should re-enable the repo", () => {
       cy.route({
         method: "DELETE",
         url: "*api/v1/repos/github/**",

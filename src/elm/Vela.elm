@@ -230,7 +230,7 @@ type alias Repository =
 
 
 type Enabled
-    = ConfirmDeactivation
+    = ConfirmDisable
     | Disabling
     | Disabled
     | Enabling
@@ -266,20 +266,20 @@ decodeRepository =
         -- "added"
         |> hardcoded NotAsked
         -- "enable"
-        |> optional "active" activationStatusDecoder NotAsked_
+        |> optional "active" enabledStatusDecoder NotAsked_
 
 
-{-| activationStatusDecoder : decodes string field "status" to the union type BuildStatus
+{-| enabledStatusDecoder : decodes string field "status" to the union type BuildStatus
 -}
-activationStatusDecoder : Decoder Enabled
-activationStatusDecoder =
-    bool |> andThen toActivationStatus
+enabledStatusDecoder : Decoder Enabled
+enabledStatusDecoder =
+    bool |> andThen toEnabledStatus
 
 
-{-| toActivationStatus : helper to decode string to Enabled
+{-| toEnabledStatus : helper to decode string to Enabled
 -}
-toActivationStatus : Bool -> Decoder Enabled
-toActivationStatus active =
+toEnabledStatus : Bool -> Decoder Enabled
+toEnabledStatus active =
     if active then
         succeed Enabled
 
