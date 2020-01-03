@@ -335,8 +335,7 @@ activationButton deactivateRepo activateRepo repo =
         Vela.Deactivated ->
             button
                 [ baseClasses
-                , baseTestAttribute
-                , class "repo-deactivated"
+                , Util.testAttribute "repo-activate"
                 , onClick <| activateRepo repo
                 ]
                 [ text "Activate" ]
