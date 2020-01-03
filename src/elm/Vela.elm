@@ -759,15 +759,15 @@ type alias SearchFilter =
 -- UPDATES
 
 
-{-| ActivateRepo : takes repo and activates it on Vela
--}
-type alias ActivateRepo msg =
-    Repository -> msg
-
-
 {-| DeactivateRepo : takes repo and deactivates it on Vela
 -}
 type alias DeactivateRepo msg =
+    Repository -> msg
+
+
+{-| ActivateRepo : takes repo and activates it on Vela
+-}
+type alias ActivateRepo msg =
     Repository -> msg
 
 

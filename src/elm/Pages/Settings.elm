@@ -91,8 +91,8 @@ type alias NumberInputChange msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> ActivateRepo msg -> DeactivateRepo msg -> Html msg
-view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange activateRepo deactivateRepo =
+view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> DeactivateRepo msg -> ActivateRepo msg -> Html msg
+view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange deactivateRepo activateRepo =
     let
         loading =
             div []
@@ -277,7 +277,7 @@ timeoutWarning inTimeout =
 
 {-| activation : takes activation actions and repo and returns view of the repo activation admin action.
 -}
-activation : ActivateRepo msg -> DeactivateRepo msg -> Repository -> Html msg
+activation : DeactivateRepo msg -> ActivateRepo msg -> Repository -> Html msg
 activation deactivateRepo activateRepo repo =
     let
         activationDetails =
@@ -302,14 +302,14 @@ activation deactivateRepo activateRepo repo =
 
 {-| activationButton : takes activation actions and repo and returns view of the repo activation button.
 -}
-activationButton : ActivateRepo msg -> DeactivateRepo msg -> Repository -> Html msg
+activationButton : DeactivateRepo msg -> ActivateRepo msg -> Repository -> Html msg
 activationButton deactivateRepo activateRepo repo =
     let
         baseClasses =
             classList [ ( "-btn", True ), ( "-inverted", True ), ( "-view", True ), ( "repo-deactivate", True ) ]
 
         inProgressClasses =
-            classList [ ( "repo-deactivate-deactivating", True ), ( "repo-deactivate", True ) ]
+            classList [ ( "repo-activate", True ), ( "repo-deactivate-deactivating", True ), ( "repo-deactivate", True ) ]
 
         baseTestAttribute =
             Util.testAttribute "repo-deactivate"

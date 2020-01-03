@@ -1796,8 +1796,6 @@ button.-solid {
   color: var(--color-yellow);
   border: var(--line-width) solid var(--color-yellow);
   min-width: 170px;
-
-  @extend .repo-activate;
 }
 
 .repo-deactivate-deactivating-text {
