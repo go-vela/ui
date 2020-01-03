@@ -614,7 +614,7 @@ sourceRepoStatusUpdateRepo repo status orgRepos =
     List.map
         (\sourceRepo ->
             if sourceRepo.name == repo.name then
-                { sourceRepo | added = status }
+                { sourceRepo | enabled = status }
 
             else
                 sourceRepo

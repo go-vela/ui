@@ -40,11 +40,11 @@ context("Add Repositories", () => {
       cy.get("@catRepos").should("not.be.visible");
     });
 
-    it("shows the added label when a repo is added", () => {
+    it("shows the enabled label when a repo is enabled", () => {
       cy.get("[data-test=source-org-cat]").click();
       cy.get("[data-test=source-repo-purr] > div > button").click();
 
-      cy.get("[data-test=source-repo-purr] .repo-enable--added")
+      cy.get("[data-test=source-repo-purr] .repo-enable--enabled")
         .should("be.visible")
         .and("contain", "Enabled");
     });
@@ -60,7 +60,7 @@ context("Add Repositories", () => {
       cy.get("[data-test=source-org-cat]").click();
       cy.get("[data-test=source-repo-purr] > div > button").click();
 
-      cy.get("[data-test=source-repo-purr] .repo-enable--added").should(
+      cy.get("[data-test=source-repo-purr] .repo-enable--enabled").should(
         "not.be.visible"
       );
 
@@ -80,7 +80,7 @@ context("Add Repositories", () => {
       cy.wait("@sourceRepos");
     });
 
-    it("shows the loading labels when all repos for org are added", () => {
+    it("shows the loading labels when all repos for org are enabled", () => {
       cy.get("[data-test=source-org-github]").click();
       cy.get("[data-test=add-org-github]").click({ force: true });
 

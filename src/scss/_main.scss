@@ -492,7 +492,7 @@ button,
   }
 }
 
-.-added-container {
+.-enabled-container {
   display: flex;
   flex-direction: row;
 }
@@ -501,7 +501,7 @@ button,
   margin-right: 0.5em;
 }
 
-.repo-enable--added {
+.repo-enable--enabled {
   color: var(--color-green);
   border: var(--line-width) solid var(--color-green);
 

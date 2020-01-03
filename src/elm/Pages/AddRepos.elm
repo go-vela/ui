@@ -204,7 +204,7 @@ enableReposButton org repos filtered enableRepos =
 -}
 enableRepoButton : Repository -> EnableRepo msg -> Html msg
 enableRepoButton repo enableRepo =
-    case repo.added of
+    case repo.enabled of
         RemoteData.NotAsked ->
             button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ]
 
@@ -216,8 +216,8 @@ enableRepoButton repo enableRepo =
 
         RemoteData.Success enabledStatus ->
             if enabledStatus then
-                div [ class "-added-container" ]
-                    [ div [ class "repo-enable-btn", class "repo-enable--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Enabled" ] ]
+                div [ class "-enabled-container" ]
+                    [ div [ class "repo-enable-btn", class "repo-enable--enabled" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Enabled" ] ]
                     , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
                     ]
 

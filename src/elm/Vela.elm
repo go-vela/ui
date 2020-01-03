@@ -224,7 +224,7 @@ type alias Repository =
     , allow_push : Bool
     , allow_deploy : Bool
     , allow_tag : Bool
-    , added : WebData Bool
+    , enabled : WebData Bool
     , enable : Enabled
     }
 
@@ -263,7 +263,7 @@ decodeRepository =
         |> optional "allow_push" bool False
         |> optional "allow_deploy" bool False
         |> optional "allow_tag" bool False
-        -- "added"
+        -- "enabled"
         |> hardcoded NotAsked
         -- "enable"
         |> optional "active" enabledStatusDecoder NotAsked_
@@ -297,7 +297,7 @@ decodeSourceRepositories =
     Decode.dict (Decode.list decodeRepository)
 
 
-{-| Repositories : type alias for list of added repositories
+{-| Repositories : type alias for list of enabled repositories
 -}
 type alias Repositories =
     List Repository

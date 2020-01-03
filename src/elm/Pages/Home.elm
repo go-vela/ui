@@ -54,7 +54,7 @@ view currentRepos =
             div [ class "overview" ]
                 [ h1 [] [ text "Let's get Started!" ]
                 , p []
-                    [ text "To have Vela start building your projects we need to get them added."
+                    [ text "To have Vela start building your projects we need to get them enabled."
                     , br [] []
                     , text "Add repositories from your GitHub account to Vela now!"
                     ]
