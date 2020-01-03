@@ -82,7 +82,7 @@ import Url.Builder as UB exposing (QueryParameter)
 import Util
 import Vela
     exposing
-        ( ActivateRepositoryPayload
+        ( EnableRepositoryPayload
         , AuthParams
         , Build
         , BuildIdentifier
@@ -118,12 +118,12 @@ import Vela
         , buildUpdateRepoStringPayload
         , decodeSession
         , decodeTheme
-        , defaultActivateRepositoryPayload
+        , defaultEnableRepositoryPayload
         , defaultBuilds
         , defaultHooks
         , defaultRepository
         , defaultSession
-        , encodeActivateRepository
+        , encodeEnableRepository
         , encodeSession
         , encodeTheme
         , encodeUpdateRepository
@@ -379,13 +379,13 @@ update msg model =
 
         EnableRepo repo ->
             let
-                payload : ActivateRepositoryPayload
+                payload : EnableRepositoryPayload
                 payload =
-                    buildActivateRepositoryPayload repo model.velaSourceBaseURL
+                    buildEnableRepositoryPayload repo model.velaSourceBaseURL
 
                 body : Http.Body
                 body =
-                    Http.jsonBody <| encodeActivateRepository payload
+                    Http.jsonBody <| encodeEnableRepository payload
 
                 currentRepo =
                     RemoteData.withDefault defaultRepository model.repo
@@ -1480,11 +1480,11 @@ repoEnabledError sourceRepos repo error =
     )
 
 
-{-| buildActivateRepositoryPayload : builds the payload for adding a repository via the api
+{-| buildEnableRepositoryPayload : builds the payload for adding a repository via the api
 -}
-buildActivateRepositoryPayload : Repository -> String -> ActivateRepositoryPayload
-buildActivateRepositoryPayload repo velaSourceBaseURL =
-    { defaultActivateRepositoryPayload
+buildEnableRepositoryPayload : Repository -> String -> EnableRepositoryPayload
+buildEnableRepositoryPayload repo velaSourceBaseURL =
+    { defaultEnableRepositoryPayload
         | org = repo.org
         , name = repo.name
         , full_name = repo.org ++ "/" ++ repo.name

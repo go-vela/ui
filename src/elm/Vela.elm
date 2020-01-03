@@ -5,8 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( ActivateRepositoryPayload
-    , AuthParams
+    ( AuthParams
     , Build
     , BuildIdentifier
     , BuildNumber
@@ -15,6 +14,7 @@ module Vela exposing
     , DisableRepo
     , EnableRepo
     , EnableRepos
+    , EnableRepositoryPayload
     , Enabled(..)
     , Field
     , Hook
@@ -57,14 +57,14 @@ module Vela exposing
     , decodeSteps
     , decodeTheme
     , decodeUser
-    , defaultActivateRepositoryPayload
     , defaultBuilds
+    , defaultEnableRepositoryPayload
     , defaultHooks
     , defaultRepository
     , defaultSession
     , defaultUpdateRepositoryPayload
     , defaultUser
-    , encodeActivateRepository
+    , encodeEnableRepository
     , encodeSession
     , encodeTheme
     , encodeUpdateRepository
@@ -309,8 +309,8 @@ type alias SourceRepositories =
     Dict String Repositories
 
 
-encodeActivateRepository : ActivateRepositoryPayload -> Encode.Value
-encodeActivateRepository repo =
+encodeEnableRepository : EnableRepositoryPayload -> Encode.Value
+encodeEnableRepository repo =
     Encode.object
         [ ( "org", Encode.string <| repo.org )
         , ( "name", Encode.string <| repo.name )
@@ -327,7 +327,7 @@ encodeActivateRepository repo =
         ]
 
 
-type alias ActivateRepositoryPayload =
+type alias EnableRepositoryPayload =
     { org : String
     , name : String
     , full_name : String
@@ -343,9 +343,9 @@ type alias ActivateRepositoryPayload =
     }
 
 
-defaultActivateRepositoryPayload : ActivateRepositoryPayload
-defaultActivateRepositoryPayload =
-    ActivateRepositoryPayload "" "" "" "" "" False True True True True False False
+defaultEnableRepositoryPayload : EnableRepositoryPayload
+defaultEnableRepositoryPayload =
+    EnableRepositoryPayload "" "" "" "" "" False True True True True False False
 
 
 type alias UpdateRepositoryPayload =
