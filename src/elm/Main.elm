@@ -1295,9 +1295,9 @@ setNewPage route model =
         ( Routes.NotFound, True ) ->
             ( { model | page = Pages.NotFound }, Cmd.none )
 
-        {-- Hitting any page and not being logged in will load the login page content
+        {--Hitting any page and not being logged in will load the login page content
             
-            Note: we're not using .pushUrl to retain ability for user to use brower's back button
+           Note: we're not using .pushUrl to retain ability for user to use brower's back button
         --}
         ( _, False ) ->
             ( { model | page = Pages.Login }
