@@ -277,13 +277,13 @@ activationButton deactivateRepo activateRepo repo =
             button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivate-confirm", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Really Deactivate?" ]
 
         Vela.Deactivating ->
-            div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Deactivating" ], span [ class "loading-ellipsis" ] [] ]
+            div [ class "repo-deactivate-deactivating", class "repo-deactivate", Util.testAttribute "repo-deactivating" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Deactivating" ], span [ class "loading-ellipsis" ] [] ]
 
         Vela.Deactivated ->
-            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivated", Util.testAttribute "repo-deactivate", onClick <| activateRepo repo ] [ text "Activate" ]
+            button [ class "-btn", class "-inverted", class "-view", class "repo-deactivate", class "repo-deactivated", Util.testAttribute "repo-activate", onClick <| activateRepo repo ] [ text "Activate" ]
 
         Vela.Activating ->
-            div [ class "repo-deactivate-deactivating", class "repo-deactivate" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
+            div [ class "repo-deactivate-deactivating", class "repo-deactivate", Util.testAttribute "repo-activating" ] [ span [ class "repo-deactivate-deactivating-text" ] [ text "Activating" ], span [ class "loading-ellipsis" ] [] ]
 
         Vela.NotAsked_ ->
             button [ disabled True, class "-btn", class "-inverted", class "-view", class "repo-deactivate", Util.testAttribute "repo-deactivate", onClick <| deactivateRepo repo ] [ text "Error" ]

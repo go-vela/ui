@@ -48,37 +48,6 @@ context("Overview/Repositories Page", () => {
         .click();
       cy.location("pathname").should("eq", "/DavidVader/applications");
     });
-
-    it("Remove button should exist for all repos", () => {
-      cy.get("[data-test=repo-deactivate]").should("have.length", 3);
-    });
-
-    it("should remove the only repo in the org and not show the org", () => {
-      cy.route({
-        method: "DELETE",
-        url: "*api/v1/repos/DavidVader/**",
-        response: `"Repo DavidVader/applications deleted"`
-      });
-      cy.get("[data-test=repo-deactivate]")
-        .first()
-        .click();
-      cy.get("[data-test=repo-org]").should("have.length", 1);
-    });
-
-    it("should show an success alert on successful removal of a repo", () => {
-      cy.route({
-        method: "DELETE",
-        url: "*api/v1/repos/DavidVader/**",
-        response: `"Repo DavidVader/applications deleted"`
-      });
-      cy.get("[data-test=repo-deactivate]")
-        .first()
-        .click();
-      cy.get("[data-test=alerts]").as("alert");
-      cy.get("@alert").should("exist");
-      cy.get("@alert").contains("Success");
-      cy.get("@alert").contains("DavidVader/applications removed.");
-    });
   });
 
   context("logged in - api returns paginated data", () => {

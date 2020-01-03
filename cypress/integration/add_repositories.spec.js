@@ -53,8 +53,8 @@ context("Add Repositories", () => {
       cy.route({
         method: "POST",
         url: "*api/v1/repos*",
-        status: 409,
-        response: `{"error":"unable to create webhook for : Repo already enabled"}`
+        status: 500,
+        response: `{"error":"unable to create webhook for : something went wrong"}`
       });
 
       cy.get("[data-test=source-org-cat]").click();
