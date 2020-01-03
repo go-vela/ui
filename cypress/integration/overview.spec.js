@@ -28,13 +28,13 @@ context("Overview/Repositories Page", () => {
     });
 
     it("should show the Add Repositories button", () => {
-      cy.get("[data-test=repo-activate]")
+      cy.get("[data-test=repo-enable]")
         .should("exist")
         .and("contain", "Add Repositories");
     });
 
     it("Add Repositories should take you to the respective page", () => {
-      cy.get("[data-test=repo-activate]").click();
+      cy.get("[data-test=repo-enable]").click();
       cy.location("pathname").should("eq", "/account/add-repos");
     });
 

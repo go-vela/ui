@@ -44,9 +44,9 @@ context("Add Repositories", () => {
       cy.get("[data-test=source-org-cat]").click();
       cy.get("[data-test=source-repo-purr] > div > button").click();
 
-      cy.get("[data-test=source-repo-purr] .repo-activate--added")
+      cy.get("[data-test=source-repo-purr] .repo-enable--added")
         .should("be.visible")
-        .and("contain", "Activated");
+        .and("contain", "Enabled");
     });
 
     it("shows the failed button and alert when the add is unsuccessful", () => {
@@ -60,11 +60,11 @@ context("Add Repositories", () => {
       cy.get("[data-test=source-org-cat]").click();
       cy.get("[data-test=source-repo-purr] > div > button").click();
 
-      cy.get("[data-test=source-repo-purr] .repo-activate--added").should(
+      cy.get("[data-test=source-repo-purr] .repo-enable--added").should(
         "not.be.visible"
       );
 
-      cy.get("[data-test=source-repo-purr] .repo-activate--failed")
+      cy.get("[data-test=source-repo-purr] .repo-enable--failed")
         .should("be.visible")
         .and("contain", "Failed");
 
@@ -86,15 +86,15 @@ context("Add Repositories", () => {
 
       cy.get("[data-test=source-repo-octocat]")
       .should("be.visible")
-      .and("contain", "Activating");
+      .and("contain", "Enabling");
 
       cy.get("[data-test=source-repo-octocat-1]")
         .should("be.visible")
-        .and("contain", "Activating");
+        .and("contain", "Enabling");
 
       cy.get("[data-test=source-repo-octocat-2]")
         .should("be.visible")
-        .and("contain", "Activating");
+        .and("contain", "Enabling");
     });
   });
 

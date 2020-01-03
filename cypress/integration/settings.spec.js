@@ -106,8 +106,8 @@ context("Repo Settings", () => {
         .click({ force: true });
       cy.get("@repoTimeoutInput").should("have.value", "30");
     });
-    it("Deactivate button should exist", () => {
-      cy.get("[data-test=repo-deactivate]").should("have.length", 1);
+    it("Disable button should exist", () => {
+      cy.get("[data-test=repo-disable]").should("have.length", 1);
     });
 
     it("clicking button should prompt deactivation confirmation", () => {
@@ -116,48 +116,48 @@ context("Repo Settings", () => {
         url: "*api/v1/repos/DavidVader/**",
         response: `"Repo DavidVader/applications deleted"`
       });
-      cy.get("[data-test=repo-deactivate]")
+      cy.get("[data-test=repo-disable]")
         .first()
         .click();
-      cy.get("[data-test=repo-deactivate]").should(
+      cy.get("[data-test=repo-disable]").should(
         "contain",
-        "Really Deactivate?"
+        "Really Disable?"
       );
     });
 
-    it("clicking button twice should deactivate the repo", () => {
+    it("clicking button twice should disable the repo", () => {
       cy.route({
         method: "DELETE",
         url: "*api/v1/repos/DavidVader/**",
         response: `"Repo DavidVader/applications deleted"`
       });
-      cy.get("[data-test=repo-deactivate]")
+      cy.get("[data-test=repo-disable]")
         .first()
         .click().click();
       cy.get("[data-test=repo-deactivating]").should(
         "contain",
-        "Deactivating"
+        "Disabling"
       );
     });
 
-    it("clicking button three times should reactivate the repo", () => {
+    it("clicking button three times should reenable the repo", () => {
       cy.route({
         method: "DELETE",
         url: "*api/v1/repos/github/**",
         response: `"Repo github/octocat deleted"`
-      }).as("deactivate");
-      cy.route("POST", "*api/v1/repos*", "fixture:add_repo_response.json").as("activate");
-      cy.get("[data-test=repo-deactivate]")
+      }).as("disable");
+      cy.route("POST", "*api/v1/repos*", "fixture:add_repo_response.json").as("enable");
+      cy.get("[data-test=repo-disable]")
         .first()
         .click().click();
-      cy.wait("@deactivate");
-      cy.get("[data-test=repo-activate]")
+      cy.wait("@disable");
+      cy.get("[data-test=repo-enable]")
       .first()
       .click({ force: true });
-      cy.wait("@activate");
-      cy.get("[data-test=repo-deactivate]").should(
+      cy.wait("@enable");
+      cy.get("[data-test=repo-disable]").should(
         "contain",
-        "Deactivate"
+        "Disable"
       );
     });
     it("should show an success alert on successful removal of a repo", () => {
@@ -166,7 +166,7 @@ context("Repo Settings", () => {
         url: "*api/v1/repos/github/**",
         response: `"Repo github/octocat deleted"`
       });
-      cy.get("[data-test=repo-deactivate]")
+      cy.get("[data-test=repo-disable]")
         .first()
         .click().click();
       cy.get("[data-test=alerts]").as("alert");

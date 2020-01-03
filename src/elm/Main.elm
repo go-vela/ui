@@ -82,16 +82,16 @@ import Url.Builder as UB exposing (QueryParameter)
 import Util
 import Vela
     exposing
-        ( ActivateRepo
-        , ActivateRepos
-        , ActivateRepositoryPayload
-        , ActivationStatus(..)
+        ( ActivateRepositoryPayload
         , AuthParams
         , Build
         , BuildIdentifier
         , BuildNumber
         , Builds
         , BuildsModel
+        , EnableRepo
+        , EnableRepos
+        , Enabled(..)
         , Field
         , HookBuilds
         , Hooks
@@ -269,12 +269,12 @@ type Msg
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
-    | ActivateRepo Repository
+    | EnableRepo Repository
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
-    | ActivateRepos Repositories
-    | DeactivateRepo Repository
+    | EnableRepos Repositories
+    | DisableRepo Repository
     | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
@@ -283,9 +283,9 @@ type Msg
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | HookBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | RepoActivatedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
+    | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
-    | RepoDeactivatedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RepoDisabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
@@ -377,7 +377,7 @@ update msg model =
                 Err error ->
                     ( { model | sourceRepos = toFailure error }, addError error )
 
-        ActivateRepo repo ->
+        EnableRepo repo ->
             let
                 payload : ActivateRepositoryPayload
                 payload =
@@ -392,31 +392,31 @@ update msg model =
             in
             ( { model
                 | sourceRepos = updateSourceRepoActivation repo Loading model.sourceRepos
-                , repo = RemoteData.succeed <| { currentRepo | activation = Vela.Activating }
+                , repo = RemoteData.succeed <| { currentRepo | enable = Vela.Enabling }
               }
-            , Api.try (RepoActivatedResponse repo) <| Api.addRepository model body
+            , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
             )
 
-        RepoActivatedResponse repo response ->
+        RepoEnabledResponse repo response ->
             let
                 currentRepo =
                     RemoteData.withDefault defaultRepository model.repo
             in
             case response of
-                Ok ( _, activatedRepo ) ->
+                Ok ( _, enabledRepo ) ->
                     ( { model
-                        | currentRepos = updateRepoActivation repo Vela.Activated (RemoteData.withDefault [] model.currentRepos)
-                        , sourceRepos = updateSourceRepoActivation activatedRepo (RemoteData.succeed True) model.sourceRepos
-                        , repo = RemoteData.succeed <| { currentRepo | activation = Vela.Activated }
+                        | currentRepos = updateRepoActivation repo Vela.Enabled (RemoteData.withDefault [] model.currentRepos)
+                        , sourceRepos = updateSourceRepoActivation enabledRepo (RemoteData.succeed True) model.sourceRepos
+                        , repo = RemoteData.succeed <| { currentRepo | enable = Vela.Enabled }
                       }
                     , Cmd.none
                     )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (activatedRepo.full_name ++ " activated.") Nothing)
+                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
 
                 Err error ->
                     let
                         ( sourceRepos, action ) =
-                            repoActivatedError model.sourceRepos repo error addError
+                            repoEnabledError model.sourceRepos repo error
                     in
                     ( { model | sourceRepos = sourceRepos }, action )
 
@@ -429,29 +429,29 @@ update msg model =
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
 
-        DeactivateRepo repo ->
+        DisableRepo repo ->
             let
                 currentRepo =
                     RemoteData.withDefault defaultRepository model.repo
 
                 ( status, action ) =
-                    case repo.activation of
-                        Vela.Activated ->
+                    case repo.enable of
+                        Vela.Enabled ->
                             ( Vela.ConfirmDeactivation, Cmd.none )
 
                         Vela.ConfirmDeactivation ->
-                            ( Vela.Deactivating, Api.try (RepoDeactivatedResponse repo) <| Api.deleteRepo model repo )
+                            ( Vela.Disabling, Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo )
 
                         _ ->
-                            ( repo.activation, Cmd.none )
+                            ( repo.enable, Cmd.none )
             in
             ( { model
-                | repo = RemoteData.succeed <| { currentRepo | activation = status }
+                | repo = RemoteData.succeed <| { currentRepo | enable = status }
               }
             , action
             )
 
-        RepoDeactivatedResponse repo response ->
+        RepoDisabledResponse repo response ->
             let
                 currentRepo =
                     RemoteData.withDefault defaultRepository model.repo
@@ -459,12 +459,12 @@ update msg model =
             case response of
                 Ok _ ->
                     ( { model
-                        | repo = RemoteData.succeed <| { currentRepo | activation = Vela.Deactivated }
+                        | repo = RemoteData.succeed <| { currentRepo | enable = Vela.Disabled }
                         , sourceRepos = updateSourceRepoActivation repo NotAsked model.sourceRepos
                       }
                     , Cmd.none
                     )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " deactivated.") Nothing)
+                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " disabled.") Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -608,9 +608,9 @@ update msg model =
             , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
             )
 
-        ActivateRepos repos ->
+        EnableRepos repos ->
             ( model
-            , Cmd.batch <| List.map (Util.dispatch << ActivateRepo) repos
+            , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
             )
 
         ClickHook org repo buildNumber ->
@@ -1002,7 +1002,7 @@ viewContent model =
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model.sourceRepos model.sourceSearchFilters SearchSourceRepos ActivateRepo ActivateRepos
+            , Pages.AddRepos.view model.sourceRepos model.sourceSearchFilters SearchSourceRepos EnableRepo EnableRepos
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1026,7 +1026,7 @@ viewContent model =
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DeactivateRepo ActivateRepo
+            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo
             )
 
         Pages.RepositoryBuilds org repo maybePage _ ->
@@ -1112,7 +1112,7 @@ navButton model =
                         a
                             [ class "-btn"
                             , class "-inverted"
-                            , Util.testAttribute "repo-activate"
+                            , Util.testAttribute "repo-enable"
                             , Routes.href <| Routes.AddRepositories
                             ]
                             [ text "Add Repositories" ]
@@ -1230,10 +1230,10 @@ viewThemeToggle theme =
         ( newTheme, icon, themeAria ) =
             case theme of
                 Dark ->
-                    ( Light, SvgBuilder.themeLight, "activate light mode" )
+                    ( Light, SvgBuilder.themeLight, "enable light mode" )
 
                 Light ->
-                    ( Dark, SvgBuilder.themeDark, "activate dark mode" )
+                    ( Dark, SvgBuilder.themeDark, "enable dark mode" )
     in
     button [ class "theme-toggle", attribute "aria-label" themeAria, onClick (SetTheme newTheme) ] [ icon 24 ]
 
@@ -1454,15 +1454,15 @@ loadBuildPage model org repo buildNumber lineFocus =
     )
 
 
-{-| repoActivatedError : takes model repo and error and updates the source repos within the model
+{-| repoEnabledError : takes model repo and error and updates the source repos within the model
 
-    repoActivatedError : consumes 409 conflicts that result from the repo already being activated
+    repoEnabledError : consumes 409 conflicts that result from the repo already being enabled
 
 -}
-repoActivatedError : WebData SourceRepositories -> Repository -> Http.Detailed.Error String -> (Http.Detailed.Error String -> Cmd msg) -> ( WebData SourceRepositories, Cmd msg )
-repoActivatedError sourceRepos repo error ad =
+repoEnabledError : WebData SourceRepositories -> Repository -> Http.Detailed.Error String -> ( WebData SourceRepositories, Cmd Msg )
+repoEnabledError sourceRepos repo error =
     let
-        ( activation, action ) =
+        ( enable, action ) =
             case error of
                 Http.Detailed.BadStatus metadata _ ->
                     case metadata.statusCode of
@@ -1470,12 +1470,12 @@ repoActivatedError sourceRepos repo error ad =
                             ( RemoteData.succeed True, Cmd.none )
 
                         _ ->
-                            ( toFailure error, ad error )
+                            ( toFailure error, addError error )
 
                 _ ->
-                    ( toFailure error, ad error )
+                    ( toFailure error, addError error )
     in
-    ( updateSourceRepoActivation repo activation sourceRepos
+    ( updateSourceRepoActivation repo enable sourceRepos
     , action
     )
 

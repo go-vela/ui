@@ -5,17 +5,17 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( ActivateRepo
-    , ActivateRepos
-    , ActivateRepositoryPayload
-    , ActivationStatus(..)
+    ( ActivateRepositoryPayload
     , AuthParams
     , Build
     , BuildIdentifier
     , BuildNumber
     , Builds
     , BuildsModel
-    , DeactivateRepo
+    , DisableRepo
+    , EnableRepo
+    , EnableRepos
+    , Enabled(..)
     , Field
     , Hook
     , HookBuilds
@@ -225,16 +225,16 @@ type alias Repository =
     , allow_deploy : Bool
     , allow_tag : Bool
     , added : WebData Bool
-    , activation : ActivationStatus
+    , enable : Enabled
     }
 
 
-type ActivationStatus
+type Enabled
     = ConfirmDeactivation
-    | Deactivating
-    | Deactivated
-    | Activating
-    | Activated
+    | Disabling
+    | Disabled
+    | Enabling
+    | Enabled
     | NotAsked_
 
 
@@ -265,26 +265,26 @@ decodeRepository =
         |> optional "allow_tag" bool False
         -- "added"
         |> hardcoded NotAsked
-        -- "activation"
+        -- "enable"
         |> optional "active" activationStatusDecoder NotAsked_
 
 
 {-| activationStatusDecoder : decodes string field "status" to the union type BuildStatus
 -}
-activationStatusDecoder : Decoder ActivationStatus
+activationStatusDecoder : Decoder Enabled
 activationStatusDecoder =
     bool |> andThen toActivationStatus
 
 
-{-| toActivationStatus : helper to decode string to ActivationStatus
+{-| toActivationStatus : helper to decode string to Enabled
 -}
-toActivationStatus : Bool -> Decoder ActivationStatus
+toActivationStatus : Bool -> Decoder Enabled
 toActivationStatus active =
     if active then
-        succeed Activated
+        succeed Enabled
 
     else
-        succeed Deactivated
+        succeed Disabled
 
 
 decodeRepositories : Decoder Repositories
@@ -759,21 +759,21 @@ type alias SearchFilter =
 -- UPDATES
 
 
-{-| DeactivateRepo : takes repo and deactivates it on Vela
+{-| DisableRepo : takes repo and disables it on Vela
 -}
-type alias DeactivateRepo msg =
+type alias DisableRepo msg =
     Repository -> msg
 
 
-{-| ActivateRepo : takes repo and activates it on Vela
+{-| EnableRepo : takes repo and enables it on Vela
 -}
-type alias ActivateRepo msg =
+type alias EnableRepo msg =
     Repository -> msg
 
 
-{-| ActivateRepos : takes repos and activates them on Vela
+{-| EnableRepos : takes repos and enables them on Vela
 -}
-type alias ActivateRepos msg =
+type alias EnableRepos msg =
     Repositories -> msg
 
 

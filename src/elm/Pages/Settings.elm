@@ -52,9 +52,9 @@ import SvgBuilder
 import Util
 import Vela
     exposing
-        ( ActivateRepo
-        , ActivationStatus
-        , DeactivateRepo
+        ( DisableRepo
+        , EnableRepo
+        , Enabled
         , Field
         , Repositories
         , Repository
@@ -91,8 +91,8 @@ type alias NumberInputChange msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> DeactivateRepo msg -> ActivateRepo msg -> Html msg
-view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange deactivateRepo activateRepo =
+view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> DisableRepo msg -> EnableRepo msg -> Html msg
+view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange disableRepo enableRepo =
     let
         loading =
             div []
@@ -103,7 +103,7 @@ view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange deac
         Success repo_ ->
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ div [ class "row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
-                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, activation deactivateRepo activateRepo repo_ ]
+                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, enable disableRepo enableRepo repo_ ]
                 ]
 
         Loading ->
@@ -275,91 +275,91 @@ timeoutWarning inTimeout =
             text ""
 
 
-{-| activation : takes activation actions and repo and returns view of the repo activation admin action.
+{-| enable : takes enable actions and repo and returns view of the repo enable admin action.
 -}
-activation : DeactivateRepo msg -> ActivateRepo msg -> Repository -> Html msg
-activation deactivateRepo activateRepo repo =
+enable : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
+enable disableRepo enableRepo repo =
     let
         activationDetails =
-            if isDeactivatable repo.activation then
-                ( "Deactivate Repository", "This will delete the Vela webhook from this repository." )
+            if isDeactivatable repo.enable then
+                ( "Disable Repository", "This will delete the Vela webhook from this repository." )
 
             else
-                ( "Activate Repository", "This will create the Vela webhook for this repository." )
+                ( "Enable Repository", "This will create the Vela webhook for this repository." )
     in
     div [ class "category", Util.testAttribute "repo-settings-timeout" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Admin" ] ]
         , div [ class "description" ] [ text "These configurations require admin privileges." ]
-        , li [ class "activation-container" ]
-            [ div [ class "activation-column-a" ]
-                [ span [ class "activation-btn-label-a" ] [ text <| Tuple.first activationDetails ]
-                , em [ class "activation-btn-label-b" ] [ text <| Tuple.second activationDetails ]
+        , li [ class "enable-container" ]
+            [ div [ class "enable-column-a" ]
+                [ span [ class "enable-btn-label-a" ] [ text <| Tuple.first activationDetails ]
+                , em [ class "enable-btn-label-b" ] [ text <| Tuple.second activationDetails ]
                 ]
-            , div [ class "activation-column-b" ] [ div [] [ activationButton deactivateRepo activateRepo repo ] ]
+            , div [ class "enable-column-b" ] [ div [] [ activationButton disableRepo enableRepo repo ] ]
             ]
         ]
 
 
-{-| activationButton : takes activation actions and repo and returns view of the repo activation button.
+{-| activationButton : takes enable actions and repo and returns view of the repo enable button.
 -}
-activationButton : DeactivateRepo msg -> ActivateRepo msg -> Repository -> Html msg
-activationButton deactivateRepo activateRepo repo =
+activationButton : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
+activationButton disableRepo enableRepo repo =
     let
         baseClasses =
-            classList [ ( "-btn", True ), ( "-inverted", True ), ( "-view", True ), ( "repo-deactivate", True ) ]
+            classList [ ( "-btn", True ), ( "-inverted", True ), ( "-view", True ), ( "repo-disable", True ) ]
 
         inProgressClasses =
-            classList [ ( "repo-activate", True ), ( "repo-deactivate-deactivating", True ), ( "repo-deactivate", True ) ]
+            classList [ ( "repo-enable", True ), ( "repo-disable-deactivating", True ), ( "repo-disable", True ) ]
 
         baseTestAttribute =
-            Util.testAttribute "repo-deactivate"
+            Util.testAttribute "repo-disable"
     in
-    case repo.activation of
+    case repo.enable of
         Vela.NotAsked_ ->
             button
                 [ baseClasses
                 , baseTestAttribute
                 , disabled True
-                , onClick <| deactivateRepo repo
+                , onClick <| disableRepo repo
                 ]
                 [ text "Error" ]
 
-        Vela.Activated ->
+        Vela.Enabled ->
             button
                 [ baseClasses
                 , baseTestAttribute
-                , onClick <| deactivateRepo repo
+                , onClick <| disableRepo repo
                 ]
-                [ text "Deactivate" ]
+                [ text "Disable" ]
 
-        Vela.Deactivated ->
+        Vela.Disabled ->
             button
                 [ baseClasses
-                , Util.testAttribute "repo-activate"
-                , onClick <| activateRepo repo
+                , Util.testAttribute "repo-enable"
+                , onClick <| enableRepo repo
                 ]
-                [ text "Activate" ]
+                [ text "Enable" ]
 
         Vela.ConfirmDeactivation ->
             button
                 [ baseClasses
                 , baseTestAttribute
-                , class "repo-deactivate-confirm"
-                , onClick <| deactivateRepo repo
+                , class "repo-disable-confirm"
+                , onClick <| disableRepo repo
                 ]
-                [ text "Really Deactivate?" ]
+                [ text "Really Disable?" ]
 
-        Vela.Deactivating ->
+        Vela.Disabling ->
             div [ inProgressClasses, Util.testAttribute "repo-deactivating" ]
-                [ span [ class "repo-deactivate-deactivating-text" ]
-                    [ text "Deactivating" ]
+                [ span [ class "repo-disable-deactivating-text" ]
+                    [ text "Disabling" ]
                 , span [ class "loading-ellipsis" ] []
                 ]
 
-        Vela.Activating ->
+        Vela.Enabling ->
             div [ inProgressClasses, Util.testAttribute "repo-activating" ]
-                [ span [ class "repo-deactivate-deactivating-text" ]
-                    [ text "Activating" ]
+                [ span [ class "repo-disable-deactivating-text" ]
+                    [ text "Enabling" ]
                 , span [ class "loading-ellipsis" ] []
                 ]
 
@@ -548,42 +548,42 @@ toggleText field value =
         disabled
 
 
-{-| isDeactivatable : takes activation status and returns if the repo is deactivatable.
+{-| isDeactivatable : takes enabled status and returns if the repo is deactivatable.
 -}
-isDeactivatable : ActivationStatus -> Bool
+isDeactivatable : Enabled -> Bool
 isDeactivatable status =
     case status of
-        Vela.Activated ->
+        Vela.Enabled ->
             True
 
         Vela.ConfirmDeactivation ->
             True
 
-        Vela.Deactivating ->
+        Vela.Disabling ->
             True
 
-        Vela.Activating ->
+        Vela.Enabling ->
             False
 
-        Vela.Deactivated ->
+        Vela.Disabled ->
             False
 
         Vela.NotAsked_ ->
             False
 
 
-{-| updateRepoActivation : takes repo, activation status and repos and sets activation status of the specified repo
+{-| updateRepoActivation : takes repo, enabled status and repos and sets enabled status of the specified repo
 -}
-updateRepoActivation : Repository -> ActivationStatus -> Repositories -> WebData Repositories
+updateRepoActivation : Repository -> Enabled -> Repositories -> WebData Repositories
 updateRepoActivation repo status repos =
     RemoteData.succeed
         (List.Extra.updateIf (\currentRepo -> currentRepo.name == repo.name)
-            (\currentRepo -> { currentRepo | activation = status })
+            (\currentRepo -> { currentRepo | enable = status })
             repos
         )
 
 
-{-| updateSourceRepoActivation : takes repo, activation status and source repos and sets activation status of the specified repo
+{-| updateSourceRepoActivation : takes repo, enabled status and source repos and sets enabled status of the specified repo
 -}
 updateSourceRepoActivation : Repository -> WebData Bool -> WebData SourceRepositories -> WebData SourceRepositories
 updateSourceRepoActivation repo status sourceRepos =
