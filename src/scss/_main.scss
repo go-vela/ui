@@ -1761,31 +1761,29 @@ button.-solid {
   justify-content: space-between;
 }
 
-.temp-box {
+.activation-container {
   margin-top: 1em;
   display: flex;
   flex-direction: row;
   list-style: none;
 }
 
-.temp-btn-label-a {
+.activation-btn-label-a {
   font-weight: 300;
   font-size: 18px;
 }
 
-.temp-btn-label-b {
+.activation-btn-label-b {
   font-weight: 300;
   font-size: 14px;
-  font-style: italic;
 }
 
-.temp-column-a {
+.activation-column-a {
   display: flex;
-  // justify-content: space-between;
   margin-right: 0.8em;
   flex-direction: column;
 }
-.temp-column-b {
+.activation-column-b {
   display: flex;
   flex-direction: row;
 }

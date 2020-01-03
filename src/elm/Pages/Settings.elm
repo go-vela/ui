@@ -290,12 +290,12 @@ activation deactivateRepo activateRepo repo =
     div [ class "category", Util.testAttribute "repo-settings-timeout" ]
         [ div [ class "header" ] [ span [ class "text" ] [ text "Admin" ] ]
         , div [ class "description" ] [ text "These configurations require admin privileges." ]
-        , li [ class "temp-box" ]
-            [ div [ class "temp-column-a" ]
-                [ span [ class "temp-btn-label-a" ] [ text <| Tuple.first activationDetails ]
-                , span [ class "temp-btn-label-b" ] [ text <| Tuple.second activationDetails ]
+        , li [ class "activation-container" ]
+            [ div [ class "activation-column-a" ]
+                [ span [ class "activation-btn-label-a" ] [ text <| Tuple.first activationDetails ]
+                , em [ class "activation-btn-label-b" ] [ text <| Tuple.second activationDetails ]
                 ]
-            , div [ class "temp-column-b" ] [ div [] [ activationButton deactivateRepo activateRepo repo ] ]
+            , div [ class "activation-column-b" ] [ div [] [ activationButton deactivateRepo activateRepo repo ] ]
             ]
         ]
 
@@ -311,21 +311,44 @@ activationButton deactivateRepo activateRepo repo =
         inProgressClasses =
             classList [ ( "repo-deactivate-deactivating", True ), ( "repo-deactivate", True ) ]
 
-        testAttribute =
+        baseTestAttribute =
             Util.testAttribute "repo-deactivate"
     in
     case repo.activation of
         Vela.NotAsked_ ->
-            button [ baseClasses, testAttribute, disabled True, onClick <| deactivateRepo repo ] [ text "Error" ]
+            button
+                [ baseClasses
+                , baseTestAttribute
+                , disabled True
+                , onClick <| deactivateRepo repo
+                ]
+                [ text "Error" ]
 
         Vela.Activated ->
-            button [ baseClasses, testAttribute, onClick <| deactivateRepo repo ] [ text "Deactivate" ]
+            button
+                [ baseClasses
+                , baseTestAttribute
+                , onClick <| deactivateRepo repo
+                ]
+                [ text "Deactivate" ]
 
         Vela.Deactivated ->
-            button [ baseClasses, testAttribute, class "repo-deactivated", onClick <| activateRepo repo ] [ text "Activate" ]
+            button
+                [ baseClasses
+                , baseTestAttribute
+                , class "repo-deactivated"
+                , onClick <| activateRepo repo
+                ]
+                [ text "Activate" ]
 
         Vela.ConfirmDeactivation ->
-            button [ baseClasses, testAttribute, class "repo-deactivate-confirm", onClick <| deactivateRepo repo ] [ text "Really Deactivate?" ]
+            button
+                [ baseClasses
+                , baseTestAttribute
+                , class "repo-deactivate-confirm"
+                , onClick <| deactivateRepo repo
+                ]
+                [ text "Really Deactivate?" ]
 
         Vela.Deactivating ->
             div [ inProgressClasses, Util.testAttribute "repo-deactivating" ]
