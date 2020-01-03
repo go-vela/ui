@@ -281,7 +281,7 @@ enable : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
 enable disableRepo enableRepo repo =
     let
         enabledDetails =
-            if isDeactivatable repo.enable then
+            if disableable repo.enable then
                 ( "Disable Repository", "This will delete the Vela webhook from this repository." )
 
             else
@@ -548,10 +548,10 @@ toggleText field value =
         disabled
 
 
-{-| isDeactivatable : takes enabled status and returns if the repo is deactivatable.
+{-| disableable : takes enabled status and returns if the repo is disableable.
 -}
-isDeactivatable : Enabled -> Bool
-isDeactivatable status =
+disableable : Enabled -> Bool
+disableable status =
     case status of
         Vela.Enabled ->
             True
