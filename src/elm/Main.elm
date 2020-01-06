@@ -62,7 +62,7 @@ import Pages exposing (Page(..))
 import Pages.AddRepos
 import Pages.Home
 import Pages.Hooks
-import Pages.Settings exposing (updateRepoEnabled, updateSourceRepoEnabled)
+import Pages.Settings exposing (enableCurrentRepo, enableRepo)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
@@ -391,8 +391,8 @@ update msg model =
                     RemoteData.withDefault defaultRepository model.repo
             in
             ( { model
-                | sourceRepos = updateSourceRepoEnabled repo Loading model.sourceRepos
-                , repo = RemoteData.succeed <| { currentRepo | enable = Vela.Enabling }
+                | sourceRepos = enableRepo repo Loading model.sourceRepos
+                , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
               }
             , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
             )
@@ -405,9 +405,9 @@ update msg model =
             case response of
                 Ok ( _, enabledRepo ) ->
                     ( { model
-                        | currentRepos = updateRepoEnabled repo Vela.Enabled (RemoteData.withDefault [] model.currentRepos)
-                        , sourceRepos = updateSourceRepoEnabled enabledRepo (RemoteData.succeed True) model.sourceRepos
-                        , repo = RemoteData.succeed <| { currentRepo | enable = Vela.Enabled }
+                        | currentRepos = enableCurrentRepo repo Vela.Enabled (RemoteData.withDefault [] model.currentRepos)
+                        , sourceRepos = enableRepo enabledRepo (RemoteData.succeed True) model.sourceRepos
+                        , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled }
                       }
                     , Cmd.none
                     )
@@ -435,7 +435,7 @@ update msg model =
                     RemoteData.withDefault defaultRepository model.repo
 
                 ( status, action ) =
-                    case repo.enable of
+                    case repo.enabling of
                         Vela.Enabled ->
                             ( Vela.ConfirmDisable, Cmd.none )
 
@@ -443,10 +443,10 @@ update msg model =
                             ( Vela.Disabling, Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo )
 
                         _ ->
-                            ( repo.enable, Cmd.none )
+                            ( repo.enabling, Cmd.none )
             in
             ( { model
-                | repo = RemoteData.succeed <| { currentRepo | enable = status }
+                | repo = RemoteData.succeed <| { currentRepo | enabling = status }
               }
             , action
             )
@@ -459,8 +459,8 @@ update msg model =
             case response of
                 Ok _ ->
                     ( { model
-                        | repo = RemoteData.succeed <| { currentRepo | enable = Vela.Disabled }
-                        , sourceRepos = updateSourceRepoEnabled repo NotAsked model.sourceRepos
+                        | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Disabled }
+                        , sourceRepos = enableRepo repo NotAsked model.sourceRepos
                       }
                     , Cmd.none
                     )
@@ -1462,7 +1462,7 @@ loadBuildPage model org repo buildNumber lineFocus =
 repoEnabledError : WebData SourceRepositories -> Repository -> Http.Detailed.Error String -> ( WebData SourceRepositories, Cmd Msg )
 repoEnabledError sourceRepos repo error =
     let
-        ( enable, action ) =
+        ( enabled, action ) =
             case error of
                 Http.Detailed.BadStatus metadata _ ->
                     case metadata.statusCode of
@@ -1475,7 +1475,7 @@ repoEnabledError sourceRepos repo error =
                 _ ->
                     ( toFailure error, addError error )
     in
-    ( updateSourceRepoEnabled repo enable sourceRepos
+    ( enableRepo repo enabled sourceRepos
     , action
     )
 

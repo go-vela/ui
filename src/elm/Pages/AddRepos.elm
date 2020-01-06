@@ -209,20 +209,20 @@ enableRepoButton repo enableRepo =
             button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ]
 
         RemoteData.Loading ->
-            div [ class "repo-enable-btn", class "repo-enable--adding" ] [ span [ class "repo-enable--adding-text" ] [ text "Enabling" ], span [ class "loading-ellipsis" ] [] ]
+            div [ class "repo-enable-btn", class "repo-enable-enabling" ] [ span [ class "repo-enable-enabling-text" ] [ text "Enabling" ], span [ class "loading-ellipsis" ] [] ]
 
         RemoteData.Failure _ ->
-            div [ class "repo-enable-btn", class "repo-enable--failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+            div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
         RemoteData.Success enabledStatus ->
             if enabledStatus then
                 div [ class "-enabled-container" ]
-                    [ div [ class "repo-enable-btn", class "repo-enable--enabled" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Enabled" ] ]
+                    [ div [ class "repo-enable-btn", class "repo-enable-enabled" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Enabled" ] ]
                     , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
                     ]
 
             else
-                div [ class "repo-enable-btn", class "repo-enable--failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+                div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos

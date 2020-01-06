@@ -501,25 +501,25 @@ button,
   margin-right: 0.5em;
 }
 
-.repo-enable--enabled {
+.repo-enable-enabled {
   color: var(--color-green);
   border: var(--line-width) solid var(--color-green);
 
   @extend .repo-enable;
 }
 
-.repo-enable--adding {
+.repo-enable-enabling {
   color: var(--color-yellow);
   border: var(--line-width) solid var(--color-yellow);
 
   @extend .repo-enable;
 }
 
-.repo-enable--adding-text {
+.repo-enable-enabling-text {
   margin-left: 12px;
 }
 
-.repo-enable--failed {
+.repo-enable-failed {
   cursor: pointer;
 
   color: var(--color-red);

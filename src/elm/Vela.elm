@@ -225,7 +225,7 @@ type alias Repository =
     , allow_deploy : Bool
     , allow_tag : Bool
     , enabled : WebData Bool
-    , enable : Enabled
+    , enabling : Enabled
     }
 
 

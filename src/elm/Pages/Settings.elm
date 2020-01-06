@@ -8,13 +8,14 @@ module Pages.Settings exposing
     ( access
     , alert
     , checkbox
+    , enableCurrentRepo
+    , enableRepo
+    , enableable
     , events
     , radio
     , timeout
     , timeoutInput
     , timeoutWarning
-    , updateRepoEnabled
-    , updateSourceRepoEnabled
     , validAccessUpdate
     , validEventsUpdate
     , view
@@ -92,7 +93,7 @@ type alias NumberInputChange msg =
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
 view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> DisableRepo msg -> EnableRepo msg -> Html msg
-view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange disableRepo enableRepo =
+view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange disableRepoMsg enableRepoMsg =
     let
         loading =
             div []
@@ -103,7 +104,7 @@ view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange disa
         Success repo_ ->
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ div [ class "row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
-                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, enable disableRepo enableRepo repo_ ]
+                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, enable disableRepoMsg enableRepoMsg repo_ ]
                 ]
 
         Loading ->
@@ -278,10 +279,10 @@ timeoutWarning inTimeout =
 {-| enable : takes enable actions and repo and returns view of the repo enable admin action.
 -}
 enable : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
-enable disableRepo enableRepo repo =
+enable disableRepoMsg enableRepoMsg repo =
     let
         enabledDetails =
-            if disableable repo.enable then
+            if disableable repo.enabling then
                 ( "Disable Repository", "This will delete the Vela webhook from this repository." )
 
             else
@@ -295,7 +296,7 @@ enable disableRepo enableRepo repo =
                 [ span [ class "enable-btn-label-a" ] [ text <| Tuple.first enabledDetails ]
                 , em [ class "enable-btn-label-b" ] [ text <| Tuple.second enabledDetails ]
                 ]
-            , div [ class "enable-column-b" ] [ div [] [ enabledButton disableRepo enableRepo repo ] ]
+            , div [ class "enable-column-b" ] [ div [] [ enabledButton disableRepoMsg enableRepoMsg repo ] ]
             ]
         ]
 
@@ -303,7 +304,7 @@ enable disableRepo enableRepo repo =
 {-| enabledButton : takes enable actions and repo and returns view of the repo enable button.
 -}
 enabledButton : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
-enabledButton disableRepo enableRepo repo =
+enabledButton disableRepoMsg enableRepoMsg repo =
     let
         baseClasses =
             classList [ ( "-btn", True ), ( "-inverted", True ), ( "-view", True ), ( "repo-disable", True ) ]
@@ -314,13 +315,13 @@ enabledButton disableRepo enableRepo repo =
         baseTestAttribute =
             Util.testAttribute "repo-disable"
     in
-    case repo.enable of
+    case repo.enabling of
         Vela.NotAsked_ ->
             button
                 [ baseClasses
                 , baseTestAttribute
                 , disabled True
-                , onClick <| disableRepo repo
+                , onClick <| disableRepoMsg repo
                 ]
                 [ text "Error" ]
 
@@ -328,7 +329,7 @@ enabledButton disableRepo enableRepo repo =
             button
                 [ baseClasses
                 , baseTestAttribute
-                , onClick <| disableRepo repo
+                , onClick <| disableRepoMsg repo
                 ]
                 [ text "Disable" ]
 
@@ -336,7 +337,7 @@ enabledButton disableRepo enableRepo repo =
             button
                 [ baseClasses
                 , Util.testAttribute "repo-enable"
-                , onClick <| enableRepo repo
+                , onClick <| enableRepoMsg repo
                 ]
                 [ text "Enable" ]
 
@@ -345,7 +346,7 @@ enabledButton disableRepo enableRepo repo =
                 [ baseClasses
                 , baseTestAttribute
                 , class "repo-disable-confirm"
-                , onClick <| disableRepo repo
+                , onClick <| disableRepoMsg repo
                 ]
                 [ text "Really Disable?" ]
 
@@ -572,26 +573,33 @@ disableable status =
             False
 
 
-{-| updateRepoEnabled : takes repo, enabled status and repos and sets enabled status of the specified repo
+{-| enableable : takes enabled status and returns if the repo is enableable.
 -}
-updateRepoEnabled : Repository -> Enabled -> Repositories -> WebData Repositories
-updateRepoEnabled repo status repos =
+enableable : Enabled -> Bool
+enableable status =
+    not <| disableable status
+
+
+{-| enableCurrentRepo : takes repo, enabled status and repos and sets enabled status of the specified repo
+-}
+enableCurrentRepo : Repository -> Enabled -> Repositories -> WebData Repositories
+enableCurrentRepo repo status repos =
     RemoteData.succeed
         (List.Extra.updateIf (\currentRepo -> currentRepo.name == repo.name)
-            (\currentRepo -> { currentRepo | enable = status })
+            (\currentRepo -> { currentRepo | enabling = status })
             repos
         )
 
 
-{-| updateSourceRepoEnabled : takes repo, enabled status and source repos and sets enabled status of the specified repo
+{-| enableRepo : takes repo, enabled status and source repos and sets enabled status of the specified repo
 -}
-updateSourceRepoEnabled : Repository -> WebData Bool -> WebData SourceRepositories -> WebData SourceRepositories
-updateSourceRepoEnabled repo status sourceRepos =
+enableRepo : Repository -> WebData Bool -> WebData SourceRepositories -> WebData SourceRepositories
+enableRepo repo status sourceRepos =
     case sourceRepos of
         Success repos ->
             case Dict.get repo.org repos of
                 Just orgRepos ->
-                    RemoteData.succeed <| sourceRepoStatusUpdateDict repo status repos orgRepos
+                    RemoteData.succeed <| enableRepoDict repo status repos orgRepos
 
                 _ ->
                     sourceRepos
@@ -600,17 +608,17 @@ updateSourceRepoEnabled repo status sourceRepos =
             sourceRepos
 
 
-{-| sourceRepoStatusUpdateDict : update the dictionary containing org source repo lists
+{-| enableRepoDict : update the dictionary containing org source repo lists
 -}
-sourceRepoStatusUpdateDict : Repository -> WebData Bool -> Dict String Repositories -> Repositories -> Dict String Repositories
-sourceRepoStatusUpdateDict repo status repos orgRepos =
-    Dict.update repo.org (\_ -> Just <| sourceRepoStatusUpdateRepo repo status orgRepos) repos
+enableRepoDict : Repository -> WebData Bool -> Dict String Repositories -> Repositories -> Dict String Repositories
+enableRepoDict repo status repos orgRepos =
+    Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
 
 
-{-| enabledUpdateRepos : list map for updating single repo status by repo name
+{-| enableRepoList : list map for updating single repo status by repo name
 -}
-sourceRepoStatusUpdateRepo : Repository -> WebData Bool -> Repositories -> Repositories
-sourceRepoStatusUpdateRepo repo status orgRepos =
+enableRepoList : Repository -> WebData Bool -> Repositories -> Repositories
+enableRepoList repo status orgRepos =
     List.map
         (\sourceRepo ->
             if sourceRepo.name == repo.name then
