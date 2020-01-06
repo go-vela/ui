@@ -91,7 +91,7 @@ import Vela
         , EnableRepo
         , EnableRepos
         , EnableRepositoryPayload
-        , Enabled(..)
+        , Enabling(..)
         , Field
         , HookBuilds
         , Hooks

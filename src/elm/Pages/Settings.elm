@@ -56,6 +56,7 @@ import Vela
         ( DisableRepo
         , EnableRepo
         , Enabled
+        , Enabling
         , Field
         , Repositories
         , Repository
@@ -549,9 +550,9 @@ toggleText field value =
         disabled
 
 
-{-| disableable : takes enabled status and returns if the repo is disableable.
+{-| disableable : takes enabling status and returns if the repo is disableable.
 -}
-disableable : Enabled -> Bool
+disableable : Enabling -> Bool
 disableable status =
     case status of
         Vela.Enabled ->
@@ -573,16 +574,16 @@ disableable status =
             False
 
 
-{-| enableable : takes enabled status and returns if the repo is enableable.
+{-| enableable : takes enabling status and returns if the repo is enableable.
 -}
-enableable : Enabled -> Bool
+enableable : Enabling -> Bool
 enableable status =
     not <| disableable status
 
 
-{-| enableCurrentRepo : takes repo, enabled status and repos and sets enabled status of the specified repo
+{-| enableCurrentRepo : takes repo, enabling status and repos and sets enabled status of the specified repo
 -}
-enableCurrentRepo : Repository -> Enabled -> Repositories -> WebData Repositories
+enableCurrentRepo : Repository -> Enabling -> Repositories -> WebData Repositories
 enableCurrentRepo repo status repos =
     RemoteData.succeed
         (List.Extra.updateIf (\currentRepo -> currentRepo.name == repo.name)
@@ -593,7 +594,7 @@ enableCurrentRepo repo status repos =
 
 {-| enableRepo : takes repo, enabled status and source repos and sets enabled status of the specified repo
 -}
-enableRepo : Repository -> WebData Bool -> WebData SourceRepositories -> WebData SourceRepositories
+enableRepo : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
 enableRepo repo status sourceRepos =
     case sourceRepos of
         Success repos ->
@@ -610,14 +611,14 @@ enableRepo repo status sourceRepos =
 
 {-| enableRepoDict : update the dictionary containing org source repo lists
 -}
-enableRepoDict : Repository -> WebData Bool -> Dict String Repositories -> Repositories -> Dict String Repositories
+enableRepoDict : Repository -> Enabled -> Dict String Repositories -> Repositories -> Dict String Repositories
 enableRepoDict repo status repos orgRepos =
     Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
 
 
 {-| enableRepoList : list map for updating single repo status by repo name
 -}
-enableRepoList : Repository -> WebData Bool -> Repositories -> Repositories
+enableRepoList : Repository -> Enabled -> Repositories -> Repositories
 enableRepoList repo status orgRepos =
     List.map
         (\sourceRepo ->

@@ -15,7 +15,8 @@ module Vela exposing
     , EnableRepo
     , EnableRepos
     , EnableRepositoryPayload
-    , Enabled(..)
+    , Enabled
+    , Enabling(..)
     , Field
     , Hook
     , HookBuilds
@@ -224,12 +225,16 @@ type alias Repository =
     , allow_push : Bool
     , allow_deploy : Bool
     , allow_tag : Bool
-    , enabled : WebData Bool
-    , enabling : Enabled
+    , enabled : Enabled
+    , enabling : Enabling
     }
 
 
-type Enabled
+type alias Enabled =
+    WebData Bool
+
+
+type Enabling
     = ConfirmDisable
     | Disabling
     | Disabled
@@ -264,22 +269,40 @@ decodeRepository =
         |> optional "allow_deploy" bool False
         |> optional "allow_tag" bool False
         -- "enabled"
-        |> hardcoded NotAsked
-        -- "enable"
-        |> optional "active" enabledStatusDecoder NotAsked_
+        |> optional "active" enabledDecoder NotAsked
+        -- "enabling"
+        |> optional "active" enablingDecoder NotAsked_
 
 
-{-| enabledStatusDecoder : decodes string field "status" to the union type BuildStatus
+{-| enabledDecoder : decodes string field "status" to the union type Enabled
 -}
-enabledStatusDecoder : Decoder Enabled
-enabledStatusDecoder =
-    bool |> andThen toEnabledStatus
+enabledDecoder : Decoder Enabled
+enabledDecoder =
+    bool |> andThen toEnabled
 
 
-{-| toEnabledStatus : helper to decode string to Enabled
+{-| toEnabled : helper to decode string to Enabled
 -}
-toEnabledStatus : Bool -> Decoder Enabled
-toEnabledStatus active =
+toEnabled : Bool -> Decoder Enabled
+toEnabled active =
+    if active then
+        succeed <| RemoteData.succeed True
+
+    else
+        succeed NotAsked
+
+
+{-| enablingDecoder : decodes string field "status" to the union type Enabling
+-}
+enablingDecoder : Decoder Enabling
+enablingDecoder =
+    bool |> andThen toEnabling
+
+
+{-| toEnabling : helper to decode string to Enabling
+-}
+toEnabling : Bool -> Decoder Enabling
+toEnabling active =
     if active then
         succeed Enabled
 
