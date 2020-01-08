@@ -22,7 +22,11 @@ import Html
         , summary
         , text
         )
-import Html.Attributes exposing (attribute, class)
+import Html.Attributes
+    exposing
+        ( attribute
+        , class
+        )
 import Html.Events exposing (onClick)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
@@ -35,6 +39,8 @@ import Search
         , searchFilterLocal
         , shouldSearch
         )
+import Svg.Attributes
+import SvgBuilder
 import Util
 import Vela
     exposing
@@ -206,19 +212,27 @@ enableRepoButton : Repository -> EnableRepo msg -> Html msg
 enableRepoButton repo enableRepo =
     case repo.enabled of
         RemoteData.NotAsked ->
-            button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ]
+            div [ class "add-repos-actions" ] [ button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ] ]
 
         RemoteData.Loading ->
-            div [ class "repo-enable-btn", class "repo-enable-enabling" ] [ span [ class "repo-enable-enabling-text" ] [ text "Enabling" ], span [ class "loading-ellipsis" ] [] ]
+            div [ class "add-repos-actions" ] [ div [ class "repo-enable-btn", class "repo-enable-enabling" ] [ span [ class "repo-enable-enabling-text" ] [ text "Enabling" ], span [ class "loading-ellipsis" ] [] ] ]
 
         RemoteData.Failure _ ->
-            div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+            div [ class "add-repos-actions" ] [ div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ] ]
 
         RemoteData.Success enabledStatus ->
             if enabledStatus then
-                div [ class "-enabled-container" ]
-                    [ div [ class "repo-enable-btn", class "repo-enable-enabled" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Enabled" ] ]
-                    , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
+                div [ class "add-repos-actions" ]
+                    [ SvgBuilder.star [ onClick <| enableRepo repo, Svg.Attributes.class "-cursor" ] False
+                    , div [ class "repo-enable-btn", class "repo-enable-enabled" ]
+                        [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ]
+                        , span []
+                            [ text "Enabled"
+                            ]
+                        ]
+                    , a [ class "-btn", class "-solid", class "-view", class "add-repo-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ]
+                        [ text "View"
+                        ]
                     ]
 
             else

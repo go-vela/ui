@@ -65,6 +65,7 @@ import Pages.Hooks
 import Pages.Settings exposing (enableCurrentRepo, enableRepo)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
+import Svg.Attributes
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
 import Time
@@ -1144,7 +1145,8 @@ navButton model =
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "nav-buttons" ]
-                [ a
+                [ SvgBuilder.star [ onClick NoOp, Svg.Attributes.class "-cursor" ] False
+                , a
                     [ class "-btn"
                     , class "-inverted"
                     , class "-hooks"

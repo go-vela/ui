@@ -370,7 +370,6 @@ button,
 
 .-actions .-view > a {
   text-decoration: none;
-
   color: var(--color-bg);
 }
 
@@ -492,9 +491,10 @@ button,
   }
 }
 
-.-enabled-container {
+.add-repos-actions {
   display: flex;
   flex-direction: row;
+  align-items: center;
 }
 
 .repo-enable-btn {
@@ -540,6 +540,11 @@ button,
   }
 }
 
+.add-repos-actions .add-repo-view {
+  min-width: 120px;
+  margin-right: 0.5em;
+  text-align: center;
+}
 
 a.-btn {
   margin: 0.5em 0;
@@ -590,6 +595,7 @@ button.-inverted {
 
 .nav-buttons {
   display: flex;
+  align-items: center;
 }
 .-btn.-hooks {
   margin-right: 0.4em;
@@ -1811,12 +1817,6 @@ button.-btn.-inverted.repo-disable-confirm {
   }
 }
 
-.favorites .header {
-  color: var(--color-yellow);
-}
-button.-favorite-toggle {
-  background: none;
-}
 .icon.favorite-star {
   fill: none;
   stroke: var(--color-yellow);
@@ -1834,4 +1834,7 @@ button.-favorite-toggle {
 .builds-favorite {
   display: flex;
   align-items: center;
+}
+.toggle-favorite {
+
 }

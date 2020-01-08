@@ -54,15 +54,15 @@ view currentRepos =
                 , p []
                     [ text "To have Vela start building your projects we need to get them enabled."
                     , br [] []
-                    , text "Add repositories from your GitHub account to Vela now!"
+                    , text "Add repositories from your GitHub account to Vela now!     "
+                    , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
                     ]
-                , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
                 , p []
-                    [ text "To display repositories on your this page, favorite them by clicking the"
+                    [ text "Favorite a repository by clicking the"
                     , SvgBuilder.star [] False
                     , text "on the repository's builds page."
                     , br [] []
-                    , text "Add repositories from your GitHub account to Vela now!"
+                    , text "Your favorites will display here!"
                     ]
                 ]
     in
