@@ -1810,3 +1810,28 @@ button.-btn.-inverted.repo-disable-confirm {
       border: var(--line-width) solid var(--color-red);
   }
 }
+
+.favorites .header {
+  color: var(--color-yellow);
+}
+button.-favorite-toggle {
+  background: none;
+}
+.icon.favorite-star {
+  fill: none;
+  stroke: var(--color-yellow);
+  margin: 0 0.5em;
+}
+
+.icon.favorite-star.-cursor {
+  cursor: pointer;
+}
+
+.icon.favorite-star.favorited {
+  fill: var(--color-yellow);
+}
+
+.builds-favorite {
+  display: flex;
+  align-items: center;
+}

@@ -19,6 +19,7 @@ module SvgBuilder exposing
     , hookStatusToIcon
     , radio
     , recentBuildStatusToIcon
+    , star
     , stepFailure
     , stepPending
     , stepRunning
@@ -501,3 +502,34 @@ hookStatusToIcon status =
 
         _ ->
             hookFailure
+
+
+{-| star: produces the svg for the favorites star
+-}
+star : List (Html.Attribute msg) -> Bool -> Html msg
+star baseAttributes favorited =
+    let
+        attributes =
+            List.append baseAttributes
+                [ viewBox ""
+                , width "30"
+                , height "30"
+                , Util.testAttribute "favorite-toggle"
+                , class "-favorite-toggle"
+                , class "icon"
+                , class "favorite-star"
+                , class <|
+                    if favorited then
+                        "favorited"
+
+                    else
+                        ""
+                ]
+    in
+    svg
+        attributes
+        [ Svg.path
+            [ d "M23.1527 26.2212l-1.557-9.0781 6.5957-6.4292-9.115-1.3245L15 1.1298l-4.0764 8.2596-9.115 1.3245 6.5957 6.4292-1.557 9.0781L15 21.9352l8.1527 4.286z"
+            ]
+            []
+        ]

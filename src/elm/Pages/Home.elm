@@ -29,6 +29,7 @@ import List
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
+import SvgBuilder
 import Util
 import Vela exposing (Repositories, Repository)
 
@@ -56,6 +57,13 @@ view currentRepos =
                     , text "Add repositories from your GitHub account to Vela now!"
                     ]
                 , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
+                , p []
+                    [ text "To display repositories on your this page, favorite them by clicking the"
+                    , SvgBuilder.star [] False
+                    , text "on the repository's builds page."
+                    , br [] []
+                    , text "Add repositories from your GitHub account to Vela now!"
+                    ]
                 ]
     in
     div []
