@@ -39,6 +39,7 @@ module Vela exposing
     , StepNumber
     , Steps
     , Theme(..)
+    , ToggleFavorite
     , UpdateRepositoryPayload
     , User
     , Viewing
@@ -798,6 +799,12 @@ type alias EnableRepo msg =
 -}
 type alias EnableRepos msg =
     Repositories -> msg
+
+
+{-| ToggleFavorite : takes repo and toggles its favorite status them on Vela
+-}
+type alias ToggleFavorite msg =
+    Repository -> msg
 
 
 {-| Search : takes org and repo and searches/filters based on user input

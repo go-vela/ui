@@ -223,7 +223,7 @@ enableRepoButton repo enableRepo =
         RemoteData.Success enabledStatus ->
             if enabledStatus then
                 div [ class "add-repos-actions" ]
-                    [ SvgBuilder.star [ onClick <| enableRepo repo, Svg.Attributes.class "-cursor" ] False
+                    [ SvgBuilder.star [ onClick <| enableRepo repo, Svg.Attributes.class "-cursor" ] repo.active
                     , div [ class "repo-enable-btn", class "repo-enable-enabled" ]
                         [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ]
                         , span []

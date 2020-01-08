@@ -8,7 +8,6 @@ module Pages.Settings exposing
     ( access
     , alert
     , checkbox
-    , enableCurrentRepo
     , enableRepo
     , enableable
     , events
@@ -579,17 +578,6 @@ disableable status =
 enableable : Enabling -> Bool
 enableable status =
     not <| disableable status
-
-
-{-| enableCurrentRepo : takes repo, enabling status and repos and sets enabled status of the specified repo
--}
-enableCurrentRepo : Repository -> Enabling -> Repositories -> WebData Repositories
-enableCurrentRepo repo status repos =
-    RemoteData.succeed
-        (List.Extra.updateIf (\currentRepo -> currentRepo.name == repo.name)
-            (\currentRepo -> { currentRepo | enabling = status })
-            repos
-        )
 
 
 {-| enableRepo : takes repo, enabled status and source repos and sets enabled status of the specified repo

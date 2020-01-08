@@ -25,27 +25,24 @@ import Html.Attributes
         ( attribute
         , class
         )
+import Html.Events exposing (onClick)
 import List
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
+import Svg.Attributes
 import SvgBuilder
 import Util
-import Vela exposing (Repositories, Repository)
+import Vela
+    exposing
+        ( Repositories
+        , Repository
+        , ToggleFavorite
+        )
 
 
-{-| recordsGroupBy takes a list of records and groups them by the provided key
-
-    recordsGroupBy .lastname listOfFullNames
-
--}
-recordsGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
-recordsGroupBy key recordList =
-    List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
-
-
-view : WebData Repositories -> Html msg
-view currentRepos =
+view : ToggleFavorite msg -> WebData Repositories -> Html msg
+view toggleFavorite currentRepos =
     let
         blankMessage : Html msg
         blankMessage =
@@ -77,7 +74,7 @@ view currentRepos =
                 if List.length activeRepos > 0 then
                     activeRepos
                         |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg
+                        |> viewCurrentRepoListByOrg toggleFavorite
 
                 else
                     blankMessage
@@ -95,12 +92,13 @@ view currentRepos =
         ]
 
 
-viewSingleRepo : Repository -> Html msg
-viewSingleRepo repo =
+viewSingleRepo : ToggleFavorite msg -> Repository -> Html msg
+viewSingleRepo toggleFavorite repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
-            [ a
+            [ SvgBuilder.star [ onClick <| toggleFavorite repo, Svg.Attributes.class "-cursor" ] repo.active
+            , a
                 [ class "-btn"
                 , class "-inverted"
                 , class "-view"
@@ -127,20 +125,30 @@ viewSingleRepo repo =
         ]
 
 
-viewOrg : String -> Repositories -> Html msg
-viewOrg org repos =
+viewOrg : String -> ToggleFavorite msg -> Repositories -> Html msg
+viewOrg org toggleFavorite repos =
     div [ class "repo-org", Util.testAttribute "repo-org" ]
         [ details [ class "details", class "repo-item", attribute "open" "open" ]
             (summary [ class "summary" ] [ text org ]
-                :: List.map viewSingleRepo repos
+                :: List.map (viewSingleRepo toggleFavorite) repos
             )
         ]
 
 
-viewCurrentRepoListByOrg : Dict String Repositories -> Html msg
-viewCurrentRepoListByOrg repoList =
+viewCurrentRepoListByOrg : ToggleFavorite msg -> Dict String Repositories -> Html msg
+viewCurrentRepoListByOrg toggleFavorite repoList =
     repoList
         |> Dict.toList
         |> Util.filterEmptyLists
-        |> List.map (\( org, repos ) -> viewOrg org repos)
+        |> List.map (\( org, repos ) -> viewOrg org toggleFavorite repos)
         |> div [ class "repo-list" ]
+
+
+{-| recordsGroupBy takes a list of records and groups them by the provided key
+
+    recordsGroupBy .lastname listOfFullNames
+
+-}
+recordsGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
+recordsGroupBy key recordList =
+    List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList

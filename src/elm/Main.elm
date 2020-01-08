@@ -62,7 +62,7 @@ import Pages exposing (Page(..))
 import Pages.AddRepos
 import Pages.Home
 import Pages.Hooks
-import Pages.Settings exposing (enableCurrentRepo, enableRepo)
+import Pages.Settings exposing (enableRepo)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import Svg.Attributes
@@ -151,7 +151,7 @@ type alias Flags =
 type alias Model =
     { page : Page
     , session : Maybe Session
-    , currentRepos : WebData Repositories
+    , favorites : WebData Repositories
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
     , hooks : HooksModel
@@ -196,7 +196,7 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , session = flags.velaSession
-            , currentRepos = NotAsked
+            , favorites = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
             , hooks = defaultHooks
@@ -270,6 +270,7 @@ type Msg
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
+    | FavoriteRepo Repository
     | EnableRepo Repository
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
@@ -279,9 +280,10 @@ type Msg
     | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
-    | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
+    | FavoritesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
+    | RepoFavoritedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | HookBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
@@ -314,6 +316,48 @@ update msg model =
 
         SessionChanged newSession ->
             ( { model | session = newSession }, Cmd.none )
+
+        FetchSourceRepositories ->
+            ( { model | sourceRepos = Loading, sourceSearchFilters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+
+        FavoriteRepo repo ->
+            ( model, Cmd.none )
+
+        -- let
+        --     payload : EnableRepositoryPayload
+        --     payload =
+        --         buildEnableRepositoryPayload repo model.velaSourceBaseURL
+        --     body : Http.Body
+        --     body =
+        --         Http.jsonBody <| encodeEnableRepository payload
+        --     currentRepo =
+        --         RemoteData.withDefault defaultRepository model.repo
+        -- in
+        -- ( { model
+        --     | sourceRepos = enableRepo repo Loading model.sourceRepos
+        --     , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
+        --   }
+        -- , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
+        -- )
+        EnableRepo repo ->
+            let
+                payload : EnableRepositoryPayload
+                payload =
+                    buildEnableRepositoryPayload repo model.velaSourceBaseURL
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeEnableRepository payload
+
+                currentRepo =
+                    RemoteData.withDefault defaultRepository model.repo
+            in
+            ( { model
+                | sourceRepos = enableRepo repo Loading model.sourceRepos
+                , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
+              }
+            , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
+            )
 
         UserResponse response ->
             case response of
@@ -351,14 +395,14 @@ update msg model =
                         ]
                     )
 
-        RepositoriesResponse response ->
-            case response of
-                Ok ( _, repositories ) ->
-                    ( { model | currentRepos = RemoteData.succeed repositories }, Cmd.none )
+        FavoritesResponse response ->
+            ( model, Cmd.none )
 
-                Err error ->
-                    ( { model | currentRepos = toFailure error }, addError error )
-
+        --     case response of
+        --         Ok ( _, repositories ) ->
+        --             ( { model | favorites = RemoteData.succeed repositories }, Cmd.none )
+        --         Err error ->
+        --             ( { model | favorites = toFailure error }, addError error )
         RepoResponse response ->
             case response of
                 Ok ( _, repoResponse ) ->
@@ -366,9 +410,6 @@ update msg model =
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
-
-        FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, sourceSearchFilters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -378,26 +419,6 @@ update msg model =
                 Err error ->
                     ( { model | sourceRepos = toFailure error }, addError error )
 
-        EnableRepo repo ->
-            let
-                payload : EnableRepositoryPayload
-                payload =
-                    buildEnableRepositoryPayload repo model.velaSourceBaseURL
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeEnableRepository payload
-
-                currentRepo =
-                    RemoteData.withDefault defaultRepository model.repo
-            in
-            ( { model
-                | sourceRepos = enableRepo repo Loading model.sourceRepos
-                , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
-              }
-            , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
-            )
-
         RepoEnabledResponse repo response ->
             let
                 currentRepo =
@@ -406,8 +427,7 @@ update msg model =
             case response of
                 Ok ( _, enabledRepo ) ->
                     ( { model
-                        | currentRepos = enableCurrentRepo repo Vela.Enabled (RemoteData.withDefault [] model.currentRepos)
-                        , sourceRepos = enableRepo enabledRepo (RemoteData.succeed True) model.sourceRepos
+                        | sourceRepos = enableRepo enabledRepo (RemoteData.succeed True) model.sourceRepos
                         , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled }
                       }
                     , Cmd.none
@@ -421,6 +441,28 @@ update msg model =
                     in
                     ( { model | sourceRepos = sourceRepos }, action )
 
+        RepoFavoritedResponse repo response ->
+            ( model, Cmd.none )
+
+        -- let
+        --     currentRepo =
+        --         RemoteData.withDefault defaultRepository model.repo
+        -- in
+        -- case response of
+        --     Ok ( _, enabledRepo ) ->
+        --         ( { model
+        --             | sourceRepos = enableRepo enabledRepo (RemoteData.succeed True) model.sourceRepos
+        --             , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled }
+        --           }
+        --         , Cmd.none
+        --         )
+        --             |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
+        --     Err error ->
+        --         let
+        --             ( sourceRepos, action ) =
+        --                 repoEnabledError model.sourceRepos repo error
+        --         in
+        --         ( { model | sourceRepos = sourceRepos }, action )
         RepoUpdatedResponse field response ->
             case response of
                 Ok ( _, updatedRepo ) ->
@@ -998,7 +1040,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.currentRepos
+            , Pages.Home.view FavoriteRepo model.favorites
             )
 
         Pages.AddRepositories ->
@@ -1107,7 +1149,7 @@ navButton : Model -> Html Msg
 navButton model =
     case model.page of
         Pages.Overview ->
-            case model.currentRepos of
+            case model.favorites of
                 Success repos ->
                     if (repos |> List.filter .active |> List.length) > 0 then
                         a
@@ -1359,7 +1401,7 @@ loadOverviewPage model =
     -- in
     ( { model | page = Pages.Overview }
     , Cmd.batch
-        [ Api.tryAll RepositoriesResponse <| Api.getAllRepositories model
+        [-- Api.tryAll FavoritesResponse <| Api.getFavorites model
         ]
     )
 
