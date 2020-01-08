@@ -90,11 +90,11 @@ context("Searching", () => {
         it("octocat should show", () => {
           cy.get("[data-test=source-repo-octocat]").should("be.visible");
         });
-        it("add all button should contain Add Results", () => {
-          cy.get("[data-test=add-org-github]").contains("Add Results");
+        it("add all button should contain Enable Results", () => {
+          cy.get("[data-test=add-org-github]").contains("Enable Results");
         });
         context(
-          "click Add All button, then clear github local search input",
+          "click Enable All button, then clear github local search input",
           () => {
             beforeEach(() => {
               cy.route(
@@ -110,30 +110,30 @@ context("Searching", () => {
             it("filtered repos should show and display adding", () => {
               cy.get("[data-test=source-repo-octocat]")
                 .should("be.visible")
-                .and("contain", "Adding");
+                .and("contain", "Enabling");
 
               cy.get("[data-test=source-repo-octocat-1]")
                 .should("be.visible")
-                .and("contain", "Adding");
+                .and("contain", "Enabling");
 
               cy.get("[data-test=source-repo-octocat-2]")
                 .should("be.visible")
-                .and("contain", "Adding");
+                .and("contain", "Enabling");
 
               cy.get("[data-test=source-repo-server]")
                 .should("be.visible")
-                .and("not.contain", "Adding");
+                .and("not.contain", "Enabling");
             });
             it("non-filtered repos should show but not display adding", () => {
               cy.get("[data-test=source-repo-server]")
                 .should("be.visible")
-                .and("not.contain", "Adding");
+                .and("not.contain", "Enabling");
               cy.get("[data-test=source-repo-octocat]")
                 .should("be.visible")
-                .and("contain", "Adding");
+                .and("contain", "Enabling");
             });
-            it("without search input, add all button should contain Add All", () => {
-              cy.get("[data-test=add-org-github]").contains("Add All");
+            it("without search input, add all button should contain Enable All", () => {
+              cy.get("[data-test=add-org-github]").contains("Enable All");
             });
           }
         );

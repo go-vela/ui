@@ -8,6 +8,9 @@ module Pages.Settings exposing
     ( access
     , alert
     , checkbox
+    , enableCurrentRepo
+    , enableRepo
+    , enableable
     , events
     , radio
     , timeout
@@ -18,6 +21,7 @@ module Pages.Settings exposing
     , view
     )
 
+import Dict exposing (Dict)
 import Html
     exposing
         ( Html
@@ -26,6 +30,7 @@ import Html
         , em
         , input
         , label
+        , li
         , p
         , span
         , text
@@ -42,10 +47,22 @@ import Html.Attributes
         , value
         )
 import Html.Events exposing (onCheck, onClick, onInput)
+import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import SvgBuilder
 import Util
-import Vela exposing (Field, Repository, UpdateRepositoryPayload)
+import Vela
+    exposing
+        ( DisableRepo
+        , EnableRepo
+        , Enabled
+        , Enabling
+        , Field
+        , Repositories
+        , Repository
+        , SourceRepositories
+        , UpdateRepositoryPayload
+        )
 
 
 
@@ -76,8 +93,8 @@ type alias NumberInputChange msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> Html msg
-view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange =
+view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> DisableRepo msg -> EnableRepo msg -> Html msg
+view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange disableRepoMsg enableRepoMsg =
     let
         loading =
             div []
@@ -88,7 +105,7 @@ view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange =
         Success repo_ ->
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ div [ class "row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
-                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange ]
+                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, enable disableRepoMsg enableRepoMsg repo_ ]
                 ]
 
         Loading ->
@@ -258,6 +275,95 @@ timeoutWarning inTimeout =
 
         Nothing ->
             text ""
+
+
+{-| enable : takes enable actions and repo and returns view of the repo enable admin action.
+-}
+enable : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
+enable disableRepoMsg enableRepoMsg repo =
+    let
+        enabledDetails =
+            if disableable repo.enabling then
+                ( "Disable Repository", "This will delete the Vela webhook from this repository." )
+
+            else
+                ( "Enable Repository", "This will create the Vela webhook for this repository." )
+    in
+    div [ class "category", Util.testAttribute "repo-settings-timeout" ]
+        [ div [ class "header" ] [ span [ class "text" ] [ text "Admin" ] ]
+        , div [ class "description" ] [ text "These configurations require admin privileges." ]
+        , li [ class "enable-container" ]
+            [ div [ class "enable-column-a" ]
+                [ span [ class "enable-btn-label-a" ] [ text <| Tuple.first enabledDetails ]
+                , em [ class "enable-btn-label-b" ] [ text <| Tuple.second enabledDetails ]
+                ]
+            , div [ class "enable-column-b" ] [ div [] [ enabledButton disableRepoMsg enableRepoMsg repo ] ]
+            ]
+        ]
+
+
+{-| enabledButton : takes enable actions and repo and returns view of the repo enable button.
+-}
+enabledButton : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
+enabledButton disableRepoMsg enableRepoMsg repo =
+    let
+        baseClasses =
+            classList [ ( "-btn", True ), ( "-inverted", True ), ( "-view", True ), ( "repo-disable", True ) ]
+
+        inProgressClasses =
+            classList [ ( "repo-enable", True ), ( "repo-disable-disabling", True ), ( "repo-disable", True ) ]
+
+        baseTestAttribute =
+            Util.testAttribute "repo-disable"
+    in
+    case repo.enabling of
+        Vela.NotAsked_ ->
+            button
+                [ baseClasses
+                , baseTestAttribute
+                , disabled True
+                , onClick <| disableRepoMsg repo
+                ]
+                [ text "Error" ]
+
+        Vela.Enabled ->
+            button
+                [ baseClasses
+                , baseTestAttribute
+                , onClick <| disableRepoMsg repo
+                ]
+                [ text "Disable" ]
+
+        Vela.Disabled ->
+            button
+                [ baseClasses
+                , Util.testAttribute "repo-enable"
+                , onClick <| enableRepoMsg repo
+                ]
+                [ text "Enable" ]
+
+        Vela.ConfirmDisable ->
+            button
+                [ baseClasses
+                , baseTestAttribute
+                , class "repo-disable-confirm"
+                , onClick <| disableRepoMsg repo
+                ]
+                [ text "Really Disable?" ]
+
+        Vela.Disabling ->
+            div [ inProgressClasses, Util.testAttribute "repo-disabling" ]
+                [ span [ class "repo-disable-disabling-text" ]
+                    [ text "Disabling" ]
+                , span [ class "loading-ellipsis" ] []
+                ]
+
+        Vela.Enabling ->
+            div [ inProgressClasses, Util.testAttribute "repo-enabling" ]
+                [ span [ class "repo-disable-disabling-text" ]
+                    [ text "Enabling" ]
+                , span [ class "loading-ellipsis" ] []
+                ]
 
 
 
@@ -442,3 +548,84 @@ toggleText field value =
 
     else
         disabled
+
+
+{-| disableable : takes enabling status and returns if the repo is disableable.
+-}
+disableable : Enabling -> Bool
+disableable status =
+    case status of
+        Vela.Enabled ->
+            True
+
+        Vela.ConfirmDisable ->
+            True
+
+        Vela.Disabling ->
+            True
+
+        Vela.Enabling ->
+            False
+
+        Vela.Disabled ->
+            False
+
+        Vela.NotAsked_ ->
+            False
+
+
+{-| enableable : takes enabling status and returns if the repo is enableable.
+-}
+enableable : Enabling -> Bool
+enableable status =
+    not <| disableable status
+
+
+{-| enableCurrentRepo : takes repo, enabling status and repos and sets enabled status of the specified repo
+-}
+enableCurrentRepo : Repository -> Enabling -> Repositories -> WebData Repositories
+enableCurrentRepo repo status repos =
+    RemoteData.succeed
+        (List.Extra.updateIf (\currentRepo -> currentRepo.name == repo.name)
+            (\currentRepo -> { currentRepo | enabling = status })
+            repos
+        )
+
+
+{-| enableRepo : takes repo, enabled status and source repos and sets enabled status of the specified repo
+-}
+enableRepo : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
+enableRepo repo status sourceRepos =
+    case sourceRepos of
+        Success repos ->
+            case Dict.get repo.org repos of
+                Just orgRepos ->
+                    RemoteData.succeed <| enableRepoDict repo status repos orgRepos
+
+                _ ->
+                    sourceRepos
+
+        _ ->
+            sourceRepos
+
+
+{-| enableRepoDict : update the dictionary containing org source repo lists
+-}
+enableRepoDict : Repository -> Enabled -> Dict String Repositories -> Repositories -> Dict String Repositories
+enableRepoDict repo status repos orgRepos =
+    Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
+
+
+{-| enableRepoList : list map for updating single repo status by repo name
+-}
+enableRepoList : Repository -> Enabled -> Repositories -> Repositories
+enableRepoList repo status orgRepos =
+    List.map
+        (\sourceRepo ->
+            if sourceRepo.name == repo.name then
+                { sourceRepo | enabled = status }
+
+            else
+                sourceRepo
+        )
+        orgRepos

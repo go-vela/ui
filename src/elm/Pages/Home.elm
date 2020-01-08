@@ -12,7 +12,6 @@ import Html
         ( Html
         , a
         , br
-        , button
         , details
         , div
         , h1
@@ -26,7 +25,6 @@ import Html.Attributes
         ( attribute
         , class
         )
-import Html.Events exposing (onClick)
 import List
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
@@ -45,15 +43,15 @@ recordsGroupBy key recordList =
     List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
 
 
-view : WebData Repositories -> (Repository -> msg) -> Html msg
-view currentRepos removeRepo =
+view : WebData Repositories -> Html msg
+view currentRepos =
     let
         blankMessage : Html msg
         blankMessage =
             div [ class "overview" ]
                 [ h1 [] [ text "Let's get Started!" ]
                 , p []
-                    [ text "To have Vela start building your projects we need to get them added."
+                    [ text "To have Vela start building your projects we need to get them enabled."
                     , br [] []
                     , text "Add repositories from your GitHub account to Vela now!"
                     ]
@@ -71,7 +69,7 @@ view currentRepos removeRepo =
                 if List.length activeRepos > 0 then
                     activeRepos
                         |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg removeRepo
+                        |> viewCurrentRepoListByOrg
 
                 else
                     blankMessage
@@ -89,8 +87,8 @@ view currentRepos removeRepo =
         ]
 
 
-viewSingleRepo : (Repository -> msg) -> Repository -> Html msg
-viewSingleRepo removeRepo repo =
+viewSingleRepo : Repository -> Html msg
+viewSingleRepo repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
         , div [ class "-actions" ]
@@ -101,7 +99,6 @@ viewSingleRepo removeRepo repo =
                 , Routes.href <| Routes.Settings repo.org repo.name
                 ]
                 [ text "Settings" ]
-            , button [ class "-inverted", Util.testAttribute "repo-remove", onClick <| removeRepo repo ] [ text "Remove" ]
             , a
                 [ class "-btn"
                 , class "-inverted"
@@ -122,20 +119,20 @@ viewSingleRepo removeRepo repo =
         ]
 
 
-viewOrg : (Repository -> msg) -> String -> Repositories -> Html msg
-viewOrg removeRepo org repos =
+viewOrg : String -> Repositories -> Html msg
+viewOrg org repos =
     div [ class "repo-org", Util.testAttribute "repo-org" ]
         [ details [ class "details", class "repo-item", attribute "open" "open" ]
             (summary [ class "summary" ] [ text org ]
-                :: List.map (viewSingleRepo removeRepo) repos
+                :: List.map viewSingleRepo repos
             )
         ]
 
 
-viewCurrentRepoListByOrg : (Repository -> msg) -> Dict String Repositories -> Html msg
-viewCurrentRepoListByOrg removeRepo repoList =
+viewCurrentRepoListByOrg : Dict String Repositories -> Html msg
+viewCurrentRepoListByOrg repoList =
     repoList
         |> Dict.toList
         |> Util.filterEmptyLists
-        |> List.map (\( org, repos ) -> viewOrg removeRepo org repos)
+        |> List.map (\( org, repos ) -> viewOrg org repos)
         |> div [ class "repo-list" ]
