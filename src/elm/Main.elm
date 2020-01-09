@@ -266,7 +266,7 @@ type Msg
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
-    | ClickLogLine Org Repo BuildNumber StepNumber Int
+    | ClickLogLine Org Repo BuildNumber StepNumber (Maybe Int)
     | ClickStep Org Repo (Maybe BuildNumber) (Maybe StepNumber)
     | GotoPage Pagination.Page
       -- Outgoing HTTP requests

@@ -83,7 +83,7 @@ type alias ExpandStep msg =
 {-| LineFocus : update action for focusing a log line
 -}
 type alias SetLineFocus msg =
-    StepNumber -> Int -> msg
+    StepNumber -> Maybe Int -> msg
 
 
 {-| GetLogs : type alias for passing in logs fetch function from Main.elm
@@ -300,9 +300,11 @@ viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction 
                 , Util.testAttribute "step-header"
                 , onClick (expandAction org repo buildNumber <| Just <| String.fromInt step.number)
                 , id <| stepToFocusID <| String.fromInt step.number
-                , href ""
                 ]
-                [ div [ class "-info" ]
+                [ div
+                    [ class "-info"
+                    , onClick <| lineFocusAction (String.fromInt step.number) Nothing
+                    ]
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
                     ]
@@ -372,7 +374,7 @@ logLine stepNumber line lineFocus lineNumber clickAction =
             [ span [ class "-line-num" ]
                 [ a
                     [ logLineHref stepNumber lineNumber
-                    , onClick <| clickAction stepNumber lineNumber
+                    , onClick <| clickAction stepNumber <| Just lineNumber
                     , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
                     , id <| stepAndLineToFocusID stepNumber lineNumber
                     ]
@@ -756,7 +758,7 @@ toggleStepView steps stepNumber =
 
 {-| clickLogLine : takes model and line number and sets the focus on the log line
 -}
-clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd msg )
+clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Maybe Int -> ( WebData Steps, Cmd msg )
 clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
     ( steps
     , Navigation.replaceUrl navKey <|
@@ -765,8 +767,14 @@ clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
                 Just <|
                     "#step:"
                         ++ stepNumber
-                        ++ ":"
-                        ++ String.fromInt lineNumber
+                        ++ (case lineNumber of
+                                Just line ->
+                                    ":"
+                                        ++ String.fromInt line
+
+                                Nothing ->
+                                    ""
+                           )
             )
     )
 
@@ -902,3 +910,10 @@ stepAndLineToFocusID stepNumber lineNumber =
 logLineHref : StepNumber -> Int -> Html.Attribute msg
 logLineHref stepNumber lineNumber =
     href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber)
+
+
+{-| stepHref : takes stepnumber and renders the link href for clicking a log line without redirecting
+-}
+stepHref : StepNumber -> Html.Attribute msg
+stepHref stepNumber =
+    href <| "#step:" ++ stepNumber
