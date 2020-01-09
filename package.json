@@ -75,7 +75,7 @@
     "elm",
     "parcel",
     "ci",
-    "cypress"
+    "cypress",
   ],
   "license": "Apache-2.0"
 }

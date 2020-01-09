@@ -8,18 +8,17 @@ html {
 
 body {
   color: var(--color-text);
-
-  font-size: 18px;
   background-color: var(--color-bg);
-  transition-duration: 0.2s;
 
   transition-property: background-color, color;
+  transition-duration: 0.2s;
+
+  font-size: 18px;
 }
 
 a {
   color: var(--color-primary);
-  &:hover,
-  &:focus {
+  &:hover {
     text-decoration: none;
   }
 }
@@ -30,11 +29,6 @@ header {
   justify-content: space-between;
 
   padding: 1em var(--horizontal-pad);
-  background: radial-gradient(
-    circle at 50% -200%,
-    var(--color-bg-light) -7%,
-    transparent 50%
-  );
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
@@ -53,15 +47,22 @@ header {
     transparent 76%
   );
   border-image-slice: 1;
+  background: radial-gradient(
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
+  );
 }
 
 .details {
   > .summary {
     position: relative;
+
+    overflow: hidden;
+
     padding-right: 1.5em;
     padding-bottom: 0.3em;
 
-    overflow: hidden;
     cursor: pointer;
 
     // hide details marker on Chrome
@@ -88,23 +89,15 @@ header {
     // display: block;
     // nothing seems to work on Chrome
   }
-  @media screen and (prefers-reduced-motion: reduce) {
-    .details-icon-expand {
-      position: absolute;
-      top: 0.2em;
-      right: 0;
-      color: var(--color-primary);
-      transform-origin: 50% 49%;
-      transition: none;
-    }
-  }
   .details-icon-expand {
     position: absolute;
     top: 0.2em;
     right: 0;
-    color: var(--color-primary);
-    transform-origin: 50% 49%;
+
     transition: all 0.2s;
+    transform-origin: 50% 49%;
+
+    color: var(--color-primary);
   }
   &[open] .details-icon-expand {
     transform: rotate(0.5turn);
@@ -118,6 +111,7 @@ header {
 
 .identity-logo-link {
   margin-right: 1em;
+
   text-decoration: none;
   // override global `vertical-align: middle` for SVGs
   svg {
@@ -141,9 +135,11 @@ header {
 .help-links {
   display: flex;
   align-items: center;
+
   font-size: 80%;
   > a {
     position: relative;
+
     display: inline-block;
 
     margin-right: 1em;
@@ -151,8 +147,9 @@ header {
       @include slashes;
     }
     &:last-child {
-      font-weight: bold;
       text-decoration: none;
+
+      font-weight: bold;
     }
   }
 }
@@ -168,15 +165,18 @@ header {
     position: absolute;
     top: 1rem;
     left: 0;
+
     width: max-content;
     min-width: 100%;
     padding: 0;
-    font-size: 80%;
+
     list-style: none;
-    background-color: var(--color-bg-dark);
 
     border: 1px solid var(--color-bg-light);
+    background-color: var(--color-bg-dark);
     box-shadow: 0 0 2px black;
+
+    font-size: 80%;
     > li {
       padding: 0.5em 1em;
     }
@@ -185,16 +185,18 @@ header {
         position: absolute;
         top: -5px;
         left: calc(50% - 6px);
+
         display: block;
 
         width: 10px;
         height: 10px;
-        background-color: inherit;
+
+        content: "";
+        transform: rotate(135deg);
 
         border: inherit;
         border-radius: 0 0 0 0.25em;
-        transform: rotate(135deg);
-        content: '';
+        background-color: inherit;
 
         clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
       }
@@ -214,11 +216,12 @@ button,
 .button {
   margin: 0.5em 0;
   padding: 0.5em 2em;
-  color: var(--color-bg);
-  font-weight: bold;
 
-  font-size: 16px;
+  cursor: pointer;
   text-decoration: none;
+
+  color: var(--color-bg);
+  border: none;
   background-image: linear-gradient(
     to right,
     var(--color-cyan) 0%,
@@ -226,40 +229,38 @@ button,
     var(--color-cyan) 100%
   );
   background-size: 200% auto;
-  border: none;
 
-  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
 
   & + button,
   + .button {
     margin-left: 0.5em;
   }
-  &:hover,
-  &:focus {
+  &:hover {
     background-position: right center;
   }
   &:disabled {
     color: var(--color-bg-dark);
+    border-color: var(--color-bg-light);
     background-color: var(--color-bg-light);
     background-image: none;
-    border-color: var(--color-bg-light);
   }
   &.inverted {
     color: var(--color-primary);
+    border-width: var(--line-width);
+    border-style: solid;
+    border-color: var(--color-primary);
     background-color: var(--color-bg);
     background-image: none;
-    border-color: var(--color-primary);
-    border-style: solid;
-    border-width: var(--line-width);
-    &:not([disabled]):hover,
-    &:not([disabled]):focus {
+    &:not([disabled]):hover {
       color: var(--color-text);
       border-color: var(--color-text);
     }
     &:disabled {
+      pointer-events: none;
       color: var(--color-bg-light);
       border-color: var(--color-bg-light);
-      pointer-events: none;
     }
   }
 }
@@ -270,6 +271,7 @@ button,
   justify-content: space-between;
 
   padding: 0 3em;
+
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
@@ -285,6 +287,7 @@ button,
   border-image-slice: 1;
   li {
     position: relative;
+
     display: inline-block;
 
     margin-right: 1em;
@@ -292,8 +295,9 @@ button,
       @include slashes;
     }
     &:last-child {
-      font-weight: bold;
       text-decoration: none;
+
+      font-weight: bold;
     }
   }
 }
@@ -310,11 +314,13 @@ button,
 
 .repo-item {
   position: relative;
+
   display: flex;
   justify-content: space-between;
 
   margin: 2em 0;
   padding: 0.5em;
+
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
   border-image-source: linear-gradient(
@@ -329,6 +335,7 @@ button,
   border-image-slice: 1;
   > summary {
     margin: 0.5em 0 0 1em;
+
     text-indent: 0;
   }
 }
@@ -341,6 +348,7 @@ button,
   width: 100%;
   margin: 0.5em 0 0 1em;
   padding: 0.5em 1em;
+
   background-color: var(--color-bg-dark);
 }
 
@@ -361,32 +369,22 @@ button,
 }
 
 .-actions .-view > a {
-  color: var(--color-bg);
   text-decoration: none;
+
+  color: var(--color-bg);
 }
 
 // loading ellipsis
-@media screen and (prefers-reduced-motion: reduce) {
-  .loading-ellipsis::after {
-    display: inline-block;
-
-    width: 0;
-    overflow: hidden;
-    vertical-align: bottom;
-    /* ellipsis character */
-    animation: none;
-    content: '\2026';
-  }
-}
 .loading-ellipsis::after {
   display: inline-block;
+  overflow: hidden;
 
   width: 0;
-  overflow: hidden;
-  vertical-align: bottom;
+
+  content: "\2026";
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
-  content: '\2026';
+  vertical-align: bottom;
 }
 
 .util {
@@ -404,11 +402,12 @@ button,
 .source-actions .-filter,
 .source-repos .-filter {
   display: flex;
+  align-items: center;
   flex: 1;
   flex-direction: row;
-  align-items: center;
 
   margin: 0 1em;
+
   border-bottom: 2px solid var(--color-primary);
 }
 
@@ -416,11 +415,12 @@ button,
 .source-repos .-filter input {
   width: 100%;
   padding: 0.5em 0.8em;
+
   color: var(--color-text);
+  border: none;
+  background: var(--color-bg);
 
   font-size: 18px;
-  background: var(--color-bg);
-  border: none;
   &::placeholder {
     color: var(--color-bg-light);
   }
@@ -428,12 +428,13 @@ button,
 
 .org .summary {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  flex-direction: row;
   &::-webkit-details-marker {
     display: flex;
 
     margin-right: 16px;
+
     vertical-align: middle;
   }
 }
@@ -446,24 +447,27 @@ button,
   width: 100%;
   margin: 0.5em 0 0 1em;
   padding: 1.2em 1em;
+
   background-color: var(--color-bg-dark);
 }
 
 .org-header {
   display: flex;
-  flex: 1;
   align-items: center;
+  flex: 1;
 }
 
 .repo-count {
   margin-left: 12px;
   &::before {
     margin-right: 0.3em;
-    content: '[';
+
+    content: "[";
   }
   &::after {
     margin-left: 0.3em;
-    content: ']';
+
+    content: "]";
   }
 }
 
@@ -474,6 +478,7 @@ button,
   min-width: 150px;
   margin: 0.425em 0;
   padding: 0.2em 1em;
+
   vertical-align: top;
   > svg {
     margin-right: 1em;
@@ -504,40 +509,22 @@ button,
 }
 
 .repo-add--failed {
-  color: var(--color-red);
-  background: none;
-  border: var(--line-width) solid var(--color-red);
   cursor: pointer;
 
-  @extend .repo-add;
-  @media screen and (prefers-reduced-motion: reduce) {
-    &:hover svg,
-    &:focus svg {
-      transform: rotate(70deg);
-      transition: none;
-    }
-  }@media screen and (prefers-reduced-motion: reduce) {
-&:hover svg,
-  &:focus svg {
-    transform: rotate(70deg);
-    transition: none;
-}
-}
+  color: var(--color-red);
+  border: var(--line-width) solid var(--color-red);
+  background: none;
 
-  &:hover svg,
-  &:focus svg {
-    transform: rotate(70deg);
+  @extend .repo-add;
+
+  &:hover svg {
     transition: transform 0.2s ease-in-out;
-  }
-  @media screen and (prefers-reduced-motion: reduce) {
-    > svg {
-      margin-right: 1em;
-      transition: none;
-    }
+    transform: rotate(70deg);
   }
 
   > svg {
     margin-right: 1em;
+
     transition: transform 0.2s ease-in-out;
   }
 }
@@ -545,23 +532,22 @@ button,
 a.-btn {
   margin: 0.5em 0;
   padding: 0.3em 2em;
-  font-weight: bold;
-
-  font-size: 16px;
 
   text-decoration: none;
+
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .-btn.-inverted,
 button.-inverted {
   color: var(--color-primary);
+  border-width: var(--line-width);
+  border-style: solid;
+  border-color: var(--color-primary);
   background-color: var(--color-bg);
   background-image: none;
-  border-color: var(--color-primary);
-  border-style: solid;
-  border-width: var(--line-width);
-  &:not([disabled]):hover,
-  &:not([disabled]):focus {
+  &:not([disabled]):hover {
     color: var(--color-text);
     border-color: var(--color-text);
   }
@@ -575,16 +561,15 @@ button.-inverted {
   margin: 0;
   margin-left: 1em;
   padding: 4px 12px;
-  font-weight: 300;
 
   font-size: 12px;
+  font-weight: 300;
   &:disabled {
     color: var(--color-bg);
+    border: var(--line-width) solid var(--color-bg-light);
     background-color: var(--color-bg);
     background-image: none;
-    border: var(--line-width) solid var(--color-bg-light);
-    &:hover,
-    &:focus {
+    &:hover {
       color: inherit;
       border-color: inherit;
     }
@@ -604,23 +589,21 @@ button.-inverted {
 .-btn.-solid,
 button.-solid {
   color: var(--color-bg);
+  border-width: var(--line-width);
+  border-style: solid;
+  border-color: var(--color-primary);
   background-color: var(--color-primary);
   background-image: none;
-  border-color: var(--color-primary);
-  border-style: solid;
-  border-width: var(--line-width);
-  &:hover,
-  &:focus {
+  &:hover {
     color: var(--color-primary);
-    background-color: var(--color-bg);
     border-color: var(--color-primary);
+    background-color: var(--color-bg);
   }
 
   &.loading {
     color: var(--color-bg-light);
     border: var(--line-width) dashed var(--color-bg-light);
-    &:hover,
-    &:focus {
+    &:hover {
       color: inherit;
       border-color: inherit;
     }
@@ -635,8 +618,7 @@ button.-solid {
   &.loading {
     color: var(--color-bg-light);
     border: var(--line-width) dashed var(--color-bg-light);
-    &:not([disabled]):hover,
-    &:not([disabled]):focus {
+    &:not([disabled]):hover {
       color: inherit;
       border-color: inherit;
     }
@@ -669,24 +651,15 @@ button.-solid {
   justify-content: flex-start;
 }
 
-@media screen and (prefers-reduced-motion: reduce) {
-  .large-loader .-spinner {
-    width: 40px;
-    height: 40px;
-    border: 2px solid var(--color-text);
-    border-top: 2px solid var(--color-bg);
-    border-radius: 50%;
-    animation: none;
-  }
-}
-
 .large-loader .-spinner {
   width: 40px;
   height: 40px;
+
+  animation: spin 3s linear infinite;
+
   border: 2px solid var(--color-text);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
-  animation: spin 3s linear infinite;
 }
 
 .small-loader {
@@ -695,51 +668,45 @@ button.-solid {
   justify-content: flex-start;
 }
 
-@media screen and (prefers-reduced-motion: reduce) {
-  .small-loader .-spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--color-offwhite);
-    border-top: 2px solid var(--color-bg);
-    border-radius: 50%;
-    animation: none;
-  }
-}
-
 .small-loader .-spinner {
   width: 20px;
   height: 20px;
+
+  animation: spin 3s linear infinite;
+
   border: 2px solid var(--color-offwhite);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
-  animation: spin 3s linear infinite;
 }
 
 .small-loader .-label {
   margin-left: 0.8em;
-  font-weight: 300;
 
   font-size: 14px;
+  font-weight: 300;
 }
 
 .build-container {
+  overflow: hidden;
+
   width: 100%;
   margin: 12px 0;
-  overflow: hidden;
 }
 
 .build {
   position: relative;
+
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  font-weight: 300;
-  font-size: 18px;
+
+  border: 2px solid var(--color-bg-dark);
+  border-right: 0px;
+  border-left: 0px;
 
   font-family: Helvetica;
-  border: 2px solid var(--color-bg-dark);
-  border-right: 0;
-  border-left: 0;
+  font-size: 18px;
+  font-weight: 300;
 }
 
 .theme-light .build {
@@ -748,6 +715,7 @@ button.-solid {
 
 .build .status {
   position: relative;
+
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -767,9 +735,9 @@ button.-solid {
 
 .build-icon.-pending {
   padding: 8px;
+  fill: var(--color-bg);
   border: 2px solid var(--color-bg-dark);
   border-radius: 7px;
-  fill: var(--color-bg);
 }
 
 .build-icon.-pending .bg-fill {
@@ -799,12 +767,14 @@ button.-solid {
 
 .build .info {
   position: relative;
+
   display: flex;
   flex: 1;
   flex-direction: column;
   justify-content: center;
 
   padding: 12px 0;
+
   background: var(--color-bg-dark);
 }
 
@@ -844,7 +814,7 @@ button.-solid {
 }
 
 .git-info .commit {
-  margin: 0 8px 0 0;
+  margin: 0 8px 0 0px;
 }
 
 .git-info .branch {
@@ -858,6 +828,7 @@ button.-solid {
 .time-info {
   display: flex;
   flex-direction: row;
+
   font-weight: 300;
 }
 
@@ -867,16 +838,19 @@ button.-solid {
 
 .time-info .delimiter {
   margin: 0 8px;
+
   color: var(--color-secondary);
 }
 
 .time-info .duration {
   margin: 0 0 0 4px;
+
   font-family: var(--font-code);
 }
 
 .build-animation {
   position: absolute;
+
   width: 100%;
 }
 
@@ -896,21 +870,9 @@ button.-solid {
   top: -2px;
 }
 
-@media screen and (prefers-reduced-motion: reduce) {
-  .build-animation.-bottom.-running {
-    animation: none;
-  }
-}
-
 .build-animation.-bottom.-running {
   animation: build-status-parallax-running 26s linear 26s infinite,
     build-status-parallax-start 26s linear none;
-}
-
-@media screen and (prefers-reduced-motion: reduce) {
-  .build-animation.-top.-running {
-    animation: none;
-  }
 }
 
 .build-animation.-top.-running {
@@ -918,50 +880,24 @@ button.-solid {
     build-status-parallax-start 22s linear none;
 }
 
-@media screen and (prefers-reduced-motion: reduce) {
-  .build-animation.-bottom.-start {
-    animation: none;
-  }
-}
-
 .build-animation.-bottom.-start {
   animation: build-status-parallax-start 26s linear none;
-}
-
-@media screen and (prefers-reduced-motion: reduce) {
-  .build-animation.-top.-start {
-    animation: none;
-  }
 }
 
 .build-animation.-top.-start {
   animation: build-status-parallax-start 22s linear none;
 }
 
-@media screen and (prefers-reduced-motion: reduce) {
-  .build-animation.-top.-cover {
-    width: 12vw;
-    animation: none;
-    animation-direction: alternate;
-  }
-}
-
 .build-animation.-top.-cover {
   width: 12vw;
+
   animation: build-particles-source 5s ease-in-out infinite;
   animation-direction: alternate;
 }
 
-@media screen and (prefers-reduced-motion: reduce) {
-  .build-animation.-bottom.-cover {
-    width: 16vw;
-    animation: none;
-    animation-direction: alternate-reverse;
-  }
-}
-
 .build-animation.-bottom.-cover {
   width: 16vw;
+
   animation: build-particles-source 5s ease-in-out infinite;
   animation-direction: alternate-reverse;
 }
@@ -1002,8 +938,8 @@ button.-solid {
 
 .build-history {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  flex-direction: row;
 
   margin-left: 3em;
 }
@@ -1013,8 +949,8 @@ button.-solid {
 }
 
 .build-history .-build .-icon {
-  fill: none;
   stroke: var(--color-bg);
+  fill: none;
   &.-running {
     background-color: var(--color-yellow);
   }
@@ -1029,52 +965,55 @@ button.-solid {
   }
 
   &.-pending {
-    background-color: var(--color-bg-light);
     fill: var(--color-bg);
     stroke: var(--color-bg);
+    background-color: var(--color-bg-light);
   }
 }
 
 .build-history .-build .-tooltip {
   position: absolute;
-  top: 125%;
   // not sure what to here to display the tooltip on top!
   z-index: 9999;
+  top: 125%;
+
   display: flex;
+  visibility: hidden;
   flex-direction: column;
 
   width: 300px;
   padding: 0.2em 0;
-  color: var(--color-text);
-
-  font-weight: 300;
 
   text-align: center;
-  background-color: var(--color-bg-dark);
+
+  color: var(--color-text);
   border: solid 1px var(--color-bg-light);
   border-radius: 3px;
-  visibility: hidden;
+  background-color: var(--color-bg-dark);
+
+  font-weight: 300;
 }
 
-.build-history .-build:hover .-tooltip,
-.build-history .-build:focus .-tooltip {
+.build-history .-build:hover .-tooltip {
   visibility: visible;
 }
 
-.build-history .-build:hover .-tooltip::after,
-.build-history .-build:focus .-tooltip::after {
+.build-history .-build:hover .-tooltip::after {
   position: absolute;
   bottom: 100%; /* At the top of the tooltip */
+
   margin-left: 0.5em;
-  border-color: transparent transparent var(--color-bg-light) transparent;
-  border-style: solid;
+
+  content: " ";
 
   border-width: 5px;
-  content: ' ';
+  border-style: solid;
+  border-color: transparent transparent var(--color-bg-light) transparent;
 }
 
 .build-history .-build .-info {
   padding: 0.2em 0.6em;
+
   font-size: 14px;
 }
 
@@ -1099,7 +1038,7 @@ button.-solid {
 .build-history .-build .-number {
   margin-right: 0.5em;
   &:before {
-    content: '#';
+    content: "#";
   }
 }
 
@@ -1136,6 +1075,7 @@ button.-solid {
 .step .-icon-container {
   padding-top: 12px;
   padding-bottom: 12px;
+
   background: var(--color-bg);
 }
 
@@ -1146,10 +1086,11 @@ button.-solid {
 }
 
 .step .-icon.-pending {
+  fill: var(--color-bg-light);
   padding: 8px;
+
   border: 2px solid var(--color-bg-light);
   border-radius: 7px;
-  fill: var(--color-bg-light);
 }
 
 .-icon {
@@ -1165,8 +1106,8 @@ button.-solid {
     stroke: var(--color-red);
   }
   &.-pending {
-    fill: var(--color-bg-light);
     stroke: var(--color-bg-light);
+    fill: var(--color-bg-light);
   }
 }
 
@@ -1174,7 +1115,8 @@ button.-solid {
   flex: 1;
 
   margin: 1em 0;
-  padding: 0;
+  padding: 0em;
+
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
   border-image-source: linear-gradient(
@@ -1211,14 +1153,14 @@ button.-solid {
 }
 
 .loading-logs {
-  margin-top: 0.3em;
-  margin-left: 0.3em;
   padding: 0.5em 0;
+  margin-left: 0.3em;
+  margin-top: 0.3em;
 }
 
 .logs-container {
-  padding: 0.5em 0;
   background-color: var(--color-bg-dark);
+  padding: 0.5em 0;
 }
 
 .theme-light .logs-container {
@@ -1229,20 +1171,20 @@ button.-solid {
 }
 
 .logs {
-  font-weight: 300;
   font-size: 14px;
+  font-weight: 300;
 }
 
 .logs .line {
-  display: flex;
   margin: 0 0.5em;
+  display: flex;
 }
 
 .logs .line .wrapper {
-  display: flex;
-  flex: 1;
-  flex-direction: row;
   padding-left: 1em;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
 }
 
 .logs .wrapper.-focus {
@@ -1251,22 +1193,22 @@ button.-solid {
 
 .logs .line .-line-num {
   margin-right: 1em;
+
   color: var(--color-offwhite);
 
   font-family: var(--font-code);
   > a {
     text-decoration: none;
-    &:hover,
-    &:focus {
+    &:hover {
       text-decoration: underline;
     }
   }
 }
 
 .step-error {
-  margin-left: 1.5em;
   color: var(--color-red-light);
   font-size: 14px;
+  margin-left: 1.5em;
 }
 
 .theme-light .step-error {
@@ -1283,20 +1225,8 @@ button.-solid {
   animation-fill-mode: both;
 }
 
-@media screen and (prefers-reduced-motion: reduce) {
-  .bounceInRight {
-    animation: none;
-  }
-}
-
 .bounceInRight {
   animation-name: bounceInRight;
-}
-
-@media screen and (prefers-reduced-motion: reduce) {
-  .fadeOutRightBig {
-    animation: none;
-  }
 }
 
 .fadeOutRightBig {
@@ -1318,55 +1248,53 @@ button.-solid {
   position: fixed;
   right: 0;
   bottom: 10px;
+
   width: 100%;
   max-width: 530px;
   margin: 0;
   padding: 0;
-  list-style-type: none;
-}
 
-@media screen and (prefers-reduced-motion: reduce) {
-  .alert-item-attributes {
-    max-height: 100px;
-    margin: 1em 1em 0 1em;
-    transition: none;
-  }
+  list-style-type: none;
 }
 
 .alert-item-attributes {
   max-height: 100px;
   margin: 1em 1em 0 1em;
+
   transition: max-height 1.2s, margin-top 1.2s;
 }
 
 .alert-container {
   width: 500px;
   padding: 1em;
-  color: white;
-
-  font-size: 14px;
-  background-color: var(--color-bg-dark);
-  border-radius: 5px;
-  border-radius: 0;
-  box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
 
   cursor: pointer;
+
+  color: white;
+  border-radius: 5px;
+  border-radius: 0px;
+  background-color: var(--color-bg-dark);
+  box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
+
+  font-size: 14px;
 }
 
 .alert-container .-title {
   margin: 0;
+
   font-size: 1em;
 }
 
 .alert-container .-message {
   display: flex;
+  overflow-y: auto;
   flex-direction: row;
   justify-content: space-between;
 
   max-height: 3.25em;
   margin-top: 0.25em;
   margin-bottom: 0;
-  overflow-y: auto;
+
   font-size: 0.9em;
 }
 
@@ -1389,6 +1317,7 @@ button.-solid {
 .hooks {
   width: 100%;
   padding-bottom: 0.5em;
+
   background: var(--color-bg-dark);
 }
 
@@ -1405,15 +1334,17 @@ button.-solid {
 
 .hooks .row {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  flex-direction: row;
 
   margin: 0.3em 0;
   > .hook-summary {
     position: relative;
-    padding: 0;
 
     overflow: hidden;
+
+    padding: 0;
+
     cursor: pointer;
 
     // hide details marker on Chrome
@@ -1426,21 +1357,14 @@ button.-solid {
       list-style-type: none !important;
     }
   }
-  @media screen and (prefers-reduced-motion: reduce) {
-    .chevron {
-      margin-right: 0.8em;
-      margin-left: 1em;
-      color: var(--color-primary);
-      transform-origin: 50% 49%;
-      transition: none;
-    }
-  }
   .chevron {
     margin-right: 0.8em;
     margin-left: 1em;
-    color: var(--color-primary);
-    transform-origin: 50% 49%;
+
     transition: all 0.2s;
+    transform-origin: 50% 49%;
+
+    color: var(--color-primary);
   }
   &[open] .chevron {
     transform: rotate(0.5turn);
@@ -1449,30 +1373,33 @@ button.-solid {
 
 .hooks .row.preview {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  flex-direction: row;
 }
 
 .hooks .headers {
   display: flex;
-  flex-direction: row;
   align-items: center;
+  flex-direction: row;
 
   margin-top: 0.3em;
   padding-top: 0.3em;
   padding-bottom: 0.3em;
+
   border-bottom: 1px solid var(--color-bg-light);
 }
 
 .hooks .header {
   flex: 1;
-  font-size: 18px;
 
   text-align: center;
+
+  font-size: 18px;
 }
 
 .hooks .row .preview {
   margin: 0.4em 0;
+
   font-size: 14px;
 }
 
@@ -1489,12 +1416,13 @@ button.-solid {
 }
 
 .hooks .row .cell {
-  flex: 1;
   align-items: center;
+  flex: 1;
   justify-content: center;
-  font-weight: 300;
 
   text-align: center;
+
+  font-weight: 300;
 }
 
 .hooks .source-id {
@@ -1512,8 +1440,8 @@ button.-solid {
 }
 
 .hooks .row .cell.source-id .text {
-  flex: 1;
   padding: 3px 12px;
+  flex: 1;
   text-align: center;
   background: var(--color-bg);
 }
@@ -1543,9 +1471,11 @@ button.-solid {
 
   width: 100%;
   padding: 0.4em 1em;
-  font-size: 14px;
+
   border-bottom: 1px solid var(--color-bg-light);
   border-left: 2px solid var(--color-bg-light);
+
+  font-size: 14px;
 }
 
 .hooks .row:last-child .info {
@@ -1639,20 +1569,21 @@ button.-solid {
 .repo-settings .category .header {
   margin-bottom: 0.5em;
   padding-bottom: 0.2em;
+
   border-bottom: 2px solid var(--color-secondary);
 }
 
 .repo-settings .category .header .text {
   position: relative;
   top: 0.1em;
-  font-weight: bold;
 
   font-size: 22px;
+  font-weight: bold;
 }
 
 .repo-settings .category .description {
-  font-weight: 300;
   font-size: 14px;
+  font-weight: 300;
 }
 
 .inputs {
@@ -1687,29 +1618,31 @@ button.-solid {
 }
 
 .checkbox .label {
-  font-weight: bold;
   font-size: 16px;
+  font-weight: bold;
 }
 
 .checkbox .field-info {
   margin-left: 0.25em;
+
   font-weight: 300;
 }
 
 .inputs.repo-timeout input {
   width: 5em;
   padding-top: 0.5em;
-  padding-right: 0;
+  padding-right: 0em;
   padding-bottom: 0.5em;
   padding-left: 1em;
-  color: var(--color-text);
-
-  font-size: 14px;
 
   text-align: center;
-  background: none;
+
+  color: var(--color-text);
   border: none;
   border-bottom: 2px solid var(--color-primary);
+  background: none;
+
+  font-size: 14px;
 }
 
 .repo-timeout input:focus {
@@ -1723,9 +1656,9 @@ button.-solid {
 
 .repo-timeout .label {
   margin-left: 0.75em;
-  font-weight: 300;
 
   font-size: 16px;
+  font-weight: 300;
 }
 
 .repo-timeout input:invalid {
@@ -1742,19 +1675,20 @@ button.-solid {
 
 .timeout-help {
   padding: 8px 12px;
-  font-weight: 300;
-
-  font-size: 14px;
-  background: var(--color-bg-light);
 
   border-radius: 4px;
+  background: var(--color-bg-light);
+
+  font-size: 14px;
+  font-weight: 300;
 }
 
-.checkbox input[type='checkbox'],
-.checkbox input[type='radio'] {
+.checkbox input[type="checkbox"],
+.checkbox input[type="radio"] {
   position: relative;
   right: 1.55em;
   bottom: 0.1em;
+
   opacity: 0;
 }
 
@@ -1770,37 +1704,41 @@ button.-solid {
 .checkbox label::before {
   top: calc(50% - 0.45em);
   left: -1.875em;
+
   width: 1.15em;
   height: 1.15em;
-  content: '';
+
+  content: "";
 }
 
 .checkbox.radio label::before {
   top: calc(50% - 0.575em);
   left: -1.8em;
+
   width: 1.15em;
   height: 1.15em;
-  content: '';
+
+  content: "";
 }
 
-.checkbox input[type='checkbox'] + label::after,
-.checkbox input[type='radio'] + label::after {
+.checkbox input[type="checkbox"] + label::after,
+.checkbox input[type="radio"] + label::after {
   content: none;
 }
 
-.checkbox input[type='checkbox']:focus + label::before,
-.checkbox input[type='radio']:focus + label::before {
+.checkbox input[type="checkbox"]:focus + label::before,
+.checkbox input[type="radio"]:focus + label::before {
   outline: var(--color-primary) auto 5px;
 }
 
 .theme-toggle {
-  position: relative;
   display: inline-block;
+  position: relative;
   margin: 0 1em 0 0;
   padding: 0;
-  color: var(--color-bg-light);
   font-weight: normal;
   background: none;
+  color: var(--color-bg-light);
   fill: var(--color-bg-light);
 }
 
