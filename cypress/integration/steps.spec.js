@@ -141,7 +141,6 @@ context("Steps", () => {
         cy.reload();
       });
       it("line should be highlighted", () => {
-        cy.get("@stepHeaders").click({ force: true, multiple: true });
         cy.wait("@getLogs-2");
         cy.get("[data-test=logs-2]").within(() => {
           cy.get("[data-test=log-line-2]").as("line2:2");
