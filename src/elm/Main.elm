@@ -17,6 +17,7 @@ import Build
         ( clickLogLine
         , clickStep
         , expandBuildLineFocus
+        , lineFocusToID
         , parseLineFocus
         , setLogLineFocus
         , viewFullBuild
@@ -552,17 +553,15 @@ update msg model =
             case response of
                 Ok ( _, log ) ->
                     let
+                        focusID =
+                            lineFocusToID lineFocus
+
                         action =
-                            case lineFocus of
-                                Just focus ->
-                                    if not <| String.isEmpty <| String.trim focus then
-                                        Util.dispatch <| FocusOn <| toFocusID lineFocus
+                            if not <| String.isEmpty focusID then
+                                Util.dispatch <| FocusOn <| lineFocusToID lineFocus
 
-                                    else
-                                        Cmd.none
-
-                                Nothing ->
-                                    Cmd.none
+                            else
+                                Cmd.none
                     in
                     ( updateLogs model log, action )
 
@@ -801,26 +800,6 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
-
-
-toFocusID : LineFocus -> String
-toFocusID lineFocus =
-    case lineFocus of
-        Just _ ->
-            let
-                ( _, s, l ) =
-                    parseLineFocus lineFocus
-
-                ( step, line ) =
-                    ( String.fromInt <| Maybe.withDefault -1 s, String.fromInt <| Maybe.withDefault -1 l )
-            in
-            "step-"
-                ++ step
-                ++ "-line-"
-                ++ line
-
-        Nothing ->
-            ""
 
 
 
@@ -1508,19 +1487,6 @@ loadBuildPage model org repo buildNumber lineFocus =
 
             else
                 model.builds
-
-        ( _, step, line ) =
-            parseLineFocus lineFocus
-
-        ( stepNumber, lineNumber ) =
-            ( String.fromInt <| Maybe.withDefault -1 step, String.fromInt <| Maybe.withDefault -1 line )
-
-        _ =
-            Debug.log
-                "setting focus on: "
-                ("step-" ++ stepNumber ++ "-line-" ++ lineNumber)
-
-        -- , Util.dispatch <| setFocus <| "step-" ++ stepNumber ++ "-line-" ++ lineNumber
     in
     -- Fetch build from Api
     ( { model | page = Pages.Build org repo buildNumber lineFocus, builds = builds, build = Loading, steps = NotAsked, logs = [] }

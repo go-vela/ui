@@ -8,6 +8,7 @@ module Build exposing
     ( clickLogLine
     , clickStep
     , expandBuildLineFocus
+    , lineFocusToID
     , parseLineFocus
     , setLogLineFocus
     , statusToClass
@@ -29,7 +30,6 @@ import Html
         , details
         , div
         , h1
-        , input
         , p
         , span
         , summary
@@ -372,7 +372,7 @@ logLine stepNumber line lineFocus lineNumber clickAction =
                     [ logLineHref stepNumber lineNumber
                     , onClick <| clickAction stepNumber lineNumber
                     , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
-                    , id <| "step-" ++ stepNumber ++ "-line-" ++ String.fromInt lineNumber
+                    , id <| stepAndLineToID stepNumber lineNumber
                     ]
                     [ text <| Util.toTwoDigits <| lineNumber ]
                 ]
@@ -860,6 +860,29 @@ parseLineFocus lineFocus =
 
         _ ->
             ( Nothing, Nothing, Nothing )
+
+
+{-| lineFocusToID : takes URL fragment and parses it into appropriate line focus ID for auto focusing on page load
+-}
+lineFocusToID : LineFocus -> String
+lineFocusToID lineFocus =
+    let
+        parsed =
+            parseLineFocus lineFocus
+    in
+    case parsed of
+        ( _, Just step, Just line ) ->
+            "step-" ++ String.fromInt step ++ "-line-" ++ String.fromInt line
+
+        _ ->
+            ""
+
+
+{-| stepAndLineToID : takes URL fragment and parses it into appropriate line focus ID for auto focusing on page load
+-}
+stepAndLineToID : StepNumber -> Int -> String
+stepAndLineToID stepNumber lineNumber =
+    "step-" ++ stepNumber ++ "-line-" ++ String.fromInt lineNumber
 
 
 {-| logLineHref : takes stepnumber and line number and renders the link href for clicking a log line without redirecting
