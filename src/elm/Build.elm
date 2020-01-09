@@ -29,12 +29,20 @@ import Html
         , details
         , div
         , h1
+        , input
         , p
         , span
         , summary
         , text
         )
-import Html.Attributes exposing (attribute, class, classList, href)
+import Html.Attributes
+    exposing
+        ( attribute
+        , class
+        , classList
+        , href
+        , id
+        )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import List.Extra exposing (updateIf)
@@ -81,11 +89,11 @@ type alias SetLineFocus msg =
 {-| GetLogs : type alias for passing in logs fetch function from Main.elm
 -}
 type alias GetLogsFromBuild a msg =
-    a -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd msg
+    a -> Org -> Repo -> BuildNumber -> StepNumber -> LineFocus -> Cmd msg
 
 
 type alias GetLogsFromSteps a msg =
-    a -> Org -> Repo -> BuildNumber -> WebData Steps -> Cmd msg
+    a -> Org -> Repo -> BuildNumber -> WebData Steps -> LineFocus -> Cmd msg
 
 
 
@@ -349,17 +357,22 @@ logLines stepNumber lineFocus log clickAction =
             decodeLogLine log
 
 
-{-| lineFocusStyle : takes step number, line focus information, and click action and renders a log line
+{-| logLine : takes step number, line focus information, and click action and renders a log line
 -}
 logLine : StepNumber -> String -> Maybe Int -> Int -> SetLineFocus msg -> Html msg
 logLine stepNumber line lineFocus lineNumber clickAction =
     div [ class "line" ]
-        [ span [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber, class "wrapper", lineFocusStyle lineFocus lineNumber ]
+        [ span
+            [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber
+            , class "wrapper"
+            , lineFocusStyle lineFocus lineNumber
+            ]
             [ span [ class "-line-num" ]
                 [ a
                     [ logLineHref stepNumber lineNumber
                     , onClick <| clickAction stepNumber lineNumber
                     , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+                    , id <| "step-" ++ stepNumber ++ "-line-" ++ String.fromInt lineNumber
                     ]
                     [ text <| Util.toTwoDigits <| lineNumber ]
                 ]
@@ -715,7 +728,7 @@ clickStep model steps org repo buildNumber stepNumber getLogs =
                             ( RemoteData.succeed <| toggleStepView steps_ stepNum
                             , case buildNumber of
                                 Just buildNum ->
-                                    getLogs model org repo buildNum stepNum
+                                    getLogs model org repo buildNum stepNum Nothing
 
                                 Nothing ->
                                     Cmd.none
@@ -769,7 +782,9 @@ setLogLineFocus model steps org repo buildNumber lineFocus getLogs =
                             RemoteData.succeed <| setLineFocus steps_ lineFocus
                     in
                     ( focusedSteps
-                    , getLogs model org repo buildNumber focusedSteps
+                    , Cmd.batch
+                        [ getLogs model org repo buildNumber focusedSteps lineFocus
+                        ]
                     )
 
                 _ ->
