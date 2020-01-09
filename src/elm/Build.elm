@@ -8,7 +8,7 @@ module Build exposing
     ( clickLogLine
     , clickStep
     , expandBuildLineFocus
-    , lineFocusToID
+    , lineFocusToFocusID
     , parseLineFocus
     , setLogLineFocus
     , statusToClass
@@ -299,6 +299,8 @@ viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction 
                 [ class "summary"
                 , Util.testAttribute "step-header"
                 , onClick (expandAction org repo buildNumber <| Just <| String.fromInt step.number)
+                , id <| stepToFocusID <| String.fromInt step.number
+                , href ""
                 ]
                 [ div [ class "-info" ]
                     [ div [ class "-name" ] [ text step.name ]
@@ -372,7 +374,7 @@ logLine stepNumber line lineFocus lineNumber clickAction =
                     [ logLineHref stepNumber lineNumber
                     , onClick <| clickAction stepNumber lineNumber
                     , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
-                    , id <| stepAndLineToID stepNumber lineNumber
+                    , id <| stepAndLineToFocusID stepNumber lineNumber
                     ]
                     [ text <| Util.toTwoDigits <| lineNumber ]
                 ]
@@ -862,10 +864,10 @@ parseLineFocus lineFocus =
             ( Nothing, Nothing, Nothing )
 
 
-{-| lineFocusToID : takes URL fragment and parses it into appropriate line focus ID for auto focusing on page load
+{-| lineFocusToFocusID : takes URL fragment and parses it into appropriate line focus ID for auto focusing on page load
 -}
-lineFocusToID : LineFocus -> String
-lineFocusToID lineFocus =
+lineFocusToFocusID : LineFocus -> String
+lineFocusToFocusID lineFocus =
     let
         parsed =
             parseLineFocus lineFocus
@@ -874,14 +876,24 @@ lineFocusToID lineFocus =
         ( _, Just step, Just line ) ->
             "step-" ++ String.fromInt step ++ "-line-" ++ String.fromInt line
 
+        ( _, Just step, Nothing ) ->
+            "step-" ++ String.fromInt step
+
         _ ->
             ""
 
 
-{-| stepAndLineToID : takes URL fragment and parses it into appropriate line focus ID for auto focusing on page load
+{-| stepToFocusID : takes URL fragment and parses it into appropriate step focus ID for auto focusing on page load
 -}
-stepAndLineToID : StepNumber -> Int -> String
-stepAndLineToID stepNumber lineNumber =
+stepToFocusID : StepNumber -> String
+stepToFocusID stepNumber =
+    "step-" ++ stepNumber
+
+
+{-| stepAndLineToFocusID : takes URL fragment and parses it into appropriate line focus ID for auto focusing on page load
+-}
+stepAndLineToFocusID : StepNumber -> Int -> String
+stepAndLineToFocusID stepNumber lineNumber =
     "step-" ++ stepNumber ++ "-line-" ++ String.fromInt lineNumber
 
 

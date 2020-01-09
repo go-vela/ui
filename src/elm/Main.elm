@@ -17,7 +17,7 @@ import Build
         ( clickLogLine
         , clickStep
         , expandBuildLineFocus
-        , lineFocusToID
+        , lineFocusToFocusID
         , parseLineFocus
         , setLogLineFocus
         , viewFullBuild
@@ -554,11 +554,11 @@ update msg model =
                 Ok ( _, log ) ->
                     let
                         focusID =
-                            lineFocusToID lineFocus
+                            lineFocusToFocusID lineFocus
 
                         action =
                             if not <| String.isEmpty focusID then
-                                Util.dispatch <| FocusOn <| lineFocusToID lineFocus
+                                Util.dispatch <| FocusOn <| lineFocusToFocusID lineFocus
 
                             else
                                 Cmd.none
