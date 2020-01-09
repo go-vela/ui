@@ -312,6 +312,11 @@ button,
   line-height: 2em;
 }
 
+.get-started {
+  display: flex;
+  flex-direction: column;
+}
+
 .repo-item {
   position: relative;
 
@@ -601,8 +606,12 @@ button.-inverted {
   margin-right: 0.4em;
 }
 
-.-btn.-overview {
-  margin: 1em 1em 1em 0;
+.add-repos-container {
+  display: flex;
+}
+
+.-btn.-add-repos {
+  line-height: 1.75em;
 }
 
 .-btn.-solid,

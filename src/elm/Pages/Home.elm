@@ -48,18 +48,19 @@ view toggleFavorite currentRepos =
         blankMessage =
             div [ class "overview" ]
                 [ h1 [] [ text "Let's get Started!" ]
-                , p []
+                , div [ class "get-started" ]
                     [ text "To have Vela start building your projects we need to get them enabled."
                     , br [] []
-                    , text "Add repositories from your GitHub account to Vela now!     "
-                    , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
-                    ]
-                , p []
-                    [ text "Favorite a repository by clicking the"
-                    , SvgBuilder.star [] False
-                    , text "on the repository's builds page."
+                    , div []
+                        [ text "To display a repository here, click the"
+                        , SvgBuilder.star [] False
+                        ]
+                    , text "Add repositories from your GitHub account to Vela now!"
                     , br [] []
-                    , text "Your favorites will display here!"
+                    , div [ class "add-repos-container" ]
+                        [ a [ class "-btn", class "-solid", class "-add-repos", Routes.href Routes.AddRepositories ]
+                            [ text "Add Repositories" ]
+                        ]
                     ]
                 ]
     in
