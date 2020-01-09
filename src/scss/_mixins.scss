@@ -5,9 +5,7 @@
 @mixin slashes {
   position: absolute;
   right: -0.7rem;
-
-  content: "/";
-  text-decoration: none;
-
   color: var(--color-secondary);
+  text-decoration: none;
+  content: '/';
 }
