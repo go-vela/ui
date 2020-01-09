@@ -1221,9 +1221,7 @@ navButton model =
                     [ ( "btn-restart-build", True )
                     , ( "-inverted", True )
                     ]
-
-                -- , onClick <| RestartBuild org repo buildNumber
-                , onClick <| FocusOn <| "step-9-line-52"
+                , onClick <| RestartBuild org repo buildNumber
                 , Util.testAttribute "restart-build"
                 ]
                 [ text "Restart Build"
