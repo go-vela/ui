@@ -64,38 +64,59 @@ npm run test:cy
 npm run test:cy-open
 ```
 
-- Before committing code, make sure you run it through `elm-format`
+### Before committing code
 
-```bash
-# With make; this will run elm-format and elm-test
-make test
+- run your code through `elm-format`
 
-# .. or run elm-format directly with
-elm-format --validate src/ tests/
-```
+  ```bash
+  # With make; this will run elm-format and elm-test
+  make test
 
-- (Bonus) Run `elm-analyse` and visit [localhost:3000](http://localhost:3000) to see if anything doesn't follow good practice
+  # .. or run elm-format directly with
+  elm-format --validate src/ tests/
+  ```
 
-```bash
-elm-analyse --serve
-```
+  - (Bonus) Run `elm-analyse` and visit [localhost:3000](http://localhost:3000) to see if anything doesn't follow good practice
+
+  ```bash
+  elm-analyse --serve
+  ```
+
+- run through the other linters
+
+  ```bash
+  npm run lint
+  ```
+
+  If you encounter issues, you can attempt to autofix them with.
+  Any remaining issues will have to be resolved manually.
+
+  ```bash
+  npm run lint:fix
+  ```
 
 ## Tips
 
 ### Visual Studio Code Users
 
-Check out the [Elm extension by Elm tooling](https://marketplace.visualstudio.com/items?itemName=Elmtooling.elm-ls-vscode) (elmtooling.elm-ls-vscode). It will help make `elm-format` and `elm-analyse` and automatic thing and provide other niceties.
+- Check out the [Elm extension by Elm tooling](https://marketplace.visualstudio.com/items?itemName=Elmtooling.elm-ls-vscode) (elmtooling.elm-ls-vscode). It will help make `elm-format` and `elm-analyse` and automatic thing and provide other niceties.
+
+- Enable the [stylelint extension](https://marketplace.visualstudio.com/items?itemName=stylelint.vscode-stylelint) - you might want to check their readme for some pointers with issues you might run into.
+
+- Enable the [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 
 ### IntelliJ Users
 
-There is a great [Elm plugin by Keith Lazuka](https://plugins.jetbrains.com/plugin/10268-elm/), made by a few people at Microsoft, for IntelliJ available.
+- There is a great [Elm plugin by Keith Lazuka](https://plugins.jetbrains.com/plugin/10268-elm/), made by a few people at Microsoft, for IntelliJ available.
 
 ### Vim Users
 
-These are the most referenced plugins for Vim, your milage may vary:
+- These are the most referenced plugins for Vim, your milage may vary:
 
-- [elm-tooling/elm-vim](https://github.com/elm-tooling/elm-vim)
-- [ElmCast/elm-vim](https://github.com/ElmCast/elm-vim)
+  - [elm-tooling/elm-vim](https://github.com/elm-tooling/elm-vim)
+  - [ElmCast/elm-vim](https://github.com/ElmCast/elm-vim)
+  - [prettier/vim-prettier](https://github.com/prettier/vim-prettier)
+  - [dense-analysis/ale](https://github.com/dense-analysis/ale) (supports stylelint)
 
 ## Credit
 
