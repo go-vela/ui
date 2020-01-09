@@ -5,15 +5,18 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( AddRepo
-    , AddRepos
-    , AddRepositoryPayload
-    , AuthParams
+    ( AuthParams
     , Build
     , BuildIdentifier
     , BuildNumber
     , Builds
     , BuildsModel
+    , DisableRepo
+    , EnableRepo
+    , EnableRepos
+    , EnableRepositoryPayload
+    , Enabled
+    , Enabling(..)
     , Field
     , Hook
     , HookBuilds
@@ -30,7 +33,6 @@ module Vela exposing
     , Search
     , SearchFilter
     , Session
-    , SourceRepoUpdateFunction
     , SourceRepositories
     , Status(..)
     , Step
@@ -56,14 +58,14 @@ module Vela exposing
     , decodeSteps
     , decodeTheme
     , decodeUser
-    , defaultAddRepositoryPayload
     , defaultBuilds
+    , defaultEnableRepositoryPayload
     , defaultHooks
     , defaultRepository
     , defaultSession
     , defaultUpdateRepositoryPayload
     , defaultUser
-    , encodeAddRepository
+    , encodeEnableRepository
     , encodeSession
     , encodeTheme
     , encodeUpdateRepository
@@ -223,14 +225,27 @@ type alias Repository =
     , allow_push : Bool
     , allow_deploy : Bool
     , allow_tag : Bool
-    , added : WebData Bool
-    , removed : WebData Bool
+    , enabled : Enabled
+    , enabling : Enabling
     }
+
+
+type alias Enabled =
+    WebData Bool
+
+
+type Enabling
+    = ConfirmDisable
+    | Disabling
+    | Disabled
+    | Enabling
+    | Enabled
+    | NotAsked_
 
 
 defaultRepository : Repository
 defaultRepository =
-    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False NotAsked NotAsked
+    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False NotAsked NotAsked_
 
 
 decodeRepository : Decoder Repository
@@ -253,10 +268,46 @@ decodeRepository =
         |> optional "allow_push" bool False
         |> optional "allow_deploy" bool False
         |> optional "allow_tag" bool False
-        -- "added"
-        |> hardcoded NotAsked
-        -- "removed"
-        |> hardcoded NotAsked
+        -- "enabled"
+        |> optional "active" enabledDecoder NotAsked
+        -- "enabling"
+        |> optional "active" enablingDecoder NotAsked_
+
+
+{-| enabledDecoder : decodes string field "status" to the union type Enabled
+-}
+enabledDecoder : Decoder Enabled
+enabledDecoder =
+    bool |> andThen toEnabled
+
+
+{-| toEnabled : helper to decode string to Enabled
+-}
+toEnabled : Bool -> Decoder Enabled
+toEnabled active =
+    if active then
+        succeed <| RemoteData.succeed True
+
+    else
+        succeed NotAsked
+
+
+{-| enablingDecoder : decodes string field "status" to the union type Enabling
+-}
+enablingDecoder : Decoder Enabling
+enablingDecoder =
+    bool |> andThen toEnabling
+
+
+{-| toEnabling : helper to decode string to Enabling
+-}
+toEnabling : Bool -> Decoder Enabling
+toEnabling active =
+    if active then
+        succeed Enabled
+
+    else
+        succeed Disabled
 
 
 decodeRepositories : Decoder Repositories
@@ -269,7 +320,7 @@ decodeSourceRepositories =
     Decode.dict (Decode.list decodeRepository)
 
 
-{-| Repositories : type alias for list of added repositories
+{-| Repositories : type alias for list of enabled repositories
 -}
 type alias Repositories =
     List Repository
@@ -281,14 +332,8 @@ type alias SourceRepositories =
     Dict String Repositories
 
 
-{-| SourceRepoUpdateFunction : function alias for updating source repositories via org or repo name
--}
-type alias SourceRepoUpdateFunction =
-    Repository -> WebData Bool -> Repositories -> Repositories
-
-
-encodeAddRepository : AddRepositoryPayload -> Encode.Value
-encodeAddRepository repo =
+encodeEnableRepository : EnableRepositoryPayload -> Encode.Value
+encodeEnableRepository repo =
     Encode.object
         [ ( "org", Encode.string <| repo.org )
         , ( "name", Encode.string <| repo.name )
@@ -305,7 +350,7 @@ encodeAddRepository repo =
         ]
 
 
-type alias AddRepositoryPayload =
+type alias EnableRepositoryPayload =
     { org : String
     , name : String
     , full_name : String
@@ -321,9 +366,9 @@ type alias AddRepositoryPayload =
     }
 
 
-defaultAddRepositoryPayload : AddRepositoryPayload
-defaultAddRepositoryPayload =
-    AddRepositoryPayload "" "" "" "" "" False True True True True False False
+defaultEnableRepositoryPayload : EnableRepositoryPayload
+defaultEnableRepositoryPayload =
+    EnableRepositoryPayload "" "" "" "" "" False True True True True False False
 
 
 type alias UpdateRepositoryPayload =
@@ -737,15 +782,21 @@ type alias SearchFilter =
 -- UPDATES
 
 
-{-| AddRepo : takes repo and activates it on Vela
+{-| DisableRepo : takes repo and disables it on Vela
 -}
-type alias AddRepo msg =
+type alias DisableRepo msg =
     Repository -> msg
 
 
-{-| AddRepos : takes repos and activates them on Vela
+{-| EnableRepo : takes repo and enables it on Vela
 -}
-type alias AddRepos msg =
+type alias EnableRepo msg =
+    Repository -> msg
+
+
+{-| EnableRepos : takes repos and enables them on Vela
+-}
+type alias EnableRepos msg =
     Repositories -> msg
 
 

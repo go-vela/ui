@@ -40,31 +40,31 @@ context('Add Repositories', () => {
       cy.get('@catRepos').should('not.be.visible');
     });
 
-    it('shows the added label when a repo is added', () => {
+    it('shows the enabled label when a repo is enabled', () => {
       cy.get('[data-test=source-org-cat]').click();
       cy.get('[data-test=source-repo-purr] > div > button').click();
 
-      cy.get('[data-test=source-repo-purr] .repo-add--added')
+      cy.get('[data-test=source-repo-purr] .repo-enable-enabled')
         .should('be.visible')
-        .and('contain', 'Added');
+        .and('contain', 'Enabled');
     });
 
     it('shows the failed button and alert when the add is unsuccessful', () => {
       cy.route({
         method: 'POST',
         url: '*api/v1/repos*',
-        status: 409,
-        response: `{"error":"unable to create webhook for : Repo already enabled"}`,
+        status: 500,
+        response: `{"error":"unable to create webhook for : something went wrong"}`,
       });
 
       cy.get('[data-test=source-org-cat]').click();
       cy.get('[data-test=source-repo-purr] > div > button').click();
 
-      cy.get('[data-test=source-repo-purr] .repo-add--added').should(
+      cy.get('[data-test=source-repo-purr] .repo-enable-enabled').should(
         'not.be.visible',
       );
 
-      cy.get('[data-test=source-repo-purr] .repo-add--failed')
+      cy.get('[data-test=source-repo-purr] .repo-enable-failed')
         .should('be.visible')
         .and('contain', 'Failed');
 
@@ -80,21 +80,21 @@ context('Add Repositories', () => {
       cy.wait('@sourceRepos');
     });
 
-    it('shows the loading labels when all repos for org are added', () => {
+    it('shows the loading labels when all repos for org are enabled', () => {
       cy.get('[data-test=source-org-github]').click();
       cy.get('[data-test=add-org-github]').click({ force: true });
 
       cy.get('[data-test=source-repo-octocat]')
         .should('be.visible')
-        .and('contain', 'Adding');
+        .and('contain', 'Enabling');
 
       cy.get('[data-test=source-repo-octocat-1]')
         .should('be.visible')
-        .and('contain', 'Adding');
+        .and('contain', 'Enabling');
 
       cy.get('[data-test=source-repo-octocat-2]')
         .should('be.visible')
-        .and('contain', 'Adding');
+        .and('contain', 'Enabling');
     });
   });
 

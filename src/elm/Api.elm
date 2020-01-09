@@ -334,7 +334,7 @@ getUser model { code, state } =
     get model.velaAPI (Endpoint.Authenticate { code = code, state = state }) decodeUser
 
 
-{-| getRepositories : fetches added repositories by user token
+{-| getRepositories : fetches enabled repositories by user token
 -}
 getRepositories : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Request Repositories
 getRepositories model maybePage maybePerPage =
@@ -370,7 +370,7 @@ getSourceRepositories model =
         |> withAuth model.session
 
 
-{-| deleteRepo : removes an added repository
+{-| deleteRepo : removes an enabled repository
 -}
 deleteRepo : PartialModel a -> Repository -> Request String
 deleteRepo model repository =

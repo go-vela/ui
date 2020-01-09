@@ -106,5 +106,68 @@ context('Repo Settings', () => {
         .click({ force: true });
       cy.get('@repoTimeoutInput').should('have.value', '30');
     });
+    it('Disable button should exist', () => {
+      cy.get('[data-test=repo-disable]').should('have.length', 1);
+    });
+
+    it('clicking button should prompt disable confirmation', () => {
+      cy.route({
+        method: 'DELETE',
+        url: '*api/v1/repos/DavidVader/**',
+        response: `"Repo DavidVader/applications deleted"`,
+      });
+      cy.get('[data-test=repo-disable]')
+        .first()
+        .click();
+      cy.get('[data-test=repo-disable]').should('contain', 'Really Disable?');
+    });
+
+    it('clicking button twice should disable the repo', () => {
+      cy.route({
+        method: 'DELETE',
+        url: '*api/v1/repos/DavidVader/**',
+        response: `"Repo DavidVader/applications deleted"`,
+      });
+      cy.get('[data-test=repo-disable]')
+        .first()
+        .click()
+        .click();
+      cy.get('[data-test=repo-disabling]').should('contain', 'Disabling');
+    });
+
+    it('clicking button three times should re-enable the repo', () => {
+      cy.route({
+        method: 'DELETE',
+        url: '*api/v1/repos/github/**',
+        response: `"Repo github/octocat deleted"`,
+      }).as('disable');
+      cy.route('POST', '*api/v1/repos*', 'fixture:add_repo_response.json').as(
+        'enable',
+      );
+      cy.get('[data-test=repo-disable]')
+        .first()
+        .click()
+        .click();
+      cy.wait('@disable');
+      cy.get('[data-test=repo-enable]')
+        .first()
+        .click({ force: true });
+      cy.wait('@enable');
+      cy.get('[data-test=repo-disable]').should('contain', 'Disable');
+    });
+    it('should show an success alert on successful removal of a repo', () => {
+      cy.route({
+        method: 'DELETE',
+        url: '*api/v1/repos/github/**',
+        response: `"Repo github/octocat deleted"`,
+      });
+      cy.get('[data-test=repo-disable]')
+        .first()
+        .click()
+        .click();
+      cy.get('[data-test=alerts]').as('alert');
+      cy.get('@alert').should('exist');
+      cy.get('@alert').contains('Success');
+    });
   });
 });

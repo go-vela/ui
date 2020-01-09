@@ -38,8 +38,8 @@ import Search
 import Util
 import Vela
     exposing
-        ( AddRepo
-        , AddRepos
+        ( EnableRepo
+        , EnableRepos
         , Org
         , RepoSearchFilters
         , Repositories
@@ -51,8 +51,8 @@ import Vela
 
 {-| view : takes model and renders account page for adding repos to overview
 -}
-view : WebData SourceRepositories -> RepoSearchFilters -> Search msg -> AddRepo msg -> AddRepos msg -> Html msg
-view sourceRepos sourceSearchFilters search addRepo addRepos =
+view : WebData SourceRepositories -> RepoSearchFilters -> Search msg -> EnableRepo msg -> EnableRepos msg -> Html msg
+view sourceRepos sourceSearchFilters search enableRepo enableRepos =
     let
         loading =
             div []
@@ -71,7 +71,7 @@ view sourceRepos sourceSearchFilters search addRepo addRepos =
         RemoteData.Success repos ->
             div [ class "source-repos", Util.testAttribute "source-repos" ]
                 [ repoSearchBarGlobal sourceSearchFilters search
-                , viewSourceRepos repos sourceSearchFilters search addRepo addRepos
+                , viewSourceRepos repos sourceSearchFilters search enableRepo enableRepos
                 ]
 
         RemoteData.Loading ->
@@ -91,52 +91,52 @@ view sourceRepos sourceSearchFilters search addRepo addRepos =
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
-viewSourceRepos : SourceRepositories -> RepoSearchFilters -> Search msg -> AddRepo msg -> AddRepos msg -> Html msg
-viewSourceRepos sourceRepos sourceSearchFilters search addRepo addRepos =
+viewSourceRepos : SourceRepositories -> RepoSearchFilters -> Search msg -> EnableRepo msg -> EnableRepos msg -> Html msg
+viewSourceRepos sourceRepos sourceSearchFilters search enableRepo enableRepos =
     if shouldSearch <| searchFilterGlobal sourceSearchFilters then
         -- Search and render repos using the global filter
-        searchReposGlobal sourceSearchFilters sourceRepos addRepo
+        searchReposGlobal sourceSearchFilters sourceRepos enableRepo
 
     else
         -- Render repos normally
         sourceRepos
             |> Dict.toList
             |> Util.filterEmptyLists
-            |> List.map (\( org, repos_ ) -> viewSourceOrg sourceSearchFilters org repos_ search addRepo addRepos)
+            |> List.map (\( org, repos_ ) -> viewSourceOrg sourceSearchFilters org repos_ search enableRepo enableRepos)
             |> div [ class "repo-list" ]
 
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
 -}
-viewSourceOrg : RepoSearchFilters -> Org -> Repositories -> Search msg -> AddRepo msg -> AddRepos msg -> Html msg
-viewSourceOrg sourceSearchFilters org repos search addRepo addRepos =
+viewSourceOrg : RepoSearchFilters -> Org -> Repositories -> Search msg -> EnableRepo msg -> EnableRepos msg -> Html msg
+viewSourceOrg sourceSearchFilters org repos search enableRepo enableRepos =
     let
         ( repos_, filtered, content ) =
             if shouldSearch <| searchFilterLocal org sourceSearchFilters then
                 -- Search and render repos using the global filter
-                searchReposLocal org sourceSearchFilters repos addRepo
+                searchReposLocal org sourceSearchFilters repos enableRepo
 
             else
                 -- Render repos normally
-                ( repos, False, List.map (viewSourceRepo addRepo) repos )
+                ( repos, False, List.map (viewSourceRepo enableRepo) repos )
     in
-    viewSourceOrgDetails sourceSearchFilters org repos_ filtered content search addRepos
+    viewSourceOrgDetails sourceSearchFilters org repos_ filtered content search enableRepos
 
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element
 -}
-viewSourceOrgDetails : RepoSearchFilters -> Org -> Repositories -> Bool -> List (Html msg) -> Search msg -> AddRepos msg -> Html msg
-viewSourceOrgDetails sourceSearchFilters org repos filtered content search addRepos =
+viewSourceOrgDetails : RepoSearchFilters -> Org -> Repositories -> Bool -> List (Html msg) -> Search msg -> EnableRepos msg -> Html msg
+viewSourceOrgDetails sourceSearchFilters org repos filtered content search enableRepos =
     div [ class "org" ]
         [ details [ class "details", class "repo-item" ] <|
-            viewSourceOrgSummary sourceSearchFilters org repos filtered content search addRepos
+            viewSourceOrgSummary sourceSearchFilters org repos filtered content search enableRepos
         ]
 
 
 {-| viewSourceOrgSummary : renders the source repositories details summary
 -}
-viewSourceOrgSummary : RepoSearchFilters -> Org -> Repositories -> Bool -> List (Html msg) -> Search msg -> AddRepos msg -> List (Html msg)
-viewSourceOrgSummary sourceSearchFilters org repos filtered content search addRepos =
+viewSourceOrgSummary : RepoSearchFilters -> Org -> Repositories -> Bool -> List (Html msg) -> Search msg -> EnableRepos msg -> List (Html msg)
+viewSourceOrgSummary sourceSearchFilters org repos filtered content search enableRepos =
     summary [ class "summary", Util.testAttribute <| "source-org-" ++ org ]
         [ div [ class "org-header" ]
             [ text org
@@ -145,36 +145,36 @@ viewSourceOrgSummary sourceSearchFilters org repos filtered content search addRe
         ]
         :: div [ class "source-actions" ]
             [ repoSearchBarLocal sourceSearchFilters org search
-            , addReposBtn org repos filtered addRepos
+            , enableReposButton org repos filtered enableRepos
             ]
         :: content
 
 
 {-| viewSourceRepo : renders single repo within a list of org repos
 
-    viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Add' button
+    viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Enable' button
 
 -}
-viewSourceRepo : AddRepo msg -> Repository -> Html msg
-viewSourceRepo addRepo repo =
+viewSourceRepo : EnableRepo msg -> Repository -> Html msg
+viewSourceRepo enableRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
         , div []
-            [ buildAddRepoElement repo addRepo
+            [ enableRepoButton repo enableRepo
             ]
         ]
 
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : AddRepo msg -> Repository -> Html msg
-viewSearchedSourceRepo addRepo repo =
+viewSearchedSourceRepo : EnableRepo msg -> Repository -> Html msg
+viewSearchedSourceRepo enableRepo repo =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
             [ text <| repo.org ++ "/" ++ repo.name ]
         , div
             []
-            [ buildAddRepoElement repo addRepo
+            [ enableRepoButton repo enableRepo
             ]
         ]
 
@@ -186,49 +186,49 @@ viewRepoCount repos =
     span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
 
 
-{-| addReposBtn : takes List of repos and renders a button to add them all at once, texts depends on user input filter
+{-| enableReposButton : takes List of repos and renders a button to enable them all at once, texts depends on user input filter
 -}
-addReposBtn : Org -> Repositories -> Bool -> AddRepos msg -> Html msg
-addReposBtn org repos filtered addRepos =
-    button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (addRepos repos) ]
+enableReposButton : Org -> Repositories -> Bool -> EnableRepos msg -> Html msg
+enableReposButton org repos filtered enableRepos =
+    button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (enableRepos repos) ]
         [ text <|
             if filtered then
-                "Add Results"
+                "Enable Results"
 
             else
-                "Add All"
+                "Enable All"
         ]
 
 
-{-| buildAddRepoElement : builds action element for adding single repos
+{-| enableRepoButton : builds action button for adding single repos
 -}
-buildAddRepoElement : Repository -> AddRepo msg -> Html msg
-buildAddRepoElement repo addRepo =
-    case repo.added of
+enableRepoButton : Repository -> EnableRepo msg -> Html msg
+enableRepoButton repo enableRepo =
+    case repo.enabled of
         RemoteData.NotAsked ->
-            button [ class "-solid", onClick (addRepo repo) ] [ text "Add" ]
+            button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ]
 
         RemoteData.Loading ->
-            div [ class "repo-add--adding" ] [ span [ class "repo-add--adding-text" ] [ text "Adding" ], span [ class "loading-ellipsis" ] [] ]
+            div [ class "repo-enable-btn", class "repo-enable-enabling" ] [ span [ class "repo-enable-enabling-text" ] [ text "Enabling" ], span [ class "loading-ellipsis" ] [] ]
 
         RemoteData.Failure _ ->
-            div [ class "repo-add--failed", onClick (addRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+            div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
-        RemoteData.Success addedStatus ->
-            if addedStatus then
-                div [ class "-added-container" ]
-                    [ div [ class "repo-add--added" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Added" ] ]
+        RemoteData.Success enabledStatus ->
+            if enabledStatus then
+                div [ class "-enabled-container" ]
+                    [ div [ class "repo-enable-btn", class "repo-enable-enabled" ] [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], span [] [ text "Enabled" ] ]
                     , a [ class "-btn", class "-solid", class "-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ] [ text "View" ]
                     ]
 
             else
-                div [ class "repo-add--failed", onClick (addRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+                div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : RepoSearchFilters -> SourceRepositories -> AddRepo msg -> Html msg
-searchReposGlobal filters repos addRepo =
+searchReposGlobal : RepoSearchFilters -> SourceRepositories -> EnableRepo msg -> Html msg
+searchReposGlobal filters repos enableRepo =
     let
         filteredRepos =
             repos
@@ -241,7 +241,7 @@ searchReposGlobal filters repos addRepo =
     div [ class "filtered-repos" ] <|
         -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
-            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo addRepo repo)
+            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo enableRepo repo)
 
         else
             -- No repos matched the search
@@ -250,8 +250,8 @@ searchReposGlobal filters repos addRepo =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> AddRepo msg -> ( Repositories, Bool, List (Html msg) )
-searchReposLocal org filters repos addRepo =
+searchReposLocal : Org -> RepoSearchFilters -> Repositories -> EnableRepo msg -> ( Repositories, Bool, List (Html msg) )
+searchReposLocal org filters repos enableRepo =
     -- Filter the repos if the user typed more than 2 characters
     let
         filteredRepos =
@@ -260,7 +260,7 @@ searchReposLocal org filters repos addRepo =
     ( filteredRepos
     , True
     , if not <| List.isEmpty filteredRepos then
-        List.map (viewSourceRepo addRepo) filteredRepos
+        List.map (viewSourceRepo enableRepo) filteredRepos
 
       else
         [ div [ class "-no-repos" ] [ text "No results" ] ]

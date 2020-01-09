@@ -346,13 +346,20 @@ button,
 
 .-actions .-view {
   padding: 0.33em 2em;
-
+  line-height: 1.5em;
   @extend .button;
 }
 
 .-actions .-view > a {
   color: var(--color-bg);
   text-decoration: none;
+}
+
+.actions-divider {
+  width: 2px;
+  background: var(--color-bg-light);
+  height: 1.75em;
+  margin: 0 0.75em;
 }
 
 // loading ellipsis
@@ -445,7 +452,7 @@ button,
   }
 }
 
-.repo-add {
+.repo-enable {
   display: flex;
   align-items: center;
 
@@ -458,36 +465,42 @@ button,
   }
 }
 
-.-added-container {
+.-enabled-container {
   display: flex;
   flex-direction: row;
 }
 
-.repo-add--added {
+.repo-enable-btn {
+  margin-right: 0.5em;
+}
+
+.repo-enable-enabled {
   color: var(--color-green);
   border: var(--line-width) solid var(--color-green);
 
-  @extend .repo-add;
+  @extend .repo-enable;
 }
 
-.repo-add--adding {
+.repo-enable-enabling {
   color: var(--color-yellow);
   border: var(--line-width) solid var(--color-yellow);
 
-  @extend .repo-add;
+  @extend .repo-enable;
 }
 
-.repo-add--adding-text {
+.repo-enable-enabling-text {
   margin-left: 12px;
 }
 
-.repo-add--failed {
+.repo-enable-failed {
+  cursor: pointer;
+
   color: var(--color-red);
   background: none;
   border: var(--line-width) solid var(--color-red);
   cursor: pointer;
 
-  @extend .repo-add;
+  @extend .repo-enable;
 
   &:hover svg,
   &:focus svg {
@@ -549,6 +562,7 @@ button.-inverted {
     }
   }
 }
+
 .nav-buttons {
   display: flex;
 }
@@ -584,10 +598,6 @@ button.-solid {
       border-color: inherit;
     }
   }
-}
-
-.-btn.-view {
-  margin-left: 0.4em;
 }
 
 .btn-refresh {
@@ -1680,4 +1690,54 @@ button.-solid {
 .pager-actions {
   display: flex;
   justify-content: space-between;
+}
+
+.enable-container {
+  margin-top: 1em;
+  display: flex;
+  flex-direction: row;
+  list-style: none;
+}
+
+.enable-btn-label-a {
+  font-weight: 300;
+  font-size: 18px;
+}
+
+.enable-btn-label-b {
+  font-weight: 300;
+  font-size: 14px;
+}
+
+.enable-column-a {
+  display: flex;
+  margin-right: 0.8em;
+  flex-direction: column;
+}
+.enable-column-b {
+  display: flex;
+  flex-direction: row;
+}
+
+.repo-disable {
+  min-width: 170px;
+}
+
+.repo-disable-disabling {
+  color: var(--color-yellow);
+  border: var(--line-width) solid var(--color-yellow);
+  min-width: 170px;
+}
+
+.repo-disable-disabling-text {
+  margin-left: 12px;
+}
+
+button.-btn.-inverted.repo-disable-confirm {
+  color: var(--color-red-light);
+  border: var(--line-width) solid var(--color-red-light);
+  &:hover {
+    color: var(--color-red);
+    border: var(--line-width) solid var(--color-red);
+  }
 }
