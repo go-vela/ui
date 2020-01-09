@@ -55,7 +55,7 @@
     "clean": "rimraf ./.cache ./dist",
     "lint:prettier": "prettier --check '**/*.{js,json,ts,yml,scss,html,md}'",
     "lint:prettier-fix": "npm run lint:prettier -- --write",
-    "lint:css": "stylelint --cache --cache-location '.cache' 'src/scss/**/*.scss'",
+    "lint:css": "stylelint --cache --cache-location 'node_modules/' 'src/scss/**/*.scss'",
     "lint:css-fix": "npm run lint:css -- --fix",
     "lint:elm": "elm-format --validate src/ tests/",
     "lint:fix": "npm run lint:css-fix && npm run lint:prettier-fix",
