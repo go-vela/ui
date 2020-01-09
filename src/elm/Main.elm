@@ -773,28 +773,16 @@ update msg model =
                     ( model, refreshPage model data )
 
         FocusOn id ->
-            let
-                _ =
-                    Debug.log "this should focus:" id
-            in
             ( model, Dom.focus id |> Task.attempt FocusResult )
 
         FocusResult result ->
             -- handle success or failure here
             case result of
                 Err (Dom.NotFound id) ->
-                    let
-                        _ =
-                            Debug.log "focus failure" ""
-                    in
                     -- unable to find dom 'id'
                     ( model, Cmd.none )
 
                 Ok ok ->
-                    let
-                        _ =
-                            Debug.log "focus success" ok
-                    in
                     -- successfully focus the dom
                     ( model, Cmd.none )
 

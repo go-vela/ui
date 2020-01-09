@@ -93,6 +93,7 @@ context("Steps", () => {
 
       it("line should be highlighted", () => {
         cy.get("@stepHeaders").click({ force: true, multiple: true });
+        cy.get("@lineNumber").click({ force: true });
         cy.get("@line").should("have.class", "-focus");
       });
 
@@ -118,10 +119,17 @@ context("Steps", () => {
         });
 
         it("other line should be highlighted", () => {
+          cy.get("@otherLineNumber").click({ force: true });
           cy.get("@otherLine").should("have.class", "-focus");
         });
 
         it("browser path should contain other step and line fragment", () => {
+          cy.get("@stepHeaders").click({ force: true, multiple: true });
+          cy.hash().should("eq", "#step:5");
+        });
+
+        it("browser path should contain other step and line fragment", () => {
+          cy.get("@otherLineNumber").click({ force: true });
           cy.hash().should("eq", "#step:5:2");
         });
       });
