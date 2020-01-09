@@ -42,5 +42,6 @@ module.exports = {
     },
     'plugin/no-low-performance-animation-properties': true,
     'plugin/declaration-block-no-ignored-properties': true,
+    'a11y/media-prefers-reduced-motion': null, // we handle this globally
   },
 };
