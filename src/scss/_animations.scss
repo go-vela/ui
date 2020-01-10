@@ -4,6 +4,7 @@
 
 @keyframes ellipsis {
   to {
+    // stylelint-disable-next-line
     width: 1em;
   }
 }
@@ -73,6 +74,7 @@
   }
 
   to {
+    // stylelint-disable-next-line
     width: 16vw;
   }
 }

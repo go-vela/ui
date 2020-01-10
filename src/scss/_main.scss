@@ -222,10 +222,6 @@ header {
   }
 }
 
-.theme-light .identity-name ul {
-  background: var(--color-white);
-}
-
 .content-wrap {
   margin: 0 var(--horizontal-pad) var(--horizontal-pad);
 }
@@ -384,11 +380,6 @@ button,
   padding: 0.5em 1em;
 
   background-color: var(--color-bg-dark);
-}
-
-.theme-light .-item {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-bg-dark);
 }
 
 .-item .-actions {
@@ -781,10 +772,6 @@ button.-solid {
   border-left: 0;
 }
 
-.theme-light .build {
-  border-color: var(--color-white);
-}
-
 .build .status {
   position: relative;
 
@@ -853,12 +840,6 @@ button.-solid {
   background: var(--color-bg-dark);
 }
 
-.theme-light .build .info {
-  background: var(--color-white);
-  border-right: 1px solid var(--color-bg-dark);
-  border-left: none;
-}
-
 .build .row {
   display: flex;
   flex-direction: row;
@@ -871,12 +852,6 @@ button.-solid {
   color: var(--color-red-light);
 
   font-size: 16px;
-}
-
-.theme-light {
-  .build .error {
-    color: var(--color-red);
-  }
 }
 
 .build .error .message {
@@ -1104,13 +1079,13 @@ button.-solid {
   justify-content: space-between;
 }
 
-.build-history .-build .-line.-header {
+.build-history .-line.-header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
-.build-history .-build .-line .-label {
+.build-history .-label {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -1231,13 +1206,6 @@ button.-solid {
   background-color: var(--color-bg-dark);
 }
 
-.theme-light .logs-container {
-  background-color: var(--color-white);
-  border-top: 1px solid var(--color-bg-dark);
-  border-right: 1px solid var(--color-bg-dark);
-  border-bottom: 1px solid var(--color-bg-dark);
-}
-
 .logs {
   font-weight: 300;
   font-size: 14px;
@@ -1281,10 +1249,6 @@ button.-solid {
 
   color: var(--color-red-light);
   font-size: 14px;
-}
-
-.theme-light .step-error {
-  color: var(--color-red);
 }
 
 .step-error .message {
@@ -1333,6 +1297,7 @@ button.-solid {
   max-height: 100px;
   margin: 1em 1em 0 1em;
 
+  // stylelint-disable-next-line
   transition: max-height 1.2s, margin-top 1.2s;
 }
 
@@ -1390,10 +1355,6 @@ button.-solid {
   background: var(--color-bg-dark);
 }
 
-.theme-light .hooks {
-  background: var(--color-white);
-}
-
 .hooks .loading {
   display: flex;
 
@@ -1440,10 +1401,10 @@ button.-solid {
 
     transition: transform 0.2s;
   }
+}
 
-  &[open] .chevron {
-    transform: rotate(0.5turn);
-  }
+.row[open] .chevron {
+  transform: rotate(0.5turn);
 }
 
 .hooks .row.preview {
@@ -1508,13 +1469,13 @@ button.-solid {
   width: 84px;
 }
 
-.hooks .row .cell.source-id {
+.hooks .cell.source-id {
   display: flex;
   flex-direction: row;
   justify-content: center;
 }
 
-.hooks .row .cell.source-id .text {
+.hooks .text {
   flex: 1;
   padding: 3px 12px;
 
@@ -1566,34 +1527,34 @@ button.-solid {
   border-left-color: var(--color-red);
 }
 
-.hooks .row .info .element span.-m-l,
-.hooks .row .info .element .-m-l {
+.hooks .element span.-m-l,
+.hooks .element .-m-l {
   margin-left: 0.4em;
 }
 
-.hooks .row .info .element span.-m-r,
-.hook-build .details .element .-m-r {
+.hooks .element span.-m-r,
+.hook-build .-m-r {
   margin-right: 0.4em;
 }
 
-.hooks .row .info .element .error-label {
+.hooks .error-label {
   color: var(--color-red-light);
 }
 
-.hooks .row .info .element .hook-build-status.-pending {
+.hooks .hook-build-status.-pending {
   color: var(--color-offwhite);
 }
 
-.hooks .row .info .element .hook-build-status.-running {
+.hooks .hook-build-status.-running {
   color: var(--color-yellow);
 }
 
-.hooks .row .info .element .hook-build-status.-success {
+.hooks .hook-build-status.-success {
   color: var(--color-green);
 }
 
-.hooks .row .info .element .hook-build-status.-failure,
-.hooks .row .info .element .hook-build-status.-error {
+.hooks .hook-build-status.-failure,
+.hooks .hook-build-status.-error {
   color: var(--color-red-light);
 }
 
@@ -1619,7 +1580,7 @@ button.-solid {
   border-bottom: 2px solid var(--color-secondary);
 }
 
-.repo-settings .category .header .text {
+.repo-settings .header .text {
   position: relative;
   top: 0.1em;
 
@@ -1736,12 +1697,6 @@ button.-solid {
   caret-color: var(--color-text);
 }
 
-.theme-light .repo-timeout input:invalid {
-  color: var(--color-red);
-
-  caret-color: var(--color-text);
-}
-
 .timeout-help {
   padding: 8px 12px;
 
@@ -1815,12 +1770,6 @@ button.-solid {
   background: none;
 
   fill: var(--color-bg-light);
-}
-
-.theme-light .theme-toggle {
-  color: var(--color-gray-light);
-
-  fill: var(--color-gray-light);
 }
 
 .pager-actions {
