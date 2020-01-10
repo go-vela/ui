@@ -10,12 +10,15 @@ import Alerts exposing (Alert)
 import Api
 import Api.Pagination as Pagination
 import Browser exposing (Document, UrlRequest)
+import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Build
     exposing
         ( clickLogLine
         , clickStep
         , expandBuildLineFocus
+        , lineFocusToFocusID
+        , parseLineFocus
         , setLogLineFocus
         , viewFullBuild
         , viewRepositoryBuilds
@@ -263,7 +266,7 @@ type Msg
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
-    | ClickLogLine Org Repo BuildNumber StepNumber Int
+    | ClickLogLine Org Repo BuildNumber StepNumber (Maybe Int)
     | ClickStep Org Repo (Maybe BuildNumber) (Maybe StepNumber)
     | GotoPage Pagination.Page
       -- Outgoing HTTP requests
@@ -291,7 +294,7 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
-    | StepLogResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
+    | StepLogResponse LineFocus (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
@@ -300,6 +303,8 @@ type Msg
     | AdjustTimeZone Zone
     | AdjustTime Posix
     | Tick Interval Posix
+    | FocusOn String
+    | FocusResult (Result Dom.Error ())
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -537,17 +542,28 @@ update msg model =
                             RemoteData.succeed <| expandBuildLineFocus lineFocus sortedSteps
 
                         cmd =
-                            getBuildStepsLogs model org repo buildNumber steps
+                            getBuildStepsLogs model org repo buildNumber steps lineFocus
                     in
                     ( { model | steps = steps }, cmd )
 
                 Err error ->
                     ( model, addError error )
 
-        StepLogResponse response ->
+        StepLogResponse lineFocus response ->
             case response of
                 Ok ( _, log ) ->
-                    ( updateLogs model log, Cmd.none )
+                    let
+                        focusID =
+                            lineFocusToFocusID lineFocus
+
+                        action =
+                            if not <| String.isEmpty focusID then
+                                Util.dispatch <| FocusOn <| lineFocusToFocusID lineFocus
+
+                            else
+                                Cmd.none
+                    in
+                    ( updateLogs model log, action )
 
                 Err error ->
                     ( model, addError error )
@@ -756,6 +772,20 @@ update msg model =
                 FiveSecond data ->
                     ( model, refreshPage model data )
 
+        FocusOn id ->
+            ( model, Dom.focus id |> Task.attempt FocusResult )
+
+        FocusResult result ->
+            -- handle success or failure here
+            case result of
+                Err (Dom.NotFound id) ->
+                    -- unable to find dom 'id'
+                    ( model, Cmd.none )
+
+                Ok ok ->
+                    -- successfully focus the dom
+                    ( model, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -816,7 +846,7 @@ refreshPage model _ =
                 [ getBuilds model org repo Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber
-                , refreshLogs model org repo buildNumber model.steps
+                , refreshLogs model org repo buildNumber model.steps Nothing
                 ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
@@ -947,8 +977,8 @@ filterCompletedSteps steps =
 
 {-| refreshLogs : takes model org repo and build number and steps and refreshes the build step logs depending on their status
 -}
-refreshLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> Cmd Msg
-refreshLogs model org repo buildNumber inSteps =
+refreshLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> LineFocus -> Cmd Msg
+refreshLogs model org repo buildNumber inSteps lineFocus =
     let
         stepsToRefresh =
             RemoteData.succeed <|
@@ -961,7 +991,7 @@ refreshLogs model org repo buildNumber inSteps =
                         []
 
         refresh =
-            getBuildStepsLogs model org repo buildNumber stepsToRefresh
+            getBuildStepsLogs model org repo buildNumber stepsToRefresh lineFocus
     in
     if shouldRefresh model.build then
         refresh
@@ -1693,13 +1723,13 @@ getBuildStep model org repo buildNumber stepNumber =
     Api.try (StepResponse org repo buildNumber stepNumber) <| Api.getStep model org repo buildNumber stepNumber
 
 
-getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg
-getBuildStepLogs model org repo buildNumber stepNumber =
-    Api.try StepLogResponse <| Api.getStepLogs model org repo buildNumber stepNumber
+getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> LineFocus -> Cmd Msg
+getBuildStepLogs model org repo buildNumber stepNumber lineFocus =
+    Api.try (StepLogResponse lineFocus) <| Api.getStepLogs model org repo buildNumber stepNumber
 
 
-getBuildStepsLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> Cmd Msg
-getBuildStepsLogs model org repo buildNumber steps =
+getBuildStepsLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> LineFocus -> Cmd Msg
+getBuildStepsLogs model org repo buildNumber steps lineFocus =
     let
         buildSteps =
             case steps of
@@ -1713,7 +1743,7 @@ getBuildStepsLogs model org repo buildNumber steps =
         List.map
             (\step ->
                 if step.viewing then
-                    getBuildStepLogs model org repo buildNumber <| String.fromInt step.number
+                    getBuildStepLogs model org repo buildNumber (String.fromInt step.number) lineFocus
 
                 else
                     Cmd.none
