@@ -10,7 +10,9 @@ body {
   color: var(--color-text);
 
   font-size: 18px;
+
   background-color: var(--color-bg);
+
   transition-duration: 0.2s;
 
   transition-property: background-color, color;
@@ -18,6 +20,7 @@ body {
 
 a {
   color: var(--color-primary);
+
   &:hover,
   &:focus {
     text-decoration: none;
@@ -30,6 +33,7 @@ header {
   justify-content: space-between;
 
   padding: 1em var(--horizontal-pad);
+
   background: radial-gradient(
     circle at 50% -200%,
     var(--color-bg-light) -7%,
@@ -58,13 +62,16 @@ header {
 .details {
   > .summary {
     position: relative;
+
     padding-right: 1.5em;
     padding-bottom: 0.3em;
 
     overflow: hidden;
+
     cursor: pointer;
 
     // hide details marker on Chrome
+    // stylelint-disable declaration-no-important
     &::-webkit-details-marker {
       display: none !important;
     }
@@ -73,6 +80,7 @@ header {
     &:first-of-type {
       list-style-type: none !important;
     }
+    // stylelint-enable declaration-no-important
 
     // super hacky way to remove
     // marker on details element
@@ -88,14 +96,19 @@ header {
     // display: block;
     // nothing seems to work on Chrome
   }
+
   .details-icon-expand {
     position: absolute;
     top: 0.2em;
     right: 0;
+
     color: var(--color-primary);
+
     transform-origin: 50% 49%;
-    transition: all 0.2s;
+
+    transition: transform 0.2s;
   }
+
   &[open] .details-icon-expand {
     transform: rotate(0.5turn);
   }
@@ -108,6 +121,7 @@ header {
 
 .identity-logo-link {
   margin-right: 1em;
+
   text-decoration: none;
   // override global `vertical-align: middle` for SVGs
   svg {
@@ -120,9 +134,11 @@ header {
   &-star {
     fill: var(--color-lavender);
   }
+
   &-outer {
     fill: var(--color-cyan);
   }
+
   &-inner {
     fill: var(--color-text);
   }
@@ -131,15 +147,20 @@ header {
 .help-links {
   display: flex;
   align-items: center;
+
   font-size: 80%;
+
   > a {
     position: relative;
+
     display: inline-block;
 
     margin-right: 1em;
+
     &:not(:last-child)::after {
       @include slashes;
     }
+
     &:last-child {
       font-weight: bold;
       text-decoration: none;
@@ -154,36 +175,45 @@ header {
 .identity-name {
   position: relative;
   z-index: 9999;
+
   ul {
     position: absolute;
     top: 1rem;
     left: 0;
+
     width: max-content;
     min-width: 100%;
     padding: 0;
+
     font-size: 80%;
+
     list-style: none;
     background-color: var(--color-bg-dark);
 
     border: 1px solid var(--color-bg-light);
-    box-shadow: 0 0 2px black;
+    box-shadow: 0 0 2px var(--color-black);
+
     > li {
       padding: 0.5em 1em;
     }
+
     @supports (clip-path: inset(50%)) {
       &::after {
         position: absolute;
         top: -5px;
         left: calc(50% - 6px);
+
         display: block;
 
         width: 10px;
         height: 10px;
+
         background-color: inherit;
 
         border: inherit;
         border-radius: 0 0 0 0.25em;
         transform: rotate(135deg);
+
         content: '';
 
         clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
@@ -204,11 +234,13 @@ button,
 .button {
   margin: 0.5em 0;
   padding: 0.5em 2em;
+
   color: var(--color-bg);
   font-weight: bold;
 
   font-size: 16px;
   text-decoration: none;
+
   background-image: linear-gradient(
     to right,
     var(--color-cyan) 0%,
@@ -220,35 +252,45 @@ button,
 
   cursor: pointer;
 
-  & + button,
+  + button,
   + .button {
     margin-left: 0.5em;
   }
+
   &:hover,
   &:focus {
     background-position: right center;
   }
+
   &:disabled {
     color: var(--color-bg-dark);
+
     background-color: var(--color-bg-light);
     background-image: none;
     border-color: var(--color-bg-light);
   }
+
   &.inverted {
     color: var(--color-primary);
+
     background-color: var(--color-bg);
     background-image: none;
     border-color: var(--color-primary);
     border-style: solid;
     border-width: var(--line-width);
+
     &:not([disabled]):hover,
     &:not([disabled]):focus {
       color: var(--color-text);
+
       border-color: var(--color-text);
     }
+
     &:disabled {
       color: var(--color-bg-light);
+
       border-color: var(--color-bg-light);
+
       pointer-events: none;
     }
   }
@@ -260,6 +302,7 @@ button,
   justify-content: space-between;
 
   padding: 0 3em;
+
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
@@ -273,14 +316,18 @@ button,
     transparent 18.8%
   );
   border-image-slice: 1;
+
   li {
     position: relative;
+
     display: inline-block;
 
     margin-right: 1em;
+
     &:not(:last-child)::after {
       @include slashes;
     }
+
     &:last-child {
       font-weight: bold;
       text-decoration: none;
@@ -300,11 +347,13 @@ button,
 
 .repo-item {
   position: relative;
+
   display: flex;
   justify-content: space-between;
 
   margin: 2em 0;
   padding: 0.5em;
+
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
   border-image-source: linear-gradient(
@@ -317,8 +366,10 @@ button,
     transparent 84%
   );
   border-image-slice: 1;
+
   > summary {
     margin: 0.5em 0 0 1em;
+
     text-indent: 0;
   }
 }
@@ -331,6 +382,7 @@ button,
   width: 100%;
   margin: 0.5em 0 0 1em;
   padding: 0.5em 1em;
+
   background-color: var(--color-bg-dark);
 }
 
@@ -346,7 +398,9 @@ button,
 
 .-actions .-view {
   padding: 0.33em 2em;
+
   line-height: 1.5em;
+
   @extend .button;
 }
 
@@ -357,9 +411,10 @@ button,
 
 .actions-divider {
   width: 2px;
-  background: var(--color-bg-light);
   height: 1.75em;
   margin: 0 0.75em;
+
+  background: var(--color-bg-light);
 }
 
 // loading ellipsis
@@ -368,9 +423,11 @@ button,
 
   width: 0;
   overflow: hidden;
+
   vertical-align: bottom;
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
+
   content: '\2026';
 }
 
@@ -394,6 +451,7 @@ button,
   align-items: center;
 
   margin: 0 1em;
+
   border-bottom: 2px solid var(--color-primary);
 }
 
@@ -401,11 +459,14 @@ button,
 .source-repos .-filter input {
   width: 100%;
   padding: 0.5em 0.8em;
+
   color: var(--color-text);
 
   font-size: 18px;
+
   background: var(--color-bg);
   border: none;
+
   &::placeholder {
     color: var(--color-bg-light);
   }
@@ -415,11 +476,11 @@ button,
   display: flex;
   flex-direction: row;
   align-items: center;
+
   &::-webkit-details-marker {
     display: flex;
 
     margin-right: 16px;
-    vertical-align: middle;
   }
 }
 
@@ -431,6 +492,7 @@ button,
   width: 100%;
   margin: 0.5em 0 0 1em;
   padding: 1.2em 1em;
+
   background-color: var(--color-bg-dark);
 }
 
@@ -442,12 +504,16 @@ button,
 
 .repo-count {
   margin-left: 12px;
+
   &::before {
     margin-right: 0.3em;
+
     content: '[';
   }
+
   &::after {
     margin-left: 0.3em;
+
     content: ']';
   }
 }
@@ -459,7 +525,7 @@ button,
   min-width: 150px;
   margin: 0.425em 0;
   padding: 0.2em 1em;
-  vertical-align: top;
+
   > svg {
     margin-right: 1em;
   }
@@ -476,6 +542,7 @@ button,
 
 .repo-enable-enabled {
   color: var(--color-green);
+
   border: var(--line-width) solid var(--color-green);
 
   @extend .repo-enable;
@@ -483,6 +550,7 @@ button,
 
 .repo-enable-enabling {
   color: var(--color-yellow);
+
   border: var(--line-width) solid var(--color-yellow);
 
   @extend .repo-enable;
@@ -493,9 +561,8 @@ button,
 }
 
 .repo-enable-failed {
-  cursor: pointer;
-
   color: var(--color-red);
+
   background: none;
   border: var(--line-width) solid var(--color-red);
   cursor: pointer;
@@ -505,11 +572,13 @@ button,
   &:hover svg,
   &:focus svg {
     transform: rotate(70deg);
+
     transition: transform 0.2s ease-in-out;
   }
 
   > svg {
     margin-right: 1em;
+
     transition: transform 0.2s ease-in-out;
   }
 }
@@ -517,6 +586,7 @@ button,
 a.-btn {
   margin: 0.5em 0;
   padding: 0.3em 2em;
+
   font-weight: bold;
 
   font-size: 16px;
@@ -527,18 +597,23 @@ a.-btn {
 .-btn.-inverted,
 button.-inverted {
   color: var(--color-primary);
+
   background-color: var(--color-bg);
   background-image: none;
   border-color: var(--color-primary);
   border-style: solid;
   border-width: var(--line-width);
+
   &:not([disabled]):hover,
   &:not([disabled]):focus {
     color: var(--color-text);
+
     border-color: var(--color-text);
   }
+
   &:disabled {
     color: var(--color-bg-light);
+
     border-color: var(--color-bg-light);
   }
 }
@@ -547,17 +622,22 @@ button.-inverted {
   margin: 0;
   margin-left: 1em;
   padding: 4px 12px;
+
   font-weight: 300;
 
   font-size: 12px;
+
   &:disabled {
     color: var(--color-bg);
+
     background-color: var(--color-bg);
     background-image: none;
     border: var(--line-width) solid var(--color-bg-light);
+
     &:hover,
     &:focus {
       color: inherit;
+
       border-color: inherit;
     }
   }
@@ -566,6 +646,7 @@ button.-inverted {
 .nav-buttons {
   display: flex;
 }
+
 .-btn.-hooks {
   margin-right: 0.4em;
 }
@@ -577,24 +658,30 @@ button.-inverted {
 .-btn.-solid,
 button.-solid {
   color: var(--color-bg);
+
   background-color: var(--color-primary);
   background-image: none;
   border-color: var(--color-primary);
   border-style: solid;
   border-width: var(--line-width);
+
   &:hover,
   &:focus {
     color: var(--color-primary);
+
     background-color: var(--color-bg);
     border-color: var(--color-primary);
   }
 
   &.loading {
     color: var(--color-bg-light);
+
     border: var(--line-width) dashed var(--color-bg-light);
+
     &:hover,
     &:focus {
       color: inherit;
+
       border-color: inherit;
     }
   }
@@ -603,10 +690,13 @@ button.-solid {
 .btn-refresh {
   &.loading {
     color: var(--color-bg-light);
+
     border: var(--line-width) dashed var(--color-bg-light);
+
     &:not([disabled]):hover,
     &:not([disabled]):focus {
       color: inherit;
+
       border-color: inherit;
     }
   }
@@ -620,10 +710,6 @@ button.-solid {
 // breadcrumb styles
 .crumb {
   font-weight: 300;
-}
-
-.crumb--current {
-  font-weight: bold;
 }
 
 // builds styles for /:org/:repo/:build_number
@@ -641,9 +727,11 @@ button.-solid {
 .large-loader .-spinner {
   width: 40px;
   height: 40px;
+
   border: 2px solid var(--color-text);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
+
   animation: spin 3s linear infinite;
 }
 
@@ -656,14 +744,17 @@ button.-solid {
 .small-loader .-spinner {
   width: 20px;
   height: 20px;
+
   border: 2px solid var(--color-offwhite);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
+
   animation: spin 3s linear infinite;
 }
 
 .small-loader .-label {
   margin-left: 0.8em;
+
   font-weight: 300;
 
   font-size: 14px;
@@ -677,13 +768,14 @@ button.-solid {
 
 .build {
   position: relative;
+
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+
   font-weight: 300;
   font-size: 18px;
 
-  font-family: Helvetica;
   border: 2px solid var(--color-bg-dark);
   border-right: 0;
   border-left: 0;
@@ -695,6 +787,7 @@ button.-solid {
 
 .build .status {
   position: relative;
+
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -705,6 +798,7 @@ button.-solid {
 
 .build-icon {
   margin: 36px;
+
   stroke: var(--color-bg);
 
   * {
@@ -714,8 +808,10 @@ button.-solid {
 
 .build-icon.-pending {
   padding: 8px;
+
   border: 2px solid var(--color-bg-dark);
   border-radius: 7px;
+
   fill: var(--color-bg);
 }
 
@@ -746,12 +842,14 @@ button.-solid {
 
 .build .info {
   position: relative;
+
   display: flex;
   flex: 1;
   flex-direction: column;
   justify-content: center;
 
   padding: 12px 0;
+
   background: var(--color-bg-dark);
 }
 
@@ -805,6 +903,7 @@ button.-solid {
 .time-info {
   display: flex;
   flex-direction: row;
+
   font-weight: 300;
 }
 
@@ -814,16 +913,19 @@ button.-solid {
 
 .time-info .delimiter {
   margin: 0 8px;
+
   color: var(--color-secondary);
 }
 
 .time-info .duration {
   margin: 0 0 0 4px;
+
   font-family: var(--font-code);
 }
 
 .build-animation {
   position: absolute;
+
   width: 100%;
 }
 
@@ -863,12 +965,14 @@ button.-solid {
 
 .build-animation.-top.-cover {
   width: 12vw;
+
   animation: build-particles-source 5s ease-in-out infinite;
   animation-direction: alternate;
 }
 
 .build-animation.-bottom.-cover {
   width: 16vw;
+
   animation: build-particles-source 5s ease-in-out infinite;
   animation-direction: alternate-reverse;
 }
@@ -922,6 +1026,7 @@ button.-solid {
 .build-history .-build .-icon {
   fill: none;
   stroke: var(--color-bg);
+
   &.-running {
     background-color: var(--color-yellow);
   }
@@ -937,6 +1042,7 @@ button.-solid {
 
   &.-pending {
     background-color: var(--color-bg-light);
+
     fill: var(--color-bg);
     stroke: var(--color-bg);
   }
@@ -947,16 +1053,19 @@ button.-solid {
   top: 125%;
   // not sure what to here to display the tooltip on top!
   z-index: 9999;
+
   display: flex;
   flex-direction: column;
 
   width: 300px;
   padding: 0.2em 0;
+
   color: var(--color-text);
 
   font-weight: 300;
 
   text-align: center;
+
   background-color: var(--color-bg-dark);
   border: solid 1px var(--color-bg-light);
   border-radius: 3px;
@@ -972,16 +1081,20 @@ button.-solid {
 .build-history .-build:focus .-tooltip::after {
   position: absolute;
   bottom: 100%; /* At the top of the tooltip */
+
   margin-left: 0.5em;
+
   border-color: transparent transparent var(--color-bg-light) transparent;
   border-style: solid;
 
   border-width: 5px;
+
   content: ' ';
 }
 
 .build-history .-build .-info {
   padding: 0.2em 0.6em;
+
   font-size: 14px;
 }
 
@@ -1005,6 +1118,7 @@ button.-solid {
 
 .build-history .-build .-number {
   margin-right: 0.5em;
+
   &:before {
     content: '#';
   }
@@ -1030,10 +1144,12 @@ button.-solid {
     hsla(0, 0, 0, 0) calc(3.25em + 1px)
   );
 }
+
 .step.-line.-last {
   background-repeat: no-repeat;
   background-size: 100% 2em;
 }
+
 .step .-status {
   margin-top: 0.65em;
   margin-right: 1em;
@@ -1043,6 +1159,7 @@ button.-solid {
 .step .-icon-container {
   padding-top: 12px;
   padding-bottom: 12px;
+
   background: var(--color-bg);
 }
 
@@ -1054,27 +1171,11 @@ button.-solid {
 
 .step .-icon.-pending {
   padding: 8px;
+
   border: 2px solid var(--color-bg-light);
   border-radius: 7px;
-  fill: var(--color-bg-light);
-}
 
-.-icon {
-  fill: none;
-  &.-success {
-    stroke: var(--color-green);
-  }
-  &.-running {
-    stroke: var(--color-yellow);
-  }
-  &.-failure,
-  &.-error {
-    stroke: var(--color-red);
-  }
-  &.-pending {
-    fill: var(--color-bg-light);
-    stroke: var(--color-bg-light);
-  }
+  fill: var(--color-bg-light);
 }
 
 .step .-view {
@@ -1082,6 +1183,7 @@ button.-solid {
 
   margin: 1em 0;
   padding: 0;
+
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
   border-image-source: linear-gradient(
@@ -1125,6 +1227,7 @@ button.-solid {
 
 .logs-container {
   padding: 0.5em 0;
+
   background-color: var(--color-bg-dark);
 }
 
@@ -1158,20 +1261,24 @@ button.-solid {
 
 .logs .line .-line-num {
   margin-right: 1em;
+
   color: var(--color-offwhite);
 
   font-family: var(--font-code);
-  > a {
-    text-decoration: none;
-    &:hover,
-    &:focus {
-      text-decoration: underline;
-    }
+}
+
+.line a {
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: underline;
   }
 }
 
 .step-error {
   margin-left: 1.5em;
+
   color: var(--color-red-light);
   font-size: 14px;
 }
@@ -1190,11 +1297,11 @@ button.-solid {
   animation-fill-mode: both;
 }
 
-.bounceInRight {
+.bounce-in-right {
   animation-name: bounceInRight;
 }
 
-.fadeOutRightBig {
+.fade-out-right-big {
   animation-name: fadeOutRightBig;
 }
 
@@ -1213,25 +1320,30 @@ button.-solid {
   position: fixed;
   right: 0;
   bottom: 10px;
+
   width: 100%;
   max-width: 530px;
   margin: 0;
   padding: 0;
+
   list-style-type: none;
 }
 
 .alert-item-attributes {
   max-height: 100px;
   margin: 1em 1em 0 1em;
+
   transition: max-height 1.2s, margin-top 1.2s;
 }
 
 .alert-container {
   width: 500px;
   padding: 1em;
-  color: white;
+
+  color: var(--color-text);
 
   font-size: 14px;
+
   background-color: var(--color-bg-dark);
   border-radius: 5px;
   border-radius: 0;
@@ -1242,6 +1354,7 @@ button.-solid {
 
 .alert-container .-title {
   margin: 0;
+
   font-size: 1em;
 }
 
@@ -1254,11 +1367,8 @@ button.-solid {
   margin-top: 0.25em;
   margin-bottom: 0;
   overflow-y: auto;
-  font-size: 0.9em;
-}
 
-.alert-container {
-  color: var(--color-text);
+  font-size: 0.9em;
 }
 
 .alert-container.-success {
@@ -1276,6 +1386,7 @@ button.-solid {
 .hooks {
   width: 100%;
   padding-bottom: 0.5em;
+
   background: var(--color-bg-dark);
 }
 
@@ -1296,14 +1407,18 @@ button.-solid {
   align-items: center;
 
   margin: 0.3em 0;
+
   > .hook-summary {
     position: relative;
+
     padding: 0;
 
     overflow: hidden;
+
     cursor: pointer;
 
     // hide details marker on Chrome
+    // stylelint-disable declaration-no-important
     &::-webkit-details-marker {
       display: none !important;
     }
@@ -1312,14 +1427,20 @@ button.-solid {
     &:first-of-type {
       list-style-type: none !important;
     }
+    // stylelint-enable declaration-no-important
   }
+
   .chevron {
     margin-right: 0.8em;
     margin-left: 1em;
+
     color: var(--color-primary);
+
     transform-origin: 50% 49%;
-    transition: all 0.2s;
+
+    transition: transform 0.2s;
   }
+
   &[open] .chevron {
     transform: rotate(0.5turn);
   }
@@ -1339,11 +1460,13 @@ button.-solid {
   margin-top: 0.3em;
   padding-top: 0.3em;
   padding-bottom: 0.3em;
+
   border-bottom: 1px solid var(--color-bg-light);
 }
 
 .hooks .header {
   flex: 1;
+
   font-size: 18px;
 
   text-align: center;
@@ -1351,6 +1474,7 @@ button.-solid {
 
 .hooks .row .preview {
   margin: 0.4em 0;
+
   font-size: 14px;
 }
 
@@ -1370,6 +1494,7 @@ button.-solid {
   flex: 1;
   align-items: center;
   justify-content: center;
+
   font-weight: 300;
 
   text-align: center;
@@ -1392,7 +1517,9 @@ button.-solid {
 .hooks .row .cell.source-id .text {
   flex: 1;
   padding: 3px 12px;
+
   text-align: center;
+
   background: var(--color-bg);
 }
 
@@ -1404,16 +1531,6 @@ button.-solid {
   color: var(--color-red-light);
 }
 
-.theme-light {
-  .preview .status.success {
-    color: var(--color-green-dark);
-  }
-
-  .preview .status.failure {
-    color: var(--color-red);
-  }
-}
-
 .hooks .row .info {
   display: flex;
   display: inline-block;
@@ -1421,7 +1538,9 @@ button.-solid {
 
   width: 100%;
   padding: 0.4em 1em;
+
   font-size: 14px;
+
   border-bottom: 1px solid var(--color-bg-light);
   border-left: 2px solid var(--color-bg-light);
 }
@@ -1461,12 +1580,6 @@ button.-solid {
   color: var(--color-red-light);
 }
 
-.theme-light {
-  .hooks .row .info .element .error-label {
-    color: var(--color-red);
-  }
-}
-
 .hooks .row .info .element .hook-build-status.-pending {
   color: var(--color-offwhite);
 }
@@ -1482,21 +1595,6 @@ button.-solid {
 .hooks .row .info .element .hook-build-status.-failure,
 .hooks .row .info .element .hook-build-status.-error {
   color: var(--color-red-light);
-}
-
-.theme-light {
-  .hooks .row .info .element .hook-build-status.-running {
-    color: var(--color-yellow-dark);
-  }
-
-  .hooks .row .info .element .hook-build-status.-success {
-    color: var(--color-green-dark);
-  }
-
-  .hooks .row .info .element .hook-build-status.-failure,
-  .hooks .row .info .element .hook-build-status.-error {
-    color: var(--color-red);
-  }
 }
 
 .repo-settings {
@@ -1517,12 +1615,14 @@ button.-solid {
 .repo-settings .category .header {
   margin-bottom: 0.5em;
   padding-bottom: 0.2em;
+
   border-bottom: 2px solid var(--color-secondary);
 }
 
 .repo-settings .category .header .text {
   position: relative;
   top: 0.1em;
+
   font-weight: bold;
 
   font-size: 22px;
@@ -1547,16 +1647,36 @@ button.-solid {
 }
 
 .-icon {
+  fill: none;
   stroke: var(--color-primary);
 
   &.-check {
     background-color: var(--color-primary);
+
     stroke: var(--color-bg);
   }
 
   &.-check,
   &.-radio {
     fill: none;
+  }
+
+  &.-success {
+    stroke: var(--color-green);
+  }
+
+  &.-running {
+    stroke: var(--color-yellow);
+  }
+
+  &.-failure,
+  &.-error {
+    stroke: var(--color-red);
+  }
+
+  &.-pending {
+    fill: var(--color-bg-light);
+    stroke: var(--color-bg-light);
   }
 
   .-inner {
@@ -1571,6 +1691,7 @@ button.-solid {
 
 .checkbox .field-info {
   margin-left: 0.25em;
+
   font-weight: 300;
 }
 
@@ -1580,11 +1701,13 @@ button.-solid {
   padding-right: 0;
   padding-bottom: 0.5em;
   padding-left: 1em;
+
   color: var(--color-text);
 
   font-size: 14px;
 
   text-align: center;
+
   background: none;
   border: none;
   border-bottom: 2px solid var(--color-primary);
@@ -1601,6 +1724,7 @@ button.-solid {
 
 .repo-timeout .label {
   margin-left: 0.75em;
+
   font-weight: 300;
 
   font-size: 16px;
@@ -1620,9 +1744,11 @@ button.-solid {
 
 .timeout-help {
   padding: 8px 12px;
+
   font-weight: 300;
 
   font-size: 14px;
+
   background: var(--color-bg-light);
 
   border-radius: 4px;
@@ -1633,6 +1759,7 @@ button.-solid {
   position: relative;
   right: 1.55em;
   bottom: 0.1em;
+
   opacity: 0;
 }
 
@@ -1648,16 +1775,20 @@ button.-solid {
 .checkbox label::before {
   top: calc(50% - 0.45em);
   left: -1.875em;
+
   width: 1.15em;
   height: 1.15em;
+
   content: '';
 }
 
 .checkbox.radio label::before {
   top: calc(50% - 0.575em);
   left: -1.8em;
+
   width: 1.15em;
   height: 1.15em;
+
   content: '';
 }
 
@@ -1673,17 +1804,22 @@ button.-solid {
 
 .theme-toggle {
   position: relative;
+
   display: inline-block;
   margin: 0 1em 0 0;
   padding: 0;
+
   color: var(--color-bg-light);
   font-weight: normal;
+
   background: none;
+
   fill: var(--color-bg-light);
 }
 
 .theme-light .theme-toggle {
   color: var(--color-gray-light);
+
   fill: var(--color-gray-light);
 }
 
@@ -1693,9 +1829,10 @@ button.-solid {
 }
 
 .enable-container {
-  margin-top: 1em;
   display: flex;
   flex-direction: row;
+  margin-top: 1em;
+
   list-style: none;
 }
 
@@ -1711,9 +1848,10 @@ button.-solid {
 
 .enable-column-a {
   display: flex;
-  margin-right: 0.8em;
   flex-direction: column;
+  margin-right: 0.8em;
 }
+
 .enable-column-b {
   display: flex;
   flex-direction: row;
@@ -1724,9 +1862,11 @@ button.-solid {
 }
 
 .repo-disable-disabling {
-  color: var(--color-yellow);
-  border: var(--line-width) solid var(--color-yellow);
   min-width: 170px;
+
+  color: var(--color-yellow);
+
+  border: var(--line-width) solid var(--color-yellow);
 }
 
 .repo-disable-disabling-text {
@@ -1735,9 +1875,13 @@ button.-solid {
 
 button.-btn.-inverted.repo-disable-confirm {
   color: var(--color-red-light);
+
   border: var(--line-width) solid var(--color-red-light);
-  &:hover {
+
+  &:hover,
+  &:focus {
     color: var(--color-red);
+
     border: var(--line-width) solid var(--color-red);
   }
 }

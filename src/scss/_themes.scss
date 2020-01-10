@@ -44,3 +44,30 @@ body.theme-light {
 
   --color-focus: var(--color-bg-dark);
 }
+
+.theme-light {
+  .status.success {
+    color: var(--color-green-dark);
+  }
+
+  .status.failure {
+    color: var(--color-red);
+  }
+
+  .hooks .row .info .element .hook-build-status.-running {
+    color: var(--color-yellow-dark);
+  }
+
+  .hooks .row .info .element .hook-build-status.-success {
+    color: var(--color-green-dark);
+  }
+
+  .hooks .row .info .element .hook-build-status.-failure,
+  .hooks .row .info .element .hook-build-status.-error {
+    color: var(--color-red);
+  }
+
+  .hooks .row .info .element .error-label {
+    color: var(--color-red);
+  }
+}
