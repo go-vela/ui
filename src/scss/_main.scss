@@ -1261,11 +1261,15 @@ button.-solid {
   animation-fill-mode: both;
 }
 
-.bounce-in-right {
+// used by pablen/toasty Elm package
+// stylelint-disable-next-line
+.bounceInRight {
   animation-name: bounceInRight;
 }
 
-.fade-out-right-big {
+// used by pablen/toasty Elm package
+// stylelint-disable-next-line
+.fadeOutRightBig {
   animation-name: fadeOutRightBig;
 }
 
