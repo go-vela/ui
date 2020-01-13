@@ -1,21 +1,21 @@
 {
-    "cookie": [
-        {
-            "name": "super"
-        },
-        {
-            "name": "yummy"
-        }
-    ],
-    "cat": [
-        {
-            "name": "purr"
-        },
-        {
-            "name": "pounce"
-        },
-        {
-            "name": "outer_space"
-        }
-    ]
+  "cookie": [
+    {
+      "name": "super"
+    },
+    {
+      "name": "yummy"
+    }
+  ],
+  "cat": [
+    {
+      "name": "purr"
+    },
+    {
+      "name": "pounce"
+    },
+    {
+      "name": "outer_space"
+    }
+  ]
 }

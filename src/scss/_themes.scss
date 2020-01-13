@@ -44,3 +44,80 @@ body.theme-light {
 
   --color-focus: var(--color-bg-dark);
 }
+
+.theme-light {
+  .status.success {
+    color: var(--color-green-dark);
+  }
+
+  .status.failure {
+    color: var(--color-red);
+  }
+
+  .hooks {
+    background: var(--color-white);
+  }
+
+  .hooks .hook-build-status.-running {
+    color: var(--color-yellow-dark);
+  }
+
+  .hooks .hook-build-status.-success {
+    color: var(--color-green-dark);
+  }
+
+  .hooks .hook-build-status.-failure,
+  .hooks .hook-build-status.-error {
+    color: var(--color-red);
+  }
+
+  .hooks .error-label {
+    color: var(--color-red);
+  }
+
+  .identity-name ul {
+    background: var(--color-white);
+  }
+
+  .-item {
+    background-color: var(--color-white);
+    border: 1px solid var(--color-bg-dark);
+  }
+
+  .build {
+    border-color: var(--color-white);
+  }
+
+  .build .info {
+    background: var(--color-white);
+    border-right: 1px solid var(--color-bg-dark);
+    border-left: none;
+  }
+
+  .build .error {
+    color: var(--color-red);
+  }
+
+  .logs-container {
+    background-color: var(--color-white);
+    border-top: 1px solid var(--color-bg-dark);
+    border-right: 1px solid var(--color-bg-dark);
+    border-bottom: 1px solid var(--color-bg-dark);
+  }
+
+  .step-error {
+    color: var(--color-red);
+  }
+
+  .repo-timeout input:invalid {
+    color: var(--color-red);
+
+    caret-color: var(--color-text);
+  }
+
+  .theme-toggle {
+    color: var(--color-gray-light);
+
+    fill: var(--color-gray-light);
+  }
+}

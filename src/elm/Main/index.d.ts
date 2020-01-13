@@ -103,4 +103,4 @@ export type Session = {
  * Supported themes
  *
  */
-export type Theme = "theme-light" | "theme-dark";
+export type Theme = 'theme-light' | 'theme-dark';

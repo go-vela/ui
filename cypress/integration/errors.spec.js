@@ -3,59 +3,59 @@
  * Use of this source code is governed by the LICENSE file in this repository.
  */
 
-context("Errors", () => {
-  context("logged out", () => {
-    it("overview should not show the errors tray", () => {
-      cy.visit("/");
-      cy.get("[data-test=alerts]").should("be.not.visible");
+context('Errors', () => {
+  context('logged out', () => {
+    it('overview should not show the errors tray', () => {
+      cy.visit('/');
+      cy.get('[data-test=alerts]').should('be.not.visible');
     });
   });
 
-  context("logged in", () => {
+  context('logged in', () => {
     beforeEach(() => {
       cy.server();
-      cy.route("GET", "*api/v1/repos*", "fixture:repositories.json");
+      cy.route('GET', '*api/v1/repos*', 'fixture:repositories.json');
       cy.login();
     });
 
-    it("stubbed repositories should not show the errors tray", () => {
-      cy.get("[data-test=alerts]").should("be.not.visible");
+    it('stubbed repositories should not show the errors tray', () => {
+      cy.get('[data-test=alerts]').should('be.not.visible');
     });
   });
 
-  context("over 10 errors", () => {
+  context('over 10 errors', () => {
     beforeEach(() => {
       cy.login();
 
       cy.server();
       cy.route({
-        method: "GET",
-        url: "api/v1/user/source/repos*",
+        method: 'GET',
+        url: 'api/v1/user/source/repos*',
         status: 500,
         response: {
-          error: "error fetching source repositories"
-        }
-      }).as("sourceRepos");
+          error: 'error fetching source repositories',
+        },
+      }).as('sourceRepos');
 
-      cy.visit("/account/add-repos");
+      cy.visit('/account/add-repos');
       for (var i = 0; i < 10; i++) {
-        cy.wait("@sourceRepos");
-        cy.get("[data-test=refresh-source-repos]").click();
+        cy.wait('@sourceRepos');
+        cy.get('[data-test=refresh-source-repos]').click();
       }
-      cy.wait("@sourceRepos");
+      cy.wait('@sourceRepos');
     });
 
-    it("should show the errors tray", () => {
-      cy.get("[data-test=alerts]")
-        .should("exist")
-        .contains("error fetching source repositories");
+    it('should show the errors tray', () => {
+      cy.get('[data-test=alerts]')
+        .should('exist')
+        .contains('error fetching source repositories');
     });
 
-    it("clicking alert should clear it", () => {
-      cy.get("[data-test=alert]")
-        .should("exist")
+    it('clicking alert should clear it', () => {
+      cy.get('[data-test=alert]')
+        .should('exist')
         .click({ force: true });
-      cy.get("[data-test=alert]").should("not", "exist");
+      cy.get('[data-test=alert]').should('not', 'exist');
     });
   });
 });
