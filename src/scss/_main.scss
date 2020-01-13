@@ -8,17 +8,21 @@ html {
 
 body {
   color: var(--color-text);
-  background-color: var(--color-bg);
-
-  transition-property: background-color, color;
-  transition-duration: 0.2s;
 
   font-size: 18px;
+
+  background-color: var(--color-bg);
+
+  transition-duration: 0.2s;
+
+  transition-property: background-color, color;
 }
 
 a {
   color: var(--color-primary);
-  &:hover {
+
+  &:hover,
+  &:focus {
     text-decoration: none;
   }
 }
@@ -29,6 +33,12 @@ header {
   justify-content: space-between;
 
   padding: 1em var(--horizontal-pad);
+
+  background: radial-gradient(
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
+  );
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
@@ -47,25 +57,21 @@ header {
     transparent 76%
   );
   border-image-slice: 1;
-  background: radial-gradient(
-    circle at 50% -200%,
-    var(--color-bg-light) -7%,
-    transparent 50%
-  );
 }
 
 .details {
   > .summary {
     position: relative;
 
-    overflow: hidden;
-
     padding-right: 1.5em;
     padding-bottom: 0.3em;
+
+    overflow: hidden;
 
     cursor: pointer;
 
     // hide details marker on Chrome
+    // stylelint-disable declaration-no-important
     &::-webkit-details-marker {
       display: none !important;
     }
@@ -74,6 +80,7 @@ header {
     &:first-of-type {
       list-style-type: none !important;
     }
+    // stylelint-enable declaration-no-important
 
     // super hacky way to remove
     // marker on details element
@@ -89,16 +96,19 @@ header {
     // display: block;
     // nothing seems to work on Chrome
   }
+
   .details-icon-expand {
     position: absolute;
     top: 0.2em;
     right: 0;
 
-    transition: all 0.2s;
+    color: var(--color-primary);
+
     transform-origin: 50% 49%;
 
-    color: var(--color-primary);
+    transition: transform 0.2s;
   }
+
   &[open] .details-icon-expand {
     transform: rotate(0.5turn);
   }
@@ -124,9 +134,11 @@ header {
   &-star {
     fill: var(--color-lavender);
   }
+
   &-outer {
     fill: var(--color-cyan);
   }
+
   &-inner {
     fill: var(--color-text);
   }
@@ -137,19 +149,21 @@ header {
   align-items: center;
 
   font-size: 80%;
+
   > a {
     position: relative;
 
     display: inline-block;
 
     margin-right: 1em;
+
     &:not(:last-child)::after {
       @include slashes;
     }
-    &:last-child {
-      text-decoration: none;
 
+    &:last-child {
       font-weight: bold;
+      text-decoration: none;
     }
   }
 }
@@ -161,6 +175,7 @@ header {
 .identity-name {
   position: relative;
   z-index: 9999;
+
   ul {
     position: absolute;
     top: 1rem;
@@ -170,16 +185,18 @@ header {
     min-width: 100%;
     padding: 0;
 
+    font-size: 80%;
+
     list-style: none;
+    background-color: var(--color-bg-dark);
 
     border: 1px solid var(--color-bg-light);
-    background-color: var(--color-bg-dark);
-    box-shadow: 0 0 2px black;
+    box-shadow: 0 0 2px var(--color-black);
 
-    font-size: 80%;
     > li {
       padding: 0.5em 1em;
     }
+
     @supports (clip-path: inset(50%)) {
       &::after {
         position: absolute;
@@ -191,21 +208,18 @@ header {
         width: 10px;
         height: 10px;
 
-        content: "";
-        transform: rotate(135deg);
+        background-color: inherit;
 
         border: inherit;
         border-radius: 0 0 0 0.25em;
-        background-color: inherit;
+        transform: rotate(135deg);
+
+        content: '';
 
         clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
       }
     }
   }
-}
-
-.theme-light .identity-name ul {
-  background: var(--color-white);
 }
 
 .content-wrap {
@@ -217,11 +231,12 @@ button,
   margin: 0.5em 0;
   padding: 0.5em 2em;
 
-  cursor: pointer;
+  color: var(--color-bg);
+  font-weight: bold;
+
+  font-size: 16px;
   text-decoration: none;
 
-  color: var(--color-bg);
-  border: none;
   background-image: linear-gradient(
     to right,
     var(--color-cyan) 0%,
@@ -229,38 +244,50 @@ button,
     var(--color-cyan) 100%
   );
   background-size: 200% auto;
+  border: none;
 
-  font-size: 16px;
-  font-weight: bold;
+  cursor: pointer;
 
-  & + button,
+  + button,
   + .button {
     margin-left: 0.5em;
   }
-  &:hover {
+
+  &:hover,
+  &:focus {
     background-position: right center;
   }
+
   &:disabled {
     color: var(--color-bg-dark);
-    border-color: var(--color-bg-light);
+
     background-color: var(--color-bg-light);
     background-image: none;
+    border-color: var(--color-bg-light);
   }
+
   &.inverted {
     color: var(--color-primary);
-    border-width: var(--line-width);
-    border-style: solid;
-    border-color: var(--color-primary);
+
     background-color: var(--color-bg);
     background-image: none;
-    &:not([disabled]):hover {
+    border-color: var(--color-primary);
+    border-style: solid;
+    border-width: var(--line-width);
+
+    &:not([disabled]):hover,
+    &:not([disabled]):focus {
       color: var(--color-text);
+
       border-color: var(--color-text);
     }
+
     &:disabled {
-      pointer-events: none;
       color: var(--color-bg-light);
+
       border-color: var(--color-bg-light);
+
+      pointer-events: none;
     }
   }
 }
@@ -285,19 +312,21 @@ button,
     transparent 18.8%
   );
   border-image-slice: 1;
+
   li {
     position: relative;
 
     display: inline-block;
 
     margin-right: 1em;
+
     &:not(:last-child)::after {
       @include slashes;
     }
-    &:last-child {
-      text-decoration: none;
 
+    &:last-child {
       font-weight: bold;
+      text-decoration: none;
     }
   }
 }
@@ -333,6 +362,7 @@ button,
     transparent 84%
   );
   border-image-slice: 1;
+
   > summary {
     margin: 0.5em 0 0 1em;
 
@@ -352,11 +382,6 @@ button,
   background-color: var(--color-bg-dark);
 }
 
-.theme-light .-item {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-bg-dark);
-}
-
 .-item .-actions {
   display: flex;
   align-items: center;
@@ -364,34 +389,37 @@ button,
 
 .-actions .-view {
   padding: 0.33em 2em;
+
   line-height: 1.5em;
+
   @extend .button;
 }
 
 .-actions .-view > a {
-  text-decoration: none;
-
   color: var(--color-bg);
+  text-decoration: none;
 }
 
 .actions-divider {
   width: 2px;
-  background: var(--color-bg-light);
   height: 1.75em;
   margin: 0 0.75em;
+
+  background: var(--color-bg-light);
 }
 
 // loading ellipsis
 .loading-ellipsis::after {
   display: inline-block;
-  overflow: hidden;
 
   width: 0;
+  overflow: hidden;
 
-  content: "\2026";
+  vertical-align: bottom;
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
-  vertical-align: bottom;
+
+  content: '\2026';
 }
 
 .util {
@@ -409,9 +437,9 @@ button,
 .source-actions .-filter,
 .source-repos .-filter {
   display: flex;
-  align-items: center;
   flex: 1;
   flex-direction: row;
+  align-items: center;
 
   margin: 0 1em;
 
@@ -424,10 +452,12 @@ button,
   padding: 0.5em 0.8em;
 
   color: var(--color-text);
-  border: none;
-  background: var(--color-bg);
 
   font-size: 18px;
+
+  background: var(--color-bg);
+  border: none;
+
   &::placeholder {
     color: var(--color-bg-light);
   }
@@ -435,14 +465,13 @@ button,
 
 .org .summary {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
+
   &::-webkit-details-marker {
     display: flex;
 
     margin-right: 16px;
-
-    vertical-align: middle;
   }
 }
 
@@ -460,21 +489,23 @@ button,
 
 .org-header {
   display: flex;
-  align-items: center;
   flex: 1;
+  align-items: center;
 }
 
 .repo-count {
   margin-left: 12px;
+
   &::before {
     margin-right: 0.3em;
 
-    content: "[";
+    content: '[';
   }
+
   &::after {
     margin-left: 0.3em;
 
-    content: "]";
+    content: ']';
   }
 }
 
@@ -486,7 +517,6 @@ button,
   margin: 0.425em 0;
   padding: 0.2em 1em;
 
-  vertical-align: top;
   > svg {
     margin-right: 1em;
   }
@@ -503,6 +533,7 @@ button,
 
 .repo-enable-enabled {
   color: var(--color-green);
+
   border: var(--line-width) solid var(--color-green);
 
   @extend .repo-enable;
@@ -510,6 +541,7 @@ button,
 
 .repo-enable-enabling {
   color: var(--color-yellow);
+
   border: var(--line-width) solid var(--color-yellow);
 
   @extend .repo-enable;
@@ -520,17 +552,19 @@ button,
 }
 
 .repo-enable-failed {
-  cursor: pointer;
-
   color: var(--color-red);
-  border: var(--line-width) solid var(--color-red);
+
   background: none;
+  border: var(--line-width) solid var(--color-red);
+  cursor: pointer;
 
   @extend .repo-enable;
 
-  &:hover svg {
-    transition: transform 0.2s ease-in-out;
+  &:hover svg,
+  &:focus svg {
     transform: rotate(70deg);
+
+    transition: transform 0.2s ease-in-out;
   }
 
   > svg {
@@ -540,31 +574,37 @@ button,
   }
 }
 
-
 a.-btn {
   margin: 0.5em 0;
   padding: 0.3em 2em;
 
-  text-decoration: none;
+  font-weight: bold;
 
   font-size: 16px;
-  font-weight: bold;
+
+  text-decoration: none;
 }
 
 .-btn.-inverted,
 button.-inverted {
   color: var(--color-primary);
-  border-width: var(--line-width);
-  border-style: solid;
-  border-color: var(--color-primary);
+
   background-color: var(--color-bg);
   background-image: none;
-  &:not([disabled]):hover {
+  border-color: var(--color-primary);
+  border-style: solid;
+  border-width: var(--line-width);
+
+  &:not([disabled]):hover,
+  &:not([disabled]):focus {
     color: var(--color-text);
+
     border-color: var(--color-text);
   }
+
   &:disabled {
     color: var(--color-bg-light);
+
     border-color: var(--color-bg-light);
   }
 }
@@ -574,15 +614,21 @@ button.-inverted {
   margin-left: 1em;
   padding: 4px 12px;
 
-  font-size: 12px;
   font-weight: 300;
+
+  font-size: 12px;
+
   &:disabled {
     color: var(--color-bg);
-    border: var(--line-width) solid var(--color-bg-light);
+
     background-color: var(--color-bg);
     background-image: none;
-    &:hover {
+    border: var(--line-width) solid var(--color-bg-light);
+
+    &:hover,
+    &:focus {
       color: inherit;
+
       border-color: inherit;
     }
   }
@@ -591,6 +637,7 @@ button.-inverted {
 .nav-buttons {
   display: flex;
 }
+
 .-btn.-hooks {
   margin-right: 0.4em;
 }
@@ -602,22 +649,30 @@ button.-inverted {
 .-btn.-solid,
 button.-solid {
   color: var(--color-bg);
-  border-width: var(--line-width);
-  border-style: solid;
-  border-color: var(--color-primary);
+
   background-color: var(--color-primary);
   background-image: none;
-  &:hover {
+  border-color: var(--color-primary);
+  border-style: solid;
+  border-width: var(--line-width);
+
+  &:hover,
+  &:focus {
     color: var(--color-primary);
-    border-color: var(--color-primary);
+
     background-color: var(--color-bg);
+    border-color: var(--color-primary);
   }
 
   &.loading {
     color: var(--color-bg-light);
+
     border: var(--line-width) dashed var(--color-bg-light);
-    &:hover {
+
+    &:hover,
+    &:focus {
       color: inherit;
+
       border-color: inherit;
     }
   }
@@ -626,9 +681,13 @@ button.-solid {
 .btn-refresh {
   &.loading {
     color: var(--color-bg-light);
+
     border: var(--line-width) dashed var(--color-bg-light);
-    &:not([disabled]):hover {
+
+    &:not([disabled]):hover,
+    &:not([disabled]):focus {
       color: inherit;
+
       border-color: inherit;
     }
   }
@@ -642,10 +701,6 @@ button.-solid {
 // breadcrumb styles
 .crumb {
   font-weight: 300;
-}
-
-.crumb--current {
-  font-weight: bold;
 }
 
 // builds styles for /:org/:repo/:build_number
@@ -664,11 +719,11 @@ button.-solid {
   width: 40px;
   height: 40px;
 
-  animation: spin 3s linear infinite;
-
   border: 2px solid var(--color-text);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
+
+  animation: spin 3s linear infinite;
 }
 
 .small-loader {
@@ -681,25 +736,25 @@ button.-solid {
   width: 20px;
   height: 20px;
 
-  animation: spin 3s linear infinite;
-
   border: 2px solid var(--color-offwhite);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
+
+  animation: spin 3s linear infinite;
 }
 
 .small-loader .-label {
   margin-left: 0.8em;
 
-  font-size: 14px;
   font-weight: 300;
+
+  font-size: 14px;
 }
 
 .build-container {
-  overflow: hidden;
-
   width: 100%;
   margin: 12px 0;
+  overflow: hidden;
 }
 
 .build {
@@ -709,17 +764,12 @@ button.-solid {
   flex-direction: row;
   justify-content: space-between;
 
-  border: 2px solid var(--color-bg-dark);
-  border-right: 0px;
-  border-left: 0px;
-
-  font-family: Helvetica;
-  font-size: 18px;
   font-weight: 300;
-}
+  font-size: 18px;
 
-.theme-light .build {
-  border-color: var(--color-white);
+  border: 2px solid var(--color-bg-dark);
+  border-right: 0;
+  border-left: 0;
 }
 
 .build .status {
@@ -735,6 +785,7 @@ button.-solid {
 
 .build-icon {
   margin: 36px;
+
   stroke: var(--color-bg);
 
   * {
@@ -744,9 +795,11 @@ button.-solid {
 
 .build-icon.-pending {
   padding: 8px;
-  fill: var(--color-bg);
+
   border: 2px solid var(--color-bg-dark);
   border-radius: 7px;
+
+  fill: var(--color-bg);
 }
 
 .build-icon.-pending .bg-fill {
@@ -787,12 +840,6 @@ button.-solid {
   background: var(--color-bg-dark);
 }
 
-.theme-light .build .info {
-  background: var(--color-white);
-  border-right: 1px solid var(--color-bg-dark);
-  border-left: none;
-}
-
 .build .row {
   display: flex;
   flex-direction: row;
@@ -807,12 +854,6 @@ button.-solid {
   font-size: 16px;
 }
 
-.theme-light {
-  .build .error {
-    color: var(--color-red);
-  }
-}
-
 .build .error .message {
   margin-left: 0.2em;
 }
@@ -823,7 +864,7 @@ button.-solid {
 }
 
 .git-info .commit {
-  margin: 0 8px 0 0px;
+  margin: 0 8px 0 0;
 }
 
 .git-info .branch {
@@ -947,8 +988,8 @@ button.-solid {
 
 .build-history {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
 
   margin-left: 3em;
 }
@@ -958,8 +999,9 @@ button.-solid {
 }
 
 .build-history .-build .-icon {
-  stroke: var(--color-bg);
   fill: none;
+  stroke: var(--color-bg);
+
   &.-running {
     background-color: var(--color-yellow);
   }
@@ -974,50 +1016,55 @@ button.-solid {
   }
 
   &.-pending {
+    background-color: var(--color-bg-light);
+
     fill: var(--color-bg);
     stroke: var(--color-bg);
-    background-color: var(--color-bg-light);
   }
 }
 
 .build-history .-build .-tooltip {
   position: absolute;
+  top: 125%;
   // not sure what to here to display the tooltip on top!
   z-index: 9999;
-  top: 125%;
 
   display: flex;
-  visibility: hidden;
   flex-direction: column;
 
   width: 300px;
   padding: 0.2em 0;
 
-  text-align: center;
-
   color: var(--color-text);
-  border: solid 1px var(--color-bg-light);
-  border-radius: 3px;
-  background-color: var(--color-bg-dark);
 
   font-weight: 300;
+
+  text-align: center;
+
+  background-color: var(--color-bg-dark);
+  border: solid 1px var(--color-bg-light);
+  border-radius: 3px;
+  visibility: hidden;
 }
 
-.build-history .-build:hover .-tooltip {
+.build-history .-build:hover .-tooltip,
+.build-history .-build:focus .-tooltip {
   visibility: visible;
 }
 
-.build-history .-build:hover .-tooltip::after {
+.build-history .-build:hover .-tooltip::after,
+.build-history .-build:focus .-tooltip::after {
   position: absolute;
   bottom: 100%; /* At the top of the tooltip */
 
   margin-left: 0.5em;
 
-  content: " ";
+  border-color: transparent transparent var(--color-bg-light) transparent;
+  border-style: solid;
 
   border-width: 5px;
-  border-style: solid;
-  border-color: transparent transparent var(--color-bg-light) transparent;
+
+  content: ' ';
 }
 
 .build-history .-build .-info {
@@ -1032,13 +1079,13 @@ button.-solid {
   justify-content: space-between;
 }
 
-.build-history .-build .-line.-header {
+.build-history .-line.-header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
-.build-history .-build .-line .-label {
+.build-history .-label {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -1046,8 +1093,9 @@ button.-solid {
 
 .build-history .-build .-number {
   margin-right: 0.5em;
+
   &:before {
-    content: "#";
+    content: '#';
   }
 }
 
@@ -1071,10 +1119,12 @@ button.-solid {
     hsla(0, 0, 0, 0) calc(3.25em + 1px)
   );
 }
+
 .step.-line.-last {
   background-repeat: no-repeat;
   background-size: 100% 2em;
 }
+
 .step .-status {
   margin-top: 0.65em;
   margin-right: 1em;
@@ -1095,36 +1145,19 @@ button.-solid {
 }
 
 .step .-icon.-pending {
-  fill: var(--color-bg-light);
   padding: 8px;
 
   border: 2px solid var(--color-bg-light);
   border-radius: 7px;
-}
 
-.-icon {
-  fill: none;
-  &.-success {
-    stroke: var(--color-green);
-  }
-  &.-running {
-    stroke: var(--color-yellow);
-  }
-  &.-failure,
-  &.-error {
-    stroke: var(--color-red);
-  }
-  &.-pending {
-    stroke: var(--color-bg-light);
-    fill: var(--color-bg-light);
-  }
+  fill: var(--color-bg-light);
 }
 
 .step .-view {
   flex: 1;
 
   margin: 1em 0;
-  padding: 0em;
+  padding: 0;
 
   border-top: var(--line-width) solid;
   border-left: var(--line-width) solid;
@@ -1162,38 +1195,32 @@ button.-solid {
 }
 
 .loading-logs {
-  padding: 0.5em 0;
-  margin-left: 0.3em;
   margin-top: 0.3em;
+  margin-left: 0.3em;
+  padding: 0.5em 0;
 }
 
 .logs-container {
-  background-color: var(--color-bg-dark);
   padding: 0.5em 0;
-}
 
-.theme-light .logs-container {
-  background-color: var(--color-white);
-  border-top: 1px solid var(--color-bg-dark);
-  border-right: 1px solid var(--color-bg-dark);
-  border-bottom: 1px solid var(--color-bg-dark);
+  background-color: var(--color-bg-dark);
 }
 
 .logs {
-  font-size: 14px;
   font-weight: 300;
+  font-size: 14px;
 }
 
 .logs .line {
-  margin: 0 0.5em;
   display: flex;
+  margin: 0 0.5em;
 }
 
 .logs .line .wrapper {
-  padding-left: 1em;
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: row;
+  padding-left: 1em;
 }
 
 .logs .wrapper.-focus {
@@ -1206,22 +1233,22 @@ button.-solid {
   color: var(--color-offwhite);
 
   font-family: var(--font-code);
-  > a {
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
-    }
+}
+
+.line a {
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: underline;
   }
 }
 
 .step-error {
+  margin-left: 1.5em;
+
   color: var(--color-red-light);
   font-size: 14px;
-  margin-left: 1.5em;
-}
-
-.theme-light .step-error {
-  color: var(--color-red);
 }
 
 .step-error .message {
@@ -1234,10 +1261,14 @@ button.-solid {
   animation-fill-mode: both;
 }
 
+// used by pablen/toasty Elm package
+// stylelint-disable-next-line
 .bounceInRight {
   animation-name: bounceInRight;
 }
 
+// used by pablen/toasty Elm package
+// stylelint-disable-next-line
 .fadeOutRightBig {
   animation-name: fadeOutRightBig;
 }
@@ -1270,6 +1301,7 @@ button.-solid {
   max-height: 100px;
   margin: 1em 1em 0 1em;
 
+  // stylelint-disable-next-line
   transition: max-height 1.2s, margin-top 1.2s;
 }
 
@@ -1277,15 +1309,16 @@ button.-solid {
   width: 500px;
   padding: 1em;
 
-  cursor: pointer;
-
-  color: white;
-  border-radius: 5px;
-  border-radius: 0px;
-  background-color: var(--color-bg-dark);
-  box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
+  color: var(--color-text);
 
   font-size: 14px;
+
+  background-color: var(--color-bg-dark);
+  border-radius: 5px;
+  border-radius: 0;
+  box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
+
+  cursor: pointer;
 }
 
 .alert-container .-title {
@@ -1296,19 +1329,15 @@ button.-solid {
 
 .alert-container .-message {
   display: flex;
-  overflow-y: auto;
   flex-direction: row;
   justify-content: space-between;
 
   max-height: 3.25em;
   margin-top: 0.25em;
   margin-bottom: 0;
+  overflow-y: auto;
 
   font-size: 0.9em;
-}
-
-.alert-container {
-  color: var(--color-text);
 }
 
 .alert-container.-success {
@@ -1330,10 +1359,6 @@ button.-solid {
   background: var(--color-bg-dark);
 }
 
-.theme-light .hooks {
-  background: var(--color-white);
-}
-
 .hooks .loading {
   display: flex;
 
@@ -1343,20 +1368,22 @@ button.-solid {
 
 .hooks .row {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
 
   margin: 0.3em 0;
+
   > .hook-summary {
     position: relative;
 
-    overflow: hidden;
-
     padding: 0;
+
+    overflow: hidden;
 
     cursor: pointer;
 
     // hide details marker on Chrome
+    // stylelint-disable declaration-no-important
     &::-webkit-details-marker {
       display: none !important;
     }
@@ -1365,31 +1392,35 @@ button.-solid {
     &:first-of-type {
       list-style-type: none !important;
     }
+    // stylelint-enable declaration-no-important
   }
+
   .chevron {
     margin-right: 0.8em;
     margin-left: 1em;
 
-    transition: all 0.2s;
+    color: var(--color-primary);
+
     transform-origin: 50% 49%;
 
-    color: var(--color-primary);
+    transition: transform 0.2s;
   }
-  &[open] .chevron {
-    transform: rotate(0.5turn);
-  }
+}
+
+.row[open] .chevron {
+  transform: rotate(0.5turn);
 }
 
 .hooks .row.preview {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
 }
 
 .hooks .headers {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
 
   margin-top: 0.3em;
   padding-top: 0.3em;
@@ -1401,9 +1432,9 @@ button.-solid {
 .hooks .header {
   flex: 1;
 
-  text-align: center;
-
   font-size: 18px;
+
+  text-align: center;
 }
 
 .hooks .row .preview {
@@ -1425,13 +1456,13 @@ button.-solid {
 }
 
 .hooks .row .cell {
-  align-items: center;
   flex: 1;
+  align-items: center;
   justify-content: center;
 
-  text-align: center;
-
   font-weight: 300;
+
+  text-align: center;
 }
 
 .hooks .source-id {
@@ -1442,16 +1473,18 @@ button.-solid {
   width: 84px;
 }
 
-.hooks .row .cell.source-id {
+.hooks .cell.source-id {
   display: flex;
   flex-direction: row;
   justify-content: center;
 }
 
-.hooks .row .cell.source-id .text {
-  padding: 3px 12px;
+.hooks .text {
   flex: 1;
+  padding: 3px 12px;
+
   text-align: center;
+
   background: var(--color-bg);
 }
 
@@ -1463,16 +1496,6 @@ button.-solid {
   color: var(--color-red-light);
 }
 
-.theme-light {
-  .preview .status.success {
-    color: var(--color-green-dark);
-  }
-
-  .preview .status.failure {
-    color: var(--color-red);
-  }
-}
-
 .hooks .row .info {
   display: flex;
   display: inline-block;
@@ -1481,10 +1504,10 @@ button.-solid {
   width: 100%;
   padding: 0.4em 1em;
 
+  font-size: 14px;
+
   border-bottom: 1px solid var(--color-bg-light);
   border-left: 2px solid var(--color-bg-light);
-
-  font-size: 14px;
 }
 
 .hooks .row:last-child .info {
@@ -1508,56 +1531,35 @@ button.-solid {
   border-left-color: var(--color-red);
 }
 
-.hooks .row .info .element span.-m-l,
-.hooks .row .info .element .-m-l {
+.hooks .element span.-m-l,
+.hooks .element .-m-l {
   margin-left: 0.4em;
 }
 
-.hooks .row .info .element span.-m-r,
-.hook-build .details .element .-m-r {
+.hooks .element span.-m-r,
+.hook-build .-m-r {
   margin-right: 0.4em;
 }
 
-.hooks .row .info .element .error-label {
+.hooks .error-label {
   color: var(--color-red-light);
 }
 
-.theme-light {
-  .hooks .row .info .element .error-label {
-    color: var(--color-red);
-  }
-}
-
-.hooks .row .info .element .hook-build-status.-pending {
+.hooks .hook-build-status.-pending {
   color: var(--color-offwhite);
 }
 
-.hooks .row .info .element .hook-build-status.-running {
+.hooks .hook-build-status.-running {
   color: var(--color-yellow);
 }
 
-.hooks .row .info .element .hook-build-status.-success {
+.hooks .hook-build-status.-success {
   color: var(--color-green);
 }
 
-.hooks .row .info .element .hook-build-status.-failure,
-.hooks .row .info .element .hook-build-status.-error {
+.hooks .hook-build-status.-failure,
+.hooks .hook-build-status.-error {
   color: var(--color-red-light);
-}
-
-.theme-light {
-  .hooks .row .info .element .hook-build-status.-running {
-    color: var(--color-yellow-dark);
-  }
-
-  .hooks .row .info .element .hook-build-status.-success {
-    color: var(--color-green-dark);
-  }
-
-  .hooks .row .info .element .hook-build-status.-failure,
-  .hooks .row .info .element .hook-build-status.-error {
-    color: var(--color-red);
-  }
 }
 
 .repo-settings {
@@ -1582,17 +1584,18 @@ button.-solid {
   border-bottom: 2px solid var(--color-secondary);
 }
 
-.repo-settings .category .header .text {
+.repo-settings .header .text {
   position: relative;
   top: 0.1em;
 
-  font-size: 22px;
   font-weight: bold;
+
+  font-size: 22px;
 }
 
 .repo-settings .category .description {
-  font-size: 14px;
   font-weight: 300;
+  font-size: 14px;
 }
 
 .inputs {
@@ -1609,10 +1612,12 @@ button.-solid {
 }
 
 .-icon {
+  fill: none;
   stroke: var(--color-primary);
 
   &.-check {
     background-color: var(--color-primary);
+
     stroke: var(--color-bg);
   }
 
@@ -1621,14 +1626,32 @@ button.-solid {
     fill: none;
   }
 
+  &.-success {
+    stroke: var(--color-green);
+  }
+
+  &.-running {
+    stroke: var(--color-yellow);
+  }
+
+  &.-failure,
+  &.-error {
+    stroke: var(--color-red);
+  }
+
+  &.-pending {
+    fill: var(--color-bg-light);
+    stroke: var(--color-bg-light);
+  }
+
   .-inner {
     fill: var(--color-primary);
   }
 }
 
 .checkbox .label {
-  font-size: 16px;
   font-weight: bold;
+  font-size: 16px;
 }
 
 .checkbox .field-info {
@@ -1640,18 +1663,19 @@ button.-solid {
 .inputs.repo-timeout input {
   width: 5em;
   padding-top: 0.5em;
-  padding-right: 0em;
+  padding-right: 0;
   padding-bottom: 0.5em;
   padding-left: 1em;
 
-  text-align: center;
-
   color: var(--color-text);
-  border: none;
-  border-bottom: 2px solid var(--color-primary);
-  background: none;
 
   font-size: 14px;
+
+  text-align: center;
+
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--color-primary);
 }
 
 .repo-timeout input:focus {
@@ -1666,8 +1690,9 @@ button.-solid {
 .repo-timeout .label {
   margin-left: 0.75em;
 
-  font-size: 16px;
   font-weight: 300;
+
+  font-size: 16px;
 }
 
 .repo-timeout input:invalid {
@@ -1676,24 +1701,20 @@ button.-solid {
   caret-color: var(--color-text);
 }
 
-.theme-light .repo-timeout input:invalid {
-  color: var(--color-red);
-
-  caret-color: var(--color-text);
-}
-
 .timeout-help {
   padding: 8px 12px;
 
-  border-radius: 4px;
-  background: var(--color-bg-light);
+  font-weight: 300;
 
   font-size: 14px;
-  font-weight: 300;
+
+  background: var(--color-bg-light);
+
+  border-radius: 4px;
 }
 
-.checkbox input[type="checkbox"],
-.checkbox input[type="radio"] {
+.checkbox input[type='checkbox'],
+.checkbox input[type='radio'] {
   position: relative;
   right: 1.55em;
   bottom: 0.1em;
@@ -1717,7 +1738,7 @@ button.-solid {
   width: 1.15em;
   height: 1.15em;
 
-  content: "";
+  content: '';
 }
 
 .checkbox.radio label::before {
@@ -1727,33 +1748,32 @@ button.-solid {
   width: 1.15em;
   height: 1.15em;
 
-  content: "";
+  content: '';
 }
 
-.checkbox input[type="checkbox"] + label::after,
-.checkbox input[type="radio"] + label::after {
+.checkbox input[type='checkbox'] + label::after,
+.checkbox input[type='radio'] + label::after {
   content: none;
 }
 
-.checkbox input[type="checkbox"]:focus + label::before,
-.checkbox input[type="radio"]:focus + label::before {
+.checkbox input[type='checkbox']:focus + label::before,
+.checkbox input[type='radio']:focus + label::before {
   outline: var(--color-primary) auto 5px;
 }
 
 .theme-toggle {
-  display: inline-block;
   position: relative;
+
+  display: inline-block;
   margin: 0 1em 0 0;
   padding: 0;
-  font-weight: normal;
-  background: none;
-  color: var(--color-bg-light);
-  fill: var(--color-bg-light);
-}
 
-.theme-light .theme-toggle {
-  color: var(--color-gray-light);
-  fill: var(--color-gray-light);
+  color: var(--color-bg-light);
+  font-weight: normal;
+
+  background: none;
+
+  fill: var(--color-bg-light);
 }
 
 .pager-actions {
@@ -1762,9 +1782,10 @@ button.-solid {
 }
 
 .enable-container {
-  margin-top: 1em;
   display: flex;
   flex-direction: row;
+  margin-top: 1em;
+
   list-style: none;
 }
 
@@ -1780,9 +1801,10 @@ button.-solid {
 
 .enable-column-a {
   display: flex;
-  margin-right: 0.8em;
   flex-direction: column;
+  margin-right: 0.8em;
 }
+
 .enable-column-b {
   display: flex;
   flex-direction: row;
@@ -1793,9 +1815,11 @@ button.-solid {
 }
 
 .repo-disable-disabling {
-  color: var(--color-yellow);
-  border: var(--line-width) solid var(--color-yellow);
   min-width: 170px;
+
+  color: var(--color-yellow);
+
+  border: var(--line-width) solid var(--color-yellow);
 }
 
 .repo-disable-disabling-text {
@@ -1804,9 +1828,13 @@ button.-solid {
 
 button.-btn.-inverted.repo-disable-confirm {
   color: var(--color-red-light);
+
   border: var(--line-width) solid var(--color-red-light);
-  &:hover {
-      color: var(--color-red);
-      border: var(--line-width) solid var(--color-red);
+
+  &:hover,
+  &:focus {
+    color: var(--color-red);
+
+    border: var(--line-width) solid var(--color-red);
   }
 }

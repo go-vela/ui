@@ -2,49 +2,49 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-import { Elm, Flags, App, Config, Session, Theme } from "../elm/Main";
-import "../scss/style.scss";
+import { Elm, Flags, App, Config, Session, Theme } from '../elm/Main';
+import '../scss/style.scss';
 
 // Vela consts
-const feedbackURL: string = "https://github.com/go-vela/ui/issues/new";
-const docsURL: string = "https://go-vela.github.io/docs";
+const feedbackURL: string = 'https://github.com/go-vela/ui/issues/new';
+const docsURL: string = 'https://go-vela.github.io/docs';
 
 // setup for session state
-const storageKey: string = "vela";
+const storageKey: string = 'vela';
 const storedSessionState: string | null = sessionStorage.getItem(storageKey);
 const currentSessionState: Session | null = storedSessionState
   ? JSON.parse(storedSessionState)
   : null;
 
 // setup for stored theme
-const themeKey: string = "vela-theme";
-const defaultTheme: string = "theme-dark";
+const themeKey: string = 'vela-theme';
+const defaultTheme: string = 'theme-dark';
 const storedThemeState: string | null = localStorage.getItem(themeKey);
 const currentThemeState: Theme =
   (storedThemeState as Theme) || (defaultTheme as Theme);
 
 // Vela flags; configuration for bootstrapping Vela Elm UI
 const flags: Flags = {
-  isDev: process.env.NODE_ENV === "development",
-  velaAPI: process.env.VELA_API || "$VELA_API",
-  velaSourceBaseURL: process.env.VELA_SOURCE_URL || "$VELA_SOURCE_URL",
-  velaSourceClient: process.env.VELA_SOURCE_CLIENT || "$VELA_SOURCE_CLIENT",
+  isDev: process.env.NODE_ENV === 'development',
+  velaAPI: process.env.VELA_API || '$VELA_API',
+  velaSourceBaseURL: process.env.VELA_SOURCE_URL || '$VELA_SOURCE_URL',
+  velaSourceClient: process.env.VELA_SOURCE_CLIENT || '$VELA_SOURCE_CLIENT',
   velaFeedbackURL:
     process.env.VELA_FEEDBACK_URL ||
-    envOrNull("VELA_FEEDBACK_URL", "$VELA_FEEDBACK_URL") ||
+    envOrNull('VELA_FEEDBACK_URL', '$VELA_FEEDBACK_URL') ||
     feedbackURL,
   velaDocsURL:
     process.env.VELA_DOCS_URL ||
-    envOrNull("VELA_DOCS_URL", "$VELA_DOCS_URL") ||
+    envOrNull('VELA_DOCS_URL', '$VELA_DOCS_URL') ||
     docsURL,
   velaSession: currentSessionState || null,
-  velaTheme: currentThemeState || (defaultTheme as Theme)
+  velaTheme: currentThemeState || (defaultTheme as Theme),
 };
 
 // create the configuration object for Elm
 const config: Config = {
   node: null, // not passing an HTML node will let Elm take over the whole page
-  flags: flags
+  flags: flags,
 };
 
 // bootstrap the app
@@ -62,10 +62,10 @@ app.ports.storeSession.subscribe(sessionMessage => {
 });
 
 app.ports.setTheme.subscribe(theme => {
-  let body: HTMLElement = document.getElementsByTagName("body")[0];
+  let body: HTMLElement = document.getElementsByTagName('body')[0];
 
   if (!body.classList.contains(theme)) {
-    body.className = "";
+    body.className = '';
     body.classList.add(theme);
   }
 
