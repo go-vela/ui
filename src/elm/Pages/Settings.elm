@@ -5,10 +5,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Settings exposing
-    ( access
+    ( Msgs
+    , access
     , alert
     , checkbox
-    , enableRepo
+    , enableUpdate
     , enableable
     , events
     , radio
@@ -46,7 +47,6 @@ import Html.Attributes
         , value
         )
 import Html.Events exposing (onCheck, onClick, onInput)
-import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import SvgBuilder
 import Util
@@ -86,32 +86,55 @@ type alias NumberInputChange msg =
     String -> String -> String -> Int -> msg
 
 
+{-| StringInputChange : type that takes Msg for forwarding string input callback to Main.elm
+-}
+type alias StringInputChange msg =
+    String -> msg
+
+
+{-| Msgs : record containing msgs routeable to Main.elm
+-}
+type alias Msgs msg =
+    { eventsUpdate : CheckboxUpdate msg
+    , accessUpdate : RadioUpdate msg
+    , timeoutUpdate : NumberInputChange msg
+    , inTimeoutChange : StringInputChange msg
+    , disableRepo : DisableRepo msg
+    , enableRepo : EnableRepo msg
+    }
+
+
 
 -- VIEW
 
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> CheckboxUpdate msg -> RadioUpdate msg -> NumberInputChange msg -> (String -> msg) -> DisableRepo msg -> EnableRepo msg -> Html msg
-view repo inTimeout eventsUpdate accessUpdate timeoutUpdate inTimeoutChange disableRepoMsg enableRepoMsg =
+view : WebData Repository -> Maybe Int -> Msgs msg -> Html msg
+view repo inTimeout actions =
     let
-        loading =
-            div []
-                [ Util.largeLoader
-                ]
+        ( accessUpdate, timeoutUpdate, inTimeoutChange ) =
+            ( actions.accessUpdate, actions.timeoutUpdate, actions.inTimeoutChange )
+
+        ( eventsUpdate, disableRepo, enableRepo ) =
+            ( actions.eventsUpdate, actions.disableRepo, actions.enableRepo )
     in
     case repo of
         Success repo_ ->
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ div [ class "row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
-                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, enable disableRepoMsg enableRepoMsg repo_ ]
+                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, enable disableRepo enableRepo repo_ ]
                 ]
 
         Loading ->
-            loading
+            div []
+                [ Util.largeLoader
+                ]
 
         NotAsked ->
-            loading
+            div []
+                [ Util.largeLoader
+                ]
 
         Failure _ ->
             div []
@@ -580,10 +603,10 @@ enableable status =
     not <| disableable status
 
 
-{-| enableRepo : takes repo, enabled status and source repos and sets enabled status of the specified repo
+{-| enableUpdate : takes repo, enabled status and source repos and sets enabled status of the specified repo
 -}
-enableRepo : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
-enableRepo repo status sourceRepos =
+enableUpdate : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
+enableUpdate repo status sourceRepos =
     case sourceRepos of
         Success repos ->
             case Dict.get repo.org repos of

@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Home exposing (view)
 
 import Dict exposing (Dict)
+import Favorites exposing (FavoriteRepo, isFavorited)
 import Html
     exposing
         ( Html
@@ -37,15 +38,11 @@ import Util
 import Vela
     exposing
         ( CurrentUser
-        , FavoriteRepo
-        , Repositories
-        , Repository
-        , isFavorited
         )
 
 
-view : WebData CurrentUser -> FavoriteRepo msg -> WebData Repositories -> Html msg
-view user toggleFavorite currentRepos =
+view : WebData CurrentUser -> FavoriteRepo msg -> Html msg
+view user toggleFavorite =
     let
         blankMessage : Html msg
         blankMessage =

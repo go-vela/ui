@@ -23,6 +23,7 @@ import Build
 import Crumbs
 import Dict
 import Errors exposing (detailedErrorToString)
+import Favorites exposing (isFavorited)
 import FeatherIcons
 import Html
     exposing
@@ -62,7 +63,7 @@ import Pages exposing (Page(..))
 import Pages.AddRepos
 import Pages.Home
 import Pages.Hooks
-import Pages.Settings exposing (enableRepo)
+import Pages.Settings exposing (enableUpdate)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import Svg.Attributes
@@ -132,7 +133,6 @@ import Vela
         , encodeTheme
         , encodeUpdateRepository
         , encodeUpdateUser
-        , isFavorited
         , stringToTheme
         )
 
@@ -173,7 +173,7 @@ type alias Model =
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
-    , sourceSearchFilters : RepoSearchFilters
+    , filters : RepoSearchFilters
     , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
@@ -228,7 +228,7 @@ init flags url navKey =
             , toasties = Alerting.initialState
             , zone = utc
             , time = millisToPosix 0
-            , sourceSearchFilters = Dict.empty
+            , filters = Dict.empty
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
             , entryURL = url
@@ -351,7 +351,7 @@ update msg model =
             ( { model | session = newSession }, Cmd.none )
 
         FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, sourceSearchFilters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+            ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
 
         FavoriteRepo org repo ->
             let
@@ -387,7 +387,7 @@ update msg model =
                     RemoteData.withDefault defaultRepository model.repo
             in
             ( { model
-                | sourceRepos = enableRepo repo Loading model.sourceRepos
+                | sourceRepos = enableUpdate repo Loading model.sourceRepos
                 , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
               }
             , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
@@ -467,7 +467,7 @@ update msg model =
             case response of
                 Ok ( _, enabledRepo ) ->
                     ( { model
-                        | sourceRepos = enableRepo enabledRepo (RemoteData.succeed True) model.sourceRepos
+                        | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
                         , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled }
                       }
                     , Cmd.none
@@ -537,7 +537,7 @@ update msg model =
                 Ok _ ->
                     ( { model
                         | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Disabled }
-                        , sourceRepos = enableRepo repo NotAsked model.sourceRepos
+                        , sourceRepos = enableUpdate repo NotAsked model.sourceRepos
                       }
                     , Cmd.none
                     )
@@ -796,9 +796,9 @@ update msg model =
         SearchSourceRepos org searchBy ->
             let
                 filters =
-                    Dict.update org (\_ -> Just searchBy) model.sourceSearchFilters
+                    Dict.update org (\_ -> Just searchBy) model.filters
             in
-            ( { model | sourceSearchFilters = filters }, Cmd.none )
+            ( { model | filters = filters }, Cmd.none )
 
         ChangeRepoTimeout inTimeout ->
             let
@@ -1074,12 +1074,12 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.user FavoriteRepo model.favorites
+            , Pages.Home.view model.user FavoriteRepo
             )
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model addReposActions
+            , Pages.AddRepos.view model addReposMsgs
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1103,7 +1103,7 @@ viewContent model =
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo
+            , Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
             )
 
         Pages.RepositoryBuilds org repo maybePage _ ->
@@ -1563,7 +1563,7 @@ repoEnabledError sourceRepos repo error =
                 _ ->
                     ( toFailure error, addError error )
     in
-    ( enableRepo repo enabled sourceRepos
+    ( enableUpdate repo enabled sourceRepos
     , action
     )
 
@@ -1823,9 +1823,14 @@ restartBuild model org repo buildNumber =
 -- MSG HELPERS
 
 
-addReposActions : Pages.AddRepos.Actions Msg
-addReposActions =
-    SearchSourceRepos EnableRepo EnableRepos FavoriteRepo
+addReposMsgs : Pages.AddRepos.Msgs Msg
+addReposMsgs =
+    Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos FavoriteRepo
+
+
+repoSettingsMsgs : Pages.Settings.Msgs Msg
+repoSettingsMsgs =
+    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo
 
 
 

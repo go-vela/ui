@@ -18,7 +18,6 @@ module Vela exposing
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
-    , FavoriteRepo
     , Field
     , Hook
     , HookBuilds
@@ -32,7 +31,6 @@ module Vela exposing
     , RepoSearchFilters
     , Repositories
     , Repository
-    , Search
     , SearchFilter
     , Session
     , SourceRepositories
@@ -75,7 +73,6 @@ module Vela exposing
     , encodeTheme
     , encodeUpdateRepository
     , encodeUpdateUser
-    , isFavorited
     , stringToTheme
     )
 
@@ -251,23 +248,6 @@ encodeUpdateUser user =
 buildUpdateFavoritesPayload : List String -> UpdateUserPayload
 buildUpdateFavoritesPayload value =
     { defaultUpdateUserPayload | favorites = Just value }
-
-
-isFavorited : WebData CurrentUser -> String -> Bool
-isFavorited user favorite =
-    let
-        _ =
-            Debug.log "?" user
-
-        _ =
-            Debug.log "fav?" favorite
-    in
-    case user of
-        RemoteData.Success u ->
-            List.member favorite u.favorites
-
-        _ ->
-            False
 
 
 
@@ -885,15 +865,3 @@ type alias EnableRepo msg =
 -}
 type alias EnableRepos msg =
     Repositories -> msg
-
-
-{-| FavoriteRepo : takes org and maybe repo and toggles its favorite status them on Vela
--}
-type alias FavoriteRepo msg =
-    Org -> Maybe Repo -> msg
-
-
-{-| Search : takes org and repo and searches/filters based on user input
--}
-type alias Search msg =
-    Org -> String -> msg
