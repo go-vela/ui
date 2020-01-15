@@ -211,11 +211,6 @@ type alias CurrentUser =
     }
 
 
-defaultCurrentUser : CurrentUser
-defaultCurrentUser =
-    CurrentUser -1 "" "" [] False False
-
-
 decodeCurrentUser : Decoder CurrentUser
 decodeCurrentUser =
     Decode.succeed CurrentUser

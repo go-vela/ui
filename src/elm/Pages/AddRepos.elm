@@ -7,7 +7,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.AddRepos exposing (Model, Msgs, view)
 
 import Dict
-import Favorites exposing (FavoriteRepo, isFavorited)
+import Favorites
+    exposing
+        ( ToggleFavorite
+        , isFavorited
+        , starToggle
+        )
 import FeatherIcons
 import Html
     exposing
@@ -41,8 +46,6 @@ import Search
         , searchFilterLocal
         , shouldSearch
         )
-import Svg.Attributes
-import SvgBuilder
 import Util
 import Vela
     exposing
@@ -77,7 +80,7 @@ type alias Msgs msg =
     { search : Search msg
     , enableRepo : EnableRepo msg
     , enableRepos : EnableRepos msg
-    , toggleFavorite : FavoriteRepo msg
+    , toggleFavorite : ToggleFavorite msg
     }
 
 
@@ -201,7 +204,7 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
     viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Enable' button
 
 -}
-viewSourceRepo : EnableRepo msg -> FavoriteRepo msg -> Repository -> Html msg
+viewSourceRepo : EnableRepo msg -> ToggleFavorite msg -> Repository -> Html msg
 viewSourceRepo enableRepo toggleFavorite repo =
     let
         favorited =
@@ -217,7 +220,7 @@ viewSourceRepo enableRepo toggleFavorite repo =
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : EnableRepo msg -> FavoriteRepo msg -> Repository -> Bool -> Html msg
+viewSearchedSourceRepo : EnableRepo msg -> ToggleFavorite msg -> Repository -> Bool -> Html msg
 viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
@@ -252,7 +255,7 @@ enableReposButton org repos filtered enableRepos =
 
 {-| enableRepoButton : builds action button for adding single repos
 -}
-enableRepoButton : Repository -> EnableRepo msg -> FavoriteRepo msg -> Bool -> Html msg
+enableRepoButton : Repository -> EnableRepo msg -> ToggleFavorite msg -> Bool -> Html msg
 enableRepoButton repo enableRepo toggleFavorite favorited =
     case repo.enabled of
         RemoteData.NotAsked ->
@@ -273,7 +276,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
         RemoteData.Success enabledStatus ->
             if enabledStatus then
                 div [ class "add-repos-actions" ]
-                    [ SvgBuilder.star [ onClick <| toggleFavorite repo.org <| Just repo.name, Svg.Attributes.class "-cursor" ] favorited
+                    [ starToggle repo.org repo.name toggleFavorite <| favorited
                     , div [ class "repo-enable-btn", class "repo-enable-enabled" ]
                         [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ]
                         , span []
@@ -291,7 +294,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : Model a -> SourceRepositories -> EnableRepo msg -> FavoriteRepo msg -> Html msg
+searchReposGlobal : Model a -> SourceRepositories -> EnableRepo msg -> ToggleFavorite msg -> Html msg
 searchReposGlobal model repos enableRepo toggleFavorite =
     let
         ( user, filters ) =
@@ -317,7 +320,7 @@ searchReposGlobal model repos enableRepo toggleFavorite =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> EnableRepo msg -> FavoriteRepo msg -> ( Repositories, Bool, List (Html msg) )
+searchReposLocal : Org -> RepoSearchFilters -> Repositories -> EnableRepo msg -> ToggleFavorite msg -> ( Repositories, Bool, List (Html msg) )
 searchReposLocal org filters repos enableRepo toggleFavorite =
     -- Filter the repos if the user typed more than 2 characters
     let

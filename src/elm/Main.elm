@@ -23,7 +23,7 @@ import Build
 import Crumbs
 import Dict
 import Errors exposing (detailedErrorToString)
-import Favorites exposing (isFavorited)
+import Favorites exposing (isFavorited, starToggle, toFavorite, updateFavorites)
 import FeatherIcons
 import Html
     exposing
@@ -66,7 +66,6 @@ import Pages.Hooks
 import Pages.Settings exposing (enableUpdate)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import Svg.Attributes
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
 import Time
@@ -157,7 +156,6 @@ type alias Model =
     { page : Page
     , session : Maybe Session
     , user : WebData CurrentUser
-    , favorites : WebData Repositories
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
     , hooks : HooksModel
@@ -203,7 +201,6 @@ init flags url navKey =
             { page = Pages.Overview
             , session = flags.velaSession
             , user = NotAsked
-            , favorites = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
             , hooks = defaultHooks
@@ -277,7 +274,7 @@ type Msg
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
-    | FavoriteRepo Org (Maybe Repo)
+    | ToggleFavorite Org (Maybe Repo)
     | EnableRepo Repository
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
@@ -312,32 +309,6 @@ type Msg
     | Tick Interval Posix
 
 
-toggleFavorite : WebData CurrentUser -> String -> ( List String, Bool )
-toggleFavorite user favorite =
-    case user of
-        Success u ->
-            let
-                favorited =
-                    List.member favorite u.favorites
-
-                favorites =
-                    if favorited then
-                        List.Extra.remove favorite u.favorites
-
-                    else
-                        List.Extra.unique <| favorite :: u.favorites
-            in
-            ( favorites, not favorited )
-
-        _ ->
-            ( [], False )
-
-
-toFavorite : Org -> Maybe Repo -> String
-toFavorite org repo =
-    org ++ "/" ++ Maybe.withDefault "*" repo
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -353,13 +324,13 @@ update msg model =
         FetchSourceRepositories ->
             ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
 
-        FavoriteRepo org repo ->
+        ToggleFavorite org repo ->
             let
                 favorite =
                     toFavorite org repo
 
                 ( favorites, favorited ) =
-                    toggleFavorite model.user favorite
+                    updateFavorites model.user favorite
 
                 payload : UpdateUserPayload
                 payload =
@@ -432,10 +403,6 @@ update msg model =
         CurrentUserResponse response ->
             case response of
                 Ok ( _, user ) ->
-                    let
-                        _ =
-                            Debug.log "favorites: " user.favorites
-                    in
                     ( { model | user = RemoteData.succeed user }
                     , Cmd.none
                     )
@@ -1074,7 +1041,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.user FavoriteRepo
+            , Pages.Home.view model.user ToggleFavorite
             )
 
         Pages.AddRepositories ->
@@ -1183,22 +1150,13 @@ navButton : Model -> Html Msg
 navButton model =
     case model.page of
         Pages.Overview ->
-            case model.favorites of
-                Success repos ->
-                    if (repos |> List.filter .active |> List.length) > 0 then
-                        a
-                            [ class "-btn"
-                            , class "-inverted"
-                            , Util.testAttribute "repo-enable"
-                            , Routes.href <| Routes.AddRepositories
-                            ]
-                            [ text "Add Repositories" ]
-
-                    else
-                        text ""
-
-                _ ->
-                    text ""
+            a
+                [ class "-btn"
+                , class "-inverted"
+                , Util.testAttribute "repo-enable"
+                , Routes.href <| Routes.AddRepositories
+                ]
+                [ text "Add Repositories" ]
 
         Pages.AddRepositories ->
             button
@@ -1221,7 +1179,7 @@ navButton model =
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "nav-buttons" ]
-                [ SvgBuilder.star [ onClick <| FavoriteRepo org <| Just repo, Svg.Attributes.class "-cursor" ] <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
                     [ class "-btn"
                     , class "-inverted"
@@ -1240,15 +1198,18 @@ navButton model =
                 ]
 
         Pages.Settings org repo ->
-            button
-                [ classList
-                    [ ( "btn-refresh", True )
-                    , ( "-inverted", True )
+            div [ class "nav-buttons" ]
+                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                , button
+                    [ classList
+                        [ ( "btn-refresh", True )
+                        , ( "-inverted", True )
+                        ]
+                    , onClick <| RefreshSettings org repo
+                    , Util.testAttribute "refresh-repo-settings"
                     ]
-                , onClick <| RefreshSettings org repo
-                , Util.testAttribute "refresh-repo-settings"
-                ]
-                [ text "Refresh Settings"
+                    [ text "Refresh Settings"
+                    ]
                 ]
 
         Pages.Build org repo buildNumber _ ->
@@ -1261,6 +1222,18 @@ navButton model =
                 , Util.testAttribute "restart-build"
                 ]
                 [ text "Restart Build"
+                ]
+
+        Pages.Hooks org repo _ _ ->
+            div [ class "nav-buttons" ]
+                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                , a
+                    [ class "-btn"
+                    , class "-inverted"
+                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.Settings org repo
+                    ]
+                    [ text "Repo Settings" ]
                 ]
 
         _ ->
@@ -1742,6 +1715,20 @@ clickHook model org repo buildNumber =
         )
 
 
+{-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
+-}
+addReposMsgs : Pages.AddRepos.Msgs Msg
+addReposMsgs =
+    Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
+
+
+{-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm
+-}
+repoSettingsMsgs : Pages.Settings.Msgs Msg
+repoSettingsMsgs =
+    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo
+
+
 
 -- API HELPERS
 
@@ -1817,20 +1804,6 @@ getBuildStepsLogs model org repo buildNumber steps =
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 restartBuild model org repo buildNumber =
     Api.try (RestartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
-
-
-
--- MSG HELPERS
-
-
-addReposMsgs : Pages.AddRepos.Msgs Msg
-addReposMsgs =
-    Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos FavoriteRepo
-
-
-repoSettingsMsgs : Pages.Settings.Msgs Msg
-repoSettingsMsgs =
-    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo
 
 
 

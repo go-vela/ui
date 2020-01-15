@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Home exposing (view)
 
 import Dict exposing (Dict)
-import Favorites exposing (FavoriteRepo, isFavorited)
+import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
 import Html
     exposing
         ( Html
@@ -16,7 +16,6 @@ import Html
         , details
         , div
         , h1
-        , p
         , span
         , summary
         , text
@@ -26,13 +25,11 @@ import Html.Attributes
         ( attribute
         , class
         )
-import Html.Events exposing (onClick)
 import List
 import List.Extra
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
-import Svg.Attributes
 import SvgBuilder
 import Util
 import Vela
@@ -41,7 +38,7 @@ import Vela
         )
 
 
-view : WebData CurrentUser -> FavoriteRepo msg -> Html msg
+view : WebData CurrentUser -> ToggleFavorite msg -> Html msg
 view user toggleFavorite =
     let
         blankMessage : Html msg
@@ -71,7 +68,6 @@ view user toggleFavorite =
                     u.favorites
                         |> recordsGroupByOrg
                         |> viewCurrentRepoListByOrg user toggleFavorite
-                    -- blankMessage
 
                 else
                     blankMessage
@@ -89,7 +85,7 @@ view user toggleFavorite =
         ]
 
 
-viewCurrentRepoListByOrg : WebData CurrentUser -> FavoriteRepo msg -> Dict String (List String) -> Html msg
+viewCurrentRepoListByOrg : WebData CurrentUser -> ToggleFavorite msg -> Dict String (List String) -> Html msg
 viewCurrentRepoListByOrg user toggleFavorite repoList =
     repoList
         |> Dict.toList
@@ -98,7 +94,7 @@ viewCurrentRepoListByOrg user toggleFavorite repoList =
         |> div [ class "repo-list" ]
 
 
-viewOrg : WebData CurrentUser -> String -> FavoriteRepo msg -> List String -> Html msg
+viewOrg : WebData CurrentUser -> String -> ToggleFavorite msg -> List String -> Html msg
 viewOrg user org toggleFavorite favorites =
     div [ class "repo-org", Util.testAttribute "repo-org" ]
         [ details [ class "details", class "repo-item", attribute "open" "open" ]
@@ -108,7 +104,7 @@ viewOrg user org toggleFavorite favorites =
         ]
 
 
-viewSingleRepo : WebData CurrentUser -> FavoriteRepo msg -> String -> Html msg
+viewSingleRepo : WebData CurrentUser -> ToggleFavorite msg -> String -> Html msg
 viewSingleRepo user toggleFavorite favorite =
     let
         ( org, repo ) =
@@ -119,7 +115,7 @@ viewSingleRepo user toggleFavorite favorite =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo ]
         , div [ class "-actions" ]
-            [ SvgBuilder.star [ onClick <| toggleFavorite org <| Just repo, Svg.Attributes.class "-cursor" ] <| isFavorited user <| org ++ "/" ++ repo
+            [ starToggle org repo toggleFavorite <| isFavorited user <| org ++ "/" ++ repo
             , a
                 [ class "-btn"
                 , class "-inverted"
