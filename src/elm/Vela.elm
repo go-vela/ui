@@ -11,12 +11,14 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
+    , CurrentUser
     , DisableRepo
     , EnableRepo
     , EnableRepos
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
+    , FavoriteRepo
     , Field
     , Hook
     , HookBuilds
@@ -39,15 +41,17 @@ module Vela exposing
     , StepNumber
     , Steps
     , Theme(..)
-    , ToggleFavorite
     , UpdateRepositoryPayload
+    , UpdateUserPayload
     , User
     , Viewing
+    , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
     , decodeBuild
     , decodeBuilds
+    , decodeCurrentUser
     , decodeHook
     , decodeHooks
     , decodeLog
@@ -70,11 +74,13 @@ module Vela exposing
     , encodeSession
     , encodeTheme
     , encodeUpdateRepository
+    , encodeUpdateUser
+    , isFavorited
     , stringToTheme
     )
 
 import Dict exposing (Dict)
-import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, string, succeed)
+import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
@@ -192,6 +198,76 @@ decodeUser =
     Decode.succeed User
         |> required "username" string
         |> required "token" string
+
+
+
+-- CURRENTUSER
+
+
+type alias CurrentUser =
+    { id : Int
+    , name : String
+    , token : String
+    , favorites : List String
+    , active : Bool
+    , admin : Bool
+    }
+
+
+defaultCurrentUser : CurrentUser
+defaultCurrentUser =
+    CurrentUser -1 "" "" [] False False
+
+
+decodeCurrentUser : Decoder CurrentUser
+decodeCurrentUser =
+    Decode.succeed CurrentUser
+        |> required "id" int
+        |> required "name" string
+        |> required "token" string
+        |> required "favorites" (Decode.list string)
+        |> required "active" bool
+        |> required "admin" bool
+
+
+type alias UpdateUserPayload =
+    { name : Maybe String
+    , favorites : Maybe (List String)
+    }
+
+
+defaultUpdateUserPayload : UpdateUserPayload
+defaultUpdateUserPayload =
+    UpdateUserPayload Nothing Nothing
+
+
+encodeUpdateUser : UpdateUserPayload -> Encode.Value
+encodeUpdateUser user =
+    Encode.object
+        [ ( "favorites", encodeOptionalList Encode.string user.favorites )
+        ]
+
+
+buildUpdateFavoritesPayload : List String -> UpdateUserPayload
+buildUpdateFavoritesPayload value =
+    { defaultUpdateUserPayload | favorites = Just value }
+
+
+isFavorited : WebData CurrentUser -> String -> Bool
+isFavorited user favorite =
+    let
+        _ =
+            Debug.log "?" user
+
+        _ =
+            Debug.log "fav?" favorite
+    in
+    case user of
+        RemoteData.Success u ->
+            List.member favorite u.favorites
+
+        _ ->
+            False
 
 
 
@@ -419,6 +495,16 @@ encodeOptional encoder value =
             Encode.null
 
 
+encodeOptionalList : (a -> Encode.Value) -> Maybe (List a) -> Encode.Value
+encodeOptionalList encoder value =
+    case value of
+        Just value_ ->
+            Encode.list encoder value_
+
+        Nothing ->
+            Encode.null
+
+
 buildUpdateRepoBoolPayload : Field -> Bool -> UpdateRepositoryPayload
 buildUpdateRepoBoolPayload field value =
     case field of
@@ -540,7 +626,7 @@ decodeBuild =
         |> optional "distribution" string ""
 
 
-{-| toBuildStatus : decodes json from vela into list of builds
+{-| decodeBuilds : decodes json from vela into list of builds
 -}
 decodeBuilds : Decoder Builds
 decodeBuilds =
@@ -801,10 +887,10 @@ type alias EnableRepos msg =
     Repositories -> msg
 
 
-{-| ToggleFavorite : takes repo and toggles its favorite status them on Vela
+{-| FavoriteRepo : takes org and maybe repo and toggles its favorite status them on Vela
 -}
-type alias ToggleFavorite msg =
-    Repository -> msg
+type alias FavoriteRepo msg =
+    Org -> Maybe Repo -> msg
 
 
 {-| Search : takes org and repo and searches/filters based on user input

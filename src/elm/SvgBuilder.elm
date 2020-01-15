@@ -511,7 +511,7 @@ star baseAttributes favorited =
     let
         attributes =
             List.append baseAttributes
-                [ viewBox ""
+                [ viewBox "0 0 30 30"
                 , width "30"
                 , height "30"
                 , Util.testAttribute "favorite-toggle"

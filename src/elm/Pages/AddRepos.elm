@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.AddRepos exposing (view)
+module Pages.AddRepos exposing (Actions, Model, view)
 
 import Dict
 import FeatherIcons
@@ -44,22 +44,56 @@ import SvgBuilder
 import Util
 import Vela
     exposing
-        ( EnableRepo
+        ( CurrentUser
+        , EnableRepo
         , EnableRepos
+        , FavoriteRepo
         , Org
         , RepoSearchFilters
         , Repositories
         , Repository
         , Search
         , SourceRepositories
+        , isFavorited
         )
+
+
+
+-- TYPES
+
+
+{-| Model : an abbreviated version of the main model
+-}
+type alias Model a =
+    { a
+        | user : WebData CurrentUser
+        , sourceRepos : WebData SourceRepositories
+        , sourceSearchFilters : RepoSearchFilters
+    }
+
+
+{-| Actions : record containing actions
+-}
+type alias Actions msg =
+    { search : Search msg
+    , enableRepo : EnableRepo msg
+    , enableRepos : EnableRepos msg
+    , toggleFavorite : FavoriteRepo msg
+    }
+
+
+
+-- VIEW
 
 
 {-| view : takes model and renders account page for adding repos to overview
 -}
-view : WebData SourceRepositories -> RepoSearchFilters -> Search msg -> EnableRepo msg -> EnableRepos msg -> Html msg
-view sourceRepos sourceSearchFilters search enableRepo enableRepos =
+view : Model a -> Actions msg -> Html msg
+view model actions =
     let
+        ( user, sourceRepos, sourceSearchFilters ) =
+            ( model.user, model.sourceRepos, model.sourceSearchFilters )
+
         loading =
             div []
                 [ h1 []
@@ -76,8 +110,8 @@ view sourceRepos sourceSearchFilters search enableRepo enableRepos =
     case sourceRepos of
         RemoteData.Success repos ->
             div [ class "source-repos", Util.testAttribute "source-repos" ]
-                [ repoSearchBarGlobal sourceSearchFilters search
-                , viewSourceRepos repos sourceSearchFilters search enableRepo enableRepos
+                [ repoSearchBarGlobal sourceSearchFilters actions.search
+                , viewSourceRepos user repos sourceSearchFilters actions
                 ]
 
         RemoteData.Loading ->
@@ -97,36 +131,39 @@ view sourceRepos sourceSearchFilters search enableRepo enableRepos =
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
-viewSourceRepos : SourceRepositories -> RepoSearchFilters -> Search msg -> EnableRepo msg -> EnableRepos msg -> Html msg
-viewSourceRepos sourceRepos sourceSearchFilters search enableRepo enableRepos =
+viewSourceRepos : WebData CurrentUser -> SourceRepositories -> RepoSearchFilters -> Actions msg -> Html msg
+viewSourceRepos user sourceRepos sourceSearchFilters actions =
     if shouldSearch <| searchFilterGlobal sourceSearchFilters then
         -- Search and render repos using the global filter
-        searchReposGlobal sourceSearchFilters sourceRepos enableRepo
+        searchReposGlobal user sourceSearchFilters sourceRepos actions.enableRepo actions.toggleFavorite
 
     else
         -- Render repos normally
         sourceRepos
             |> Dict.toList
             |> Util.filterEmptyLists
-            |> List.map (\( org, repos_ ) -> viewSourceOrg sourceSearchFilters org repos_ search enableRepo enableRepos)
+            |> List.map (\( org, repos_ ) -> viewSourceOrg sourceSearchFilters org repos_ actions)
             |> div [ class "repo-list" ]
 
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
 -}
-viewSourceOrg : RepoSearchFilters -> Org -> Repositories -> Search msg -> EnableRepo msg -> EnableRepos msg -> Html msg
-viewSourceOrg sourceSearchFilters org repos search enableRepo enableRepos =
+viewSourceOrg : RepoSearchFilters -> Org -> Repositories -> Actions msg -> Html msg
+viewSourceOrg sourceSearchFilters org repos actions =
     let
+        ( search, enableRepo, toggleFavorite ) =
+            ( actions.search, actions.enableRepo, actions.toggleFavorite )
+
         ( repos_, filtered, content ) =
             if shouldSearch <| searchFilterLocal org sourceSearchFilters then
                 -- Search and render repos using the global filter
-                searchReposLocal org sourceSearchFilters repos enableRepo
+                searchReposLocal org sourceSearchFilters repos enableRepo toggleFavorite
 
             else
                 -- Render repos normally
-                ( repos, False, List.map (viewSourceRepo enableRepo) repos )
+                ( repos, False, List.map (viewSourceRepo enableRepo toggleFavorite) repos )
     in
-    viewSourceOrgDetails sourceSearchFilters org repos_ filtered content search enableRepos
+    viewSourceOrgDetails sourceSearchFilters org repos_ filtered content search actions.enableRepos
 
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element
@@ -161,26 +198,30 @@ viewSourceOrgSummary sourceSearchFilters org repos filtered content search enabl
     viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Enable' button
 
 -}
-viewSourceRepo : EnableRepo msg -> Repository -> Html msg
-viewSourceRepo enableRepo repo =
+viewSourceRepo : EnableRepo msg -> FavoriteRepo msg -> Repository -> Html msg
+viewSourceRepo enableRepo toggleFavorite repo =
+    let
+        favorited =
+            False
+    in
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
         , div []
-            [ enableRepoButton repo enableRepo
+            [ enableRepoButton repo enableRepo toggleFavorite favorited
             ]
         ]
 
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : EnableRepo msg -> Repository -> Html msg
-viewSearchedSourceRepo enableRepo repo =
+viewSearchedSourceRepo : EnableRepo msg -> FavoriteRepo msg -> Repository -> Bool -> Html msg
+viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
             [ text <| repo.org ++ "/" ++ repo.name ]
         , div
             []
-            [ enableRepoButton repo enableRepo
+            [ enableRepoButton repo enableRepo toggleFavorite favorited
             ]
         ]
 
@@ -208,22 +249,28 @@ enableReposButton org repos filtered enableRepos =
 
 {-| enableRepoButton : builds action button for adding single repos
 -}
-enableRepoButton : Repository -> EnableRepo msg -> Html msg
-enableRepoButton repo enableRepo =
+enableRepoButton : Repository -> EnableRepo msg -> FavoriteRepo msg -> Bool -> Html msg
+enableRepoButton repo enableRepo toggleFavorite favorited =
     case repo.enabled of
         RemoteData.NotAsked ->
-            div [ class "add-repos-actions" ] [ button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ] ]
+            div [ class "add-repos-actions" ]
+                [ button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ]
+                ]
 
         RemoteData.Loading ->
-            div [ class "add-repos-actions" ] [ div [ class "repo-enable-btn", class "repo-enable-enabling" ] [ span [ class "repo-enable-enabling-text" ] [ text "Enabling" ], span [ class "loading-ellipsis" ] [] ] ]
+            div [ class "add-repos-actions" ]
+                [ div [ class "repo-enable-btn", class "repo-enable-enabling" ] [ span [ class "repo-enable-enabling-text" ] [ text "Enabling" ], span [ class "loading-ellipsis" ] [] ]
+                ]
 
         RemoteData.Failure _ ->
-            div [ class "add-repos-actions" ] [ div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ] ]
+            div [ class "add-repos-actions" ]
+                [ div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+                ]
 
         RemoteData.Success enabledStatus ->
             if enabledStatus then
                 div [ class "add-repos-actions" ]
-                    [ SvgBuilder.star [ onClick <| enableRepo repo, Svg.Attributes.class "-cursor" ] repo.active
+                    [ SvgBuilder.star [ onClick <| toggleFavorite repo.org <| Just repo.name, Svg.Attributes.class "-cursor" ] favorited
                     , div [ class "repo-enable-btn", class "repo-enable-enabled" ]
                         [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ]
                         , span []
@@ -241,8 +288,8 @@ enableRepoButton repo enableRepo =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : RepoSearchFilters -> SourceRepositories -> EnableRepo msg -> Html msg
-searchReposGlobal filters repos enableRepo =
+searchReposGlobal : WebData CurrentUser -> RepoSearchFilters -> SourceRepositories -> EnableRepo msg -> FavoriteRepo msg -> Html msg
+searchReposGlobal user filters repos enableRepo toggleFavorite =
     let
         filteredRepos =
             repos
@@ -255,7 +302,7 @@ searchReposGlobal filters repos enableRepo =
     div [ class "filtered-repos" ] <|
         -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
-            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo enableRepo repo)
+            filteredRepos |> List.map (\repo -> viewSearchedSourceRepo enableRepo toggleFavorite repo <| isFavorited user <| repo.org ++ "/" ++ repo.name)
 
         else
             -- No repos matched the search
@@ -264,8 +311,8 @@ searchReposGlobal filters repos enableRepo =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> EnableRepo msg -> ( Repositories, Bool, List (Html msg) )
-searchReposLocal org filters repos enableRepo =
+searchReposLocal : Org -> RepoSearchFilters -> Repositories -> EnableRepo msg -> FavoriteRepo msg -> ( Repositories, Bool, List (Html msg) )
+searchReposLocal org filters repos enableRepo toggleFavorite =
     -- Filter the repos if the user typed more than 2 characters
     let
         filteredRepos =
@@ -274,7 +321,7 @@ searchReposLocal org filters repos enableRepo =
     ( filteredRepos
     , True
     , if not <| List.isEmpty filteredRepos then
-        List.map (viewSourceRepo enableRepo) filteredRepos
+        List.map (viewSourceRepo enableRepo toggleFavorite) filteredRepos
 
       else
         [ div [ class "-no-repos" ] [ text "No results" ] ]

@@ -27,6 +27,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import List
+import List.Extra
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
@@ -35,14 +36,16 @@ import SvgBuilder
 import Util
 import Vela
     exposing
-        ( Repositories
+        ( CurrentUser
+        , FavoriteRepo
+        , Repositories
         , Repository
-        , ToggleFavorite
+        , isFavorited
         )
 
 
-view : ToggleFavorite msg -> WebData Repositories -> Html msg
-view toggleFavorite currentRepos =
+view : WebData CurrentUser -> FavoriteRepo msg -> WebData Repositories -> Html msg
+view user toggleFavorite currentRepos =
     let
         blankMessage : Html msg
         blankMessage =
@@ -65,17 +68,13 @@ view toggleFavorite currentRepos =
                 ]
     in
     div []
-        [ case currentRepos of
-            Success repos ->
-                let
-                    activeRepos : Repositories
-                    activeRepos =
-                        List.filter .active repos
-                in
-                if List.length activeRepos > 0 then
-                    activeRepos
-                        |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg toggleFavorite
+        [ case user of
+            Success u ->
+                if List.length u.favorites > 0 then
+                    u.favorites
+                        |> recordsGroupByOrg
+                        |> viewCurrentRepoListByOrg user toggleFavorite
+                    -- blankMessage
 
                 else
                     blankMessage
@@ -93,17 +92,42 @@ view toggleFavorite currentRepos =
         ]
 
 
-viewSingleRepo : ToggleFavorite msg -> Repository -> Html msg
-viewSingleRepo toggleFavorite repo =
+viewCurrentRepoListByOrg : WebData CurrentUser -> FavoriteRepo msg -> Dict String (List String) -> Html msg
+viewCurrentRepoListByOrg user toggleFavorite repoList =
+    repoList
+        |> Dict.toList
+        |> Util.filterEmptyLists
+        |> List.map (\( org, favorites ) -> viewOrg user org toggleFavorite favorites)
+        |> div [ class "repo-list" ]
+
+
+viewOrg : WebData CurrentUser -> String -> FavoriteRepo msg -> List String -> Html msg
+viewOrg user org toggleFavorite favorites =
+    div [ class "repo-org", Util.testAttribute "repo-org" ]
+        [ details [ class "details", class "repo-item", attribute "open" "open" ]
+            (summary [ class "summary" ] [ text org ]
+                :: List.map (viewSingleRepo user toggleFavorite) favorites
+            )
+        ]
+
+
+viewSingleRepo : WebData CurrentUser -> FavoriteRepo msg -> String -> Html msg
+viewSingleRepo user toggleFavorite favorite =
+    let
+        ( org, repo ) =
+            ( Maybe.withDefault "" <| List.Extra.getAt 0 <| String.split "/" favorite
+            , Maybe.withDefault "" <| List.Extra.getAt 1 <| String.split "/" favorite
+            )
+    in
     div [ class "-item", Util.testAttribute "repo-item" ]
-        [ div [] [ text repo.name ]
+        [ div [] [ text repo ]
         , div [ class "-actions" ]
-            [ SvgBuilder.star [ onClick <| toggleFavorite repo, Svg.Attributes.class "-cursor" ] repo.active
+            [ SvgBuilder.star [ onClick <| toggleFavorite org <| Just repo, Svg.Attributes.class "-cursor" ] <| isFavorited user <| org ++ "/" ++ repo
             , a
                 [ class "-btn"
                 , class "-inverted"
                 , class "-view"
-                , Routes.href <| Routes.Settings repo.org repo.name
+                , Routes.href <| Routes.Settings org repo
                 ]
                 [ text "Settings" ]
             , a
@@ -111,7 +135,7 @@ viewSingleRepo toggleFavorite repo =
                 , class "-inverted"
                 , class "-view"
                 , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
+                , Routes.href <| Routes.Hooks org repo Nothing Nothing
                 ]
                 [ text "Hooks" ]
             , a
@@ -119,37 +143,24 @@ viewSingleRepo toggleFavorite repo =
                 , class "-solid"
                 , class "-view"
                 , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing
+                , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing
                 ]
                 [ text "View" ]
             ]
         ]
 
 
-viewOrg : String -> ToggleFavorite msg -> Repositories -> Html msg
-viewOrg org toggleFavorite repos =
-    div [ class "repo-org", Util.testAttribute "repo-org" ]
-        [ details [ class "details", class "repo-item", attribute "open" "open" ]
-            (summary [ class "summary" ] [ text org ]
-                :: List.map (viewSingleRepo toggleFavorite) repos
-            )
-        ]
-
-
-viewCurrentRepoListByOrg : ToggleFavorite msg -> Dict String Repositories -> Html msg
-viewCurrentRepoListByOrg toggleFavorite repoList =
-    repoList
-        |> Dict.toList
-        |> Util.filterEmptyLists
-        |> List.map (\( org, repos ) -> viewOrg org toggleFavorite repos)
-        |> div [ class "repo-list" ]
-
-
-{-| recordsGroupBy takes a list of records and groups them by the provided key
-
-    recordsGroupBy .lastname listOfFullNames
-
--}
-recordsGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
-recordsGroupBy key recordList =
-    List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
+recordsGroupByOrg : List String -> Dict String (List String)
+recordsGroupByOrg recordList =
+    List.foldr
+        (\x acc ->
+            Dict.update
+                (Maybe.withDefault "" <|
+                    List.head <|
+                        String.split "/" x
+                )
+                (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just)
+                acc
+        )
+        Dict.empty
+        recordList
