@@ -9,11 +9,11 @@ name: release
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 env:
   NODE_ENV: production
-  USE_NODE_VER: "12.13.1"
+  USE_NODE_VER: '12.14.1'
 
 # pipeline to execute
 jobs:

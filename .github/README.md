@@ -1,5 +1,7 @@
 # ui
 
+[![Github Actions](https://github.com/go-vela/ui/workflows/ci/badge.svg?branch=master&event=push)](https://github.com/go-vela/ui/actions?query=branch%3Amaster+event%3Apush)
+
 vela ui
 
 > Vela is in active development and is a pre-release product. Please use at your own risk in production.
