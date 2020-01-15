@@ -14,7 +14,7 @@ _\* this will install globally; we prefer to not have them as local dev dependen
 ## Create secrets for local development
 
 ```bash
-# Rename the existing example .env.example to .env
+# Copy the existing example .env.example to .env
 cp .env.example .env
 ```
 
