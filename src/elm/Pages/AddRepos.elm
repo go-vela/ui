@@ -148,14 +148,14 @@ viewSourceRepos model sourceRepos actions =
         sourceRepos
             |> Dict.toList
             |> Util.filterEmptyLists
-            |> List.map (\( org, repos_ ) -> viewSourceOrg filters org repos_ actions)
+            |> List.map (\( org, repos_ ) -> viewSourceOrg model.user filters org repos_ actions)
             |> div [ class "repo-list" ]
 
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
 -}
-viewSourceOrg : RepoSearchFilters -> Org -> Repositories -> Msgs msg -> Html msg
-viewSourceOrg filters org repos actions =
+viewSourceOrg : WebData CurrentUser -> RepoSearchFilters -> Org -> Repositories -> Msgs msg -> Html msg
+viewSourceOrg user filters org repos actions =
     let
         ( search, enableRepo, toggleFavorite ) =
             ( actions.search, actions.enableRepo, actions.toggleFavorite )
@@ -163,11 +163,11 @@ viewSourceOrg filters org repos actions =
         ( repos_, filtered, content ) =
             if shouldSearch <| searchFilterLocal org filters then
                 -- Search and render repos using the global filter
-                searchReposLocal org filters repos enableRepo toggleFavorite
+                searchReposLocal user org filters repos enableRepo toggleFavorite
 
             else
                 -- Render repos normally
-                ( repos, False, List.map (viewSourceRepo enableRepo toggleFavorite) repos )
+                ( repos, False, List.map (viewSourceRepo user enableRepo toggleFavorite) repos )
     in
     viewSourceOrgDetails filters org repos_ filtered content search actions.enableRepos
 
@@ -204,11 +204,11 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
     viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Enable' button
 
 -}
-viewSourceRepo : EnableRepo msg -> ToggleFavorite msg -> Repository -> Html msg
-viewSourceRepo enableRepo toggleFavorite repo =
+viewSourceRepo : WebData CurrentUser -> EnableRepo msg -> ToggleFavorite msg -> Repository -> Html msg
+viewSourceRepo user enableRepo toggleFavorite repo =
     let
         favorited =
-            False
+            isFavorited user <| repo.org ++ "/" ++ repo.name
     in
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
@@ -257,25 +257,21 @@ enableReposButton org repos filtered enableRepos =
 -}
 enableRepoButton : Repository -> EnableRepo msg -> ToggleFavorite msg -> Bool -> Html msg
 enableRepoButton repo enableRepo toggleFavorite favorited =
-    case repo.enabled of
-        RemoteData.NotAsked ->
-            div [ class "add-repos-actions" ]
-                [ button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ]
-                ]
+    div [ class "add-repos-actions", Util.testAttribute "add-repos-actions" ] <|
+        case repo.enabled of
+            RemoteData.NotAsked ->
+                [ button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ] ]
 
-        RemoteData.Loading ->
-            div [ class "add-repos-actions" ]
+            RemoteData.Loading ->
                 [ div [ class "repo-enable-btn", class "repo-enable-enabling" ] [ span [ class "repo-enable-enabling-text" ] [ text "Enabling" ], span [ class "loading-ellipsis" ] [] ]
                 ]
 
-        RemoteData.Failure _ ->
-            div [ class "add-repos-actions" ]
+            RemoteData.Failure _ ->
                 [ div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
                 ]
 
-        RemoteData.Success enabledStatus ->
-            if enabledStatus then
-                div [ class "add-repos-actions" ]
+            RemoteData.Success enabledStatus ->
+                if enabledStatus then
                     [ starToggle repo.org repo.name toggleFavorite <| favorited
                     , div [ class "repo-enable-btn", class "repo-enable-enabled" ]
                         [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ]
@@ -288,8 +284,8 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
                         ]
                     ]
 
-            else
-                div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+                else
+                    [ div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ] ]
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
@@ -320,8 +316,8 @@ searchReposGlobal model repos enableRepo toggleFavorite =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : Org -> RepoSearchFilters -> Repositories -> EnableRepo msg -> ToggleFavorite msg -> ( Repositories, Bool, List (Html msg) )
-searchReposLocal org filters repos enableRepo toggleFavorite =
+searchReposLocal : WebData CurrentUser -> Org -> RepoSearchFilters -> Repositories -> EnableRepo msg -> ToggleFavorite msg -> ( Repositories, Bool, List (Html msg) )
+searchReposLocal user org filters repos enableRepo toggleFavorite =
     -- Filter the repos if the user typed more than 2 characters
     let
         filteredRepos =
@@ -330,7 +326,7 @@ searchReposLocal org filters repos enableRepo toggleFavorite =
     ( filteredRepos
     , True
     , if not <| List.isEmpty filteredRepos then
-        List.map (viewSourceRepo enableRepo toggleFavorite) filteredRepos
+        List.map (viewSourceRepo user enableRepo toggleFavorite) filteredRepos
 
       else
         [ div [ class "-no-repos" ] [ text "No results" ] ]
