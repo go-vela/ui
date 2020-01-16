@@ -21,7 +21,7 @@ Please see our [contributing](CONTRIBUTING.md) documentation for further instruc
 ## Copyright and License
 
 ```
-Copyright (c) 2019 Target Brands, Inc.
+Copyright (c) 2020 Target Brands, Inc.
 ```
 
 [![license](https://img.shields.io/crates/l/gl.svg)](LICENSE)
