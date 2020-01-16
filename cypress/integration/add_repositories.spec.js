@@ -42,9 +42,10 @@ context('Add Repositories', () => {
 
     it('shows the enabled label when a repo is enabled', () => {
       cy.get('[data-test=source-org-cat]').click();
-      cy.get('[data-test=source-repo-purr] > div > button').click();
+      cy.get('[data-test=enable-cat-purr]').click();
 
-      cy.get('[data-test=source-repo-purr] .repo-enable-enabled')
+      cy.get('[data-test=enabled-cat-purr]')
+        .first()
         .should('be.visible')
         .and('contain', 'Enabled');
     });
@@ -58,13 +59,11 @@ context('Add Repositories', () => {
       });
 
       cy.get('[data-test=source-org-cat]').click();
-      cy.get('[data-test=source-repo-purr] > div > button').click();
+      cy.get('[data-test=enable-cat-purr').click();
 
-      cy.get('[data-test=source-repo-purr] .repo-enable-enabled').should(
-        'not.be.visible',
-      );
+      cy.get('[data-test=enabled-cat-purr').should('not.be.visible');
 
-      cy.get('[data-test=source-repo-purr] .repo-enable-failed')
+      cy.get('[data-test=failed-cat-purr')
         .should('be.visible')
         .and('contain', 'Failed');
 

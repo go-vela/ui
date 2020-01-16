@@ -1109,7 +1109,7 @@ viewLogin : Html Msg
 viewLogin =
     div []
         [ h1 [] [ text "Authorize Via" ]
-        , button [ class "btn-login", class "-solid", onClick SignInRequested, Util.testAttribute "login-button" ]
+        , button [ class "button", onClick SignInRequested, Util.testAttribute "login-button" ]
             [ FeatherIcons.github
                 |> FeatherIcons.withSize 20
                 |> FeatherIcons.withClass "login-source-icon"
@@ -1140,8 +1140,8 @@ navButton model =
                 Success repos ->
                     if (repos |> List.filter .active |> List.length) > 0 then
                         a
-                            [ class "-btn"
-                            , class "-inverted"
+                            [ class "button"
+                            , class "-outline"
                             , Util.testAttribute "repo-enable"
                             , Routes.href <| Routes.AddRepositories
                             ]
@@ -1156,9 +1156,8 @@ navButton model =
         Pages.AddRepositories ->
             button
                 [ classList
-                    [ ( "btn-refresh", True )
-                    , ( "-inverted", True )
-                    , ( "loading", model.sourceRepos == Loading )
+                    [ ( "button", True )
+                    , ( "-outline", True )
                     ]
                 , onClick FetchSourceRepositories
                 , disabled (model.sourceRepos == Loading)
@@ -1173,18 +1172,17 @@ navButton model =
                 ]
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
-            div [ class "nav-buttons" ]
+            div [ class "buttons" ]
                 [ a
-                    [ class "-btn"
-                    , class "-inverted"
-                    , class "-hooks"
+                    [ class "button"
+                    , class "-outline"
                     , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
                     , Routes.href <| Routes.Hooks org repo maybePage maybePerPage
                     ]
                     [ text "Hooks" ]
                 , a
-                    [ class "-btn"
-                    , class "-inverted"
+                    [ class "button"
+                    , class "-outline"
                     , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
                     , Routes.href <| Routes.Settings org repo
                     ]
@@ -1194,8 +1192,8 @@ navButton model =
         Pages.Settings org repo ->
             button
                 [ classList
-                    [ ( "btn-refresh", True )
-                    , ( "-inverted", True )
+                    [ ( "button", True )
+                    , ( "-outline", True )
                     ]
                 , onClick <| RefreshSettings org repo
                 , Util.testAttribute "refresh-repo-settings"
@@ -1206,8 +1204,8 @@ navButton model =
         Pages.Build org repo buildNumber _ ->
             button
                 [ classList
-                    [ ( "btn-restart-build", True )
-                    , ( "-inverted", True )
+                    [ ( "button", True )
+                    , ( "-outline", True )
                     ]
                 , onClick <| RestartBuild org repo buildNumber
                 , Util.testAttribute "restart-build"
@@ -1245,11 +1243,13 @@ viewHeader maybeSession { feedbackLink, docsLink, theme } =
                             ]
                         ]
             ]
-        , div [ class "help-links" ]
-            [ viewThemeToggle theme
-            , a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ]
-            , a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ]
-            , FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml []
+        , nav [ class "help-links", attribute "role" "navigation" ]
+            [ ul []
+                [ li [] [ viewThemeToggle theme ]
+                , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
+                , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
+                , li [] [ FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [] ]
+                ]
             ]
         ]
 
@@ -1257,15 +1257,15 @@ viewHeader maybeSession { feedbackLink, docsLink, theme } =
 viewThemeToggle : Theme -> Html Msg
 viewThemeToggle theme =
     let
-        ( newTheme, icon, themeAria ) =
+        ( newTheme, themeAria ) =
             case theme of
                 Dark ->
-                    ( Light, SvgBuilder.themeLight, "enable light mode" )
+                    ( Light, "enable light mode" )
 
                 Light ->
-                    ( Dark, SvgBuilder.themeDark, "enable dark mode" )
+                    ( Dark, "enable dark mode" )
     in
-    button [ class "theme-toggle", attribute "aria-label" themeAria, onClick (SetTheme newTheme) ] [ icon 24 ]
+    button [ class "button", class "-link", attribute "aria-label" themeAria, onClick (SetTheme newTheme) ] [ text "switch theme" ]
 
 
 
@@ -1369,7 +1369,7 @@ setNewPage route model =
             ( { model | page = Pages.NotFound }, Cmd.none )
 
         {--Hitting any page and not being logged in will load the login page content
-            
+
            Note: we're not using .pushUrl to retain ability for user to use brower's back button
         --}
         ( _, False ) ->

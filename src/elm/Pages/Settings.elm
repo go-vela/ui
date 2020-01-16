@@ -250,9 +250,8 @@ updateTimeout inTimeout repoTimeout msg =
         Just _ ->
             button
                 [ classList
-                    [ ( "-btn", True )
-                    , ( "-inverted", True )
-                    , ( "-repo-timeout", True )
+                    [ ( "button", True )
+                    , ( "-outline", True )
                     ]
                 , onClick msg
                 , disabled <| not <| validTimeout inTimeout <| Just repoTimeout
@@ -308,10 +307,10 @@ enabledButton : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
 enabledButton disableRepoMsg enableRepoMsg repo =
     let
         baseClasses =
-            classList [ ( "-btn", True ), ( "-inverted", True ), ( "-view", True ), ( "repo-disable", True ) ]
+            classList [ ( "button", True ), ( "-outline", True ) ]
 
         inProgressClasses =
-            classList [ ( "repo-enable", True ), ( "repo-disable-disabling", True ), ( "repo-disable", True ) ]
+            classList [ ( "button", True ), ( "-outline", True ), ( "-loading", True ) ]
 
         baseTestAttribute =
             Util.testAttribute "repo-disable"
@@ -352,16 +351,26 @@ enabledButton disableRepoMsg enableRepoMsg repo =
                 [ text "Really Disable?" ]
 
         Vela.Disabling ->
-            div [ inProgressClasses, Util.testAttribute "repo-disabling" ]
-                [ span [ class "repo-disable-disabling-text" ]
-                    [ text "Disabling" ]
+            button
+                [ inProgressClasses
+                , class "button"
+                , class "-outline"
+                , class "-loading"
+                , Util.testAttribute "repo-disabling"
+                ]
+                [ text "Disabling"
                 , span [ class "loading-ellipsis" ] []
                 ]
 
         Vela.Enabling ->
-            div [ inProgressClasses, Util.testAttribute "repo-enabling" ]
-                [ span [ class "repo-disable-disabling-text" ]
-                    [ text "Enabling" ]
+            div
+                [ inProgressClasses
+                , class "button"
+                , class "-outline"
+                , class "-loading"
+                , Util.testAttribute "repo-enabling"
+                ]
+                [ text "Enabling"
                 , span [ class "loading-ellipsis" ] []
                 ]
 

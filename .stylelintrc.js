@@ -60,6 +60,7 @@ module.exports = {
     'selector-no-vendor-prefix': true,
     'selector-no-qualifying-type': [true, { ignore: ['attribute', 'class'] }],
     'scss/selector-no-redundant-nesting-selector': true,
+    'scss/at-extend-no-missing-placeholder': true,
     'color-format/format': {
       format: 'hsl',
     },

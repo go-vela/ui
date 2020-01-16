@@ -24,8 +24,6 @@ module SvgBuilder exposing
     , stepRunning
     , stepStatusToIcon
     , stepSuccess
-    , themeDark
-    , themeLight
     , velaLogo
     )
 
@@ -67,40 +65,6 @@ velaLogo size =
         [ Svg.path [ class "vela-logo-star", d "M1477.22 329.54l-139.11-109.63 11.45-176.75-147.26 98.42-164.57-65.51 48.11 170.47-113.16 136.27 176.99 6.93 94.63 149.72 61.28-166.19 171.64-43.73z" ] []
         , Svg.path [ class "vela-logo-outer", d "M1174.75 635.12l-417.18 722.57a3.47 3.47 0 01-6 0L125.38 273.13a3.48 3.48 0 013-5.22h796.86l39.14-47.13-14.19-50.28h-821.8A100.9 100.9 0 0041 321.84L667.19 1406.4a100.88 100.88 0 00174.74 0l391.61-678.27z" ] []
         , Svg.path [ class "vela-logo-inner", d "M1087.64 497.29l-49.37-1.93-283.71 491.39L395.9 365.54H288.13l466.43 807.88 363.02-628.76-29.94-47.37z" ] []
-        ]
-
-
-themeDark : Int -> Html msg
-themeDark size =
-    svg
-        [ width <| String.fromInt size
-        , height <| String.fromInt size
-        , viewBox "0 0 24 24"
-        , class "theme-dark-icon"
-        ]
-        [ Svg.path [ d "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" ] []
-        ]
-
-
-themeLight : Int -> Html msg
-themeLight size =
-    svg
-        [ width <| String.fromInt size
-        , height <| String.fromInt size
-        , stroke "currentColor"
-        , strokeWidth "2"
-        , viewBox "0 0 24 24"
-        , class "theme-light-icon"
-        ]
-        [ Svg.circle [ cx "12", cy "12", r "5" ] []
-        , Svg.line [ x1 "12", y1 "1", x2 "12", y2 "3" ] []
-        , Svg.line [ x1 "12", y1 "21", x2 "12", y2 "23" ] []
-        , Svg.line [ x1 "4.22", y1 "4.22", x2 "5.64", y2 "5.64" ] []
-        , Svg.line [ x1 "18.36", y1 "18.36", x2 "19.78", y2 "19.78" ] []
-        , Svg.line [ x1 "1", y1 "12", x2 "3", y2 "12" ] []
-        , Svg.line [ x1 "21", y1 "12", x2 "23", y2 "12" ] []
-        , Svg.line [ x1 "4.22", y1 "19.78", x2 "5.64", y2 "18.36" ] []
-        , Svg.line [ x1 "18.36", y1 "5.64", x2 "19.78", y2 "4.22" ] []
         ]
 
 

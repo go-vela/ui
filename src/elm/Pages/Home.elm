@@ -55,7 +55,7 @@ view currentRepos =
                     , br [] []
                     , text "Add repositories from your GitHub account to Vela now!"
                     ]
-                , a [ class "-btn", class "-solid", class "-overview", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
+                , a [ class "button", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
                 ]
     in
     div []
@@ -91,26 +91,22 @@ viewSingleRepo : Repository -> Html msg
 viewSingleRepo repo =
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo.name ]
-        , div [ class "-actions" ]
+        , div [ class "buttons" ]
             [ a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
+                [ class "button"
+                , class "-outline"
                 , Routes.href <| Routes.Settings repo.org repo.name
                 ]
                 [ text "Settings" ]
             , a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
+                [ class "button"
+                , class "-outline"
                 , Util.testAttribute "repo-hooks"
                 , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
                 ]
                 [ text "Hooks" ]
             , a
-                [ class "-btn"
-                , class "-solid"
-                , class "-view"
+                [ class "button"
                 , Util.testAttribute "repo-view"
                 , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing
                 ]

@@ -145,31 +145,11 @@ header {
 }
 
 .help-links {
-  display: flex;
-  align-items: center;
-
   font-size: 80%;
 
-  > a {
-    position: relative;
-
-    display: inline-block;
-
-    margin-right: 1em;
-
-    &:not(:last-child)::after {
-      @include slashes;
-    }
-
-    &:last-child {
-      font-weight: bold;
-      text-decoration: none;
-    }
+  button {
+    margin-bottom: 1px;
   }
-}
-
-.cli-help {
-  vertical-align: top;
 }
 
 .identity-name {
@@ -226,78 +206,38 @@ header {
   margin: 0 var(--horizontal-pad) var(--horizontal-pad);
 }
 
-button,
-.button {
-  margin: 0.5em 0;
-  padding: 0.5em 2em;
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-  color: var(--color-bg);
-  font-weight: bold;
-
-  font-size: 16px;
-  text-decoration: none;
-
-  background-image: linear-gradient(
-    to right,
-    var(--color-cyan) 0%,
-    var(--color-lavender) 60%,
-    var(--color-cyan) 100%
-  );
-  background-size: 200% auto;
-  border: none;
-
-  cursor: pointer;
-
-  + button,
-  + .button {
-    margin-left: 0.5em;
+  ul {
+    margin: 0;
+    padding: 0;
   }
 
-  &:hover,
-  &:focus {
-    background-position: right center;
-  }
+  li {
+    position: relative;
 
-  &:disabled {
-    color: var(--color-bg-dark);
+    display: inline-block;
 
-    background-color: var(--color-bg-light);
-    background-image: none;
-    border-color: var(--color-bg-light);
-  }
-
-  &.inverted {
-    color: var(--color-primary);
-
-    background-color: var(--color-bg);
-    background-image: none;
-    border-color: var(--color-primary);
-    border-style: solid;
-    border-width: var(--line-width);
-
-    &:not([disabled]):hover,
-    &:not([disabled]):focus {
-      color: var(--color-text);
-
-      border-color: var(--color-text);
+    &:not(:last-child) {
+      margin-right: 1em;
     }
 
-    &:disabled {
-      color: var(--color-bg-light);
+    &:not(:last-child)::after {
+      @include slashes;
+    }
 
-      border-color: var(--color-bg-light);
-
-      pointer-events: none;
+    &:last-child {
+      font-weight: bold;
+      text-decoration: none;
     }
   }
 }
 
 .navigation {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 0 3em;
+  padding: 0 var(--horizontal-pad);
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
@@ -312,33 +252,6 @@ button,
     transparent 18.8%
   );
   border-image-slice: 1;
-
-  li {
-    position: relative;
-
-    display: inline-block;
-
-    margin-right: 1em;
-
-    &:not(:last-child)::after {
-      @include slashes;
-    }
-
-    &:last-child {
-      font-weight: bold;
-      text-decoration: none;
-    }
-  }
-}
-
-.login-source-icon {
-  display: inline-block;
-
-  margin-right: 0.6em;
-}
-
-.overview {
-  line-height: 2em;
 }
 
 .repo-item {
@@ -374,30 +287,11 @@ button,
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   width: 100%;
   margin: 0.5em 0 0 1em;
-  padding: 0.5em 1em;
+  padding: 1em;
 
   background-color: var(--color-bg-dark);
-}
-
-.-item .-actions {
-  display: flex;
-  align-items: center;
-}
-
-.-actions .-view {
-  padding: 0.33em 2em;
-
-  line-height: 1.5em;
-
-  @extend .button;
-}
-
-.-actions .-view > a {
-  color: var(--color-bg);
-  text-decoration: none;
 }
 
 .actions-divider {
@@ -507,195 +401,6 @@ button,
 
     content: ']';
   }
-}
-
-.repo-enable {
-  display: flex;
-  align-items: center;
-
-  min-width: 150px;
-  margin: 0.425em 0;
-  padding: 0.2em 1em;
-
-  > svg {
-    margin-right: 1em;
-  }
-}
-
-.-enabled-container {
-  display: flex;
-  flex-direction: row;
-}
-
-.repo-enable-btn {
-  margin-right: 0.5em;
-}
-
-.repo-enable-enabled {
-  color: var(--color-green);
-
-  border: var(--line-width) solid var(--color-green);
-
-  @extend .repo-enable;
-}
-
-.repo-enable-enabling {
-  color: var(--color-yellow);
-
-  border: var(--line-width) solid var(--color-yellow);
-
-  @extend .repo-enable;
-}
-
-.repo-enable-enabling-text {
-  margin-left: 12px;
-}
-
-.repo-enable-failed {
-  color: var(--color-red);
-
-  background: none;
-  border: var(--line-width) solid var(--color-red);
-  cursor: pointer;
-
-  @extend .repo-enable;
-
-  &:hover svg,
-  &:focus svg {
-    transform: rotate(70deg);
-
-    transition: transform 0.2s ease-in-out;
-  }
-
-  > svg {
-    margin-right: 1em;
-
-    transition: transform 0.2s ease-in-out;
-  }
-}
-
-a.-btn {
-  margin: 0.5em 0;
-  padding: 0.3em 2em;
-
-  font-weight: bold;
-
-  font-size: 16px;
-
-  text-decoration: none;
-}
-
-.-btn.-inverted,
-button.-inverted {
-  color: var(--color-primary);
-
-  background-color: var(--color-bg);
-  background-image: none;
-  border-color: var(--color-primary);
-  border-style: solid;
-  border-width: var(--line-width);
-
-  &:not([disabled]):hover,
-  &:not([disabled]):focus {
-    color: var(--color-text);
-
-    border-color: var(--color-text);
-  }
-
-  &:disabled {
-    color: var(--color-bg-light);
-
-    border-color: var(--color-bg-light);
-  }
-}
-
-.-btn.-repo-timeout {
-  margin: 0;
-  margin-left: 1em;
-  padding: 4px 12px;
-
-  font-weight: 300;
-
-  font-size: 12px;
-
-  &:disabled {
-    color: var(--color-bg);
-
-    background-color: var(--color-bg);
-    background-image: none;
-    border: var(--line-width) solid var(--color-bg-light);
-
-    &:hover,
-    &:focus {
-      color: inherit;
-
-      border-color: inherit;
-    }
-  }
-}
-
-.nav-buttons {
-  display: flex;
-}
-
-.-btn.-hooks {
-  margin-right: 0.4em;
-}
-
-.-btn.-overview {
-  margin: 1em 1em 1em 0;
-}
-
-.-btn.-solid,
-button.-solid {
-  color: var(--color-bg);
-
-  background-color: var(--color-primary);
-  background-image: none;
-  border-color: var(--color-primary);
-  border-style: solid;
-  border-width: var(--line-width);
-
-  &:hover,
-  &:focus {
-    color: var(--color-primary);
-
-    background-color: var(--color-bg);
-    border-color: var(--color-primary);
-  }
-
-  &.loading {
-    color: var(--color-bg-light);
-
-    border: var(--line-width) dashed var(--color-bg-light);
-
-    &:hover,
-    &:focus {
-      color: inherit;
-
-      border-color: inherit;
-    }
-  }
-}
-
-.btn-refresh {
-  &.loading {
-    color: var(--color-bg-light);
-
-    border: var(--line-width) dashed var(--color-bg-light);
-
-    &:not([disabled]):hover,
-    &:not([disabled]):focus {
-      color: inherit;
-
-      border-color: inherit;
-    }
-  }
-}
-
-.btn-login {
-  display: inline-flex;
-  align-items: center;
 }
 
 // breadcrumb styles
@@ -1761,21 +1466,6 @@ button.-solid {
   outline: var(--color-primary) auto 5px;
 }
 
-.theme-toggle {
-  position: relative;
-
-  display: inline-block;
-  margin: 0 1em 0 0;
-  padding: 0;
-
-  color: var(--color-bg-light);
-  font-weight: normal;
-
-  background: none;
-
-  fill: var(--color-bg-light);
-}
-
 .pager-actions {
   display: flex;
   justify-content: space-between;
@@ -1808,33 +1498,4 @@ button.-solid {
 .enable-column-b {
   display: flex;
   flex-direction: row;
-}
-
-.repo-disable {
-  min-width: 170px;
-}
-
-.repo-disable-disabling {
-  min-width: 170px;
-
-  color: var(--color-yellow);
-
-  border: var(--line-width) solid var(--color-yellow);
-}
-
-.repo-disable-disabling-text {
-  margin-left: 12px;
-}
-
-button.-btn.-inverted.repo-disable-confirm {
-  color: var(--color-red-light);
-
-  border: var(--line-width) solid var(--color-red-light);
-
-  &:hover,
-  &:focus {
-    color: var(--color-red);
-
-    border: var(--line-width) solid var(--color-red);
-  }
 }
