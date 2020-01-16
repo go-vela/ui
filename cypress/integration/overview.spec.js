@@ -49,33 +49,4 @@ context("Overview/Repositories Page", () => {
       cy.location("pathname").should("eq", "/github/octocat");
     });
   });
-
-  context("logged in - api returns paginated data", () => {
-    it("should grab all the results", () => {
-      cy.server();
-      cy.fixture("repositories_100.json").as("reposPage1");
-      cy.fixture("repositories_5.json").as("reposPage2");
-
-      cy.route({
-        method: "GET",
-        url: "*api/v1/repos?page=1&per_page=100*",
-        headers: {
-          link: `<http://localhost:8888/api/v1/repos?page=2&per_page=100>; rel="next", <http://localhost:8888/api/v1/repos?page=2&per_page=100>; rel="last",`
-        },
-        response: "@reposPage1"
-      });
-
-      cy.route({
-        method: "GET",
-        url: "*api/v1/repos?page=2&per_page=100*",
-        headers: {
-          link: `<http://localhost:8888/api/v1/repos?page=1&per_page=100>; rel="first", <http://localhost:8888/api/v1/repos?page=1&per_page=100>; rel="prev",`
-        },
-        response: "@reposPage2"
-      });
-      cy.login();
-
-      cy.get("[data-test=repo-item]").should("have.length", 105);
-    });
-  });
 });
