@@ -130,7 +130,6 @@ Cypress.Commands.add('stubStepsWithLogs', () => {
       response: logs[4],
     }).as('getLogs-5');
   });
-  
 });
 
 Cypress.Commands.add('stubStepsWithErrorLogs', () => {
