@@ -1,49 +1,49 @@
-// Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
 @keyframes ellipsis {
   to {
+    // stylelint-disable-next-line
     width: 1em;
   }
 }
-
 @keyframes spin {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
 }
-
 @keyframes build-status-parallax-start {
   from {
     transform: translateX(0%);
   }
+
   to {
     transform: translateX(100%);
   }
 }
-
 @keyframes build-status-parallax-running {
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(200%);
   }
 }
-
 @keyframes build-particles-source {
   from {
-    width: 12vw;
+    transform: scaleX(1);
   }
+
   to {
-    width: 16vw;
+    transform: scaleX(1.33);
   }
 }
-
 @keyframes bounceInRight {
   from,
   60%,
@@ -74,10 +74,10 @@
   }
 
   to {
+    // stylelint-disable-next-line
     width: 16vw;
   }
 }
-
 @keyframes fadeOutRightBig {
   from {
     opacity: 1;

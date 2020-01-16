@@ -1,5 +1,7 @@
 # ui
 
+[![Github Actions](https://github.com/go-vela/ui/workflows/ci/badge.svg?branch=master&event=push)](https://github.com/go-vela/ui/actions?query=branch%3Amaster+event%3Apush)
+
 vela ui
 
 > Vela is in active development and is a pre-release product. Please use at your own risk in production.
@@ -19,7 +21,7 @@ Please see our [contributing](CONTRIBUTING.md) documentation for further instruc
 ## Copyright and License
 
 ```
-Copyright (c) 2019 Target Brands, Inc.
+Copyright (c) 2020 Target Brands, Inc.
 ```
 
 [![license](https://img.shields.io/crates/l/gl.svg)](LICENSE)

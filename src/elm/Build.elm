@@ -1,5 +1,5 @@
 {--
-Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+Copyright (c) 2020 Target Brands, Inc. All rights reserved.
 Use of this source code is governed by the LICENSE file in this repository.
 --}
 
@@ -8,6 +8,7 @@ module Build exposing
     ( clickLogLine
     , clickStep
     , expandBuildLineFocus
+    , lineFocusToFocusID
     , parseLineFocus
     , setLogLineFocus
     , statusToClass
@@ -34,7 +35,14 @@ import Html
         , summary
         , text
         )
-import Html.Attributes exposing (attribute, class, classList, href)
+import Html.Attributes
+    exposing
+        ( attribute
+        , class
+        , classList
+        , href
+        , id
+        )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import List.Extra exposing (updateIf)
@@ -75,17 +83,17 @@ type alias ExpandStep msg =
 {-| LineFocus : update action for focusing a log line
 -}
 type alias SetLineFocus msg =
-    StepNumber -> Int -> msg
+    StepNumber -> Maybe Int -> msg
 
 
 {-| GetLogs : type alias for passing in logs fetch function from Main.elm
 -}
 type alias GetLogsFromBuild a msg =
-    a -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd msg
+    a -> Org -> Repo -> BuildNumber -> StepNumber -> LineFocus -> Cmd msg
 
 
 type alias GetLogsFromSteps a msg =
-    a -> Org -> Repo -> BuildNumber -> WebData Steps -> Cmd msg
+    a -> Org -> Repo -> BuildNumber -> WebData Steps -> LineFocus -> Cmd msg
 
 
 
@@ -291,8 +299,12 @@ viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction 
                 [ class "summary"
                 , Util.testAttribute "step-header"
                 , onClick (expandAction org repo buildNumber <| Just <| String.fromInt step.number)
+                , id <| stepToFocusID <| String.fromInt step.number
                 ]
-                [ div [ class "-info" ]
+                [ div
+                    [ class "-info"
+                    , onClick <| lineFocusAction (String.fromInt step.number) Nothing
+                    ]
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
                     ]
@@ -349,17 +361,22 @@ logLines stepNumber lineFocus log clickAction =
             decodeLogLine log
 
 
-{-| lineFocusStyle : takes step number, line focus information, and click action and renders a log line
+{-| logLine : takes step number, line focus information, and click action and renders a log line
 -}
 logLine : StepNumber -> String -> Maybe Int -> Int -> SetLineFocus msg -> Html msg
 logLine stepNumber line lineFocus lineNumber clickAction =
     div [ class "line" ]
-        [ span [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber, class "wrapper", lineFocusStyle lineFocus lineNumber ]
+        [ span
+            [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber
+            , class "wrapper"
+            , lineFocusStyle lineFocus lineNumber
+            ]
             [ span [ class "-line-num" ]
                 [ a
                     [ logLineHref stepNumber lineNumber
-                    , onClick <| clickAction stepNumber lineNumber
+                    , onClick <| clickAction stepNumber <| Just lineNumber
                     , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+                    , id <| stepAndLineToFocusID stepNumber lineNumber
                     ]
                     [ text <| Util.toTwoDigits <| lineNumber ]
                 ]
@@ -715,7 +732,7 @@ clickStep model steps org repo buildNumber stepNumber getLogs =
                             ( RemoteData.succeed <| toggleStepView steps_ stepNum
                             , case buildNumber of
                                 Just buildNum ->
-                                    getLogs model org repo buildNum stepNum
+                                    getLogs model org repo buildNum stepNum Nothing
 
                                 Nothing ->
                                     Cmd.none
@@ -741,7 +758,7 @@ toggleStepView steps stepNumber =
 
 {-| clickLogLine : takes model and line number and sets the focus on the log line
 -}
-clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Int -> ( WebData Steps, Cmd msg )
+clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Maybe Int -> ( WebData Steps, Cmd msg )
 clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
     ( steps
     , Navigation.replaceUrl navKey <|
@@ -750,8 +767,14 @@ clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
                 Just <|
                     "#step:"
                         ++ stepNumber
-                        ++ ":"
-                        ++ String.fromInt lineNumber
+                        ++ (case lineNumber of
+                                Just line ->
+                                    ":"
+                                        ++ String.fromInt line
+
+                                Nothing ->
+                                    ""
+                           )
             )
     )
 
@@ -769,7 +792,9 @@ setLogLineFocus model steps org repo buildNumber lineFocus getLogs =
                             RemoteData.succeed <| setLineFocus steps_ lineFocus
                     in
                     ( focusedSteps
-                    , getLogs model org repo buildNumber focusedSteps
+                    , Cmd.batch
+                        [ getLogs model org repo buildNumber focusedSteps lineFocus
+                        ]
                     )
 
                 _ ->
@@ -847,8 +872,48 @@ parseLineFocus lineFocus =
             ( Nothing, Nothing, Nothing )
 
 
+{-| lineFocusToFocusID : takes URL fragment and parses it into appropriate line focus ID for auto focusing on page load
+-}
+lineFocusToFocusID : LineFocus -> String
+lineFocusToFocusID lineFocus =
+    let
+        parsed =
+            parseLineFocus lineFocus
+    in
+    case parsed of
+        ( _, Just step, Just line ) ->
+            "step-" ++ String.fromInt step ++ "-line-" ++ String.fromInt line
+
+        ( _, Just step, Nothing ) ->
+            "step-" ++ String.fromInt step
+
+        _ ->
+            ""
+
+
+{-| stepToFocusID : takes URL fragment and parses it into appropriate step focus ID for auto focusing on page load
+-}
+stepToFocusID : StepNumber -> String
+stepToFocusID stepNumber =
+    "step-" ++ stepNumber
+
+
+{-| stepAndLineToFocusID : takes URL fragment and parses it into appropriate line focus ID for auto focusing on page load
+-}
+stepAndLineToFocusID : StepNumber -> Int -> String
+stepAndLineToFocusID stepNumber lineNumber =
+    "step-" ++ stepNumber ++ "-line-" ++ String.fromInt lineNumber
+
+
 {-| logLineHref : takes stepnumber and line number and renders the link href for clicking a log line without redirecting
 -}
 logLineHref : StepNumber -> Int -> Html.Attribute msg
 logLineHref stepNumber lineNumber =
     href <| "#step:" ++ stepNumber ++ ":" ++ (String.fromInt <| lineNumber)
+
+
+{-| stepHref : takes stepnumber and renders the link href for clicking a log line without redirecting
+-}
+stepHref : StepNumber -> Html.Attribute msg
+stepHref stepNumber =
+    href <| "#step:" ++ stepNumber
