@@ -4,7 +4,7 @@
  */
 
 context("Overview/Repositories Page", () => {
-  context("logged in - repos loaded", () => {
+  context("logged in - favorites loaded", () => {
     beforeEach(() => {
       cy.server();
       cy.route("GET", "*api/v1/user*", "fixture:favorites.json");

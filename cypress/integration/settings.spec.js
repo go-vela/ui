@@ -118,11 +118,8 @@ context("Repo Settings", () => {
       });
       cy.get("[data-test=repo-disable]")
         .first()
-        .click();
-      cy.get("[data-test=repo-disable]").should(
-        "contain",
-        "Really Disable?"
-      );
+        .click({ force: true });
+      cy.get("[data-test=repo-disable]").should("contain", "Really Disable?");
     });
 
     it("clicking button twice should disable the repo", () => {
@@ -133,11 +130,9 @@ context("Repo Settings", () => {
       });
       cy.get("[data-test=repo-disable]")
         .first()
-        .click().click();
-      cy.get("[data-test=repo-disabling]").should(
-        "contain",
-        "Disabling"
-      );
+        .click({ force: true })
+        .click({ force: true });
+      cy.get("[data-test=repo-disabling]").should("contain", "Disabling");
     });
 
     it("clicking button three times should re-enable the repo", () => {
@@ -146,19 +141,19 @@ context("Repo Settings", () => {
         url: "*api/v1/repos/github/**",
         response: `"Repo github/octocat deleted"`
       }).as("disable");
-      cy.route("POST", "*api/v1/repos*", "fixture:add_repo_response.json").as("enable");
+      cy.route("POST", "*api/v1/repos*", "fixture:add_repo_response.json").as(
+        "enable"
+      );
       cy.get("[data-test=repo-disable]")
         .first()
-        .click().click();
+        .click({ force: true })
+        .click({ force: true });
       cy.wait("@disable");
       cy.get("[data-test=repo-enable]")
-      .first()
-      .click({ force: true });
+        .first()
+        .click({ force: true });
       cy.wait("@enable");
-      cy.get("[data-test=repo-disable]").should(
-        "contain",
-        "Disable"
-      );
+      cy.get("[data-test=repo-disable]").should("contain", "Disable");
     });
     it("should show an success alert on successful removal of a repo", () => {
       cy.route({
@@ -168,7 +163,8 @@ context("Repo Settings", () => {
       });
       cy.get("[data-test=repo-disable]")
         .first()
-        .click().click();
+        .click({ force: true })
+        .click({ force: true });
       cy.get("[data-test=alerts]").as("alert");
       cy.get("@alert").should("exist");
       cy.get("@alert").contains("Success");

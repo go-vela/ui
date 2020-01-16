@@ -12,6 +12,7 @@ import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import Svg.Attributes
 import SvgBuilder exposing (star)
+import Util
 import Vela exposing (CurrentUser, Org, Repo)
 
 
@@ -29,7 +30,12 @@ type alias ToggleFavorite msg =
 -}
 starToggle : Org -> Repo -> ToggleFavorite msg -> Bool -> Html msg
 starToggle org repo toggleFavorite favorited =
-    star [ onClick <| toggleFavorite org <| Just repo, Svg.Attributes.class "-cursor" ] favorited
+    star
+        [ Util.testAttribute <| "star-toggle-" ++ org ++ "-" ++ repo
+        , onClick <| toggleFavorite org <| Just repo
+        , Svg.Attributes.class "-cursor"
+        ]
+        favorited
 
 
 

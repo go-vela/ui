@@ -61,7 +61,7 @@ view user toggleFavorite =
                     ]
                 ]
     in
-    div []
+    div [ Util.testAttribute "overview" ]
         [ case user of
             Success u ->
                 if List.length u.favorites > 0 then
