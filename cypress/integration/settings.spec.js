@@ -118,7 +118,7 @@ context('Repo Settings', () => {
       });
       cy.get('[data-test=repo-disable]')
         .first()
-        .click();
+        .click({ force: true });
       cy.get('[data-test=repo-disable]').should('contain', 'Really Disable?');
     });
 
@@ -146,8 +146,8 @@ context('Repo Settings', () => {
       );
       cy.get('[data-test=repo-disable]')
         .first()
-        .click()
-        .click();
+        .click({ force: true })
+        .click({ force: true });
       cy.wait('@disable');
       cy.get('[data-test=repo-enable]')
         .first()
