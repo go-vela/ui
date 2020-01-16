@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+# Copyright (c) 2020 Target Brands, Inc. All rights reserved.
 #
 # Use of this source code is governed by the LICENSE file in this repository.
 
@@ -13,8 +13,8 @@ on:
 
 env:
   NODE_ENV: development
-  USE_NODE_VER: "12.13.1"
-  ELM_HOME: "${GITHUB_WORKSPACE}"
+  USE_NODE_VER: '12.14.1'
+  ELM_HOME: '${GITHUB_WORKSPACE}'
   CI: 1
 
 # pipeline to execute
@@ -55,7 +55,7 @@ jobs:
       - name: install elm-format
         run: npm i elm-format
       - name: run elm-format
-        run: npx elm-format --validate src/ tests/
+        run: npm run lint:elm
 
   # ┌─┐┬  ┌┬┐  ┌┬┐┌─┐┌─┐┌┬┐
   # ├┤ │  │││───│ ├┤ └─┐ │
@@ -95,6 +95,42 @@ jobs:
       - name: run elm-test
         run: npm run test
 
+  # ┬  ┬┌┐┌┌┬┐
+  # │  ││││ │
+  # ┴─┘┴┘└┘ ┴
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+      - uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-bin-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            cypress-${{ runner.os }}-bin-
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.USE_NODE_VER }}
+
+      - name: install dependencies
+        run: npm i --prefer-offline --no-audit
+      - name: run linter
+        run: npm run lint
+
   # ┌─┐┬ ┬┌─┐┬─┐┌─┐┌─┐┌─┐
   # │  └┬┘├─┘├┬┘├┤ └─┐└─┐
   # └─┘ ┴ ┴  ┴└─└─┘└─┘└─┘
@@ -102,10 +138,10 @@ jobs:
     name: run cypress tests
     runs-on: ubuntu-latest
     env:
-      VELA_API: "http://localhost:8080"
-      VELA_SOURCE_URL: ""
-      VELA_SOURCE_CLIENT: ""
-      VELA_SOURCE_SECRET: ""
+      VELA_API: 'http://localhost:8080'
+      VELA_SOURCE_URL: ''
+      VELA_SOURCE_CLIENT: ''
+      VELA_SOURCE_SECRET: ''
       TERM: xterm
 
     steps:
@@ -144,7 +180,7 @@ jobs:
     name: build and push to docker
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'go-vela/ui'
-    needs: [elm-format, elm-test, integration]
+    needs: [lint, elm-format, elm-test, integration]
 
     steps:
       - uses: actions/checkout@v1
