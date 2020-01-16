@@ -335,10 +335,11 @@ viewLogs stepNumber lineFocus log clickAction =
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
-                    -- if logNotEmpty <| decodeLog log then
-                    --     logLines stepNumber lineFocus log clickAction
-                    -- else
-                    code [] [ span [ class "no-logs" ] [ text "No logs for this step." ] ]
+                    if logNotEmpty <| decodeLog log then
+                        logLines stepNumber lineFocus log clickAction
+
+                    else
+                        code [] [ span [ class "no-logs" ] [ text "No logs for this step." ] ]
 
                 RemoteData.Failure _ ->
                     code [ Util.testAttribute "logs-error" ] [ text "error" ]
