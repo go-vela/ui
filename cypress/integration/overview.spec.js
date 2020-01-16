@@ -7,7 +7,7 @@ context("Overview/Repositories Page", () => {
   context("logged in - repos loaded", () => {
     beforeEach(() => {
       cy.server();
-      cy.route("GET", "*api/v1/repos*", "fixture:overview_page.json");
+      cy.route("GET", "*api/v1/user*", "fixture:favorites.json");
       cy.login();
     });
 
@@ -46,7 +46,7 @@ context("Overview/Repositories Page", () => {
       cy.get("[data-test=repo-view]")
         .first()
         .click();
-      cy.location("pathname").should("eq", "/DavidVader/applications");
+      cy.location("pathname").should("eq", "/github/octocat");
     });
   });
 

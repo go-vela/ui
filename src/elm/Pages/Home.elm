@@ -156,4 +156,5 @@ recordsGroupByOrg recordList =
                 acc
         )
         Dict.empty
-        recordList
+    <|
+        List.sort recordList
