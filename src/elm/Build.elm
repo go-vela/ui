@@ -339,7 +339,7 @@ viewLogs stepNumber lineFocus log clickAction =
                         logLines stepNumber lineFocus log clickAction
 
                     else
-                        code [] [ text "No logs for this step." ]
+                        code [] [ span [ class "no-logs" ] [ text "No logs for this step." ] ]
 
                 RemoteData.Failure _ ->
                     code [ Util.testAttribute "logs-error" ] [ text "error" ]
