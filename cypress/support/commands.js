@@ -99,15 +99,38 @@ Cypress.Commands.add('stubStepsWithLogs', () => {
     response: '@steps',
   });
   cy.fixture('logs').then(logs => {
-    for (let i = 0; i < logs.length; i++) {
-      cy.route({
-        method: 'GET',
-        url: 'api/v1/repos/*/*/builds/*/steps/' + logs[i]['step_id'] + '/logs',
-        status: 200,
-        response: logs[i],
-      }).as('getLogs-' + logs[i]['step_id']);
-    }
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/1/logs',
+      status: 200,
+      response: logs[0],
+    }).as('getLogs-1');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
+      status: 200,
+      response: logs[1],
+    }).as('getLogs-2');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/3/logs',
+      status: 200,
+      response: logs[2],
+    }).as('getLogs-3');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/4/logs',
+      status: 200,
+      response: logs[3],
+    }).as('getLogs-4');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/5/logs',
+      status: 200,
+      response: logs[4],
+    }).as('getLogs-5');
   });
+  
 });
 
 Cypress.Commands.add('stubStepsWithErrorLogs', () => {
