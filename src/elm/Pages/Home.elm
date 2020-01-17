@@ -50,7 +50,7 @@ view user toggleFavorite =
                     , br [] []
                     , div []
                         [ text "To display a repository here, click the"
-                        , SvgBuilder.star [] False
+                        , SvgBuilder.star False
                         ]
                     , text "Add repositories from your GitHub account to Vela now!"
                     , br [] []

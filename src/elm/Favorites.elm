@@ -6,12 +6,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Favorites exposing (ToggleFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
 
-import Html exposing (Html)
-import Html.Attributes exposing (attribute)
+import Html exposing (Html, button)
+import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
-import Svg.Attributes
 import SvgBuilder exposing (star)
 import Util
 import Vela exposing (CurrentUser, Org, Repo)
@@ -31,13 +30,13 @@ type alias ToggleFavorite msg =
 -}
 starToggle : Org -> Repo -> ToggleFavorite msg -> Bool -> Html msg
 starToggle org repo toggleFavorite favorited =
-    star
+    button
         [ Util.testAttribute <| "star-toggle-" ++ org ++ "-" ++ repo
         , onClick <| toggleFavorite org <| Just repo
-        , Svg.Attributes.class "-cursor"
         , starToggleAriaLabel org repo favorited
+        , class "star-button"
         ]
-        favorited
+        [ star favorited ]
 
 
 starToggleAriaLabel : Org -> Repo -> Bool -> Html.Attribute msg

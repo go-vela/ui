@@ -1861,8 +1861,15 @@ button.-btn.-inverted.repo-disable-confirm {
   }
 }
 
-.icon.favorite-star {
+.star-button {
+  background: none;
+  width: auto;
+  padding: 0;
   margin: 0 0.5em;
+  display: inline-block;
+}
+
+.icon.favorite-star {
 
   fill: none;
   stroke: var(--color-yellow);
