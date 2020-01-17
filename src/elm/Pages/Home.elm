@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Home exposing (view)
 
 import Dict exposing (Dict)
+import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
 import Html
     exposing
         ( Html
@@ -26,25 +27,20 @@ import Html.Attributes
         , class
         )
 import List
+import List.Extra
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
+import SvgBuilder
 import Util
-import Vela exposing (Repositories, Repository)
+import Vela
+    exposing
+        ( CurrentUser
+        )
 
 
-{-| recordsGroupBy takes a list of records and groups them by the provided key
-
-    recordsGroupBy .lastname listOfFullNames
-
--}
-recordsGroupBy : (a -> comparable) -> List a -> Dict comparable (List a)
-recordsGroupBy key recordList =
-    List.foldr (\x acc -> Dict.update (key x) (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just) acc) Dict.empty recordList
-
-
-view : WebData Repositories -> Html msg
-view currentRepos =
+view : WebData CurrentUser -> ToggleFavorite msg -> Html msg
+view user toggleFavorite =
     let
         blankMessage : Html msg
         blankMessage =
@@ -52,24 +48,25 @@ view currentRepos =
                 [ h1 [] [ text "Let's get Started!" ]
                 , p []
                     [ text "To have Vela start building your projects we need to get them enabled."
-                    , br [] []
-                    , text "Add repositories from your GitHub account to Vela now!"
                     ]
-                , a [ class "button", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
+                , p []
+                    [ text "To display a repository here, click the "
+                    , SvgBuilder.star False
+                    ]
+                , p []
+                    [ text "Add repositories from your GitHub account to Vela now!"
+                    ]
+                , a [ class "button", Routes.href Routes.AddRepositories ]
+                    [ text "Add Repositories" ]
                 ]
     in
-    div []
-        [ case currentRepos of
-            Success repos ->
-                let
-                    activeRepos : Repositories
-                    activeRepos =
-                        List.filter .active repos
-                in
-                if List.length activeRepos > 0 then
-                    activeRepos
-                        |> recordsGroupBy .org
-                        |> viewCurrentRepoListByOrg
+    div [ Util.testAttribute "overview" ]
+        [ case user of
+            Success u ->
+                if List.length u.favorites > 0 then
+                    u.favorites
+                        |> recordsGroupByOrg
+                        |> viewCurrentRepoListByOrg user toggleFavorite
 
                 else
                     blankMessage
@@ -87,48 +84,72 @@ view currentRepos =
         ]
 
 
-viewSingleRepo : Repository -> Html msg
-viewSingleRepo repo =
+viewCurrentRepoListByOrg : WebData CurrentUser -> ToggleFavorite msg -> Dict String (List String) -> Html msg
+viewCurrentRepoListByOrg user toggleFavorite repoList =
+    repoList
+        |> Dict.toList
+        |> Util.filterEmptyLists
+        |> List.map (\( org, favorites ) -> viewOrg user org toggleFavorite favorites)
+        |> div [ class "repo-list" ]
+
+
+viewOrg : WebData CurrentUser -> String -> ToggleFavorite msg -> List String -> Html msg
+viewOrg user org toggleFavorite favorites =
+    div [ class "repo-org", Util.testAttribute "repo-org" ]
+        [ details [ class "details", class "repo-item", attribute "open" "open" ]
+            (summary [ class "summary" ] [ text org ]
+                :: List.map (viewSingleRepo user toggleFavorite) favorites
+            )
+        ]
+
+
+viewSingleRepo : WebData CurrentUser -> ToggleFavorite msg -> String -> Html msg
+viewSingleRepo user toggleFavorite favorite =
+    let
+        ( org, repo ) =
+            ( Maybe.withDefault "" <| List.Extra.getAt 0 <| String.split "/" favorite
+            , Maybe.withDefault "" <| List.Extra.getAt 1 <| String.split "/" favorite
+            )
+    in
     div [ class "-item", Util.testAttribute "repo-item" ]
-        [ div [] [ text repo.name ]
+        [ div [] [ text repo ]
         , div [ class "buttons" ]
-            [ a
+            [ starToggle org repo toggleFavorite <| isFavorited user <| org ++ "/" ++ repo
+            , a
                 [ class "button"
                 , class "-outline"
-                , Routes.href <| Routes.Settings repo.org repo.name
+                , Routes.href <| Routes.Settings org repo
                 ]
                 [ text "Settings" ]
             , a
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
+                , Routes.href <| Routes.Hooks org repo Nothing Nothing
                 ]
                 [ text "Hooks" ]
             , a
                 [ class "button"
                 , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing
+                , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing
                 ]
                 [ text "View" ]
             ]
         ]
 
 
-viewOrg : String -> Repositories -> Html msg
-viewOrg org repos =
-    div [ class "repo-org", Util.testAttribute "repo-org" ]
-        [ details [ class "details", class "repo-item", attribute "open" "open" ]
-            (summary [ class "summary" ] [ text org ]
-                :: List.map viewSingleRepo repos
-            )
-        ]
-
-
-viewCurrentRepoListByOrg : Dict String Repositories -> Html msg
-viewCurrentRepoListByOrg repoList =
-    repoList
-        |> Dict.toList
-        |> Util.filterEmptyLists
-        |> List.map (\( org, repos ) -> viewOrg org repos)
-        |> div [ class "repo-list" ]
+recordsGroupByOrg : List String -> Dict String (List String)
+recordsGroupByOrg recordList =
+    List.foldr
+        (\x acc ->
+            Dict.update
+                (Maybe.withDefault "" <|
+                    List.head <|
+                        String.split "/" x
+                )
+                (Maybe.map ((::) x) >> Maybe.withDefault [ x ] >> Just)
+                acc
+        )
+        Dict.empty
+    <|
+        List.sort recordList

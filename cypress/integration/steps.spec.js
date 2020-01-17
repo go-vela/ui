@@ -155,20 +155,20 @@ context('Steps', () => {
         beforeEach(() => {
           cy.visit('/someorg/somerepo/1');
           cy.get('@stepHeaders').click({ force: true, multiple: true });
-          cy.get('[data-test=logs-1]').within(() => {
-            cy.get('[data-test=log-line-3]').as('line1:3');
-            cy.get('[data-test=log-line-num-3]').as('lineNumber1:3');
+          cy.get('[data-test=logs-3]').within(() => {
+            cy.get('[data-test=log-line-3]').as('line3:3');
+            cy.get('[data-test=log-line-num-3]').as('lineNumber3:3');
           });
           cy.get('[data-test=logs-2]').within(() => {
             cy.get('[data-test=log-line-2]').as('line2:2');
             cy.get('[data-test=log-line-num-2]').as('lineNumber2:2');
           });
-          cy.get('@lineNumber1:3').click({ force: true });
+          cy.get('@lineNumber3:3').click({ force: true });
           cy.visit('/someorg/somerepo/1#step:2:2');
           cy.reload();
         });
         it('original line should not be highlighted', () => {
-          cy.get('@line1:3').should('not.have.class', '-focus');
+          cy.get('@line3:3').should('not.have.class', '-focus');
         });
         it('other line should be highlighted', () => {
           cy.get('@line2:2').should('have.class', '-focus');

@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Search exposing
-    ( filterRepo
+    ( Search
+    , filterRepo
     , repoSearchBarGlobal
     , repoSearchBarLocal
     , searchFilterGlobal
@@ -25,7 +26,13 @@ import Html.Attributes
         )
 import Html.Events exposing (onInput)
 import Util
-import Vela exposing (Org, RepoSearchFilters, Search, SearchFilter)
+import Vela exposing (Org, RepoSearchFilters, SearchFilter)
+
+
+{-| Search : takes org and repo and searches/filters based on user input
+-}
+type alias Search msg =
+    Org -> String -> msg
 
 
 {-| repoSearchBarGlobal : renders a input bar for searching across all repos

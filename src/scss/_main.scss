@@ -945,6 +945,10 @@ nav {
   }
 }
 
+.no-logs {
+  margin-left: 1.5em;
+}
+
 .step-error {
   margin-left: 1.5em;
 
@@ -1494,4 +1498,31 @@ nav {
 .enable-column-b {
   display: flex;
   flex-direction: row;
+}
+
+.star-button {
+  display: inline-block;
+  width: auto;
+  margin: 0 0.5em;
+  padding: 0;
+
+  background: none;
+}
+
+.icon.favorite-star {
+  fill: none;
+  stroke: var(--color-yellow);
+}
+
+.icon.favorite-star.-cursor {
+  cursor: pointer;
+}
+
+.icon.favorite-star.favorited {
+  fill: var(--color-yellow);
+}
+
+.builds-favorite {
+  display: flex;
+  align-items: center;
 }

@@ -26,6 +26,7 @@ import Build
 import Crumbs
 import Dict
 import Errors exposing (detailedErrorToString)
+import Favorites exposing (isFavorited, starToggle, toFavorite, updateFavorites)
 import FeatherIcons
 import Html
     exposing
@@ -65,7 +66,7 @@ import Pages exposing (Page(..))
 import Pages.AddRepos
 import Pages.Home
 import Pages.Hooks
-import Pages.Settings exposing (enableCurrentRepo, enableRepo)
+import Pages.Settings exposing (enableUpdate)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
@@ -91,6 +92,7 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
+        , CurrentUser
         , EnableRepo
         , EnableRepos
         , EnableRepositoryPayload
@@ -114,8 +116,10 @@ import Vela
         , Steps
         , Theme(..)
         , UpdateRepositoryPayload
+        , UpdateUserPayload
         , User
         , Viewing
+        , buildUpdateFavoritesPayload
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
@@ -130,6 +134,7 @@ import Vela
         , encodeSession
         , encodeTheme
         , encodeUpdateRepository
+        , encodeUpdateUser
         , stringToTheme
         )
 
@@ -153,7 +158,7 @@ type alias Flags =
 type alias Model =
     { page : Page
     , session : Maybe Session
-    , currentRepos : WebData Repositories
+    , user : WebData CurrentUser
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
     , hooks : HooksModel
@@ -169,7 +174,7 @@ type alias Model =
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
-    , sourceSearchFilters : RepoSearchFilters
+    , filters : RepoSearchFilters
     , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
@@ -198,7 +203,7 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , session = flags.velaSession
-            , currentRepos = NotAsked
+            , user = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
             , hooks = defaultHooks
@@ -223,7 +228,7 @@ init flags url navKey =
             , toasties = Alerting.initialState
             , zone = utc
             , time = millisToPosix 0
-            , sourceSearchFilters = Dict.empty
+            , filters = Dict.empty
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
             , entryURL = url
@@ -272,6 +277,7 @@ type Msg
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
+    | ToggleFavorite Org (Maybe Repo)
     | EnableRepo Repository
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
@@ -281,9 +287,10 @@ type Msg
     | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
-    | RepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repositories ))
+    | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
+    | RepoFavoritedResponse String Bool (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | HookBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
@@ -318,6 +325,49 @@ update msg model =
 
         SessionChanged newSession ->
             ( { model | session = newSession }, Cmd.none )
+
+        FetchSourceRepositories ->
+            ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+
+        ToggleFavorite org repo ->
+            let
+                favorite =
+                    toFavorite org repo
+
+                ( favorites, favorited ) =
+                    updateFavorites model.user favorite
+
+                payload : UpdateUserPayload
+                payload =
+                    buildUpdateFavoritesPayload favorites
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateUser payload
+            in
+            ( model
+            , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
+            )
+
+        EnableRepo repo ->
+            let
+                payload : EnableRepositoryPayload
+                payload =
+                    buildEnableRepositoryPayload repo model.velaSourceBaseURL
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeEnableRepository payload
+
+                currentRepo =
+                    RemoteData.withDefault defaultRepository model.repo
+            in
+            ( { model
+                | sourceRepos = enableUpdate repo Loading model.sourceRepos
+                , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
+              }
+            , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
+            )
 
         UserResponse response ->
             case response of
@@ -355,13 +405,15 @@ update msg model =
                         ]
                     )
 
-        RepositoriesResponse response ->
+        CurrentUserResponse response ->
             case response of
-                Ok ( _, repositories ) ->
-                    ( { model | currentRepos = RemoteData.succeed repositories }, Cmd.none )
+                Ok ( _, user ) ->
+                    ( { model | user = RemoteData.succeed user }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    ( { model | currentRepos = toFailure error }, addError error )
+                    ( { model | repo = toFailure error }, addError error )
 
         RepoResponse response ->
             case response of
@@ -371,9 +423,6 @@ update msg model =
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
 
-        FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, sourceSearchFilters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
-
         SourceRepositoriesResponse response ->
             case response of
                 Ok ( _, repositories ) ->
@@ -381,26 +430,6 @@ update msg model =
 
                 Err error ->
                     ( { model | sourceRepos = toFailure error }, addError error )
-
-        EnableRepo repo ->
-            let
-                payload : EnableRepositoryPayload
-                payload =
-                    buildEnableRepositoryPayload repo model.velaSourceBaseURL
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeEnableRepository payload
-
-                currentRepo =
-                    RemoteData.withDefault defaultRepository model.repo
-            in
-            ( { model
-                | sourceRepos = enableRepo repo Loading model.sourceRepos
-                , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
-              }
-            , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
-            )
 
         RepoEnabledResponse repo response ->
             let
@@ -410,8 +439,7 @@ update msg model =
             case response of
                 Ok ( _, enabledRepo ) ->
                     ( { model
-                        | currentRepos = enableCurrentRepo repo Vela.Enabled (RemoteData.withDefault [] model.currentRepos)
-                        , sourceRepos = enableRepo enabledRepo (RemoteData.succeed True) model.sourceRepos
+                        | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
                         , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled }
                       }
                     , Cmd.none
@@ -424,6 +452,22 @@ update msg model =
                             repoEnabledError model.sourceRepos repo error
                     in
                     ( { model | sourceRepos = sourceRepos }, action )
+
+        RepoFavoritedResponse favorite favorited response ->
+            case response of
+                Ok ( _, user ) ->
+                    ( { model | user = RemoteData.succeed user }
+                    , Cmd.none
+                    )
+                        |> (if favorited then
+                                Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (favorite ++ " added to favorites.") Nothing)
+
+                            else
+                                Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (favorite ++ " removed from favorites.") Nothing)
+                           )
+
+                Err error ->
+                    ( { model | repo = toFailure error }, addError error )
 
         RepoUpdatedResponse field response ->
             case response of
@@ -465,7 +509,7 @@ update msg model =
                 Ok _ ->
                     ( { model
                         | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Disabled }
-                        , sourceRepos = enableRepo repo NotAsked model.sourceRepos
+                        , sourceRepos = enableUpdate repo NotAsked model.sourceRepos
                       }
                     , Cmd.none
                     )
@@ -735,9 +779,9 @@ update msg model =
         SearchSourceRepos org searchBy ->
             let
                 filters =
-                    Dict.update org (\_ -> Just searchBy) model.sourceSearchFilters
+                    Dict.update org (\_ -> Just searchBy) model.filters
             in
-            ( { model | sourceSearchFilters = filters }, Cmd.none )
+            ( { model | filters = filters }, Cmd.none )
 
         ChangeRepoTimeout inTimeout ->
             let
@@ -1027,12 +1071,12 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.currentRepos
+            , Pages.Home.view model.user ToggleFavorite
             )
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model.sourceRepos model.sourceSearchFilters SearchSourceRepos EnableRepo EnableRepos
+            , Pages.AddRepos.view model addReposMsgs
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1056,7 +1100,7 @@ viewContent model =
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , Pages.Settings.view model.repo model.inTimeout UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo
+            , Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
             )
 
         Pages.RepositoryBuilds org repo maybePage _ ->
@@ -1136,22 +1180,13 @@ navButton : Model -> Html Msg
 navButton model =
     case model.page of
         Pages.Overview ->
-            case model.currentRepos of
-                Success repos ->
-                    if (repos |> List.filter .active |> List.length) > 0 then
-                        a
-                            [ class "button"
-                            , class "-outline"
-                            , Util.testAttribute "repo-enable"
-                            , Routes.href <| Routes.AddRepositories
-                            ]
-                            [ text "Add Repositories" ]
-
-                    else
-                        text ""
-
-                _ ->
-                    text ""
+            a
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "repo-enable"
+                , Routes.href <| Routes.AddRepositories
+                ]
+                [ text "Add Repositories" ]
 
         Pages.AddRepositories ->
             button
@@ -1173,7 +1208,8 @@ navButton model =
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "buttons" ]
-                [ a
+                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                , a
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
@@ -1190,15 +1226,18 @@ navButton model =
                 ]
 
         Pages.Settings org repo ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
+            div [ class "buttons" ]
+                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                , button
+                    [ classList
+                        [ ( "button", True )
+                        , ( "-outline", True )
+                        ]
+                    , onClick <| RefreshSettings org repo
+                    , Util.testAttribute "refresh-repo-settings"
                     ]
-                , onClick <| RefreshSettings org repo
-                , Util.testAttribute "refresh-repo-settings"
-                ]
-                [ text "Refresh Settings"
+                    [ text "Refresh Settings"
+                    ]
                 ]
 
         Pages.Build org repo buildNumber _ ->
@@ -1211,6 +1250,18 @@ navButton model =
                 , Util.testAttribute "restart-build"
                 ]
                 [ text "Restart Build"
+                ]
+
+        Pages.Hooks org repo _ _ ->
+            div [ class "nav-buttons" ]
+                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                , a
+                    [ class "-btn"
+                    , class "-inverted"
+                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.Settings org repo
+                    ]
+                    [ text "Repo Settings" ]
                 ]
 
         _ ->
@@ -1312,19 +1363,7 @@ setNewPage route model =
             loadOverviewPage model
 
         ( Routes.AddRepositories, True ) ->
-            case model.sourceRepos of
-                NotAsked ->
-                    ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
-                    , Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
-                    )
-
-                Failure _ ->
-                    ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
-                    , Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
-                    )
-
-                _ ->
-                    ( { model | page = Pages.AddRepositories }, Cmd.none )
+            loadAddReposPage model
 
         ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
             loadHooksPage model org repo maybePage maybePerPage
@@ -1378,16 +1417,34 @@ setNewPage route model =
             )
 
 
+loadAddReposPage : Model -> ( Model, Cmd Msg )
+loadAddReposPage model =
+    case model.sourceRepos of
+        NotAsked ->
+            ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
+            , Cmd.batch
+                [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
+                , getCurrentUser model
+                ]
+            )
+
+        Failure _ ->
+            ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
+            , Cmd.batch
+                [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
+                , getCurrentUser model
+                ]
+            )
+
+        _ ->
+            ( { model | page = Pages.AddRepositories }, getCurrentUser model )
+
+
 loadOverviewPage : Model -> ( Model, Cmd Msg )
 loadOverviewPage model =
-    -- let
-    --     currentSession : Session
-    --     currentSession =
-    --         Maybe.withDefault defaultSession model.session
-    -- in
     ( { model | page = Pages.Overview }
     , Cmd.batch
-        [ Api.tryAll RepositoriesResponse <| Api.getAllRepositories model
+        [ getCurrentUser model
         ]
     )
 
@@ -1428,7 +1485,10 @@ loadSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadSettingsPage model org repo =
     -- Fetch repo from Api
     ( { model | page = Pages.Settings org repo, repo = Loading, inTimeout = Nothing }
-    , getRepo model org repo
+    , Cmd.batch
+        [ getRepo model org repo
+        , getCurrentUser model
+        ]
     )
 
 
@@ -1452,6 +1512,7 @@ loadRepoBuildsPage model org repo _ maybePage maybePerPage =
     ( { model | page = Pages.RepositoryBuilds org repo maybePage maybePerPage, builds = loadingBuilds }
     , Cmd.batch
         [ getBuilds model org repo maybePage maybePerPage
+        , getCurrentUser model
         ]
     )
 
@@ -1505,7 +1566,7 @@ repoEnabledError sourceRepos repo error =
                 _ ->
                     ( toFailure error, addError error )
     in
-    ( enableRepo repo enabled sourceRepos
+    ( enableUpdate repo enabled sourceRepos
     , action
     )
 
@@ -1684,8 +1745,27 @@ clickHook model org repo buildNumber =
         )
 
 
+{-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
+-}
+addReposMsgs : Pages.AddRepos.Msgs Msg
+addReposMsgs =
+    Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
+
+
+{-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm
+-}
+repoSettingsMsgs : Pages.Settings.Msgs Msg
+repoSettingsMsgs =
+    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo
+
+
 
 -- API HELPERS
+
+
+getCurrentUser : Model -> Cmd Msg
+getCurrentUser model =
+    Api.try CurrentUserResponse <| Api.getCurrentUser model
 
 
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg

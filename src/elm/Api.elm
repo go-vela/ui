@@ -13,6 +13,7 @@ module Api exposing
     , getAllRepositories
     , getBuild
     , getBuilds
+    , getCurrentUser
     , getHooks
     , getRepo
     , getRepositories
@@ -24,6 +25,7 @@ module Api exposing
     , restartBuild
     , try
     , tryAll
+    , updateCurrentUser
     , updateRepository
     )
 
@@ -40,6 +42,7 @@ import Vela
         , Build
         , BuildNumber
         , Builds
+        , CurrentUser
         , Hook
         , Hooks
         , Log
@@ -55,6 +58,7 @@ import Vela
         , User
         , decodeBuild
         , decodeBuilds
+        , decodeCurrentUser
         , decodeHook
         , decodeHooks
         , decodeLog
@@ -332,6 +336,22 @@ tryAll msg request_ =
 getUser : PartialModel a -> AuthParams -> Request User
 getUser model { code, state } =
     get model.velaAPI (Endpoint.Authenticate { code = code, state = state }) decodeUser
+
+
+{-| getCurrentUser : fetches a user from the current user endpoint
+-}
+getCurrentUser : PartialModel a -> Request CurrentUser
+getCurrentUser model =
+    get model.velaAPI Endpoint.CurrentUser decodeCurrentUser
+        |> withAuth model.session
+
+
+{-| updateCurrentUser : updates the currently authenticated user with the current user endpoint
+-}
+updateCurrentUser : PartialModel a -> Http.Body -> Request CurrentUser
+updateCurrentUser model body =
+    put model.velaAPI Endpoint.CurrentUser body decodeCurrentUser
+        |> withAuth model.session
 
 
 {-| getRepositories : fetches enabled repositories by user token

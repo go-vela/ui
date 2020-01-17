@@ -23,7 +23,7 @@ context('Accessibility (a11y)', () => {
       cy.setTheme('theme-light');
       cy.server();
       // overview page
-      cy.route('GET', '*api/v1/repos*', 'fixture:overview_page.json');
+      cy.route('GET', '*api/v1/repos*', 'fixture:favorites.json');
       // add repos page
       cy.route(
         'GET',

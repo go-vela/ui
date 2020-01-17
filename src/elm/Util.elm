@@ -9,6 +9,7 @@ module Util exposing
     , dateToHumanReadable
     , dispatch
     , filterEmptyLists
+    , filterEmptyStringLists
     , fiveSecondsMillis
     , formatRunTime
     , formatTestTag
@@ -166,6 +167,13 @@ formatTestTag tag =
 -}
 filterEmptyLists : List ( b, List a ) -> List ( b, List a )
 filterEmptyLists =
+    List.filter (\( _, list ) -> List.isEmpty list == False)
+
+
+{-| filterEmptyStringLists : filters out empties from list of (key, list)
+-}
+filterEmptyStringLists : List ( String, List String ) -> List ( String, List String )
+filterEmptyStringLists =
     List.filter (\( _, list ) -> List.isEmpty list == False)
 
 

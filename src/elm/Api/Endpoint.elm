@@ -22,6 +22,7 @@ apiBase =
 -}
 type Endpoint
     = Authenticate AuthParams
+    | CurrentUser
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Repository Org Repo
     | UserSourceRepositories
@@ -46,6 +47,9 @@ toUrl api endpoint =
 
         Repository org repo ->
             url api [ "repos", org, repo ] []
+
+        CurrentUser ->
+            url api [ "user" ] []
 
         UserSourceRepositories ->
             url api [ "user", "source", "repos" ] []
