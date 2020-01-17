@@ -21,7 +21,7 @@ context('Accessibility (a11y)', () => {
       cy.clearSession();
       cy.server();
       // overview page
-      cy.route('GET', '*api/v1/repos*', 'fixture:overview_page.json');
+      cy.route('GET', '*api/v1/user*', 'fixture:favorites.json');
       // add repos page
       cy.route(
         'GET',
