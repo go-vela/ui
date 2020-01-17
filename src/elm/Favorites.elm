@@ -47,10 +47,10 @@ starToggleAriaLabel org repo favorited =
     in
     attribute "aria-label" <|
         if favorited then
-            "Remove " ++ favorite ++ " from user favorites."
+            "remove " ++ favorite ++ " from user favorites"
 
         else
-            "Add " ++ favorite ++ " to user favorites."
+            "add " ++ favorite ++ " to user favorites"
 
 
 
