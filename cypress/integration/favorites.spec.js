@@ -82,7 +82,10 @@ context('Favorites', () => {
           });
 
           it('star should not have favorited class', () => {
-            cy.get('[data-test=star-toggle-cat-purr] > svg').should('not.have.class', 'favorited');
+            cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+              'not.have.class',
+              'favorited',
+            );
           });
 
           context('add favorite cat/purr', () => {
@@ -93,7 +96,10 @@ context('Favorites', () => {
             });
 
             it('star should have favorited class', () => {
-              cy.get('[data-test=star-toggle-cat-purr] > svg').should('have.class', 'favorited');
+              cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+                'have.class',
+                'favorited',
+              );
             });
 
             it('should show a success alert', () => {
@@ -125,7 +131,10 @@ context('Favorites', () => {
               });
 
               it('star should not have favorited class', () => {
-                cy.get('[data-test=star-toggle-cat-purr] > svg').should('not.have.class', 'favorited');
+                cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+                  'not.have.class',
+                  'favorited',
+                );
               });
             });
           });
@@ -142,11 +151,17 @@ context('Favorites', () => {
         });
 
         it('star should not have favorited class', () => {
-          cy.get('[data-test=star-toggle-cat-purr] > svg').should('not.have.class', 'favorited');
+          cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+            'not.have.class',
+            'favorited',
+          );
           cy.get('@togglePurr')
             .should('exist')
             .click();
-          cy.get('[data-test=star-toggle-cat-purr] > svg').should('have.class', 'favorited');
+          cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+            'have.class',
+            'favorited',
+          );
         });
 
         context('add favorite cat/purr', () => {
@@ -157,7 +172,10 @@ context('Favorites', () => {
           });
 
           it('star should add favorited class', () => {
-            cy.get('[data-test=star-toggle-cat-purr] > svg').should('have.class', 'favorited');
+            cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+              'have.class',
+              'favorited',
+            );
           });
 
           context('visit Overview page', () => {
@@ -170,7 +188,10 @@ context('Favorites', () => {
               cy.get('[data-test=star-toggle-cat-purr]')
                 .as('togglePurr')
                 .should('exist');
-              cy.get('[data-test=star-toggle-cat-purr] > svg').should('have.class', 'favorited');
+              cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+                'have.class',
+                'favorited',
+              );
             });
 
             it('clicking star should remove cat/purr from favorites', () => {
@@ -192,7 +213,10 @@ context('Favorites', () => {
             });
 
             it('star should not have favorited class', () => {
-              cy.get('[data-test=star-toggle-cat-purr] > svg').should('not.have.class', 'favorited');
+              cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+                'not.have.class',
+                'favorited',
+              );
             });
           });
         });
