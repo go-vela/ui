@@ -1,5 +1,5 @@
 {--
-Copyright (c) 2019 Target Brands, Inc. All rights reserved.
+Copyright (c) 2020 Target Brands, Inc. All rights reserved.
 Use of this source code is governed by the LICENSE file in this repository.
 --}
 
@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Favorites exposing (ToggleFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
 
 import Html exposing (Html)
+import Html.Attributes exposing (attribute)
 import Html.Events exposing (onClick)
 import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
@@ -34,8 +35,23 @@ starToggle org repo toggleFavorite favorited =
         [ Util.testAttribute <| "star-toggle-" ++ org ++ "-" ++ repo
         , onClick <| toggleFavorite org <| Just repo
         , Svg.Attributes.class "-cursor"
+        , starToggleAriaLabel org repo favorited
         ]
         favorited
+
+
+starToggleAriaLabel : Org -> Repo -> Bool -> Html.Attribute msg
+starToggleAriaLabel org repo favorited =
+    let
+        favorite =
+            toFavorite org <| Just repo
+    in
+    attribute "aria-label" <|
+        if favorited then
+            "Remove " ++ favorite ++ " from user favorites."
+
+        else
+            "Add " ++ favorite ++ " to user favorites."
 
 
 

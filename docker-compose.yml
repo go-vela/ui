@@ -41,7 +41,7 @@ services:
     restart: always
     ports:
       - '8080:8080'
-    depends_on:
+    depends_on:x
       - postgres
       - redis
       - vault
