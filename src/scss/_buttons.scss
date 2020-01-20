@@ -78,8 +78,21 @@
   // retry logic by default
   &.-failure {
     background-color: var(--color-red);
+  }
 
-    // if there's an
+  &.-loading,
+  &.-running {
+    background-color: var(--color-yellow);
+
+    cursor: default;
+  }
+}
+
+// special case where we add animation to
+// a failure state button
+// TODO: move to separate file?
+.-failure {
+  &.-animate-rotate {
     > svg {
       transition: transform 0.2s ease-in-out;
     }
@@ -90,13 +103,6 @@
 
       transition: transform 0.2s ease-in-out;
     }
-  }
-
-  &.-loading,
-  &.-running {
-    background-color: var(--color-yellow);
-
-    cursor: default;
   }
 }
 
@@ -137,17 +143,6 @@
     color: var(--color-red);
 
     border-color: var(--color-red);
-
-    > svg {
-      transition: transform 0.2s ease-in-out;
-    }
-
-    &:hover svg,
-    &:focus svg {
-      transform: rotate(0.5turn);
-
-      transition: transform 0.2s ease-in-out;
-    }
   }
 
   &.-loading,

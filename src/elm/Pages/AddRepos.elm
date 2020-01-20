@@ -275,6 +275,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
                 [ class "button"
                 , class "-outline"
                 , class "-failure"
+                , class "-animate-rotate"
                 , Util.testAttribute <| String.join "-" [ "failed", repo.org, repo.name ]
                 , onClick (enableRepo repo)
                 ]
