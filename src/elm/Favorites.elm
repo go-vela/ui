@@ -34,7 +34,8 @@ starToggle org repo toggleFavorite favorited =
         [ Util.testAttribute <| "star-toggle-" ++ org ++ "-" ++ repo
         , onClick <| toggleFavorite org <| Just repo
         , starToggleAriaLabel org repo favorited
-        , class "star-button"
+        , class "button"
+        , class "-icon"
         ]
         [ star favorited ]
 

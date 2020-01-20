@@ -46,18 +46,13 @@ view user toggleFavorite =
         blankMessage =
             div [ class "overview" ]
                 [ h1 [] [ text "Let's get Started!" ]
-                , p []
-                    [ text "To have Vela start building your projects we need to get them enabled."
-                    ]
+                , p [] [ text "To have Vela start building your projects we need to get them enabled." ]
                 , p []
                     [ text "To display a repository here, click the "
                     , SvgBuilder.star False
                     ]
-                , p []
-                    [ text "Add repositories from your GitHub account to Vela now!"
-                    ]
-                , a [ class "button", Routes.href Routes.AddRepositories ]
-                    [ text "Add Repositories" ]
+                , p [] [ text "Add repositories from your GitHub account to Vela now!" ]
+                , a [ class "button", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
                 ]
     in
     div [ Util.testAttribute "overview" ]

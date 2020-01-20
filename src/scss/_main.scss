@@ -1500,22 +1500,9 @@ nav {
   flex-direction: row;
 }
 
-.star-button {
-  display: inline-block;
-  width: auto;
-  margin: 0 0.5em;
-  padding: 0;
-
-  background: none;
-}
-
 .icon.favorite-star {
   fill: none;
   stroke: var(--color-yellow);
-}
-
-.icon.favorite-star.-cursor {
-  cursor: pointer;
 }
 
 .icon.favorite-star.favorited {

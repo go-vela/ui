@@ -32,7 +32,6 @@
   white-space: nowrap;
   text-align: center;
   text-decoration: none;
-  vertical-align: middle;
 
   background-color: var(--color-primary);
   border: var(--line-width) solid transparent;
@@ -185,6 +184,18 @@
   &:focus,
   &:active {
     text-decoration: none;
+  }
+}
+
+// icon buttons, ie. buttons containing only SVG
+.button.-icon {
+  margin: 0;
+  padding: 0;
+
+  background-color: transparent;
+
+  > svg {
+    margin: 0;
   }
 }
 

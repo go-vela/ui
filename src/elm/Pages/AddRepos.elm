@@ -278,7 +278,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
                 , Util.testAttribute <| String.join "-" [ "failed", repo.org, repo.name ]
                 , onClick (enableRepo repo)
                 ]
-                [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+                [ FeatherIcons.refreshCw |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
         RemoteData.Success enabledStatus ->
             if enabledStatus then
@@ -288,9 +288,10 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
                         [ class "button"
                         , class "-outline"
                         , class "-success"
+                        , attribute "tabindex" "-1" -- in this scenario we are merely showing state, this is not interactive
                         , Util.testAttribute <| String.join "-" [ "enabled", repo.org, repo.name ]
                         ]
-                        [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Enabled" ]
+                        [ FeatherIcons.check |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Enabled" ]
                     , a
                         [ class "button"
                         , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
