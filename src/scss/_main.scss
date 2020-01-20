@@ -1471,6 +1471,11 @@ nav {
   justify-content: space-between;
 }
 
+.pager-icon-next svg {
+  margin-right: 0; // override global margin on svgs in buttons
+  margin-left: 0.5em;
+}
+
 .enable-container {
   display: flex;
   flex-direction: row;

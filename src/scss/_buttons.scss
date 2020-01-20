@@ -29,6 +29,7 @@
   color: var(--color-bg);
   font-weight: bold;
   font-size: 1rem;
+  line-height: 1.5;
   white-space: nowrap;
   text-align: center;
   text-decoration: none;
@@ -38,13 +39,16 @@
   outline: none;
   cursor: pointer;
 
+  user-select: none;
+
   // for buttons with icons
   // expects SVG icon and
   // assumes it is rendered first
   > svg {
     display: inline-block;
+    margin-right: 0.5rem;
 
-    margin-right: 0.6rem;
+    vertical-align: text-bottom;
   }
 
   &:hover,
@@ -196,6 +200,8 @@
 
   > svg {
     margin: 0;
+
+    vertical-align: middle;
   }
 }
 

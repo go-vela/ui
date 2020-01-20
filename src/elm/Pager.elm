@@ -100,16 +100,30 @@ view links labels toMsg =
     -- only render if we have pagination
     if List.length links > 0 then
         div [ class "pager-actions" ]
-            [ button [ disabled isFirst, Util.testAttribute "pager-previous", class "inverted", onClick (toMsg prevPage) ]
+            [ button
+                [ disabled isFirst
+                , Util.testAttribute "pager-previous"
+                , class "button"
+                , class "-outline"
+                , class "pager-icon-prev"
+                , onClick (toMsg prevPage)
+                ]
                 [ FeatherIcons.chevronLeft
-                    |> FeatherIcons.withSize 14
+                    |> FeatherIcons.withSize 18
                     |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
                 , text labels.previousLabel
                 ]
-            , button [ disabled isLast, Util.testAttribute "pager-next", class "inverted", onClick (toMsg nextPage) ]
+            , button
+                [ disabled isLast
+                , Util.testAttribute "pager-next"
+                , class "button"
+                , class "-outline"
+                , class "pager-icon-next"
+                , onClick (toMsg nextPage)
+                ]
                 [ text labels.nextLabel
                 , FeatherIcons.chevronRight
-                    |> FeatherIcons.withSize 14
+                    |> FeatherIcons.withSize 18
                     |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
                 ]
             ]
