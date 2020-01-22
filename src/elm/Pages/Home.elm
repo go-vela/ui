@@ -16,6 +16,7 @@ import Html
         , details
         , div
         , h1
+        , p
         , span
         , summary
         , text
@@ -45,20 +46,13 @@ view user toggleFavorite =
         blankMessage =
             div [ class "overview" ]
                 [ h1 [] [ text "Let's get Started!" ]
-                , div [ class "get-started" ]
-                    [ text "To have Vela start building your projects we need to get them enabled."
-                    , br [] []
-                    , div []
-                        [ text "To display a repository here, click the"
-                        , SvgBuilder.star False
-                        ]
-                    , text "Add repositories from your GitHub account to Vela now!"
-                    , br [] []
-                    , div [ class "add-repos-container" ]
-                        [ a [ class "-btn", class "-solid", class "-add-repos", Routes.href Routes.AddRepositories ]
-                            [ text "Add Repositories" ]
-                        ]
+                , p [] [ text "To have Vela start building your projects we need to get them enabled." ]
+                , p []
+                    [ text "To display a repository here, click the "
+                    , SvgBuilder.star False
                     ]
+                , p [] [ text "Add repositories from your GitHub account to Vela now!" ]
+                , a [ class "button", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
                 ]
     in
     div [ Util.testAttribute "overview" ]
@@ -114,27 +108,23 @@ viewSingleRepo user toggleFavorite favorite =
     in
     div [ class "-item", Util.testAttribute "repo-item" ]
         [ div [] [ text repo ]
-        , div [ class "-actions" ]
+        , div [ class "buttons" ]
             [ starToggle org repo toggleFavorite <| isFavorited user <| org ++ "/" ++ repo
             , a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
+                [ class "button"
+                , class "-outline"
                 , Routes.href <| Routes.Settings org repo
                 ]
                 [ text "Settings" ]
             , a
-                [ class "-btn"
-                , class "-inverted"
-                , class "-view"
+                [ class "button"
+                , class "-outline"
                 , Util.testAttribute "repo-hooks"
                 , Routes.href <| Routes.Hooks org repo Nothing Nothing
                 ]
                 [ text "Hooks" ]
             , a
-                [ class "-btn"
-                , class "-solid"
-                , class "-view"
+                [ class "button"
                 , Util.testAttribute "repo-view"
                 , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing
                 ]

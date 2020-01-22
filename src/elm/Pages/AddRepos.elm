@@ -212,9 +212,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
     in
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
-        , div []
-            [ enableRepoButton repo enableRepo toggleFavorite favorited
-            ]
+        , enableRepoButton repo enableRepo toggleFavorite favorited
         ]
 
 
@@ -225,10 +223,7 @@ viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
     div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
             [ text <| repo.org ++ "/" ++ repo.name ]
-        , div
-            []
-            [ enableRepoButton repo enableRepo toggleFavorite favorited
-            ]
+        , enableRepoButton repo enableRepo toggleFavorite favorited
         ]
 
 
@@ -243,7 +238,7 @@ viewRepoCount repos =
 -}
 enableReposButton : Org -> Repositories -> Bool -> EnableRepos msg -> Html msg
 enableReposButton org repos filtered enableRepos =
-    button [ class "-inverted", Util.testAttribute <| "add-org-" ++ org, onClick (enableRepos repos) ]
+    button [ class "button", class "-outline", Util.testAttribute <| "add-org-" ++ org, onClick (enableRepos repos) ]
         [ text <|
             if filtered then
                 "Enable Results"
@@ -257,35 +252,64 @@ enableReposButton org repos filtered enableRepos =
 -}
 enableRepoButton : Repository -> EnableRepo msg -> ToggleFavorite msg -> Bool -> Html msg
 enableRepoButton repo enableRepo toggleFavorite favorited =
-    div [ class "add-repos-actions", Util.testAttribute "add-repos-actions" ] <|
-        case repo.enabled of
-            RemoteData.NotAsked ->
-                [ button [ class "repo-enable-btn", class "-solid", onClick (enableRepo repo) ] [ text "Enable" ] ]
-
-            RemoteData.Loading ->
-                [ div [ class "repo-enable-btn", class "repo-enable-enabling" ] [ span [ class "repo-enable-enabling-text" ] [ text "Enabling" ], span [ class "loading-ellipsis" ] [] ]
+    case repo.enabled of
+        RemoteData.NotAsked ->
+            button
+                [ class "button"
+                , Util.testAttribute <| String.join "-" [ "enable", repo.org, repo.name ]
+                , onClick (enableRepo repo)
                 ]
+                [ text "Enable" ]
 
-            RemoteData.Failure _ ->
-                [ div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+        RemoteData.Loading ->
+            button
+                [ class "button"
+                , class "-outline"
+                , class "-loading"
+                , Util.testAttribute <| String.join "-" [ "loading", repo.org, repo.name ]
                 ]
+                [ text "Enabling", span [ class "loading-ellipsis" ] [] ]
 
-            RemoteData.Success enabledStatus ->
-                if enabledStatus then
+        RemoteData.Failure _ ->
+            button
+                [ class "button"
+                , class "-outline"
+                , class "-failure"
+                , class "-animate-rotate"
+                , Util.testAttribute <| String.join "-" [ "failed", repo.org, repo.name ]
+                , onClick (enableRepo repo)
+                ]
+                [ FeatherIcons.refreshCw |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
+
+        RemoteData.Success enabledStatus ->
+            if enabledStatus then
+                div [ class "buttons" ]
                     [ starToggle repo.org repo.name toggleFavorite <| favorited
-                    , div [ class "repo-enable-btn", class "repo-enable-enabled" ]
-                        [ FeatherIcons.check |> FeatherIcons.toHtml [ attribute "role" "img" ]
-                        , span []
-                            [ text "Enabled"
-                            ]
+                    , button
+                        [ class "button"
+                        , class "-outline"
+                        , class "-success"
+                        , attribute "tabindex" "-1" -- in this scenario we are merely showing state, this is not interactive
+                        , Util.testAttribute <| String.join "-" [ "enabled", repo.org, repo.name ]
                         ]
-                    , a [ class "-btn", class "-solid", class "-view", class "add-repo-view", Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing ]
-                        [ text "View"
+                        [ FeatherIcons.check |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Enabled" ]
+                    , a
+                        [ class "button"
+                        , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
+                        , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing
                         ]
+                        [ text "View" ]
                     ]
 
-                else
-                    [ div [ class "repo-enable-btn", class "repo-enable-failed", onClick (enableRepo repo) ] [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ] ]
+            else
+                button
+                    [ class "button"
+                    , class "-outline"
+                    , class "-failure"
+                    , Util.testAttribute <| String.join "-" [ "failed", repo.org, repo.name ]
+                    , onClick (enableRepo repo)
+                    ]
+                    [ FeatherIcons.refreshCw |> FeatherIcons.toHtml [ attribute "role" "img" ], text "Failed" ]
 
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos

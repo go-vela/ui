@@ -1,0 +1,207 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// ┌┐ ┬ ┬┌┬┐┌┬┐┌─┐┌┐┌┌─┐
+// ├┴┐│ │ │  │ │ ││││└─┐
+// └─┘└─┘ ┴  ┴ └─┘┘└┘└─┘
+
+// usage:
+// <button class="button">Ok</button>
+// <button class="button -outline">Ok</button>
+// <button class="button"><svg>..</svg> Ok</button>
+// <a class="button" href="..">Ok</a>
+// <button class="button -icon"><svg>..</svg></button>
+//
+// <div class="buttons">
+//   <button class="button">Ok</button>
+//   <button class="button -outline">Cancel</button>
+// </div>
+
+.button {
+  display: inline-block;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  max-width: 100%;
+  padding: 0.4rem 1.2rem;
+
+  color: var(--color-bg);
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  text-align: center;
+  text-decoration: none;
+
+  background-color: var(--color-primary);
+  border: var(--line-width) solid transparent;
+  outline: none;
+  cursor: pointer;
+
+  user-select: none;
+
+  // for buttons with icons
+  // expects SVG icon and
+  // assumes it is rendered first
+  > svg {
+    display: inline-block;
+    margin-right: 0.5rem;
+
+    vertical-align: text-bottom;
+  }
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: var(--color-primary);
+
+    background-color: var(--color-bg);
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    background-color: var(--color-bg-light);
+
+    pointer-events: none;
+  }
+
+  &.-success {
+    background-color: var(--color-green);
+
+    cursor: default;
+  }
+
+  // not resetting cursor on failure state
+  // with assumption that there will be
+  // retry logic by default
+  &.-failure {
+    background-color: var(--color-red);
+  }
+
+  &.-loading,
+  &.-running {
+    background-color: var(--color-yellow);
+
+    cursor: default;
+  }
+}
+
+// special case where we add animation to
+// a failure state button
+// TODO: move to separate file?
+.-failure {
+  &.-animate-rotate {
+    > svg {
+      transition: transform 0.2s ease-in-out;
+    }
+
+    &:hover svg,
+    &:focus svg {
+      transform: rotate(0.5turn);
+
+      transition: transform 0.2s ease-in-out;
+    }
+  }
+}
+
+// outline style buttons
+.button.-outline {
+  color: var(--color-primary);
+
+  background-color: var(--color-bg);
+  border-color: var(--color-primary);
+
+  &:hover,
+  &:focus,
+  &:active {
+    color: var(--color-bg);
+
+    background-color: var(--color-primary);
+    border-color: transparent;
+  }
+
+  &:disabled {
+    color: var(--color-bg-light);
+
+    border-color: var(--color-bg-light);
+  }
+
+  &.-success {
+    color: var(--color-green);
+
+    border-color: var(--color-green);
+
+    cursor: default;
+  }
+
+  // not resetting cursor on failure state
+  // with assumption that there will be
+  // retry logic by default
+  &.-failure {
+    color: var(--color-red);
+
+    border-color: var(--color-red);
+  }
+
+  &.-loading,
+  &.-running {
+    color: var(--color-yellow);
+
+    border-color: var(--color-yellow);
+
+    cursor: default;
+  }
+
+  &.-success,
+  &.-failure,
+  &.-loading,
+  &.-running {
+    &:hover,
+    &:focus {
+      background-color: var(--color-bg);
+    }
+  }
+}
+
+// buttons that look like regular text links
+.button.-link {
+  margin: 0;
+  padding: 0;
+
+  color: var(--color-primary);
+
+  font-weight: normal;
+  font-size: inherit;
+  text-decoration: underline;
+  vertical-align: baseline;
+
+  background-color: transparent;
+  border: none;
+
+  &:hover,
+  &:focus,
+  &:active {
+    text-decoration: none;
+  }
+}
+
+// icon buttons, ie. buttons containing only SVG
+.button.-icon {
+  margin: 0;
+  padding: 0;
+
+  background-color: transparent;
+
+  > svg {
+    margin: 0;
+
+    vertical-align: middle;
+  }
+}
+
+// deal with button groupings
+.buttons .button:not(:last-child) {
+  margin-right: 0.5rem;
+}

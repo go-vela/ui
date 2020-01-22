@@ -71,9 +71,7 @@ context('Favorites', () => {
             );
 
             cy.get('@catOrg').click();
-            cy.get('[data-test=source-repo-purr]').within(() => {
-              cy.get('[data-test=add-repos-actions] > button').click();
-            });
+            cy.get('[data-test=enable-cat-purr]').click();
             cy.wait('@addRepo');
             cy.get('[data-test=star-toggle-cat-purr]').as('togglePurr');
           });
