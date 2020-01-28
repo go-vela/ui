@@ -25,3 +25,45 @@
     font-size: 1rem;
   }
 }
+
+// for the enable admin section
+.enable-container {
+  display: flex;
+  flex-direction: row;
+  margin-top: 1em;
+
+  list-style: none;
+}
+
+.enable-btn-label-a {
+  font-weight: 300;
+  font-size: 18px;
+}
+
+.enable-btn-label-b {
+  font-weight: 300;
+  font-size: 14px;
+}
+
+.enable-column-a {
+  display: flex;
+  flex-direction: column;
+  margin-right: 0.8em;
+}
+
+.enable-column-b {
+  display: flex;
+  flex-direction: row;
+}
+
+.timeout-help {
+  padding: 8px 12px;
+
+  font-weight: 300;
+
+  font-size: 14px;
+
+  background: var(--color-bg-light);
+
+  border-radius: 4px;
+}

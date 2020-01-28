@@ -1221,18 +1221,6 @@ nav {
   }
 }
 
-.timeout-help {
-  padding: 8px 12px;
-
-  font-weight: 300;
-
-  font-size: 14px;
-
-  background: var(--color-bg-light);
-
-  border-radius: 4px;
-}
-
 .pager-actions {
   display: flex;
   justify-content: space-between;
@@ -1241,35 +1229,6 @@ nav {
 .pager-icon-next svg {
   margin-right: 0; // override global margin on svgs in buttons
   margin-left: 0.5em;
-}
-
-.enable-container {
-  display: flex;
-  flex-direction: row;
-  margin-top: 1em;
-
-  list-style: none;
-}
-
-.enable-btn-label-a {
-  font-weight: 300;
-  font-size: 18px;
-}
-
-.enable-btn-label-b {
-  font-weight: 300;
-  font-size: 14px;
-}
-
-.enable-column-a {
-  display: flex;
-  flex-direction: column;
-  margin-right: 0.8em;
-}
-
-.enable-column-b {
-  display: flex;
-  flex-direction: row;
 }
 
 .icon.favorite-star {
