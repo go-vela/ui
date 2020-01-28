@@ -11,6 +11,7 @@ import Api
 import Api.Pagination as Pagination
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
+import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Build
     exposing
@@ -180,6 +181,7 @@ type alias Model =
     , entryURL : Url
     , hookBuilds : HookBuilds
     , theme : Theme
+    , visibility : Visibility
     }
 
 
@@ -234,6 +236,7 @@ init flags url navKey =
             , entryURL = url
             , hookBuilds = Dict.empty
             , theme = stringToTheme flags.velaTheme
+            , visibility = Visible
             }
 
         ( newModel, newPage ) =
@@ -306,6 +309,7 @@ type Msg
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
+    | VisibilityChanged Visibility
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -830,6 +834,9 @@ update msg model =
                     -- successfully focus the dom
                     ( model, Cmd.none )
 
+        VisibilityChanged visibility ->
+            ( { model | visibility = visibility }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -840,11 +847,11 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
+    Sub.batch <|
         [ Interop.onSessionChange decodeOnSessionChange
         , Interop.onThemeChange decodeOnThemeChange
-        , every Util.oneSecondMillis <| Tick OneSecond
-        , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
+        , Browser.Events.onVisibilityChange VisibilityChanged
+        , refreshSubscriptions model
         ]
 
 
@@ -871,6 +878,21 @@ decodeOnThemeChange inTheme =
 
         Err _ ->
             SetTheme Dark
+
+
+{-| refreshPage : takes model and determines if the page should automatically refresh data
+-}
+refreshSubscriptions : Model -> Sub Msg
+refreshSubscriptions model =
+    Sub.batch <|
+        case model.visibility of
+            Visible ->
+                [ every Util.oneSecondMillis <| Tick OneSecond
+                , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
+                ]
+
+            Hidden ->
+                []
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
