@@ -269,35 +269,6 @@ nav {
   justify-content: space-between;
 }
 
-// .source-actions .-filter,
-// .source-repos .-filter {
-//   display: flex;
-//   flex: 1;
-//   flex-direction: row;
-//   align-items: center;
-
-//   margin: 0 1em;
-
-//   border-bottom: 2px solid var(--color-primary);
-// }
-
-// .source-actions .-filter input,
-// .source-repos .-filter input {
-//   width: 100%;
-//   padding: 0.5em 0.8em;
-
-//   color: var(--color-text);
-
-//   font-size: 18px;
-
-//   background: var(--color-bg);
-//   border: none;
-
-//   &::placeholder {
-//     color: var(--color-bg-light);
-//   }
-// }
-
 .org .summary {
   display: flex;
   flex-direction: row;
@@ -1212,46 +1183,6 @@ nav {
   color: var(--color-red-light);
 }
 
-// .repo-settings {
-//   display: flex;
-//   flex-direction: column;
-// }
-
-// .repo-settings .row {
-//   display: flex;
-//   flex-direction: row;
-// }
-
-// .repo-settings .category {
-//   width: 22em;
-//   margin-right: 2em;
-// }
-
-// .repo-settings .category .header {
-//   margin-bottom: 0.5em;
-//   padding-bottom: 0.2em;
-
-//   border-bottom: 2px solid var(--color-secondary);
-// }
-
-// .repo-settings .header .text {
-//   position: relative;
-//   top: 0.1em;
-
-//   font-weight: bold;
-
-//   font-size: 22px;
-// }
-
-// .repo-settings .category .description {
-//   font-weight: 300;
-//   font-size: 14px;
-// }
-
-// .inputs {
-//   margin: 1em;
-// }
-
 .-icon {
   fill: none;
   stroke: var(--color-primary);
@@ -1289,47 +1220,6 @@ nav {
     fill: var(--color-primary);
   }
 }
-
-// .inputs.repo-timeout input {
-//   width: 5em;
-//   padding-top: 0.5em;
-//   padding-right: 0;
-//   padding-bottom: 0.5em;
-//   padding-left: 1em;
-
-//   color: var(--color-text);
-
-//   font-size: 14px;
-
-//   text-align: center;
-
-//   background: none;
-//   border: none;
-//   border-bottom: 2px solid var(--color-primary);
-// }
-
-// .repo-timeout input:focus {
-//   border-color: var(--color-primary);
-// }
-
-// .repo-timeout {
-//   margin-top: 1em;
-//   margin-left: 3em;
-// }
-
-// .repo-timeout .label {
-//   margin-left: 0.75em;
-
-//   font-weight: 300;
-
-//   font-size: 16px;
-// }
-
-// .repo-timeout input:invalid {
-//   color: var(--color-red-light);
-
-//   caret-color: var(--color-text);
-// }
 
 .timeout-help {
   padding: 8px 12px;
