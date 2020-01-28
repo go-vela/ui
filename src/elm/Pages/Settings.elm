@@ -208,14 +208,10 @@ timeout inTimeout repo clickMsg inputMsg =
         [ h2 [ class "settings-title" ] [ text "Build Timeout" ]
         , p [ class "settings-description" ] [ text "Builds that reach this timeout setting will be stopped." ]
         , fieldset [ class "form-controls" ]
-            [ timeoutInput repo
-                inTimeout
-                inputMsg
-              <|
-                clickMsg repo.org repo.name "timeout" <|
-                    Maybe.withDefault 0 inTimeout
-            , timeoutWarning inTimeout
+            [ timeoutInput repo inTimeout inputMsg
+            , updateTimeout inTimeout repo.timeout <| clickMsg repo.org repo.name "timeout" <| Maybe.withDefault 0 inTimeout
             ]
+        , timeoutWarning inTimeout
         ]
 
 
@@ -253,8 +249,8 @@ radio value field title msg =
 
 {-| timeoutInput : takes repo, user input, and button action and renders the text input for updating build timeout.
 -}
-timeoutInput : Repository -> Maybe Int -> (String -> msg) -> msg -> Html msg
-timeoutInput repo inTimeout inputMsg clickMsg =
+timeoutInput : Repository -> Maybe Int -> (String -> msg) -> Html msg
+timeoutInput repo inTimeout inputMsg =
     div [ class "form-control", Util.testAttribute "repo-timeout" ]
         [ input
             [ id <| "repo-timeout"
@@ -266,9 +262,6 @@ timeoutInput repo inTimeout inputMsg clickMsg =
             ]
             []
         , label [ class "form-label", for "repo-timeout" ] [ text "minutes" ]
-        , updateTimeout inTimeout
-            repo.timeout
-            clickMsg
         ]
 
 
