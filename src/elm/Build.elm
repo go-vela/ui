@@ -760,22 +760,34 @@ toggleStepView steps stepNumber =
 -}
 clickLogLine : WebData Steps -> Navigation.Key -> Org -> Repo -> BuildNumber -> StepNumber -> Maybe Int -> ( WebData Steps, Cmd msg )
 clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
+    let
+        stepOpened =
+            Maybe.withDefault False <|
+                List.head <|
+                    List.map (\step -> not step.viewing) <|
+                        List.filter (\step -> String.fromInt step.number == stepNumber) <|
+                            RemoteData.withDefault [] steps
+    in
     ( steps
-    , Navigation.replaceUrl navKey <|
-        Routes.routeToUrl
-            (Routes.Build org repo buildNumber <|
-                Just <|
-                    "#step:"
-                        ++ stepNumber
-                        ++ (case lineNumber of
-                                Just line ->
-                                    ":"
-                                        ++ String.fromInt line
+    , if stepOpened then
+        Navigation.replaceUrl navKey <|
+            Routes.routeToUrl
+                (Routes.Build org repo buildNumber <|
+                    Just <|
+                        "#step:"
+                            ++ stepNumber
+                            ++ (case lineNumber of
+                                    Just line ->
+                                        ":"
+                                            ++ String.fromInt line
 
-                                Nothing ->
-                                    ""
-                           )
-            )
+                                    Nothing ->
+                                        ""
+                               )
+                )
+
+      else
+        Cmd.none
     )
 
 
