@@ -11,6 +11,7 @@ import Api
 import Api.Pagination as Pagination
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
+import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Build
     exposing
@@ -180,6 +181,7 @@ type alias Model =
     , entryURL : Url
     , hookBuilds : HookBuilds
     , theme : Theme
+    , visibility : Visibility
     }
 
 
@@ -234,6 +236,7 @@ init flags url navKey =
             , entryURL = url
             , hookBuilds = Dict.empty
             , theme = stringToTheme flags.velaTheme
+            , visibility = Visible
             }
 
         ( newModel, newPage ) =
@@ -306,6 +309,7 @@ type Msg
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
+    | VisibilityChanged Visibility
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -830,6 +834,9 @@ update msg model =
                     -- successfully focus the dom
                     ( model, Cmd.none )
 
+        VisibilityChanged visibility ->
+            ( { model | visibility = visibility }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -845,6 +852,7 @@ subscriptions model =
         , Interop.onThemeChange decodeOnThemeChange
         , every Util.oneSecondMillis <| Tick OneSecond
         , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
+        , Browser.Events.onVisibilityChange VisibilityChanged
         ]
 
 
