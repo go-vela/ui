@@ -847,12 +847,11 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
+    Sub.batch <|
         [ Interop.onSessionChange decodeOnSessionChange
         , Interop.onThemeChange decodeOnThemeChange
-        , every Util.oneSecondMillis <| Tick OneSecond
-        , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
         , Browser.Events.onVisibilityChange VisibilityChanged
+        , refreshSubscriptions model
         ]
 
 
@@ -879,6 +878,21 @@ decodeOnThemeChange inTheme =
 
         Err _ ->
             SetTheme Dark
+
+
+{-| refreshPage : takes model and determines if the page should automatically refresh data
+-}
+refreshSubscriptions : Model -> Sub Msg
+refreshSubscriptions model =
+    Sub.batch <|
+        case model.visibility of
+            Visible ->
+                [ every Util.oneSecondMillis <| Tick OneSecond
+                , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
+                ]
+
+            Hidden ->
+                []
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
