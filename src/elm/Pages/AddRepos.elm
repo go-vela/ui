@@ -192,7 +192,7 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
             , viewRepoCount repos
             ]
         ]
-        :: div [ class "source-actions" ]
+        :: div [ class "form-controls" ]
             [ repoSearchBarLocal filters org search
             , enableReposButton org repos filtered enableRepos
             ]

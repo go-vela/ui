@@ -1,0 +1,207 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// ┌─┐┌─┐┬─┐┌┬┐┌─┐
+// ├┤ │ │├┬┘│││└─┐
+// └  └─┘┴└─┴ ┴└─┘
+
+// styles for form elements
+
+// usually used with <fieldset>
+.form-controls {
+  padding: 0.5rem 1rem;
+
+  border: none;
+}
+
+// <div class="form-control">
+//  <input ... />
+//  <label class="form-label">...</label>
+// </div>
+.form-control {
+  position: relative;
+
+  margin-bottom: 0.5rem;
+}
+
+// radio
+// checkbox
+.form-control [type='checkbox'],
+.form-control [type='radio'] {
+  @include visually-hidden;
+
+  + .form-label {
+    display: inline-block;
+    padding-left: 2rem;
+
+    cursor: pointer;
+  }
+}
+
+// style for the base control to replace native
+.form-control [type='checkbox'] + .form-label::before,
+.form-control [type='radio'] + .form-label::before,
+.form-control [type='radio'] + .form-label::after {
+  position: absolute;
+  top: 4px;
+  left: 0;
+
+  width: 20px;
+  height: 20px;
+
+  background-color: var(--color-primary);
+
+  content: '';
+}
+
+// radio controls are round, m'kay
+.form-control [type='radio'] + .form-label::before {
+  background-color: var(--color-bg);
+  border: var(--line-width) solid var(--color-primary);
+  border-radius: 50%;
+}
+
+// render checkmark for checkbox, invisible initially
+.form-control [type='checkbox'] + .form-label::after {
+  position: absolute;
+  top: 10px;
+  left: 3px;
+
+  width: 14px;
+  height: 6px;
+
+  border-bottom: var(--line-width) solid var(--color-bg);
+  border-left: var(--line-width) solid var(--color-bg);
+  transform: rotate(-45deg);
+  opacity: 0;
+
+  transition: opacity 0.1s ease-in-out;
+
+  content: '';
+}
+
+// render selected radio mark, invisible initially
+.form-control [type='radio'] + .form-label::after {
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  transform: scale(0.4);
+  opacity: 0;
+
+  content: '';
+}
+
+// reveal check mark or selected radio when selected
+.form-control [type='checkbox']:checked + .form-label::after,
+.form-control [type='radio']:checked + .form-label::after {
+  opacity: 1;
+}
+
+// all other controls
+.form-control input:not([type='checkbox']):not([type='radio']) {
+  position: relative;
+
+  width: 100%;
+  padding: 0.5rem;
+
+  color: var(--color-text);
+  font-size: 1rem;
+
+  background-color: var(--color-bg);
+  border: none;
+  border-bottom: var(--line-width) solid var(--color-primary);
+
+  // stylelint-disable-next-line
+  + .form-label {
+    position: absolute;
+    top: 0;
+
+    padding: 0.5rem;
+
+    line-height: 1;
+  }
+}
+
+// for form controls with icon
+// <div class="form-control -with-icon">
+//  <input ... />
+//  <svg ...></svg>
+// </div>
+.form-control.-with-icon {
+  input:not([type='checkbox']):not([type='radio']) {
+    padding-left: 2rem;
+  }
+
+  svg {
+    position: absolute;
+    top: 8px;
+    left: 0;
+  }
+}
+
+// focus styles
+.form-control input[type='checkbox']:focus + .form-label::before,
+.form-control input[type='radio']:focus + .form-label::before,
+.form-control input:focus:not([type='checkbox']):not([type='radio']) {
+  outline: var(--color-secondary) dotted var(--line-width);
+  outline-offset: var(--line-width);
+}
+
+// <details class="details">
+//  <summary class="summary"></summary>
+//  ..
+// </details>
+.details {
+  > .summary {
+    position: relative;
+
+    padding-right: 1.5em;
+    padding-bottom: 0.3em;
+
+    overflow: hidden;
+
+    cursor: pointer;
+
+    // hide details marker on Chrome
+    // stylelint-disable declaration-no-important
+    &::-webkit-details-marker {
+      display: none !important;
+    }
+
+    //hide details marker on Firefox
+    &:first-of-type {
+      list-style-type: none !important;
+    }
+    // stylelint-enable declaration-no-important
+
+    // super hacky way to remove
+    // marker on details element
+    //
+    // text-indent: -1em;
+    // Firefox - hide marker
+    // &::-webkit-details-marker,
+    // &::marker {
+    //   display: none;
+    //   color: var(--color-coal);
+    // }
+    // also could work with:
+    // display: block;
+    // nothing seems to work on Chrome
+  }
+
+  .details-icon-expand {
+    position: absolute;
+    top: 0.2em;
+    right: 0;
+
+    color: var(--color-primary);
+
+    transform-origin: 50% 49%;
+
+    transition: transform 0.2s;
+  }
+
+  &[open] .details-icon-expand {
+    transform: rotate(0.5turn);
+  }
+}

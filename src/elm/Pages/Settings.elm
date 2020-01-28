@@ -25,14 +25,18 @@ import Dict exposing (Dict)
 import Html
     exposing
         ( Html
+        , br
         , button
         , div
         , em
+        , fieldset
+        , h2
         , input
         , label
-        , li
         , p
+        , section
         , span
+        , strong
         , text
         )
 import Html.Attributes
@@ -48,7 +52,6 @@ import Html.Attributes
         )
 import Html.Events exposing (onCheck, onClick, onInput)
 import RemoteData exposing (RemoteData(..), WebData)
-import SvgBuilder
 import Util
 import Vela
     exposing
@@ -122,8 +125,10 @@ view repo inTimeout actions =
     case repo of
         Success repo_ ->
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
-                [ div [ class "row" ] [ events repo_ eventsUpdate, access repo_ accessUpdate ]
-                , div [ class "row" ] [ timeout inTimeout repo_ timeoutUpdate inTimeoutChange, enable disableRepo enableRepo repo_ ]
+                [ events repo_ eventsUpdate
+                , access repo_ accessUpdate
+                , timeout inTimeout repo_ timeoutUpdate inTimeoutChange
+                , enable disableRepo enableRepo repo_
                 ]
 
         Loading ->
@@ -149,10 +154,10 @@ view repo inTimeout actions =
 -}
 access : Repository -> RadioUpdate msg -> Html msg
 access repo msg =
-    div [ class "category", Util.testAttribute "repo-settings-access" ]
-        [ div [ class "header" ] [ span [ class "text" ] [ text "Access" ] ]
-        , div [ class "description" ] [ text "Change who can access build information." ]
-        , div [ class "inputs", class "radios" ]
+    section [ class "settings", Util.testAttribute "repo-settings-access" ]
+        [ h2 [ class "settings-title" ] [ text "Access" ]
+        , p [ class "settings-description" ] [ text "Change who can access build information." ]
+        , fieldset [ class "form-controls" ]
             [ radio repo.visibility "private" "Private" <| msg repo.org repo.name "visibility" "private"
             , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
             ]
@@ -163,11 +168,14 @@ access repo msg =
 -}
 events : Repository -> CheckboxUpdate msg -> Html msg
 events repo msg =
-    div [ class "category", Util.testAttribute "repo-settings-events" ]
-        [ div [ class "header" ] [ span [ class "text" ] [ text "Webhook Events" ] ]
-        , div [ class "description" ] [ text "Control which events on Git will trigger Vela pipelines." ]
-        , div [ class "description" ] [ em [] [ text "Active repositories must have at least one event enabled." ] ]
-        , div [ class "inputs" ]
+    section [ class "settings", Util.testAttribute "repo-settings-events" ]
+        [ h2 [ class "settings-title" ] [ text "Webhook Events" ]
+        , p [ class "settings-description" ]
+            [ text "Control which events on Git will trigger Vela pipelines."
+            , br [] []
+            , em [] [ text "Active repositories must have at least one event enabled." ]
+            ]
+        , fieldset [ class "form-controls" ]
             [ checkbox "Push"
                 "allow_push"
                 repo.allow_push
@@ -196,16 +204,18 @@ events repo msg =
 -}
 timeout : Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) -> Html msg
 timeout inTimeout repo clickMsg inputMsg =
-    div [ class "category", Util.testAttribute "repo-settings-timeout" ]
-        [ div [ class "header" ] [ span [ class "text" ] [ text "Build Timeout" ] ]
-        , div [ class "description" ] [ text "Builds that reach this timeout setting will be stopped." ]
-        , timeoutInput repo
-            inTimeout
-            inputMsg
-          <|
-            clickMsg repo.org repo.name "timeout" <|
-                Maybe.withDefault 0 inTimeout
-        , timeoutWarning inTimeout
+    section [ class "settings", Util.testAttribute "repo-settings-timeout" ]
+        [ h2 [ class "settings-title" ] [ text "Build Timeout" ]
+        , p [ class "settings-description" ] [ text "Builds that reach this timeout setting will be stopped." ]
+        , fieldset [ class "form-controls" ]
+            [ timeoutInput repo
+                inTimeout
+                inputMsg
+              <|
+                clickMsg repo.org repo.name "timeout" <|
+                    Maybe.withDefault 0 inTimeout
+            , timeoutWarning inTimeout
+            ]
         ]
 
 
@@ -213,16 +223,15 @@ timeout inTimeout repo clickMsg inputMsg =
 -}
 checkbox : String -> Field -> Bool -> (Bool -> msg) -> Html msg
 checkbox name field state msg =
-    div [ class "checkbox", Util.testAttribute <| "repo-checkbox-" ++ field ]
-        [ SvgBuilder.checkbox state
-        , input
+    div [ class "form-control", Util.testAttribute <| "repo-checkbox-" ++ field ]
+        [ input
             [ type_ "checkbox"
             , id <| "checkbox-" ++ field
             , checked state
             , onCheck msg
             ]
             []
-        , label [ for <| "checkbox-" ++ field ] [ span [ class "label" ] [ text name ] ]
+        , label [ class "form-label", for <| "checkbox-" ++ field ] [ strong [] [ text name ] ]
         ]
 
 
@@ -230,16 +239,15 @@ checkbox name field state msg =
 -}
 radio : String -> String -> Field -> msg -> Html msg
 radio value field title msg =
-    div [ class "checkbox", class "radio", Util.testAttribute <| "repo-radio-" ++ field ]
-        [ SvgBuilder.radio (value == field)
-        , input
+    div [ class "form-control", Util.testAttribute <| "repo-radio-" ++ field ]
+        [ input
             [ type_ "radio"
             , id <| "radio-" ++ field
             , checked (value == field)
             , onClick msg
             ]
             []
-        , label [ for <| "radio-" ++ field ] [ span [ class "label" ] [ text title, updateTip field ] ]
+        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], updateTip field ]
         ]
 
 
@@ -247,7 +255,7 @@ radio value field title msg =
 -}
 timeoutInput : Repository -> Maybe Int -> (String -> msg) -> msg -> Html msg
 timeoutInput repo inTimeout inputMsg clickMsg =
-    div [ class "inputs", class "repo-timeout", Util.testAttribute "repo-timeout" ]
+    div [ class "form-control", Util.testAttribute "repo-timeout" ]
         [ input
             [ id <| "repo-timeout"
             , onInput inputMsg
@@ -257,7 +265,7 @@ timeoutInput repo inTimeout inputMsg clickMsg =
             , value <| String.fromInt <| Maybe.withDefault repo.timeout inTimeout
             ]
             []
-        , label [ for "repo-timeout" ] [ span [ class "label" ] [ text "minutes" ] ]
+        , label [ class "form-label", for "repo-timeout" ] [ text "minutes" ]
         , updateTimeout inTimeout
             repo.timeout
             clickMsg
@@ -310,10 +318,10 @@ enable disableRepoMsg enableRepoMsg repo =
             else
                 ( "Enable Repository", "This will create the Vela webhook for this repository." )
     in
-    div [ class "category", Util.testAttribute "repo-settings-timeout" ]
-        [ div [ class "header" ] [ span [ class "text" ] [ text "Admin" ] ]
-        , div [ class "description" ] [ text "These configurations require admin privileges." ]
-        , li [ class "enable-container" ]
+    section [ class "settings", Util.testAttribute "repo-settings-timeout" ]
+        [ h2 [ class "settings-title" ] [ text "Admin" ]
+        , p [ class "settings-description" ] [ text "These configurations require admin privileges." ]
+        , div [ class "enable-container" ]
             [ div [ class "enable-column-a" ]
                 [ span [ class "enable-btn-label-a" ] [ text <| Tuple.first enabledDetails ]
                 , em [ class "enable-btn-label-b" ] [ text <| Tuple.second enabledDetails ]
@@ -480,16 +488,15 @@ validEventsUpdate originalRepo repoUpdate =
 -}
 updateTip : Field -> Html msg
 updateTip field =
-    span [ class "field-info" ] <|
-        case field of
-            "private" ->
-                [ text "(restricted to those with repository access)" ]
+    case field of
+        "private" ->
+            text " (restricted to those with repository access)"
 
-            "public" ->
-                [ text "(anyone with access to this Vela instance)" ]
+        "public" ->
+            text " (anyone with access to this Vela instance)"
 
-            _ ->
-                []
+        _ ->
+            text ""
 
 
 {-| msgPrefix : takes update field and returns alert prefix.

@@ -39,15 +39,15 @@ type alias Search msg =
 -}
 repoSearchBarGlobal : RepoSearchFilters -> Search msg -> Html msg
 repoSearchBarGlobal searchFilters search =
-    div [ class "-filter", Util.testAttribute "global-search-bar" ]
-        [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
-        , input
+    div [ class "form-control", class "-with-icon", Util.testAttribute "global-search-bar" ]
+        [ input
             [ Util.testAttribute "global-search-input"
             , placeholder "Type to filter all repositories..."
             , value <| searchFilterGlobal searchFilters
             , onInput <| search ""
             ]
             []
+        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
         ]
 
 
@@ -55,9 +55,8 @@ repoSearchBarGlobal searchFilters search =
 -}
 repoSearchBarLocal : RepoSearchFilters -> Org -> Search msg -> Html msg
 repoSearchBarLocal searchFilters org search =
-    div [ class "-filter", Util.testAttribute "local-search-bar" ]
-        [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
-        , input
+    div [ class "form-control", class "-with-icon", Util.testAttribute "local-search-bar" ]
+        [ input
             [ Util.testAttribute <| "local-search-input-" ++ org
             , placeholder <|
                 "Type to filter repositories in "
@@ -67,6 +66,7 @@ repoSearchBarLocal searchFilters org search =
             , onInput <| search org
             ]
             []
+        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
         ]
 
 

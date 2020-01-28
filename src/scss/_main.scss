@@ -59,61 +59,6 @@ header {
   border-image-slice: 1;
 }
 
-.details {
-  > .summary {
-    position: relative;
-
-    padding-right: 1.5em;
-    padding-bottom: 0.3em;
-
-    overflow: hidden;
-
-    cursor: pointer;
-
-    // hide details marker on Chrome
-    // stylelint-disable declaration-no-important
-    &::-webkit-details-marker {
-      display: none !important;
-    }
-
-    //hide details marker on Firefox
-    &:first-of-type {
-      list-style-type: none !important;
-    }
-    // stylelint-enable declaration-no-important
-
-    // super hacky way to remove
-    // marker on details element
-    //
-    // text-indent: -1em;
-    // Firefox - hide marker
-    // &::-webkit-details-marker,
-    // &::marker {
-    //   display: none;
-    //   color: var(--color-coal);
-    // }
-    // also could work with:
-    // display: block;
-    // nothing seems to work on Chrome
-  }
-
-  .details-icon-expand {
-    position: absolute;
-    top: 0.2em;
-    right: 0;
-
-    color: var(--color-primary);
-
-    transform-origin: 50% 49%;
-
-    transition: transform 0.2s;
-  }
-
-  &[open] .details-icon-expand {
-    transform: rotate(0.5turn);
-  }
-}
-
 .identity {
   display: flex;
   align-items: center;
@@ -284,8 +229,8 @@ nav {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin: 0.5em 0 0 1em;
-  padding: 1em;
+  margin: 0.5rem 0 0 1rem;
+  padding: 1rem;
 
   background-color: var(--color-bg-dark);
 }
@@ -324,34 +269,34 @@ nav {
   justify-content: space-between;
 }
 
-.source-actions .-filter,
-.source-repos .-filter {
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-  align-items: center;
+// .source-actions .-filter,
+// .source-repos .-filter {
+//   display: flex;
+//   flex: 1;
+//   flex-direction: row;
+//   align-items: center;
 
-  margin: 0 1em;
+//   margin: 0 1em;
 
-  border-bottom: 2px solid var(--color-primary);
-}
+//   border-bottom: 2px solid var(--color-primary);
+// }
 
-.source-actions .-filter input,
-.source-repos .-filter input {
-  width: 100%;
-  padding: 0.5em 0.8em;
+// .source-actions .-filter input,
+// .source-repos .-filter input {
+//   width: 100%;
+//   padding: 0.5em 0.8em;
 
-  color: var(--color-text);
+//   color: var(--color-text);
 
-  font-size: 18px;
+//   font-size: 18px;
 
-  background: var(--color-bg);
-  border: none;
+//   background: var(--color-bg);
+//   border: none;
 
-  &::placeholder {
-    color: var(--color-bg-light);
-  }
-}
+//   &::placeholder {
+//     color: var(--color-bg-light);
+//   }
+// }
 
 .org .summary {
   display: flex;
@@ -1267,54 +1212,45 @@ nav {
   color: var(--color-red-light);
 }
 
-.repo-settings {
-  display: flex;
-  flex-direction: column;
-}
+// .repo-settings {
+//   display: flex;
+//   flex-direction: column;
+// }
 
-.repo-settings .row {
-  display: flex;
-  flex-direction: row;
-}
+// .repo-settings .row {
+//   display: flex;
+//   flex-direction: row;
+// }
 
-.repo-settings .category {
-  width: 22em;
-  margin-right: 2em;
-}
+// .repo-settings .category {
+//   width: 22em;
+//   margin-right: 2em;
+// }
 
-.repo-settings .category .header {
-  margin-bottom: 0.5em;
-  padding-bottom: 0.2em;
+// .repo-settings .category .header {
+//   margin-bottom: 0.5em;
+//   padding-bottom: 0.2em;
 
-  border-bottom: 2px solid var(--color-secondary);
-}
+//   border-bottom: 2px solid var(--color-secondary);
+// }
 
-.repo-settings .header .text {
-  position: relative;
-  top: 0.1em;
+// .repo-settings .header .text {
+//   position: relative;
+//   top: 0.1em;
 
-  font-weight: bold;
+//   font-weight: bold;
 
-  font-size: 22px;
-}
+//   font-size: 22px;
+// }
 
-.repo-settings .category .description {
-  font-weight: 300;
-  font-size: 14px;
-}
+// .repo-settings .category .description {
+//   font-weight: 300;
+//   font-size: 14px;
+// }
 
-.inputs {
-  margin: 1em;
-}
-
-.checkbox {
-  margin-bottom: 0.5em;
-}
-
-.radio {
-  display: flex;
-  align-items: center;
-}
+// .inputs {
+//   margin: 1em;
+// }
 
 .-icon {
   fill: none;
@@ -1354,57 +1290,46 @@ nav {
   }
 }
 
-.checkbox .label {
-  font-weight: bold;
-  font-size: 16px;
-}
+// .inputs.repo-timeout input {
+//   width: 5em;
+//   padding-top: 0.5em;
+//   padding-right: 0;
+//   padding-bottom: 0.5em;
+//   padding-left: 1em;
 
-.checkbox .field-info {
-  margin-left: 0.25em;
+//   color: var(--color-text);
 
-  font-weight: 300;
-}
+//   font-size: 14px;
 
-.inputs.repo-timeout input {
-  width: 5em;
-  padding-top: 0.5em;
-  padding-right: 0;
-  padding-bottom: 0.5em;
-  padding-left: 1em;
+//   text-align: center;
 
-  color: var(--color-text);
+//   background: none;
+//   border: none;
+//   border-bottom: 2px solid var(--color-primary);
+// }
 
-  font-size: 14px;
+// .repo-timeout input:focus {
+//   border-color: var(--color-primary);
+// }
 
-  text-align: center;
+// .repo-timeout {
+//   margin-top: 1em;
+//   margin-left: 3em;
+// }
 
-  background: none;
-  border: none;
-  border-bottom: 2px solid var(--color-primary);
-}
+// .repo-timeout .label {
+//   margin-left: 0.75em;
 
-.repo-timeout input:focus {
-  border-color: var(--color-primary);
-}
+//   font-weight: 300;
 
-.repo-timeout {
-  margin-top: 1em;
-  margin-left: 3em;
-}
+//   font-size: 16px;
+// }
 
-.repo-timeout .label {
-  margin-left: 0.75em;
+// .repo-timeout input:invalid {
+//   color: var(--color-red-light);
 
-  font-weight: 300;
-
-  font-size: 16px;
-}
-
-.repo-timeout input:invalid {
-  color: var(--color-red-light);
-
-  caret-color: var(--color-text);
-}
+//   caret-color: var(--color-text);
+// }
 
 .timeout-help {
   padding: 8px 12px;
@@ -1416,54 +1341,6 @@ nav {
   background: var(--color-bg-light);
 
   border-radius: 4px;
-}
-
-.checkbox input[type='checkbox'],
-.checkbox input[type='radio'] {
-  position: relative;
-  right: 1.55em;
-  bottom: 0.1em;
-
-  opacity: 0;
-}
-
-.checkbox label {
-  position: relative;
-}
-
-.checkbox label::before,
-.checkbox label::after {
-  position: absolute;
-}
-
-.checkbox label::before {
-  top: calc(50% - 0.45em);
-  left: -1.875em;
-
-  width: 1.15em;
-  height: 1.15em;
-
-  content: '';
-}
-
-.checkbox.radio label::before {
-  top: calc(50% - 0.575em);
-  left: -1.8em;
-
-  width: 1.15em;
-  height: 1.15em;
-
-  content: '';
-}
-
-.checkbox input[type='checkbox'] + label::after,
-.checkbox input[type='radio'] + label::after {
-  content: none;
-}
-
-.checkbox input[type='checkbox']:focus + label::before,
-.checkbox input[type='radio']:focus + label::before {
-  outline: var(--color-primary) auto 5px;
 }
 
 .pager-actions {
