@@ -137,8 +137,6 @@
     color: var(--color-bg-light);
 
     cursor: not-allowed;
-
-    pointer-events: none;
   }
 }
 
@@ -163,6 +161,12 @@
   + .form-label {
     color: var(--color-bg-light);
   }
+}
+
+.form-control input:invalid:not([type='checkbox']):not([type='radio']) {
+  color: var(--color-red);
+
+  border-color: var(--color-red);
 }
 
 // for grouping many .form-control elements
