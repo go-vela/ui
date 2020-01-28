@@ -19,11 +19,11 @@ module Vela exposing
     , Enabled
     , Enabling(..)
     , Field
+    , FocusFragment
     , Hook
     , HookBuilds
     , Hooks
     , HooksModel
-    , LineFocus
     , Log
     , Logs
     , Org
@@ -749,7 +749,7 @@ type alias Logs =
     List (WebData Log)
 
 
-type alias LineFocus =
+type alias FocusFragment =
     Maybe String
 
 

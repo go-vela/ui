@@ -8,7 +8,7 @@ module Pages exposing (Page(..), toRoute)
 
 import Api.Pagination as Pagination
 import Routes exposing (Route(..))
-import Vela exposing (AuthParams, BuildNumber, LineFocus, Org, Repo)
+import Vela exposing (AuthParams, BuildNumber, FocusFragment, Org, Repo)
 
 
 type Page
@@ -17,7 +17,7 @@ type Page
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | Build Org Repo BuildNumber LineFocus
+    | Build Org Repo BuildNumber FocusFragment
     | Login
     | Logout
     | Authenticate AuthParams
