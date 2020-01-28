@@ -157,7 +157,7 @@ access repo msg =
     section [ class "settings", Util.testAttribute "repo-settings-access" ]
         [ h2 [ class "settings-title" ] [ text "Access" ]
         , p [ class "settings-description" ] [ text "Change who can access build information." ]
-        , fieldset [ class "form-controls" ]
+        , fieldset [ class "form-controls", class "-stack" ]
             [ radio repo.visibility "private" "Private" <| msg repo.org repo.name "visibility" "private"
             , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
             ]
@@ -175,7 +175,7 @@ events repo msg =
             , br [] []
             , em [] [ text "Active repositories must have at least one event enabled." ]
             ]
-        , fieldset [ class "form-controls" ]
+        , fieldset [ class "form-controls", class "-stack" ]
             [ checkbox "Push"
                 "allow_push"
                 repo.allow_push

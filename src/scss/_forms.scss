@@ -8,13 +8,6 @@
 
 // styles for form elements
 
-// usually used with <fieldset>
-.form-controls {
-  padding: 0.5rem 1rem;
-
-  border: none;
-}
-
 // <div class="form-control">
 //  <input ... />
 //  <label class="form-label">...</label>
@@ -22,15 +15,47 @@
 .form-control {
   position: relative;
 
-  margin-bottom: 0.5rem;
+  display: flex;
+
+  // for all but radio and checkbox controls
+  input:not([type='checkbox']):not([type='radio']) {
+    position: relative;
+
+    flex: 1;
+    padding: 0.5rem;
+
+    color: var(--color-text);
+    font-size: 1rem;
+
+    background-color: var(--color-bg);
+    border: none;
+    border-bottom: var(--line-width) solid var(--color-primary);
+  }
+
+  // for controls with embedded icon
+  // <div class="form-control -with-icon">
+  //  <input ... />
+  //  <svg ...></svg>
+  // </div>
+  &.-with-icon {
+    input:not([type='checkbox']):not([type='radio']) {
+      padding-left: 2rem;
+    }
+
+    svg {
+      position: absolute;
+      top: 8px;
+      left: 0;
+    }
+  }
 }
 
-// radio
-// checkbox
+// radio & checkbox controls
 .form-control [type='checkbox'],
 .form-control [type='radio'] {
   @include visually-hidden;
 
+  // making room for custom styled checkbox indicators
   + .form-label {
     display: inline-block;
     padding-left: 2rem;
@@ -97,54 +122,71 @@
   opacity: 1;
 }
 
-// all other controls
-.form-control input:not([type='checkbox']):not([type='radio']) {
-  position: relative;
-
-  width: 100%;
-  padding: 0.5rem;
-
-  color: var(--color-text);
-  font-size: 1rem;
-
-  background-color: var(--color-bg);
-  border: none;
-  border-bottom: var(--line-width) solid var(--color-primary);
-
-  // stylelint-disable-next-line
-  + .form-label {
-    position: absolute;
-    top: 0;
-
-    padding: 0.5rem;
-
-    line-height: 1;
-  }
-}
-
-// for form controls with icon
-// <div class="form-control -with-icon">
-//  <input ... />
-//  <svg ...></svg>
-// </div>
-.form-control.-with-icon {
-  input:not([type='checkbox']):not([type='radio']) {
-    padding-left: 2rem;
-  }
-
-  svg {
-    position: absolute;
-    top: 8px;
-    left: 0;
-  }
-}
-
 // focus styles
-.form-control input[type='checkbox']:focus + .form-label::before,
-.form-control input[type='radio']:focus + .form-label::before,
+.form-control [type='checkbox']:focus + .form-label::before,
+.form-control [type='radio']:focus + .form-label::before,
 .form-control input:focus:not([type='checkbox']):not([type='radio']) {
   outline: var(--color-secondary) dotted var(--line-width);
   outline-offset: var(--line-width);
+}
+
+// disabled styles
+.form-control [type='checkbox']:disabled,
+.form-control [type='radio']:disabled {
+  + .form-label {
+    color: var(--color-bg-light);
+
+    cursor: not-allowed;
+
+    pointer-events: none;
+  }
+}
+
+.form-control [type='checkbox']:disabled + .form-label::before {
+  background-color: var(--color-bg-light);
+}
+
+.form-control [type='radio']:disabled + .form-label::before {
+  border-color: var(--color-bg-light);
+}
+
+.form-control [type='radio']:disabled + .form-label::after {
+  background-color: var(--color-bg-light);
+}
+
+.form-control input:disabled:not([type='checkbox']):not([type='radio']) {
+  color: var(--color-bg-light);
+
+  border-color: var(--color-bg-light);
+
+  // stylelint-disable-next-line
+  + .form-label {
+    color: var(--color-bg-light);
+  }
+}
+
+// for grouping many .form-control elements
+// usually used with <fieldset>
+.form-controls {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+
+  border: none;
+
+  .form-control {
+    flex: 1 auto;
+    margin-right: 1rem;
+  }
+
+  // .-stack is for vertically stacking controls
+  &.-stack {
+    flex-flow: column nowrap;
+
+    .form-control {
+      margin-bottom: 0.5rem;
+    }
+  }
 }
 
 // <details class="details">
