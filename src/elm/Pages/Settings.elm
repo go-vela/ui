@@ -291,7 +291,7 @@ timeoutWarning : Maybe Int -> Html msg
 timeoutWarning inTimeout =
     case inTimeout of
         Just _ ->
-            div [ class "timeout-help" ]
+            p [ class "notice" ]
                 [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before altering this value. Timeouts must also lie between 30 and 90 minutes."
                 ]
 

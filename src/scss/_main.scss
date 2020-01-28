@@ -1244,3 +1244,12 @@ nav {
   display: flex;
   align-items: center;
 }
+
+// general utility class for callouts
+.notice {
+  padding: 1rem;
+
+  font-size: 1rem;
+
+  background: var(--color-bg-light);
+}
