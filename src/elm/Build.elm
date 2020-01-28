@@ -26,6 +26,7 @@ import Html
     exposing
         ( Html
         , a
+        , button
         , code
         , details
         , div
@@ -78,7 +79,7 @@ import Vela
 {-| ExpandStep : update action for expanding a build step
 -}
 type alias ExpandStep msg =
-    Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> msg
+    Org -> Repo -> BuildNumber -> StepNumber -> String -> msg
 
 
 {-| FocusFragment : update action for focusing a log line
@@ -295,17 +296,21 @@ viewStep now org repo buildNumber step steps logs expandAction lineFocusAction s
 viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> ExpandStep msg -> SetLineFocus msg -> Bool -> Html msg
 viewStepDetails now org repo buildNumber step logs expandAction lineFocusAction shiftDown =
     let
+        buildNum =
+            Maybe.withDefault "" buildNumber
+
+        stepNumber =
+            String.fromInt step.number
+
         stepSummary =
             [ summary
                 [ class "summary"
                 , Util.testAttribute "step-header"
-                , onClick (expandAction org repo buildNumber <| Just <| String.fromInt step.number)
+                , onClick <| expandAction org repo buildNum stepNumber ("#step:" ++ stepNumber)
                 , id <| stepToFocusID <| String.fromInt step.number
                 ]
                 [ div
-                    [ class "-info"
-                    , onClick <| lineFocusAction <| "#step:" ++ String.fromInt step.number
-                    ]
+                    [ class "-info" ]
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
                     ]
@@ -330,14 +335,14 @@ viewStepLogs step logs clickAction shiftDown =
 
 {-| viewLogs : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
 -}
-viewLogs : StepNumber -> Maybe Int -> Maybe (WebData Log) -> SetLineFocus msg -> Bool -> Html msg
-viewLogs stepNumber focusFragment log clickAction shiftDown =
+viewLogs : StepNumber -> ( Maybe Int, Maybe Int ) -> Maybe (WebData Log) -> SetLineFocus msg -> Bool -> Html msg
+viewLogs stepNumber lineFocus log clickAction shiftDown =
     let
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
                     if logNotEmpty <| decodeLog log then
-                        logLines stepNumber focusFragment log clickAction shiftDown
+                        logLines stepNumber lineFocus log clickAction shiftDown
 
                     else
                         code [] [ span [ class "no-logs" ] [ text "No logs for this step." ] ]
@@ -353,36 +358,53 @@ viewLogs stepNumber focusFragment log clickAction shiftDown =
 
 {-| logLines : takes step number, line focus information and click action and renders logs
 -}
-logLines : StepNumber -> Maybe Int -> Maybe (WebData Log) -> SetLineFocus msg -> Bool -> Html msg
-logLines stepNumber focusFragment log clickAction shiftDown =
+logLines : StepNumber -> ( Maybe Int, Maybe Int ) -> Maybe (WebData Log) -> SetLineFocus msg -> Bool -> Html msg
+logLines stepNumber lineFocus log clickAction shiftDown =
     div [ class "lines" ] <|
         List.indexedMap
-            (\idx -> \line -> logLine stepNumber line focusFragment (idx + 1) clickAction shiftDown)
+            (\idx -> \line -> logLine stepNumber line lineFocus (idx + 1) clickAction shiftDown)
         <|
             decodeLogLine log
 
 
 {-| logLine : takes step number, line focus information, and click action and renders a log line
 -}
-logLine : StepNumber -> String -> Maybe Int -> Int -> SetLineFocus msg -> Bool -> Html msg
-logLine stepNumber line focusFragment lineNumber clickAction shiftDown =
+logLine : StepNumber -> String -> ( Maybe Int, Maybe Int ) -> Int -> SetLineFocus msg -> Bool -> Html msg
+logLine stepNumber line lineFocus lineNumber clickAction shiftDown =
     div [ class "line" ]
         [ span
             [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber
             , class "wrapper"
-            , lineFocusStyle focusFragment lineNumber
+            , lineFocusStyle lineFocus lineNumber
             ]
-            [ span [ class "-line-num" ]
-                [ Html.button
-                    [ onClickCustom <| clickAction <| "#step:" ++ stepNumber ++ ":" ++ String.fromInt lineNumber
+            [ div [ class "-line-num" ]
+                [ button
+                    [ onClickCustom <|
+                        clickAction <|
+                            logRangeHref stepNumber lineNumber lineFocus shiftDown
                     , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
                     , id <| stepAndLineToFocusID stepNumber lineNumber
+                    , class "focus-log"
                     ]
                     [ text <| Util.toTwoDigits <| lineNumber ]
                 ]
             , code [] [ text <| String.trim line ]
             ]
         ]
+
+
+logRangeHref : StepNumber -> Int -> ( Maybe Int, Maybe Int ) -> Bool -> String
+logRangeHref stepNumber lineNumber lineFocus shiftDown =
+    "#step:"
+        ++ stepNumber
+        ++ ":"
+        ++ (case ( shiftDown, lineFocus ) of
+                ( True, ( Just lineA, _ ) ) ->
+                    String.fromInt lineA ++ ":" ++ String.fromInt lineNumber
+
+                _ ->
+                    String.fromInt lineNumber
+           )
 
 
 {-| decodeLogLine : takes maybe log and decodes it based on
@@ -420,17 +442,32 @@ viewStepIcon step =
 
 {-| lineFocusStyle : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
 -}
-lineFocusStyle : Maybe Int -> Int -> Html.Attribute msg
-lineFocusStyle focusFragment lineNumber =
-    case focusFragment of
-        Just line ->
-            if line == lineNumber then
+lineFocusStyle : ( Maybe Int, Maybe Int ) -> Int -> Html.Attribute msg
+lineFocusStyle lineFocus lineNumber =
+    case lineFocus of
+        ( Just lineA, Just lineB ) ->
+            let
+                ( a, b ) =
+                    if lineA < lineB then
+                        ( lineA, lineB )
+
+                    else
+                        ( lineB, lineA )
+            in
+            if lineNumber >= a && lineNumber <= b then
                 class "-focus"
 
             else
                 class ""
 
-        Nothing ->
+        ( Just lineA, Nothing ) ->
+            if lineA == lineNumber then
+                class "-focus"
+
+            else
+                class ""
+
+        _ ->
             class ""
 
 
@@ -716,34 +753,29 @@ getStepLog step logs =
 
 {-| clickStep : takes model org repo and step number and fetches step information from the api
 -}
-clickStep : a -> WebData Steps -> Org -> Repo -> Maybe BuildNumber -> Maybe StepNumber -> GetLogsFromBuild a msg -> ( WebData Steps, Cmd msg )
+clickStep : a -> WebData Steps -> Org -> Repo -> BuildNumber -> StepNumber -> GetLogsFromBuild a msg -> ( WebData Steps, Cmd msg )
 clickStep model steps org repo buildNumber stepNumber getLogs =
-    case stepNumber of
-        Nothing ->
-            ( steps
-            , Cmd.none
-            )
+    let
+        stepOpened =
+            Maybe.withDefault False <|
+                List.head <|
+                    List.map (\step -> not step.viewing) <|
+                        List.filter (\step -> String.fromInt step.number == stepNumber) <|
+                            RemoteData.withDefault [] steps
 
-        Just stepNum ->
-            let
-                ( stepsOut, action ) =
-                    case steps of
-                        RemoteData.Success steps_ ->
-                            ( RemoteData.succeed <| toggleStepView steps_ stepNum
-                            , case buildNumber of
-                                Just buildNum ->
-                                    getLogs model org repo buildNum stepNum Nothing
+        ( stepsOut, action ) =
+            case steps of
+                RemoteData.Success steps_ ->
+                    ( RemoteData.succeed <| toggleStepView steps_ stepNumber
+                    , getLogs model org repo buildNumber stepNumber Nothing
+                    )
 
-                                Nothing ->
-                                    Cmd.none
-                            )
-
-                        _ ->
-                            ( steps, Cmd.none )
-            in
-            ( stepsOut
-            , action
-            )
+                _ ->
+                    ( steps, Cmd.none )
+    in
+    ( stepsOut
+    , action
+    )
 
 
 {-| toggleStepView : takes steps and step number and toggles that steps viewing state
@@ -770,21 +802,17 @@ clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
     in
     ( steps
     , if stepOpened then
-        Navigation.replaceUrl navKey <|
-            Routes.routeToUrl
-                (Routes.Build org repo buildNumber <|
-                    Just <|
-                        "#step:"
-                            ++ stepNumber
-                            ++ (case lineNumber of
-                                    Just line ->
-                                        ":"
-                                            ++ String.fromInt line
+        Navigation.pushUrl navKey <|
+            "#step:"
+                ++ stepNumber
+                ++ (case lineNumber of
+                        Just line ->
+                            ":"
+                                ++ String.fromInt line
 
-                                    Nothing ->
-                                        ""
-                               )
-                )
+                        Nothing ->
+                            ""
+                   )
 
       else
         Cmd.none
@@ -793,15 +821,15 @@ clickLogLine steps navKey org repo buildNumber stepNumber lineNumber =
 
 {-| setLogLineFocus : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
 -}
-setLogLineFocus : a -> WebData Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Page, WebData Steps, Cmd msg )
-setLogLineFocus model steps org repo buildNumber focusFragment getLogs =
+setLogLineFocus : a -> WebData Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> Bool -> ( Page, WebData Steps, Cmd msg )
+setLogLineFocus model steps org repo buildNumber focusFragment getLogs shiftDown =
     let
         ( stepsOut, action ) =
             case steps of
                 RemoteData.Success steps_ ->
                     let
                         focusedSteps =
-                            RemoteData.succeed <| setLineFocus steps_ focusFragment
+                            RemoteData.succeed <| setLineFocus steps_ focusFragment shiftDown
                     in
                     ( focusedSteps
                     , Cmd.batch
@@ -822,17 +850,38 @@ setLogLineFocus model steps org repo buildNumber focusFragment getLogs =
 
 {-| setLineFocus : takes steps and line focus and sets a new log line focus
 -}
-setLineFocus : Steps -> FocusFragment -> Steps
-setLineFocus steps focusFragment =
+setLineFocus : Steps -> FocusFragment -> Bool -> Steps
+setLineFocus steps focusFragment shiftDown =
     let
-        ( target, stepNumber, lineNumber ) =
+        parsed =
             parseLineFocus focusFragment
+
+        ( target, stepNumber ) =
+            ( parsed.target, parsed.stepNumber )
     in
     case Maybe.withDefault "" target of
         "step" ->
             case stepNumber of
                 Just n ->
-                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = lineNumber }) <| clearLineFocus steps
+                    List.map
+                        (\step ->
+                            if step.number == n then
+                                { step
+                                    | viewing = True
+                                    , lineFocus =
+                                        case ( shiftDown, step.lineFocus ) of
+                                            ( True, ( Just a, _ ) ) ->
+                                                ( Just a, parsed.lineB )
+
+                                            _ ->
+                                                ( parsed.lineA, parsed.lineB )
+                                }
+
+                            else
+                                clearStepLineFocus step
+                        )
+                    <|
+                        steps
 
                 Nothing ->
                     steps
@@ -841,11 +890,11 @@ setLineFocus steps focusFragment =
             steps
 
 
-{-| clearLineFocus : takes steps and clears all log line focus
+{-| clearStepLineFocus : takes step and clears all log line focus
 -}
-clearLineFocus : Steps -> Steps
-clearLineFocus steps =
-    List.map (\step -> { step | lineFocus = Nothing }) steps
+clearStepLineFocus : Step -> Step
+clearStepLineFocus step =
+    { step | lineFocus = ( Nothing, Nothing ) }
 
 
 {-| expandBuildLineFocus : takes FocusFragment URL fragment and expands the appropriate step to automatically view
@@ -853,14 +902,14 @@ clearLineFocus steps =
 expandBuildLineFocus : FocusFragment -> Steps -> Steps
 expandBuildLineFocus focusFragment steps =
     let
-        ( target, number, line ) =
+        parsed =
             parseLineFocus focusFragment
     in
-    case Maybe.withDefault "" target of
+    case Maybe.withDefault "" parsed.target of
         "step" ->
-            case number of
+            case parsed.stepNumber of
                 Just n ->
-                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = line }) steps
+                    updateIf (\step -> step.number == n) (\step -> { step | viewing = True, lineFocus = ( parsed.lineA, parsed.lineB ) }) steps
 
                 Nothing ->
                     steps
@@ -871,17 +920,20 @@ expandBuildLineFocus focusFragment steps =
 
 {-| parseLineFocus : takes URL fragment and parses it into appropriate line focus chunks
 -}
-parseLineFocus : FocusFragment -> ( Maybe String, Maybe Int, Maybe Int )
+parseLineFocus : FocusFragment -> { target : Maybe String, stepNumber : Maybe Int, lineA : Maybe Int, lineB : Maybe Int }
 parseLineFocus focusFragment =
     case String.split ":" (Maybe.withDefault "" focusFragment) of
-        target :: step :: line :: _ ->
-            ( Just target, String.toInt step, String.toInt line )
+        target :: step :: lineA :: lineB :: _ ->
+            { target = Just target, stepNumber = String.toInt step, lineA = String.toInt lineA, lineB = String.toInt lineB }
+
+        target :: step :: lineA :: _ ->
+            { target = Just target, stepNumber = String.toInt step, lineA = String.toInt lineA, lineB = Nothing }
 
         target :: step :: _ ->
-            ( Just target, String.toInt step, Nothing )
+            { target = Just target, stepNumber = String.toInt step, lineA = Nothing, lineB = Nothing }
 
         _ ->
-            ( Nothing, Nothing, Nothing )
+            { target = Nothing, stepNumber = Nothing, lineA = Nothing, lineB = Nothing }
 
 
 {-| lineFocusToFocusID : takes URL fragment and parses it into appropriate line focus ID for auto focusing on page load
@@ -892,11 +944,14 @@ lineFocusToFocusID focusFragment =
         parsed =
             parseLineFocus focusFragment
     in
-    case parsed of
-        ( _, Just step, Just line ) ->
-            "step-" ++ String.fromInt step ++ "-line-" ++ String.fromInt line
+    case ( parsed.stepNumber, parsed.lineA, parsed.lineB ) of
+        ( Just step, Just lineA, Nothing ) ->
+            "step-" ++ String.fromInt step ++ "-line-" ++ String.fromInt lineA
 
-        ( _, Just step, Nothing ) ->
+        ( Just step, _, Just lineB ) ->
+            "step-" ++ String.fromInt step ++ "-line-" ++ String.fromInt lineB
+
+        ( Just step, Nothing, Nothing ) ->
             "step-" ++ String.fromInt step
 
         _ ->

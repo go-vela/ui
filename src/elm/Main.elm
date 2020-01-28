@@ -15,11 +15,9 @@ import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Build
     exposing
-        ( clickLogLine
-        , clickStep
+        ( clickStep
         , expandBuildLineFocus
         , lineFocusToFocusID
-        , parseLineFocus
         , setLogLineFocus
         , viewFullBuild
         , viewRepositoryBuilds
@@ -274,7 +272,7 @@ type Msg
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
-    | ClickStep Org Repo (Maybe BuildNumber) (Maybe StepNumber)
+    | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
       -- Outgoing HTTP requests
     | SignInRequested
@@ -612,7 +610,7 @@ update msg model =
 
                         action =
                             if not <| String.isEmpty focusID then
-                                Util.dispatch <| FocusOn <| lineFocusToFocusID lineFocus
+                                Util.dispatch <| FocusOn <| focusID
 
                             else
                                 Cmd.none
@@ -692,7 +690,7 @@ update msg model =
             , action
             )
 
-        ClickStep org repo buildNumber stepNumber ->
+        ClickStep org repo buildNumber stepNumber fragment ->
             let
                 ( steps, action ) =
                     clickStep model model.steps org repo buildNumber stepNumber getBuildStepLogs
@@ -1415,7 +1413,7 @@ setNewPage route model =
                     if not <| buildChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
                             ( page, steps, action ) =
-                                setLogLineFocus model model.steps org repo buildNumber lineFocus getBuildStepsLogs
+                                setLogLineFocus model model.steps org repo buildNumber lineFocus getBuildStepsLogs model.shift
                         in
                         ( { model | page = page, steps = steps }, action )
 

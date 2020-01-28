@@ -914,6 +914,7 @@ nav {
 
 .logs .line {
   display: flex;
+  align-items: flex-start;
   margin: 0 0.5em;
 }
 
@@ -921,7 +922,19 @@ nav {
   display: flex;
   flex: 1;
   flex-direction: row;
-  padding-left: 1em;
+  > code {
+    margin-left: 1em;
+    flex: 1;
+  }
+}
+
+.focus-log {
+  background: none;
+  border: none;
+  color: white;
+  padding: 0 1em;
+  font-family: var(--font-code);
+  font-size: 14px;
 }
 
 .logs .wrapper.-focus {
@@ -929,7 +942,7 @@ nav {
 }
 
 .logs .line .-line-num {
-  margin-right: 1em;
+  display: flex;
 
   color: var(--color-offwhite);
 
