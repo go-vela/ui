@@ -16,12 +16,12 @@
   position: relative;
 
   display: flex;
+  align-items: center;
 
   // for all but radio and checkbox controls
   input:not([type='checkbox']):not([type='radio']) {
     position: relative;
 
-    flex: 1;
     padding: 0.5rem;
 
     color: var(--color-text);
@@ -44,8 +44,20 @@
 
     svg {
       position: absolute;
-      top: 8px;
+      top: 6px;
       left: 0;
+    }
+  }
+
+  // small utility class to have input control stretch horizontally
+  // as much as possible
+  &.-is-expanded {
+    flex-grow: 1;
+    flex-shrink: 1;
+
+    input:not([type='checkbox']):not([type='radio']) {
+      width: 100%;
+      max-width: 100%;
     }
   }
 }
@@ -152,6 +164,11 @@
   background-color: var(--color-bg-light);
 }
 
+// stylelint-disable-next-line
+.form-control input:not([type='checkbox']):not([type='radio']) + .form-label {
+  margin-left: 0.5rem;
+}
+
 .form-control input:disabled:not([type='checkbox']):not([type='radio']) {
   color: var(--color-bg-light);
 
@@ -170,7 +187,6 @@
 }
 
 // for grouping many .form-control elements
-// usually used with <fieldset>
 .form-controls {
   display: flex;
   justify-content: space-between;
@@ -179,15 +195,14 @@
   border: none;
 
   .form-control {
-    flex: 1 auto;
-    margin-right: 1rem;
+    margin-right: 0.5rem;
   }
 
   // .-stack is for vertically stacking controls
   &.-stack {
     flex-flow: column nowrap;
 
-    .form-control {
+    .form-control:not(:last-child) {
       margin-bottom: 0.5rem;
     }
   }

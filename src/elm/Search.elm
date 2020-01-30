@@ -39,7 +39,7 @@ type alias Search msg =
 -}
 repoSearchBarGlobal : RepoSearchFilters -> Search msg -> Html msg
 repoSearchBarGlobal searchFilters search =
-    div [ class "form-control", class "-with-icon", Util.testAttribute "global-search-bar" ]
+    div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "global-search-bar" ]
         [ input
             [ Util.testAttribute "global-search-input"
             , placeholder "Type to filter all repositories..."
@@ -55,7 +55,7 @@ repoSearchBarGlobal searchFilters search =
 -}
 repoSearchBarLocal : RepoSearchFilters -> Org -> Search msg -> Html msg
 repoSearchBarLocal searchFilters org search =
-    div [ class "form-control", class "-with-icon", Util.testAttribute "local-search-bar" ]
+    div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "local-search-bar" ]
         [ input
             [ Util.testAttribute <| "local-search-input-" ++ org
             , placeholder <|
