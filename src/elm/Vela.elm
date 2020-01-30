@@ -25,6 +25,7 @@ module Vela exposing
     , Hooks
     , HooksModel
     , Log
+    , LogFocus
     , Logs
     , Org
     , Repo
@@ -679,7 +680,7 @@ type alias Step =
     , runtime : String
     , distribution : String
     , viewing : Bool
-    , lineFocus : ( Maybe Int, Maybe Int )
+    , logFocus : ( Maybe Int, Maybe Int )
     }
 
 
@@ -705,7 +706,7 @@ decodeStep =
         |> optional "distribution" string ""
         -- "viewing"
         |> hardcoded False
-        -- "lineFocus"
+        -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
 
 
@@ -718,6 +719,10 @@ decodeSteps =
 
 type alias Steps =
     List Step
+
+
+type alias LogFocus =
+    ( Maybe Int, Maybe Int )
 
 
 

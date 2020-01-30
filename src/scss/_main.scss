@@ -947,6 +947,7 @@ nav {
   color: var(--color-offwhite);
 
   font-family: var(--font-code);
+  user-select: none;
 }
 
 .line a {

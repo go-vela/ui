@@ -48,8 +48,8 @@ toRoute page =
         RepositoryBuilds org repo maybePage maybePerPage ->
             Routes.RepositoryBuilds org repo maybePage maybePerPage
 
-        Build org repo buildNumber lineFocus ->
-            Routes.Build org repo buildNumber lineFocus
+        Build org repo buildNumber logFocus ->
+            Routes.Build org repo buildNumber logFocus
 
         Login ->
             Routes.Login
