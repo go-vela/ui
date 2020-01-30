@@ -12,7 +12,6 @@ import Html
     exposing
         ( Html
         , a
-        , br
         , details
         , div
         , h1

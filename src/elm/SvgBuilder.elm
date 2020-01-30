@@ -39,7 +39,6 @@ import Svg.Attributes
         , d
         , height
         , r
-        , stroke
         , strokeLinecap
         , strokeWidth
         , viewBox
