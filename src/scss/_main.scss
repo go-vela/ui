@@ -918,10 +918,11 @@ nav {
   margin: 0 0.5em;
 }
 
-.logs .line .wrapper {
+.line .wrapper {
   display: flex;
   flex: 1;
   flex-direction: row;
+
   > code {
     margin-left: 1em;
     flex: 1;
@@ -931,7 +932,7 @@ nav {
 .focus-log {
   background: none;
   border: none;
-  color: white;
+  color: var(--color-offwhite);
   padding: 0 1em;
   font-family: var(--font-code);
   font-size: 14px;
