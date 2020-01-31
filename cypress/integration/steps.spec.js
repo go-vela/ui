@@ -7,9 +7,7 @@ context('Steps', () => {
       cy.login('/someorg/somerepo/1');
       cy.get('[data-test=steps]').as('steps');
       cy.get('[data-test=step]').as('step');
-      cy.get('[data-test=step-header]')
-        .children()
-        .as('stepHeaders');
+      cy.get('[data-test=step-header]').as('stepHeaders');
       cy.get('@stepHeaders').click({ force: true, multiple: true });
       cy.get('[data-test=logs-1]').as('logs');
       cy.get('@stepHeaders').click({ force: true, multiple: true });
