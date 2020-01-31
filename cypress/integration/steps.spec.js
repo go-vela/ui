@@ -97,10 +97,6 @@ context('Steps', () => {
         cy.get('@line').should('have.class', '-focus');
       });
 
-      it('line number should contain correct link', () => {
-        cy.get('@lineNumber').should('have.attr', 'href', '#step:1:3');
-      });
-
       it('browser path should contain step and line fragment', () => {
         cy.hash().should('eq', '#step:1:3');
       });
@@ -125,7 +121,7 @@ context('Steps', () => {
 
         it('browser path should contain other step and line fragment', () => {
           cy.get('@stepHeaders').click({ force: true, multiple: true });
-          cy.hash().should('eq', '#step:5');
+          cy.hash().should('eq', '#step:5:2');
         });
 
         it('browser path should contain other step and line fragment', () => {
@@ -147,6 +143,91 @@ context('Steps', () => {
           cy.get('[data-test=log-line-num-2]').as('lineNumber2:2');
         });
         cy.get('@line2:2').should('have.class', '-focus');
+      });
+    });
+    context('visit Build, with only step fragment', () => {
+      beforeEach(() => {
+        cy.visit('/someorg/somerepo/1');
+        cy.visit('/someorg/somerepo/1#step:2');
+        cy.reload();
+      });
+      it('range start line should not be highlighted', () => {
+        cy.wait('@getLogs-2');
+        cy.get('[data-test=logs-2]').within(() => {
+          cy.get('[data-test=log-line-2]').as('line2:2');
+          cy.get('[data-test=log-line-num-2]').as('lineNumber2:2');
+        });
+        cy.get('@line2:2').should('not.have.class', '-focus');
+      });
+      context('click line 2, shift click line 5', () => {
+        beforeEach(() => {
+          cy.wait('@getLogs-2');
+          cy.get('[data-test=logs-2]').within(() => {
+            cy.get('[data-test=log-line-2]').as('line2:2');
+            cy.get('[data-test=log-line-num-2]').as('lineNumber2:2');
+            cy.get('[data-test=log-line-5]').as('line2:5');
+            cy.get('[data-test=log-line-num-5]').as('lineNumber2:5');
+          });
+          cy.get('@lineNumber2:2').click({ force: true });
+          cy.get('body')
+            .type('{shift}', { release: false })
+            .get('@lineNumber2:5')
+            .click();
+          cy.get('@lineNumber2:5').type('{shift}', { release: true });
+        });
+        it('range start line should be highlighted', () => {
+          cy.wait('@getLogs-2');
+          cy.get('[data-test=logs-2]').within(() => {
+            cy.get('[data-test=log-line-2]').as('line2:2');
+            cy.get('[data-test=log-line-num-2]').as('lineNumber2:2');
+          });
+          cy.get('@line2:2').should('have.class', '-focus');
+        });
+        it('lines between range start and end should be highlighted', () => {
+          cy.wait('@getLogs-2');
+          cy.get('[data-test=logs-2]').within(() => {
+            cy.get('[data-test=log-line-3]').as('line2:3');
+            cy.get('[data-test=log-line-num-3]').as('lineNumber2:3');
+            cy.get('[data-test=log-line-4]').as('line2:4');
+            cy.get('[data-test=log-line-num-4]').as('lineNumber2:4');
+          });
+          cy.get('@line2:3').should('have.class', '-focus');
+          cy.get('@line2:4').should('have.class', '-focus');
+        });
+      });
+    });
+    context('visit Build, then visit log line range with fragment', () => {
+      beforeEach(() => {
+        cy.visit('/someorg/somerepo/1');
+        cy.visit('/someorg/somerepo/1#step:2:2:5');
+        cy.reload();
+      });
+      it('range start line should be highlighted', () => {
+        cy.wait('@getLogs-2');
+        cy.get('[data-test=logs-2]').within(() => {
+          cy.get('[data-test=log-line-2]').as('line2:2');
+          cy.get('[data-test=log-line-num-2]').as('lineNumber2:2');
+        });
+        cy.get('@line2:2').should('have.class', '-focus');
+      });
+      it('range end line should be highlighted', () => {
+        cy.wait('@getLogs-2');
+        cy.get('[data-test=logs-2]').within(() => {
+          cy.get('[data-test=log-line-5]').as('line2:5');
+          cy.get('[data-test=log-line-num-5]').as('lineNumber2:5');
+        });
+        cy.get('@line2:5').should('have.class', '-focus');
+      });
+      it('lines between range start and end should be highlighted', () => {
+        cy.wait('@getLogs-2');
+        cy.get('[data-test=logs-2]').within(() => {
+          cy.get('[data-test=log-line-3]').as('line2:3');
+          cy.get('[data-test=log-line-num-3]').as('lineNumber2:3');
+          cy.get('[data-test=log-line-4]').as('line2:4');
+          cy.get('[data-test=log-line-num-4]').as('lineNumber2:4');
+        });
+        cy.get('@line2:3').should('have.class', '-focus');
+        cy.get('@line2:4').should('have.class', '-focus');
       });
     });
     context(

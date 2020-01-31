@@ -17,6 +17,7 @@ module Util exposing
     , isSuccess
     , largeLoader
     , millisToSeconds
+    , onClickPreventDefault
     , oneSecondMillis
     , open
     , pluralize
@@ -32,6 +33,8 @@ import DateFormat exposing (monthNameFull)
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
+import Html.Events exposing (custom)
+import Json.Decode as Decode
 import RemoteData exposing (WebData)
 import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone, posixToMillis)
@@ -271,3 +274,10 @@ pluralize num str =
 
     else
         str
+
+
+{-| onClickPreventDefault : returns custom onClick handler for calling javascript function preventDefault()
+-}
+onClickPreventDefault : msg -> Html.Attribute msg
+onClickPreventDefault message =
+    custom "click" (Decode.succeed { message = message, stopPropagation = False, preventDefault = True })

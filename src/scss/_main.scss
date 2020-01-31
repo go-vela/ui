@@ -914,14 +914,30 @@ nav {
 
 .logs .line {
   display: flex;
+  align-items: flex-start;
   margin: 0 0.5em;
 }
 
-.logs .line .wrapper {
+.line .wrapper {
   display: flex;
   flex: 1;
   flex-direction: row;
-  padding-left: 1em;
+
+  > code {
+    flex: 1;
+    margin-left: 1em;
+  }
+}
+
+.focus-log {
+  padding: 0 1em;
+
+  color: var(--color-offwhite);
+  font-size: 14px;
+  font-family: var(--font-code);
+
+  background: none;
+  border: none;
 }
 
 .logs .wrapper.-focus {
@@ -929,11 +945,13 @@ nav {
 }
 
 .logs .line .-line-num {
-  margin-right: 1em;
+  display: flex;
 
   color: var(--color-offwhite);
 
   font-family: var(--font-code);
+
+  user-select: none;
 }
 
 .line a {
