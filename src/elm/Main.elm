@@ -1601,9 +1601,6 @@ loadBuildPage model org repo buildNumber focusFragment =
 
             else
                 model.builds
-
-        _ =
-            Debug.log "loading" "builds"
     in
     -- Fetch build from Api
     ( { model
