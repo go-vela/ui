@@ -1,0 +1,99 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// ┌┬┐┌─┐┌┬┐┌─┐┬┬  ┌─┐
+//  ││├┤  │ ├─┤││  └─┐
+// ─┴┘└─┘ ┴ ┴ ┴┴┴─┘└─┘
+
+// <details class="details">
+//  <summary class="summary"></summary>
+//  ..
+// </details>
+.details {
+  position: relative;
+
+  margin: 2rem 0;
+  padding: 1rem;
+
+  .summary {
+    position: relative;
+
+    padding-left: 2rem;
+
+    overflow: hidden;
+
+    cursor: pointer;
+
+    // stylelint-disable declaration-no-important
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    //hide details marker on Firefox
+    &:first-of-type {
+      list-style-type: none;
+    }
+
+    // focus styles
+    &:focus {
+      outline: var(--color-secondary) dotted var(--line-width);
+      outline-offset: var(--line-width);
+    }
+  }
+
+  .details-icon-expand {
+    position: absolute;
+    top: 0.2em;
+    left: 0;
+
+    color: var(--color-primary);
+
+    transform-origin: 50% 49%;
+
+    transition: transform 0.2s;
+  }
+
+  &[open] {
+    .details-icon-expand {
+      transform: rotate(0.5turn);
+    }
+
+    // once opened, add some breathing room
+    .summary + *:first-of-type {
+      margin-top: 1rem;
+    }
+  }
+
+  &.-with-border {
+    border-top: var(--line-width) solid;
+    border-left: var(--line-width) solid;
+    border-image-source: linear-gradient(
+      to right,
+      var(--color-bg-light) 75%,
+      transparent 75%,
+      transparent 77%,
+      var(--color-bg-light) 77%,
+      var(--color-bg-light) 84%,
+      transparent 84%
+    );
+    border-image-slice: 1;
+  }
+
+  &.-marker-right {
+    .summary {
+      padding-right: 2rem;
+      padding-left: 0;
+    }
+
+    .details-icon-expand {
+      right: 0;
+      left: auto;
+    }
+  }
+
+  &.-no-pad {
+    margin: 0;
+    padding: 0;
+  }
+}
