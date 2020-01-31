@@ -695,13 +695,20 @@ nav {
   position: relative;
 }
 
-.recent-build.-current {
-  transition: 0.3s;
-  > svg {
-    margin: 0 5px;
-    border-radius: 3px;
-    transition: 0.3s;
-  }
+.recent-build.-current > svg {
+  transform: translateX(5px);
+
+  transition: transform 0.1s;
+
+  will-change: transform;
+}
+
+.recent-build.-older > svg {
+  transform: translateX(10px);
+
+  transition: transform 0.1s;
+
+  will-change: transform;
 }
 
 .build-history .recent-build .-icon {

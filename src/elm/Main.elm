@@ -552,7 +552,7 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        BuildResponse org repo buildNumber response ->
+        BuildResponse org repo _ response ->
             case response of
                 Ok ( _, build ) ->
                     let
@@ -564,9 +564,6 @@ update msg model =
                             { builds
                                 | org = org
                                 , repo = repo
-                                , build =
-                                    String.toInt
-                                        buildNumber
                             }
                         , build = RemoteData.succeed build
                       }
@@ -741,7 +738,7 @@ update msg model =
                             model.builds
 
                         loadingBuilds =
-                            { currentBuilds | build = build, builds = Loading }
+                            { currentBuilds | builds = Loading }
                     in
                     ( { model | builds = loadingBuilds }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage )
 
@@ -1131,7 +1128,7 @@ view model =
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
         , viewNav model
-        , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.build model.builds.builds 10 ]
+        , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
         , main_ []
             [ div [ class "content-wrap" ] [ content ] ]
         , div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.config Alerts.view AlertsUpdate model.toasties ]
@@ -1604,6 +1601,9 @@ loadBuildPage model org repo buildNumber focusFragment =
 
             else
                 model.builds
+
+        _ =
+            Debug.log "loading" "builds"
     in
     -- Fetch build from Api
     ( { model

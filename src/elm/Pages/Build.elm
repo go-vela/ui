@@ -281,19 +281,16 @@ viewError build =
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
 -}
-viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> Maybe Int -> WebData Builds -> Int -> Html msg
-viewBuildHistory now timezone page org repo build builds limit =
+viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Builds -> Int -> Html msg
+viewBuildHistory now timezone page org repo builds limit =
     let
-        show =
+        ( show, buildNumber ) =
             case page of
-                Pages.Build _ _ _ _ ->
-                    True
+                Pages.Build _ _ b _ ->
+                    ( True, Maybe.withDefault -1 <| String.toInt b )
 
                 _ ->
-                    False
-
-        buildNumber =
-            Maybe.withDefault -1 build
+                    ( False, -1 )
     in
     if show then
         case builds of
@@ -327,9 +324,15 @@ viewRecentBuild now timezone org repo buildNumber build idx =
         icon =
             recentBuildStatusToIcon build.status idx
 
+        newest =
+            idx == 0
+
         currentBuildClass =
-            if buildNumber == build.number then
+            if buildNumber == build.number && not newest then
                 class "-current"
+
+            else if buildNumber > build.number then
+                class "-older"
 
             else
                 class ""
