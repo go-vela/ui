@@ -672,6 +672,10 @@ nav {
 
 .steps {
   position: relative;
+
+  .details {
+    margin-bottom: 0;
+  }
 }
 
 .step {
@@ -693,9 +697,9 @@ nav {
 }
 
 .step .-status {
-  margin-top: 0.65em;
-  margin-right: 1em;
-  margin-left: 2.35em;
+  margin-top: 2rem;
+  margin-right: 1rem;
+  margin-left: 2.6rem;
 }
 
 .step .-icon-container {
@@ -720,33 +724,8 @@ nav {
   fill: var(--color-bg-light);
 }
 
-.step .-view {
-  flex: 1;
-
-  margin: 1em 0;
-  padding: 0;
-
-  border-top: var(--line-width) solid;
-  border-left: var(--line-width) solid;
-  border-image-source: linear-gradient(
-    to right,
-    var(--color-bg-light) 75%,
-    transparent 75%,
-    transparent 77%,
-    var(--color-bg-light) 77%,
-    var(--color-bg-light) 84%,
-    transparent 84%
-  );
-  border-image-slice: 1;
-}
-
 .step .-view.-running {
   border-color: var(--color-yellow);
-}
-
-.step .summary {
-  padding-top: 0.35em;
-  padding-bottom: 0.35em;
 }
 
 .step .-info {
@@ -766,6 +745,8 @@ nav {
 }
 
 .logs-container {
+  margin-right: -1rem;
+  margin-left: -1rem;
   padding: 0.5em 0;
 
   background-color: var(--color-bg-dark);
