@@ -176,10 +176,8 @@ viewSourceOrg user filters org repos actions =
 -}
 viewSourceOrgDetails : RepoSearchFilters -> Org -> Repositories -> Bool -> List (Html msg) -> Search msg -> EnableRepos msg -> Html msg
 viewSourceOrgDetails filters org repos filtered content search enableRepos =
-    div [ class "org" ]
-        [ details [ class "details", class "-with-border" ] <|
-            viewSourceOrgSummary filters org repos filtered content search enableRepos
-        ]
+    details [ class "details", class "-with-border" ] <|
+        viewSourceOrgSummary filters org repos filtered content search enableRepos
 
 
 {-| viewSourceOrgSummary : renders the source repositories details summary

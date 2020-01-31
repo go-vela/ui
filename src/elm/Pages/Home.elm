@@ -90,15 +90,13 @@ viewCurrentRepoListByOrg user toggleFavorite repoList =
 
 viewOrg : WebData CurrentUser -> String -> ToggleFavorite msg -> List String -> Html msg
 viewOrg user org toggleFavorite favorites =
-    div [ class "repo-org", Util.testAttribute "repo-org" ]
-        [ details [ class "details", class "-with-border", attribute "open" "open" ]
-            (summary [ class "summary" ]
-                [ text org
-                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-                ]
-                :: List.map (viewSingleRepo user toggleFavorite) favorites
-            )
-        ]
+    details [ class "details", class "-with-border", Util.testAttribute "repo-org", attribute "open" "open" ]
+        (summary [ class "summary" ]
+            [ text org
+            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+            ]
+            :: List.map (viewSingleRepo user toggleFavorite) favorites
+        )
 
 
 viewSingleRepo : WebData CurrentUser -> ToggleFavorite msg -> String -> Html msg
