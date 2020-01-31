@@ -21,13 +21,16 @@ body {
 a {
   color: var(--color-primary);
 
-  &:hover,
   &:focus,
   &:active {
     text-decoration: none;
 
     outline: var(--color-secondary) dotted var(--line-width);
     outline-offset: var(--line-width);
+  }
+
+  &:hover {
+    text-decoration: none;
   }
 }
 
@@ -750,8 +753,6 @@ nav {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-
-  margin-left: 1.2em;
 }
 
 .step .-info .-duration {
