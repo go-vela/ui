@@ -324,11 +324,8 @@ viewRecentBuild now timezone org repo buildNumber build idx =
         icon =
             recentBuildStatusToIcon build.status idx
 
-        newest =
-            idx == 0
-
         currentBuildClass =
-            if buildNumber == build.number && not newest then
+            if buildNumber == build.number then
                 class "-current"
 
             else if buildNumber > build.number then
