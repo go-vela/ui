@@ -732,7 +732,7 @@ update msg model =
 
         GotoPage pageNumber ->
             case model.page of
-                Pages.RepositoryBuilds org repo build maybePerPage ->
+                Pages.RepositoryBuilds org repo _ maybePerPage ->
                     let
                         currentBuilds =
                             model.builds
