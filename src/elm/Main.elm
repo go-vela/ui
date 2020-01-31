@@ -182,6 +182,7 @@ type alias Model =
     , hookBuilds : HookBuilds
     , theme : Theme
     , shift : Bool
+    , visibility : Visibility
     }
 
 
@@ -237,6 +238,7 @@ init flags url navKey =
             , hookBuilds = Dict.empty
             , theme = stringToTheme flags.velaTheme
             , shift = False
+            , visibility = Visible
             }
 
         ( newModel, newPage ) =
@@ -313,6 +315,7 @@ type Msg
     | OnKeyDown String
     | OnKeyUp String
     | UpdateUrl String
+    | VisibilityChanged Visibility
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -853,6 +856,9 @@ update msg model =
             in
             ( m, Cmd.none )
 
+        VisibilityChanged visibility ->
+            ( { model | visibility = visibility, shift = False }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -868,13 +874,13 @@ keyDecoder =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
+    Sub.batch <|
         [ Interop.onSessionChange decodeOnSessionChange
         , Interop.onThemeChange decodeOnThemeChange
-        , every Util.oneSecondMillis <| Tick OneSecond
-        , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
+        , Browser.Events.onVisibilityChange VisibilityChanged
+        , refreshSubscriptions model
         ]
 
 
@@ -901,6 +907,21 @@ decodeOnThemeChange inTheme =
 
         Err _ ->
             SetTheme Dark
+
+
+{-| refreshPage : takes model and determines if the page should automatically refresh data
+-}
+refreshSubscriptions : Model -> Sub Msg
+refreshSubscriptions model =
+    Sub.batch <|
+        case model.visibility of
+            Visible ->
+                [ every Util.oneSecondMillis <| Tick OneSecond
+                , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
+                ]
+
+            Hidden ->
+                []
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
