@@ -1109,7 +1109,7 @@ view model =
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
         , viewNav model
-        , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
+        , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.build model.builds.builds 10 ]
         , main_ []
             [ div [ class "content-wrap" ] [ content ] ]
         , div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.config Alerts.view AlertsUpdate model.toasties ]
