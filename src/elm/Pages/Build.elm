@@ -284,20 +284,20 @@ viewError build =
 viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Builds -> Int -> Html msg
 viewBuildHistory now timezone page org repo builds limit =
     let
-        show =
+        ( show, buildNumber ) =
             case page of
-                Pages.Build _ _ _ _ ->
-                    True
+                Pages.Build _ _ b _ ->
+                    ( True, Maybe.withDefault -1 <| String.toInt b )
 
                 _ ->
-                    False
+                    ( False, -1 )
     in
     if show then
         case builds of
             RemoteData.Success blds ->
                 if List.length blds > 0 then
                     div [ class "build-history", Util.testAttribute "build-history" ] <|
-                        List.indexedMap (\idx -> \build -> viewRecentBuild now timezone org repo build idx) <|
+                        List.indexedMap (\idx -> \b -> viewRecentBuild now timezone org repo buildNumber b idx) <|
                             List.take limit blds
 
                 else
@@ -318,19 +318,30 @@ viewBuildHistory now timezone page org repo builds limit =
 
 {-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget
 -}
-viewRecentBuild : Posix -> Zone -> Org -> Repo -> Build -> Int -> Html msg
-viewRecentBuild now timezone org repo build idx =
+viewRecentBuild : Posix -> Zone -> Org -> Repo -> Int -> Build -> Int -> Html msg
+viewRecentBuild now timezone org repo buildNumber build idx =
     let
         icon =
             recentBuildStatusToIcon build.status idx
+
+        currentBuildClass =
+            if buildNumber == build.number then
+                class "-current"
+
+            else if buildNumber > build.number then
+                class "-older"
+
+            else
+                class ""
     in
     a
-        [ class "-build"
+        [ class "recent-build"
+        , currentBuildClass
         , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
         ]
         [ icon
-        , div [ class "-tooltip", Util.testAttribute "build-history-tooltip" ]
+        , div [ class "tooltip", Util.testAttribute "build-history-tooltip" ]
             [ div [ class "-info" ]
                 [ div [ class "-line", class "-header" ]
                     [ span [ class "-number" ] [ text <| String.fromInt build.number ]
