@@ -34,6 +34,7 @@ import Html
         , label
         , p
         , section
+        , small
         , span
         , strong
         , text
@@ -314,11 +315,11 @@ enable disableRepoMsg enableRepoMsg repo =
         [ h2 [ class "settings-title" ] [ text "Admin" ]
         , p [ class "settings-description" ] [ text "These configurations require admin privileges." ]
         , div [ class "enable-container" ]
-            [ div [ class "enable-column-a" ]
-                [ span [ class "enable-btn-label-a" ] [ text <| Tuple.first enabledDetails ]
-                , em [ class "enable-btn-label-b" ] [ text <| Tuple.second enabledDetails ]
+            [ div [ class "enable-description" ]
+                [ text <| Tuple.first enabledDetails
+                , small [] [ em [] [ text <| Tuple.second enabledDetails ] ]
                 ]
-            , div [ class "enable-column-b" ] [ div [] [ enabledButton disableRepoMsg enableRepoMsg repo ] ]
+            , div [] [ enabledButton disableRepoMsg enableRepoMsg repo ]
             ]
         ]
 
