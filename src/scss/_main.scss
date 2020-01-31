@@ -22,8 +22,12 @@ a {
   color: var(--color-primary);
 
   &:hover,
-  &:focus {
+  &:focus,
+  &:active {
     text-decoration: none;
+
+    outline: var(--color-secondary) dotted var(--line-width);
+    outline-offset: var(--line-width);
   }
 }
 
