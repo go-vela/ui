@@ -324,8 +324,7 @@ nav {
   justify-content: space-between;
 }
 
-.source-actions .-filter,
-.source-repos .-filter {
+.search-bar {
   display: flex;
   flex: 1;
   flex-direction: row;
@@ -336,8 +335,7 @@ nav {
   border-bottom: 2px solid var(--color-primary);
 }
 
-.source-actions .-filter input,
-.source-repos .-filter input {
+.search-bar input {
   width: 100%;
   padding: 0.5em 0.8em;
 

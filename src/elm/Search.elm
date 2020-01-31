@@ -6,7 +6,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Search exposing
     ( Search
+    , SimpleSearch
     , filterRepo
+    , homeSearchBar
     , repoSearchBarGlobal
     , repoSearchBarLocal
     , searchFilterGlobal
@@ -35,11 +37,31 @@ type alias Search msg =
     Org -> String -> msg
 
 
+{-| Search : takes input and searches/filters favorites displayed on the home page
+-}
+type alias SimpleSearch msg =
+    String -> msg
+
+
+homeSearchBar : String -> SimpleSearch msg -> Html msg
+homeSearchBar filter search =
+    div [ class "search-bar", Util.testAttribute "home-search-bar" ]
+        [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
+        , input
+            [ Util.testAttribute "home-search-input"
+            , placeholder "Type to filter all favorites..."
+            , value <| filter
+            , onInput search
+            ]
+            []
+        ]
+
+
 {-| repoSearchBarGlobal : renders a input bar for searching across all repos
 -}
 repoSearchBarGlobal : RepoSearchFilters -> Search msg -> Html msg
 repoSearchBarGlobal searchFilters search =
-    div [ class "-filter", Util.testAttribute "global-search-bar" ]
+    div [ class "search-bar", Util.testAttribute "global-search-bar" ]
         [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
         , input
             [ Util.testAttribute "global-search-input"
@@ -55,7 +77,7 @@ repoSearchBarGlobal searchFilters search =
 -}
 repoSearchBarLocal : RepoSearchFilters -> Org -> Search msg -> Html msg
 repoSearchBarLocal searchFilters org search =
-    div [ class "-filter", Util.testAttribute "local-search-bar" ]
+    div [ class "search-bar", Util.testAttribute "local-search-bar" ]
         [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
         , input
             [ Util.testAttribute <| "local-search-input-" ++ org

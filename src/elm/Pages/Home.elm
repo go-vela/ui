@@ -12,7 +12,6 @@ import Html
     exposing
         ( Html
         , a
-        , br
         , details
         , div
         , h1
@@ -31,6 +30,7 @@ import List.Extra
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
+import Search exposing (SimpleSearch, homeSearchBar)
 import SvgBuilder
 import Util
 import Vela
@@ -39,8 +39,8 @@ import Vela
         )
 
 
-view : WebData CurrentUser -> ToggleFavorite msg -> Html msg
-view user toggleFavorite =
+view : WebData CurrentUser -> String -> ToggleFavorite msg -> SimpleSearch msg -> Html msg
+view user filter toggleFavorite search =
     let
         blankMessage : Html msg
         blankMessage =
@@ -55,28 +55,74 @@ view user toggleFavorite =
                 , a [ class "button", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
                 ]
     in
-    div [ Util.testAttribute "overview" ]
-        [ case user of
+    div [ Util.testAttribute "overview" ] <|
+        case user of
             Success u ->
                 if List.length u.favorites > 0 then
-                    u.favorites
-                        |> recordsGroupByOrg
-                        |> viewCurrentRepoListByOrg user toggleFavorite
-
-                else
-                    blankMessage
-
-            Loading ->
-                div []
-                    [ h1 [] [ text "Loading your Repositories", span [ class "loading-ellipsis" ] [] ]
+                    [ searchBar filter search
+                    , viewFavorites u filter toggleFavorite
                     ]
 
+                else
+                    [ blankMessage ]
+
+            Loading ->
+                [ h1 [] [ text "Loading your Repositories", span [ class "loading-ellipsis" ] [] ] ]
+
             NotAsked ->
-                blankMessage
+                [ blankMessage ]
 
             Failure _ ->
-                text ""
-        ]
+                [ text "" ]
+
+
+viewFavorites : CurrentUser -> String -> ToggleFavorite msg -> Html msg
+viewFavorites user filter toggleFavorite =
+    if String.isEmpty filter then
+        user.favorites
+            |> recordsGroupByOrg
+            |> viewCurrentRepoListByOrg (RemoteData.succeed user) toggleFavorite
+
+    else
+        let
+            filteredRepos =
+                user.favorites
+                    |> List.filter (\repo -> filterFavorite filter repo)
+        in
+        div [ class "filtered-repos" ] <|
+            -- Render the found repositories
+            if not <| List.isEmpty filteredRepos then
+                filteredRepos
+                    |> List.map
+                        (\repo ->
+                            div [ class "-item", Util.testAttribute <| "favorited-repo-" ++ repo ]
+                                [ div []
+                                    [ text <| repo ]
+
+                                -- , enableRepoButton repo enableRepo toggleFavorite favorited
+                                ]
+                        )
+
+            else
+                -- No repos matched the search
+                [ div [ class "-no-repos" ] [ text "No results" ] ]
+
+
+filterFavorite : String -> String -> Bool
+filterFavorite filterBy filterOn =
+    let
+        by =
+            String.toLower filterBy
+
+        on =
+            String.toLower filterOn
+    in
+    String.contains by on
+
+
+searchBar : String -> SimpleSearch msg -> Html msg
+searchBar filter search =
+    homeSearchBar filter search
 
 
 viewCurrentRepoListByOrg : WebData CurrentUser -> ToggleFavorite msg -> Dict String (List String) -> Html msg
