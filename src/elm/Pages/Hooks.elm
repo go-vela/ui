@@ -6,7 +6,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Hooks exposing (hookStatus, receiveHookBuild, view)
 
-import Build exposing (statusToClass, statusToString)
 import Dict
 import FeatherIcons
 import Html
@@ -28,6 +27,7 @@ import Html.Attributes
         , href
         )
 import Html.Events exposing (onClick)
+import Pages.Build exposing (statusToClass, statusToString)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (hookStatusToIcon)
@@ -135,7 +135,7 @@ preview : Posix -> Hook -> Html msg
 preview now hook =
     div [ class "row", class "preview" ]
         [ firstCell hook.status
-        , sourceID hook
+        , sourceId hook
         , cell (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) <| class "created"
         , cell hook.host <| class "host"
         , cell hook.event <| class "event"
@@ -151,10 +151,10 @@ cell txt cls =
         [ span [] [ text txt ] ]
 
 
-{-| sourceID : takes text and maybe attributes and renders cell data for hooks table row
+{-| sourceId : takes text and maybe attributes and renders cell data for hooks table row
 -}
-sourceID : Hook -> Html msg
-sourceID hook =
+sourceId : Hook -> Html msg
+sourceId hook =
     div [ class "cell", class "source-id" ]
         [ code [ class "text" ] [ text hook.source_id ]
         ]
@@ -164,7 +164,7 @@ sourceID hook =
 -}
 info : Posix -> BuildIdentifier -> Hook -> HookBuilds -> Html msg
 info now buildIdentifier hook hookBuilds =
-    case Tuple.first <| fromID buildIdentifier hookBuilds of
+    case Tuple.first <| fromId buildIdentifier hookBuilds of
         NotAsked ->
             error hook.error
 
@@ -266,10 +266,10 @@ buildPath ( org, repo, buildNumber ) =
     String.join "/" [ org, repo, buildNumber ]
 
 
-{-| fromID : takes build identifier and hook builds and returns the potential build
+{-| fromId : takes build identifier and hook builds and returns the potential build
 -}
-fromID : BuildIdentifier -> HookBuilds -> ( WebData Build, Viewing )
-fromID buildIdentifier hookBuilds =
+fromId : BuildIdentifier -> HookBuilds -> ( WebData Build, Viewing )
+fromId buildIdentifier hookBuilds =
     Maybe.withDefault ( NotAsked, False ) <| Dict.get buildIdentifier hookBuilds
 
 

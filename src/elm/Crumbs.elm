@@ -128,12 +128,12 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage ) ]
 
-                Pages.Build org repo buildNumber lineFocus ->
+                Pages.Build org repo buildNumber logFocus ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber lineFocus ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]

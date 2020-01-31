@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Routes exposing (Org, Repo, Route(..), href, match, routeToUrl)
+module Routes exposing (Route(..), href, match, routeToUrl)
 
 import Api.Pagination as Pagination
 import Html
@@ -13,19 +13,11 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, LineFocus)
+import Vela exposing (AuthParams, BuildNumber, FocusFragment, Org, Repo)
 
 
 
 -- TYPES
-
-
-type alias Org =
-    String
-
-
-type alias Repo =
-    String
 
 
 type Route
@@ -34,7 +26,7 @@ type Route
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | Build Org Repo BuildNumber LineFocus
+    | Build Org Repo BuildNumber FocusFragment
     | Login
     | Logout
     | Authenticate AuthParams
@@ -101,8 +93,8 @@ routeToUrl route =
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
-        Build org repo buildNumber lineFocus ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" lineFocus
+        Build org repo buildNumber logFocus ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" logFocus
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

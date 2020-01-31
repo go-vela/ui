@@ -19,12 +19,13 @@ module Vela exposing
     , Enabled
     , Enabling(..)
     , Field
+    , FocusFragment
     , Hook
     , HookBuilds
     , Hooks
     , HooksModel
-    , LineFocus
     , Log
+    , LogFocus
     , Logs
     , Org
     , Repo
@@ -679,7 +680,7 @@ type alias Step =
     , runtime : String
     , distribution : String
     , viewing : Bool
-    , lineFocus : Maybe Int
+    , logFocus : ( Maybe Int, Maybe Int )
     }
 
 
@@ -705,8 +706,8 @@ decodeStep =
         |> optional "distribution" string ""
         -- "viewing"
         |> hardcoded False
-        -- "lineFocus"
-        |> hardcoded Nothing
+        -- "logFocus"
+        |> hardcoded ( Nothing, Nothing )
 
 
 {-| decodeSteps : decodes json from vela into list of steps
@@ -718,6 +719,10 @@ decodeSteps =
 
 type alias Steps =
     List Step
+
+
+type alias LogFocus =
+    ( Maybe Int, Maybe Int )
 
 
 
@@ -749,7 +754,7 @@ type alias Logs =
     List (WebData Log)
 
 
-type alias LineFocus =
+type alias FocusFragment =
     Maybe String
 
 
