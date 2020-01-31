@@ -118,7 +118,13 @@ body.theme-light {
   // stylelint-disable-next-line
   .form-control input:invalid:not([type='checkbox']):not([type='radio']) {
     color: var(--color-red-dark);
+  }
 
-    border-color: var(--color-red);
+  .button.-outline.-success {
+    color: var(--color-green-dark);
+  }
+
+  .button.-outline.-failure {
+    color: var(--color-red-dark);
   }
 }
