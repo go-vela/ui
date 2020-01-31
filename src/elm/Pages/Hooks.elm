@@ -112,8 +112,8 @@ rows now org repo hookBuilds hooks clickAction =
 -}
 row : Posix -> Org -> Repo -> Hook -> HookBuilds -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
 row now org repo hook hookBuilds clickAction =
-    details [ class "row", Util.testAttribute "hook", Util.open <| hookOpen ( org, repo, String.fromInt hook.build_id ) hookBuilds ]
-        [ summary [ class "hook-summary", onClick (clickAction org repo <| String.fromInt hook.build_id) ]
+    details [ class "details", Util.testAttribute "hook", Util.open <| hookOpen ( org, repo, String.fromInt hook.build_id ) hookBuilds ]
+        [ summary [ class "summary", onClick (clickAction org repo <| String.fromInt hook.build_id) ]
             [ preview now hook ]
         , info now ( org, repo, String.fromInt hook.build_id ) hook hookBuilds
         ]
@@ -124,7 +124,7 @@ row now org repo hook hookBuilds clickAction =
 firstCell : String -> Html msg
 firstCell status =
     div [ class "first-cell" ]
-        [ FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "chevron" |> FeatherIcons.toHtml []
+        [ FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
         , hookStatusToIcon status
         ]
 

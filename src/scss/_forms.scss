@@ -18,7 +18,8 @@
   display: flex;
   align-items: center;
 
-  // for all but radio and checkbox controls
+  // base for all but radio and checkbox controls
+  // TODO: might want to include submit, color, button, and reset types
   input:not([type='checkbox']):not([type='radio']) {
     position: relative;
 
@@ -30,6 +31,13 @@
     background-color: var(--color-bg);
     border: none;
     border-bottom: var(--line-width) solid var(--color-primary);
+
+    // if this has a label associated with it,
+    // make it back off a bit
+    // stylelint-disable-next-line
+    + .form-label {
+      margin-left: 0.5rem;
+    }
   }
 
   // for controls with embedded icon
@@ -49,8 +57,12 @@
     }
   }
 
-  // small utility class to have input control stretch horizontally
-  // as much as possible
+  // small utility class to have input control
+  // stretch horizontally as much as possible
+  // <div class="form-control -is-expanded">
+  //   <input ... />
+  //   <label class="form-label">...</label>
+  // </div>
   &.-is-expanded {
     flex-grow: 1;
     flex-shrink: 1;
@@ -62,7 +74,8 @@
   }
 }
 
-// radio & checkbox controls
+// radio & checkbox
+// hide the native controls, visually
 .form-control [type='checkbox'],
 .form-control [type='radio'] {
   @include visually-hidden;
@@ -76,7 +89,7 @@
   }
 }
 
-// style for the base control to replace native
+// base for the replacement controls, just squares here
 .form-control [type='checkbox'] + .form-label::before,
 .form-control [type='radio'] + .form-label::before,
 .form-control [type='radio'] + .form-label::after {
@@ -92,7 +105,7 @@
   content: '';
 }
 
-// radio controls are round, m'kay
+// radio controls are round, m'kay.. well, at least these ones
 .form-control [type='radio'] + .form-label::before {
   background-color: var(--color-bg);
   border: var(--line-width) solid var(--color-primary);
@@ -124,8 +137,6 @@
   border-radius: 50%;
   transform: scale(0.4);
   opacity: 0;
-
-  content: '';
 }
 
 // reveal check mark or selected radio when selected
@@ -164,11 +175,6 @@
   background-color: var(--color-bg-light);
 }
 
-// stylelint-disable-next-line
-.form-control input:not([type='checkbox']):not([type='radio']) + .form-label {
-  margin-left: 0.5rem;
-}
-
 .form-control input:disabled:not([type='checkbox']):not([type='radio']) {
   color: var(--color-bg-light);
 
@@ -180,6 +186,7 @@
   }
 }
 
+// styles for controls in an invalid state
 .form-control input:invalid:not([type='checkbox']):not([type='radio']) {
   color: var(--color-red);
 
@@ -187,6 +194,15 @@
 }
 
 // for grouping many .form-control elements
+// <div class="form-controls">
+//   <div class="form-control">..</div>
+//   <div class="form-control">..</div>
+// </div>
+// or..
+// <div class="form-controls">
+//   <div class="form-control">..</div>
+//   <button class="button">..</button>
+// </div>
 .form-controls {
   display: flex;
   justify-content: space-between;
@@ -206,6 +222,11 @@
       margin-bottom: 0.5rem;
     }
   }
+
+  // no horizontal padding, cuddle up
+  &.-no-x-pad {
+    padding: 0.5rem 0;
+  }
 }
 
 // <details class="details">
@@ -213,47 +234,41 @@
 //  ..
 // </details>
 .details {
-  > .summary {
+  position: relative;
+
+  margin: 2rem 0;
+  padding: 1rem;
+
+  .summary {
     position: relative;
 
-    padding-right: 1.5em;
-    padding-bottom: 0.3em;
+    padding-left: 2rem;
 
     overflow: hidden;
 
     cursor: pointer;
 
-    // hide details marker on Chrome
     // stylelint-disable declaration-no-important
     &::-webkit-details-marker {
-      display: none !important;
+      display: none;
     }
 
     //hide details marker on Firefox
     &:first-of-type {
-      list-style-type: none !important;
+      list-style-type: none;
     }
-    // stylelint-enable declaration-no-important
 
-    // super hacky way to remove
-    // marker on details element
-    //
-    // text-indent: -1em;
-    // Firefox - hide marker
-    // &::-webkit-details-marker,
-    // &::marker {
-    //   display: none;
-    //   color: var(--color-coal);
-    // }
-    // also could work with:
-    // display: block;
-    // nothing seems to work on Chrome
+    // focus styles
+    &:focus {
+      outline: var(--color-secondary) dotted var(--line-width);
+      outline-offset: var(--line-width);
+    }
   }
 
   .details-icon-expand {
     position: absolute;
     top: 0.2em;
-    right: 0;
+    left: 0;
 
     color: var(--color-primary);
 
@@ -262,7 +277,46 @@
     transition: transform 0.2s;
   }
 
-  &[open] .details-icon-expand {
-    transform: rotate(0.5turn);
+  &[open] {
+    .details-icon-expand {
+      transform: rotate(0.5turn);
+    }
+
+    // once opened, add some breathing room
+    .summary + *:first-of-type {
+      margin-top: 1rem;
+    }
+  }
+
+  &.-with-border {
+    border-top: var(--line-width) solid;
+    border-left: var(--line-width) solid;
+    border-image-source: linear-gradient(
+      to right,
+      var(--color-bg-light) 75%,
+      transparent 75%,
+      transparent 77%,
+      var(--color-bg-light) 77%,
+      var(--color-bg-light) 84%,
+      transparent 84%
+    );
+    border-image-slice: 1;
+  }
+
+  &.-marker-right {
+    .summary {
+      padding-right: 2rem;
+      padding-left: 0;
+    }
+
+    .details-icon-expand {
+      right: 0;
+      left: auto;
+    }
+  }
+
+  &.-no-pad {
+    margin: 0;
+    padding: 0;
   }
 }

@@ -70,7 +70,7 @@ header {
   text-decoration: none;
   // override global `vertical-align: middle` for SVGs
   svg {
-    vertical-align: initial;
+    vertical-align: text-bottom;
   }
 }
 
@@ -94,51 +94,50 @@ header {
 }
 
 .identity-name {
-  position: relative;
   z-index: 9999;
+}
 
-  ul {
-    position: absolute;
-    top: 1rem;
-    left: 0;
+.identity-menu {
+  position: absolute;
+  top: 1rem;
+  left: 0;
 
-    width: max-content;
-    min-width: 100%;
-    padding: 0;
+  width: max-content;
+  min-width: 100%;
+  padding: 0;
 
-    font-size: 80%;
+  font-size: 80%;
 
-    list-style: none;
-    background-color: var(--color-bg-dark);
+  list-style: none;
+  background-color: var(--color-bg-dark);
 
-    border: 1px solid var(--color-bg-light);
-    box-shadow: 0 0 2px var(--color-black);
+  border: 1px solid var(--color-bg-light);
+  box-shadow: 0 0 2px var(--color-black);
 
-    > li {
-      padding: 0.5em 1em;
-    }
+  .identity-menu-item {
+    padding: 0.5em 1em;
+  }
 
-    @supports (clip-path: inset(50%)) {
-      &::after {
-        position: absolute;
-        top: -5px;
-        left: calc(50% - 6px);
+  @supports (clip-path: inset(50%)) {
+    &::after {
+      position: absolute;
+      top: -5px;
+      left: calc(50% - 6px);
 
-        display: block;
+      display: block;
 
-        width: 10px;
-        height: 10px;
+      width: 10px;
+      height: 10px;
 
-        background-color: inherit;
+      background-color: inherit;
 
-        border: inherit;
-        border-radius: 0 0 0 0.25em;
-        transform: rotate(135deg);
+      border: inherit;
+      border-radius: 0 0 0 0.25em;
+      transform: rotate(135deg);
 
-        content: '';
+      content: '';
 
-        clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
-      }
+      clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
   }
 }
@@ -195,41 +194,11 @@ nav {
   border-image-slice: 1;
 }
 
-.repo-item {
-  position: relative;
-
-  display: flex;
-  justify-content: space-between;
-
-  margin: 2em 0;
-  padding: 0.5em;
-
-  border-top: var(--line-width) solid;
-  border-left: var(--line-width) solid;
-  border-image-source: linear-gradient(
-    to right,
-    var(--color-bg-light) 75%,
-    transparent 75%,
-    transparent 77%,
-    var(--color-bg-light) 77%,
-    var(--color-bg-light) 84%,
-    transparent 84%
-  );
-  border-image-slice: 1;
-
-  > summary {
-    margin: 0.5em 0 0 1em;
-
-    text-indent: 0;
-  }
-}
-
 .-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  margin: 0.5rem 0 0 1rem;
+  margin: 0.5rem 0 0 0;
   padding: 1rem;
 
   background-color: var(--color-bg-dark);
@@ -263,34 +232,8 @@ nav {
   height: 3em;
 }
 
-.source-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.org .summary {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  &::-webkit-details-marker {
-    display: flex;
-
-    margin-right: 16px;
-  }
-}
-
 .filtered-repos {
   margin-top: 2em;
-}
-
-.-no-repos {
-  width: 100%;
-  margin: 0.5em 0 0 1em;
-  padding: 1.2em 1em;
-
-  background-color: var(--color-bg-dark);
 }
 
 .org-header {
@@ -300,7 +243,7 @@ nav {
 }
 
 .repo-count {
-  margin-left: 12px;
+  margin-left: 0.8rem;
 
   &::before {
     margin-right: 0.3em;
@@ -975,7 +918,8 @@ nav {
 
 .hooks {
   width: 100%;
-  padding-bottom: 0.5em;
+  margin: 1rem 0;
+  padding-bottom: 0.5rem;
 
   background: var(--color-bg-dark);
 }
@@ -985,51 +929,6 @@ nav {
 
   margin-top: 0.5em;
   margin-left: 0.4em;
-}
-
-.hooks .row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  margin: 0.3em 0;
-
-  > .hook-summary {
-    position: relative;
-
-    padding: 0;
-
-    overflow: hidden;
-
-    cursor: pointer;
-
-    // hide details marker on Chrome
-    // stylelint-disable declaration-no-important
-    &::-webkit-details-marker {
-      display: none !important;
-    }
-
-    //hide details marker on Firefox
-    &:first-of-type {
-      list-style-type: none !important;
-    }
-    // stylelint-enable declaration-no-important
-  }
-
-  .chevron {
-    margin-right: 0.8em;
-    margin-left: 1em;
-
-    color: var(--color-primary);
-
-    transform-origin: 50% 49%;
-
-    transition: transform 0.2s;
-  }
-}
-
-.row[open] .chevron {
-  transform: rotate(0.5turn);
 }
 
 .hooks .row.preview {

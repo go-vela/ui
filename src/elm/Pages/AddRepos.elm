@@ -177,7 +177,7 @@ viewSourceOrg user filters org repos actions =
 viewSourceOrgDetails : RepoSearchFilters -> Org -> Repositories -> Bool -> List (Html msg) -> Search msg -> EnableRepos msg -> Html msg
 viewSourceOrgDetails filters org repos filtered content search enableRepos =
     div [ class "org" ]
-        [ details [ class "details", class "repo-item" ] <|
+        [ details [ class "details", class "-with-border" ] <|
             viewSourceOrgSummary filters org repos filtered content search enableRepos
         ]
 
@@ -187,12 +187,11 @@ viewSourceOrgDetails filters org repos filtered content search enableRepos =
 viewSourceOrgSummary : RepoSearchFilters -> Org -> Repositories -> Bool -> List (Html msg) -> Search msg -> EnableRepos msg -> List (Html msg)
 viewSourceOrgSummary filters org repos filtered content search enableRepos =
     summary [ class "summary", Util.testAttribute <| "source-org-" ++ org ]
-        [ div [ class "org-header" ]
-            [ text org
-            , viewRepoCount repos
-            ]
+        [ text org
+        , viewRepoCount repos
+        , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
         ]
-        :: div [ class "form-controls" ]
+        :: div [ class "form-controls", class "-no-x-pad" ]
             [ repoSearchBarLocal filters org search
             , enableReposButton org repos filtered enableRepos
             ]
@@ -231,7 +230,7 @@ viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
 -}
 viewRepoCount : List a -> Html msg
 viewRepoCount repos =
-    span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ code [] [ text <| (String.fromInt <| List.length repos) ++ " repos" ] ]
+    span [ class "repo-count", Util.testAttribute "source-repo-count" ] [ text <| (String.fromInt <| List.length repos) ++ " repos" ]
 
 
 {-| enableReposButton : takes List of repos and renders a button to enable them all at once, texts depends on user input filter
@@ -335,7 +334,7 @@ searchReposGlobal model repos enableRepo toggleFavorite =
 
         else
             -- No repos matched the search
-            [ div [ class "-no-repos" ] [ text "No results" ] ]
+            [ div [ class "-item" ] [ text "No results" ] ]
 
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
@@ -353,5 +352,5 @@ searchReposLocal user org filters repos enableRepo toggleFavorite =
         List.map (viewSourceRepo user enableRepo toggleFavorite) filteredRepos
 
       else
-        [ div [ class "-no-repos" ] [ text "No results" ] ]
+        [ div [ class "-item" ] [ text "No results" ] ]
     )
