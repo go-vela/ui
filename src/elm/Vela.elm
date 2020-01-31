@@ -536,6 +536,7 @@ buildUpdateRepoIntPayload field value =
 type alias BuildsModel =
     { org : Org
     , repo : Repo
+    , build : Maybe Int
     , builds : WebData Builds
     , pager : List WebLink
     }
@@ -618,7 +619,7 @@ buildStatusDecoder =
 
 defaultBuilds : BuildsModel
 defaultBuilds =
-    BuildsModel "" "" RemoteData.NotAsked []
+    BuildsModel "" "" Nothing RemoteData.NotAsked []
 
 
 type alias Builds =

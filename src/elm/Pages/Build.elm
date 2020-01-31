@@ -281,7 +281,7 @@ viewError build =
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
 -}
-viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Build -> WebData Builds -> Int -> Html msg
+viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> Maybe Int -> WebData Builds -> Int -> Html msg
 viewBuildHistory now timezone page org repo build builds limit =
     let
         show =
@@ -293,12 +293,7 @@ viewBuildHistory now timezone page org repo build builds limit =
                     False
 
         buildNumber =
-            case build of
-                RemoteData.Success b ->
-                    b.number
-
-                _ ->
-                    -1
+            Maybe.withDefault -1 build
     in
     if show then
         case builds of
