@@ -169,8 +169,7 @@ context('Steps', () => {
             cy.get('[data-test=log-line-num-5]').as('lineNumber2:5');
           });
           cy.get('@lineNumber2:2').click({ force: true});
-          cy.get('@lineNumber2:5').type('{shift}', { release: false });
-          cy.get('@lineNumber2:5').click();
+          cy.get('body').type('{shift}', { release: false }).get('@lineNumber2:5').click();
           cy.get('@lineNumber2:5').type('{shift}', { release: true });
         });
         it('range start line should be highlighted', () => {

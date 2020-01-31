@@ -27,7 +27,8 @@ import Html
         )
 import Html.Attributes
     exposing
-        ( class
+        ( attribute
+        , class
         , id
         )
 import List.Extra exposing (updateIf)
@@ -131,6 +132,7 @@ viewLine stepNumber line logFocus lineNumber clickAction shiftDown =
                     , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
                     , id <| stepAndLineToFocusId stepNumber lineNumber
                     , class "focus-log"
+                    , attribute "aria-label" <| "focus step " ++ stepNumber
                     ]
                     [ text <| Util.toTwoDigits <| lineNumber ]
                 ]
@@ -185,21 +187,21 @@ logFocusFragment stepNumber args =
     String.join ":" <| [ "#step", stepNumber ] ++ args
 
 
-{-| stepToFocusId : takes URL fragment and parses it into appropriate step focus Id for auto focusing on page load
+{-| stepToFocusId : takes step number and returns the step focus id for auto focusing on page load
 -}
 stepToFocusId : StepNumber -> String
 stepToFocusId stepNumber =
     "step-" ++ stepNumber
 
 
-{-| stepAndLineToFocusId : takes URL fragment and parses it into appropriate line focus Id for auto focusing on page load
+{-| stepAndLineToFocusId : takes step number and line number and returns the line focus id for auto focusing on page load
 -}
 stepAndLineToFocusId : StepNumber -> Int -> String
 stepAndLineToFocusId stepNumber lineNumber =
     "step-" ++ stepNumber ++ "-line-" ++ String.fromInt lineNumber
 
 
-{-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus Id for auto focusing on page load
+{-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus id for auto focusing on page load
 -}
 focusFragmentToFocusId : FocusFragment -> String
 focusFragmentToFocusId focusFragment =
