@@ -1141,7 +1141,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , lazy2 Pages.Home.view model.user ToggleFavorite
+            , lazy2 Pages.Home.view model.user homeMsgs
             )
 
         Pages.AddRepositories ->
@@ -1163,7 +1163,7 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " hooks" ++ page
             , div []
                 [ Pager.view model.hooks.pager Pager.defaultLabels GotoPage
-                , lazy4 Pages.Hooks.view model org repo ClickHook
+                , lazy4 Pages.Hooks.view model org repo hooksMsgs
                 , Pager.view model.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -1818,6 +1818,13 @@ clickHook model org repo buildNumber =
         )
 
 
+{-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
+-}
+homeMsgs : Org -> Maybe Repo -> Msg
+homeMsgs =
+    ToggleFavorite
+
+
 {-| buildMsgs : prepares the input record required for the Build page to route Msgs back to Main.elm
 -}
 buildMsgs : Pages.Build.Msgs Msg
@@ -1830,6 +1837,13 @@ buildMsgs =
 addReposMsgs : Pages.AddRepos.Msgs Msg
 addReposMsgs =
     Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
+
+
+{-| hooksMsgs : prepares the input record required for the Hooks page to route Msgs back to Main.elm
+-}
+hooksMsgs : Org -> Repo -> BuildNumber -> Msg
+hooksMsgs =
+    ClickHook
 
 
 {-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm
