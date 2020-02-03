@@ -17,6 +17,7 @@ import Dict
 import Errors exposing (detailedErrorToString)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
+import Help
 import Html
     exposing
         ( Html
@@ -185,6 +186,7 @@ type alias Model =
     , theme : Theme
     , shift : Bool
     , visibility : Visibility
+    , showHelp : Bool
     }
 
 
@@ -242,6 +244,7 @@ init flags url navKey =
             , theme = stringToTheme flags.velaTheme
             , shift = False
             , visibility = Visible
+            , showHelp = False
             }
 
         ( newModel, newPage ) =
@@ -282,6 +285,7 @@ type Msg
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
+    | ShowHideHelp
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -364,6 +368,11 @@ update msg model =
             in
             ( model
             , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
+            )
+
+        ShowHideHelp ->
+            ( { model | showHelp = not model.showHelp }
+            , Cmd.none
             )
 
         EnableRepo repo ->
@@ -1153,7 +1162,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
+        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, page = model.page, showHelp = model.showHelp }
         , lazy2 Nav.view model navMsgs
         , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
         , main_ []
@@ -1283,8 +1292,8 @@ viewLogin =
         ]
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme } -> Html Msg
-viewHeader maybeSession { feedbackLink, docsLink, theme } =
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, page : Page, showHelp : Bool } -> Html Msg
+viewHeader maybeSession { feedbackLink, docsLink, theme, page, showHelp } =
     let
         session : Session
         session =
@@ -1314,7 +1323,7 @@ viewHeader maybeSession { feedbackLink, docsLink, theme } =
                 [ li [] [ viewThemeToggle theme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
                 , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , li [] [ FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [] ]
+                , Help.view page showHelp ShowHideHelp
                 ]
             ]
         ]
