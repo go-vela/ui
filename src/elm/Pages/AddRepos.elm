@@ -66,11 +66,10 @@ import Vela
 
 {-| PartialModel : an abbreviated version of the main model
 -}
-type alias PartialModel a =
-    { a
-        | user : WebData CurrentUser
-        , sourceRepos : WebData SourceRepositories
-        , filters : RepoSearchFilters
+type alias PartialModel =
+    { user : WebData CurrentUser
+    , sourceRepos : WebData SourceRepositories
+    , filters : RepoSearchFilters
     }
 
 
@@ -90,7 +89,7 @@ type alias Msgs msg =
 
 {-| view : takes model and renders account page for adding repos to overview
 -}
-view : PartialModel a -> Msgs msg -> Html msg
+view : PartialModel -> Msgs msg -> Html msg
 view model actions =
     let
         ( sourceRepos, filters ) =
@@ -133,7 +132,7 @@ view model actions =
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
-viewSourceRepos : PartialModel a -> SourceRepositories -> Msgs msg -> Html msg
+viewSourceRepos : PartialModel -> SourceRepositories -> Msgs msg -> Html msg
 viewSourceRepos model sourceRepos actions =
     let
         filters =
@@ -314,7 +313,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : PartialModel a -> SourceRepositories -> EnableRepo msg -> ToggleFavorite msg -> Html msg
+searchReposGlobal : PartialModel -> SourceRepositories -> EnableRepo msg -> ToggleFavorite msg -> Html msg
 searchReposGlobal model repos enableRepo toggleFavorite =
     let
         ( user, filters ) =

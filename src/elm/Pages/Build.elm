@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build exposing
     ( Msgs
+    , PartialModel
     , clickLogLine
     , clickStep
     , statusToClass
@@ -13,6 +14,7 @@ module Pages.Build exposing
     , viewBuild
     , viewBuildHistory
     , viewPreview
+    , viewingStep
     )
 
 import Browser.Navigation as Navigation
@@ -38,7 +40,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import List.Extra exposing (updateIf)
-import Logs exposing (SetLogFocus, logFocusFragment, stepToFocusId)
+import Logs exposing (SetLogFocus, stepToFocusId)
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
@@ -50,7 +52,6 @@ import Vela
         ( Build
         , BuildNumber
         , Builds
-        , FocusFragment
         , Logs
         , Org
         , Repo
@@ -71,12 +72,6 @@ type alias ExpandStep msg =
     Org -> Repo -> BuildNumber -> StepNumber -> String -> msg
 
 
-{-| GetLogsFromBuild : type alias for passing in logs fetch function from Main.elm
--}
-type alias GetLogsFromBuild a msg =
-    a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Cmd msg
-
-
 {-| FocusLogs : type alias for passing in url fragment to focus ranges of logs
 -}
 type alias FocusLogs msg =
@@ -85,14 +80,13 @@ type alias FocusLogs msg =
 
 {-| PartialModel : type alias for passing in the main model with the navigation key for pushing log fragment urls
 -}
-type alias PartialModel a =
-    { a
-        | navigationKey : Navigation.Key
-        , time : Posix
-        , build : WebData Build
-        , steps : WebData Steps
-        , logs : Logs
-        , shift : Bool
+type alias PartialModel =
+    { navigationKey : Navigation.Key
+    , time : Posix
+    , build : WebData Build
+    , steps : WebData Steps
+    , logs : Logs
+    , shift : Bool
     }
 
 
@@ -111,7 +105,7 @@ type alias Msgs msg =
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel a -> Org -> Repo -> Msgs msg -> Html msg
+viewBuild : PartialModel -> Org -> Repo -> Msgs msg -> Html msg
 viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusAction } =
     let
         ( buildPreview, buildNumber ) =
@@ -539,34 +533,21 @@ trimCommitHash commit =
 
 {-| clickStep : takes model org repo and step number and fetches step information from the api
 -}
-clickStep : PartialModel a -> WebData Steps -> Org -> Repo -> BuildNumber -> StepNumber -> GetLogsFromBuild (PartialModel a) msg -> ( WebData Steps, Cmd msg )
-clickStep model steps org repo buildNumber stepNumber getLogs =
+clickStep : WebData Steps -> StepNumber -> ( WebData Steps, Bool )
+clickStep steps stepNumber =
     let
-        stepOpened =
-            not <| isViewing steps stepNumber
-
-        focused =
-            logFocusExists steps
-
         ( stepsOut, action ) =
             case steps of
                 RemoteData.Success steps_ ->
                     ( RemoteData.succeed <| toggleStepView steps_ stepNumber
-                    , getLogs model org repo buildNumber stepNumber Nothing
+                    , True
                     )
 
                 _ ->
-                    ( steps, Cmd.none )
+                    ( steps, False )
     in
     ( stepsOut
-    , Cmd.batch <|
-        [ action
-        , if stepOpened && not focused then
-            Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
-
-          else
-            Cmd.none
-        ]
+    , action
     )
 
 
@@ -611,25 +592,10 @@ toggleStepView steps stepNumber =
         steps
 
 
-{-| logFocusExists : takes steps and returns if a line or range has already been focused
+{-| viewingStep : takes steps and step number and returns the step viewing state
 -}
-logFocusExists : WebData Steps -> Bool
-logFocusExists steps =
-    (Maybe.withDefault ( Nothing, Nothing ) <|
-        List.head <|
-            List.map (\step -> step.logFocus) <|
-                List.filter
-                    (\step -> step.logFocus /= ( Nothing, Nothing ))
-                <|
-                    RemoteData.withDefault [] steps
-    )
-        /= ( Nothing, Nothing )
-
-
-{-| isViewing : takes steps and step number and returns the step viewing state
--}
-isViewing : WebData Steps -> StepNumber -> Bool
-isViewing steps stepNumber =
+viewingStep : WebData Steps -> StepNumber -> Bool
+viewingStep steps stepNumber =
     Maybe.withDefault False <|
         List.head <|
             List.map (\step -> step.viewing) <|

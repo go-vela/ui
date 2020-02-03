@@ -50,11 +50,10 @@ import Vela
 
 {-| PartialModel : type alias for passing in the main model with partial fields
 -}
-type alias PartialModel a =
-    { a
-        | hooks : HooksModel
-        , hookBuilds : HookBuilds
-        , time : Posix
+type alias PartialModel =
+    { hooks : HooksModel
+    , hookBuilds : HookBuilds
+    , time : Posix
     }
 
 
@@ -64,7 +63,7 @@ type alias PartialModel a =
 
 {-| view : renders hooks
 -}
-view : PartialModel a -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+view : PartialModel -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
 view { hooks, hookBuilds, time } org repo clickAction =
     case hooks.hooks of
         RemoteData.Success hooks_ ->

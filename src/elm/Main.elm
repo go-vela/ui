@@ -56,6 +56,8 @@ import Logs
         ( focusFragmentToFocusId
         , focusLogs
         , focusStep
+        , logFocusExists
+        , logFocusFragment
         )
 import Pager
 import Pages exposing (Page(..))
@@ -63,6 +65,7 @@ import Pages.AddRepos
 import Pages.Build
     exposing
         ( clickStep
+        , viewingStep
         )
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -714,13 +717,33 @@ update msg model =
             , action
             )
 
-        ClickStep org repo buildNumber stepNumber fragment ->
+        ClickStep org repo buildNumber stepNumber _ ->
             let
-                ( steps, action ) =
-                    clickStep model model.steps org repo buildNumber stepNumber getBuildStepLogs
+                ( steps, a ) =
+                    clickStep model.steps stepNumber
+
+                action =
+                    if a then
+                        getBuildStepLogs model org repo buildNumber stepNumber Nothing
+
+                    else
+                        Cmd.none
+
+                stepOpened =
+                    not <| viewingStep steps stepNumber
+
+                focused =
+                    logFocusExists steps
             in
             ( { model | steps = steps }
-            , action
+            , Cmd.batch <|
+                [ action
+                , if stepOpened && not focused then
+                    Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
+
+                  else
+                    Cmd.none
+                ]
             )
 
         SetTheme theme ->
@@ -1146,7 +1169,12 @@ viewContent model =
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , lazy2 Pages.AddRepos.view model addReposMsgs
+            , lazy2 Pages.AddRepos.view
+                { user = model.user
+                , sourceRepos = model.sourceRepos
+                , filters = model.filters
+                }
+                addReposMsgs
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1163,7 +1191,14 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " hooks" ++ page
             , div []
                 [ Pager.view model.hooks.pager Pager.defaultLabels GotoPage
-                , lazy4 Pages.Hooks.view model org repo hooksMsgs
+                , lazy4 Pages.Hooks.view
+                    { hooks = model.hooks
+                    , hookBuilds = model.hookBuilds
+                    , time = model.time
+                    }
+                    org
+                    repo
+                    hooksMsgs
                 , Pager.view model.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -1194,7 +1229,17 @@ viewContent model =
 
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , lazy4 Pages.Build.viewBuild model org repo buildMsgs
+            , lazy4 Pages.Build.viewBuild
+                { navigationKey = model.navigationKey
+                , time = model.time
+                , build = model.build
+                , steps = model.steps
+                , logs = model.logs
+                , shift = model.shift
+                }
+                org
+                repo
+                buildMsgs
             )
 
         Pages.Login ->
