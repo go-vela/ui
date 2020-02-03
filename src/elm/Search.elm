@@ -46,15 +46,15 @@ type alias SimpleSearch msg =
 
 homeSearchBar : String -> SimpleSearch msg -> Html msg
 homeSearchBar filter search =
-    div [ class "search-bar", Util.testAttribute "home-search-bar" ]
-        [ FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
-        , input
+    div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "home-search-bar" ]
+        [ input
             [ Util.testAttribute "home-search-input"
             , placeholder "Type to filter all favorites..."
             , value <| filter
             , onInput search
             ]
             []
+        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
         ]
 
 
