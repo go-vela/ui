@@ -176,6 +176,7 @@ type alias Model =
     , zone : Zone
     , time : Posix
     , filters : RepoSearchFilters
+    , favoritesFilter : String
     , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
@@ -232,6 +233,7 @@ init flags url navKey =
             , zone = utc
             , time = millisToPosix 0
             , filters = Dict.empty
+            , favoritesFilter = ""
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
             , entryURL = url
@@ -272,6 +274,7 @@ type Msg
     | NewRoute Routes.Route
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
+    | SearchFavorites String
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
@@ -806,6 +809,9 @@ update msg model =
             in
             ( { model | filters = filters }, Cmd.none )
 
+        SearchFavorites searchBy ->
+            ( { model | favoritesFilter = searchBy }, Cmd.none )
+
         ChangeRepoTimeout inTimeout ->
             let
                 newTimeout =
@@ -1141,7 +1147,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.user ToggleFavorite
+            , Pages.Home.view model.user model.favoritesFilter ToggleFavorite SearchFavorites
             )
 
         Pages.AddRepositories ->

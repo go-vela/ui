@@ -279,7 +279,7 @@ nav {
   }
 }
 
-.-item {
+.item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -324,8 +324,7 @@ nav {
   justify-content: space-between;
 }
 
-.source-actions .-filter,
-.source-repos .-filter {
+.search-bar {
   display: flex;
   flex: 1;
   flex-direction: row;
@@ -336,8 +335,7 @@ nav {
   border-bottom: 2px solid var(--color-primary);
 }
 
-.source-actions .-filter input,
-.source-repos .-filter input {
+.search-bar input {
   width: 100%;
   padding: 0.5em 0.8em;
 
@@ -369,7 +367,7 @@ nav {
   margin-top: 2em;
 }
 
-.-no-repos {
+.no-results {
   width: 100%;
   margin: 0.5em 0 0 1em;
   padding: 1.2em 1em;
