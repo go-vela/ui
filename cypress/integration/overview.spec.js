@@ -48,5 +48,30 @@ context('Overview/Repositories Page', () => {
         .click();
       cy.location('pathname').should('eq', '/github/octocat');
     });
+    it('org should show', () => {
+      cy.get('[data-test=repo-org]').contains('org');
+    });
+    it('repo_a should show', () => {
+      cy.get('[data-test=repo-item]').contains('repo_a');
+    });
+    context("type 'serv' into the home search bar", () => {
+      beforeEach(() => {
+        cy.get('[data-test=home-search-input]')
+          .should('be.visible')
+          .clear()
+          .type('octo');
+      });
+      it('octocat should show', () => {
+        cy.get('[data-test=repo-item]')
+          .should('be.visible')
+          .contains('octocat');
+      });
+      it('repo_a should not show', () => {
+        cy.get('[data-test=repo-item]').should('not.contain', 'repo_a');
+      });
+      it('org should not show', () => {
+        cy.get('[data-test=repo-org]').should('not.contain', 'org');
+      });
+    });
   });
 });
