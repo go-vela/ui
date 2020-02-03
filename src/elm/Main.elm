@@ -1194,7 +1194,7 @@ viewContent model =
 
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , lazy4 Pages.Build.viewBuild model org repo buildActions
+            , lazy4 Pages.Build.viewBuild model org repo buildMsgs
             )
 
         Pages.Login ->
@@ -1391,11 +1391,6 @@ viewThemeToggle theme =
 
 
 -- HELPERS
-
-
-buildActions : Pages.Build.Actions Msg
-buildActions =
-    Pages.Build.Actions ClickStep UpdateUrl
 
 
 buildUrl : String -> List String -> List QueryParameter -> String
@@ -1821,6 +1816,13 @@ clickHook model org repo buildNumber =
         ( Dict.update ( org, repo, buildNumber ) (\_ -> Just buildInfo) model.hookBuilds
         , action
         )
+
+
+{-| buildMsgs : prepares the input record required for the Build page to route Msgs back to Main.elm
+-}
+buildMsgs : Pages.Build.Msgs Msg
+buildMsgs =
+    Pages.Build.Msgs ClickStep UpdateUrl
 
 
 {-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm

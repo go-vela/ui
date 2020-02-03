@@ -5,7 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build exposing
-    ( Actions
+    ( Msgs
     , clickLogLine
     , clickStep
     , statusToClass
@@ -96,9 +96,9 @@ type alias PartialModel a =
     }
 
 
-{-| Actions : record for routing msg updates to Main.elm
+{-| Msgs : record for routing msg updates to Main.elm
 -}
-type alias Actions msg =
+type alias Msgs msg =
     { expandAction : ExpandStep msg
     , logFocusAction : FocusLogs msg
     }
@@ -111,7 +111,7 @@ type alias Actions msg =
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel a -> Org -> Repo -> Actions msg -> Html msg
+viewBuild : PartialModel a -> Org -> Repo -> Msgs msg -> Html msg
 viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusAction } =
     let
         ( buildPreview, buildNumber ) =
