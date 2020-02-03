@@ -1285,15 +1285,15 @@ viewNav : Model -> Html Msg
 viewNav model =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
         [ Crumbs.view model.page
-        , navButton model
+        , navButton { user = model.user, page = model.page, sourceRepos = model.sourceRepos }
         ]
 
 
 {-| navButton : uses current page to build the commonly used button on the right side of the nav
 -}
-navButton : Model -> Html Msg
-navButton model =
-    case model.page of
+navButton : { user : WebData CurrentUser, page : Page, sourceRepos : WebData SourceRepositories } -> Html Msg
+navButton { user, page, sourceRepos } =
+    case page of
         Pages.Overview ->
             a
                 [ class "button"
@@ -1310,10 +1310,10 @@ navButton model =
                     , ( "-outline", True )
                     ]
                 , onClick FetchSourceRepositories
-                , disabled (model.sourceRepos == Loading)
+                , disabled (sourceRepos == Loading)
                 , Util.testAttribute "refresh-source-repos"
                 ]
-                [ case model.sourceRepos of
+                [ case sourceRepos of
                     Loading ->
                         text "Loading…"
 
@@ -1323,7 +1323,7 @@ navButton model =
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "buttons" ]
-                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo ToggleFavorite <| isFavorited user <| org ++ "/" ++ repo
                 , a
                     [ class "button"
                     , class "-outline"
@@ -1342,7 +1342,7 @@ navButton model =
 
         Pages.Settings org repo ->
             div [ class "buttons" ]
-                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo ToggleFavorite <| isFavorited user <| org ++ "/" ++ repo
                 , button
                     [ classList
                         [ ( "button", True )
@@ -1369,7 +1369,7 @@ navButton model =
 
         Pages.Hooks org repo _ _ ->
             div [ class "nav-buttons" ]
-                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo ToggleFavorite <| isFavorited user <| org ++ "/" ++ repo
                 , a
                     [ class "-btn"
                     , class "-inverted"
