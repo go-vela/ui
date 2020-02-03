@@ -962,12 +962,6 @@ nav {
   text-align: center;
 }
 
-// .hooks .row .preview {
-//   margin: 0.4em 0;
-
-//   font-size: 14px;
-// }
-
 .hook-status {
   fill: none;
 }
@@ -1062,11 +1056,6 @@ nav {
 .hooks .info.-failure,
 .hooks .info.-error {
   border-left-color: var(--color-red);
-}
-
-.hooks .element span.-m-l,
-.hooks .element .-m-l {
-  // margin-left: 0.4em;
 }
 
 .hooks .element span.-m-r,

@@ -203,7 +203,7 @@ build now buildIdentifier b =
                 ]
             , div []
                 [ code [ class "element" ]
-                    [ span [ class "-m-l", class "-m-r" ] [ text "status:" ]
+                    [ span [ class "-m-r" ] [ text "status:" ]
                     , span [ class "hook-build-status", statusToClass b.status, class "-m-r" ]
                         [ text <| statusToString b.status
                         ]
@@ -211,7 +211,7 @@ build now buildIdentifier b =
                 ]
             , div []
                 [ code [ class "element" ]
-                    [ span [ class "-m-l", class "-m-r" ] [ text "duration:" ]
+                    [ span [ class "-m-r" ] [ text "duration:" ]
                     , span [ statusToClass b.status, class "-m-r", class "duration" ]
                         [ text <| Util.formatRunTime now b.started b.finished
                         ]
