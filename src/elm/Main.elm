@@ -13,10 +13,9 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
-import Crumbs
 import Dict
 import Errors exposing (detailedErrorToString)
-import Favorites exposing (isFavorited, starToggle, toFavorite, updateFavorites)
+import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
 import Html
     exposing
@@ -39,8 +38,6 @@ import Html.Attributes
     exposing
         ( attribute
         , class
-        , classList
-        , disabled
         , href
         )
 import Html.Events exposing (onClick)
@@ -59,6 +56,7 @@ import Logs
         , logFocusExists
         , logFocusFragment
         )
+import Nav
 import Pager
 import Pages exposing (Page(..))
 import Pages.AddRepos
@@ -1156,7 +1154,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
-        , lazy viewNav model
+        , lazy2 Nav.view model navMsgs
         , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
         , main_ []
             [ div [ class "content-wrap" ] [ content ] ]
@@ -1283,110 +1281,6 @@ viewLogin =
             ]
         , p [] [ text "You will be taken to Github to authenticate." ]
         ]
-
-
-{-| viewNav : uses current state to render navigation, such as breadcrumb
--}
-viewNav : Model -> Html Msg
-viewNav model =
-    nav [ class "navigation", attribute "aria-label" "Navigation" ]
-        [ Crumbs.view model.page
-        , navButton { user = model.user, page = model.page, sourceRepos = model.sourceRepos }
-        ]
-
-
-{-| navButton : uses current page to build the commonly used button on the right side of the nav
--}
-navButton : { user : WebData CurrentUser, page : Page, sourceRepos : WebData SourceRepositories } -> Html Msg
-navButton { user, page, sourceRepos } =
-    case page of
-        Pages.Overview ->
-            a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-enable"
-                , Routes.href <| Routes.AddRepositories
-                ]
-                [ text "Add Repositories" ]
-
-        Pages.AddRepositories ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick FetchSourceRepositories
-                , disabled (sourceRepos == Loading)
-                , Util.testAttribute "refresh-source-repos"
-                ]
-                [ case sourceRepos of
-                    Loading ->
-                        text "Loading…"
-
-                    _ ->
-                        text "Refresh List"
-                ]
-
-        Pages.RepositoryBuilds org repo maybePage maybePerPage ->
-            div [ class "buttons" ]
-                [ starToggle org repo ToggleFavorite <| isFavorited user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo maybePage maybePerPage
-                    ]
-                    [ text "Hooks" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Settings org repo
-                    ]
-                    [ text "Repo Settings" ]
-                ]
-
-        Pages.Settings org repo ->
-            div [ class "buttons" ]
-                [ starToggle org repo ToggleFavorite <| isFavorited user <| org ++ "/" ++ repo
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| RefreshSettings org repo
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh Settings"
-                    ]
-                ]
-
-        Pages.Build org repo buildNumber _ ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick <| RestartBuild org repo buildNumber
-                , Util.testAttribute "restart-build"
-                ]
-                [ text "Restart Build"
-                ]
-
-        Pages.Hooks org repo _ _ ->
-            div [ class "nav-buttons" ]
-                [ starToggle org repo ToggleFavorite <| isFavorited user <| org ++ "/" ++ repo
-                , a
-                    [ class "-btn"
-                    , class "-inverted"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Settings org repo
-                    ]
-                    [ text "Repo Settings" ]
-                ]
-
-        _ ->
-            text ""
 
 
 viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme } -> Html Msg
@@ -1593,6 +1487,7 @@ loadHooksPage model org repo maybePage maybePerPage =
     ( { model | page = Pages.Hooks org repo maybePage maybePerPage, hooks = loadingHooks, hookBuilds = Dict.empty }
     , Cmd.batch
         [ getHooks model org repo maybePage maybePerPage
+        , getCurrentUser model
         ]
     )
 
@@ -1881,6 +1776,13 @@ homeMsgs =
 buildMsgs : Pages.Build.Msgs Msg
 buildMsgs =
     Pages.Build.Msgs ClickStep UpdateUrl
+
+
+{-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm
+-}
+navMsgs : Nav.Msgs Msg
+navMsgs =
+    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RestartBuild
 
 
 {-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
