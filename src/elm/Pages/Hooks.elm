@@ -48,22 +48,31 @@ import Vela
         )
 
 
+{-| PartialModel : type alias for passing in the main model with partial fields
+-}
+type alias PartialModel =
+    { hooks : HooksModel
+    , hookBuilds : HookBuilds
+    , time : Posix
+    }
+
+
 
 -- VIEW
 
 
 {-| view : renders hooks
 -}
-view : HooksModel -> HookBuilds -> Posix -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
-view hooksModel hookBuilds now org repo clickAction =
-    case hooksModel.hooks of
-        RemoteData.Success hooks ->
-            if List.length hooks == 0 then
+view : PartialModel -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+view { hooks, hookBuilds, time } org repo clickAction =
+    case hooks.hooks of
+        RemoteData.Success hooks_ ->
+            if List.length hooks_ == 0 then
                 noHooks
 
             else
                 div [ class "hooks", Util.testAttribute "hooks" ] <|
-                    hooksTable now org repo hookBuilds hooks clickAction
+                    hooksTable time org repo hookBuilds hooks_ clickAction
 
         RemoteData.Loading ->
             Util.largeLoader
