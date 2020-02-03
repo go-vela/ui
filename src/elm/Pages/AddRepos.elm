@@ -330,7 +330,7 @@ searchReposGlobal model repos enableRepo toggleFavorite =
 
         else
             -- No repos matched the search
-            [ div [ class "-item" ] [ text "No results" ] ]
+            [ div [ class "item" ] [ text "No results" ] ]
 
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
@@ -348,5 +348,5 @@ searchReposLocal user org filters repos enableRepo toggleFavorite =
         List.map (viewSourceRepo user enableRepo toggleFavorite) filteredRepos
 
       else
-        [ div [ class "-item" ] [ text "No results" ] ]
+        [ div [ class "item" ] [ text "No results" ] ]
     )
