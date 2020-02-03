@@ -13,10 +13,9 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
-import Crumbs
 import Dict
 import Errors exposing (detailedErrorToString)
-import Favorites exposing (isFavorited, starToggle, toFavorite, updateFavorites)
+import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
 import Html
     exposing
@@ -39,12 +38,10 @@ import Html.Attributes
     exposing
         ( attribute
         , class
-        , classList
-        , disabled
         , href
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy2)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -56,13 +53,17 @@ import Logs
         ( focusFragmentToFocusId
         , focusLogs
         , focusStep
+        , logFocusExists
+        , logFocusFragment
         )
+import Nav
 import Pager
 import Pages exposing (Page(..))
 import Pages.AddRepos
 import Pages.Build
     exposing
         ( clickStep
+        , viewingStep
         )
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -176,6 +177,7 @@ type alias Model =
     , zone : Zone
     , time : Posix
     , filters : RepoSearchFilters
+    , favoritesFilter : String
     , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
@@ -232,6 +234,7 @@ init flags url navKey =
             , zone = utc
             , time = millisToPosix 0
             , filters = Dict.empty
+            , favoritesFilter = ""
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
             , entryURL = url
@@ -272,6 +275,7 @@ type Msg
     | NewRoute Routes.Route
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
+    | SearchFavorites String
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
@@ -714,13 +718,33 @@ update msg model =
             , action
             )
 
-        ClickStep org repo buildNumber stepNumber fragment ->
+        ClickStep org repo buildNumber stepNumber _ ->
             let
-                ( steps, action ) =
-                    clickStep model model.steps org repo buildNumber stepNumber getBuildStepLogs
+                ( steps, a ) =
+                    clickStep model.steps stepNumber
+
+                action =
+                    if a then
+                        getBuildStepLogs model org repo buildNumber stepNumber Nothing
+
+                    else
+                        Cmd.none
+
+                stepOpened =
+                    not <| viewingStep steps stepNumber
+
+                focused =
+                    logFocusExists steps
             in
             ( { model | steps = steps }
-            , action
+            , Cmd.batch <|
+                [ action
+                , if stepOpened && not focused then
+                    Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
+
+                  else
+                    Cmd.none
+                ]
             )
 
         SetTheme theme ->
@@ -805,6 +829,9 @@ update msg model =
                     Dict.update org (\_ -> Just searchBy) model.filters
             in
             ( { model | filters = filters }, Cmd.none )
+
+        SearchFavorites searchBy ->
+            ( { model | favoritesFilter = searchBy }, Cmd.none )
 
         ChangeRepoTimeout inTimeout ->
             let
@@ -1127,7 +1154,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
-        , viewNav model
+        , lazy2 Nav.view model navMsgs
         , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
         , main_ []
             [ div [ class "content-wrap" ] [ content ] ]
@@ -1141,12 +1168,17 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.user ToggleFavorite
+            , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
             )
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model addReposMsgs
+            , lazy2 Pages.AddRepos.view
+                { user = model.user
+                , sourceRepos = model.sourceRepos
+                , filters = model.filters
+                }
+                addReposMsgs
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1163,14 +1195,21 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " hooks" ++ page
             , div []
                 [ Pager.view model.hooks.pager Pager.defaultLabels GotoPage
-                , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo ClickHook
+                , lazy4 Pages.Hooks.view
+                    { hooks = model.hooks
+                    , hookBuilds = model.hookBuilds
+                    , time = model.time
+                    }
+                    org
+                    repo
+                    hooksMsgs
                 , Pager.view model.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
+            , lazy3 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
             )
 
         Pages.RepositoryBuilds org repo maybePage _ ->
@@ -1187,14 +1226,24 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " builds" ++ page
             , div []
                 [ Pager.view model.builds.pager Pager.defaultLabels GotoPage
-                , Pages.Builds.view model.builds model.time org repo
+                , lazy4 Pages.Builds.view model.builds model.time org repo
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , Pages.Build.viewBuild model.time org repo model.build model.steps model.logs ClickStep UpdateUrl model.shift
+            , lazy4 Pages.Build.viewBuild
+                { navigationKey = model.navigationKey
+                , time = model.time
+                , build = model.build
+                , steps = model.steps
+                , logs = model.logs
+                , shift = model.shift
+                }
+                org
+                repo
+                buildMsgs
             )
 
         Pages.Login ->
@@ -1232,110 +1281,6 @@ viewLogin =
             ]
         , p [] [ text "You will be taken to Github to authenticate." ]
         ]
-
-
-{-| viewNav : uses current state to render navigation, such as breadcrumb
--}
-viewNav : Model -> Html Msg
-viewNav model =
-    nav [ class "navigation", attribute "aria-label" "Navigation" ]
-        [ Crumbs.view model.page
-        , navButton model
-        ]
-
-
-{-| navButton : uses current page to build the commonly used button on the right side of the nav
--}
-navButton : Model -> Html Msg
-navButton model =
-    case model.page of
-        Pages.Overview ->
-            a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-enable"
-                , Routes.href <| Routes.AddRepositories
-                ]
-                [ text "Add Repositories" ]
-
-        Pages.AddRepositories ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick FetchSourceRepositories
-                , disabled (model.sourceRepos == Loading)
-                , Util.testAttribute "refresh-source-repos"
-                ]
-                [ case model.sourceRepos of
-                    Loading ->
-                        text "Loading…"
-
-                    _ ->
-                        text "Refresh List"
-                ]
-
-        Pages.RepositoryBuilds org repo maybePage maybePerPage ->
-            div [ class "buttons" ]
-                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo maybePage maybePerPage
-                    ]
-                    [ text "Hooks" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Settings org repo
-                    ]
-                    [ text "Repo Settings" ]
-                ]
-
-        Pages.Settings org repo ->
-            div [ class "buttons" ]
-                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| RefreshSettings org repo
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh Settings"
-                    ]
-                ]
-
-        Pages.Build org repo buildNumber _ ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick <| RestartBuild org repo buildNumber
-                , Util.testAttribute "restart-build"
-                ]
-                [ text "Restart Build"
-                ]
-
-        Pages.Hooks org repo _ _ ->
-            div [ class "buttons" ]
-                [ starToggle org repo ToggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , button
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Settings org repo
-                    ]
-                    [ text "Repo Settings" ]
-                ]
-
-        _ ->
-            text ""
 
 
 viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme } -> Html Msg
@@ -1543,6 +1488,7 @@ loadHooksPage model org repo maybePage maybePerPage =
     ( { model | page = Pages.Hooks org repo maybePage maybePerPage, hooks = loadingHooks, hookBuilds = Dict.empty }
     , Cmd.batch
         [ getHooks model org repo maybePage maybePerPage
+        , getCurrentUser model
         ]
     )
 
@@ -1819,11 +1765,39 @@ clickHook model org repo buildNumber =
         )
 
 
+{-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
+-}
+homeMsgs : Pages.Home.Msgs Msg
+homeMsgs =
+    Pages.Home.Msgs ToggleFavorite SearchFavorites
+
+
+{-| buildMsgs : prepares the input record required for the Build page to route Msgs back to Main.elm
+-}
+buildMsgs : Pages.Build.Msgs Msg
+buildMsgs =
+    Pages.Build.Msgs ClickStep UpdateUrl
+
+
+{-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm
+-}
+navMsgs : Nav.Msgs Msg
+navMsgs =
+    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RestartBuild
+
+
 {-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
 -}
 addReposMsgs : Pages.AddRepos.Msgs Msg
 addReposMsgs =
     Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
+
+
+{-| hooksMsgs : prepares the input record required for the Hooks page to route Msgs back to Main.elm
+-}
+hooksMsgs : Org -> Repo -> BuildNumber -> Msg
+hooksMsgs =
+    ClickHook
 
 
 {-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm

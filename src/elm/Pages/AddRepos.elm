@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.AddRepos exposing (Model, Msgs, view)
+module Pages.AddRepos exposing (Msgs, PartialModel, view)
 
 import Dict
 import Favorites
@@ -63,13 +63,12 @@ import Vela
 -- TYPES
 
 
-{-| Model : an abbreviated version of the main model
+{-| PartialModel : an abbreviated version of the main model
 -}
-type alias Model a =
-    { a
-        | user : WebData CurrentUser
-        , sourceRepos : WebData SourceRepositories
-        , filters : RepoSearchFilters
+type alias PartialModel =
+    { user : WebData CurrentUser
+    , sourceRepos : WebData SourceRepositories
+    , filters : RepoSearchFilters
     }
 
 
@@ -89,7 +88,7 @@ type alias Msgs msg =
 
 {-| view : takes model and renders account page for adding repos to overview
 -}
-view : Model a -> Msgs msg -> Html msg
+view : PartialModel -> Msgs msg -> Html msg
 view model actions =
     let
         ( sourceRepos, filters ) =
@@ -132,7 +131,7 @@ view model actions =
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
-viewSourceRepos : Model a -> SourceRepositories -> Msgs msg -> Html msg
+viewSourceRepos : PartialModel -> SourceRepositories -> Msgs msg -> Html msg
 viewSourceRepos model sourceRepos actions =
     let
         filters =
@@ -206,7 +205,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
         favorited =
             isFavorited user <| repo.org ++ "/" ++ repo.name
     in
-    div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
+    div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
         , enableRepoButton repo enableRepo toggleFavorite favorited
         ]
@@ -216,7 +215,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
 -}
 viewSearchedSourceRepo : EnableRepo msg -> ToggleFavorite msg -> Repository -> Bool -> Html msg
 viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
-    div [ class "-item", Util.testAttribute <| "source-repo-" ++ repo.name ]
+    div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
             [ text <| repo.org ++ "/" ++ repo.name ]
         , enableRepoButton repo enableRepo toggleFavorite favorited
@@ -310,7 +309,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : Model a -> SourceRepositories -> EnableRepo msg -> ToggleFavorite msg -> Html msg
+searchReposGlobal : PartialModel -> SourceRepositories -> EnableRepo msg -> ToggleFavorite msg -> Html msg
 searchReposGlobal model repos enableRepo toggleFavorite =
     let
         ( user, filters ) =

@@ -5,13 +5,16 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build exposing
-    ( clickLogLine
+    ( Msgs
+    , PartialModel
+    , clickLogLine
     , clickStep
     , statusToClass
     , statusToString
     , viewBuild
     , viewBuildHistory
     , viewPreview
+    , viewingStep
     )
 
 import Browser.Navigation as Navigation
@@ -38,7 +41,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import List.Extra exposing (updateIf)
-import Logs exposing (SetLogFocus, logFocusFragment, stepToFocusId)
+import Logs exposing (SetLogFocus, stepToFocusId)
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
@@ -50,7 +53,6 @@ import Vela
         ( Build
         , BuildNumber
         , Builds
-        , FocusFragment
         , Logs
         , Org
         , Repo
@@ -71,12 +73,6 @@ type alias ExpandStep msg =
     Org -> Repo -> BuildNumber -> StepNumber -> String -> msg
 
 
-{-| GetLogsFromBuild : type alias for passing in logs fetch function from Main.elm
--}
-type alias GetLogsFromBuild a msg =
-    a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Cmd msg
-
-
 {-| FocusLogs : type alias for passing in url fragment to focus ranges of logs
 -}
 type alias FocusLogs msg =
@@ -85,23 +81,38 @@ type alias FocusLogs msg =
 
 {-| PartialModel : type alias for passing in the main model with the navigation key for pushing log fragment urls
 -}
-type alias PartialModel a =
-    { a | navigationKey : Navigation.Key }
+type alias PartialModel =
+    { navigationKey : Navigation.Key
+    , time : Posix
+    , build : WebData Build
+    , steps : WebData Steps
+    , logs : Logs
+    , shift : Bool
+    }
+
+
+{-| Msgs : record for routing msg updates to Main.elm
+-}
+type alias Msgs msg =
+    { expandAction : ExpandStep msg
+    , logFocusAction : FocusLogs msg
+    }
 
 
 
 -- VIEW
+--  , Pages.Build.viewBuild model.time org repo model.build model.steps model.logs ClickStep UpdateUrl model.shift
 
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> ExpandStep msg -> FocusLogs msg -> Bool -> Html msg
-viewBuild now org repo build steps logs expandAction logFocusAction shiftDown =
+viewBuild : PartialModel -> Org -> Repo -> Msgs msg -> Html msg
+viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusAction } =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview now org repo bld, Just <| String.fromInt bld.number )
+                    ( viewPreview time org repo bld, Just <| String.fromInt bld.number )
 
                 _ ->
                     ( Util.largeLoader, Nothing )
@@ -109,7 +120,7 @@ viewBuild now org repo build steps logs expandAction logFocusAction shiftDown =
         buildSteps =
             case steps of
                 RemoteData.Success steps_ ->
-                    viewSteps now org repo buildNumber steps_ logs expandAction logFocusAction shiftDown
+                    viewSteps time org repo buildNumber steps_ logs expandAction logFocusAction shift
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
@@ -195,12 +206,12 @@ viewPreview now org repo build =
 {-| viewSteps : sorts and renders build steps
 -}
 viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> ExpandStep msg -> SetLogFocus msg -> Bool -> Html msg
-viewSteps now org repo buildNumber steps logs expandAction logFocusAction shiftDown =
+viewSteps now org repo buildNumber steps logs expandAction logFocusAction shift =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
                 (\step ->
-                    viewStep now org repo buildNumber step steps logs expandAction logFocusAction shiftDown
+                    viewStep now org repo buildNumber step steps logs expandAction logFocusAction shift
                 )
             <|
                 steps
@@ -210,18 +221,18 @@ viewSteps now org repo buildNumber steps logs expandAction logFocusAction shiftD
 {-| viewStep : renders single build step
 -}
 viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> ExpandStep msg -> SetLogFocus msg -> Bool -> Html msg
-viewStep now org repo buildNumber step steps logs expandAction logFocusAction shiftDown =
+viewStep now org repo buildNumber step steps logs expandAction logFocusAction shift =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
-        , viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shiftDown
+        , viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shift
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
 viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> ExpandStep msg -> SetLogFocus msg -> Bool -> Html msg
-viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shiftDown =
+viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shift =
     let
         buildNum =
             Maybe.withDefault "" buildNumber
@@ -243,7 +254,7 @@ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction s
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ Logs.view step logs logFocusAction shiftDown ]
+            , div [ class "logs-container" ] [ Logs.view step logs logFocusAction shift ]
             ]
     in
     details
@@ -531,34 +542,21 @@ trimCommitHash commit =
 
 {-| clickStep : takes model org repo and step number and fetches step information from the api
 -}
-clickStep : PartialModel a -> WebData Steps -> Org -> Repo -> BuildNumber -> StepNumber -> GetLogsFromBuild (PartialModel a) msg -> ( WebData Steps, Cmd msg )
-clickStep model steps org repo buildNumber stepNumber getLogs =
+clickStep : WebData Steps -> StepNumber -> ( WebData Steps, Bool )
+clickStep steps stepNumber =
     let
-        stepOpened =
-            not <| isViewing steps stepNumber
-
-        focused =
-            logFocusExists steps
-
         ( stepsOut, action ) =
             case steps of
                 RemoteData.Success steps_ ->
                     ( RemoteData.succeed <| toggleStepView steps_ stepNumber
-                    , getLogs model org repo buildNumber stepNumber Nothing
+                    , True
                     )
 
                 _ ->
-                    ( steps, Cmd.none )
+                    ( steps, False )
     in
     ( stepsOut
-    , Cmd.batch <|
-        [ action
-        , if stepOpened && not focused then
-            Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
-
-          else
-            Cmd.none
-        ]
+    , action
     )
 
 
@@ -603,25 +601,10 @@ toggleStepView steps stepNumber =
         steps
 
 
-{-| logFocusExists : takes steps and returns if a line or range has already been focused
+{-| viewingStep : takes steps and step number and returns the step viewing state
 -}
-logFocusExists : WebData Steps -> Bool
-logFocusExists steps =
-    (Maybe.withDefault ( Nothing, Nothing ) <|
-        List.head <|
-            List.map (\step -> step.logFocus) <|
-                List.filter
-                    (\step -> step.logFocus /= ( Nothing, Nothing ))
-                <|
-                    RemoteData.withDefault [] steps
-    )
-        /= ( Nothing, Nothing )
-
-
-{-| isViewing : takes steps and step number and returns the step viewing state
--}
-isViewing : WebData Steps -> StepNumber -> Bool
-isViewing steps stepNumber =
+viewingStep : WebData Steps -> StepNumber -> Bool
+viewingStep steps stepNumber =
     Maybe.withDefault False <|
         List.head <|
             List.map (\step -> step.viewing) <|
