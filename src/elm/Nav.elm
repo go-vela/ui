@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Actions, view)
+module Nav exposing (Msgs, view)
 
 import Browser.Events exposing (Visibility(..))
 import Crumbs
@@ -44,7 +44,7 @@ type alias PartialModel a =
     }
 
 
-type alias Actions msg =
+type alias Msgs msg =
     { fetchSourceRepos : msg
     , toggleFavorite : ToggleFavorite msg
     , refreshSettings : Org -> Repo -> msg
@@ -54,17 +54,17 @@ type alias Actions msg =
 
 {-| view : uses current state to render navigation, such as breadcrumb
 -}
-view : PartialModel a -> Actions msg -> Html msg
-view model actions =
+view : PartialModel a -> Msgs msg -> Html msg
+view model msgs =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
         [ Crumbs.view model.page
-        , navButton model actions
+        , navButton model msgs
         ]
 
 
 {-| navButton : uses current page to build the commonly used button on the right side of the nav
 -}
-navButton : PartialModel a -> Actions msg -> Html msg
+navButton : PartialModel a -> Msgs msg -> Html msg
 navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuild } =
     case model.page of
         Pages.Overview ->

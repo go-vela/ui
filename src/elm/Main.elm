@@ -1125,7 +1125,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
-        , Nav.view model navActions
+        , Nav.view model navMsgs
         , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
         , main_ []
             [ div [ class "content-wrap" ] [ content ] ]
@@ -1285,11 +1285,6 @@ viewThemeToggle theme =
 
 
 -- HELPERS
-
-
-navActions : Nav.Actions Msg
-navActions =
-    Nav.Actions FetchSourceRepositories ToggleFavorite RefreshSettings RestartBuild
 
 
 buildUrl : String -> List String -> List QueryParameter -> String
@@ -1716,6 +1711,13 @@ clickHook model org repo buildNumber =
         ( Dict.update ( org, repo, buildNumber ) (\_ -> Just buildInfo) model.hookBuilds
         , action
         )
+
+
+{-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm
+-}
+navMsgs : Nav.Msgs Msg
+navMsgs =
+    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RestartBuild
 
 
 {-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
