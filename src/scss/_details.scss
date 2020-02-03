@@ -56,6 +56,8 @@
   }
 
   &[open] {
+    padding-bottom: 0;
+
     .details-icon-expand {
       transform: rotate(0.5turn);
     }
