@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build exposing
-    ( clickLogLine
+    ( Actions
+    , clickLogLine
     , clickStep
     , statusToClass
     , statusToString
@@ -85,22 +86,38 @@ type alias FocusLogs msg =
 {-| PartialModel : type alias for passing in the main model with the navigation key for pushing log fragment urls
 -}
 type alias PartialModel a =
-    { a | navigationKey : Navigation.Key }
+    { a
+        | navigationKey : Navigation.Key
+        , time : Posix
+        , build : WebData Build
+        , steps : WebData Steps
+        , logs : Logs
+        , shift : Bool
+    }
+
+
+{-| Actions : record for routing msg updates to Main.elm
+-}
+type alias Actions msg =
+    { expandAction : ExpandStep msg
+    , logFocusAction : FocusLogs msg
+    }
 
 
 
 -- VIEW
+--  , Pages.Build.viewBuild model.time org repo model.build model.steps model.logs ClickStep UpdateUrl model.shift
 
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : Posix -> Org -> Repo -> WebData Build -> WebData Steps -> Logs -> ExpandStep msg -> FocusLogs msg -> Bool -> Html msg
-viewBuild now org repo build steps logs expandAction logFocusAction shiftDown =
+viewBuild : PartialModel a -> Org -> Repo -> Actions msg -> Html msg
+viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusAction } =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview now org repo bld, Just <| String.fromInt bld.number )
+                    ( viewPreview time org repo bld, Just <| String.fromInt bld.number )
 
                 _ ->
                     ( Util.largeLoader, Nothing )
@@ -108,7 +125,7 @@ viewBuild now org repo build steps logs expandAction logFocusAction shiftDown =
         buildSteps =
             case steps of
                 RemoteData.Success steps_ ->
-                    viewSteps now org repo buildNumber steps_ logs expandAction logFocusAction shiftDown
+                    viewSteps time org repo buildNumber steps_ logs expandAction logFocusAction shift
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
@@ -194,12 +211,12 @@ viewPreview now org repo build =
 {-| viewSteps : sorts and renders build steps
 -}
 viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> ExpandStep msg -> SetLogFocus msg -> Bool -> Html msg
-viewSteps now org repo buildNumber steps logs expandAction logFocusAction shiftDown =
+viewSteps now org repo buildNumber steps logs expandAction logFocusAction shift =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
                 (\step ->
-                    viewStep now org repo buildNumber step steps logs expandAction logFocusAction shiftDown
+                    viewStep now org repo buildNumber step steps logs expandAction logFocusAction shift
                 )
             <|
                 steps
@@ -209,19 +226,19 @@ viewSteps now org repo buildNumber steps logs expandAction logFocusAction shiftD
 {-| viewStep : renders single build step
 -}
 viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> ExpandStep msg -> SetLogFocus msg -> Bool -> Html msg
-viewStep now org repo buildNumber step steps logs expandAction logFocusAction shiftDown =
+viewStep now org repo buildNumber step steps logs expandAction logFocusAction shift =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
         , div [ classList [ ( "-view", True ), ( "-running", step.status == Vela.Running ) ] ]
-            [ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shiftDown ]
+            [ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shift ]
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
 viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> ExpandStep msg -> SetLogFocus msg -> Bool -> Html msg
-viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shiftDown =
+viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shift =
     let
         buildNum =
             Maybe.withDefault "" buildNumber
@@ -242,7 +259,7 @@ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction s
                     , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
                     ]
                 ]
-            , div [ class "logs-container" ] [ Logs.view step logs logFocusAction shiftDown ]
+            , div [ class "logs-container" ] [ Logs.view step logs logFocusAction shift ]
             ]
     in
     details [ class "details", Util.open step.viewing ] stepSummary

@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.AddRepos exposing (Model, Msgs, view)
+module Pages.AddRepos exposing (Msgs, PartialModel, view)
 
 import Dict
 import Favorites
@@ -64,9 +64,9 @@ import Vela
 -- TYPES
 
 
-{-| Model : an abbreviated version of the main model
+{-| PartialModel : an abbreviated version of the main model
 -}
-type alias Model a =
+type alias PartialModel a =
     { a
         | user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
@@ -90,7 +90,7 @@ type alias Msgs msg =
 
 {-| view : takes model and renders account page for adding repos to overview
 -}
-view : Model a -> Msgs msg -> Html msg
+view : PartialModel a -> Msgs msg -> Html msg
 view model actions =
     let
         ( sourceRepos, filters ) =
@@ -133,7 +133,7 @@ view model actions =
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
-viewSourceRepos : Model a -> SourceRepositories -> Msgs msg -> Html msg
+viewSourceRepos : PartialModel a -> SourceRepositories -> Msgs msg -> Html msg
 viewSourceRepos model sourceRepos actions =
     let
         filters =
@@ -314,7 +314,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : Model a -> SourceRepositories -> EnableRepo msg -> ToggleFavorite msg -> Html msg
+searchReposGlobal : PartialModel a -> SourceRepositories -> EnableRepo msg -> ToggleFavorite msg -> Html msg
 searchReposGlobal model repos enableRepo toggleFavorite =
     let
         ( user, filters ) =

@@ -44,7 +44,7 @@ import Html.Attributes
         , href
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy2)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -1127,7 +1127,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
-        , viewNav model
+        , lazy viewNav model
         , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
         , main_ []
             [ div [ class "content-wrap" ] [ content ] ]
@@ -1141,12 +1141,12 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.user ToggleFavorite
+            , lazy2 Pages.Home.view model.user ToggleFavorite
             )
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model addReposMsgs
+            , lazy2 Pages.AddRepos.view model addReposMsgs
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1163,14 +1163,14 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " hooks" ++ page
             , div []
                 [ Pager.view model.hooks.pager Pager.defaultLabels GotoPage
-                , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo ClickHook
+                , lazy4 Pages.Hooks.view model org repo ClickHook
                 , Pager.view model.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
+            , lazy3 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
             )
 
         Pages.RepositoryBuilds org repo maybePage _ ->
@@ -1187,14 +1187,14 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " builds" ++ page
             , div []
                 [ Pager.view model.builds.pager Pager.defaultLabels GotoPage
-                , Pages.Builds.view model.builds model.time org repo
+                , lazy4 Pages.Builds.view model.builds model.time org repo
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , Pages.Build.viewBuild model.time org repo model.build model.steps model.logs ClickStep UpdateUrl model.shift
+            , lazy4 Pages.Build.viewBuild model org repo buildActions
             )
 
         Pages.Login ->
@@ -1391,6 +1391,11 @@ viewThemeToggle theme =
 
 
 -- HELPERS
+
+
+buildActions : Pages.Build.Actions Msg
+buildActions =
+    Pages.Build.Actions ClickStep UpdateUrl
 
 
 buildUrl : String -> List String -> List QueryParameter -> String
