@@ -19,7 +19,6 @@ import Html
         ( Html
         , a
         , button
-        , code
         , details
         , div
         , h1

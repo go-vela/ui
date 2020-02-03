@@ -925,6 +925,8 @@ nav {
   margin: 1rem 0;
   padding-bottom: 0.5rem;
 
+  font-size: 1rem;
+
   background: var(--color-bg-dark);
 }
 
@@ -947,8 +949,7 @@ nav {
   align-items: center;
 
   margin-top: 0.3em;
-  padding-top: 0.3em;
-  padding-bottom: 0.3em;
+  padding: 0.3em 1rem;
 
   border-bottom: 1px solid var(--color-bg-light);
 }
@@ -956,16 +957,16 @@ nav {
 .hooks .header {
   flex: 1;
 
-  font-size: 18px;
+  font-size: 1.2rem;
 
   text-align: center;
 }
 
-.hooks .row .preview {
-  margin: 0.4em 0;
+// .hooks .row .preview {
+//   margin: 0.4em 0;
 
-  font-size: 14px;
-}
+//   font-size: 14px;
+// }
 
 .hook-status {
   fill: none;
@@ -994,7 +995,11 @@ nav {
 }
 
 .hooks .first-cell {
-  width: 84px;
+  width: 44px;
+}
+
+.hooks .headers .first-cell {
+  width: calc(2rem + 44px);
 }
 
 .hooks .cell.source-id {
@@ -1012,6 +1017,10 @@ nav {
   background: var(--color-bg);
 }
 
+.hooks .details {
+  margin: 1rem;
+}
+
 .preview .status.success {
   color: var(--color-green);
 }
@@ -1020,7 +1029,7 @@ nav {
   color: var(--color-red-light);
 }
 
-.hooks .row .info {
+.hooks .info {
   display: flex;
   display: inline-block;
   flex-direction: row;
@@ -1034,30 +1043,30 @@ nav {
   border-left: 2px solid var(--color-bg-light);
 }
 
-.hooks .row:last-child .info {
+.hooks .info:last-child {
   border-bottom: none;
 }
 
-.hooks .row .info.-pending {
+.hooks .info.-pending {
   border-left-color: var(--color-bg-light);
 }
 
-.hooks .row .info.-running {
+.hooks .info.-running {
   border-left-color: var(--color-yellow);
 }
 
-.hooks .row .info.-success {
+.hooks .info.-success {
   border-left-color: var(--color-green);
 }
 
-.hooks .row .info.-failure,
-.hooks .row .info.-error {
+.hooks .info.-failure,
+.hooks .info.-error {
   border-left-color: var(--color-red);
 }
 
 .hooks .element span.-m-l,
 .hooks .element .-m-l {
-  margin-left: 0.4em;
+  // margin-left: 0.4em;
 }
 
 .hooks .element span.-m-r,

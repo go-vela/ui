@@ -17,6 +17,7 @@ import Html
         , div
         , h1
         , p
+        , small
         , span
         , summary
         , text
@@ -112,7 +113,7 @@ rows now org repo hookBuilds hooks clickAction =
 -}
 row : Posix -> Org -> Repo -> Hook -> HookBuilds -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
 row now org repo hook hookBuilds clickAction =
-    details [ class "details", Util.testAttribute "hook", Util.open <| hookOpen ( org, repo, String.fromInt hook.build_id ) hookBuilds ]
+    details [ class "details", class "-no-pad", Util.testAttribute "hook", Util.open <| hookOpen ( org, repo, String.fromInt hook.build_id ) hookBuilds ]
         [ summary [ class "summary", onClick (clickAction org repo <| String.fromInt hook.build_id) ]
             [ preview now hook ]
         , info now ( org, repo, String.fromInt hook.build_id ) hook hookBuilds
@@ -156,7 +157,7 @@ cell txt cls =
 sourceId : Hook -> Html msg
 sourceId hook =
     div [ class "cell", class "source-id" ]
-        [ code [ class "text" ] [ text hook.source_id ]
+        [ small [] [ code [ class "text" ] [ text hook.source_id ] ]
         ]
 
 
