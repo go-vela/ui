@@ -13,10 +13,9 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
-import Crumbs
 import Dict
 import Errors exposing (detailedErrorToString)
-import Favorites exposing (isFavorited, starToggle, toFavorite, updateFavorites)
+import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
 import Html
     exposing
@@ -39,8 +38,6 @@ import Html.Attributes
     exposing
         ( attribute
         , class
-        , classList
-        , disabled
         , href
         )
 import Html.Events exposing (onClick)
@@ -57,7 +54,7 @@ import Logs
         , focusLogs
         , focusStep
         )
-import Nav exposing (NavActions)
+import Nav
 import Pager
 import Pages exposing (Page(..))
 import Pages.AddRepos
@@ -1290,9 +1287,9 @@ viewThemeToggle theme =
 -- HELPERS
 
 
-navActions : NavActions Msg
+navActions : Nav.Actions Msg
 navActions =
-    NavActions FetchSourceRepositories ToggleFavorite RefreshSettings RestartBuild
+    Nav.Actions FetchSourceRepositories ToggleFavorite RefreshSettings RestartBuild
 
 
 buildUrl : String -> List String -> List QueryParameter -> String

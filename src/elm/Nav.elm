@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (NavActions, view)
+module Nav exposing (Actions, view)
 
 import Browser.Events exposing (Visibility(..))
 import Crumbs
@@ -44,7 +44,7 @@ type alias PartialModel a =
     }
 
 
-type alias NavActions msg =
+type alias Actions msg =
     { fetchSourceRepos : msg
     , toggleFavorite : ToggleFavorite msg
     , refreshSettings : Org -> Repo -> msg
@@ -54,7 +54,7 @@ type alias NavActions msg =
 
 {-| view : uses current state to render navigation, such as breadcrumb
 -}
-view : PartialModel a -> NavActions msg -> Html msg
+view : PartialModel a -> Actions msg -> Html msg
 view model actions =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
         [ Crumbs.view model.page
@@ -64,8 +64,8 @@ view model actions =
 
 {-| navButton : uses current page to build the commonly used button on the right side of the nav
 -}
-navButton : PartialModel a -> NavActions msg -> Html msg
-navButton model actions =
+navButton : PartialModel a -> Actions msg -> Html msg
+navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuild } =
     case model.page of
         Pages.Overview ->
             a
@@ -82,7 +82,7 @@ navButton model actions =
                     [ ( "button", True )
                     , ( "-outline", True )
                     ]
-                , onClick actions.fetchSourceRepos
+                , onClick fetchSourceRepos
                 , disabled (model.sourceRepos == Loading)
                 , Util.testAttribute "refresh-source-repos"
                 ]
@@ -96,7 +96,7 @@ navButton model actions =
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
             div [ class "buttons" ]
-                [ starToggle org repo actions.toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
                     [ class "button"
                     , class "-outline"
@@ -115,13 +115,13 @@ navButton model actions =
 
         Pages.Settings org repo ->
             div [ class "buttons" ]
-                [ starToggle org repo actions.toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , button
                     [ classList
                         [ ( "button", True )
                         , ( "-outline", True )
                         ]
-                    , onClick <| actions.refreshSettings org repo
+                    , onClick <| refreshSettings org repo
                     , Util.testAttribute "refresh-repo-settings"
                     ]
                     [ text "Refresh Settings"
@@ -134,7 +134,7 @@ navButton model actions =
                     [ ( "button", True )
                     , ( "-outline", True )
                     ]
-                , onClick <| actions.restartBuild org repo buildNumber
+                , onClick <| restartBuild org repo buildNumber
                 , Util.testAttribute "restart-build"
                 ]
                 [ text "Restart Build"
@@ -142,7 +142,7 @@ navButton model actions =
 
         Pages.Hooks org repo _ _ ->
             div [ class "buttons" ]
-                [ starToggle org repo actions.toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
                     [ class "button"
                     , class "-outline"
