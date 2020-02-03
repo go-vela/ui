@@ -54,7 +54,7 @@ context('Overview/Repositories Page', () => {
     it('repo_a should show', () => {
       cy.get('[data-test=repo-item]').contains('repo_a');
     });
-    context("type 'serv' into the home search bar", () => {
+    context("type 'octo' into the home search bar", () => {
       beforeEach(() => {
         cy.get('[data-test=home-search-input]')
           .should('be.visible')
