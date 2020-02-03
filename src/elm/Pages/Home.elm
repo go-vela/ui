@@ -161,7 +161,7 @@ toOrgFavorites favorites =
 -}
 viewOrg : String -> ToggleFavorite msg -> Favorites -> Html msg
 viewOrg org toggleFavorite favorites =
-    details [ class "details", class "-with-border", attribute "open" "open" ]
+    details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
         (summary [ class "summary" ]
             [ text org
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
