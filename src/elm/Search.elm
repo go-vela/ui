@@ -14,6 +14,7 @@ module Search exposing
     , searchFilterGlobal
     , searchFilterLocal
     , shouldSearch
+    , toLowerContains
     )
 
 import Dict
@@ -92,6 +93,20 @@ repoSearchBarLocal searchFilters org search =
         ]
 
 
+{-| toLowerContains : takes user input and
+-}
+toLowerContains : String -> String -> Bool
+toLowerContains filterBy filterOn =
+    let
+        by =
+            String.toLower filterBy
+
+        on =
+            String.toLower filterOn
+    in
+    String.contains by on
+
+
 {-| filterRepo : takes org/repo display filters, the org and filters a single repo based on user-entered text
 -}
 filterRepo : RepoSearchFilters -> Maybe Org -> String -> Bool
@@ -102,14 +117,8 @@ filterRepo filters org filterOn =
 
         filterBy =
             Maybe.withDefault "" <| Dict.get org_ filters
-
-        by =
-            String.toLower filterBy
-
-        on =
-            String.toLower filterOn
     in
-    String.contains by on
+    toLowerContains filterOn filterBy
 
 
 {-| searchFilterGlobal : takes repo search filters and returns the global filter (org == "")
