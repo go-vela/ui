@@ -118,7 +118,7 @@ filterRepo filters org filterOn =
         filterBy =
             Maybe.withDefault "" <| Dict.get org_ filters
     in
-    toLowerContains filterOn filterBy
+    toLowerContains filterBy filterOn
 
 
 {-| searchFilterGlobal : takes repo search filters and returns the global filter (org == "")
