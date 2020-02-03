@@ -373,10 +373,6 @@ nav {
   fill: var(--color-bg);
 }
 
-.-build-status-icon.-pending {
-  fill: var(--color-bg);
-}
-
 .build .status.-pending {
   background: var(--color-bg-light);
 }
@@ -561,11 +557,27 @@ nav {
   margin-left: 3em;
 }
 
-.build-history .-build {
+.recent-build {
   position: relative;
 }
 
-.build-history .-build .-icon {
+.recent-build.-current > svg {
+  transform: translateX(5px);
+
+  transition: transform 0.1s;
+
+  will-change: transform;
+}
+
+.recent-build.-older > svg {
+  transform: translateX(10px);
+
+  transition: transform 0.1s;
+
+  will-change: transform;
+}
+
+.build-history .recent-build .-icon {
   fill: none;
   stroke: var(--color-bg);
 
@@ -590,7 +602,7 @@ nav {
   }
 }
 
-.build-history .-build .-tooltip {
+.recent-build .tooltip {
   position: absolute;
   top: 125%;
   // not sure what to here to display the tooltip on top!
@@ -614,13 +626,13 @@ nav {
   visibility: hidden;
 }
 
-.build-history .-build:hover .-tooltip,
-.build-history .-build:focus .-tooltip {
+.recent-build:hover .tooltip,
+.recent-build:focus .tooltip {
   visibility: visible;
 }
 
-.build-history .-build:hover .-tooltip::after,
-.build-history .-build:focus .-tooltip::after {
+.recent-build:hover .tooltip::after,
+.recent-build:focus .tooltip::after {
   position: absolute;
   bottom: 100%; /* At the top of the tooltip */
 
@@ -634,13 +646,13 @@ nav {
   content: ' ';
 }
 
-.build-history .-build .-info {
+.build-history .recent-build .-info {
   padding: 0.2em 0.6em;
 
   font-size: 14px;
 }
 
-.build-history .-build .-line {
+.build-history .recent-build .-line {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -658,7 +670,7 @@ nav {
   justify-content: flex-start;
 }
 
-.build-history .-build .-number {
+.build-history .recent-build .-number {
   margin-right: 0.5em;
 
   &:before {
@@ -666,7 +678,7 @@ nav {
   }
 }
 
-.build-history .-build .-event {
+.build-history .recent-build .-event {
   font-style: italic;
 }
 
