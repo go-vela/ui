@@ -41,7 +41,7 @@ import Html.Attributes
         , href
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy2)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -53,6 +53,8 @@ import Logs
         ( focusFragmentToFocusId
         , focusLogs
         , focusStep
+        , logFocusExists
+        , logFocusFragment
         )
 import Nav
 import Pager
@@ -61,6 +63,7 @@ import Pages.AddRepos
 import Pages.Build
     exposing
         ( clickStep
+        , viewingStep
         )
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -715,13 +718,33 @@ update msg model =
             , action
             )
 
-        ClickStep org repo buildNumber stepNumber fragment ->
+        ClickStep org repo buildNumber stepNumber _ ->
             let
-                ( steps, action ) =
-                    clickStep model model.steps org repo buildNumber stepNumber getBuildStepLogs
+                ( steps, a ) =
+                    clickStep model.steps stepNumber
+
+                action =
+                    if a then
+                        getBuildStepLogs model org repo buildNumber stepNumber Nothing
+
+                    else
+                        Cmd.none
+
+                stepOpened =
+                    not <| viewingStep steps stepNumber
+
+                focused =
+                    logFocusExists steps
             in
             ( { model | steps = steps }
-            , action
+            , Cmd.batch <|
+                [ action
+                , if stepOpened && not focused then
+                    Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
+
+                  else
+                    Cmd.none
+                ]
             )
 
         SetTheme theme ->
@@ -1131,7 +1154,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
-        , Nav.view model navMsgs
+        , lazy2 Nav.view model navMsgs
         , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
         , main_ []
             [ div [ class "content-wrap" ] [ content ] ]
@@ -1145,12 +1168,17 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , Pages.Home.view model.user model.favoritesFilter ToggleFavorite SearchFavorites
+            , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
             )
 
         Pages.AddRepositories ->
             ( "Add Repositories"
-            , Pages.AddRepos.view model addReposMsgs
+            , lazy2 Pages.AddRepos.view
+                { user = model.user
+                , sourceRepos = model.sourceRepos
+                , filters = model.filters
+                }
+                addReposMsgs
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1167,14 +1195,21 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " hooks" ++ page
             , div []
                 [ Pager.view model.hooks.pager Pager.defaultLabels GotoPage
-                , Pages.Hooks.view model.hooks model.hookBuilds model.time org repo ClickHook
+                , lazy4 Pages.Hooks.view
+                    { hooks = model.hooks
+                    , hookBuilds = model.hookBuilds
+                    , time = model.time
+                    }
+                    org
+                    repo
+                    hooksMsgs
                 , Pager.view model.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
+            , lazy3 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
             )
 
         Pages.RepositoryBuilds org repo maybePage _ ->
@@ -1191,14 +1226,24 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " builds" ++ page
             , div []
                 [ Pager.view model.builds.pager Pager.defaultLabels GotoPage
-                , Pages.Builds.view model.builds model.time org repo
+                , lazy4 Pages.Builds.view model.builds model.time org repo
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , Pages.Build.viewBuild model.time org repo model.build model.steps model.logs ClickStep UpdateUrl model.shift
+            , lazy4 Pages.Build.viewBuild
+                { navigationKey = model.navigationKey
+                , time = model.time
+                , build = model.build
+                , steps = model.steps
+                , logs = model.logs
+                , shift = model.shift
+                }
+                org
+                repo
+                buildMsgs
             )
 
         Pages.Login ->
@@ -1719,6 +1764,20 @@ clickHook model org repo buildNumber =
         )
 
 
+{-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
+-}
+homeMsgs : Pages.Home.Msgs Msg
+homeMsgs =
+    Pages.Home.Msgs ToggleFavorite SearchFavorites
+
+
+{-| buildMsgs : prepares the input record required for the Build page to route Msgs back to Main.elm
+-}
+buildMsgs : Pages.Build.Msgs Msg
+buildMsgs =
+    Pages.Build.Msgs ClickStep UpdateUrl
+
+
 {-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm
 -}
 navMsgs : Nav.Msgs Msg
@@ -1731,6 +1790,13 @@ navMsgs =
 addReposMsgs : Pages.AddRepos.Msgs Msg
 addReposMsgs =
     Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
+
+
+{-| hooksMsgs : prepares the input record required for the Hooks page to route Msgs back to Main.elm
+-}
+hooksMsgs : Org -> Repo -> BuildNumber -> Msg
+hooksMsgs =
+    ClickHook
 
 
 {-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm

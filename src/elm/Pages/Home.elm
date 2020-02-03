@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Home exposing (view)
+module Pages.Home exposing (Msgs, view)
 
 import Dict exposing (Dict)
 import Favorites exposing (ToggleFavorite, starToggle)
@@ -45,10 +45,18 @@ import Vela
         )
 
 
+{-| Msgs : record for routing msg updates to Main.elm
+-}
+type alias Msgs msg =
+    { toggleFavorite : ToggleFavorite msg
+    , search : SimpleSearch msg
+    }
+
+
 {-| view : takes current user, user input and action params and renders home page with favorited repos
 -}
-view : WebData CurrentUser -> String -> ToggleFavorite msg -> SimpleSearch msg -> Html msg
-view user filter toggleFavorite search =
+view : WebData CurrentUser -> String -> Msgs msg -> Html msg
+view user filter { toggleFavorite, search } =
     let
         blankMessage : Html msg
         blankMessage =

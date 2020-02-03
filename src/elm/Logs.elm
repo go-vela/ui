@@ -9,6 +9,7 @@ module Logs exposing
     , focusFragmentToFocusId
     , focusLogs
     , focusStep
+    , logFocusExists
     , logFocusFragment
     , stepAndLineToFocusId
     , stepToFocusId
@@ -391,6 +392,21 @@ logFocusStyles logFocus lineNumber =
 
         _ ->
             class ""
+
+
+{-| logFocusExists : takes steps and returns if a line or range has already been focused
+-}
+logFocusExists : WebData Steps -> Bool
+logFocusExists steps =
+    (Maybe.withDefault ( Nothing, Nothing ) <|
+        List.head <|
+            List.map (\step -> step.logFocus) <|
+                List.filter
+                    (\step -> step.logFocus /= ( Nothing, Nothing ))
+                <|
+                    RemoteData.withDefault [] steps
+    )
+        /= ( Nothing, Nothing )
 
 
 {-| decodeLogLine : takes maybe log and decodes it based on
