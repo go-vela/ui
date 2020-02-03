@@ -18,6 +18,7 @@ module Vela exposing
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
+    , Favorites
     , Field
     , FocusFragment
     , Hook
@@ -206,10 +207,14 @@ type alias CurrentUser =
     { id : Int
     , name : String
     , token : String
-    , favorites : List String
+    , favorites : Favorites
     , active : Bool
     , admin : Bool
     }
+
+
+type alias Favorites =
+    List String
 
 
 decodeCurrentUser : Decoder CurrentUser
@@ -225,7 +230,7 @@ decodeCurrentUser =
 
 type alias UpdateUserPayload =
     { name : Maybe String
-    , favorites : Maybe (List String)
+    , favorites : Maybe Favorites
     }
 
 
@@ -241,7 +246,7 @@ encodeUpdateUser user =
         ]
 
 
-buildUpdateFavoritesPayload : List String -> UpdateUserPayload
+buildUpdateFavoritesPayload : Favorites -> UpdateUserPayload
 buildUpdateFavoritesPayload value =
     { defaultUpdateUserPayload | favorites = Just value }
 

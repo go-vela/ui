@@ -179,6 +179,7 @@ type alias Model =
     , zone : Zone
     , time : Posix
     , filters : RepoSearchFilters
+    , favoritesFilter : String
     , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
@@ -235,6 +236,7 @@ init flags url navKey =
             , zone = utc
             , time = millisToPosix 0
             , filters = Dict.empty
+            , favoritesFilter = ""
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
             , entryURL = url
@@ -275,6 +277,7 @@ type Msg
     | NewRoute Routes.Route
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
+    | SearchFavorites String
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | ClickHook Org Repo BuildNumber
@@ -829,6 +832,9 @@ update msg model =
             in
             ( { model | filters = filters }, Cmd.none )
 
+        SearchFavorites searchBy ->
+            ( { model | favoritesFilter = searchBy }, Cmd.none )
+
         ChangeRepoTimeout inTimeout ->
             let
                 newTimeout =
@@ -1164,7 +1170,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , lazy2 Pages.Home.view model.user homeMsgs
+            , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
             )
 
         Pages.AddRepositories ->
@@ -1865,9 +1871,9 @@ clickHook model org repo buildNumber =
 
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
 -}
-homeMsgs : Org -> Maybe Repo -> Msg
+homeMsgs : Pages.Home.Msgs Msg
 homeMsgs =
-    ToggleFavorite
+    Pages.Home.Msgs ToggleFavorite SearchFavorites
 
 
 {-| buildMsgs : prepares the input record required for the Build page to route Msgs back to Main.elm

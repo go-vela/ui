@@ -424,11 +424,7 @@ validTimeout inTimeout repoTimeout =
             if t >= 30 && t <= 90 then
                 case repoTimeout of
                     Just ti ->
-                        if t /= ti then
-                            True
-
-                        else
-                            False
+                        t /= ti
 
                     Nothing ->
                         True
@@ -448,11 +444,7 @@ validAccessUpdate originalRepo repoUpdate =
         RemoteData.Success repo ->
             case repoUpdate.visibility of
                 Just visibility ->
-                    if repo.visibility /= visibility then
-                        True
-
-                    else
-                        False
+                    repo.visibility /= visibility
 
                 Nothing ->
                     False
