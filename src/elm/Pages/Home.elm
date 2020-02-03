@@ -95,12 +95,7 @@ viewFavorites user filter toggleFavorite =
                 filteredRepos
                     |> List.map
                         (\repo ->
-                            div [ class "-item", Util.testAttribute <| "favorited-repo-" ++ repo ]
-                                [ div []
-                                    [ text <| repo ]
-
-                                -- , enableRepoButton repo enableRepo toggleFavorite favorited
-                                ]
+                            viewSingleRepo (RemoteData.succeed user) toggleFavorite repo
                         )
 
             else
