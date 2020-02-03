@@ -1538,6 +1538,7 @@ nav {
 .icon.favorite-star {
   fill: none;
   stroke: var(--color-yellow);
+  stroke-width: var(--line-width);
 }
 
 .icon.favorite-star.favorited {
