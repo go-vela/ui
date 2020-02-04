@@ -8,6 +8,17 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
+// Fail on first error if not running in CI
+// (until Cypress has built-in way to deal with this)
+if (!Cypress.env('CI')) {
+  afterEach(function onAfterEach() {
+    // Skips all subsequent tests in a spec, and flags the whole run as failed
+    if (this.currentTest.state === 'failed') {
+      Cypress.runner.stop();
+    }
+  });
+}
+
 // Login helper (accepts initial path to vist and sessionstorage fixture)
 Cypress.Commands.add('login', (path = '/', fixture = 'sessionstorage') => {
   cy.fixture(fixture).then(sessionstorageSample => {
