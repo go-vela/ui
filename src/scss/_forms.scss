@@ -1,0 +1,230 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// ┌─┐┌─┐┬─┐┌┬┐┌─┐
+// ├┤ │ │├┬┘│││└─┐
+// └  └─┘┴└─┴ ┴└─┘
+
+// styles for form elements
+
+// <div class="form-control">
+//  <input ... />
+//  <label class="form-label">...</label>
+// </div>
+.form-control {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  // base for all but radio and checkbox controls
+  // TODO: might want to include submit, color, button, and reset types
+  input:not([type='checkbox']):not([type='radio']) {
+    position: relative;
+
+    padding: 0.5rem;
+
+    color: var(--color-text);
+    font-size: 1rem;
+
+    background-color: var(--color-bg);
+    border: none;
+    border-bottom: var(--line-width) solid var(--color-primary);
+
+    // if this has a label associated with it,
+    // make it back off a bit
+    // stylelint-disable-next-line
+    + .form-label {
+      margin-left: 0.5rem;
+    }
+  }
+
+  // for controls with embedded icon
+  // <div class="form-control -with-icon">
+  //  <input ... />
+  //  <svg ...></svg>
+  // </div>
+  &.-with-icon {
+    input:not([type='checkbox']):not([type='radio']) {
+      padding-left: 2rem;
+    }
+
+    svg {
+      position: absolute;
+      top: 6px;
+      left: 0;
+    }
+  }
+
+  // small utility class to have input control
+  // stretch horizontally as much as possible
+  // <div class="form-control -is-expanded">
+  //   <input ... />
+  //   <label class="form-label">...</label>
+  // </div>
+  &.-is-expanded {
+    flex-grow: 1;
+    flex-shrink: 1;
+
+    input:not([type='checkbox']):not([type='radio']) {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+}
+
+// radio & checkbox
+// hide the native controls, visually
+.form-control [type='checkbox'],
+.form-control [type='radio'] {
+  @include visually-hidden;
+
+  // making room for custom styled checkbox indicators
+  + .form-label {
+    display: inline-block;
+    padding-left: 2rem;
+
+    cursor: pointer;
+  }
+}
+
+// base for the replacement controls, just squares here
+.form-control [type='checkbox'] + .form-label::before,
+.form-control [type='radio'] + .form-label::before,
+.form-control [type='radio'] + .form-label::after {
+  position: absolute;
+  top: 4px;
+  left: 0;
+
+  width: 20px;
+  height: 20px;
+
+  background-color: var(--color-primary);
+
+  content: '';
+}
+
+// radio controls are round, m'kay.. well, at least these ones
+.form-control [type='radio'] + .form-label::before {
+  background-color: var(--color-bg);
+  border: var(--line-width) solid var(--color-primary);
+  border-radius: 50%;
+}
+
+// render checkmark for checkbox, invisible initially
+.form-control [type='checkbox'] + .form-label::after {
+  position: absolute;
+  top: 10px;
+  left: 3px;
+
+  width: 14px;
+  height: 6px;
+
+  border-bottom: var(--line-width) solid var(--color-bg);
+  border-left: var(--line-width) solid var(--color-bg);
+  transform: rotate(-45deg);
+  opacity: 0;
+
+  transition: opacity 0.1s ease-in-out;
+
+  content: '';
+}
+
+// render selected radio mark, invisible initially
+.form-control [type='radio'] + .form-label::after {
+  background-color: var(--color-primary);
+  border-radius: 50%;
+  transform: scale(0.4);
+  opacity: 0;
+}
+
+// reveal check mark or selected radio when selected
+.form-control [type='checkbox']:checked + .form-label::after,
+.form-control [type='radio']:checked + .form-label::after {
+  opacity: 1;
+}
+
+// focus styles
+.form-control [type='checkbox']:focus + .form-label::before,
+.form-control [type='radio']:focus + .form-label::before,
+.form-control input:focus:not([type='checkbox']):not([type='radio']) {
+  outline: var(--color-secondary) dotted var(--line-width);
+  outline-offset: var(--line-width);
+}
+
+// disabled styles
+.form-control [type='checkbox']:disabled,
+.form-control [type='radio']:disabled {
+  + .form-label {
+    color: var(--color-bg-light);
+
+    cursor: not-allowed;
+  }
+}
+
+.form-control [type='checkbox']:disabled + .form-label::before {
+  background-color: var(--color-bg-light);
+}
+
+.form-control [type='radio']:disabled + .form-label::before {
+  border-color: var(--color-bg-light);
+}
+
+.form-control [type='radio']:disabled + .form-label::after {
+  background-color: var(--color-bg-light);
+}
+
+.form-control input:disabled:not([type='checkbox']):not([type='radio']) {
+  color: var(--color-bg-light);
+
+  border-color: var(--color-bg-light);
+
+  // stylelint-disable-next-line
+  + .form-label {
+    color: var(--color-bg-light);
+  }
+}
+
+// styles for controls in an invalid state
+.form-control input:invalid:not([type='checkbox']):not([type='radio']) {
+  color: var(--color-red);
+
+  border-color: var(--color-red);
+}
+
+// for grouping many .form-control elements
+// <div class="form-controls">
+//   <div class="form-control">..</div>
+//   <div class="form-control">..</div>
+// </div>
+// or..
+// <div class="form-controls">
+//   <div class="form-control">..</div>
+//   <button class="button">..</button>
+// </div>
+.form-controls {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+
+  border: none;
+
+  .form-control {
+    margin-right: 0.5rem;
+  }
+
+  // .-stack is for vertically stacking controls
+  &.-stack {
+    flex-flow: column nowrap;
+
+    .form-control:not(:last-child) {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  // no horizontal padding, cuddle up
+  &.-no-x-pad {
+    padding: 0.5rem 0;
+  }
+}
