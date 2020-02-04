@@ -48,18 +48,31 @@ cliHelp show command =
             , div [ class "-header" ] [ code [] [ text "View this page using the CLI" ] ]
             , div []
                 [ code [ class "-command" ] [ text command ]
-                , button
-                    [ class "copy-button"
-                    , Util.testAttribute "cli-help"
-                    , attribute "data-clipboard-text" command
+                , copyButton
+                    [ Util.testAttribute "cli-help"
                     , attribute "aria-label" "view cli command for this page"
                     , class "button"
                     , class "-icon"
                     , class "-white"
                     ]
-                    [ FeatherIcons.copy |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [] ]
+                    (FeatherIcons.copy
+                        |> FeatherIcons.withSize 18
+                        |> FeatherIcons.toHtml []
+                    )
+                    command
                 ]
             ]
 
     else
         text ""
+
+
+copyButton : List (Html.Attribute msg) -> Html msg -> String -> Html msg
+copyButton attributes markdown copyText =
+    button
+        (attributes
+            ++ [ class "copy-button"
+               , attribute "data-clipboard-text" copyText
+               ]
+        )
+        [ markdown ]
