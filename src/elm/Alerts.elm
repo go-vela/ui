@@ -84,7 +84,7 @@ wrapAlert variantClass title message link =
 
 {-| config : configurations for alert items, used for displaying notifications to the user
 
-    config delays automatic dismissal 10 seconds and applies unique container and item styles
+    config delays automatic dismissal x seconds and applies unique container and item styles
 
 -}
 config : Float -> Alerting.Config msg
@@ -97,7 +97,7 @@ config timeoutSeconds =
 
 {-| successConfig : configurations for successful alert items
 
-    successConfig delays automatic dismissal 10 seconds and applies unique container and item styles
+    successConfig delays automatic dismissal 5 seconds and applies unique container and item styles
 
 -}
 successConfig : Alerting.Config msg
@@ -107,7 +107,7 @@ successConfig =
 
 {-| errorConfig : configurations for erroroneous alert items
 
-    errorConfig delays automatic dismissal 10 seconds and applies unique container and item styles
+    errorConfig delays automatic dismissal 15 seconds and applies unique container and item styles
 
 -}
 errorConfig : Alerting.Config msg
