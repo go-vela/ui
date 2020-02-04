@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Alerts exposing (Alert(..), config, view)
+module Alerts exposing (Alert(..), config, errorConfig, successConfig, view)
 
 import Html exposing (Html, a, div, h1, p, text)
 import Html.Attributes exposing (class, href)
@@ -84,15 +84,35 @@ wrapAlert variantClass title message link =
 
 {-| config : configurations for alert items, used for displaying notifications to the user
 
-    config delays automatic dismissal 15 seconds and applies unique container and item styles
+    config delays automatic dismissal 10 seconds and applies unique container and item styles
 
 -}
-config : Alerting.Config msg
-config =
+config : Float -> Alerting.Config msg
+config timeoutSeconds =
     Alerts.config
-        |> Alerting.delay (Util.oneSecondMillis * 30)
+        |> Alerting.delay (Util.oneSecondMillis * timeoutSeconds)
         |> Alerting.containerAttrs [ class "alert-container-attributes" ]
         |> Alerting.itemAttrs [ Util.testAttribute "alert", class "animated", class "alert-item-attributes" ]
+
+
+{-| successConfig : configurations for successful alert items
+
+    successConfig delays automatic dismissal 10 seconds and applies unique container and item styles
+
+-}
+successConfig : Alerting.Config msg
+successConfig =
+    config 5
+
+
+{-| errorConfig : configurations for erroroneous alert items
+
+    errorConfig delays automatic dismissal 10 seconds and applies unique container and item styles
+
+-}
+errorConfig : Alerting.Config msg
+errorConfig =
+    config 15
 
 
 {-| toHyperlink : takes Link and produces an Html hyperlink
