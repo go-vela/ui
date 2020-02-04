@@ -24,6 +24,7 @@ import Html
         , button
         , details
         , div
+        , footer
         , h1
         , header
         , li
@@ -41,7 +42,7 @@ import Html.Attributes
         , href
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy7)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -1154,11 +1155,12 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
-        , lazy2 Nav.view model navMsgs
-        , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
-        , main_ []
-            [ div [ class "content-wrap" ] [ content ] ]
-        , div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.config Alerts.view AlertsUpdate model.toasties ]
+        , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos } navMsgs
+        , main_ [ class "content-wrap" ]
+            [ viewUtil model
+            , content
+            ]
+        , footer [] [ lazy viewAlerts model.toasties ]
         ]
     }
 
@@ -1319,6 +1321,17 @@ viewHeader maybeSession { feedbackLink, docsLink, theme } =
                 ]
             ]
         ]
+
+
+viewUtil : Model -> Html Msg
+viewUtil model =
+    div [ class "util" ]
+        [ lazy7 Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
+
+
+viewAlerts : Stack Alert -> Html Msg
+viewAlerts toasties =
+    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.config Alerts.view AlertsUpdate toasties ]
 
 
 viewThemeToggle : Theme -> Html Msg
