@@ -1297,17 +1297,18 @@ viewHeader maybeSession { feedbackLink, docsLink, theme } =
             [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
             , case session.username of
                 "" ->
-                    details [ class "details", class "identity-name", attribute "role" "navigation" ]
+                    details [ class "details", class "-marker-right", class "-no-pad", class "identity-name", attribute "role" "navigation" ]
                         [ summary [ class "summary" ] [ text "Vela" ] ]
 
                 _ ->
-                    details [ class "details", class "identity-name", attribute "role" "navigation" ]
+                    details [ class "details", class "-marker-right", class "-no-pad", class "identity-name", attribute "role" "navigation" ]
                         [ summary [ class "summary" ]
                             [ text session.username
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
-                        , ul [ attribute "aria-hidden" "true", attribute "role" "menu" ]
-                            [ li [] [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
+                        , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
+                            [ li [ class "identity-menu-item" ]
+                                [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]
             ]

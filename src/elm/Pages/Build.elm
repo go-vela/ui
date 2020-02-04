@@ -19,6 +19,7 @@ module Pages.Build exposing
 
 import Browser.Navigation as Navigation
 import DateFormat.Relative exposing (relativeTime)
+import FeatherIcons
 import Html
     exposing
         ( Html
@@ -224,8 +225,7 @@ viewStep now org repo buildNumber step steps logs expandAction logFocusAction sh
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
-        , div [ classList [ ( "-view", True ), ( "-running", step.status == Vela.Running ) ] ]
-            [ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shift ]
+        , viewStepDetails now org repo buildNumber step logs expandAction logFocusAction shift
         ]
 
 
@@ -252,11 +252,20 @@ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction s
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime now step.started step.finished ]
                     ]
+                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
             , div [ class "logs-container" ] [ Logs.view step logs logFocusAction shift ]
             ]
     in
-    details [ class "details", Util.open step.viewing ] stepSummary
+    details
+        [ classList
+            [ ( "details", True )
+            , ( "-with-border", True )
+            , ( "-running", step.status == Vela.Running )
+            ]
+        , Util.open step.viewing
+        ]
+        stepSummary
 
 
 {-| viewStepIcon : renders a build step status icon

@@ -7,7 +7,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Home exposing (Msgs, view)
 
 import Dict exposing (Dict)
-import Favorites exposing (ToggleFavorite, starToggle)
+import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
+import FeatherIcons
 import Html
     exposing
         ( Html
@@ -160,12 +161,13 @@ toOrgFavorites favorites =
 -}
 viewOrg : String -> ToggleFavorite msg -> Favorites -> Html msg
 viewOrg org toggleFavorite favorites =
-    div [ class "repo-org", Util.testAttribute "repo-org" ]
-        [ details [ class "details", class "repo-item", attribute "open" "open" ]
-            (summary [ class "summary" ] [ text org ]
-                :: List.map (viewFavorite favorites toggleFavorite) favorites
-            )
-        ]
+    details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
+        (summary [ class "summary" ]
+            [ text org
+            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+            ]
+            :: List.map (viewFavorite favorites toggleFavorite) favorites
+        )
 
 
 {-| viewFavorite : takes favorites and favorite action and renders single favorite
