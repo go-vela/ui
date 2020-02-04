@@ -1,0 +1,40 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// ┌─┐┌─┐┌┬┐┌┬┐┬┌┐┌┌─┐┌─┐
+// └─┐├┤  │  │ │││││ ┬└─┐
+// └─┘└─┘ ┴  ┴ ┴┘└┘└─┘└─┘
+
+// styles for the repo settings page
+
+.repo-settings {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.settings {
+  flex: 0 0 26rem;
+  margin-right: 2rem;
+
+  &-title {
+    border-bottom: var(--line-width) solid var(--color-secondary);
+  }
+
+  &-description {
+    font-size: 1rem;
+  }
+}
+
+// for the enable admin section
+.enable-container {
+  display: flex;
+  flex-direction: row;
+  margin-top: 1em;
+}
+
+.enable-description {
+  display: flex;
+  flex-direction: column;
+  margin-right: 0.8em;
+}
