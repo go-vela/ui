@@ -372,6 +372,7 @@ recentBuildLink org repo buildNumber build idx =
     in
     a
         [ class "recent-build-link"
+        , Util.testAttribute <| "recent-build-link-" ++ String.fromInt buildNumber
         , currentBuildClass
         , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
