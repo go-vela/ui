@@ -462,7 +462,7 @@ update msg model =
                       }
                     , Cmd.none
                     )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
 
                 Err error ->
                     let
@@ -478,10 +478,10 @@ update msg model =
                     , Cmd.none
                     )
                         |> (if favorited then
-                                Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (favorite ++ " added to favorites.") Nothing)
+                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " added to favorites.") Nothing)
 
                             else
-                                Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (favorite ++ " removed from favorites.") Nothing)
+                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " removed from favorites.") Nothing)
                            )
 
                 Err error ->
@@ -491,7 +491,7 @@ update msg model =
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
-                        |> Alerting.addToast Alerts.config AlertsUpdate (Alerts.Success "Success" (Pages.Settings.alert field updatedRepo) Nothing)
+                        |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.Settings.alert field updatedRepo) Nothing)
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
@@ -531,7 +531,7 @@ update msg model =
                       }
                     , Cmd.none
                     )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " disabled.") Nothing)
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " disabled.") Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -552,7 +552,7 @@ update msg model =
                     ( model
                     , getBuilds model org repo Nothing Nothing
                     )
-                        |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
 
                 Err error ->
                     ( model, addError error )
@@ -787,7 +787,7 @@ update msg model =
 
         Error error ->
             ( model, Cmd.none )
-                |> Alerting.addToastIfUnique Alerts.config AlertsUpdate (Alerts.Error "Error" error)
+                |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
 
         HooksResponse _ _ response ->
             let
@@ -814,7 +814,7 @@ update msg model =
                     ( { model | hookBuilds = Pages.Hooks.receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, Cmd.none )
 
         AlertsUpdate subMsg ->
-            Alerting.update Alerts.config AlertsUpdate subMsg model
+            Alerting.update Alerts.successConfig AlertsUpdate subMsg model
 
         ClickedLink urlRequest ->
             case urlRequest of
@@ -1331,7 +1331,7 @@ viewUtil model =
 
 viewAlerts : Stack Alert -> Html Msg
 viewAlerts toasties =
-    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.config Alerts.view AlertsUpdate toasties ]
+    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig Alerts.view AlertsUpdate toasties ]
 
 
 viewThemeToggle : Theme -> Html Msg
