@@ -559,6 +559,15 @@ nav {
   position: relative;
 }
 
+.build-history .recent-build:focus,
+.build-history .recent-build:active  {
+  outline: none;
+  > svg {
+    outline: var(--color-secondary) dotted var(--line-width);
+    outline-offset: var(--line-width);
+  }
+}
+
 .recent-build.-current > svg {
   transform: translateX(5px);
 
