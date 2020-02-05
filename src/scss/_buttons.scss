@@ -61,6 +61,11 @@
     border-color: var(--color-primary);
   }
 
+  &:focus {
+    outline: var(--color-secondary) dotted var(--line-width);
+    outline-offset: var(--line-width);
+  }
+
   &:disabled {
     background-color: var(--color-bg-light);
 
@@ -120,6 +125,11 @@
 
     background-color: var(--color-primary);
     border-color: transparent;
+  }
+
+  &:focus {
+    outline: var(--color-secondary) dotted var(--line-width);
+    outline-offset: var(--line-width);
   }
 
   &:disabled {
@@ -185,6 +195,11 @@
   &:active {
     text-decoration: none;
   }
+
+  &:focus {
+    outline: var(--color-secondary) dotted var(--line-width);
+    outline-offset: var(--line-width);
+  }
 }
 
 // icon buttons, ie. buttons containing only SVG
@@ -198,6 +213,11 @@
     margin: 0;
 
     vertical-align: middle;
+  }
+
+  &:focus,
+  &:hover {
+    border-color: transparent;
   }
 }
 

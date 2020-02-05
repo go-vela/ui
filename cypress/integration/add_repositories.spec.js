@@ -17,10 +17,7 @@ context('Add Repositories', () => {
     });
 
     it('should show the orgs', () => {
-      cy.get('[data-test=source-repos] .repo-list .org').should(
-        'have.length',
-        3,
-      );
+      cy.get('[data-test=source-repos] .details').should('have.length', 3);
     });
 
     it('toggles visibility of repos in an org', () => {

@@ -114,4 +114,17 @@ body.theme-light {
 
     caret-color: var(--color-text);
   }
+
+  // stylelint-disable-next-line
+  .form-control input:invalid:not([type='checkbox']):not([type='radio']) {
+    color: var(--color-red-dark);
+  }
+
+  .button.-outline.-success {
+    color: var(--color-green-dark);
+  }
+
+  .button.-outline.-failure {
+    color: var(--color-red-dark);
+  }
 }

@@ -2,12 +2,38 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
+// utility for adding pseudo content slashes as separators
+// used mostly for separating links and breadcrumbs
 @mixin slashes {
   position: absolute;
-  right: -1.3ex;
+  right: -1.1ch;
 
   color: var(--color-secondary);
   text-decoration: none;
 
   content: '/';
+}
+
+// hide visually - still accessible for screen readers
+@mixin visually-hidden($focusable: false) {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+
+  clip: rect(1px, 1px, 1px, 1px);
+
+  @if $focusable == true {
+    &:active,
+    &:focus {
+      position: static;
+
+      width: auto;
+      height: auto;
+      overflow: visible;
+
+      clip: auto;
+    }
+  }
 }

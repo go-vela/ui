@@ -25,6 +25,7 @@ import Html
         , button
         , details
         , div
+        , footer
         , h1
         , header
         , li
@@ -42,7 +43,7 @@ import Html.Attributes
         , href
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy7)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -1163,11 +1164,12 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, page = model.page, showHelp = model.showHelp }
-        , lazy2 Nav.view model navMsgs
-        , div [ class "util" ] [ Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
-        , main_ []
-            [ div [ class "content-wrap" ] [ content ] ]
-        , div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.config Alerts.view AlertsUpdate model.toasties ]
+        , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos } navMsgs
+        , main_ [ class "content-wrap" ]
+            [ viewUtil model
+            , content
+            ]
+        , footer [] [ lazy viewAlerts model.toasties ]
         ]
     }
 
@@ -1304,17 +1306,18 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, page, showHelp } =
             [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
             , case session.username of
                 "" ->
-                    details [ class "details", class "identity-name", attribute "role" "navigation" ]
+                    details [ class "details", class "-marker-right", class "-no-pad", class "identity-name", attribute "role" "navigation" ]
                         [ summary [ class "summary" ] [ text "Vela" ] ]
 
                 _ ->
-                    details [ class "details", class "identity-name", attribute "role" "navigation" ]
+                    details [ class "details", class "-marker-right", class "-no-pad", class "identity-name", attribute "role" "navigation" ]
                         [ summary [ class "summary" ]
                             [ text session.username
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
-                        , ul [ attribute "aria-hidden" "true", attribute "role" "menu" ]
-                            [ li [] [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
+                        , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
+                            [ li [ class "identity-menu-item" ]
+                                [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]
             ]
@@ -1327,6 +1330,17 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, page, showHelp } =
                 ]
             ]
         ]
+
+
+viewUtil : Model -> Html Msg
+viewUtil model =
+    div [ class "util" ]
+        [ lazy7 Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
+
+
+viewAlerts : Stack Alert -> Html Msg
+viewAlerts toasties =
+    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.config Alerts.view AlertsUpdate toasties ]
 
 
 viewThemeToggle : Theme -> Html Msg
