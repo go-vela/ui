@@ -571,7 +571,7 @@ nav {
   pointer-events: initial;
 }
 
-.recent-build.-current {
+.recent-build-link.-current {
   transform: translateX(5px);
 
   transition: transform 0.1s;
@@ -579,7 +579,7 @@ nav {
   will-change: transform;
 }
 
-.recent-build.-older {
+.recent-build-link.-older {
   transform: translateX(10px);
 
   transition: transform 0.1s;
