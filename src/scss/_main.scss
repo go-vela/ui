@@ -693,6 +693,7 @@ nav {
   position: relative;
 }
 
+.recent-build.-current,
 .recent-build.-current > svg {
   transform: translateX(5px);
 
@@ -701,6 +702,7 @@ nav {
   will-change: transform;
 }
 
+.recent-build.-older,
 .recent-build.-older > svg {
   transform: translateX(10px);
 

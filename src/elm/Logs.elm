@@ -119,6 +119,29 @@ viewLines stepNumber logFocus log clickAction shiftDown =
 -}
 viewLine : StepNumber -> String -> LogFocus -> Int -> SetLogFocus msg -> Bool -> Html msg
 viewLine stepNumber line logFocus lineNumber clickAction shiftDown =
+    let
+        disgustingButton =
+            div []
+                [ div []
+                    [ div []
+                        [ div []
+                            [ div []
+                                [ button
+                                    [ Util.onClickPreventDefault <|
+                                        clickAction <|
+                                            logRangeId stepNumber lineNumber logFocus shiftDown
+                                    , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+                                    , id <| stepAndLineToFocusId stepNumber lineNumber
+                                    , class "focus-log"
+                                    , attribute "aria-label" <| "focus step " ++ stepNumber
+                                    ]
+                                    [ text <| Util.toTwoDigits <| lineNumber ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+    in
     div [ class "line" ]
         [ span
             [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber
