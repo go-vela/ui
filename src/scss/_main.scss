@@ -559,8 +559,7 @@ nav {
   position: relative;
 }
 
-.recent-build.-current,
-.recent-build.-current > svg {
+.recent-build.-current {
   transform: translateX(5px);
 
   transition: transform 0.1s;
@@ -568,8 +567,7 @@ nav {
   will-change: transform;
 }
 
-.recent-build.-older,
-.recent-build.-older > svg {
+.recent-build.-older {
   transform: translateX(10px);
 
   transition: transform 0.1s;
@@ -789,7 +787,7 @@ nav {
 .focus-log {
   padding: 0 1em;
 
-  color: var(--color-offwhite);
+  color: var(--color-primary);
   font-size: 14px;
   font-family: var(--font-code);
 
@@ -804,7 +802,7 @@ nav {
 .logs .line .-line-num {
   display: flex;
 
-  color: var(--color-offwhite);
+  color: var(--color-primary);
 
   font-family: var(--font-code);
 
