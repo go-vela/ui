@@ -7,13 +7,15 @@ html {
 }
 
 body {
-  transition-duration: 0.2s;
-  transition-property: background-color, color;
-
   color: var(--color-text);
-  background-color: var(--color-bg);
 
   font-size: 18px;
+
+  background-color: var(--color-bg);
+
+  transition-duration: 0.2s;
+
+  transition-property: background-color, color;
 }
 
 a {
@@ -39,6 +41,12 @@ header {
 
   padding: 1em var(--horizontal-pad);
 
+  background: radial-gradient(
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
+  );
+
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
@@ -56,11 +64,6 @@ header {
     transparent 76%
   );
   border-image-slice: 1;
-  background: radial-gradient(
-    circle at 50% -200%,
-    var(--color-bg-light) -7%,
-    transparent 50%
-  );
 }
 
 .identity {
@@ -110,13 +113,13 @@ header {
   min-width: 100%;
   padding: 0;
 
+  font-size: 80%;
+
   list-style: none;
+  background-color: var(--color-bg-dark);
 
   border: 1px solid var(--color-bg-light);
-  background-color: var(--color-bg-dark);
   box-shadow: 0 0 2px var(--color-black);
-
-  font-size: 80%;
 
   .identity-menu-item {
     padding: 0.5em 1em;
@@ -133,12 +136,13 @@ header {
       width: 10px;
       height: 10px;
 
-      content: '';
-      transform: rotate(135deg);
+      background-color: inherit;
 
       border: inherit;
       border-radius: 0 0 0 0.25em;
-      background-color: inherit;
+      transform: rotate(135deg);
+
+      content: '';
 
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
@@ -173,9 +177,8 @@ nav {
     }
 
     &:last-child {
-      text-decoration: none;
-
       font-weight: bold;
+      text-decoration: none;
     }
   }
 }
@@ -202,7 +205,6 @@ nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   margin: 0.5rem 0 0 0;
   padding: 1rem;
 
@@ -220,14 +222,15 @@ nav {
 // loading ellipsis
 .loading-ellipsis::after {
   display: inline-block;
-  overflow: hidden;
 
   width: 0;
+  overflow: hidden;
 
-  content: '\2026';
+  vertical-align: bottom;
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
-  vertical-align: bottom;
+
+  content: '\2026';
 }
 
 .util {
@@ -242,8 +245,8 @@ nav {
 
 .org-header {
   display: flex;
-  align-items: center;
   flex: 1;
+  align-items: center;
 }
 
 .repo-count {
@@ -283,11 +286,11 @@ nav {
   width: 40px;
   height: 40px;
 
-  animation: spin 3s linear infinite;
-
   border: 2px solid var(--color-text);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
+
+  animation: spin 3s linear infinite;
 }
 
 .small-loader {
@@ -300,25 +303,25 @@ nav {
   width: 20px;
   height: 20px;
 
-  animation: spin 3s linear infinite;
-
   border: 2px solid var(--color-offwhite);
   border-top: 2px solid var(--color-bg);
   border-radius: 50%;
+
+  animation: spin 3s linear infinite;
 }
 
 .small-loader .-label {
   margin-left: 0.8em;
 
-  font-size: 14px;
   font-weight: 300;
+
+  font-size: 14px;
 }
 
 .build-container {
-  overflow: hidden;
-
   width: 100%;
   margin: 12px 0;
+  overflow: hidden;
 }
 
 .build {
@@ -328,12 +331,12 @@ nav {
   flex-direction: row;
   justify-content: space-between;
 
+  font-weight: 300;
+  font-size: 18px;
+
   border: 2px solid var(--color-bg-dark);
   border-right: 0;
   border-left: 0;
-
-  font-size: 18px;
-  font-weight: 300;
 }
 
 .build .status {
@@ -548,8 +551,8 @@ nav {
 
 .build-history {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
 }
 
 .recent-build {
@@ -557,7 +560,6 @@ nav {
 
   display: flex;
   /* stop container from blocking child links */
-
   pointer-events: none;
 }
 
@@ -570,15 +572,17 @@ nav {
 }
 
 .recent-build-link.-current {
-  transition: transform 0.1s;
   transform: translateX(5px);
+
+  transition: transform 0.1s;
 
   will-change: transform;
 }
 
 .recent-build-link.-older {
-  transition: transform 0.1s;
   transform: translateX(10px);
+
+  transition: transform 0.1s;
 
   will-change: transform;
 }
@@ -610,24 +614,26 @@ nav {
 
 .recent-build-tooltip {
   position: absolute;
-  z-index: 9999;
   top: calc(100% + 10px);
 
+  z-index: 9999;
+
   display: flex;
-  visibility: hidden;
   flex-direction: column;
 
   width: 300px;
   padding: 0.2em 0;
 
-  text-align: center;
-
   color: var(--color-text);
-  border: solid 1px var(--color-bg-light);
-  border-radius: 3px;
-  background-color: var(--color-bg-dark);
 
   font-weight: 300;
+
+  text-align: center;
+
+  background-color: var(--color-bg-dark);
+  border: solid 1px var(--color-bg-light);
+  border-radius: 3px;
+  visibility: hidden;
 }
 
 .recent-build:hover .recent-build-tooltip,
@@ -642,11 +648,12 @@ nav {
 
   margin-left: 0.5em;
 
-  content: ' ';
+  border-color: transparent transparent var(--color-bg-light) transparent;
+  border-style: solid;
 
   border-width: 5px;
-  border-style: solid;
-  border-color: transparent transparent var(--color-bg-light) transparent;
+
+  content: ' ';
 }
 
 .recent-build-tooltip .line {
@@ -768,14 +775,13 @@ nav {
 }
 
 .logs {
-  font-size: 14px;
   font-weight: 300;
+  font-size: 14px;
 }
 
 .logs .line {
   display: flex;
   align-items: flex-start;
-
   margin: 0 0.5em;
 }
 
@@ -786,7 +792,6 @@ nav {
 
   > code {
     flex: 1;
-
     margin-left: 1em;
   }
 }
@@ -795,11 +800,11 @@ nav {
   padding: 0 1em;
 
   color: var(--color-primary);
-  border: none;
-  background: none;
-
-  font-family: var(--font-code);
   font-size: 14px;
+  font-family: var(--font-code);
+
+  background: none;
+  border: none;
 }
 
 .logs .wrapper.-focus {
@@ -809,11 +814,11 @@ nav {
 .logs .line .-line-num {
   display: flex;
 
-  user-select: none;
-
   color: var(--color-primary);
 
   font-family: var(--font-code);
+
+  user-select: none;
 }
 
 .line a {
@@ -833,7 +838,6 @@ nav {
   margin-left: 1.5em;
 
   color: var(--color-red-light);
-
   font-size: 14px;
 }
 
@@ -886,8 +890,8 @@ nav {
 .alert-item-attributes {
   max-height: 100px;
   margin: 1em 1em 0 1em;
-  // stylelint-disable-next-line
 
+  // stylelint-disable-next-line
   transition: max-height 1.2s, margin-top 1.2s;
 }
 
@@ -895,15 +899,16 @@ nav {
   width: 500px;
   padding: 1em;
 
-  cursor: pointer;
-
   color: var(--color-text);
-  border-radius: 5px;
-  border-radius: 0;
-  background-color: var(--color-bg-dark);
-  box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
 
   font-size: 14px;
+
+  background-color: var(--color-bg-dark);
+  border-radius: 5px;
+  border-radius: 0;
+  box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
+
+  cursor: pointer;
 }
 
 .alert-container .-title {
@@ -914,13 +919,13 @@ nav {
 
 .alert-container .-message {
   display: flex;
-  overflow-y: auto;
   flex-direction: row;
   justify-content: space-between;
 
   max-height: 3.25em;
   margin-top: 0.25em;
   margin-bottom: 0;
+  overflow-y: auto;
 
   font-size: 0.9em;
 }
@@ -942,9 +947,9 @@ nav {
   margin: 1rem 0;
   padding-bottom: 0.5rem;
 
-  background: var(--color-bg-dark);
-
   font-size: 1rem;
+
+  background: var(--color-bg-dark);
 }
 
 .hooks .loading {
@@ -956,14 +961,14 @@ nav {
 
 .hooks .row.preview {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
 }
 
 .hooks .headers {
   display: flex;
-  align-items: center;
   flex-direction: row;
+  align-items: center;
 
   margin-top: 0.3em;
   padding: 0.3em 1rem;
@@ -974,9 +979,9 @@ nav {
 .hooks .header {
   flex: 1;
 
-  text-align: center;
-
   font-size: 1.2rem;
+
+  text-align: center;
 }
 
 .hook-status {
@@ -992,13 +997,13 @@ nav {
 }
 
 .hooks .row .cell {
-  align-items: center;
   flex: 1;
+  align-items: center;
   justify-content: center;
 
-  text-align: center;
-
   font-weight: 300;
+
+  text-align: center;
 }
 
 .hooks .source-id {
@@ -1021,7 +1026,6 @@ nav {
 
 .hooks .text {
   flex: 1;
-
   padding: 3px 12px;
 
   text-align: center;
@@ -1049,10 +1053,10 @@ nav {
   width: 100%;
   padding: 0.4em 1em;
 
+  font-size: 14px;
+
   border-bottom: 1px solid var(--color-bg-light);
   border-left: 2px solid var(--color-bg-light);
-
-  font-size: 14px;
 }
 
 .hooks .info:last-child {
@@ -1169,7 +1173,7 @@ nav {
 .notice {
   padding: 1rem;
 
-  background: var(--color-bg-light);
-
   font-size: 1rem;
+
+  background: var(--color-bg-light);
 }
