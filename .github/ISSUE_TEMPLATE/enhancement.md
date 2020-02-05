@@ -4,10 +4,7 @@ about: Suggest an enhancement for an existing feature
 title: ''
 labels: enhancement
 assignees: ''
-
----
-
-## Description
+---## Description
 
 _What is your idea?_
 
@@ -19,7 +16,7 @@ _Why is this important? Who does it impact? Will this make something better, fas
 
 _What is the end goal of this story?_
 
-## Effort  (Optional)
+## Effort (Optional)
 
 _Estimated effort to complete this story? (Best Guess e.g. 1-2 days)_
 
