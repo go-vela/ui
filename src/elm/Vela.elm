@@ -223,7 +223,7 @@ decodeCurrentUser =
         |> required "id" int
         |> required "name" string
         |> required "token" string
-        |> required "favorites" (Decode.list string)
+        |> optional "favorites" (Decode.list string) []
         |> required "active" bool
         |> required "admin" bool
 
