@@ -13,7 +13,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, FocusFragment, Org, Repo)
+import Vela exposing (AuthParams, BuildNumber, Event, FocusFragment, Org, Repo)
 
 
 
@@ -25,7 +25,7 @@ type Route
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
-    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | Login
     | Logout
@@ -47,7 +47,7 @@ routes =
         , parseAuth
         , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
         , map Settings (string </> string </> s "settings")
-        , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page")
+        , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Build (string </> string </> string </> fragment identity)
         , map NotFound (s "404")
         ]
@@ -87,8 +87,8 @@ routeToUrl route =
         Settings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
-        RepositoryBuilds org repo maybePage maybePerPage ->
-            "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
+        RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
+            "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ])
 
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)

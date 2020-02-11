@@ -550,7 +550,7 @@ update msg model =
                             String.join "/" [ "", org, repo, newBuildNumber ]
                     in
                     ( model
-                    , getBuilds model org repo Nothing Nothing
+                    , getBuilds model org repo Nothing Nothing Nothing
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
 
@@ -980,12 +980,12 @@ refreshPage model _ =
             model.page
     in
     case page of
-        Pages.RepositoryBuilds org repo maybePage maybePerPage ->
-            getBuilds model org repo maybePage maybePerPage
+        Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
+            getBuilds model org repo maybePage maybePerPage maybeEvent
 
         Pages.Build org repo buildNumber _ ->
             Cmd.batch
-                [ getBuilds model org repo Nothing Nothing
+                [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber
                 , refreshLogs model org repo buildNumber model.steps Nothing
@@ -1524,8 +1524,8 @@ loadSettingsPage model org repo =
     loadRepoBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
 -}
-loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
-loadRepoBuildsPage model org repo _ maybePage maybePerPage =
+loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
+loadRepoBuildsPage model org repo _ maybePage maybePerPage maybeEvent =
     let
         -- Builds already loaded
         loadedBuilds =
@@ -1536,9 +1536,9 @@ loadRepoBuildsPage model org repo _ maybePage maybePerPage =
             { loadedBuilds | org = org, repo = repo, builds = Loading }
     in
     -- Fetch builds from Api
-    ( { model | page = Pages.RepositoryBuilds org repo maybePage maybePerPage, builds = loadingBuilds }
+    ( { model | page = Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, builds = loadingBuilds }
     , Cmd.batch
-        [ getBuilds model org repo maybePage maybePerPage
+        [ getBuilds model org repo maybePage maybePerPage maybeEvent
         , getCurrentUser model
         ]
     )
@@ -1571,7 +1571,7 @@ loadBuildPage model org repo buildNumber focusFragment =
         , logs = []
       }
     , Cmd.batch
-        [ getBuilds model org repo Nothing Nothing
+        [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
         , getAllBuildSteps model org repo buildNumber focusFragment
         ]
@@ -1844,9 +1844,9 @@ getRepo model org repo =
     Api.try RepoResponse <| Api.getRepo model org repo
 
 
-getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
-getBuilds model org repo maybePage maybePerPage =
-    Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage org repo
+getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
+getBuilds model org repo maybePage maybePerPage maybeEvent =
+    Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
 
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
