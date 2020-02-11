@@ -26,6 +26,7 @@ import Html
         , a
         , details
         , div
+        , em
         , span
         , summary
         , text
@@ -390,13 +391,13 @@ recentBuildTooltip : Posix -> Zone -> Build -> Html msg
 recentBuildTooltip now timezone build =
     div [ class "recent-build-tooltip", Util.testAttribute "build-history-tooltip" ]
         [ div [ class "info" ]
-            [ div [ class "line", class "header" ]
+            [ div [ class "line" ]
                 [ span [ class "number" ] [ text <| String.fromInt build.number ]
-                , span [ class "event" ] [ text build.event ]
+                , em [] [ text build.event ]
                 ]
-            , div [ class "line" ] [ span [ class "label" ] [ text "started:" ], span [ class "content" ] [ text <| Util.dateToHumanReadable timezone build.started ] ]
-            , div [ class "line" ] [ span [ class "label" ] [ text "finished:" ], span [ class "content" ] [ text <| Util.dateToHumanReadable timezone build.finished ] ]
-            , div [ class "line" ] [ span [ class "label" ] [ text "duration:" ], span [ class "content" ] [ text <| Util.formatRunTime now build.started build.finished ] ]
+            , div [ class "line" ] [ span [] [ text "started:" ], text <| Util.dateToHumanReadable timezone build.started ]
+            , div [ class "line" ] [ span [] [ text "finished:" ], text <| Util.dateToHumanReadable timezone build.finished ]
+            , div [ class "line" ] [ span [] [ text "duration:" ], text <| Util.formatRunTime now build.started build.finished ]
             ]
         ]
 

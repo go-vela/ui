@@ -662,12 +662,6 @@ nav {
   justify-content: space-between;
 }
 
-.recent-build-tooltip .header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
 .recent-build-tooltip .number {
   margin-right: 0.5em;
 
@@ -679,17 +673,7 @@ nav {
 .recent-build-tooltip .info {
   padding: 0.2em 0.6em;
 
-  font-size: 14px;
-}
-
-.recent-build-tooltip .label {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-}
-
-.recent-build-tooltip .event {
-  font-style: italic;
+  font-size: 0.9rem;
 }
 
 .steps {
