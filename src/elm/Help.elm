@@ -9,7 +9,6 @@ module Help exposing (view)
 import FeatherIcons
 import Html exposing (Html, button, code, details, div, li, summary, text)
 import Html.Attributes exposing (attribute, class, id)
-import Html.Events exposing (onClick)
 import Pages exposing (Page(..))
 import Svg.Attributes
 import Util
@@ -26,16 +25,15 @@ type alias Commands =
     List Command
 
 
-view : Page -> Bool -> (Maybe Bool -> msg) -> msg -> Html msg
-view page show showHideHelp noOp =
+view : Page -> Bool -> msg -> Html msg
+view page show noOp =
     li
-        [ id "contextual-help-parent"
+        [ id "contextual-help"
         ]
         [ details
             [ class "details"
             , class "contextual-help"
             , class "-no-pad"
-            , id "contextual-help-details"
             , attribute "role" "button"
             , Util.open show
             , Util.onClickPreventDefault noOp
@@ -43,50 +41,46 @@ view page show showHideHelp noOp =
             [ summary
                 [ class "summary"
                 , class "-no-pad"
-                , id "contextual-help-summary"
                 ]
                 [ FeatherIcons.terminal
                     |> FeatherIcons.withSize 18
                     |> FeatherIcons.toHtml [ Svg.Attributes.id "contextual-help-icon" ]
                 ]
-            , cliHelp (pageToHelp page) noOp
+            , cliHelp <| pageToHelp page
             ]
         ]
 
 
-cliHelp : Commands -> msg -> Html msg
-cliHelp commands noOp =
+cliHelp : Commands -> Html msg
+cliHelp commands =
     div
         [ class "contextual-help-tooltip"
-        , id "contextual-help-tooltip"
         ]
     <|
-        [ div [ class "-arrow", id "contextual-help-arrow" ] []
-        , div [ class "-header", id "contextual-help-header" ] [ code [] [ text "View this page using the CLI" ] ]
+        [ div [ class "-arrow" ] []
+        , div [ class "-header" ] [ code [] [ text "View this page using the CLI" ] ]
         ]
-            ++ List.map (toHelp noOp) commands
+            ++ List.map toHelp commands
 
 
-toHelp : msg -> Command -> Html msg
-toHelp noOp command =
-    div [ id "contextual-help-content" ]
+toHelp : Command -> Html msg
+toHelp command =
+    div []
         [ text command.name
-        , code [ class "-command", id "contextual-help-code" ] [ text command.content ]
+        , code [ class "-command" ] [ text command.content ]
         , copyButton
             [ Util.testAttribute "contextual-help"
             , attribute "aria-label" "view cli command for this page"
             , class "button"
             , class "-icon"
             , class "-white"
-            , id "contextual-help-copy-button"
             ]
             command.content
-            noOp
         ]
 
 
-copyButton : List (Html.Attribute msg) -> String -> msg -> Html msg
-copyButton attributes copyText noOp =
+copyButton : List (Html.Attribute msg) -> String -> Html msg
+copyButton attributes copyText =
     button
         (attributes
             ++ [ class "copy-button"
@@ -97,7 +91,7 @@ copyButton attributes copyText noOp =
         )
         [ FeatherIcons.copy
             |> FeatherIcons.withSize 18
-            |> FeatherIcons.toHtml [ Svg.Attributes.id "contextual-help-copy-icon" ]
+            |> FeatherIcons.toHtml []
         ]
 
 

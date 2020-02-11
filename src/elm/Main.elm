@@ -1419,7 +1419,7 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, page, showHelp } =
                 [ li [] [ viewThemeToggle theme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
                 , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , Help.view page showHelp ShowHideHelp NoOp
+                , Help.view page showHelp NoOp
                 ]
             ]
         ]
