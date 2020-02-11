@@ -27,9 +27,11 @@ import Html
         , details
         , div
         , em
+        , li
         , span
         , summary
         , text
+        , ul
         )
 import Html.Attributes
     exposing
@@ -317,7 +319,7 @@ viewBuildHistory now timezone page org repo builds limit =
         case builds of
             RemoteData.Success blds ->
                 if List.length blds > 0 then
-                    div [ class "build-history", Util.testAttribute "build-history" ] <|
+                    ul [ class "build-history", class "-no-pad", Util.testAttribute "build-history" ] <|
                         List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
                             List.take limit blds
 
@@ -344,7 +346,7 @@ viewBuildHistory now timezone page org repo builds limit =
 -}
 viewRecentBuild : Posix -> Zone -> Org -> Repo -> Int -> Int -> Build -> Html msg
 viewRecentBuild now timezone org repo buildNumber idx build =
-    div [ class "recent-build" ]
+    li [ class "recent-build" ]
         [ recentBuildLink org repo buildNumber build idx
         , recentBuildTooltip now timezone build
         ]
@@ -390,14 +392,14 @@ recentBuildLink org repo buildNumber build idx =
 recentBuildTooltip : Posix -> Zone -> Build -> Html msg
 recentBuildTooltip now timezone build =
     div [ class "recent-build-tooltip", Util.testAttribute "build-history-tooltip" ]
-        [ div [ class "info" ]
-            [ div [ class "line" ]
+        [ ul [ class "info" ]
+            [ li [ class "line" ]
                 [ span [ class "number" ] [ text <| String.fromInt build.number ]
                 , em [] [ text build.event ]
                 ]
-            , div [ class "line" ] [ span [] [ text "started:" ], text <| Util.dateToHumanReadable timezone build.started ]
-            , div [ class "line" ] [ span [] [ text "finished:" ], text <| Util.dateToHumanReadable timezone build.finished ]
-            , div [ class "line" ] [ span [] [ text "duration:" ], text <| Util.formatRunTime now build.started build.finished ]
+            , li [ class "line" ] [ span [] [ text "started:" ], text <| Util.dateToHumanReadable timezone build.started ]
+            , li [ class "line" ] [ span [] [ text "finished:" ], text <| Util.dateToHumanReadable timezone build.finished ]
+            , li [ class "line" ] [ span [] [ text "duration:" ], text <| Util.formatRunTime now build.started build.finished ]
             ]
         ]
 
