@@ -6,12 +6,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Help exposing (view)
 
-import Dict exposing (Dict)
 import FeatherIcons
-import Html exposing (Html, button, code, details, div, input, li, summary, text)
-import Html.Attributes exposing (attribute, class, id, type_, value)
+import Html exposing (Html, button, code, details, div, li, summary, text)
+import Html.Attributes exposing (attribute, class, id)
 import Html.Events exposing (onClick)
 import Pages exposing (Page(..))
+import Svg.Attributes
 import Util
 import Vela exposing (BuildNumber, Org, Repo)
 
@@ -26,78 +26,78 @@ type alias Commands =
     List Command
 
 
-view : Page -> Bool -> msg -> Html msg
-view page show toggle =
-    li [ class "contextual-help" ]
-        [ details [ class "details", class "-no-pad", attribute "role" "button", Util.open show, onClick toggle ]
-            [ summary [ class "summary", class "-no-pad" ]
-                [ FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml []
+view : Page -> Bool -> (Maybe Bool -> msg) -> msg -> Html msg
+view page show showHideHelp noOp =
+    li
+        [ id "contextual-help-parent"
+        ]
+        [ details
+            [ class "details"
+            , class "contextual-help"
+            , class "-no-pad"
+            , id "contextual-help-details"
+            , attribute "role" "button"
+            , Util.open show
+            , Util.onClickPreventDefault noOp
+            ]
+            [ summary
+                [ class "summary"
+                , class "-no-pad"
+                , id "contextual-help-summary"
                 ]
-            , cliHelp show <| pageToHelp page
+                [ FeatherIcons.terminal
+                    |> FeatherIcons.withSize 18
+                    |> FeatherIcons.toHtml [ Svg.Attributes.id "contextual-help-icon" ]
+                ]
+            , cliHelp (pageToHelp page) noOp
             ]
         ]
 
 
-
--- details [ class "details", class "-marker-right", class "-no-pad", class "identity-name", attribute "role" "navigation" ]
---     [ summary [ class "summary" ]
---         [ text session.username
---         , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
---         ]
---     , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
---         [ li [ class "identity-menu-item" ]
---             [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
---         ]
---     ]
--- button
---     [ Util.testAttribute "contextual-help"
---     , onClick toggle
---     , attribute "aria-label" "view cli command for this page"
---     , class "button"
---     , class "-icon"
---     , class "-white"
---     , class "contextual-help-button"
---     ]
---     [ FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [] ]
--- , cliHelp show <| pageToHelp page
-
-
-cliHelp : Bool -> Commands -> Html msg
-cliHelp show commands =
-    div [ class "contextual-help-tooltip" ] <|
-        [ div [ class "-arrow" ] []
-        , div [ class "-header" ] [ code [] [ text "View this page using the CLI" ] ]
+cliHelp : Commands -> msg -> Html msg
+cliHelp commands noOp =
+    div
+        [ class "contextual-help-tooltip"
+        , id "contextual-help-tooltip"
         ]
-            ++ List.map toHelp commands
+    <|
+        [ div [ class "-arrow", id "contextual-help-arrow" ] []
+        , div [ class "-header", id "contextual-help-header" ] [ code [] [ text "View this page using the CLI" ] ]
+        ]
+            ++ List.map (toHelp noOp) commands
 
 
-toHelp : Command -> Html msg
-toHelp command =
-    div []
+toHelp : msg -> Command -> Html msg
+toHelp noOp command =
+    div [ id "contextual-help-content" ]
         [ text command.name
-        , code [ class "-command" ] [ text command.content ]
+        , code [ class "-command", id "contextual-help-code" ] [ text command.content ]
         , copyButton
             [ Util.testAttribute "contextual-help"
             , attribute "aria-label" "view cli command for this page"
             , class "button"
             , class "-icon"
             , class "-white"
+            , id "contextual-help-copy-button"
             ]
             command.content
+            noOp
         ]
 
 
-copyButton : List (Html.Attribute msg) -> String -> Html msg
-copyButton attributes copyText =
+copyButton : List (Html.Attribute msg) -> String -> msg -> Html msg
+copyButton attributes copyText noOp =
     button
         (attributes
             ++ [ class "copy-button"
                , attribute "data-clipboard-text" copyText
+
+               --    , Util.onClickStopPropogation <| noOp
                ]
         )
         [ FeatherIcons.copy
             |> FeatherIcons.withSize 18
-            |> FeatherIcons.toHtml []
+            |> FeatherIcons.toHtml [ Svg.Attributes.id "contextual-help-copy-icon" ]
         ]
 
 

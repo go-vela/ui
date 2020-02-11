@@ -18,6 +18,7 @@ module Util exposing
     , largeLoader
     , millisToSeconds
     , onClickPreventDefault
+    , onClickStopPropogation
     , oneSecondMillis
     , open
     , pluralize
@@ -281,3 +282,10 @@ pluralize num str =
 onClickPreventDefault : msg -> Html.Attribute msg
 onClickPreventDefault message =
     custom "click" (Decode.succeed { message = message, stopPropagation = False, preventDefault = True })
+
+
+{-| onClickStopPropogation : returns custom onClick handler for calling javascript function stopPropogation()
+-}
+onClickStopPropogation : msg -> Html.Attribute msg
+onClickStopPropogation message =
+    custom "click" (Decode.succeed { message = message, stopPropagation = True, preventDefault = False })

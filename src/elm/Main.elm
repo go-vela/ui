@@ -286,7 +286,7 @@ type Msg
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
-    | ShowHideHelp
+    | ShowHideHelp (Maybe Bool)
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -371,8 +371,20 @@ update msg model =
             , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
             )
 
-        ShowHideHelp ->
-            ( { model | showHelp = not model.showHelp }
+        ShowHideHelp show ->
+            let
+                _ =
+                    Debug.log "Triggering Elm Tooltip Toggle" show
+            in
+            ( { model
+                | showHelp =
+                    case show of
+                        Just s ->
+                            s
+
+                        Nothing ->
+                            not model.showHelp
+              }
             , Cmd.none
             )
 
@@ -933,6 +945,8 @@ subscriptions model =
     Sub.batch <|
         [ Interop.onSessionChange decodeOnSessionChange
         , Interop.onThemeChange decodeOnThemeChange
+        , onMouseDownCollapseDropdowns model
+        , onMouseDownRedirect model
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
@@ -1151,6 +1165,85 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
         Cmd.none
 
 
+{-| onMouseDownRedirect : takes model and subscribes to onMouseDown events to execute specific functionality
+-}
+onMouseDownRedirect : Model -> Sub Msg
+onMouseDownRedirect model =
+    Browser.Events.onMouseDown <| determineClickTarget model
+
+
+{-| onMouseDownCollapseDropdowns : takes model and subscribes to onMouseDown events to execute specific functionality
+-}
+onMouseDownCollapseDropdowns : Model -> Sub Msg
+onMouseDownCollapseDropdowns model =
+    if model.showHelp then
+        Browser.Events.onMouseDown (outsideTarget "contextual-help-parent")
+
+    else
+        Sub.none
+
+
+isOutsideDropdown : String -> Decode.Decoder Bool
+isOutsideDropdown dropdownId =
+    Decode.oneOf
+        [ Decode.field "id" Decode.string
+            |> Decode.andThen
+                (\id ->
+                    if dropdownId == id then
+                        -- found match by id
+                        Decode.succeed False
+
+                    else
+                        -- try next decoder
+                        Decode.fail "continue"
+                )
+        , Decode.lazy (\_ -> isOutsideDropdown dropdownId |> Decode.field "parentNode")
+
+        -- fallback if all previous decoders failed
+        , Decode.succeed True
+        ]
+
+
+outsideTarget : String -> Decode.Decoder Msg
+outsideTarget dropdownId =
+    Decode.field "target" (isOutsideDropdown dropdownId)
+        |> Decode.andThen
+            (\isOutside ->
+                if isOutside then
+                    Decode.succeed <| ShowHideHelp <| Just False
+
+                else
+                    Decode.fail "inside dropdown"
+            )
+
+
+clickTarget : Decode.Decoder String
+clickTarget =
+    Decode.oneOf
+        [ Decode.field "id" Decode.string
+            |> Decode.andThen Decode.succeed
+        , Decode.succeed ""
+        ]
+
+
+determineClickTarget : Model -> Decode.Decoder Msg
+determineClickTarget model =
+    Decode.field "target" clickTarget
+        |> Decode.andThen
+            dispatchClickEvent
+
+
+dispatchClickEvent : String -> Decode.Decoder Msg
+dispatchClickEvent id =
+    Decode.succeed <|
+        case id of
+            "contextual-help-icon" ->
+                ShowHideHelp Nothing
+
+            _ ->
+                NoOp
+
+
 
 -- VIEW
 
@@ -1326,7 +1419,7 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, page, showHelp } =
                 [ li [] [ viewThemeToggle theme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
                 , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , Help.view page showHelp ShowHideHelp
+                , Help.view page showHelp ShowHideHelp NoOp
                 ]
             ]
         ]
