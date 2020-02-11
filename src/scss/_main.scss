@@ -553,13 +553,30 @@ nav {
   display: flex;
   flex-direction: row;
   align-items: center;
+
+  &.-no-pad {
+    padding: 0;
+    margin: 0;
+  }
 }
 
 .recent-build {
   position: relative;
+
+  display: flex;
+  /* stop container from blocking child links */
+  pointer-events: none;
 }
 
-.recent-build.-current > svg {
+.recent-build-link {
+  /* 
+    maintain link functionality when 
+    using pointer-events: none; on the container
+  */
+  pointer-events: initial;
+}
+
+.recent-build-link.-current {
   transform: translateX(5px);
 
   transition: transform 0.1s;
@@ -567,7 +584,7 @@ nav {
   will-change: transform;
 }
 
-.recent-build.-older > svg {
+.recent-build-link.-older {
   transform: translateX(10px);
 
   transition: transform 0.1s;
@@ -575,7 +592,7 @@ nav {
   will-change: transform;
 }
 
-.build-history .recent-build .-icon {
+.build-history .recent-build-link .-icon {
   fill: none;
   stroke: var(--color-bg);
 
@@ -600,10 +617,10 @@ nav {
   }
 }
 
-.recent-build .tooltip {
+.recent-build-tooltip {
   position: absolute;
-  top: 125%;
-  // not sure what to here to display the tooltip on top!
+  top: calc(100% + 10px);
+
   z-index: 9999;
 
   display: flex;
@@ -624,15 +641,15 @@ nav {
   visibility: hidden;
 }
 
-.recent-build:hover .tooltip,
-.recent-build:focus .tooltip {
+.recent-build:hover .recent-build-tooltip,
+.recent-build-link:focus + .recent-build-tooltip {
   visibility: visible;
 }
 
-.recent-build:hover .tooltip::after,
-.recent-build:focus .tooltip::after {
+.recent-build:hover .recent-build-tooltip::after,
+.recent-build-link:focus .recent-build-tooltip::after {
   position: absolute;
-  bottom: 100%; /* At the top of the tooltip */
+  bottom: 100%;
 
   margin-left: 0.5em;
 
@@ -644,31 +661,13 @@ nav {
   content: ' ';
 }
 
-.build-history .recent-build .-info {
-  padding: 0.2em 0.6em;
-
-  font-size: 14px;
-}
-
-.build-history .recent-build .-line {
+.recent-build-tooltip .line {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
-.build-history .-line.-header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.build-history .-label {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-}
-
-.build-history .recent-build .-number {
+.recent-build-tooltip .number {
   margin-right: 0.5em;
 
   &:before {
@@ -676,8 +675,10 @@ nav {
   }
 }
 
-.build-history .recent-build .-event {
-  font-style: italic;
+.recent-build-tooltip .info {
+  padding: 0.2em 0.6em;
+
+  font-size: 0.9rem;
 }
 
 .steps {
