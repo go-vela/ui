@@ -38,7 +38,7 @@ context('Build', () => {
     });
 
     it('clicking build history item should redirect to build page', () => {
-      cy.get('@buildHistory')
+      cy.get('[data-test=recent-build-link-1]')
         .children()
         .last()
         .click();
@@ -87,7 +87,7 @@ context('Build', () => {
       });
 
       it('clicking build history item should redirect to build page', () => {
-        cy.get('@buildHistory')
+        cy.get('[data-test=recent-build-link-1]')
           .children()
           .last()
           .click();
