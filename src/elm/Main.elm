@@ -945,8 +945,7 @@ subscriptions model =
     Sub.batch <|
         [ Interop.onSessionChange decodeOnSessionChange
         , Interop.onThemeChange decodeOnThemeChange
-        , onMouseDownCollapseDropdowns model
-        , onMouseDownRedirect model
+        , onMouseDown model
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
@@ -1165,76 +1164,39 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
         Cmd.none
 
 
-{-| onMouseDownRedirect : takes model and subscribes to onMouseDown events to execute specific functionality
+{-| onMouseDown : takes model and returns subscriptions for handling onMouseDown events at the browser level
 -}
-onMouseDownRedirect : Model -> Sub Msg
-onMouseDownRedirect model =
-    Browser.Events.onMouseDown <| determineClickTarget model
+onMouseDown : Model -> Sub Msg
+onMouseDown model =
+    Sub.batch
+        [ Browser.Events.onMouseDown onMouseDownOverrides
+        , if model.showHelp then
+            Browser.Events.onMouseDown (outsideTarget "contextual-help" <| ShowHideHelp <| Just False)
 
-
-{-| onMouseDownCollapseDropdowns : takes model and subscribes to onMouseDown events to execute specific functionality
--}
-onMouseDownCollapseDropdowns : Model -> Sub Msg
-onMouseDownCollapseDropdowns model =
-    if model.showHelp then
-        Browser.Events.onMouseDown (outsideTarget "contextual-help-parent")
-
-    else
-        Sub.none
-
-
-isOutsideDropdown : String -> Decode.Decoder Bool
-isOutsideDropdown dropdownId =
-    Decode.oneOf
-        [ Decode.field "id" Decode.string
-            |> Decode.andThen
-                (\id ->
-                    if dropdownId == id then
-                        -- found match by id
-                        Decode.succeed False
-
-                    else
-                        -- try next decoder
-                        Decode.fail "continue"
-                )
-        , Decode.lazy (\_ -> isOutsideDropdown dropdownId |> Decode.field "parentNode")
-
-        -- fallback if all previous decoders failed
-        , Decode.succeed True
+          else
+            Sub.none
         ]
 
 
-outsideTarget : String -> Decode.Decoder Msg
-outsideTarget dropdownId =
-    Decode.field "target" (isOutsideDropdown dropdownId)
+{-| onMouseDownOverrides : returns decoder for manually dispatching click events via id, specified in idToMouseDownEvent
+-}
+onMouseDownOverrides : Decode.Decoder Msg
+onMouseDownOverrides =
+    Decode.field "target"
+        (Decode.oneOf
+            [ Decode.field "id" Decode.string
+                |> Decode.andThen Decode.succeed
+            , Decode.succeed ""
+            ]
+        )
         |> Decode.andThen
-            (\isOutside ->
-                if isOutside then
-                    Decode.succeed <| ShowHideHelp <| Just False
-
-                else
-                    Decode.fail "inside dropdown"
-            )
+            idToMouseDownEvent
 
 
-clickTarget : Decode.Decoder String
-clickTarget =
-    Decode.oneOf
-        [ Decode.field "id" Decode.string
-            |> Decode.andThen Decode.succeed
-        , Decode.succeed ""
-        ]
-
-
-determineClickTarget : Model -> Decode.Decoder Msg
-determineClickTarget model =
-    Decode.field "target" clickTarget
-        |> Decode.andThen
-            dispatchClickEvent
-
-
-dispatchClickEvent : String -> Decode.Decoder Msg
-dispatchClickEvent id =
+{-| idToMouseDownEvent : returns decoder for manually dispatching click events via id
+-}
+idToMouseDownEvent : String -> Decode.Decoder Msg
+idToMouseDownEvent id =
     Decode.succeed <|
         case id of
             "contextual-help-icon" ->
@@ -1242,6 +1204,44 @@ dispatchClickEvent id =
 
             _ ->
                 NoOp
+
+
+{-| outsideTarget : returns decoder for handling clicks that occur from outside the currently focused/open dropdown
+-}
+outsideTarget : String -> Msg -> Decode.Decoder Msg
+outsideTarget targetId msg =
+    Decode.field "target" (isOutsideTarget targetId)
+        |> Decode.andThen
+            (\isOutside ->
+                if isOutside then
+                    Decode.succeed msg
+
+                else
+                    Decode.fail "inside dropdown"
+            )
+
+
+{-| isOutsideTarget : returns decoder for determining if click target occurred from within a specified element
+-}
+isOutsideTarget : String -> Decode.Decoder Bool
+isOutsideTarget targetId =
+    Decode.oneOf
+        [ Decode.field "id" Decode.string
+            |> Decode.andThen
+                (\id ->
+                    if targetId == id then
+                        -- found match by id
+                        Decode.succeed False
+
+                    else
+                        -- try next decoder
+                        Decode.fail "continue"
+                )
+        , Decode.lazy (\_ -> isOutsideTarget targetId |> Decode.field "parentNode")
+
+        -- fallback if all previous decoders failed
+        , Decode.succeed True
+        ]
 
 
 

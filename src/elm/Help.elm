@@ -85,8 +85,6 @@ copyButton attributes copyText =
         (attributes
             ++ [ class "copy-button"
                , attribute "data-clipboard-text" copyText
-
-               --    , Util.onClickStopPropogation <| noOp
                ]
         )
         [ FeatherIcons.copy
@@ -97,12 +95,36 @@ copyButton attributes copyText =
 
 builds : Org -> Repo -> Command
 builds org repo =
-    Command "list builds" <| "vela get builds --org " ++ org ++ " --repo " ++ repo
+    let
+        label =
+            "list builds"
+
+        command =
+            "vela get builds " ++ repoArgs org repo
+    in
+    Command label command
 
 
 build : Org -> Repo -> BuildNumber -> Command
 build org repo buildNumber =
-    Command "get build" <| "vela get build --org " ++ org ++ " --repo " ++ repo ++ " --build " ++ buildNumber
+    let
+        label =
+            "get build"
+
+        command =
+            "vela get build " ++ buildArgs org repo buildNumber
+    in
+    Command label command
+
+
+repoArgs : Org -> Repo -> String
+repoArgs org repo =
+    "--org " ++ org ++ " --repo " ++ repo
+
+
+buildArgs : Org -> Repo -> BuildNumber -> String
+buildArgs org repo buildNumber =
+    repoArgs org repo ++ " --build " ++ buildNumber
 
 
 unknown : Command
