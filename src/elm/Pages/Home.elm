@@ -200,7 +200,7 @@ viewFavorite favorites toggleFavorite favorite =
             , a
                 [ class "button"
                 , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing
+                , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
                 ]
                 [ text "View" ]
             ]

@@ -100,6 +100,7 @@ import Vela
         , EnableRepos
         , EnableRepositoryPayload
         , Enabling(..)
+        , Event
         , Field
         , FocusFragment
         , HookBuilds
@@ -757,7 +758,7 @@ update msg model =
 
         GotoPage pageNumber ->
             case model.page of
-                Pages.RepositoryBuilds org repo _ maybePerPage ->
+                Pages.RepositoryBuilds org repo _ maybePerPage maybeEvent ->
                     let
                         currentBuilds =
                             model.builds
@@ -765,7 +766,7 @@ update msg model =
                         loadingBuilds =
                             { currentBuilds | builds = Loading }
                     in
-                    ( { model | builds = loadingBuilds }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage )
+                    ( { model | builds = loadingBuilds }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent )
 
                 Pages.Hooks org repo _ maybePerPage ->
                     let
@@ -1214,7 +1215,7 @@ viewContent model =
             , lazy3 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
             )
 
-        Pages.RepositoryBuilds org repo maybePage _ ->
+        Pages.RepositoryBuilds org repo maybePage _ _ ->
             let
                 page : String
                 page =
@@ -1400,13 +1401,13 @@ setNewPage route model =
         ( Routes.Settings org repo, True ) ->
             loadSettingsPage model org repo
 
-        ( Routes.RepositoryBuilds org repo maybePage maybePerPage, True ) ->
+        ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
             let
                 currentSession : Session
                 currentSession =
                     Maybe.withDefault defaultSession model.session
             in
-            loadRepoBuildsPage model org repo currentSession maybePage maybePerPage
+            loadRepoBuildsPage model org repo currentSession maybePage maybePerPage maybeEvent
 
         ( Routes.Build org repo buildNumber logFocus, True ) ->
             case model.page of
