@@ -75,6 +75,7 @@ module Vela exposing
     , encodeTheme
     , encodeUpdateRepository
     , encodeUpdateUser
+    , isComplete
     , stringToTheme
     )
 
@@ -662,6 +663,24 @@ toStatus status =
 
         _ ->
             succeed Error
+
+
+{-| isComplete : helper to determine if status is 'complete'
+-}
+isComplete : Status -> Bool
+isComplete status =
+    case status of
+        Success ->
+            True
+
+        Failure ->
+            True
+
+        Error ->
+            True
+
+        _ ->
+            False
 
 
 

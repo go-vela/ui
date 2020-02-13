@@ -138,6 +138,7 @@ import Vela
         , encodeTheme
         , encodeUpdateRepository
         , encodeUpdateUser
+        , isComplete
         , stringToTheme
         )
 
@@ -1042,18 +1043,20 @@ refreshBuildSteps model org repo buildNumber =
                 Success steps ->
                     Cmd.batch <|
                         List.map
-                            (\step -> getBuildStep model org repo buildNumber <| String.fromInt step.number)
+                            (\step ->
+                                if isComplete step.status then
+                                    getBuildStep model org repo buildNumber <| String.fromInt step.number
+
+                                else
+                                    Cmd.none
+                            )
                         <|
                             filterCompletedSteps steps
 
                 _ ->
                     Cmd.none
     in
-    if shouldRefresh model.build then
-        refresh
-
-    else
-        Cmd.none
+    refresh
 
 
 {-| refreshHookBuilds : takes model org and repo and refreshes the hook builds being viewed by the user
@@ -1081,16 +1084,7 @@ shouldRefresh : WebData Build -> Bool
 shouldRefresh build =
     case build of
         Success bld ->
-            case bld.status of
-                -- Do not refresh a build in success or failure state
-                Vela.Success ->
-                    False
-
-                Vela.Failure ->
-                    False
-
-                _ ->
-                    True
+            not <| isComplete bld.status
 
         NotAsked ->
             True
