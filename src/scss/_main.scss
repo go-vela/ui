@@ -553,13 +553,30 @@ nav {
   display: flex;
   flex-direction: row;
   align-items: center;
+
+  &.-no-pad {
+    padding: 0;
+    margin: 0;
+  }
 }
 
 .recent-build {
   position: relative;
+
+  display: flex;
+  /* stop container from blocking child links */
+  pointer-events: none;
 }
 
-.recent-build.-current {
+.recent-build-link {
+  /* 
+    maintain link functionality when 
+    using pointer-events: none; on the container
+  */
+  pointer-events: initial;
+}
+
+.recent-build-link.-current {
   transform: translateX(5px);
 
   transition: transform 0.1s;
@@ -567,7 +584,7 @@ nav {
   will-change: transform;
 }
 
-.recent-build.-older {
+.recent-build-link.-older {
   transform: translateX(10px);
 
   transition: transform 0.1s;
@@ -575,7 +592,7 @@ nav {
   will-change: transform;
 }
 
-.build-history .recent-build .-icon {
+.build-history .recent-build-link .-icon {
   fill: none;
   stroke: var(--color-bg);
 
@@ -600,10 +617,10 @@ nav {
   }
 }
 
-.recent-build .tooltip {
+.recent-build-tooltip {
   position: absolute;
-  top: 125%;
-  // not sure what to here to display the tooltip on top!
+  top: calc(100% + 10px);
+
   z-index: 9999;
 
   display: flex;
@@ -624,15 +641,15 @@ nav {
   visibility: hidden;
 }
 
-.recent-build:hover .tooltip,
-.recent-build:focus .tooltip {
+.recent-build:hover .recent-build-tooltip,
+.recent-build-link:focus + .recent-build-tooltip {
   visibility: visible;
 }
 
-.recent-build:hover .tooltip::after,
-.recent-build:focus .tooltip::after {
+.recent-build:hover .recent-build-tooltip::after,
+.recent-build-link:focus .recent-build-tooltip::after {
   position: absolute;
-  bottom: 100%; /* At the top of the tooltip */
+  bottom: 100%;
 
   margin-left: 0.5em;
 
@@ -644,31 +661,13 @@ nav {
   content: ' ';
 }
 
-.build-history .recent-build .-info {
-  padding: 0.2em 0.6em;
-
-  font-size: 14px;
-}
-
-.build-history .recent-build .-line {
+.recent-build-tooltip .line {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
-.build-history .-line.-header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.build-history .-label {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-}
-
-.build-history .recent-build .-number {
+.recent-build-tooltip .number {
   margin-right: 0.5em;
 
   &:before {
@@ -676,8 +675,10 @@ nav {
   }
 }
 
-.build-history .recent-build .-event {
-  font-style: italic;
+.recent-build-tooltip .info {
+  padding: 0.2em 0.6em;
+
+  font-size: 0.9rem;
 }
 
 .steps {
@@ -1170,16 +1171,91 @@ nav {
   position: relative;
 }
 
-.contextual-help-tooltip .-header {
-  margin: 0px 0px 0px 8px;
+.contextual-help .contextual-help-tooltip {
+  background: var(--color-bg-dark);
+  border: solid var(--line-width) var(--color-bg-light);
+  position: absolute;
+  top:105%;
+  top: calc((100% + .5rem));
+  z-index: 999999;
+  right:0;
+  min-width: 400px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: normal;
+}
+.contextual-help .docs-button {
+  // color: white;
+  margin-left: 4px;
+}
+.contextual-help .copy-button {
+  margin-left: 6px;
+}
+.contextual-help .contextual-help-tooltip .-header {
+  margin-bottom: 6px;
+}
+
+.contextual-help-tooltip div {
+  // margin: 0px 0px 0px 8px;
+}
+
+.contextual-help-tooltip .commands-wrapper {
+  display: flex;
+  justify-content: flex-start;
+}
+.contextual-help-tooltip .commands {
+    display: flex;
+  flex-direction: row;
+}
+.min-height-pls {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.vertical-pls {
+  vertical-align: middle;
+}
+.command-names {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 2;
+  // margin-left: 10px;
+}
+.justify-right {
+  justify-content: flex-end;
+}
+.command-contents {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .contextual-help-tooltip .-command {
+  color: var(--color-offwhite);
   background: var(--color-focus);
+  font-family: var(--font-code);
+  border: none;
+  // padding-left: 8px;
   padding: 4px 8px;
-  margin: 0px 4px;
+  // margin: 0px 4px;
+  // resize: none;
+  // width: 400px;
+  // height: 32px;
+  // overflow: hidden;
 }
-
+.pls-0 {
+  margin-left: 8px;
+  margin-bottom: 8px;
+}
+.pls-1 {
+  margin-bottom: 4px;
+}
+.pls-2 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
 .contextual-help .contextual-help-tooltip .-arrow {
   top: calc((.5rem + 1px) * -1);
 }
@@ -1188,7 +1264,7 @@ nav {
   display: block;
   width: 1rem;
   height: .5rem;
-  margin: 0 .3rem;
+  margin: 0;
   right: 0;
 }
 
@@ -1216,18 +1292,33 @@ nav {
   border-bottom-color: var(--color-bg-light);
 }
 
-.contextual-help .contextual-help-tooltip {
-  background: var(--color-bg-dark);
-  border: solid var(--line-width) var(--color-bg-light);
-  position: absolute;
-  top:105%;
-  top: calc((100% + .5rem));
-  z-index: 999999;
-  right:0;
-  width: 800px;
-  padding: 8px 4px;
-}
+
 
 .contextual-help.details .summary {
   overflow: initial;
+}
+.contextual-help.details[open] .summary + *:first-of-type {
+  margin-top: 0.25rem;
+}
+
+.contextual-help-tooltip .footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-right: 8px;
+  margin-top: 8px;
+  > a {
+    margin-left: 6px;
+  }
+}
+
+.contextual-help-tooltip .footer div {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin-right: 8px;
+  margin-top: 8px;
+  > a {
+    text-align: right;
+    margin-left: 6px;
+  }
 }

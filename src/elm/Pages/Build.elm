@@ -26,9 +26,12 @@ import Html
         , a
         , details
         , div
+        , em
+        , li
         , span
         , summary
         , text
+        , ul
         )
 import Html.Attributes
     exposing
@@ -316,8 +319,8 @@ viewBuildHistory now timezone page org repo builds limit =
         case builds of
             RemoteData.Success blds ->
                 if List.length blds > 0 then
-                    div [ class "build-history", Util.testAttribute "build-history" ] <|
-                        List.indexedMap (\idx -> \b -> viewRecentBuild now timezone org repo buildNumber b idx) <|
+                    ul [ class "build-history", class "-no-pad", Util.testAttribute "build-history" ] <|
+                        List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
                             List.take limit blds
 
                 else
@@ -337,9 +340,25 @@ viewBuildHistory now timezone page org repo builds limit =
 
 
 {-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget
+
+    focusing or hovering the recent build icon will display a build info tooltip
+
 -}
-viewRecentBuild : Posix -> Zone -> Org -> Repo -> Int -> Build -> Int -> Html msg
-viewRecentBuild now timezone org repo buildNumber build idx =
+viewRecentBuild : Posix -> Zone -> Org -> Repo -> Int -> Int -> Build -> Html msg
+viewRecentBuild now timezone org repo buildNumber idx build =
+    li [ class "recent-build" ]
+        [ recentBuildLink org repo buildNumber build idx
+        , recentBuildTooltip now timezone build
+        ]
+
+
+{-| recentBuildLink : takes time info and build and renders line for redirecting to recent build
+
+    focusing and hovering this element will display the tooltip
+
+-}
+recentBuildLink : Org -> Repo -> Int -> Build -> Int -> Html msg
+recentBuildLink org repo buildNumber build idx =
     let
         icon =
             recentBuildStatusToIcon build.status idx
@@ -355,22 +374,32 @@ viewRecentBuild now timezone org repo buildNumber build idx =
                 class ""
     in
     a
-        [ class "recent-build"
+        [ class "recent-build-link"
+        , Util.testAttribute <| "recent-build-link-" ++ String.fromInt buildNumber
         , currentBuildClass
         , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
         ]
         [ icon
-        , div [ class "tooltip", Util.testAttribute "build-history-tooltip" ]
-            [ div [ class "-info" ]
-                [ div [ class "-line", class "-header" ]
-                    [ span [ class "-number" ] [ text <| String.fromInt build.number ]
-                    , span [ class "-event" ] [ text build.event ]
-                    ]
-                , div [ class "-line" ] [ span [ class "-label" ] [ text "started:" ], span [ class "-content" ] [ text <| Util.dateToHumanReadable timezone build.started ] ]
-                , div [ class "-line" ] [ span [ class "-label" ] [ text "finished:" ], span [ class "-content" ] [ text <| Util.dateToHumanReadable timezone build.finished ] ]
-                , div [ class "-line" ] [ span [ class "-label" ] [ text "duration:" ], span [ class "-content" ] [ text <| Util.formatRunTime now build.started build.finished ] ]
+        ]
+
+
+{-| recentBuildTooltip : takes time info and build and renders tooltip for viewing recent build info
+
+    tooltip is visible when the recent build link is focused or hovered
+
+-}
+recentBuildTooltip : Posix -> Zone -> Build -> Html msg
+recentBuildTooltip now timezone build =
+    div [ class "recent-build-tooltip", Util.testAttribute "build-history-tooltip" ]
+        [ ul [ class "info" ]
+            [ li [ class "line" ]
+                [ span [ class "number" ] [ text <| String.fromInt build.number ]
+                , em [] [ text build.event ]
                 ]
+            , li [ class "line" ] [ span [] [ text "started:" ], text <| Util.dateToHumanReadable timezone build.started ]
+            , li [ class "line" ] [ span [] [ text "finished:" ], text <| Util.dateToHumanReadable timezone build.finished ]
+            , li [ class "line" ] [ span [] [ text "duration:" ], text <| Util.formatRunTime now build.started build.finished ]
             ]
         ]
 
