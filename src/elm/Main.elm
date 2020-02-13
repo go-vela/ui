@@ -1044,7 +1044,7 @@ refreshBuildSteps model org repo buildNumber =
                     Cmd.batch <|
                         List.map
                             (\step ->
-                                if isComplete step.status then
+                                if not <| isComplete step.status then
                                     getBuildStep model org repo buildNumber <| String.fromInt step.number
 
                                 else
