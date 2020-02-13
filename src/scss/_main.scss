@@ -646,8 +646,7 @@ nav {
 }
 
 .recent-build:hover .recent-build-tooltip::after,
-.recent-build-link:focus .recent-build-tooltip::after,
-.recent-build-link:focus + .recent-build-tooltip::after {
+.recent-build-link:focus .recent-build-tooltip::after {
   position: absolute;
   bottom: 100%;
 
