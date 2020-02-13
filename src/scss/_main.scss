@@ -641,7 +641,8 @@ nav {
   visibility: hidden;
 }
 
-.recent-build:hover .recent-build-tooltip {
+.recent-build:hover .recent-build-tooltip,
+.recent-build:focus .recent-build-tooltip {
   visibility: visible;
 }
 
