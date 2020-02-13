@@ -646,6 +646,10 @@ nav {
   visibility: visible;
 }
 
+.recent-build:hover .recent-build-tooltip {
+  z-index: 99999;
+}
+
 .recent-build:hover .recent-build-tooltip::after,
 .recent-build-link:focus .recent-build-tooltip::after {
   position: absolute;
