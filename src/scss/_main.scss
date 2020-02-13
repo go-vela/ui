@@ -641,14 +641,22 @@ nav {
   visibility: hidden;
 }
 
-.recent-build:hover .recent-build-tooltip,
-.recent-build-link:focus + .recent-build-tooltip {
+.recent-build:hover .recent-build-tooltip {
+  visibility: visible;
+}
+
+.recent-build .recent-build-link:focus + .recent-build-tooltip {
   visibility: visible;
 }
 
 .recent-build:hover .recent-build-tooltip {
   z-index: 10000; // one more than .recent-build-tooltip z-index
 }
+
+.recent-build:hover ~ .recent-build .recent-build-link:focus + .recent-build-tooltip {
+  visibility: hidden;
+}
+
 
 .recent-build:hover .recent-build-tooltip::after,
 .recent-build-link:focus .recent-build-tooltip::after,
