@@ -642,7 +642,7 @@ nav {
 }
 
 .recent-build:hover .recent-build-tooltip,
-.recent-build-link:focus + .recent-build-tooltip {
+.recent-build:focus .recent-build-tooltip {
   visibility: visible;
 }
 
