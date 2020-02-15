@@ -25,6 +25,7 @@ module SvgBuilder exposing
     , stepRunning
     , stepStatusToIcon
     , stepSuccess
+    , terminal
     , velaLogo
     )
 
@@ -490,4 +491,24 @@ star favorited =
             [ d "M23.1527 26.2212l-1.557-9.0781 6.5957-6.4292-9.115-1.3245L15 1.1298l-4.0764 8.2596-9.115 1.3245 6.5957 6.4292-1.557 9.0781L15 21.9352l8.1527 4.286z"
             ]
             []
+        ]
+
+
+{-| terminal: produces the svg for the contextual help terminal icon
+-}
+terminal : Html msg
+terminal =
+    Svg.svg
+        [ Svg.Attributes.fill "none"
+        , height <| "18"
+        , width <| "18"
+        , Svg.Attributes.stroke "currentColor"
+        , strokeLinecap "round"
+        , Svg.Attributes.strokeLinejoin "round"
+        , strokeWidth <| "2"
+        , viewBox "0 0 24 24"
+        , Svg.Attributes.id "contextual-help-trigger"
+        ]
+        [ Svg.polyline [ Svg.Attributes.id "contextual-help-trigger", Svg.Attributes.points "4 17 10 11 4 5" ] []
+        , Svg.line [ Svg.Attributes.id "contextual-help-trigger", x1 "12", y1 "19", x2 "20", y2 "19" ] []
         ]

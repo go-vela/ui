@@ -288,6 +288,7 @@ type Msg
     | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
+    | Copy String
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -373,10 +374,6 @@ update msg model =
             )
 
         ShowHideHelp show ->
-            let
-                _ =
-                    Debug.log "Triggering Elm Tooltip Toggle" show
-            in
             ( { model
                 | showHelp =
                     case show of
@@ -388,6 +385,10 @@ update msg model =
               }
             , Cmd.none
             )
+
+        Copy _ ->
+            ( model, Cmd.none )
+                |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "" "Copied to your clipboard." Nothing)
 
         EnableRepo repo ->
             let
@@ -1193,7 +1194,7 @@ idToMouseDownEvent : String -> Decode.Decoder Msg
 idToMouseDownEvent id =
     Decode.succeed <|
         case id of
-            "contextual-help-icon" ->
+            "contextual-help-trigger" ->
                 ShowHideHelp Nothing
 
             _ ->
@@ -1413,7 +1414,7 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, page, showHelp } =
                 [ li [] [ viewThemeToggle theme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
                 , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , Help.view page showHelp NoOp
+                , Help.view page showHelp NoOp Copy
                 ]
             ]
         ]

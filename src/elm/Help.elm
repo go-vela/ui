@@ -10,17 +10,18 @@ import Api.Pagination as Pagination
 import FeatherIcons
 import Html exposing (Html, a, button, details, div, input, li, summary, text)
 import Html.Attributes exposing (attribute, class, href, id, size, value)
+import Html.Events
 import Pages exposing (Page(..))
-import Svg.Attributes
+import SvgBuilder
 import Util
 import Vela exposing (BuildNumber, Org, Repo)
 
 
 type alias Command =
     { name : String
-    , content : String
-    , pagination : Maybe String
-    , docs : String
+    , content : Maybe String
+    , docs : Maybe String
+    , issue : Maybe String
     }
 
 
@@ -28,8 +29,12 @@ type alias Commands =
     List Command
 
 
-view : Page -> Bool -> msg -> Html msg
-view page show noOp =
+type alias Copy msg =
+    String -> msg
+
+
+view : Page -> Bool -> msg -> Copy msg -> Html msg
+view page show noOp copyMsg =
     li
         [ id "contextual-help"
         ]
@@ -44,108 +49,108 @@ view page show noOp =
             [ summary
                 [ class "summary"
                 , class "-no-pad"
+                , id "contextual-help-trigger"
                 ]
-                [ FeatherIcons.terminal
-                    |> FeatherIcons.withSize 18
-                    |> FeatherIcons.toHtml [ Svg.Attributes.id "contextual-help-icon" ]
-                ]
-            , cliHelp <| pageToHelp page
+                [ SvgBuilder.terminal ]
+            , cliHelp copyMsg <| pageToHelp page
             ]
         ]
 
 
-cliHelp : Commands -> Html msg
-cliHelp commands =
+cliHelp : Copy msg -> Commands -> Html msg
+cliHelp copyMsg commands =
     div [ class "contextual-help-tooltip" ] <|
         [ div [ class "-arrow" ] []
         , div [ class "-header" ] [ text "Manage Vela resources using the CLI" ]
         ]
-            -- , div [ class "commands-wrapper" ]
-            --     [ div [ class "commands" ]
-            --         [ names commands
-            --         , contents commands
-            --         ]
-            --     ]
-            ++ commandsBody commands
+            ++ commandsBody copyMsg commands
             ++ [ div [ class "footer" ]
-                    [ a [ href "https://go-vela.github.io/docs/cli/install/" ] [ text "CLI Installation Docs" ]
-                    , a [ href "https://go-vela.github.io/docs/cli/authentication/" ] [ text "CLI Authentication Docs" ]
+                    [ a [ href <| docsUrl "install" ] [ text "CLI Installation Docs" ]
+                    , a [ href <| docsUrl "authentication" ] [ text "CLI Authentication Docs" ]
                     ]
                ]
 
 
-commandsBody : Commands -> List (Html msg)
-commandsBody commands =
+commandsBody : Copy msg -> Commands -> List (Html msg)
+commandsBody copyMsg commands =
     if List.length commands /= 0 then
-        List.map toHelp commands
+        List.map (toHelp copyMsg) commands
 
     else
-        [ div [] [ text "" ] ]
+        viewCommand copyMsg "resources on this page not yet supported via the CLI" False
 
 
-toHelp : Command -> Html msg
-toHelp command =
-    div [ class "pls-0" ]
-        [ div [ class "pls-1" ] [ text command.name, docsLink command ]
-        , div [ class "pls-2" ]
-            [ Html.input
-                [ class "-command"
-                , size <| cmdSize command
-                , value command.content
+toHelp : Copy msg -> Command -> Html msg
+toHelp copyMsg command =
+    contents copyMsg command
+
+
+contents : Copy msg -> Command -> Html msg
+contents copyMsg command =
+    case ( command.content, command.issue ) of
+        ( Just content, _ ) ->
+            div [ class "pls-0" ]
+                [ div [ class "pls-1" ] [ text command.name, docsLink command ]
+                , div [ class "pls-2" ] <| viewCommand copyMsg content True
                 ]
-                []
-            , copyButton
-                [ Util.testAttribute "contextual-help"
-                , attribute "aria-label" "view cli command for this page"
-                , class "button"
-                , class "-icon"
-                , class "-white"
+
+        ( Nothing, Just issue ) ->
+            div [ class "pls-0" ]
+                [ div [ class "pls-1" ] [ text command.name, issueLink issue ]
+                , div [ class "pls-2-3" ] viewIssue
                 ]
-                command.content
-            ]
+
+        _ ->
+            text "no commands on this page"
+
+
+viewCommand : Copy msg -> String -> Bool -> List (Html msg)
+viewCommand copyMsg content copy =
+    [ Html.input
+        [ class "-command"
+        , Html.Attributes.type_ "text"
+        , Html.Attributes.readonly True
+        , size <| cmdSize content
+        , value content
         ]
+        []
+    , if copy then
+        copyButton
+            [ Util.testAttribute "contextual-help"
+            , attribute "aria-label" "view cli command for this page"
+            , class "button"
+            , class "-icon"
+            , class "-white"
+            , Html.Events.onClick <| copyMsg content
+            ]
+            content
+
+      else
+        text ""
+    ]
 
 
-names : Commands -> Html msg
-names commands =
-    div [ class "command-names" ] <| List.map (\command -> div [ class "min-height-pls", class "justify-right" ] [ Html.span [ class "vertical-pls" ] [ text <| command.name ++ ":" ] ]) commands
+viewIssue : List (Html msg)
+viewIssue =
+    [ Html.input
+        [ class "-command"
+        , Html.Attributes.type_ "text"
+        , Html.Attributes.readonly True
+        , size <| cmdSize "not yet supported via the CLI"
+        , value "not yet supported via the CLI"
+        ]
+        []
+    ]
 
 
-contents : Commands -> Html msg
-contents commands =
-    div [ class "command-contents" ] <|
-        List.map
-            (\command ->
-                Html.div [ class "min-height-pls" ]
-                    [ Html.input
-                        [ class "-command"
-                        , size <| cmdSize command
-                        , value command.content
-                        ]
-                        []
-                    , copyButton
-                        [ Util.testAttribute "contextual-help"
-                        , attribute "aria-label" "view cli command for this page"
-                        , class "button"
-                        , class "-icon"
-                        , class "-white"
-                        ]
-                        command.content
-                    , docsLink command
-                    ]
-            )
-            commands
-
-
-cmdSize : Command -> Int
-cmdSize command =
-    max 18 <|
-        String.length command.content
+cmdSize : String -> Int
+cmdSize content =
+    max 18 <| String.length content
 
 
 copyButton : List (Html.Attribute msg) -> String -> Html msg
 copyButton attributes copyText =
-    if copyText /= noCmd then
+    if not <| String.isEmpty copyText then
         button
             (attributes
                 ++ [ class "copy-button"
@@ -163,43 +168,65 @@ copyButton attributes copyText =
 
 docsLink : Command -> Html msg
 docsLink command =
-    if command.docs /= "" then
-        a [ class "docs-button", href <| docsBaseUrl ++ command.docs ]
-            [ text "(docs)"
-            ]
+    case command.docs of
+        Just docs ->
+            a [ class "command-link", href <| docsUrl docs ]
+                [ text "(docs)"
+                ]
 
-    else
-        text ""
+        Nothing ->
+            text ""
 
 
-authenticate : Command
-authenticate =
-    let
-        name =
-            "Authenticate"
+issueLink : String -> Html msg
+issueLink issue =
+    a [ class "command-link", href <| issuesBaseUrl ++ issue ]
+        [ text "(upvote feature)"
+        ]
 
-        content =
-            "vela login"
 
-        docs =
-            "/cli/authentication"
-    in
-    Command name content Nothing docs
+docsUrl : String -> String
+docsUrl page =
+    docsBaseUrl ++ page
 
 
 docsBaseUrl : String
 docsBaseUrl =
-    "https://go-vela.github.io/docs"
+    "https://go-vela.github.io/docs/cli/"
 
 
-noDocs : String
-noDocs =
-    ""
+issuesBaseUrl : String
+issuesBaseUrl =
+    "https://github.com/go-vela/cli/issues/"
 
 
 noName : String
 noName =
     ""
+
+
+noCmd : Maybe String
+noCmd =
+    Nothing
+
+
+noDocs : Maybe String
+noDocs =
+    Nothing
+
+
+noIssue : Maybe String
+noIssue =
+    Nothing
+
+
+noCommands : Command
+noCommands =
+    let
+        content =
+            Just "commands for this page are not yet supported through the CLI"
+    in
+    Command noName content noDocs noIssue
 
 
 listFavorites : Command
@@ -208,47 +235,25 @@ listFavorites =
         name =
             "List Favorites"
 
-        content =
-            noCmd
-
-        docs =
-            noDocs
+        issue =
+            Just "53"
     in
-    Command name content Nothing docs
+    Command name noCmd noDocs issue
 
 
-listBuilds : Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Command
-listBuilds org repo pageNum perPage =
+listBuilds : Org -> Repo -> Command
+listBuilds org repo =
     let
         name =
             "List Builds"
 
         content =
-            "vela get builds " ++ repoArgs org repo
-
-        pag =
-            pagination pageNum perPage
+            Just <| "vela get builds " ++ repoArgs org repo
 
         docs =
-            "/cli/build/get"
+            Just "build/get"
     in
-    Command name content (Just pag) docs
-
-
-pagination : Maybe Pagination.Page -> Maybe Pagination.PerPage -> String
-pagination pageNum perPage =
-    case ( pageNum, perPage ) of
-        ( Just pN, Just pP ) ->
-            "--page " ++ String.fromInt pN ++ " --per-page " ++ String.fromInt pP
-
-        ( Just pN, Nothing ) ->
-            "--page " ++ String.fromInt pN
-
-        ( Nothing, Just pP ) ->
-            "--perpage " ++ String.fromInt pP
-
-        ( Nothing, Nothing ) ->
-            ""
+    Command name content docs Nothing
 
 
 viewBuild : Org -> Repo -> BuildNumber -> Command
@@ -258,12 +263,12 @@ viewBuild org repo buildNumber =
             "View Build"
 
         content =
-            "vela view build " ++ buildArgs org repo buildNumber
+            Just <| "vela view build " ++ buildArgs org repo buildNumber
 
         docs =
-            "/cli/build/view"
+            Just "build/view"
     in
-    Command name content Nothing docs
+    Command name content docs noIssue
 
 
 restartBuild : Org -> Repo -> BuildNumber -> Command
@@ -273,12 +278,84 @@ restartBuild org repo buildNumber =
             "Restart Build"
 
         content =
-            "vela restart build " ++ buildArgs org repo buildNumber
+            Just <| "vela restart build " ++ buildArgs org repo buildNumber
+    in
+    Command name content noDocs Nothing
+
+
+listSteps : Org -> Repo -> BuildNumber -> Command
+listSteps org repo buildNumber =
+    let
+        name =
+            "List Steps"
+
+        content =
+            Just <| "vela get steps " ++ buildArgs org repo buildNumber
 
         docs =
-            noDocs
+            Just "steps/get"
     in
-    Command name content Nothing docs
+    Command name content docs noIssue
+
+
+viewStep : Org -> Repo -> BuildNumber -> Command
+viewStep org repo buildNumber =
+    let
+        name =
+            "View Step"
+
+        content =
+            Just <| "vela view step " ++ buildArgs org repo buildNumber ++ " --step 1"
+
+        docs =
+            Just "steps/get"
+    in
+    Command name content docs noIssue
+
+
+viewRepo : Org -> Repo -> Command
+viewRepo org repo =
+    let
+        name =
+            "View Repo"
+
+        content =
+            Just <| "vela view repo " ++ repoArgs org repo
+
+        docs =
+            Just "repo/view"
+    in
+    Command name content docs Nothing
+
+
+repairRepo : Org -> Repo -> Command
+repairRepo org repo =
+    let
+        name =
+            "Repair Repo"
+
+        content =
+            Just <| "vela repair repo " ++ repoArgs org repo
+
+        docs =
+            Just "repo/repair"
+    in
+    Command name content docs Nothing
+
+
+chownRepo : Org -> Repo -> Command
+chownRepo org repo =
+    let
+        name =
+            "Chown Repo"
+
+        content =
+            Just <| "vela chown repo " ++ repoArgs org repo
+
+        docs =
+            Just "repo/chown"
+    in
+    Command name content docs Nothing
 
 
 listHooks : Org -> Repo -> Command
@@ -287,13 +364,25 @@ listHooks _ _ =
         name =
             "List Hooks"
 
+        issue =
+            Just "52"
+    in
+    Command name noCmd noDocs issue
+
+
+authenticate : Command
+authenticate =
+    let
+        name =
+            "Authenticate"
+
         content =
-            noCmd
+            Just "vela login"
 
         docs =
-            noDocs
+            Just "authentication"
     in
-    Command name content Nothing docs
+    Command name content docs Nothing
 
 
 repoArgs : Org -> Repo -> String
@@ -306,31 +395,26 @@ buildArgs org repo buildNumber =
     repoArgs org repo ++ " --build " ++ buildNumber
 
 
-unknown : Command
-unknown =
-    Command noName noCmd Nothing noDocs
-
-
 pageToHelp : Page -> Commands
 pageToHelp page =
     case page of
         Pages.Overview ->
-            []
+            [ listFavorites ]
 
         Pages.AddRepositories ->
-            []
+            [ listFavorites ]
 
         Pages.Hooks org repo _ _ ->
             [ listHooks org repo ]
 
-        Pages.RepositoryBuilds org repo pageNum perPage ->
-            [ listBuilds org repo pageNum perPage ]
+        Pages.RepositoryBuilds org repo _ _ ->
+            [ listBuilds org repo ]
 
         Pages.Build org repo buildNumber _ ->
-            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
+            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
 
-        Pages.Settings _ _ ->
-            []
+        Pages.Settings org repo ->
+            [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
         Pages.Authenticate _ ->
             []
@@ -343,8 +427,3 @@ pageToHelp page =
 
         Pages.NotFound ->
             []
-
-
-noCmd : String
-noCmd =
-    "coming soon!"
