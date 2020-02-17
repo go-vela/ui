@@ -1172,25 +1172,31 @@ nav {
 }
 
 .contextual-help .toolip {
-  background: var(--color-bg-dark);
-  border: solid var(--line-width) var(--color-bg-light);
   position: absolute;
-  top:105%;
-  top: calc((100% + .5rem));
+  top: 105%;
+  top: calc((100% + 0.5rem));
+  right: 0;
   z-index: 999999;
-  right:0;
+
   min-width: 400px;
   padding: 8px 12px;
-  font-size: 0.8rem;
+
   font-weight: normal;
+  font-size: 0.8rem;
+
+  background: var(--color-bg-dark);
+  border: solid var(--line-width) var(--color-bg-light);
 }
+
 .contextual-help .command-link {
   // color: white;
   margin-left: 4px;
 }
+
 .contextual-help .copy-button {
   margin-left: 6px;
 }
+
 .contextual-help .toolip .-header {
   margin-bottom: 6px;
 }
@@ -1203,28 +1209,35 @@ nav {
   display: flex;
   justify-content: flex-start;
 }
+
 .toolip .commands {
-    display: flex;
+  display: flex;
   flex-direction: row;
 }
+
 .min-height-pls {
-  min-height: 30px;
   display: flex;
   align-items: center;
+  min-height: 30px;
+
   white-space: nowrap;
 }
+
 .vertical-pls {
   vertical-align: middle;
 }
+
 .command-names {
   display: flex;
   flex-direction: column;
   flex-grow: 2;
   // margin-left: 10px;
 }
+
 .justify-right {
   justify-content: flex-end;
 }
+
 .command-contents {
   display: flex;
   flex-direction: column;
@@ -1232,15 +1245,17 @@ nav {
 }
 
 .toolip .cmd {
-  color: var(--color-offwhite);
-  background: var(--color-focus);
-  font-family: var(--font-code);
-  border: none;
   padding: 4px 8px;
+
+  color: var(--color-offwhite);
+  font-family: var(--font-code);
+
+  background: var(--color-focus);
+  border: none;
 }
 
 .-cmd-pad {
-  margin: 1rem 0.5rem 0rem 0.5rem;
+  margin: 1rem 0.5rem 0 0.5rem;
 }
 
 .-center-row {
@@ -1249,45 +1264,43 @@ nav {
   align-items: center;
 }
 
-
 .contextual-help .-m-top {
   margin-top: 0.25rem;
 }
 
 .contextual-help .toolip .arrow {
-  top: calc((.5rem + 1px) * -1);
-}
-
-.contextual-help .toolip .arrow {
   position: absolute;
+  top: calc((0.5rem + 1px) * -1);
+  right: 0;
+
   display: block;
   width: 1rem;
-  height: .5rem;
+  height: 0.5rem;
   margin: 0;
-  right: 0;
-}
-
-.contextual-help .toolip .arrow::after,
-.contextual-help .toolip .arrow::before {
-  border-width: 0 .5rem .5rem .5rem;
 }
 
 .contextual-help .toolip .arrow::after,
 .contextual-help .toolip .arrow::before {
   position: absolute;
+
   display: block;
-  content: "";
+
   border-color: transparent;
   border-style: solid;
+  border-width: 0 0.5rem 0.5rem 0.5rem;
+
+  content: '';
 }
 
 .toolip .arrow::before {
   top: 0;
-  border-bottom-color: rgba(0,0,0,.25);
+
+  border-bottom-color: rgba(0, 0, 0, 0.25);
 }
 
 .contextual-help .toolip .arrow::after {
   top: 1px;
+
   border-bottom-color: var(--color-bg-light);
 }
 
@@ -1296,6 +1309,7 @@ nav {
 }
 
 .contextual-help.details[open] .summary + *:first-of-type {
+  /* stylelint-disable-line selector-max-specificity */
   margin-top: 0.25rem;
 }
 
@@ -1309,15 +1323,17 @@ nav {
   }
 }
 
-.cli-toolip-footer  div {
+.cli-toolip-footer div {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  margin-right: 8px;
   margin-top: 8px;
+  margin-right: 8px;
+
   > a {
-    text-align: right;
     margin-left: 6px;
+
+    text-align: right;
   }
 }
 
