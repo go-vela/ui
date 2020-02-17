@@ -34,7 +34,7 @@ commands page =
             [ listFavorites ]
 
         Pages.Hooks org repo _ _ ->
-            [ listHooks org repo ]
+            [ validate, listHooks org repo ]
 
         Pages.RepositoryBuilds org repo _ _ ->
             [ listBuilds org repo ]
@@ -239,6 +239,27 @@ chownRepo org repo =
 
         docs =
             Just "repo/chown"
+    in
+    Command name content docs noIssue
+
+
+{-| validate : returns cli command for validating vela yaml
+
+    eg.
+    vela validate
+
+-}
+validate : Command
+validate =
+    let
+        name =
+            "Validate Pipeline"
+
+        content =
+            Just "vela validate"
+
+        docs =
+            Just "validate"
     in
     Command name content docs noIssue
 
