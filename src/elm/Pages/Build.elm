@@ -151,7 +151,15 @@ viewPreview now org repo build =
             [ buildStatusToIcon build.status ]
 
         commit =
-            [ text "commit ", a [ href build.source ] [ text <| trimCommitHash build.commit ] ]
+            [ if build.event == "pull" then
+                text "pull request"
+
+              else
+                text build.event
+            , text " ("
+            , a [ href build.source ] [ text <| trimCommitHash build.commit ]
+            , text <| ")"
+            ]
 
         branch =
             [ a [ href <| buildBranchUrl build.clone build.branch ] [ text build.branch ] ]

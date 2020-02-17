@@ -27,6 +27,8 @@ import Html
         , footer
         , h1
         , header
+        , input
+        , label
         , li
         , main_
         , nav
@@ -38,11 +40,16 @@ import Html
 import Html.Attributes
     exposing
         ( attribute
+        , checked
         , class
+        , for
         , href
+        , id
+        , name
+        , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy7)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -317,6 +324,7 @@ type Msg
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
+    | FilterBuildEventBy (Maybe Event) Org Repo
     | FocusOn String
     | FocusResult (Result Dom.Error ())
     | OnKeyDown String
@@ -869,6 +877,9 @@ update msg model =
                 FiveSecond data ->
                     ( model, refreshPage model data )
 
+        FilterBuildEventBy maybeEvent org repo ->
+            ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
+
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt FocusResult )
 
@@ -1209,7 +1220,7 @@ viewContent model =
             , lazy3 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
             )
 
-        Pages.RepositoryBuilds org repo maybePage _ _ ->
+        Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             let
                 page : String
                 page =
@@ -1219,11 +1230,28 @@ viewContent model =
 
                         Just p ->
                             " (page " ++ String.fromInt p ++ ")"
+
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.builds.builds, maybeEvent ) of
+                        ( Success result, Nothing ) ->
+                            if List.length result == 0 then
+                                False
+
+                            else
+                                True
+
+                        ( Success _, _ ) ->
+                            True
+
+                        _ ->
+                            False
             in
             ( String.join "/" [ org, repo ] ++ " builds" ++ page
             , div []
-                [ Pager.view model.builds.pager Pager.defaultLabels GotoPage
-                , lazy4 Pages.Builds.view model.builds model.time org repo
+                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                , Pager.view model.builds.pager Pager.defaultLabels GotoPage
+                , lazy5 Pages.Builds.view model.builds model.time org repo maybeEvent
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -1263,6 +1291,57 @@ viewContent model =
             ( "404"
             , h1 [] [ text "Not Found" ]
             )
+
+
+viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
+viewBuildsFilter shouldRender org repo maybeEvent =
+    let
+        eventEnum : List String
+        eventEnum =
+            [ "all", "push", "pull", "tag", "deploy" ]
+
+        eventToMaybe : String -> Maybe Event
+        eventToMaybe event =
+            case event of
+                "all" ->
+                    Nothing
+
+                _ ->
+                    Just event
+    in
+    if shouldRender then
+        div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
+            div [] [ text "Filter by Event:" ]
+                :: List.map
+                    (\e ->
+                        div [ class "form-control" ]
+                            [ input
+                                [ type_ "radio"
+                                , id <| "filter-" ++ e
+                                , name "build-filter"
+                                , Util.testAttribute <| "build-filter-" ++ e
+                                , checked <| maybeEvent == eventToMaybe e
+                                , onClick <| FilterBuildEventBy (eventToMaybe e) org repo
+                                , attribute "aria-label" <| "filter to show " ++ e ++ " events"
+                                ]
+                                []
+                            , label
+                                [ class "form-label"
+                                , for <| "filter-" ++ e
+                                ]
+                                [ text <|
+                                    if e == "pull" then
+                                        "pull request"
+
+                                    else
+                                        e
+                                ]
+                            ]
+                    )
+                    eventEnum
+
+    else
+        text ""
 
 
 viewLogin : Html Msg

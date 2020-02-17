@@ -88,7 +88,7 @@ routeToUrl route =
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
-            "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ])
+            "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
 
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
@@ -123,6 +123,15 @@ paramsToQueryString params =
 
         _ ->
             ""
+
+
+eventToQueryParam : Maybe Event -> List UB.QueryParameter
+eventToQueryParam maybeEvent =
+    if maybeEvent /= Nothing then
+        [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
+
+    else
+        []
 
 
 href : Route -> Html.Attribute msg

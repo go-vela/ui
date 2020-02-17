@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Home exposing (Msgs, view)
 
 import Dict exposing (Dict)
-import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
+import Favorites exposing (ToggleFavorite, starToggle)
 import FeatherIcons
 import Html
     exposing
