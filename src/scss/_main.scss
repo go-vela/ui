@@ -1171,7 +1171,7 @@ nav {
   position: relative;
 }
 
-.contextual-help .contextual-help-tooltip {
+.contextual-help .toolip {
   background: var(--color-bg-dark);
   border: solid var(--line-width) var(--color-bg-light);
   position: absolute;
@@ -1191,19 +1191,19 @@ nav {
 .contextual-help .copy-button {
   margin-left: 6px;
 }
-.contextual-help .contextual-help-tooltip .-header {
+.contextual-help .toolip .-header {
   margin-bottom: 6px;
 }
 
-.contextual-help-tooltip div {
+.toolip div {
   // margin: 0px 0px 0px 8px;
 }
 
-.contextual-help-tooltip .commands-wrapper {
+.toolip .commands-wrapper {
   display: flex;
   justify-content: flex-start;
 }
-.contextual-help-tooltip .commands {
+.toolip .commands {
     display: flex;
   flex-direction: row;
 }
@@ -1231,7 +1231,7 @@ nav {
   flex-grow: 1;
 }
 
-.contextual-help-tooltip .-command {
+.toolip .cmd {
   color: var(--color-offwhite);
   background: var(--color-focus);
   font-family: var(--font-code);
@@ -1239,29 +1239,26 @@ nav {
   padding: 4px 8px;
 }
 
-.pls-0 {
+.-cmd-pad {
   margin: 1rem 0.5rem 0rem 0.5rem;
 }
 
-.pls-2 {
+.-center-row {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
 
-.pls-2-3 {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+.contextual-help .-m-top {
   margin-top: 0.25rem;
 }
 
-.contextual-help .contextual-help-tooltip .-arrow {
+.contextual-help .toolip .arrow {
   top: calc((.5rem + 1px) * -1);
 }
 
-.contextual-help .contextual-help-tooltip .-arrow {
+.contextual-help .toolip .arrow {
   position: absolute;
   display: block;
   width: 1rem;
@@ -1270,13 +1267,13 @@ nav {
   right: 0;
 }
 
-.contextual-help .contextual-help-tooltip .-arrow::after,
-.contextual-help .contextual-help-tooltip .-arrow::before {
+.contextual-help .toolip .arrow::after,
+.contextual-help .toolip .arrow::before {
   border-width: 0 .5rem .5rem .5rem;
 }
 
-.contextual-help .contextual-help-tooltip .-arrow::after,
-.contextual-help .contextual-help-tooltip .-arrow::before {
+.contextual-help .toolip .arrow::after,
+.contextual-help .toolip .arrow::before {
   position: absolute;
   display: block;
   content: "";
@@ -1284,12 +1281,12 @@ nav {
   border-style: solid;
 }
 
-.contextual-help-tooltip .-arrow::before {
+.toolip .arrow::before {
   top: 0;
   border-bottom-color: rgba(0,0,0,.25);
 }
 
-.contextual-help .contextual-help-tooltip .-arrow::after {
+.contextual-help .toolip .arrow::after {
   top: 1px;
   border-bottom-color: var(--color-bg-light);
 }
@@ -1302,7 +1299,7 @@ nav {
   margin-top: 0.25rem;
 }
 
-.contextual-help-tooltip .footer {
+.cli-toolip-footer {
   display: flex;
   justify-content: flex-end;
   margin: 2rem 0.5rem 0.25rem 1rem;
@@ -1312,7 +1309,7 @@ nav {
   }
 }
 
-.contextual-help-tooltip .footer div {
+.cli-toolip-footer  div {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;

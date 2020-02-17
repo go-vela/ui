@@ -17,7 +17,7 @@ import Dict
 import Errors exposing (detailedErrorToString)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
-import Help
+import Help.Help
 import Html
     exposing
         ( Html
@@ -599,7 +599,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( { model | repo = toFailure error }, addError error )
 
         BuildsResponse org repo response ->
             let
@@ -1251,7 +1251,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, page = model.page, showHelp = model.showHelp }
+        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, page = model.page, help = helpArgs model }
         , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos } navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
@@ -1382,8 +1382,8 @@ viewLogin =
         ]
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, page : Page, showHelp : Bool } -> Html Msg
-viewHeader maybeSession { feedbackLink, docsLink, theme, page, showHelp } =
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, page : Page, help : Help.Help.Args Msg } -> Html Msg
+viewHeader maybeSession { feedbackLink, docsLink, theme, page, help } =
     let
         session : Session
         session =
@@ -1414,10 +1414,30 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, page, showHelp } =
                 [ li [] [ viewThemeToggle theme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
                 , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , Help.view page showHelp NoOp Copy
+                , Help.Help.view help
                 ]
             ]
         ]
+
+
+helpArg : WebData a -> Help.Help.Arg
+helpArg arg =
+    { success = Util.isSuccess arg, loading = Util.isLoading arg }
+
+
+helpArgs : Model -> Help.Help.Args Msg
+helpArgs model =
+    { user = helpArg model.user
+    , sourceRepos = helpArg model.sourceRepos
+    , builds = helpArg model.builds.builds
+    , build = helpArg model.build
+    , repo = helpArg model.repo
+    , hooks = helpArg model.hooks.hooks
+    , show = model.showHelp
+    , copy = Copy
+    , noOp = NoOp
+    , page = model.page
+    }
 
 
 viewUtil : Model -> Html Msg
