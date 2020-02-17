@@ -386,9 +386,14 @@ update msg model =
             , Cmd.none
             )
 
-        Copy _ ->
+        Copy content ->
             ( model, Cmd.none )
-                |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "" "Copied to your clipboard." Nothing)
+                |> Alerting.addToast Alerts.successConfig
+                    AlertsUpdate
+                    (Alerts.Success ""
+                        ("Copied " ++ wrapAlertMessage content ++ "to your clipboard.")
+                        Nothing
+                    )
 
         EnableRepo repo ->
             let
@@ -1448,7 +1453,16 @@ viewUtil model =
 
 viewAlerts : Stack Alert -> Html Msg
 viewAlerts toasties =
-    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig Alerts.view AlertsUpdate toasties ]
+    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig (Alerts.view Copy) AlertsUpdate toasties ]
+
+
+wrapAlertMessage : String -> String
+wrapAlertMessage message =
+    if not <| String.isEmpty message then
+        "`" ++ message ++ "` "
+
+    else
+        message
 
 
 viewThemeToggle : Theme -> Html Msg

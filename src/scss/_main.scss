@@ -904,6 +904,10 @@ nav {
   margin: 0;
 
   font-size: 1em;
+
+  display: flex;
+
+  justify-content: space-between;
 }
 
 .alert-container .-message {
