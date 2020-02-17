@@ -93,7 +93,7 @@ listBuilds org repo =
         docs =
             Just "build/get"
     in
-    Command name content docs Nothing
+    Command name content docs noIssue
 
 
 {-| viewBuild : returns cli command for viewing a build
@@ -135,7 +135,7 @@ restartBuild org repo buildNumber =
         docs =
             Just "build/restart"
     in
-    Command name content noDocs Nothing
+    Command name content docs noIssue
 
 
 {-| listSteps : returns cli command for listing steps
@@ -198,7 +198,7 @@ viewRepo org repo =
         docs =
             Just "repo/view"
     in
-    Command name content docs Nothing
+    Command name content docs noIssue
 
 
 {-| repairRepo : returns cli command for repairing a repo
@@ -219,7 +219,7 @@ repairRepo org repo =
         docs =
             Just "repo/repair"
     in
-    Command name content docs Nothing
+    Command name content docs noIssue
 
 
 {-| chownRepo : returns cli command for chowning a repo
@@ -240,7 +240,7 @@ chownRepo org repo =
         docs =
             Just "repo/chown"
     in
-    Command name content docs Nothing
+    Command name content docs noIssue
 
 
 {-| listHooks : returns cli command for listing hooks
@@ -278,7 +278,7 @@ authenticate =
         docs =
             Just "authentication"
     in
-    Command name content docs Nothing
+    Command name content docs noIssue
 
 
 {-| repoArgs : returns cli args for requesting repo resources
