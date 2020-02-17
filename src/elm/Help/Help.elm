@@ -63,6 +63,7 @@ view args =
                 [ class "summary"
                 , class "-no-pad"
                 , id "contextual-help-trigger"
+                , Util.testAttribute "help-trigger"
                 ]
                 [ SvgBuilder.terminal ]
             , help args
@@ -74,7 +75,7 @@ view args =
 -}
 help : Args msg -> Html msg
 help args =
-    div [ class "toolip" ] <|
+    div [ class "toolip", Util.testAttribute "help-tooltip" ] <|
         [ div [ class "arrow" ] []
         , div [] [ text "Manage Vela resources using the CLI" ]
         ]
@@ -111,10 +112,10 @@ footer args =
         text ""
 
     else if not <| resourceLoaded args then
-        div [ class "footer" ] <| notLoadedDocs args
+        div [ class "footer", Util.testAttribute "help-footer" ] <| notLoadedDocs args
 
     else
-        div [ class "footer" ] <| cliDocs args
+        div [ class "footer", Util.testAttribute "help-footer" ] <| cliDocs args
 
 
 notLoadedDocs : Args msg -> List (Html msg)
@@ -139,13 +140,15 @@ contents copyMsg command =
     case ( command.content, command.issue ) of
         ( Just content, _ ) ->
             div [ class "-cmd-pad" ]
-                [ div [ class "-center-row" ] [ text command.name, docsLink command ]
+                [ div [ class "-center-row", Util.testAttribute "help-cmd-header" ]
+                    [ text command.name, docsLink command ]
                 , row content <| Just copyMsg
                 ]
 
         ( Nothing, Just issue ) ->
             div [ class "-cmd-pad" ]
-                [ div [ class "-center-row" ] [ text command.name, upvoteFeatureLink issue ]
+                [ div [ class "-center-row", Util.testAttribute "help-cmd-header" ]
+                    [ text command.name, upvoteFeatureLink issue ]
                 , notSupported
                 ]
 
@@ -157,7 +160,11 @@ contents copyMsg command =
 -}
 row : String -> Maybe (Copy msg) -> Html msg
 row content copy =
-    div [ class "-center-row", class "-m-top" ]
+    div
+        [ class "-center-row"
+        , class "-m-top"
+        , Util.testAttribute "help-row"
+        ]
         [ Html.input
             [ class "cmd"
             , Html.Attributes.type_ "text"
@@ -169,7 +176,7 @@ row content copy =
         , case copy of
             Just copyMsg ->
                 copyButton
-                    [ Util.testAttribute "contextual-help"
+                    [ Util.testAttribute "help-copy"
                     , attribute "aria-label" "view cli command for this page"
                     , class "button"
                     , class "-icon"
@@ -187,7 +194,7 @@ row content copy =
 -}
 notSupported : Html msg
 notSupported =
-    div [ class "-m-top" ]
+    div [ class "-m-top", Util.testAttribute "help-row" ]
         [ Html.input
             [ class "cmd"
             , Html.Attributes.type_ "text"

@@ -1174,7 +1174,6 @@ nav {
 
 .help .toolip {
   position: absolute;
-  top: 105%;
   top: calc((100% + 0.5rem));
   right: 0;
   z-index: 999999;
@@ -1225,11 +1224,11 @@ nav {
   border-bottom-color: var(--color-bg-light);
 }
 
-.contextual-help.details .summary {
+.help.details .summary {
   overflow: initial;
 }
 
-.contextual-help.details[open] .summary + *:first-of-type {
+.help.details[open] .summary + *:first-of-type {
   /* stylelint-disable-line selector-max-specificity */
   margin-top: 0.25rem;
 }
