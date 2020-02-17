@@ -92,9 +92,6 @@ copyButton copyContent copy =
                 , class "-white"
                 , Html.Events.onClick <| copyMsg copyContent
                 , attribute "data-clipboard-text" copyContent
-
-                -- , Util.onClickStopPropogation <| copyMsg copyContent
-                -- , Util.onClickPreventDefault <| copyMsg copyContent
                 ]
                 [ FeatherIcons.copy
                     |> FeatherIcons.withSize 18
