@@ -53,7 +53,7 @@ view args =
         ]
         [ details
             [ class "details"
-            , class "contextual-help"
+            , class "help"
             , class "-no-pad"
             , attribute "role" "button"
             , Util.open args.show
@@ -76,7 +76,7 @@ help : Args msg -> Html msg
 help args =
     div [ class "toolip" ] <|
         [ div [ class "arrow" ] []
-        , div [ class "-header" ] [ text "Manage Vela resources using the CLI" ]
+        , div [] [ text "Manage Vela resources using the CLI" ]
         ]
             ++ body args
             ++ [ footer args ]
@@ -111,10 +111,10 @@ footer args =
         text ""
 
     else if not <| resourceLoaded args then
-        div [ class "cli-toolip-footer" ] <| notLoadedDocs args
+        div [ class "footer" ] <| notLoadedDocs args
 
     else
-        div [ class "cli-toolip-footer" ] <| cliDocs args
+        div [ class "footer" ] <| cliDocs args
 
 
 notLoadedDocs : Args msg -> List (Html msg)
@@ -199,6 +199,29 @@ notSupported =
         ]
 
 
+{-| docsLink : takes command and returns docs link if appropriate
+-}
+docsLink : Command -> Html msg
+docsLink command =
+    case command.docs of
+        Just docs ->
+            a [ class "cmd-link", href <| cliDocsUrl docs ]
+                [ text "(docs)"
+                ]
+
+        Nothing ->
+            text ""
+
+
+{-| upvoteFeatureLink : takes command and returns issue upvote link if appropriate
+-}
+upvoteFeatureLink : String -> Html msg
+upvoteFeatureLink issue =
+    a [ class "cmd-link", href <| issuesBaseUrl ++ issue ]
+        [ text "(upvote feature)"
+        ]
+
+
 {-| copyButton : takes command content and returns copy pasteable button controlled by Clipboard.js
 -}
 copyButton : List (Html.Attribute msg) -> String -> Html msg
@@ -224,29 +247,6 @@ copyButton attributes copyText =
 cmdSize : String -> Int
 cmdSize content =
     max 18 <| String.length content
-
-
-{-| docsLink : takes command and returns docs link if appropriate
--}
-docsLink : Command -> Html msg
-docsLink command =
-    case command.docs of
-        Just docs ->
-            a [ class "command-link", href <| cliDocsUrl docs ]
-                [ text "(docs)"
-                ]
-
-        Nothing ->
-            text ""
-
-
-{-| upvoteFeatureLink : takes command and returns issue upvote link if appropriate
--}
-upvoteFeatureLink : String -> Html msg
-upvoteFeatureLink issue =
-    a [ class "command-link", href <| issuesBaseUrl ++ issue ]
-        [ text "(upvote feature)"
-        ]
 
 
 {-| cliDocsUrl : takes page and returns cli docs url

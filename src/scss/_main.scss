@@ -1167,11 +1167,12 @@ nav {
   background: var(--color-bg-light);
 }
 
-.contextual-help {
+// style for contextual help dropdown
+.help {
   position: relative;
 }
 
-.contextual-help .toolip {
+.help .toolip {
   position: absolute;
   top: 105%;
   top: calc((100% + 0.5rem));
@@ -1188,87 +1189,7 @@ nav {
   border: solid var(--line-width) var(--color-bg-light);
 }
 
-.contextual-help .command-link {
-  // color: white;
-  margin-left: 4px;
-}
-
-.contextual-help .copy-button {
-  margin-left: 6px;
-}
-
-.contextual-help .toolip .-header {
-  margin-bottom: 6px;
-}
-
-.toolip div {
-  // margin: 0px 0px 0px 8px;
-}
-
-.toolip .commands-wrapper {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.toolip .commands {
-  display: flex;
-  flex-direction: row;
-}
-
-.min-height-pls {
-  display: flex;
-  align-items: center;
-  min-height: 30px;
-
-  white-space: nowrap;
-}
-
-.vertical-pls {
-  vertical-align: middle;
-}
-
-.command-names {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 2;
-  // margin-left: 10px;
-}
-
-.justify-right {
-  justify-content: flex-end;
-}
-
-.command-contents {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
-
-.toolip .cmd {
-  padding: 4px 8px;
-
-  color: var(--color-offwhite);
-  font-family: var(--font-code);
-
-  background: var(--color-focus);
-  border: none;
-}
-
-.-cmd-pad {
-  margin: 1rem 0.5rem 0 0.5rem;
-}
-
-.-center-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.contextual-help .-m-top {
-  margin-top: 0.25rem;
-}
-
-.contextual-help .toolip .arrow {
+.help .toolip .arrow {
   position: absolute;
   top: calc((0.5rem + 1px) * -1);
   right: 0;
@@ -1279,8 +1200,8 @@ nav {
   margin: 0;
 }
 
-.contextual-help .toolip .arrow::after,
-.contextual-help .toolip .arrow::before {
+.help .toolip .arrow::after,
+.help .toolip .arrow::before {
   position: absolute;
 
   display: block;
@@ -1298,7 +1219,7 @@ nav {
   border-bottom-color: rgba(0, 0, 0, 0.25);
 }
 
-.contextual-help .toolip .arrow::after {
+.help .toolip .arrow::after {
   top: 1px;
 
   border-bottom-color: var(--color-bg-light);
@@ -1313,7 +1234,7 @@ nav {
   margin-top: 0.25rem;
 }
 
-.cli-toolip-footer {
+.help .footer {
   display: flex;
   justify-content: flex-end;
   margin: 2rem 0.5rem 0.25rem 1rem;
@@ -1323,7 +1244,7 @@ nav {
   }
 }
 
-.cli-toolip-footer div {
+.help .footer div {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1335,6 +1256,38 @@ nav {
 
     text-align: right;
   }
+}
+
+.help .-cmd-pad {
+  margin: 0.6rem 0.5rem 0 0.5rem;
+}
+
+.-center-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.help .-m-top {
+  margin-top: 0.25rem;
+}
+
+.help .cmd {
+  padding: 4px 8px;
+
+  color: var(--color-offwhite);
+  font-family: var(--font-code);
+
+  background: var(--color-focus);
+  border: none;
+}
+
+.help .cmd-link {
+  margin-left: 0.4rem;
+}
+
+.help .copy-button {
+  margin-left: 0.6rem;
 }
 
 // class for basic list styling
