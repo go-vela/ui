@@ -131,6 +131,9 @@ restartBuild org repo buildNumber =
 
         content =
             Just <| "vela restart build " ++ buildArgs org repo buildNumber
+
+        docs =
+            Just "build/restart"
     in
     Command name content noDocs Nothing
 
