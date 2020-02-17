@@ -1227,11 +1227,11 @@ nav {
 .help.details .summary {
   overflow: initial;
 }
-
-.help.details[open] .summary + *:first-of-type {
-  /* stylelint-disable-line selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+.help.details[open] .summary + *:first-of-type { 
   margin-top: 0.25rem;
 }
+/* stylelint-enable selector-max-specificity */
 
 .help-footer {
   display: flex;
