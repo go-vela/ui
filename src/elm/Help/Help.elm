@@ -177,7 +177,7 @@ row content copy =
             Just copyMsg ->
                 copyButton
                     [ Util.testAttribute "help-copy"
-                    , attribute "aria-label" "view cli command for this page"
+                    , attribute "aria-label" <| "copy " ++ content ++ " to clipboard"
                     , class "button"
                     , class "-icon"
                     , class "-white"
@@ -212,7 +212,11 @@ docsLink : Command -> Html msg
 docsLink command =
     case command.docs of
         Just docs ->
-            a [ class "cmd-link", href <| cliDocsUrl docs ]
+            a
+                [ class "cmd-link"
+                , href <| cliDocsUrl docs
+                , attribute "aria-label" <| "go to cli docs page for " ++ docs
+                ]
                 [ text "(docs)"
                 ]
 
