@@ -901,13 +901,12 @@ nav {
 }
 
 .alert-container .-title {
-  margin: 0;
-
-  font-size: 1em;
-
   display: flex;
 
   justify-content: space-between;
+  margin: 0;
+
+  font-size: 1em;
 }
 
 .alert-container .-message {
