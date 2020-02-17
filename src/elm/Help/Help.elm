@@ -112,10 +112,10 @@ footer args =
         text ""
 
     else if not <| resourceLoaded args then
-        div [ class "footer", Util.testAttribute "help-footer" ] <| notLoadedDocs args
+        div [ class "help-footer", Util.testAttribute "help-footer" ] <| notLoadedDocs args
 
     else
-        div [ class "footer", Util.testAttribute "help-footer" ] <| cliDocs args
+        div [ class "help-footer", Util.testAttribute "help-footer" ] <| cliDocs args
 
 
 notLoadedDocs : Args msg -> List (Html msg)
