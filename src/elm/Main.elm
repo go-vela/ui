@@ -17,6 +17,7 @@ import Dict
 import Errors exposing (detailedErrorToString)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
+import Help.Help
 import Html
     exposing
         ( Html
@@ -195,6 +196,7 @@ type alias Model =
     , theme : Theme
     , shift : Bool
     , visibility : Visibility
+    , showHelp : Bool
     }
 
 
@@ -252,6 +254,7 @@ init flags url navKey =
             , theme = stringToTheme flags.velaTheme
             , shift = False
             , visibility = Visible
+            , showHelp = False
             }
 
         ( newModel, newPage ) =
@@ -292,6 +295,8 @@ type Msg
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
+    | ShowHideHelp (Maybe Bool)
+    | Copy String
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -376,6 +381,28 @@ update msg model =
             ( model
             , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
             )
+
+        ShowHideHelp show ->
+            ( { model
+                | showHelp =
+                    case show of
+                        Just s ->
+                            s
+
+                        Nothing ->
+                            not model.showHelp
+              }
+            , Cmd.none
+            )
+
+        Copy content ->
+            ( model, Cmd.none )
+                |> Alerting.addToast Alerts.successConfig
+                    AlertsUpdate
+                    (Alerts.Success ""
+                        ("Copied " ++ wrapAlertMessage content ++ "to your clipboard.")
+                        Nothing
+                    )
 
         EnableRepo repo ->
             let
@@ -586,7 +613,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( { model | repo = toFailure error }, addError error )
 
         BuildsResponse org repo response ->
             let
@@ -937,6 +964,7 @@ subscriptions model =
     Sub.batch <|
         [ Interop.onSessionChange decodeOnSessionChange
         , Interop.onThemeChange decodeOnThemeChange
+        , onMouseDown model
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
@@ -1148,6 +1176,86 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
         Cmd.none
 
 
+{-| onMouseDown : takes model and returns subscriptions for handling onMouseDown events at the browser level
+-}
+onMouseDown : Model -> Sub Msg
+onMouseDown model =
+    Sub.batch
+        [ Browser.Events.onMouseDown onMouseDownOverrides
+        , if model.showHelp then
+            Browser.Events.onMouseDown (outsideTarget "contextual-help" <| ShowHideHelp <| Just False)
+
+          else
+            Sub.none
+        ]
+
+
+{-| onMouseDownOverrides : returns decoder for manually dispatching click events via id, specified in idToMouseDownEvent
+-}
+onMouseDownOverrides : Decode.Decoder Msg
+onMouseDownOverrides =
+    Decode.field "target"
+        (Decode.oneOf
+            [ Decode.field "id" Decode.string
+                |> Decode.andThen Decode.succeed
+            , Decode.succeed ""
+            ]
+        )
+        |> Decode.andThen
+            idToMouseDownEvent
+
+
+{-| idToMouseDownEvent : returns decoder for manually dispatching click events via id
+-}
+idToMouseDownEvent : String -> Decode.Decoder Msg
+idToMouseDownEvent id =
+    Decode.succeed <|
+        case id of
+            "contextual-help-trigger" ->
+                ShowHideHelp Nothing
+
+            _ ->
+                NoOp
+
+
+{-| outsideTarget : returns decoder for handling clicks that occur from outside the currently focused/open dropdown
+-}
+outsideTarget : String -> Msg -> Decode.Decoder Msg
+outsideTarget targetId msg =
+    Decode.field "target" (isOutsideTarget targetId)
+        |> Decode.andThen
+            (\isOutside ->
+                if isOutside then
+                    Decode.succeed msg
+
+                else
+                    Decode.fail "inside dropdown"
+            )
+
+
+{-| isOutsideTarget : returns decoder for determining if click target occurred from within a specified element
+-}
+isOutsideTarget : String -> Decode.Decoder Bool
+isOutsideTarget targetId =
+    Decode.oneOf
+        [ Decode.field "id" Decode.string
+            |> Decode.andThen
+                (\id ->
+                    if targetId == id then
+                        -- found match by id
+                        Decode.succeed False
+
+                    else
+                        -- try next decoder
+                        Decode.fail "continue"
+                )
+        , Decode.lazy (\_ -> isOutsideTarget targetId |> Decode.field "parentNode")
+
+        -- fallback if all previous decoders failed
+        , Decode.succeed True
+        ]
+
+
 
 -- VIEW
 
@@ -1160,7 +1268,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
+        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, page = model.page, help = helpArgs model }
         , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos } navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
@@ -1359,8 +1467,8 @@ viewLogin =
         ]
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme } -> Html Msg
-viewHeader maybeSession { feedbackLink, docsLink, theme } =
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, page : Page, help : Help.Help.Args Msg } -> Html Msg
+viewHeader maybeSession { feedbackLink, docsLink, theme, page, help } =
     let
         session : Session
         session =
@@ -1391,10 +1499,30 @@ viewHeader maybeSession { feedbackLink, docsLink, theme } =
                 [ li [] [ viewThemeToggle theme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
                 , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , li [] [ FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [] ]
+                , Help.Help.view help
                 ]
             ]
         ]
+
+
+helpArg : WebData a -> Help.Help.Arg
+helpArg arg =
+    { success = Util.isSuccess arg, loading = Util.isLoading arg }
+
+
+helpArgs : Model -> Help.Help.Args Msg
+helpArgs model =
+    { user = helpArg model.user
+    , sourceRepos = helpArg model.sourceRepos
+    , builds = helpArg model.builds.builds
+    , build = helpArg model.build
+    , repo = helpArg model.repo
+    , hooks = helpArg model.hooks.hooks
+    , show = model.showHelp
+    , copy = Copy
+    , noOp = NoOp
+    , page = model.page
+    }
 
 
 viewUtil : Model -> Html Msg
@@ -1405,7 +1533,16 @@ viewUtil model =
 
 viewAlerts : Stack Alert -> Html Msg
 viewAlerts toasties =
-    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig Alerts.view AlertsUpdate toasties ]
+    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig (Alerts.view Copy) AlertsUpdate toasties ]
+
+
+wrapAlertMessage : String -> String
+wrapAlertMessage message =
+    if not <| String.isEmpty message then
+        "`" ++ message ++ "` "
+
+    else
+        message
 
 
 viewThemeToggle : Theme -> Html Msg

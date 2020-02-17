@@ -41,6 +41,11 @@
       outline: var(--color-secondary) dotted var(--line-width);
       outline-offset: var(--line-width);
     }
+
+    &.-no-pad {
+      margin: 0;
+      padding: 0;
+    }
   }
 
   .details-icon-expand {

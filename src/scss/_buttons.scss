@@ -221,6 +221,11 @@
   }
 }
 
+// button with white color
+.button.-icon.-white {
+  color: var(--color-white);
+}
+
 // deal with button groupings
 .buttons .button:not(:last-child) {
   margin-right: 0.5rem;
