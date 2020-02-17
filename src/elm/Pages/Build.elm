@@ -117,8 +117,11 @@ viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusA
                 RemoteData.Success bld ->
                     ( viewPreview time org repo bld, Just <| String.fromInt bld.number )
 
-                _ ->
+                RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
+
+                _ ->
+                    ( text "", Nothing )
 
         buildSteps =
             case steps of
