@@ -1227,6 +1227,7 @@ nav {
 .help.details .summary {
   overflow: initial;
 }
+
 /* stylelint-disable selector-max-specificity */
 .help.details[open] .summary + *:first-of-type { 
   margin-top: 0.25rem;
