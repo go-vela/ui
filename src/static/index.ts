@@ -74,17 +74,15 @@ app.ports.setTheme.subscribe(theme => {
   setTimeout(() => app.ports.onThemeChange.send(theme), 0);
 });
 
-app.ports.setFavicon.subscribe(function(url) {
+app.ports.setFavicon.subscribe(function (url) {
   var oldIcon = document.getElementById('favicon');
   var newIcon = document.createElement('link');
   newIcon.id = 'favicon';
   newIcon.rel = 'shortcut icon';
-  // newIcon.href = favicon(name);
   newIcon.href = url;
   if (oldIcon) {
     document.head.removeChild(oldIcon);
   }
-
   document.head.appendChild(newIcon);
 });
 
