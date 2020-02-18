@@ -1445,7 +1445,7 @@ viewBuildsFilter shouldRender org repo maybeEvent =
     let
         eventEnum : List String
         eventEnum =
-            [ "all", "push", "pull", "tag", "deploy" ]
+            [ "all", "push", "pull_request", "tag", "deploy" ]
 
         eventToMaybe : String -> Maybe Event
         eventToMaybe event =
