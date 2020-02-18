@@ -81,7 +81,10 @@
     "cypress"
   ],
   "staticFiles": {
-    "staticPath": "src/static"
+    "staticPath": [{
+      "staticPath": "src/static/images",
+      "staticOutDir": "images"
+    }]
   },
   "license": "Apache-2.0"
 }
