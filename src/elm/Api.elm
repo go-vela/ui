@@ -43,6 +43,7 @@ import Vela
         , BuildNumber
         , Builds
         , CurrentUser
+        , Event
         , Hook
         , Hooks
         , Log
@@ -424,9 +425,9 @@ restartBuild model org repository buildNumber =
 
 {-| getBuilds : fetches vela builds by repository
 -}
-getBuilds : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Builds
-getBuilds model maybePage maybePerPage org repository =
-    get model.velaAPI (Endpoint.Builds maybePage maybePerPage org repository) decodeBuilds
+getBuilds : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Org -> Repo -> Request Builds
+getBuilds model maybePage maybePerPage maybeEvent org repository =
+    get model.velaAPI (Endpoint.Builds maybePage maybePerPage maybeEvent org repository) decodeBuilds
         |> withAuth model.session
 
 
@@ -438,7 +439,7 @@ getBuilds model maybePage maybePerPage org repository =
 getAllBuilds : PartialModel a -> Org -> Repo -> Request Build
 getAllBuilds model org repository =
     -- we using the max perPage setting of 100 to reduce the number of calls
-    get model.velaAPI (Endpoint.Builds (Just 1) (Just 100) org repository) decodeBuild
+    get model.velaAPI (Endpoint.Builds (Just 1) (Just 100) Nothing org repository) decodeBuild
         |> withAuth model.session
 
 

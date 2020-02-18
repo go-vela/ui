@@ -314,7 +314,7 @@ resourceLoaded args =
         Pages.AddRepositories ->
             args.sourceRepos.success
 
-        Pages.RepositoryBuilds _ _ _ _ ->
+        Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.success
 
         Pages.Build _ _ _ _ ->
@@ -350,7 +350,7 @@ resourceLoading args =
         Pages.AddRepositories ->
             args.sourceRepos.loading
 
-        Pages.RepositoryBuilds _ _ _ _ ->
+        Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.loading
 
         Pages.Build _ _ _ _ ->
