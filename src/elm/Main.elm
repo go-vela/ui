@@ -109,6 +109,7 @@ import Vela
         , EnableRepositoryPayload
         , Enabling(..)
         , Event
+        , Favicon
         , Field
         , FocusFragment
         , HookBuilds
@@ -199,7 +200,7 @@ type alias Model =
     , shift : Bool
     , visibility : Visibility
     , showHelp : Bool
-    , favicon : String
+    , favicon : Favicon
     }
 
 
@@ -903,7 +904,7 @@ update msg model =
         Tick interval time ->
             case interval of
                 OneSecond ->
-                    ( { model | time = time }, restoreFavicon model.page model.favicon model.build )
+                    ( { model | time = time }, refreshFavicon model.page model.favicon model.build )
 
                 FiveSecond data ->
                     ( model, refreshPage model data )
@@ -1016,10 +1017,10 @@ refreshSubscriptions model =
                 []
 
 
-{-| restoreFavicon : takes page and restores the favicon to the default when not viewing the build page
+{-| refreshFavicon : takes page and restores the favicon to the default when not viewing the build page
 -}
-restoreFavicon : Page -> String -> WebData Build -> Cmd Msg
-restoreFavicon page currentFavicon build =
+refreshFavicon : Page -> Favicon -> WebData Build -> Cmd Msg
+refreshFavicon page currentFavicon build =
     case page of
         Pages.Build _ _ _ _ ->
             case build of

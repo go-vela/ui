@@ -19,6 +19,7 @@ module Vela exposing
     , Enabled
     , Enabling(..)
     , Event
+    , Favicon
     , Favorites
     , Field
     , FocusFragment
@@ -673,9 +674,35 @@ toStatus status =
             succeed Error
 
 
+{-| isComplete : helper to determine if status is 'complete'
+-}
+isComplete : Status -> Bool
+isComplete status =
+    case status of
+        Success ->
+            True
+
+        Failure ->
+            True
+
+        Error ->
+            True
+
+        _ ->
+            False
+
+
+
+-- STATUS FAVICONS
+
+
+type alias Favicon =
+    String
+
+
 {-| statusToFavicon : takes build status and returns absolute path to the appropriate favicon
 -}
-statusToFavicon : Status -> String
+statusToFavicon : Status -> Favicon
 statusToFavicon status =
     let
         fileName =
@@ -706,24 +733,6 @@ statusToFavicon status =
 defaultFavicon : String
 defaultFavicon =
     UB.absolute [ "images", "favicon.ico" ] []
-
-
-{-| isComplete : helper to determine if status is 'complete'
--}
-isComplete : Status -> Bool
-isComplete status =
-    case status of
-        Success ->
-            True
-
-        Failure ->
-            True
-
-        Error ->
-            True
-
-        _ ->
-            False
 
 
 
