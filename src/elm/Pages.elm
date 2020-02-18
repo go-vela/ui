@@ -8,7 +8,7 @@ module Pages exposing (Page(..), toRoute)
 
 import Api.Pagination as Pagination
 import Routes exposing (Route(..))
-import Vela exposing (AuthParams, BuildNumber, FocusFragment, Org, Repo)
+import Vela exposing (AuthParams, BuildNumber, Event, FocusFragment, Org, Repo)
 
 
 type Page
@@ -16,7 +16,7 @@ type Page
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
-    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | Login
     | Logout
@@ -45,8 +45,8 @@ toRoute page =
         Settings org repo ->
             Routes.Settings org repo
 
-        RepositoryBuilds org repo maybePage maybePerPage ->
-            Routes.RepositoryBuilds org repo maybePage maybePerPage
+        RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
+            Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
         Build org repo buildNumber logFocus ->
             Routes.Build org repo buildNumber logFocus

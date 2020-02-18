@@ -77,12 +77,7 @@ context('Contextual Help', () => {
   context('successfully loading resource with cli support', () => {
     beforeEach(() => {
       cy.server();
-      cy.fixture('builds_5.json').as('builds5');
-      cy.route({
-        method: 'GET',
-        url: 'api/v1/repos/*/*/builds',
-        response: '@builds5',
-      });
+      cy.route('GET', '*api/v1/repos/*/*/builds*', 'fixture:builds_5.json');
       cy.login('/someorg/somerepo');
       cy.get('[data-test=help-trigger]').as('trigger');
     });

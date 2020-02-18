@@ -1,5 +1,5 @@
 {
-  "name": "vela-ui",
+  "name": "vela-web-ui",
   "version": "0.1.0",
   "description": "Vela UI",
   "author": "Vela Team",
@@ -21,14 +21,14 @@
     "typescript": "^3.7.2"
   },
   "devDependencies": {
-    "axe-core": "^3.5.0",
-    "cypress": "^4.0.1",
+    "axe-core": "^3.5.1",
+    "cypress": "^4.0.2",
     "cypress-axe": "^0.5.3",
     "elm-hot": "^1.1.4",
     "prettier": "^1.19.1",
     "start-server-and-test": "^1.10.8",
-    "stylelint": "^13.1.0",
-    "stylelint-a11y": "^1.2.2",
+    "stylelint": "^13.2.0",
+    "stylelint-a11y": "^1.2.3",
     "stylelint-color-format": "^1.0.0",
     "stylelint-config-prettier": "^8.0.1",
     "stylelint-config-rational-order": "^0.1.2",

@@ -94,7 +94,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                         text "Refresh List"
                 ]
 
-        Pages.RepositoryBuilds org repo maybePage maybePerPage ->
+        Pages.RepositoryBuilds org repo maybePage maybePerPage _ ->
             div [ class "buttons" ]
                 [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , a

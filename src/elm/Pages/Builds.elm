@@ -25,13 +25,13 @@ import Pages.Build exposing (viewPreview)
 import RemoteData exposing (RemoteData(..))
 import Time exposing (Posix)
 import Util exposing (largeLoader)
-import Vela exposing (BuildsModel, Org, Repo)
+import Vela exposing (BuildsModel, Event, Org, Repo)
 
 
 {-| view : takes org and repo and renders build previews
 -}
-view : BuildsModel -> Posix -> Org -> Repo -> Html msg
-view buildsModel now org repo =
+view : BuildsModel -> Posix -> Org -> Repo -> Maybe Event -> Html msg
+view buildsModel now org repo maybeEvent =
     let
         settingsLink : String
         settingsLink =
@@ -39,30 +39,36 @@ view buildsModel now org repo =
 
         none : Html msg
         none =
-            div []
-                [ h1 [] [ text "Your respository has been added!" ]
-                , p [] [ text "Builds will show up here once you have:" ]
-                , ol [ class "list" ]
-                    [ li []
-                        [ text "A "
-                        , code [] [ text ".vela.yml" ]
-                        , text " file that describes your build pipeline in the root of your repository."
-                        , br [] []
-                        , a [ href "https://go-vela.github.io/docs/usage/getting-started/write_pipeline/" ] [ text "Review the documentation" ]
-                        , text " for help or "
-                        , a [ href "https://go-vela.github.io/docs/usage/pipeline/examples/" ] [ text "check some of the pipeline examples" ]
-                        , text "."
+            case maybeEvent of
+                Nothing ->
+                    div []
+                        [ h1 [] [ text "Your respository has been added!" ]
+                        , p [] [ text "Builds will show up here once you have:" ]
+                        , ol [ class "list" ]
+                            [ li []
+                                [ text "A "
+                                , code [] [ text ".vela.yml" ]
+                                , text " file that describes your build pipeline in the root of your repository."
+                                , br [] []
+                                , a [ href "https://go-vela.github.io/docs/usage/getting-started/write_pipeline/" ] [ text "Review the documentation" ]
+                                , text " for help or "
+                                , a [ href "https://go-vela.github.io/docs/usage/pipeline/examples/" ] [ text "check some of the pipeline examples" ]
+                                , text "."
+                                ]
+                            , li []
+                                [ text "Triggered one of the "
+                                , a [ href settingsLink ] [ text "configured webhook events" ]
+                                , text " by performing the respective action via "
+                                , em [] [ text "Git" ]
+                                , text "."
+                                ]
+                            ]
+                        , p [] [ text "Happy building!" ]
                         ]
-                    , li []
-                        [ text "Triggered one of the "
-                        , a [ href settingsLink ] [ text "configured webhook events" ]
-                        , text " by performing the respective action via "
-                        , em [] [ text "Git" ]
-                        , text "."
-                        ]
-                    ]
-                , p [] [ text "Happy building!" ]
-                ]
+
+                Just event ->
+                    div []
+                        [ h1 [] [ text <| "No builds for \"" ++ event ++ "\" event found." ] ]
     in
     case buildsModel.builds of
         RemoteData.Success builds ->
