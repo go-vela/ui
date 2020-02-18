@@ -709,19 +709,19 @@ statusToFavicon status =
             "favicon"
                 ++ (case status of
                         Pending ->
-                            "-pending.ico"
+                            "-pending"
 
                         Running ->
-                            "-running.ico"
+                            "-running"
 
                         Success ->
-                            "-success.ico"
+                            "-success"
 
                         Error ->
-                            "-failure.ico"
+                            "-failure"
 
                         Failure ->
-                            "-failure.ico"
+                            "-failure"
                    )
                 ++ ".ico"
     in
