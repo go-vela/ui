@@ -19,6 +19,7 @@ module Vela exposing
     , Enabled
     , Enabling(..)
     , Event
+    , Favicon
     , Favorites
     , Field
     , FocusFragment
@@ -66,6 +67,7 @@ module Vela exposing
     , decodeUser
     , defaultBuilds
     , defaultEnableRepositoryPayload
+    , defaultFavicon
     , defaultHooks
     , defaultRepository
     , defaultSession
@@ -77,6 +79,7 @@ module Vela exposing
     , encodeUpdateRepository
     , encodeUpdateUser
     , isComplete
+    , statusToFavicon
     , stringToTheme
     )
 
@@ -86,6 +89,7 @@ import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
+import Url.Builder as UB
 
 
 
@@ -686,6 +690,49 @@ isComplete status =
 
         _ ->
             False
+
+
+
+-- STATUS FAVICONS
+
+
+type alias Favicon =
+    String
+
+
+{-| statusToFavicon : takes build status and returns absolute path to the appropriate favicon
+-}
+statusToFavicon : Status -> Favicon
+statusToFavicon status =
+    let
+        fileName =
+            "favicon"
+                ++ (case status of
+                        Pending ->
+                            "-pending"
+
+                        Running ->
+                            "-running"
+
+                        Success ->
+                            "-success"
+
+                        Error ->
+                            "-failure"
+
+                        Failure ->
+                            "-failure"
+                   )
+                ++ ".ico"
+    in
+    UB.absolute [ "images", fileName ] []
+
+
+{-| defaultFavicon : returns absolute path to default favicon
+-}
+defaultFavicon : String
+defaultFavicon =
+    UB.absolute [ "images", "favicon.ico" ] []
 
 
 
