@@ -673,25 +673,32 @@ toStatus status =
             succeed Error
 
 
-{-| statusToFavicon : takes build status and returns absolute path to appropriate favicon
+{-| statusToFavicon : takes build status and returns absolute path to the appropriate favicon
 -}
 statusToFavicon : Status -> String
 statusToFavicon status =
-    case status of
-        Pending ->
-            UB.absolute [ "images", "favicon-pending.ico" ] []
+    let
+        fileName =
+            "favicon"
+                ++ (case status of
+                        Pending ->
+                            "-pending.ico"
 
-        Running ->
-            UB.absolute [ "images", "favicon-running.ico" ] []
+                        Running ->
+                            "-running.ico"
 
-        Success ->
-            UB.absolute [ "images", "favicon-success.ico" ] []
+                        Success ->
+                            "-success.ico"
 
-        Error ->
-            UB.absolute [ "images", "favicon-failure.ico" ] []
+                        Error ->
+                            "-failure.ico"
 
-        Failure ->
-            UB.absolute [ "images", "favicon-failure.ico" ] []
+                        Failure ->
+                            "-failure.ico"
+                   )
+                ++ ".ico"
+    in
+    UB.absolute [ "images", fileName ] []
 
 
 {-| defaultFavicon : returns absolute path to default favicon

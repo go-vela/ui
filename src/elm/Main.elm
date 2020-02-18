@@ -139,6 +139,7 @@ import Vela
         , decodeTheme
         , defaultBuilds
         , defaultEnableRepositoryPayload
+        , defaultFavicon
         , defaultHooks
         , defaultRepository
         , defaultSession
@@ -148,6 +149,7 @@ import Vela
         , encodeUpdateRepository
         , encodeUpdateUser
         , isComplete
+        , statusToFavicon
         , stringToTheme
         )
 
@@ -197,6 +199,7 @@ type alias Model =
     , shift : Bool
     , visibility : Visibility
     , showHelp : Bool
+    , favicon : String
     }
 
 
@@ -255,6 +258,7 @@ init flags url navKey =
             , shift = False
             , visibility = Visible
             , showHelp = False
+            , favicon = defaultFavicon
             }
 
         ( newModel, newPage ) =
@@ -609,7 +613,7 @@ update msg model =
                             }
                         , build = RemoteData.succeed build
                       }
-                    , Interop.setFavicon <| Encode.string <| Vela.statusToFavicon build.status
+                    , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
 
                 Err error ->
@@ -899,7 +903,7 @@ update msg model =
         Tick interval time ->
             case interval of
                 OneSecond ->
-                    ( { model | time = time }, restoreFavicon model.page )
+                    ( { model | time = time }, restoreFavicon model.page model.favicon model.build )
 
                 FiveSecond data ->
                     ( model, refreshPage model data )
@@ -1014,14 +1018,31 @@ refreshSubscriptions model =
 
 {-| restoreFavicon : takes page and restores the favicon to the default when not viewing the build page
 -}
-restoreFavicon : Page -> Cmd Msg
-restoreFavicon page =
+restoreFavicon : Page -> String -> WebData Build -> Cmd Msg
+restoreFavicon page currentFavicon build =
     case page of
         Pages.Build _ _ _ _ ->
-            Cmd.none
+            case build of
+                RemoteData.Success b ->
+                    let
+                        newFavicon =
+                            statusToFavicon b.status
+                    in
+                    if currentFavicon /= newFavicon then
+                        Interop.setFavicon <| Encode.string newFavicon
+
+                    else
+                        Cmd.none
+
+                _ ->
+                    Cmd.none
 
         _ ->
-            Interop.setFavicon <| Encode.string Vela.defaultFavicon
+            if currentFavicon /= defaultFavicon then
+                Interop.setFavicon <| Encode.string defaultFavicon
+
+            else
+                Cmd.none
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
@@ -1515,6 +1536,7 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, page, help } =
                 ]
             ]
         ]
+
 
 helpArg : WebData a -> Help.Help.Arg
 helpArg arg =
