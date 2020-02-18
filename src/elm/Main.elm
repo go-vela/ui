@@ -1476,13 +1476,7 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                                 [ class "form-label"
                                 , for <| "filter-" ++ e
                                 ]
-                                [ text <|
-                                    if e == "pull" then
-                                        "pull request"
-
-                                    else
-                                        e
-                                ]
+                                [ text <| String.replace "_" " " e ]
                             ]
                     )
                     eventEnum
