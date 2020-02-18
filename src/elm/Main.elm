@@ -613,6 +613,7 @@ update msg model =
                                 , repo = repo
                             }
                         , build = RemoteData.succeed build
+                        , favicon = statusToFavicon build.status
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
@@ -904,7 +905,11 @@ update msg model =
         Tick interval time ->
             case interval of
                 OneSecond ->
-                    ( { model | time = time }, refreshFavicon model.page model.favicon model.build )
+                    let
+                        ( favicon, cmd ) =
+                            refreshFavicon model.page model.favicon model.build
+                    in
+                    ( { model | time = time, favicon = favicon }, cmd )
 
                 FiveSecond data ->
                     ( model, refreshPage model data )
@@ -1019,7 +1024,7 @@ refreshSubscriptions model =
 
 {-| refreshFavicon : takes page and restores the favicon to the default when not viewing the build page
 -}
-refreshFavicon : Page -> Favicon -> WebData Build -> Cmd Msg
+refreshFavicon : Page -> Favicon -> WebData Build -> ( Favicon, Cmd Msg )
 refreshFavicon page currentFavicon build =
     case page of
         Pages.Build _ _ _ _ ->
@@ -1030,20 +1035,20 @@ refreshFavicon page currentFavicon build =
                             statusToFavicon b.status
                     in
                     if currentFavicon /= newFavicon then
-                        Interop.setFavicon <| Encode.string newFavicon
+                        ( newFavicon, Interop.setFavicon <| Encode.string newFavicon )
 
                     else
-                        Cmd.none
+                        ( currentFavicon, Cmd.none )
 
                 _ ->
-                    Cmd.none
+                    ( currentFavicon, Cmd.none )
 
         _ ->
             if currentFavicon /= defaultFavicon then
-                Interop.setFavicon <| Encode.string defaultFavicon
+                ( defaultFavicon, Interop.setFavicon <| Encode.string defaultFavicon )
 
             else
-                Cmd.none
+                ( currentFavicon, Cmd.none )
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
@@ -1440,7 +1445,7 @@ viewBuildsFilter shouldRender org repo maybeEvent =
     let
         eventEnum : List String
         eventEnum =
-            [ "all", "push", "pull_request", "tag", "deploy" ]
+            [ "all", "push", "pull", "tag", "deploy" ]
 
         eventToMaybe : String -> Maybe Event
         eventToMaybe event =
@@ -1471,7 +1476,13 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                                 [ class "form-label"
                                 , for <| "filter-" ++ e
                                 ]
-                                [ text <| String.replace "_" " " e ]
+                                [ text <|
+                                    if e == "pull" then
+                                        "pull request"
+
+                                    else
+                                        e
+                                ]
                             ]
                     )
                     eventEnum
