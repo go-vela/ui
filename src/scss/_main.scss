@@ -1316,6 +1316,12 @@ nav {
     margin-left: 1rem;
   }
 
+  // TODO: revisit the following
+  .form-control .form-label::before,
+  .form-control .form-label::after {
+    top: auto;
+  }
+
   @media only screen and (max-width: 40em) {
     flex-flow: wrap column;
 
