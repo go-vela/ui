@@ -191,7 +191,7 @@ context('Builds', () => {
     });
 
     it('should only show two pull events', () => {
-      cy.get('[data-test=build-filter-pull]').click({ force: true });
+      cy.get('[data-test=build-filter-pull_request]').click({ force: true });
       cy.get('[data-test=build]')
         .should('be.visible')
         .should('have.length', 2);
