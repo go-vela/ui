@@ -80,5 +80,8 @@
     "ci",
     "cypress"
   ],
+  "staticFiles": {
+    "staticPath": "src/static"
+  },
   "license": "Apache-2.0"
 }
