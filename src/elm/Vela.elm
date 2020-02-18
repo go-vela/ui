@@ -65,6 +65,7 @@ module Vela exposing
     , decodeUser
     , defaultBuilds
     , defaultEnableRepositoryPayload
+    , defaultFavicon
     , defaultHooks
     , defaultRepository
     , defaultSession
@@ -76,6 +77,7 @@ module Vela exposing
     , encodeUpdateRepository
     , encodeUpdateUser
     , isComplete
+    , statusToFavicon
     , stringToTheme
     )
 
@@ -85,6 +87,7 @@ import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
+import Url.Builder as UB
 
 
 
@@ -663,6 +666,34 @@ toStatus status =
 
         _ ->
             succeed Error
+
+
+{-| statusToFavicon : takes build status and returns absolute path to appropriate favicon
+-}
+statusToFavicon : Status -> String
+statusToFavicon status =
+    case status of
+        Pending ->
+            UB.absolute [ "images", "favicon-pending.ico" ] []
+
+        Running ->
+            UB.absolute [ "images", "favicon-running.ico" ] []
+
+        Success ->
+            UB.absolute [ "images", "favicon-success.ico" ] []
+
+        Error ->
+            UB.absolute [ "images", "favicon-failure.ico" ] []
+
+        Failure ->
+            UB.absolute [ "images", "favicon-failure.ico" ] []
+
+
+{-| defaultFavicon : returns absolute path to default favicon
+-}
+defaultFavicon : String
+defaultFavicon =
+    UB.absolute [ "images", "favicon.ico" ] []
 
 
 {-| isComplete : helper to determine if status is 'complete'

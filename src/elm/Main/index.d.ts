@@ -69,6 +69,7 @@ export type Ports = {
   readonly storeSession: ToJS<Session>;
   readonly onSessionChange: ToElm<Session>;
   readonly setTheme: ToJS<Theme>;
+  readonly setFavicon: ToJS<string>;
   readonly onThemeChange: ToElm<Theme>;
 };
 

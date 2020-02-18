@@ -600,7 +600,7 @@ update msg model =
                             }
                         , build = RemoteData.succeed build
                       }
-                    , Cmd.none
+                    , Interop.setFavicon <| Encode.string <| Vela.statusToFavicon build.status
                     )
 
                 Err error ->
@@ -890,7 +890,7 @@ update msg model =
         Tick interval time ->
             case interval of
                 OneSecond ->
-                    ( { model | time = time }, Cmd.none )
+                    ( { model | time = time }, refreshFavicon model.page )
 
                 FiveSecond data ->
                     ( model, refreshPage model data )
@@ -1000,6 +1000,21 @@ refreshSubscriptions model =
                 []
 
 
+setDefaultFavicon : Cmd Msg
+setDefaultFavicon =
+    Interop.setFavicon <| Encode.string Vela.defaultFavicon
+
+
+refreshFavicon : Page -> Cmd Msg
+refreshFavicon page =
+    case page of
+        Pages.Build _ _ _ _ ->
+            Cmd.none
+
+        _ ->
+            setDefaultFavicon
+
+
 {-| refreshPage : refreshes Vela data based on current page and build status
 -}
 refreshPage : Model -> RefreshData -> Cmd Msg
@@ -1010,7 +1025,9 @@ refreshPage model _ =
     in
     case page of
         Pages.RepositoryBuilds org repo maybePage maybePerPage ->
-            getBuilds model org repo maybePage maybePerPage
+            Cmd.batch
+                [ getBuilds model org repo maybePage maybePerPage
+                ]
 
         Pages.Build org repo buildNumber _ ->
             Cmd.batch
