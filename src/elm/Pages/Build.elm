@@ -154,11 +154,7 @@ viewPreview now org repo build =
             [ buildStatusToIcon build.status ]
 
         commit =
-            [ if build.event == "pull" then
-                text "pull request"
-
-              else
-                text build.event
+            [ text <| String.replace "_" " " build.event
             , text " ("
             , a [ href build.source ] [ text <| trimCommitHash build.commit ]
             , text <| ")"

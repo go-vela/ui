@@ -1319,7 +1319,7 @@ nav {
   // TODO: revisit the following
   .form-control .form-label::before,
   .form-control .form-label::after {
-    top: auto;
+    top: 2px;
   }
 
   @media only screen and (max-width: 40em) {

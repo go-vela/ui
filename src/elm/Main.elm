@@ -1440,7 +1440,7 @@ viewBuildsFilter shouldRender org repo maybeEvent =
     let
         eventEnum : List String
         eventEnum =
-            [ "all", "push", "pull", "tag", "deploy" ]
+            [ "all", "push", "pull_request", "tag", "deploy" ]
 
         eventToMaybe : String -> Maybe Event
         eventToMaybe event =
@@ -1471,13 +1471,7 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                                 [ class "form-label"
                                 , for <| "filter-" ++ e
                                 ]
-                                [ text <|
-                                    if e == "pull" then
-                                        "pull request"
-
-                                    else
-                                        e
-                                ]
+                                [ text <| String.replace "_" " " e ]
                             ]
                     )
                     eventEnum
