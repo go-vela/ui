@@ -18,6 +18,7 @@ module Vela exposing
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
+    , Event
     , Favorites
     , Field
     , FocusFragment
@@ -101,6 +102,10 @@ type alias Org =
 
 
 type alias Repo =
+    String
+
+
+type alias Event =
     String
 
 

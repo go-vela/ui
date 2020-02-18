@@ -36,7 +36,7 @@ commands page =
         Pages.Hooks org repo _ _ ->
             [ validate, listHooks org repo ]
 
-        Pages.RepositoryBuilds org repo _ _ ->
+        Pages.RepositoryBuilds org repo _ _ _ ->
             [ listBuilds org repo ]
 
         Pages.Build org repo buildNumber _ ->

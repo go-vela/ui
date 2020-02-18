@@ -100,6 +100,39 @@ Cypress.Commands.add('stubBuilds', () => {
   });
 });
 
+Cypress.Commands.add('stubBuildsFilter', () => {
+  cy.server();
+  cy.fixture('builds_all.json').as('buildsAll');
+  cy.fixture('builds_push.json').as('buildsPush');
+  cy.fixture('builds_pull.json').as('buildsPull');
+  cy.fixture('builds_tag.json').as('buildsTag');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds*',
+    response: '@buildsAll',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds?event=push*',
+    response: '@buildsPush',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds?event=pull*',
+    response: '@buildsPull',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds?event=tag*',
+    response: '@buildsTag',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds?event=deploy*',
+    response: '[]',
+  });
+});
+
 Cypress.Commands.add('stubStepsWithLogs', () => {
   cy.server();
   cy.fixture('steps_5.json').as('steps');
