@@ -75,10 +75,10 @@ app.ports.setTheme.subscribe(theme => {
 });
 
 app.ports.setFavicon.subscribe(function(url) {
-  var oldIcon = document.getElementById("favicon");
-  var newIcon = document.createElement("link");
-  newIcon.id = "favicon";
-  newIcon.rel = "shortcut icon";
+  var oldIcon = document.getElementById('favicon');
+  var newIcon = document.createElement('link');
+  newIcon.id = 'favicon';
+  newIcon.rel = 'shortcut icon';
   // newIcon.href = favicon(name);
   newIcon.href = url;
   if (oldIcon) {
