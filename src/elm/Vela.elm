@@ -926,7 +926,7 @@ type alias SearchFilter =
 -- UPDATES
 
 
-{-| Copy : takse a string and notifies the user of copy event
+{-| Copy : takes a string and notifies the user of copy event
 -}
 type alias Copy msg =
     String -> msg
