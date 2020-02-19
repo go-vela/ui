@@ -41,7 +41,8 @@ import Html
         )
 import Html.Attributes
     exposing
-        ( checked
+        ( attribute
+        , checked
         , class
         , classList
         , disabled
@@ -330,6 +331,7 @@ admin disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg repo =
             , button
                 [ class "button"
                 , class "-outline"
+                , attribute "aria-label" <| "become owner of the webhook for " ++ repo.full_name
                 , Util.testAttribute "repo-chown"
                 , onClick <| chownRepoMsg repo
                 ]
@@ -344,6 +346,7 @@ admin disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg repo =
             , button
                 [ class "button"
                 , class "-outline"
+                , attribute "aria-label" <| "repair the webhook for " ++ repo.full_name
                 , Util.testAttribute "repo-repair"
                 , onClick <| repairRepoMsg repo
                 ]
