@@ -14,10 +14,7 @@ import Html.Events
 import Pages exposing (Page(..))
 import SvgBuilder
 import Util
-
-
-type alias Copy msg =
-    String -> msg
+import Vela exposing (Copy)
 
 
 {-| Args : wrapper for help args, meant to slim down the input required to render contextual help for each page

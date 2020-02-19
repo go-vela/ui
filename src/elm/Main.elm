@@ -1364,7 +1364,7 @@ viewContent model =
 
         Pages.Settings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy3 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
+            , lazy4 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
@@ -2061,7 +2061,7 @@ hooksMsgs =
 -}
 repoSettingsMsgs : Pages.Settings.Msgs Msg
 repoSettingsMsgs =
-    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo
+    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy
 
 
 

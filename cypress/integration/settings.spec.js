@@ -1,3 +1,5 @@
+import { isExportDeclaration } from 'typescript';
+
 /*
  * Copyright (c) 2020 Target Brands, Inc. All rights reserved.
  * Use of this source code is governed by the LICENSE file in this repository.
@@ -168,6 +170,14 @@ context('Repo Settings', () => {
       cy.get('[data-test=alerts]').as('alert');
       cy.get('@alert').should('exist');
       cy.get('@alert').contains('Success');
+    });
+
+    it('should copy markdown to clipboard and alert', () => {
+      let clipboardContent;
+      cy.get('[data-test=copy-md]').click();
+      cy.get('[data-test=alerts]')
+        .should('exist')
+        .contains('Copied');
     });
   });
 });

@@ -1293,6 +1293,16 @@ nav {
   margin-left: 0.6rem;
 }
 
+.copy-display {
+  padding: 0.5rem;
+
+  color: var(--color-text);
+
+  background-color: var(--color-bg-dark);
+
+  border: none;
+}
+
 // class for basic list styling
 .list {
   font-size: 1rem;

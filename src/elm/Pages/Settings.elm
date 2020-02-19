@@ -22,14 +22,17 @@ module Pages.Settings exposing
     )
 
 import Dict exposing (Dict)
+import FeatherIcons
 import Html
     exposing
         ( Html
+        , a
         , br
         , button
         , div
         , em
         , h2
+        , img
         , input
         , label
         , p
@@ -38,24 +41,33 @@ import Html
         , span
         , strong
         , text
+        , textarea
         )
 import Html.Attributes
     exposing
-        ( checked
+        ( alt
+        , attribute
+        , checked
         , class
         , classList
         , disabled
         , for
+        , href
         , id
+        , readonly
+        , rows
+        , src
         , type_
         , value
+        , wrap
         )
 import Html.Events exposing (onCheck, onClick, onInput)
 import RemoteData exposing (RemoteData(..), WebData)
 import Util
 import Vela
     exposing
-        ( DisableRepo
+        ( Copy
+        , DisableRepo
         , EnableRepo
         , Enabled
         , Enabling
@@ -104,6 +116,7 @@ type alias Msgs msg =
     , inTimeoutChange : StringInputChange msg
     , disableRepo : DisableRepo msg
     , enableRepo : EnableRepo msg
+    , copy : Copy msg
     }
 
 
@@ -113,8 +126,8 @@ type alias Msgs msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> Msgs msg -> Html msg
-view repo inTimeout actions =
+view : WebData Repository -> Maybe Int -> Msgs msg -> String -> Html msg
+view repo inTimeout actions velaAPI =
     let
         ( accessUpdate, timeoutUpdate, inTimeoutChange ) =
             ( actions.accessUpdate, actions.timeoutUpdate, actions.inTimeoutChange )
@@ -128,6 +141,7 @@ view repo inTimeout actions =
                 [ events repo_ eventsUpdate
                 , access repo_ accessUpdate
                 , timeout inTimeout repo_ timeoutUpdate inTimeoutChange
+                , badge repo_ velaAPI actions.copy
                 , enable disableRepo enableRepo repo_
                 ]
 
@@ -160,6 +174,64 @@ access repo msg =
         , div [ class "form-controls", class "-stack" ]
             [ radio repo.visibility "private" "Private" <| msg repo.org repo.name "visibility" "private"
             , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
+            ]
+        ]
+
+
+{-| badge : takes repo and renders a section for getting your build status badge
+-}
+badge : Repository -> String -> Copy msg -> Html msg
+badge repo velaAPI copyMsg =
+    let
+        badgeURL : String
+        badgeURL =
+            String.join "/" [ velaAPI, "badge", repo.org, repo.name, "status.svg" ]
+
+        mdCode : String
+        mdCode =
+            "[![Build Status](" ++ badgeURL ++ ")](" ++ repo.link ++ ")"
+    in
+    section [ class "settings", Util.testAttribute "repo-settings-badge" ]
+        [ h2 [ class "settings-title" ] [ text "Status Badge" ]
+        , p [ class "settings-description" ]
+            [ text "Show off your build status."
+            , br [] []
+            , em [] [ text "Uses the default branch on your repository." ]
+            ]
+        , div []
+            [ p [ class "build-badge" ]
+                [ img [ alt "build status badge", src badgeURL ] [] ]
+            , text "Markdown"
+            , div [ class "form-controls", class "-no-x-pad" ]
+                [ textarea
+                    [ class "form-control"
+                    , class "copy-display"
+                    , class "-is-expanded"
+                    , rows 2
+                    , readonly True
+                    , wrap "soft"
+                    ]
+                    [ text mdCode ]
+                , button
+                    [ class "copy-button"
+                    , class "button"
+                    , class "-icon"
+                    , class "-white"
+                    , attribute "data-clipboard-text" mdCode
+                    , attribute "aria-label" "copy status badge markdown code"
+                    , Util.testAttribute "copy-md"
+                    , onClick <| copyMsg mdCode
+                    ]
+                    [ FeatherIcons.copy
+                        |> FeatherIcons.withSize 18
+                        |> FeatherIcons.toHtml []
+                    ]
+                ]
+            , small []
+                [ text "To customize branch, "
+                , a [ href "https://go-vela.github.io/docs/usage/badge/" ] [ text "see our Badges documentation" ]
+                , text "."
+                ]
             ]
         ]
 
