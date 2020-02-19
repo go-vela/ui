@@ -25,6 +25,8 @@ type Endpoint
     | CurrentUser
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Repository Org Repo
+    | RepositoryChown Org Repo
+    | RepositoryRepair Org Repo
     | UserSourceRepositories
     | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
@@ -47,6 +49,12 @@ toUrl api endpoint =
 
         Repository org repo ->
             url api [ "repos", org, repo ] []
+
+        RepositoryChown org repo ->
+            url api [ "repos", org, repo, "chown" ] []
+
+        RepositoryRepair org repo ->
+            url api [ "repos", org, repo, "repair" ] []
 
         CurrentUser ->
             url api [ "user" ] []
