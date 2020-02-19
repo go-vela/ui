@@ -13,6 +13,7 @@ import Html.Events
 import Toasty as Alerting
 import Toasty.Defaults as Alerts
 import Util
+import Vela exposing (Copy)
 
 
 
@@ -43,7 +44,7 @@ type Alert
 
 {-| view : Default theme view handling the three alert variants.
 -}
-view : (String -> msg) -> Alert -> Html msg
+view : Copy msg -> Alert -> Html msg
 view copy toast =
     case toast of
         Success title message link ->
@@ -58,7 +59,7 @@ view copy toast =
 
 {-| wrapAlert : wraps an alert message in the appropriate html.
 -}
-wrapAlert : String -> String -> String -> Maybe Link -> Maybe (String -> msg) -> Html msg
+wrapAlert : String -> String -> String -> Maybe Link -> Maybe (Copy msg) -> Html msg
 wrapAlert variantClass title message link copy =
     let
         hyperlink =
@@ -80,7 +81,7 @@ wrapAlert variantClass title message link copy =
         ]
 
 
-copyButton : String -> Maybe (String -> msg) -> Html msg
+copyButton : String -> Maybe (Copy msg) -> Html msg
 copyButton copyContent copy =
     case copy of
         Just copyMsg ->

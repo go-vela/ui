@@ -12,6 +12,7 @@ module Vela exposing
     , Builds
     , BuildsModel
     , ChownRepo
+    , Copy
     , CurrentUser
     , DisableRepo
     , EnableRepo
@@ -925,6 +926,12 @@ type alias SearchFilter =
 
 
 -- UPDATES
+
+
+{-| Copy : takes a string and notifies the user of copy event
+-}
+type alias Copy msg =
+    String -> msg
 
 
 {-| DisableRepo : takes repo and disables it on Vela
