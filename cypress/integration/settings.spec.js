@@ -39,21 +39,27 @@ context('Repo Settings', () => {
       cy.route('GET', '*api/v1/repos/*/octocat', 'fixture:repository.json');
       cy.login('/github/octocat/settings');
     });
+
     it('should show the repo in the breadcrumb', () => {
       cy.get('[data-test=crumb-settings]').should('be.visible');
     });
+
     it('should show the Refresh Settings button', () => {
       cy.get('[data-test=refresh-repo-settings]').should('be.visible');
     });
+
     it('build timeout input should show', () => {
       cy.get('[data-test=repo-timeout]').should('be.visible');
     });
+
     it('webhook event category should show', () => {
       cy.get('[data-test=repo-settings-events]').should('be.visible');
     });
+
     it('allow_push checkbox should show', () => {
       cy.get('[data-test=repo-checkbox-allow_push]').should('be.visible');
     });
+
     it('clicking allow_push checkbox should toggle the value', () => {
       cy.get('[data-test=repo-checkbox-allow_push] input').as(
         'allowPushCheckbox',
@@ -62,12 +68,14 @@ context('Repo Settings', () => {
       cy.get('@allowPushCheckbox').click({ force: true });
       cy.get('@allowPushCheckbox').should('not.have.checked');
     });
+
     it('clicking access radio should toggle both values', () => {
       cy.get('[data-test=repo-radio-private] input').as('accessRadio');
       cy.get('@accessRadio').should('not.have.checked');
       cy.get('@accessRadio').click({ force: true });
       cy.get('@accessRadio').should('have.checked');
     });
+
     it('build timeout input should allow number input', () => {
       cy.get('[data-test=repo-timeout]').as('repoTimeout');
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
@@ -76,6 +84,7 @@ context('Repo Settings', () => {
         .type('123');
       cy.get('@repoTimeoutInput').should('have.value', '30123');
     });
+
     it('build timeout input should not allow letter/character input', () => {
       cy.get('[data-test=repo-timeout]').as('repoTimeout');
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
@@ -86,6 +95,7 @@ context('Repo Settings', () => {
       cy.get('@repoTimeoutInput').type('12cat34');
       cy.get('@repoTimeoutInput').should('have.value', '301234');
     });
+
     it('clicking update on build timeout should update timeout and hide button', () => {
       cy.get('[data-test=repo-timeout]').as('repoTimeout');
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
@@ -98,6 +108,7 @@ context('Repo Settings', () => {
         .click({ force: true });
       cy.get('[data-test=repo-timeout] + button').should('be.disabled');
     });
+
     it('clicking Refresh Settings button should clear input', () => {
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
       cy.get('@repoTimeoutInput')
@@ -108,8 +119,11 @@ context('Repo Settings', () => {
         .click({ force: true });
       cy.get('@repoTimeoutInput').should('have.value', '30');
     });
+
     it('Disable button should exist', () => {
-      cy.get('[data-test=repo-disable]').should('have.length', 1);
+      cy.get('[data-test=repo-disable]')
+        .should('exist')
+        .should('be.visible');
     });
 
     it('clicking button should prompt disable confirmation', () => {
@@ -157,6 +171,7 @@ context('Repo Settings', () => {
       cy.wait('@enable');
       cy.get('[data-test=repo-disable]').should('contain', 'Disable');
     });
+
     it('should show an success alert on successful removal of a repo', () => {
       cy.route({
         method: 'DELETE',
@@ -178,6 +193,68 @@ context('Repo Settings', () => {
       cy.get('[data-test=alerts]')
         .should('exist')
         .contains('Copied');
+    });
+
+    it('Chown button should exist', () => {
+      cy.get('[data-test=repo-chown]')
+        .should('exist')
+        .should('be.visible');
+    });
+
+    it('should show an success alert on successful chown of a repo', () => {
+      cy.route({
+        method: 'PATCH',
+        url: '*api/v1/repos/github/**',
+        response: '"Repo github/octocat changed owner"',
+      });
+      cy.get('[data-test=repo-chown]').click();
+      cy.get('[data-test=alerts]')
+        .should('exist')
+        .contains('Success');
+    });
+
+    it('should show an error alert on failed chown of a repo', () => {
+      cy.route({
+        method: 'PATCH',
+        url: '*api/v1/repos/github/**',
+        status: 500,
+        response: '"Unable to..."',
+      });
+      cy.get('[data-test=repo-chown]').click();
+      cy.get('[data-test=alerts]')
+        .should('exist')
+        .contains('Error');
+    });
+
+    it('Repair button should exist', () => {
+      cy.get('[data-test=repo-repair')
+        .should('exist')
+        .should('be.visible');
+    });
+
+    it('should show an success alert on successful repair of a repo', () => {
+      cy.route({
+        method: 'PATCH',
+        url: '*api/v1/repos/github/**',
+        response: '"Repo github/octocat repaired."',
+      });
+      cy.get('[data-test=repo-repair]').click();
+      cy.get('[data-test=alerts]')
+        .should('exist')
+        .contains('Success');
+    });
+
+    it('should show an error alert on a failed repair of a repo', () => {
+      cy.route({
+        method: 'PATCH',
+        url: '*api/v1/repos/github/**',
+        status: 500,
+        response: '"Unable to..."',
+      });
+      cy.get('[data-test=repo-repair]').click();
+      cy.get('[data-test=alerts]')
+        .should('exist')
+        .contains('Error');
     });
   });
 });

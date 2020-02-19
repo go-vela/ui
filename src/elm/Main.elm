@@ -103,6 +103,7 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
+        , ChownRepo
         , CurrentUser
         , EnableRepo
         , EnableRepos
@@ -118,6 +119,7 @@ import Vela
         , Log
         , Logs
         , Org
+        , RepairRepo
         , Repo
         , RepoSearchFilters
         , Repositories
@@ -312,6 +314,8 @@ type Msg
     | UpdateRepoTimeout Org Repo Field Int
     | EnableRepos Repositories
     | DisableRepo Repository
+    | ChownRepo Repository
+    | RepairRepo Repository
     | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
@@ -324,6 +328,8 @@ type Msg
     | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoDisabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RepoChownedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RepoRepairedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
@@ -574,6 +580,30 @@ update msg model =
                     , Cmd.none
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " disabled.") Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        ChownRepo repo ->
+            ( model, Api.try (RepoChownedResponse repo) <| Api.chownRepo model repo )
+
+        RepoChownedResponse repo response ->
+            case response of
+                Ok _ ->
+                    ( model, Cmd.none )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("You are now the owner of " ++ repo.full_name) Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        RepairRepo repo ->
+            ( model, Api.try (RepoRepairedResponse repo) <| Api.repairRepo model repo )
+
+        RepoRepairedResponse repo response ->
+            case response of
+                Ok _ ->
+                    ( model, Cmd.none )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " has been repaired.") Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -2061,7 +2091,7 @@ hooksMsgs =
 -}
 repoSettingsMsgs : Pages.Settings.Msgs Msg
 repoSettingsMsgs =
-    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy
+    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
 
 
 

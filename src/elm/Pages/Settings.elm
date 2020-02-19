@@ -66,12 +66,14 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Util
 import Vela
     exposing
-        ( Copy
+        ( ChownRepo
+        , Copy
         , DisableRepo
         , EnableRepo
         , Enabled
         , Enabling
         , Field
+        , RepairRepo
         , Repositories
         , Repository
         , SourceRepositories
@@ -117,6 +119,8 @@ type alias Msgs msg =
     , disableRepo : DisableRepo msg
     , enableRepo : EnableRepo msg
     , copy : Copy msg
+    , chownRepo : ChownRepo msg
+    , repairRepo : RepairRepo msg
     }
 
 
@@ -134,6 +138,9 @@ view repo inTimeout actions velaAPI =
 
         ( eventsUpdate, disableRepo, enableRepo ) =
             ( actions.eventsUpdate, actions.disableRepo, actions.enableRepo )
+
+        ( chownRepo, repairRepo ) =
+            ( actions.chownRepo, actions.repairRepo )
     in
     case repo of
         Success repo_ ->
@@ -142,7 +149,7 @@ view repo inTimeout actions velaAPI =
                 , access repo_ accessUpdate
                 , timeout inTimeout repo_ timeoutUpdate inTimeoutChange
                 , badge repo_ velaAPI actions.copy
-                , enable disableRepo enableRepo repo_
+                , admin disableRepo enableRepo chownRepo repairRepo repo_
                 ]
 
         Loading ->
@@ -371,10 +378,10 @@ timeoutWarning inTimeout =
             text ""
 
 
-{-| enable : takes enable actions and repo and returns view of the repo enable admin action.
+{-| admin : takes admin actions and repo and returns view of the repo admin actions.
 -}
-enable : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
-enable disableRepoMsg enableRepoMsg repo =
+admin : DisableRepo msg -> EnableRepo msg -> ChownRepo msg -> RepairRepo msg -> Repository -> Html msg
+admin disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg repo =
     let
         enabledDetails =
             if disableable repo.enabling then
@@ -383,15 +390,45 @@ enable disableRepoMsg enableRepoMsg repo =
             else
                 ( "Enable Repository", "This will create the Vela webhook for this repository." )
     in
-    section [ class "settings", Util.testAttribute "repo-settings-timeout" ]
+    section [ class "settings", Util.testAttribute "repo-settings-admin" ]
         [ h2 [ class "settings-title" ] [ text "Admin" ]
-        , p [ class "settings-description" ] [ text "These configurations require admin privileges." ]
-        , div [ class "enable-container" ]
-            [ div [ class "enable-description" ]
+        , p [ class "settings-description" ] [ text "These actions require admin privileges." ]
+        , div [ class "admin-action-container" ]
+            [ div [ class "admin-action-description" ]
+                [ text "Chown Repository"
+                , small []
+                    [ em [] [ text "This will make you the owner of the webhook for this repository." ] ]
+                ]
+            , button
+                [ class "button"
+                , class "-outline"
+                , attribute "aria-label" <| "become owner of the webhook for " ++ repo.full_name
+                , Util.testAttribute "repo-chown"
+                , onClick <| chownRepoMsg repo
+                ]
+                [ text "Chown" ]
+            ]
+        , div [ class "admin-action-container" ]
+            [ div [ class "admin-action-description" ]
+                [ text "Repair Repository"
+                , small []
+                    [ em [] [ text "This will repair the webhook for this repository." ] ]
+                ]
+            , button
+                [ class "button"
+                , class "-outline"
+                , attribute "aria-label" <| "repair the webhook for " ++ repo.full_name
+                , Util.testAttribute "repo-repair"
+                , onClick <| repairRepoMsg repo
+                ]
+                [ text "Repair" ]
+            ]
+        , div [ class "admin-action-container" ]
+            [ div [ class "admin-action-description" ]
                 [ text <| Tuple.first enabledDetails
                 , small [] [ em [] [ text <| Tuple.second enabledDetails ] ]
                 ]
-            , div [] [ enabledButton disableRepoMsg enableRepoMsg repo ]
+            , enabledButton disableRepoMsg enableRepoMsg repo
             ]
         ]
 

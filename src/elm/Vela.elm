@@ -11,6 +11,7 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
+    , ChownRepo
     , Copy
     , CurrentUser
     , DisableRepo
@@ -32,6 +33,7 @@ module Vela exposing
     , LogFocus
     , Logs
     , Org
+    , RepairRepo
     , Repo
     , RepoSearchFilters
     , Repositories
@@ -948,3 +950,15 @@ type alias EnableRepo msg =
 -}
 type alias EnableRepos msg =
     Repositories -> msg
+
+
+{-| ChownRepo : takes repo and changes ownership on Vela
+-}
+type alias ChownRepo msg =
+    Repository -> msg
+
+
+{-| RepairRepo : takes repo and re-enables the webhook on it
+-}
+type alias RepairRepo msg =
+    Repository -> msg
