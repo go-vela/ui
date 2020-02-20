@@ -1217,7 +1217,7 @@ nav {
   background-color: var(--color-bg);
   flex: 1;
 
-  & + .button {
+  + .button {
     margin-left: 0.5rem;
   }
 }
