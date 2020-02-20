@@ -24,7 +24,7 @@ type Route
     = Overview
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | Settings Org Repo
+    | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | Login
@@ -46,7 +46,7 @@ routes =
         , map Logout (s "account" </> s "logout")
         , parseAuth
         , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
-        , map Settings (string </> string </> s "settings")
+        , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Build (string </> string </> string </> fragment identity)
         , map NotFound (s "404")
@@ -84,7 +84,7 @@ routeToUrl route =
         AddRepositories ->
             "/account/add-repos"
 
-        Settings org repo ->
+        RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->

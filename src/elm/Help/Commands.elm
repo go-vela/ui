@@ -42,7 +42,7 @@ commands page =
         Pages.Build org repo buildNumber _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
 
-        Pages.Settings org repo ->
+        Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
         Pages.Authenticate _ ->

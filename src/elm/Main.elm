@@ -77,7 +77,7 @@ import Pages.Build
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
-import Pages.Settings exposing (enableUpdate)
+import Pages.RepoSettings exposing (enableUpdate)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
@@ -539,7 +539,7 @@ update msg model =
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
-                        |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.Settings.alert field updatedRepo) Nothing)
+                        |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
@@ -733,7 +733,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 action =
-                    if Pages.Settings.validEventsUpdate model.repo payload then
+                    if Pages.RepoSettings.validEventsUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -754,7 +754,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 action =
-                    if Pages.Settings.validAccessUpdate model.repo payload then
+                    if Pages.RepoSettings.validAccessUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1392,9 +1392,9 @@ viewContent model =
                 ]
             )
 
-        Pages.Settings org repo ->
+        Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy4 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI
+            , lazy4 Pages.RepoSettings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
@@ -1554,6 +1554,7 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, page, help } =
                         , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                             [ li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
+                                [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
                             ]
                         ]
             ]
@@ -1785,7 +1786,7 @@ loadHooksPage model org repo maybePage maybePerPage =
 loadSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadSettingsPage model org repo =
     -- Fetch repo from Api
-    ( { model | page = Pages.Settings org repo, repo = Loading, inTimeout = Nothing }
+    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }
     , Cmd.batch
         [ getRepo model org repo
         , getCurrentUser model
@@ -2089,9 +2090,9 @@ hooksMsgs =
 
 {-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm
 -}
-repoSettingsMsgs : Pages.Settings.Msgs Msg
+repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
-    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
+    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
 
 
 

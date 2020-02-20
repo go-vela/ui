@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Settings exposing
+module Pages.RepoSettings exposing
     ( Msgs
     , access
     , alert

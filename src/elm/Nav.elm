@@ -113,7 +113,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                     [ text "Repo Settings" ]
                 ]
 
-        Pages.Settings org repo ->
+        Pages.RepoSettings org repo ->
             div [ class "buttons" ]
                 [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , button
