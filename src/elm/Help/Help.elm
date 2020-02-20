@@ -8,7 +8,7 @@ module Help.Help exposing (Arg, Args, view)
 
 import FeatherIcons
 import Help.Commands exposing (Command, commands)
-import Html exposing (Html, a, button, details, div, input, li, summary, text)
+import Html exposing (Html, a, button, details, div, input, label, li, p, span, strong, summary, text)
 import Html.Attributes exposing (attribute, class, href, id, size, value)
 import Html.Events
 import Pages exposing (Page(..))
@@ -75,9 +75,8 @@ view args =
 -}
 help : Args msg -> Html msg
 help args =
-    div [ class "toolip", Util.testAttribute "help-tooltip" ] <|
-        [ div [ class "arrow" ] []
-        , div [] [ text "Manage Vela resources using the CLI" ]
+    div [ class "tooltip", Util.testAttribute "help-tooltip" ] <|
+        [ strong [] [ text "Manage Vela resources using the CLI" ]
         ]
             ++ body args
             ++ [ footer args ]
@@ -139,18 +138,12 @@ contents : Copy msg -> Command -> Html msg
 contents copyMsg command =
     case ( command.content, command.issue ) of
         ( Just content, _ ) ->
-            div [ class "-cmd-pad" ]
-                [ div [ class "-center-row", Util.testAttribute "help-cmd-header" ]
-                    [ text command.name, docsLink command ]
-                , row content <| Just copyMsg
-                ]
+            div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
+                [ span [] [ label [ class "form-label" ] [ text <| command.name ++ " " ], docsLink command ], row content <| Just copyMsg ]
 
         ( Nothing, Just issue ) ->
-            div [ class "-cmd-pad" ]
-                [ div [ class "-center-row", Util.testAttribute "help-cmd-header" ]
-                    [ text command.name, upvoteFeatureLink issue ]
-                , notSupported
-                ]
+            div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
+                [ span [] [ text <| command.name ++ " ", upvoteFeatureLink issue ], notSupported ]
 
         _ ->
             text "no commands on this page"
@@ -161,12 +154,11 @@ contents copyMsg command =
 row : String -> Maybe (Copy msg) -> Html msg
 row content copy =
     div
-        [ class "-center-row"
-        , class "-m-top"
+        [ class "cmd"
         , Util.testAttribute "help-row"
         ]
         [ Html.input
-            [ class "cmd"
+            [ class "cmd-text"
             , Html.Attributes.type_ "text"
             , Html.Attributes.readonly True
             , size <| cmdSize content
@@ -180,7 +172,6 @@ row content copy =
                     , attribute "aria-label" <| "copy " ++ content ++ " to clipboard"
                     , class "button"
                     , class "-icon"
-                    , class "-white"
                     , Html.Events.onClick <| copyMsg content
                     ]
                     content
@@ -194,9 +185,9 @@ row content copy =
 -}
 notSupported : Html msg
 notSupported =
-    div [ class "-m-top", Util.testAttribute "help-row" ]
+    div [ class "cmd", Util.testAttribute "help-row" ]
         [ Html.input
-            [ class "cmd"
+            [ class "cmd-text"
             , Html.Attributes.type_ "text"
             , Html.Attributes.readonly True
             , size <| cmdSize "not yet supported via the CLI"
