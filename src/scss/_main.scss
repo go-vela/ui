@@ -121,8 +121,13 @@ header {
   border: 1px solid var(--color-bg-light);
   box-shadow: 0 0 2px var(--color-black);
 
-  .identity-menu-item {
-    padding: 0.5em 1em;
+  .identity-menu-item a {
+    padding: 0.5rem 1rem;
+    display: block;
+  }
+
+  .identity-menu-item:not(:first-child) a {
+    padding-top: 0;
   }
 
   @supports (clip-path: inset(50%)) {

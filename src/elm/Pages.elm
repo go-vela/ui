@@ -18,6 +18,7 @@ type Page
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
+    | Settings
     | Login
     | Logout
     | Authenticate AuthParams
@@ -43,13 +44,16 @@ toRoute page =
             Routes.Hooks org repo maybePage maybePerPage
 
         RepoSettings org repo ->
-            Routes.Settings org repo
+            Routes.RepoSettings org repo
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
         Build org repo buildNumber logFocus ->
             Routes.Build org repo buildNumber logFocus
+
+        Settings ->
+            Routes.Settings
 
         Login ->
             Routes.Login

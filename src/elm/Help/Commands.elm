@@ -45,6 +45,10 @@ commands page =
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
+        Pages.Settings ->
+            -- TODO: probably want this filled in
+            []
+
         Pages.Authenticate _ ->
             []
 

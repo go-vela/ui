@@ -78,6 +78,7 @@ import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
 import Pages.RepoSettings exposing (enableUpdate)
+import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
@@ -1448,6 +1449,11 @@ viewContent model =
                 buildMsgs
             )
 
+        Pages.Settings ->
+            ( "Settings"
+            , Pages.Settings.view model.session (Pages.Settings.Msgs Copy)
+            )
+
         Pages.Login ->
             ( "Login"
             , viewLogin
@@ -1554,6 +1560,7 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, page, help } =
                         , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                             [ li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
+                            , li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
                             ]
                         ]
@@ -1672,8 +1679,8 @@ setNewPage route model =
         ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
             loadHooksPage model org repo maybePage maybePerPage
 
-        ( Routes.Settings org repo, True ) ->
-            loadSettingsPage model org repo
+        ( Routes.RepoSettings org repo, True ) ->
+            loadRepoSettingsPage model org repo
 
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
             let
@@ -1698,6 +1705,9 @@ setNewPage route model =
 
                 _ ->
                     loadBuildPage model org repo buildNumber logFocus
+
+        ( Routes.Settings, True ) ->
+            ( { model | page = Pages.Settings }, Cmd.none )
 
         ( Routes.Logout, True ) ->
             ( { model | session = Nothing }
@@ -1783,8 +1793,8 @@ loadHooksPage model org repo maybePage maybePerPage =
 
 {-| loadSettingsPage : takes model org and repo and loads the page for updating repo configurations
 -}
-loadSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
-loadSettingsPage model org repo =
+loadRepoSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadRepoSettingsPage model org repo =
     -- Fetch repo from Api
     ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }
     , Cmd.batch

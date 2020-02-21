@@ -27,6 +27,7 @@ type Route
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
+    | Settings
     | Login
     | Logout
     | Authenticate AuthParams
@@ -44,6 +45,7 @@ routes =
         , map AddRepositories (s "account" </> s "add-repos")
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
+        , map Settings (s "account" </> s "settings")
         , parseAuth
         , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
         , map RepoSettings (string </> string </> s "settings")
@@ -98,6 +100,9 @@ routeToUrl route =
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }
+
+        Settings ->
+            "/account/settings"
 
         Login ->
             "/account/login"

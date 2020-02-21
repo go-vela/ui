@@ -323,6 +323,9 @@ resourceLoaded args =
         Pages.Hooks _ _ _ _ ->
             args.hooks.success
 
+        Pages.Settings ->
+            True
+
         Pages.Login ->
             True
 
@@ -358,6 +361,9 @@ resourceLoading args =
 
         Pages.Hooks _ _ _ _ ->
             args.hooks.loading
+
+        Pages.Settings ->
+            False
 
         Pages.Login ->
             False

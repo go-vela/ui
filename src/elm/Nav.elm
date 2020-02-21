@@ -108,7 +108,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Settings org repo
+                    , Routes.href <| Routes.RepoSettings org repo
                     ]
                     [ text "Repo Settings" ]
                 ]
@@ -147,7 +147,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Settings org repo
+                    , Routes.href <| Routes.RepoSettings org repo
                     ]
                     [ text "Repo Settings" ]
                 ]
