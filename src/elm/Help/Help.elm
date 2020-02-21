@@ -27,6 +27,7 @@ type alias Args msg =
     , repo : Arg
     , hooks : Arg
     , show : Bool
+    , toggle : Maybe Bool -> msg
     , copy : Copy msg
     , noOp : msg
     , page : Page
@@ -48,7 +49,6 @@ view args =
     li
         [ id "contextual-help"
         , attribute "aria-label" "toggle contextual help for this page"
-        , Html.Attributes.tabindex 0
         ]
         [ details
             [ class "details"
@@ -56,14 +56,13 @@ view args =
             , class "-no-pad"
             , attribute "role" "button"
             , Util.open args.show
-            , Html.Attributes.tabindex -1
-            , Util.onClickPreventDefault args.noOp
             ]
             [ summary
                 [ class "summary"
                 , class "-no-pad"
-                , id "contextual-help-trigger"
                 , Util.testAttribute "help-trigger"
+                , Html.Attributes.tabindex 0
+                , Util.onClickPreventDefault (args.toggle Nothing)
                 ]
                 [ SvgBuilder.terminal ]
             , help args
