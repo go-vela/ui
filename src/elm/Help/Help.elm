@@ -8,8 +8,8 @@ module Help.Help exposing (Arg, Args, view)
 
 import FeatherIcons
 import Help.Commands exposing (Command, commands)
-import Html exposing (Html, a, button, details, div, input, label, li, p, span, strong, summary, text)
-import Html.Attributes exposing (attribute, class, href, id, size, value)
+import Html exposing (Html, a, button, details, div, input, label, li, span, strong, summary, text)
+import Html.Attributes exposing (attribute, class, for, href, id, size, value)
 import Html.Events
 import Pages exposing (Page(..))
 import SvgBuilder
@@ -94,10 +94,10 @@ body args =
         [ Util.largeLoader ]
 
     else if not <| resourceLoaded args then
-        [ row "something went wrong!" Nothing ]
+        [ row "something went wrong!" "" Nothing ]
 
     else if List.length cmds == 0 then
-        [ row "resources on this page not yet supported via the CLI" Nothing ]
+        [ row "resources on this page not yet supported via the CLI" "" Nothing ]
 
     else
         List.map (contents copy) cmds
@@ -138,8 +138,13 @@ contents : Copy msg -> Command -> Html msg
 contents copyMsg command =
     case ( command.content, command.issue ) of
         ( Just content, _ ) ->
+            let
+                forName : String
+                forName =
+                    command.name |> String.toLower |> String.replace " " "-"
+            in
             div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
-                [ span [] [ label [ class "form-label" ] [ text <| command.name ++ " " ], docsLink command ], row content <| Just copyMsg ]
+                [ span [] [ label [ class "form-label", for forName ] [ text <| command.name ++ " " ], docsLink command ], row content forName <| Just copyMsg ]
 
         ( Nothing, Just issue ) ->
             div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
@@ -151,8 +156,8 @@ contents copyMsg command =
 
 {-| row : takes cmd content and maybe copy msg and renders cmd help row with code block and copy button
 -}
-row : String -> Maybe (Copy msg) -> Html msg
-row content copy =
+row : String -> String -> Maybe (Copy msg) -> Html msg
+row content forName copy =
     div
         [ class "cmd"
         , Util.testAttribute "help-row"
@@ -161,6 +166,7 @@ row content copy =
             [ class "cmd-text"
             , Html.Attributes.type_ "text"
             , Html.Attributes.readonly True
+            , id forName
             , size <| cmdSize content
             , value content
             ]
