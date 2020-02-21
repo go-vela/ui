@@ -260,7 +260,7 @@ init flags url navKey =
             , theme = stringToTheme flags.velaTheme
             , shift = False
             , visibility = Visible
-            , showHelp = True
+            , showHelp = False
             , favicon = defaultFavicon
             }
 
@@ -1251,11 +1251,12 @@ onMouseDown : Model -> Sub Msg
 onMouseDown model =
     Sub.batch
         [ Browser.Events.onMouseDown onMouseDownOverrides
-        , if model.showHelp then
-            Browser.Events.onMouseDown (outsideTarget "contextual-help" <| ShowHideHelp <| Just False)
 
-          else
-            Sub.none
+        -- , if model.showHelp then
+        --     Browser.Events.onMouseDown (outsideTarget "contextual-help" <| ShowHideHelp <| Just False)
+        --   else
+        --     Sub.none
+        , Browser.Events.onMouseDown (outsideTarget "contextual-help" <| ShowHideHelp <| Just False)
         ]
 
 
@@ -1280,9 +1281,8 @@ idToMouseDownEvent : String -> Decode.Decoder Msg
 idToMouseDownEvent id =
     Decode.succeed <|
         case id of
-            "contextual-help-trigger" ->
-                ShowHideHelp Nothing
-
+            -- "contextual-help-trigger" ->
+            --     ShowHideHelp Nothing
             _ ->
                 NoOp
 

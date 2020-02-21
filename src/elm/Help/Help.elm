@@ -49,20 +49,21 @@ view args =
     li
         [ id "contextual-help"
         , attribute "aria-label" "toggle contextual help for this page"
-        , Html.Attributes.tabindex -1
         ]
         [ details
             [ class "details"
             , class "help"
             , class "-no-pad"
+            , attribute "role" "button"
+            , Util.open args.show
             ]
             [ summary
                 [ class "summary"
                 , class "-no-pad"
                 , id "contextual-help-trigger"
                 , Util.testAttribute "help-trigger"
-                , Util.onClickStopPropogation (args.toggle Nothing)
                 , Html.Attributes.tabindex 0
+                , Util.onClickPreventDefault (args.toggle Nothing)
                 ]
                 [ SvgBuilder.terminal ]
             , help args
