@@ -60,7 +60,6 @@ view args =
             [ summary
                 [ class "summary"
                 , class "-no-pad"
-                , id "contextual-help-trigger"
                 , Util.testAttribute "help-trigger"
                 , Html.Attributes.tabindex 0
                 , Util.onClickPreventDefault (args.toggle Nothing)

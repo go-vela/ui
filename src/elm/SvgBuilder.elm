@@ -507,8 +507,7 @@ terminal =
         , Svg.Attributes.strokeLinejoin "round"
         , strokeWidth <| "2"
         , viewBox "0 0 24 24"
-        , Svg.Attributes.id "contextual-help-trigger"
         ]
-        [ Svg.polyline [ Svg.Attributes.id "contextual-help-trigger", Svg.Attributes.points "4 17 10 11 4 5" ] []
-        , Svg.line [ Svg.Attributes.id "contextual-help-trigger", x1 "12", y1 "19", x2 "20", y2 "19" ] []
+        [ Svg.polyline [ Svg.Attributes.points "4 17 10 11 4 5" ] []
+        , Svg.line [ x1 "12", y1 "19", x2 "20", y2 "19" ] []
         ]
