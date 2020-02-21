@@ -223,7 +223,6 @@ badge repo velaAPI copyMsg =
                     [ class "copy-button"
                     , class "button"
                     , class "-icon"
-                    , class "-white"
                     , attribute "data-clipboard-text" mdCode
                     , attribute "aria-label" "copy status badge markdown code"
                     , Util.testAttribute "copy-md"
