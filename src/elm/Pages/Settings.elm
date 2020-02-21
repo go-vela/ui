@@ -43,8 +43,8 @@ view user actions =
                         , class "-icon"
                         , class "-white"
                         , attribute "data-clipboard-text" u.token
-                        , attribute "aria-label" "copy status badge markdown code"
-                        , Util.testAttribute "copy-md"
+                        , attribute "aria-label" "copy token"
+                        , Util.testAttribute "copy-token"
                         , onClick <| actions.copy u.token
                         ]
                         [ FeatherIcons.copy
@@ -55,4 +55,4 @@ view user actions =
                 ]
 
         _ ->
-            div [] [ text "no settings you" ]
+            div [] [ text "no settings for you" ]
