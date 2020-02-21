@@ -203,7 +203,7 @@ badge repo velaAPI copyMsg =
         , p [ class "settings-description" ]
             [ text "Show off your build status."
             , br [] []
-            , em [] [ text "Uses the default branch on your repository." ]
+            , em [] [ text "Uses the default branch on this repository." ]
             ]
         , div []
             [ p [ class "build-badge" ]
