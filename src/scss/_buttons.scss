@@ -207,6 +207,8 @@
   margin: 0;
   padding: 0;
 
+  color: var(--color-text);
+
   background-color: transparent;
 
   > svg {
@@ -219,11 +221,6 @@
   &:hover {
     border-color: transparent;
   }
-}
-
-// button with white color
-.button.-icon.-white {
-  color: var(--color-white);
 }
 
 // deal with button groupings
