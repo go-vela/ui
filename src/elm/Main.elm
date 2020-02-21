@@ -1249,42 +1249,11 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
 -}
 onMouseDown : Model -> Sub Msg
 onMouseDown model =
-    Sub.batch
-        [ Browser.Events.onMouseDown onMouseDownOverrides
-        , if model.showHelp then
-            Browser.Events.onMouseDown (outsideTarget "contextual-help" <| ShowHideHelp <| Just False)
+    if model.showHelp then
+        Browser.Events.onMouseDown (outsideTarget "contextual-help" <| ShowHideHelp <| Just False)
 
-          else
-            Sub.none
-        ]
-
-
-{-| onMouseDownOverrides : returns decoder for manually dispatching click events via id, specified in idToMouseDownEvent
--}
-onMouseDownOverrides : Decode.Decoder Msg
-onMouseDownOverrides =
-    Decode.field "target"
-        (Decode.oneOf
-            [ Decode.field "id" Decode.string
-                |> Decode.andThen Decode.succeed
-            , Decode.succeed ""
-            ]
-        )
-        |> Decode.andThen
-            idToMouseDownEvent
-
-
-{-| idToMouseDownEvent : returns decoder for manually dispatching click events via id
--}
-idToMouseDownEvent : String -> Decode.Decoder Msg
-idToMouseDownEvent id =
-    Decode.succeed <|
-        case id of
-            "contextual-help-trigger" ->
-                ShowHideHelp Nothing
-
-            _ ->
-                NoOp
+    else
+        Sub.none
 
 
 {-| outsideTarget : returns decoder for handling clicks that occur from outside the currently focused/open dropdown
@@ -1582,6 +1551,7 @@ helpArgs model =
     , repo = helpArg model.repo
     , hooks = helpArg model.hooks.hooks
     , show = model.showHelp
+    , toggle = ShowHideHelp
     , copy = Copy
     , noOp = NoOp
     , page = model.page
