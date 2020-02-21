@@ -214,7 +214,7 @@ badge repo velaAPI copyMsg =
                     [ class "form-control"
                     , class "copy-display"
                     , class "-is-expanded"
-                    , rows 2
+                    , rows 4
                     , readonly True
                     , wrap "soft"
                     ]
