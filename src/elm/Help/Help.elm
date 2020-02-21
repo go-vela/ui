@@ -55,15 +55,12 @@ view args =
             [ class "details"
             , class "help"
             , class "-no-pad"
-            , attribute "role" "button"
-            , Util.onClickPreventDefault args.noOp
             ]
             [ summary
                 [ class "summary"
                 , class "-no-pad"
                 , id "contextual-help-trigger"
                 , Util.testAttribute "help-trigger"
-                , Html.Attributes.attribute "role" "button"
                 , Util.onClickStopPropogation (args.toggle Nothing)
                 , Html.Attributes.tabindex 0
                 ]
