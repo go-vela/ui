@@ -120,7 +120,7 @@ viewFilteredFavorites favorites filter toggleFavorite =
         -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
             filteredRepos
-                |> List.map (viewFavorite favorites toggleFavorite)
+                |> List.map (viewFavorite favorites toggleFavorite True)
 
         else
             -- No repos matched the search
@@ -166,22 +166,29 @@ viewOrg org toggleFavorite favorites =
             [ text org
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
-            :: List.map (viewFavorite favorites toggleFavorite) favorites
+            :: List.map (viewFavorite favorites toggleFavorite False) favorites
         )
 
 
 {-| viewFavorite : takes favorites and favorite action and renders single favorite
 -}
-viewFavorite : Favorites -> ToggleFavorite msg -> String -> Html msg
-viewFavorite favorites toggleFavorite favorite =
+viewFavorite : Favorites -> ToggleFavorite msg -> Bool -> String -> Html msg
+viewFavorite favorites toggleFavorite filtered favorite =
     let
         ( org, repo ) =
             ( Maybe.withDefault "" <| List.Extra.getAt 0 <| String.split "/" favorite
             , Maybe.withDefault "" <| List.Extra.getAt 1 <| String.split "/" favorite
             )
+
+        name =
+            if filtered then
+                favorite
+
+            else
+                repo
     in
     div [ class "item", Util.testAttribute "repo-item" ]
-        [ div [] [ text repo ]
+        [ div [] [ text name ]
         , div [ class "buttons" ]
             [ starToggle org repo toggleFavorite <| List.member favorite favorites
             , a
