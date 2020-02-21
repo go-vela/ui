@@ -27,6 +27,7 @@ type alias Args msg =
     , repo : Arg
     , hooks : Arg
     , show : Bool
+    , toggle : Maybe Bool -> msg
     , copy : Copy msg
     , noOp : msg
     , page : Page
@@ -55,7 +56,6 @@ view args =
             , class "help"
             , class "-no-pad"
             , attribute "role" "button"
-            , Util.open args.show
             , Util.onClickPreventDefault args.noOp
             ]
             [ summary
@@ -63,6 +63,8 @@ view args =
                 , class "-no-pad"
                 , id "contextual-help-trigger"
                 , Util.testAttribute "help-trigger"
+                , Html.Attributes.attribute "role" "button"
+                , Util.onClickStopPropogation (args.toggle Nothing)
                 , Html.Attributes.tabindex 0
                 ]
                 [ SvgBuilder.terminal ]

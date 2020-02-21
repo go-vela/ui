@@ -232,7 +232,7 @@ dispatch msg =
 open : Bool -> Html.Attribute msg
 open isOpen =
     if isOpen then
-        attribute "open" ""
+        attribute "open" "true"
 
     else
         class ""

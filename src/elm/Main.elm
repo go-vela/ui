@@ -260,7 +260,7 @@ init flags url navKey =
             , theme = stringToTheme flags.velaTheme
             , shift = False
             , visibility = Visible
-            , showHelp = False
+            , showHelp = True
             , favicon = defaultFavicon
             }
 
@@ -1582,6 +1582,7 @@ helpArgs model =
     , repo = helpArg model.repo
     , hooks = helpArg model.hooks.hooks
     , show = model.showHelp
+    , toggle = ShowHideHelp
     , copy = Copy
     , noOp = NoOp
     , page = model.page
