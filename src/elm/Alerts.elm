@@ -90,7 +90,6 @@ copyButton copyContent copy =
                 , attribute "aria-label" <| "copy error message '" ++ copyContent ++ "' to clipboard "
                 , class "button"
                 , class "-icon"
-                , class "-white"
                 , Html.Events.onClick <| copyMsg copyContent
                 , attribute "data-clipboard-text" copyContent
                 ]
