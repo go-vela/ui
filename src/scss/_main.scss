@@ -778,6 +778,7 @@ nav {
   display: flex;
   flex: 1;
   flex-direction: row;
+  padding-bottom: 0.1rem;
 
   > code {
     flex: 1;
@@ -785,9 +786,9 @@ nav {
   }
 }
 
-.focus-log {
-  padding: 0 1em;
-
+.line-number {
+  padding: 0;
+  position: relative;
   color: var(--color-primary);
   font-size: 14px;
   font-family: var(--font-code);
@@ -795,22 +796,19 @@ nav {
   background: none;
   border: none;
 
-  min-width: 8ch;
-  text-align: right;
+  width: 8ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  > span {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.1rem;
+  }
 }
 
 .logs .wrapper.-focus {
   background: var(--color-focus);
-}
-
-.logs .line .-line-num {
-  display: flex;
-
-  color: var(--color-primary);
-
-  font-family: var(--font-code);
-
-  user-select: none;
 }
 
 .line a {
