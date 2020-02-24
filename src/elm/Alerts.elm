@@ -110,7 +110,7 @@ copyButton copyContent copy =
 
     config delays automatic dismissal x seconds and applies unique container and item styles
 
-    config applies animation overrides for pablen / toasty Elm package animations for bounceInRight and fadeOutRightBig
+    config applies animation overrides for pablen / toasty Elm package animations, bounceInRight and fadeOutRightBig
 
 -}
 config : Float -> Alerting.Config msg
