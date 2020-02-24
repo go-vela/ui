@@ -135,7 +135,7 @@ viewLine stepNumber line logFocus lineNumber clickAction shiftDown =
                     , class "focus-log"
                     , attribute "aria-label" <| "focus step " ++ stepNumber
                     ]
-                    [ text <| Util.toTwoDigits <| lineNumber ]
+                    [ text <| String.fromInt lineNumber ]
                 ]
             , code [] [ text <| String.trim line ]
             ]
