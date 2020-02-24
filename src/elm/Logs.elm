@@ -125,19 +125,26 @@ viewLine stepNumber line logFocus lineNumber clickAction shiftDown =
             , class "wrapper"
             , logFocusStyles logFocus lineNumber
             ]
-            [ button
-                [ Util.onClickPreventDefault <|
-                    clickAction <|
-                        logRangeId stepNumber lineNumber logFocus shiftDown
-                , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
-                , id <| stepAndLineToFocusId stepNumber lineNumber
-                , class "line-number"
-                , attribute "aria-label" <| "focus step " ++ stepNumber
-                ]
-                [ span [] [ text <| String.fromInt lineNumber ] ]
-            , code [] [ text <| String.trim <| line ++ line ++ line ++ line ++ line ++ line ]
+            [ lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown
+            , code [] [ text <| String.trim line ]
             ]
         ]
+
+
+{-| lineFocusButton : renders button for focusing log line ranges
+-}
+lineFocusButton : StepNumber -> LogFocus -> Int -> SetLogFocus msg -> Bool -> Html msg
+lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown =
+    button
+        [ Util.onClickPreventDefault <|
+            clickAction <|
+                logRangeId stepNumber lineNumber logFocus shiftDown
+        , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+        , id <| stepAndLineToFocusId stepNumber lineNumber
+        , class "line-number"
+        , attribute "aria-label" <| "focus step " ++ stepNumber
+        ]
+        [ span [] [ text <| String.fromInt lineNumber ] ]
 
 
 {-| stepError : checks for build error and renders message
