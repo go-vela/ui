@@ -91,6 +91,7 @@ type alias PartialModel =
     , steps : WebData Steps
     , logs : Logs
     , shift : Bool
+    , game : Bool
     }
 
 

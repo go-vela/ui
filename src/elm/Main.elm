@@ -203,6 +203,7 @@ type alias Model =
     , visibility : Visibility
     , showHelp : Bool
     , favicon : Favicon
+    , game : Bool
     }
 
 
@@ -262,6 +263,7 @@ init flags url navKey =
             , visibility = Visible
             , showHelp = False
             , favicon = defaultFavicon
+            , game = False
             }
 
         ( newModel, newPage ) =
@@ -1405,13 +1407,7 @@ viewContent model =
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
             , lazy4 Pages.Build.viewBuild
-                { navigationKey = model.navigationKey
-                , time = model.time
-                , build = model.build
-                , steps = model.steps
-                , logs = model.logs
-                , shift = model.shift
-                }
+                (buildArgs model)
                 org
                 repo
                 buildMsgs
@@ -1437,6 +1433,18 @@ viewContent model =
             ( "404"
             , h1 [] [ text "Not Found" ]
             )
+
+
+buildArgs : Model -> Pages.Build.PartialModel
+buildArgs model =
+    { navigationKey = model.navigationKey
+    , time = model.time
+    , build = model.build
+    , steps = model.steps
+    , logs = model.logs
+    , shift = model.shift
+    , game = model.game
+    }
 
 
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
