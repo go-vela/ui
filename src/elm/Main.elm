@@ -306,6 +306,8 @@ type Msg
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | Copy String
+    | StartGame
+    | EndGame
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -414,6 +416,24 @@ update msg model =
                     AlertsUpdate
                     (Alerts.Success ""
                         ("Copied " ++ wrapAlertMessage content ++ "to your clipboard.")
+                        Nothing
+                    )
+
+        StartGame ->
+            ( { model | game = True }, Cmd.none )
+                |> Alerting.addToast Alerts.successConfig
+                    AlertsUpdate
+                    (Alerts.Success ""
+                        "Starting Constellation Cleanup..."
+                        Nothing
+                    )
+
+        EndGame ->
+            ( { model | game = False }, Cmd.none )
+                |> Alerting.addToast Alerts.successConfig
+                    AlertsUpdate
+                    (Alerts.Success ""
+                        "Ending Constellation Cleanup..."
                         Nothing
                     )
 
@@ -1435,7 +1455,7 @@ viewContent model =
             )
 
 
-buildArgs : Model -> Pages.Build.PartialModel
+buildArgs : Model -> Pages.Build.PartialModel Msg
 buildArgs model =
     { navigationKey = model.navigationKey
     , time = model.time
@@ -1444,6 +1464,8 @@ buildArgs model =
     , logs = model.logs
     , shift = model.shift
     , game = model.game
+    , startGame = StartGame
+    , endGame = EndGame
     }
 
 

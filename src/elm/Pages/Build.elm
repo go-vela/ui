@@ -82,9 +82,9 @@ type alias FocusLogs msg =
     String -> msg
 
 
-{-| PartialModel : type alias for passing in the main model with the navigation key for pushing log fragment urls
+{-| PartialModel msg : type alias for passing in the main model with the navigation key for pushing log fragment urls
 -}
-type alias PartialModel =
+type alias PartialModel msg =
     { navigationKey : Navigation.Key
     , time : Posix
     , build : WebData Build
@@ -92,6 +92,8 @@ type alias PartialModel =
     , logs : Logs
     , shift : Bool
     , game : Bool
+    , startGame : msg
+    , endGame : msg
     }
 
 
@@ -105,18 +107,17 @@ type alias Msgs msg =
 
 
 -- VIEW
---  , Pages.Build.viewBuild model.time org repo model.build model.steps model.logs ClickStep UpdateUrl model.shift
 
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel -> Org -> Repo -> Msgs msg -> Html msg
-viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusAction } =
+viewBuild : PartialModel msg -> Org -> Repo -> Msgs msg -> Html msg
+viewBuild model org repo { expandAction, logFocusAction } =
     let
         ( buildPreview, buildNumber ) =
-            case build of
-                RemoteData.Success bld ->
-                    ( viewPreview time org repo bld, Just <| String.fromInt bld.number )
+            case model.build of
+                RemoteData.Success build ->
+                    ( viewPreview Nothing model.time org repo build, Just <| String.fromInt build.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
@@ -125,16 +126,16 @@ viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusA
                     ( text "", Nothing )
 
         buildSteps =
-            case steps of
+            case model.steps of
                 RemoteData.Success steps_ ->
-                    viewSteps time org repo buildNumber steps_ logs expandAction logFocusAction shift
+                    viewSteps model.time org repo buildNumber steps_ model.logs expandAction logFocusAction model.shift
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
 
                 _ ->
                     -- Don't show two loaders
-                    if Util.isLoading build then
+                    if Util.isLoading model.build then
                         text ""
 
                     else
@@ -146,10 +147,22 @@ viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusA
     div [ Util.testAttribute "full-build" ] markdown
 
 
+viewPlayButton : Html msg
+viewPlayButton =
+    Html.button
+        [ --  onClick <| toggleFavorite org <| Just repo
+          -- , starToggleAriaLabel org repo favorited
+          class "button"
+        , class "-icon"
+        ]
+        [ FeatherIcons.play |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "play" |> FeatherIcons.toHtml [] ]
+
+
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Org -> Repo -> Build -> Html msg
-viewPreview now org repo build =
+viewPreview : Maybe (PartialModel msg) -> Posix -> Org -> Repo -> Build -> Html msg
+viewPreview model now org repo build =
+    -- { time, build, steps, logs, shift, startGame, endGame }
     let
         status =
             [ buildStatusToIcon build.status ]
@@ -197,6 +210,7 @@ viewPreview now org repo build =
                         , div [ class "branch" ] branch
                         , text "by"
                         , div [ class "sender" ] sender
+                        , viewPlayButton
                         ]
                     , div [ class "time-info" ]
                         [ div [ class "age" ] age
