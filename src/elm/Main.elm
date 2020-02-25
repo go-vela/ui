@@ -1381,13 +1381,12 @@ viewContent model =
                 shouldRenderFilter =
                     case ( model.builds.builds, maybeEvent ) of
                         ( Success result, Nothing ) ->
-                            if List.length result == 0 then
-                                False
-
-                            else
-                                True
+                            not <| List.length result == 0
 
                         ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
                             True
 
                         _ ->
