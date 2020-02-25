@@ -1426,11 +1426,13 @@ viewContent model =
 
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , lazy4 Pages.Build.viewBuild
+            , lazy5
+                Pages.Build.viewBuild
                 (buildArgs model)
                 org
                 repo
                 buildMsgs
+                (gameArgs model)
             )
 
         Pages.Login ->
@@ -1455,7 +1457,7 @@ viewContent model =
             )
 
 
-buildArgs : Model -> Pages.Build.PartialModel Msg
+buildArgs : Model -> Pages.Build.PartialModel
 buildArgs model =
     { navigationKey = model.navigationKey
     , time = model.time
@@ -1463,7 +1465,12 @@ buildArgs model =
     , steps = model.steps
     , logs = model.logs
     , shift = model.shift
-    , game = model.game
+    }
+
+
+gameArgs : Model -> Pages.Build.GameArgs Msg
+gameArgs model =
+    { game = model.game
     , startGame = StartGame
     , endGame = EndGame
     }

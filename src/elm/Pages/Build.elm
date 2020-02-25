@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build exposing
-    ( Msgs
+    ( GameArgs
+    , Msgs
     , PartialModel
     , clickLogLine
     , clickStep
@@ -84,14 +85,20 @@ type alias FocusLogs msg =
 
 {-| PartialModel msg : type alias for passing in the main model with the navigation key for pushing log fragment urls
 -}
-type alias PartialModel msg =
+type alias PartialModel =
     { navigationKey : Navigation.Key
     , time : Posix
     , build : WebData Build
     , steps : WebData Steps
     , logs : Logs
     , shift : Bool
-    , game : Bool
+    }
+
+
+{-| GameArgs msg :
+-}
+type alias GameArgs msg =
+    { game : Bool
     , startGame : msg
     , endGame : msg
     }
@@ -111,13 +118,13 @@ type alias Msgs msg =
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel msg -> Org -> Repo -> Msgs msg -> Html msg
-viewBuild model org repo { expandAction, logFocusAction } =
+viewBuild : PartialModel -> Org -> Repo -> Msgs msg -> GameArgs msg -> Html msg
+viewBuild model org repo { expandAction, logFocusAction } gameArgs =
     let
         ( buildPreview, buildNumber ) =
             case model.build of
                 RemoteData.Success build ->
-                    ( viewPreview (Just model) model.time org repo build, Just <| String.fromInt build.number )
+                    ( viewPreview (Just gameArgs) model.time org repo build, Just <| String.fromInt build.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
@@ -147,7 +154,7 @@ viewBuild model org repo { expandAction, logFocusAction } =
     div [ Util.testAttribute "full-build" ] markdown
 
 
-viewPlayButton : Maybe (PartialModel msg) -> Html msg
+viewPlayButton : Maybe (GameArgs msg) -> Html msg
 viewPlayButton model =
     case model of
         Just { game, startGame, endGame } ->
@@ -169,8 +176,8 @@ viewPlayButton model =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Maybe (PartialModel msg) -> Posix -> Org -> Repo -> Build -> Html msg
-viewPreview model now org repo build =
+viewPreview : Maybe (GameArgs msg) -> Posix -> Org -> Repo -> Build -> Html msg
+viewPreview gameArgs now org repo build =
     -- { time, build, steps, logs, shift, startGame, endGame }
     let
         status =
@@ -219,7 +226,7 @@ viewPreview model now org repo build =
                         , div [ class "branch" ] branch
                         , text "by"
                         , div [ class "sender" ] sender
-                        , viewPlayButton model
+                        , viewPlayButton gameArgs
                         ]
                     , div [ class "time-info" ]
                         [ div [ class "age" ] age
