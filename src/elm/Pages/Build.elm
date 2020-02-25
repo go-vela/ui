@@ -117,7 +117,7 @@ viewBuild model org repo { expandAction, logFocusAction } =
         ( buildPreview, buildNumber ) =
             case model.build of
                 RemoteData.Success build ->
-                    ( viewPreview Nothing model.time org repo build, Just <| String.fromInt build.number )
+                    ( viewPreview (Just model) model.time org repo build, Just <| String.fromInt build.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
@@ -147,15 +147,24 @@ viewBuild model org repo { expandAction, logFocusAction } =
     div [ Util.testAttribute "full-build" ] markdown
 
 
-viewPlayButton : Html msg
-viewPlayButton =
-    Html.button
-        [ --  onClick <| toggleFavorite org <| Just repo
-          -- , starToggleAriaLabel org repo favorited
-          class "button"
-        , class "-icon"
-        ]
-        [ FeatherIcons.play |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "play" |> FeatherIcons.toHtml [] ]
+viewPlayButton : Maybe (PartialModel msg) -> Html msg
+viewPlayButton model =
+    case model of
+        Just { game, startGame, endGame } ->
+            Html.button
+                [ onClick <|
+                    if not game then
+                        startGame
+
+                    else
+                        endGame
+                , class "button"
+                , class "-icon"
+                ]
+                [ FeatherIcons.play |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "play" |> FeatherIcons.toHtml [] ]
+
+        _ ->
+            div [] []
 
 
 {-| viewPreview : renders single build item preview based on current application time
@@ -210,7 +219,7 @@ viewPreview model now org repo build =
                         , div [ class "branch" ] branch
                         , text "by"
                         , div [ class "sender" ] sender
-                        , viewPlayButton
+                        , viewPlayButton model
                         ]
                     , div [ class "time-info" ]
                         [ div [ class "age" ] age
