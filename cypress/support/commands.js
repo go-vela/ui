@@ -125,7 +125,7 @@ Cypress.Commands.add('stubBuildsFilter', () => {
     method: 'GET',
     url: '*api/v1/repos/*/*/builds?event=tag*',
     response: '@buildsTag',
-  });
+  }).as('filteredBuildsTag');
   cy.route({
     method: 'GET',
     url: '*api/v1/repos/*/*/builds?event=deploy*',

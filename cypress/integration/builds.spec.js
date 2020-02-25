@@ -202,8 +202,9 @@ context('Builds', () => {
         .should('have.length', 2);
     });
 
-    it('should only show one pull event', () => {
+    it('should only show one tag event', () => {
       cy.get('[data-test=build-filter-tag]').click({ force: true });
+      cy.wait('@filteredBuildsTag');
       cy.get('[data-test=build]')
         .should('be.visible')
         .should('have.length', 1);
