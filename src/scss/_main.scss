@@ -790,29 +790,33 @@ nav {
   }
 }
 
-.focus-log {
-  padding: 0 1em;
-
+.line-number {
+  padding: 0;
+  position: relative;
   color: var(--color-primary);
   font-size: 14px;
   font-family: var(--font-code);
 
   background: none;
   border: none;
+
+  user-select: none;
+
+  width: 6ch;
+
+  > span {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.1rem;
+    width: 5ch;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .logs .wrapper.-focus {
   background: var(--color-focus);
-}
-
-.logs .line .-line-num {
-  display: flex;
-
-  color: var(--color-primary);
-
-  font-family: var(--font-code);
-
-  user-select: none;
 }
 
 .line a {
