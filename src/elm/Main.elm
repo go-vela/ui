@@ -56,7 +56,6 @@ import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
-import Keyboard
 import List.Extra exposing (setIf, updateIf)
 import Logs
     exposing
@@ -204,8 +203,7 @@ type alias Model =
     , visibility : Visibility
     , showHelp : Bool
     , favicon : Favicon
-    , game : Bool
-    , key : ( String, Int )
+    , game : Pages.Build.GameArgs Msg
     }
 
 
@@ -266,8 +264,7 @@ init flags url navKey =
             , visibility = Visible
             , showHelp = False
             , favicon = defaultFavicon
-            , game = False
-            , key = ( "", 0 )
+            , game = Pages.Build.initGame StartGame EndGame
             }
 
         ( newModel, newPage ) =
@@ -424,7 +421,11 @@ update msg model =
                     )
 
         StartGame ->
-            ( { model | game = True }, Cmd.none )
+            let
+                game =
+                    model.game
+            in
+            ( { model | game = { game | play = True } }, Cmd.none )
                 |> Alerting.addToast Alerts.successConfig
                     AlertsUpdate
                     (Alerts.Success ""
@@ -433,7 +434,11 @@ update msg model =
                     )
 
         EndGame ->
-            ( { model | game = False }, Cmd.none )
+            let
+                game =
+                    model.game
+            in
+            ( { model | game = { game | play = False } }, Cmd.none )
                 |> Alerting.addToast Alerts.successConfig
                     AlertsUpdate
                     (Alerts.Success ""
@@ -996,11 +1001,8 @@ update msg model =
                     if key == "Shift" then
                         ( { model | shift = True }, Cmd.none )
 
-                    else if key == "Escape" then
-                        ( { model | game = False }, Util.dispatch EndGame )
-
                     else
-                        ( model, Cmd.none )
+                        gameKeyDown model key
             in
             result
 
@@ -1020,6 +1022,86 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
+
+
+{-| gameLoop : takes model and determines if the site should run the game loop
+-}
+gameLoop : Pages.Build.GameArgs Msg -> Sub Msg
+gameLoop game =
+    Sub.batch <|
+        if game.play then
+            [ every 100 <| Tick GameLoop ]
+
+        else
+            []
+
+
+gameKeyDown : Model -> String -> ( Model, Cmd Msg )
+gameKeyDown model key =
+    let
+        newKey =
+            setKey key model.game.key
+
+        game =
+            model.game
+
+        result =
+            if key == "Escape" then
+                ( { model | game = { game | play = False, key = newKey } }
+                , if model.game.play then
+                    Util.dispatch EndGame
+
+                  else
+                    Cmd.none
+                )
+
+            else if key == "v" then
+                let
+                    onBuild =
+                        case model.page of
+                            Pages.Build _ _ _ _ ->
+                                True
+
+                            _ ->
+                                False
+                in
+                ( { model | game = { game | key = newKey } }
+                , if onBuild && Tuple.second newKey == 5 then
+                    Util.dispatch StartGame
+
+                  else
+                    Cmd.none
+                )
+
+            else if game.play then
+                let
+                    _ =
+                        Debug.log "key" key
+
+                    position =
+                        game.position
+                in
+                if key == "ArrowLeft" then
+                    let
+                        newX =
+                            max 0 (position.x - 1)
+                    in
+                    ( { model | game = { game | key = newKey, position = { position | x = newX } } }, Cmd.none )
+
+                else if key == "ArrowRight" then
+                    let
+                        newX =
+                            min 19 (position.x + 1)
+                    in
+                    ( { model | game = { game | key = newKey, position = { position | x = newX } } }, Cmd.none )
+
+                else
+                    ( { model | game = { game | key = newKey } }, Cmd.none )
+
+            else
+                ( { model | game = { game | key = newKey } }, Cmd.none )
+    in
+    result
 
 
 setKey : String -> ( String, Int ) -> ( String, Int )
@@ -1054,20 +1136,8 @@ subscriptions model =
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
         , refreshSubscriptions model
-        , gameLoop model
+        , gameLoop model.game
         ]
-
-
-{-| gameLoop : takes model and determines if the site should run the game loop
--}
-gameLoop : Model -> Sub Msg
-gameLoop model =
-    Sub.batch <|
-        if model.game then
-            [ every 100 <| Tick GameLoop ]
-
-        else
-            []
 
 
 decodeOnSessionChange : Decode.Value -> Msg
@@ -1506,10 +1576,7 @@ buildArgs model =
 
 gameArgs : Model -> Pages.Build.GameArgs Msg
 gameArgs model =
-    { game = model.game
-    , startGame = StartGame
-    , endGame = EndGame
-    }
+    model.game
 
 
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg

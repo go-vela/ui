@@ -10,6 +10,7 @@ module Pages.Build exposing
     , PartialModel
     , clickLogLine
     , clickStep
+    , initGame
     , statusToClass
     , statusToString
     , viewBuild
@@ -49,6 +50,8 @@ import Logs exposing (SetLogFocus, stepToFocusId)
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
+import Svg
+import Svg.Attributes
 import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone, millisToPosix)
 import Util
@@ -92,15 +95,6 @@ type alias PartialModel =
     , steps : WebData Steps
     , logs : Logs
     , shift : Bool
-    }
-
-
-{-| GameArgs msg :
--}
-type alias GameArgs msg =
-    { game : Bool
-    , startGame : msg
-    , endGame : msg
     }
 
 
@@ -149,11 +143,11 @@ viewBuild model org repo { expandAction, logFocusAction } gameArgs =
                         Util.smallLoader
 
         game =
-            div [] [ text "game running" ]
+            div [] [ viewGame <| createSnake gameArgs.position ]
 
         markdown =
             [ buildPreview
-            , if gameArgs.game then
+            , if gameArgs.play then
                 game
 
               else
@@ -161,26 +155,6 @@ viewBuild model org repo { expandAction, logFocusAction } gameArgs =
             ]
     in
     div [ Util.testAttribute "full-build" ] markdown
-
-
-viewPlayButton : Maybe (GameArgs msg) -> Html msg
-viewPlayButton model =
-    case model of
-        Just { game, startGame, endGame } ->
-            Html.button
-                [ onClick <|
-                    if not game then
-                        startGame
-
-                    else
-                        endGame
-                , class "button"
-                , class "-icon"
-                ]
-                [ FeatherIcons.play |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "play" |> FeatherIcons.toHtml [] ]
-
-        _ ->
-            div [] []
 
 
 {-| viewPreview : renders single build item preview based on current application time
@@ -235,7 +209,6 @@ viewPreview gameArgs now org repo build =
                         , div [ class "branch" ] branch
                         , text "by"
                         , div [ class "sender" ] sender
-                        , viewPlayButton gameArgs
                         ]
                     , div [ class "time-info" ]
                         [ div [ class "age" ] age
@@ -686,3 +659,108 @@ viewingStep steps stepNumber =
             List.map (\step -> step.viewing) <|
                 List.filter (\step -> String.fromInt step.number == stepNumber) <|
                     RemoteData.withDefault [] steps
+
+
+
+-- GAME
+
+
+{-| GameArgs msg :
+-}
+type alias GameArgs msg =
+    { play : Bool
+    , key : ( String, Int )
+    , startGame : msg
+    , endGame : msg
+    , position : Position
+    }
+
+
+initGame : msg -> msg -> GameArgs msg
+initGame startGame endGame =
+    GameArgs False ( "", 0 ) startGame endGame { x = 0, y = 0 }
+
+
+type alias Size =
+    { width : Int
+    , height : Int
+    }
+
+
+gridSize : Size
+gridSize =
+    { width = 20, height = 10 }
+
+
+cellSize : Int
+cellSize =
+    20
+
+
+viewGame : Snake -> Html msg
+viewGame snake =
+    div []
+        [ Html.h1 [] [ Html.text "Constellation Cleanup" ]
+        , Html.p [] [ Html.text "Use the arrows to move left and right" ]
+        , Svg.svg
+            [ Svg.Attributes.class "grid"
+            , Svg.Attributes.viewBox ("0 0 " ++ String.fromInt (gridSize.width * cellSize) ++ " " ++ String.fromInt (gridSize.height * cellSize))
+            ]
+            (renderBackground
+                ++ renderSnake snake
+            )
+        ]
+
+
+renderBackground : List (Html msg)
+renderBackground =
+    [ Svg.rect
+        [ Svg.Attributes.width (String.fromInt (gridSize.width * cellSize))
+        , Svg.Attributes.height (String.fromInt (gridSize.height * cellSize))
+        , Svg.Attributes.fill "#8cbf00"
+        ]
+        []
+    ]
+
+
+type Direction
+    = Up
+    | Down
+    | Left
+    | Right
+
+
+type alias Position =
+    { x : Int
+    , y : Int
+    }
+
+
+type alias Snake =
+    { head : Position
+    , body : List Position
+    , direction : Direction
+    }
+
+
+createSnake : Position -> Snake
+createSnake position =
+    Snake { x = position.x, y = position.y } [] Up
+
+
+renderSnake : Snake -> List (Html msg)
+renderSnake snake =
+    renderSnakePart snake.head :: List.map renderSnakePart snake.body
+
+
+renderSnakePart : Position -> Html msg
+renderSnakePart position =
+    Svg.rect
+        [ Svg.Attributes.width (String.fromInt cellSize)
+        , Svg.Attributes.height (String.fromInt cellSize)
+        , Svg.Attributes.x (String.fromInt (position.x * cellSize))
+        , Svg.Attributes.y (String.fromInt (position.y * cellSize))
+        , Svg.Attributes.fill "black"
+        , Svg.Attributes.stroke "gray"
+        ]
+        []
