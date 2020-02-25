@@ -148,8 +148,17 @@ viewBuild model org repo { expandAction, logFocusAction } gameArgs =
                     else
                         Util.smallLoader
 
+        game =
+            div [] [ text "game running" ]
+
         markdown =
-            [ buildPreview, buildSteps ]
+            [ buildPreview
+            , if gameArgs.game then
+                game
+
+              else
+                buildSteps
+            ]
     in
     div [ Util.testAttribute "full-build" ] markdown
 

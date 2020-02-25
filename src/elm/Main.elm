@@ -56,6 +56,7 @@ import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
+import Keyboard
 import List.Extra exposing (setIf, updateIf)
 import Logs
     exposing
@@ -204,12 +205,14 @@ type alias Model =
     , showHelp : Bool
     , favicon : Favicon
     , game : Bool
+    , key : ( String, Int )
     }
 
 
 type Interval
     = OneSecond
     | FiveSecond RefreshData
+    | GameLoop
 
 
 type alias RefreshData =
@@ -264,6 +267,7 @@ init flags url navKey =
             , showHelp = False
             , favicon = defaultFavicon
             , game = False
+            , key = ( "", 0 )
             }
 
         ( newModel, newPage ) =
@@ -956,6 +960,9 @@ update msg model =
 
         Tick interval time ->
             case interval of
+                GameLoop ->
+                    ( model, Cmd.none )
+
                 OneSecond ->
                     let
                         ( favicon, cmd ) =
@@ -985,14 +992,17 @@ update msg model =
 
         OnKeyDown key ->
             let
-                m =
+                result =
                     if key == "Shift" then
-                        { model | shift = True }
+                        ( { model | shift = True }, Cmd.none )
+
+                    else if key == "Escape" then
+                        ( { model | game = False }, Util.dispatch EndGame )
 
                     else
-                        model
+                        ( model, Cmd.none )
             in
-            ( m, Cmd.none )
+            result
 
         OnKeyUp key ->
             let
@@ -1010,6 +1020,19 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
+
+
+setKey : String -> ( String, Int ) -> ( String, Int )
+setKey key ( lastKey, currentCount ) =
+    let
+        newCount =
+            if key == lastKey then
+                currentCount + 1
+
+            else
+                1
+    in
+    ( key, newCount )
 
 
 
@@ -1031,7 +1054,20 @@ subscriptions model =
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
         , refreshSubscriptions model
+        , gameLoop model
         ]
+
+
+{-| gameLoop : takes model and determines if the site should run the game loop
+-}
+gameLoop : Model -> Sub Msg
+gameLoop model =
+    Sub.batch <|
+        if model.game then
+            [ every 100 <| Tick GameLoop ]
+
+        else
+            []
 
 
 decodeOnSessionChange : Decode.Value -> Msg
