@@ -1383,6 +1383,9 @@ viewContent model =
                         ( Success result, Nothing ) ->
                             not <| List.length result == 0
 
+                        ( Loading, _ ) ->
+                            True
+
                         ( Success _, _ ) ->
                             True
 
