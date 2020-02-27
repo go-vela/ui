@@ -674,15 +674,19 @@ nav {
 
   font-size: 0.9rem;
 }
+
 .game-container {
   position: absolute;
   text-align: center;
+  // stylelint-disable-next-line
   transition: 2s;
   width: 100%;
+
   > svg {
     border: 1px solid var(--color-secondary);
   }
 }
+
 .game-fade-out {
   top: 200%;
 }
@@ -690,18 +694,20 @@ nav {
 .game-fade-in {
   top: 0%;
 }
-.starship {
-  > * {
-    transform: rotate(180deg) !important;
-    transform-origin: 50% 50%;
-  }
+
+.starship > * {
+  transform: rotate(180deg);
+  transform-origin: 50% 50%;
 }
+
 .steps-fade-out {
+  // stylelint-disable-next-line
   transition: 1s;
   opacity: 0;
 }
 
 .steps-fade-in {
+  // stylelint-disable-next-line
   transition: 1s;
   opacity: 1;
 }
@@ -710,6 +716,7 @@ nav {
   position: relative;
   overflow: hidden;
   min-height: 500px;
+  
   .details {
     margin-bottom: 0;
   }
