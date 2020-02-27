@@ -296,10 +296,19 @@ view { play, build, player, bullets, enemies, score } =
           <|
             [ Svg.text_
                 [ Svg.Attributes.textAnchor "start"
-                , Svg.Attributes.stroke "var(--color-primary)"
-                , Svg.Attributes.fill "var(--color-primary)"
+                , Svg.Attributes.fill "var(--color-green)"
                 , Svg.Attributes.x "10"
                 , Svg.Attributes.y "20"
+                , Svg.Attributes.fontFamily "monospace"
+                , Svg.Attributes.fontWeight "300"
+                , Svg.Attributes.fontSize "16"
+                ]
+                [ text <| "Constellation Cleanup" ]
+            , Svg.text_
+                [ Svg.Attributes.textAnchor "start"
+                , Svg.Attributes.fill "var(--color-primary)"
+                , Svg.Attributes.x "30"
+                , Svg.Attributes.y "40"
                 , Svg.Attributes.fontFamily "monospace"
                 , Svg.Attributes.fontWeight "300"
                 , Svg.Attributes.fontSize "14"
@@ -307,7 +316,6 @@ view { play, build, player, bullets, enemies, score } =
                 [ text <| "score: " ++ String.fromInt score ]
             , Svg.text_
                 [ Svg.Attributes.textAnchor "start"
-                , Svg.Attributes.stroke "var(--color-primary)"
                 , Svg.Attributes.fill "var(--color-primary)"
                 , Svg.Attributes.x "10"
                 , Svg.Attributes.y "96%"
@@ -329,23 +337,44 @@ gameOver build =
     case build of
         RemoteData.Success b ->
             if Vela.isComplete b.status then
-                Svg.text_
-                    [ Svg.Attributes.textAnchor "middle"
-                    , Svg.Attributes.stroke "var(--color-primary)"
-                    , Svg.Attributes.fill "var(--color-primary)"
-                    , Svg.Attributes.x "50%"
-                    , Svg.Attributes.y "50%"
-                    , Svg.Attributes.fontFamily "monospace"
-                    , Svg.Attributes.fontWeight "300"
-                    , Svg.Attributes.fontSize "18"
+                Svg.g []
+                    [ Svg.text_
+                        [ Svg.Attributes.textAnchor "left"
+                        , Svg.Attributes.fill "var(--color-primary)"
+                        , Svg.Attributes.x "375"
+                        , Svg.Attributes.y "50%"
+                        , Svg.Attributes.fontFamily "monospace"
+                        , Svg.Attributes.fontWeight "300"
+                        , Svg.Attributes.fontSize "18"
+                        ]
+                        [ text "your build is" ]
+                    , Svg.text_
+                        [ Svg.Attributes.textAnchor "left"
+                        , statusToFill b.status
+                        , Svg.Attributes.x "525"
+                        , Svg.Attributes.y "50%"
+                        , Svg.Attributes.fontFamily "monospace"
+                        , Svg.Attributes.fontWeight "300"
+                        , Svg.Attributes.fontSize "18"
+                        ]
+                        [ text "finished!" ]
                     ]
-                    [ text "your build is finished!" ]
 
             else
                 text ""
 
         _ ->
             text ""
+
+
+statusToFill : Vela.Status -> Svg.Attribute msg
+statusToFill status =
+    case status of
+        Vela.Success ->
+            Svg.Attributes.fill "var(--color-green)"
+
+        _ ->
+            Svg.Attributes.fill "var(--color-red)"
 
 
 viewPlayer : Position -> Svg.Svg msg
@@ -642,7 +671,7 @@ isCollision bullet enemy =
             enemyWidth // 3
 
         enemyHeightCollisionSize =
-            enemyHeight // 2
+            enemyHeight
     in
     if
         (bullet.position.x
