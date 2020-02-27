@@ -225,7 +225,7 @@ context('Repo Settings', () => {
     });
 
     it('Repair button should exist', () => {
-      cy.get('[data-test=repo-repair')
+      cy.get('[data-test=repo-repair]')
         .should('exist')
         .should('be.visible');
     });
