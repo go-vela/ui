@@ -5,12 +5,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build exposing
-    ( GameArgs
-    , Msgs
+    ( Msgs
     , PartialModel
     , clickLogLine
     , clickStep
-    , initGame
     , statusToClass
     , statusToString
     , viewBuild
@@ -22,6 +20,7 @@ module Pages.Build exposing
 import Browser.Navigation as Navigation
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
+import Game.Game as Game
 import Html
     exposing
         ( Html
@@ -50,8 +49,6 @@ import Logs exposing (SetLogFocus, stepToFocusId)
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
-import Svg
-import Svg.Attributes
 import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone, millisToPosix)
 import Util
@@ -112,13 +109,13 @@ type alias Msgs msg =
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel -> Org -> Repo -> Msgs msg -> GameArgs msg -> Html msg
-viewBuild model org repo { expandAction, logFocusAction } gameArgs =
+viewBuild : PartialModel -> Org -> Repo -> Msgs msg -> Game.Args msg -> Html msg
+viewBuild model org repo { expandAction, logFocusAction } game =
     let
         ( buildPreview, buildNumber ) =
             case model.build of
                 RemoteData.Success build ->
-                    ( viewPreview (Just gameArgs) model.time org repo build, Just <| String.fromInt build.number )
+                    ( viewPreview model.time org repo build, Just <| String.fromInt build.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
@@ -129,7 +126,7 @@ viewBuild model org repo { expandAction, logFocusAction } gameArgs =
         buildSteps =
             case model.steps of
                 RemoteData.Success steps_ ->
-                    viewSteps model.time org repo buildNumber steps_ model.logs expandAction logFocusAction model.shift
+                    viewSteps model.time org repo buildNumber steps_ model.logs expandAction logFocusAction model.shift game
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
@@ -142,16 +139,9 @@ viewBuild model org repo { expandAction, logFocusAction } gameArgs =
                     else
                         Util.smallLoader
 
-        game =
-            div [] [ viewGame <| createSnake gameArgs.position ]
-
         markdown =
             [ buildPreview
-            , if gameArgs.play then
-                game
-
-              else
-                buildSteps
+            , buildSteps
             ]
     in
     div [ Util.testAttribute "full-build" ] markdown
@@ -159,9 +149,8 @@ viewBuild model org repo { expandAction, logFocusAction } gameArgs =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Maybe (GameArgs msg) -> Posix -> Org -> Repo -> Build -> Html msg
-viewPreview gameArgs now org repo build =
-    -- { time, build, steps, logs, shift, startGame, endGame }
+viewPreview : Posix -> Org -> Repo -> Build -> Html msg
+viewPreview now org repo build =
     let
         status =
             [ buildStatusToIcon build.status ]
@@ -228,16 +217,22 @@ viewPreview gameArgs now org repo build =
 
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> ExpandStep msg -> SetLogFocus msg -> Bool -> Html msg
-viewSteps now org repo buildNumber steps logs expandAction logFocusAction shift =
+viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> ExpandStep msg -> SetLogFocus msg -> Bool -> Game.Args msg -> Html msg
+viewSteps now org repo buildNumber steps logs expandAction logFocusAction shift game =
     div [ class "steps" ]
-        [ div [ class "-items", Util.testAttribute "steps" ] <|
+        [ div
+            [ class "-items"
+            , Util.testAttribute "steps"
+            , Game.fadeSteps game.play
+            ]
+          <|
             List.map
                 (\step ->
                     viewStep now org repo buildNumber step steps logs expandAction logFocusAction shift
                 )
             <|
                 steps
+        , Game.view game
         ]
 
 
@@ -659,108 +654,3 @@ viewingStep steps stepNumber =
             List.map (\step -> step.viewing) <|
                 List.filter (\step -> String.fromInt step.number == stepNumber) <|
                     RemoteData.withDefault [] steps
-
-
-
--- GAME
-
-
-{-| GameArgs msg :
--}
-type alias GameArgs msg =
-    { play : Bool
-    , key : ( String, Int )
-    , startGame : msg
-    , endGame : msg
-    , position : Position
-    }
-
-
-initGame : msg -> msg -> GameArgs msg
-initGame startGame endGame =
-    GameArgs False ( "", 0 ) startGame endGame { x = 0, y = 0 }
-
-
-type alias Size =
-    { width : Int
-    , height : Int
-    }
-
-
-gridSize : Size
-gridSize =
-    { width = 20, height = 10 }
-
-
-cellSize : Int
-cellSize =
-    20
-
-
-viewGame : Snake -> Html msg
-viewGame snake =
-    div []
-        [ Html.h1 [] [ Html.text "Constellation Cleanup" ]
-        , Html.p [] [ Html.text "Use the arrows to move left and right" ]
-        , Svg.svg
-            [ Svg.Attributes.class "grid"
-            , Svg.Attributes.viewBox ("0 0 " ++ String.fromInt (gridSize.width * cellSize) ++ " " ++ String.fromInt (gridSize.height * cellSize))
-            ]
-            (renderBackground
-                ++ renderSnake snake
-            )
-        ]
-
-
-renderBackground : List (Html msg)
-renderBackground =
-    [ Svg.rect
-        [ Svg.Attributes.width (String.fromInt (gridSize.width * cellSize))
-        , Svg.Attributes.height (String.fromInt (gridSize.height * cellSize))
-        , Svg.Attributes.fill "#8cbf00"
-        ]
-        []
-    ]
-
-
-type Direction
-    = Up
-    | Down
-    | Left
-    | Right
-
-
-type alias Position =
-    { x : Int
-    , y : Int
-    }
-
-
-type alias Snake =
-    { head : Position
-    , body : List Position
-    , direction : Direction
-    }
-
-
-createSnake : Position -> Snake
-createSnake position =
-    Snake { x = position.x, y = position.y } [] Up
-
-
-renderSnake : Snake -> List (Html msg)
-renderSnake snake =
-    renderSnakePart snake.head :: List.map renderSnakePart snake.body
-
-
-renderSnakePart : Position -> Html msg
-renderSnakePart position =
-    Svg.rect
-        [ Svg.Attributes.width (String.fromInt cellSize)
-        , Svg.Attributes.height (String.fromInt cellSize)
-        , Svg.Attributes.x (String.fromInt (position.x * cellSize))
-        , Svg.Attributes.y (String.fromInt (position.y * cellSize))
-        , Svg.Attributes.fill "black"
-        , Svg.Attributes.stroke "gray"
-        ]
-        []

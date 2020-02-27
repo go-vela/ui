@@ -41,11 +41,7 @@ header {
 
   padding: 1em var(--horizontal-pad);
 
-  background: radial-gradient(
-    circle at 50% -200%,
-    var(--color-bg-light) -7%,
-    transparent 50%
-  );
+  background: radial-gradient(circle at 50% -200%, var(--color-bg-light) -7%, transparent 50%);
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
@@ -142,7 +138,7 @@ header {
       border-radius: 0 0 0 0.25em;
       transform: rotate(135deg);
 
-      content: '';
+      content: "";
 
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
@@ -230,7 +226,7 @@ nav {
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
 
-  content: '\2026';
+  content: "\2026";
 }
 
 .util {
@@ -255,13 +251,13 @@ nav {
   &::before {
     margin-right: 0.3em;
 
-    content: '[';
+    content: "[";
   }
 
   &::after {
     margin-left: 0.3em;
 
-    content: ']';
+    content: "]";
   }
 }
 
@@ -484,13 +480,11 @@ nav {
 }
 
 .build-animation.-bottom.-running {
-  animation: build-status-parallax-running 26s linear 26s infinite,
-    build-status-parallax-start 26s linear none;
+  animation: build-status-parallax-running 26s linear 26s infinite, build-status-parallax-start 26s linear none;
 }
 
 .build-animation.-top.-running {
-  animation: build-status-parallax-running 22s linear 22s infinite,
-    build-status-parallax-start 22s linear none;
+  animation: build-status-parallax-running 22s linear 22s infinite, build-status-parallax-start 22s linear none;
 }
 
 .build-animation.-bottom.-start {
@@ -658,7 +652,7 @@ nav {
 
   border-width: 5px;
 
-  content: ' ';
+  content: " ";
 }
 
 .recent-build-tooltip .line {
@@ -671,7 +665,7 @@ nav {
   margin-right: 0.5em;
 
   &:before {
-    content: '#';
+    content: "#";
   }
 }
 
@@ -680,10 +674,42 @@ nav {
 
   font-size: 0.9rem;
 }
+.game-container {
+  position: absolute;
+  text-align: center;
+  transition: 2s;
+  width: 100%;
+  > svg {
+    border: 1px solid var(--color-secondary);
+  }
+}
+.game-fade-out {
+  top: 200%;
+}
+
+.game-fade-in {
+  top: 0%;
+}
+.starship {
+  > * {
+    transform: rotate(180deg) !important;
+    transform-origin: 50% 50%;
+  }
+}
+.steps-fade-out {
+  transition: 1s;
+  opacity: 0;
+}
+
+.steps-fade-in {
+  transition: 1s;
+  opacity: 1;
+}
 
 .steps {
   position: relative;
-
+  overflow: hidden;
+  min-height: 500px;
   .details {
     margin-bottom: 0;
   }
@@ -1198,7 +1224,7 @@ nav {
   &::after {
     display: block;
     position: absolute;
-    content: '';
+    content: "";
     top: -0.5rem;
     right: 0;
     border-color: transparent;

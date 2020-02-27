@@ -17,6 +17,7 @@ import Dict
 import Errors exposing (detailedErrorToString)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
+import Game.Game as Game
 import Help.Help
 import Html
     exposing
@@ -203,14 +204,13 @@ type alias Model =
     , visibility : Visibility
     , showHelp : Bool
     , favicon : Favicon
-    , game : Pages.Build.GameArgs Msg
+    , game : Game.Args Msg
     }
 
 
 type Interval
     = OneSecond
     | FiveSecond RefreshData
-    | GameLoop
 
 
 type alias RefreshData =
@@ -264,7 +264,7 @@ init flags url navKey =
             , visibility = Visible
             , showHelp = False
             , favicon = defaultFavicon
-            , game = Pages.Build.initGame StartGame EndGame
+            , game = Game.init StartGame EndGame
             }
 
         ( newModel, newPage ) =
@@ -352,6 +352,7 @@ type Msg
     | OnKeyUp String
     | UpdateUrl String
     | VisibilityChanged Visibility
+    | OnAnimationFrame Float
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -421,11 +422,7 @@ update msg model =
                     )
 
         StartGame ->
-            let
-                game =
-                    model.game
-            in
-            ( { model | game = { game | play = True } }, Cmd.none )
+            ( { model | game = Game.newGame model.build StartGame EndGame }, Cmd.none )
                 |> Alerting.addToast Alerts.successConfig
                     AlertsUpdate
                     (Alerts.Success ""
@@ -434,11 +431,7 @@ update msg model =
                     )
 
         EndGame ->
-            let
-                game =
-                    model.game
-            in
-            ( { model | game = { game | play = False } }, Cmd.none )
+            ( { model | game = Game.gameover model.game }, Cmd.none )
                 |> Alerting.addToast Alerts.successConfig
                     AlertsUpdate
                     (Alerts.Success ""
@@ -965,9 +958,6 @@ update msg model =
 
         Tick interval time ->
             case interval of
-                GameLoop ->
-                    ( model, Cmd.none )
-
                 OneSecond ->
                     let
                         ( favicon, cmd ) =
@@ -977,6 +967,14 @@ update msg model =
 
                 FiveSecond data ->
                     ( model, refreshPage model data )
+
+        OnAnimationFrame _ ->
+            ( { model
+                | game =
+                    Game.update model.game model.build
+              }
+            , Cmd.none
+            )
 
         FilterBuildEventBy maybeEvent org repo ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
@@ -1002,119 +1000,34 @@ update msg model =
                         ( { model | shift = True }, Cmd.none )
 
                     else
-                        gameKeyDown model key
+                        let
+                            ( gameUpdate, action ) =
+                                Game.gameKeyDown model.game model.page key StartGame EndGame
+                        in
+                        ( { model | game = gameUpdate }, action )
             in
             result
 
         OnKeyUp key ->
             let
-                m =
+                result =
                     if key == "Shift" then
-                        { model | shift = False }
+                        ( { model | shift = False }, Cmd.none )
 
                     else
-                        model
+                        let
+                            ( gameUpdate, action ) =
+                                Game.gameKeyUp model.game key
+                        in
+                        ( { model | game = gameUpdate }, action )
             in
-            ( m, Cmd.none )
+            result
 
         VisibilityChanged visibility ->
             ( { model | visibility = visibility, shift = False }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
-
-
-{-| gameLoop : takes model and determines if the site should run the game loop
--}
-gameLoop : Pages.Build.GameArgs Msg -> Sub Msg
-gameLoop game =
-    Sub.batch <|
-        if game.play then
-            [ every 100 <| Tick GameLoop ]
-
-        else
-            []
-
-
-gameKeyDown : Model -> String -> ( Model, Cmd Msg )
-gameKeyDown model key =
-    let
-        newKey =
-            setKey key model.game.key
-
-        game =
-            model.game
-
-        result =
-            if key == "Escape" then
-                ( { model | game = { game | play = False, key = newKey } }
-                , if model.game.play then
-                    Util.dispatch EndGame
-
-                  else
-                    Cmd.none
-                )
-
-            else if key == "v" then
-                let
-                    onBuild =
-                        case model.page of
-                            Pages.Build _ _ _ _ ->
-                                True
-
-                            _ ->
-                                False
-                in
-                ( { model | game = { game | key = newKey } }
-                , if onBuild && Tuple.second newKey == 5 then
-                    Util.dispatch StartGame
-
-                  else
-                    Cmd.none
-                )
-
-            else if game.play then
-                let
-                    _ =
-                        Debug.log "key" key
-
-                    position =
-                        game.position
-                in
-                if key == "ArrowLeft" then
-                    let
-                        newX =
-                            max 0 (position.x - 1)
-                    in
-                    ( { model | game = { game | key = newKey, position = { position | x = newX } } }, Cmd.none )
-
-                else if key == "ArrowRight" then
-                    let
-                        newX =
-                            min 19 (position.x + 1)
-                    in
-                    ( { model | game = { game | key = newKey, position = { position | x = newX } } }, Cmd.none )
-
-                else
-                    ( { model | game = { game | key = newKey } }, Cmd.none )
-
-            else
-                ( { model | game = { game | key = newKey } }, Cmd.none )
-    in
-    result
-
-
-setKey : String -> ( String, Int ) -> ( String, Int )
-setKey key ( lastKey, currentCount ) =
-    let
-        newCount =
-            if key == lastKey then
-                currentCount + 1
-
-            else
-                1
-    in
-    ( key, newCount )
 
 
 
@@ -1136,7 +1049,7 @@ subscriptions model =
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
         , refreshSubscriptions model
-        , gameLoop model.game
+        , Game.loop model.game OnAnimationFrame
         ]
 
 
@@ -1538,7 +1451,7 @@ viewContent model =
                 org
                 repo
                 buildMsgs
-                (gameArgs model)
+                model.game
             )
 
         Pages.Login ->
@@ -1572,11 +1485,6 @@ buildArgs model =
     , logs = model.logs
     , shift = model.shift
     }
-
-
-gameArgs : Model -> Pages.Build.GameArgs Msg
-gameArgs model =
-    model.game
 
 
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
@@ -1945,6 +1853,13 @@ loadBuildPage model org repo buildNumber focusFragment =
 
             else
                 model.builds
+
+        game =
+            if model.game.play then
+                Game.newGame Loading StartGame EndGame
+
+            else
+                model.game
     in
     -- Fetch build from Api
     ( { model
@@ -1953,6 +1868,7 @@ loadBuildPage model org repo buildNumber focusFragment =
         , build = Loading
         , steps = NotAsked
         , logs = []
+        , game = game
       }
     , Cmd.batch
         [ getBuilds model org repo Nothing Nothing Nothing
