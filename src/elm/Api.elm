@@ -18,6 +18,7 @@ module Api exposing
     , getHooks
     , getRepo
     , getRepositories
+    , getSecrets
     , getSourceRepositories
     , getStep
     , getStepLogs
@@ -49,15 +50,18 @@ import Vela
         , Hook
         , Hooks
         , Log
+        , Name
         , Org
         , Repo
         , Repositories
         , Repository
+        , Secrets
         , Session
         , SourceRepositories
         , Step
         , StepNumber
         , Steps
+        , Type
         , User
         , decodeBuild
         , decodeBuilds
@@ -67,6 +71,7 @@ import Vela
         , decodeLog
         , decodeRepositories
         , decodeRepository
+        , decodeSecrets
         , decodeSourceRepositories
         , decodeStep
         , decodeSteps
@@ -523,4 +528,12 @@ getAllHooks : PartialModel a -> Org -> Repo -> Request Hook
 getAllHooks model org repository =
     -- we are using the max perPage setting of 100 to reduce the number of calls
     get model.velaAPI (Endpoint.Hooks (Just 1) (Just 100) org repository) decodeHook
+        |> withAuth model.session
+
+
+{-| getSecrets : fetches secrets for the given type org and name
+-}
+getSecrets : PartialModel a -> Type -> Org -> Name -> Request Secrets
+getSecrets model type_ org name =
+    get model.velaAPI (Endpoint.Secrets type_ org name) decodeSecrets
         |> withAuth model.session

@@ -32,6 +32,7 @@ module Vela exposing
     , Log
     , LogFocus
     , Logs
+    , Name
     , Org
     , RepairRepo
     , Repo
@@ -39,13 +40,17 @@ module Vela exposing
     , Repositories
     , Repository
     , SearchFilter
+    , Secret
+    , Secrets
     , Session
     , SourceRepositories
     , Status(..)
     , Step
     , StepNumber
     , Steps
+    , Team
     , Theme(..)
+    , Type
     , UpdateRepositoryPayload
     , UpdateUserPayload
     , User
@@ -62,6 +67,8 @@ module Vela exposing
     , decodeLog
     , decodeRepositories
     , decodeRepository
+    , decodeSecret
+    , decodeSecrets
     , decodeSession
     , decodeSourceRepositories
     , decodeStep
@@ -906,6 +913,62 @@ type alias HookBuilds =
 
 type alias BuildIdentifier =
     ( Org, Repo, BuildNumber )
+
+
+
+-- SECRETS
+
+
+{-| Secret : record type for vela secrets
+-}
+type alias Secret =
+    { id : Int
+    , org : Org
+    , repo : Repo
+    , team : Team
+    , name : String
+    , type_ : Type
+    , images : List String
+    , events : List String
+    , allowCommand : Bool
+    }
+
+
+type alias Type =
+    String
+
+
+type alias Team =
+    String
+
+
+type alias Name =
+    String
+
+
+decodeSecret : Decoder Secret
+decodeSecret =
+    Decode.succeed Secret
+        |> optional "id" int -1
+        |> optional "org" string ""
+        |> optional "repo" string ""
+        |> optional "team" string ""
+        |> optional "name" string ""
+        |> optional "type" string ""
+        |> optional "images" (Decode.list string) []
+        |> optional "events" (Decode.list string) []
+        |> optional "allow_command" bool False
+
+
+{-| decodeSecrets : decodes json from vela into list of secrets
+-}
+decodeSecrets : Decoder Secrets
+decodeSecrets =
+    Decode.list decodeSecret
+
+
+type alias Secrets =
+    List Secret
 
 
 

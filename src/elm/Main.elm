@@ -124,6 +124,7 @@ import Vela
         , RepoSearchFilters
         , Repositories
         , Repository
+        , Secrets
         , Session
         , SourceRepositories
         , Step
@@ -203,6 +204,7 @@ type alias Model =
     , visibility : Visibility
     , showHelp : Bool
     , favicon : Favicon
+    , secrets : WebData Secrets
     }
 
 
@@ -262,6 +264,7 @@ init flags url navKey =
             , visibility = Visible
             , showHelp = False
             , favicon = defaultFavicon
+            , secrets = NotAsked
             }
 
         ( newModel, newPage ) =
@@ -336,6 +339,7 @@ type Msg
     | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
+    | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
@@ -718,6 +722,14 @@ update msg model =
                                 Cmd.none
                     in
                     ( updateLogs model log, action )
+
+                Err error ->
+                    ( model, addError error )
+
+        SecretsResponse response ->
+            case response of
+                Ok ( _, secrets ) ->
+                    ( { model | secrets = RemoteData.succeed secrets }, Cmd.none )
 
                 Err error ->
                     ( model, addError error )
@@ -1758,6 +1770,7 @@ loadSettingsPage model org repo =
     , Cmd.batch
         [ getRepo model org repo
         , getCurrentUser model
+        , getRepoSecrets model org repo
         ]
     )
 
@@ -2138,6 +2151,11 @@ getBuildStepsLogs model org repo buildNumber steps logFocus =
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 restartBuild model org repo buildNumber =
     Api.try (RestartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
+
+
+getRepoSecrets : Model -> Org -> Repo -> Cmd Msg
+getRepoSecrets model org repo =
+    Api.try SecretsResponse <| Api.getSecrets model "repo" org repo
 
 
 
