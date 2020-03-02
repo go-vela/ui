@@ -1552,11 +1552,11 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
             , case session.username of
                 "" ->
                     details (identityBaseClassList :: identityAttributeList)
-                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing) ] [ text "Vela" ] ]
+                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
 
                 _ ->
                     details (identityBaseClassList :: identityAttributeList)
-                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing) ]
+                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ]
                             [ text session.username
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
