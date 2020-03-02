@@ -16,6 +16,7 @@ type Page
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
+    | RepoSecrets Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | Login
@@ -44,6 +45,9 @@ toRoute page =
 
         Settings org repo ->
             Routes.Settings org repo
+
+        RepoSecrets org repo ->
+            Routes.RepoSecrets org repo
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent

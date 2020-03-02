@@ -111,6 +111,13 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                     , Routes.href <| Routes.Settings org repo
                     ]
                     [ text "Repo Settings" ]
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.RepoSecrets org repo
+                    ]
+                    [ text "Secrets" ]
                 ]
 
         Pages.Settings org repo ->
@@ -126,6 +133,13 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                     ]
                     [ text "Refresh Settings"
                     ]
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.RepoSecrets org repo
+                    ]
+                    [ text "Secrets" ]
                 ]
 
         Pages.Build org repo buildNumber _ ->
@@ -150,6 +164,13 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                     , Routes.href <| Routes.Settings org repo
                     ]
                     [ text "Repo Settings" ]
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.RepoSecrets org repo
+                    ]
+                    [ text "Secrets" ]
                 ]
 
         _ ->

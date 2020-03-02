@@ -77,6 +77,7 @@ import Pages.Build
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
+import Pages.RepoSecrets
 import Pages.Settings exposing (enableUpdate)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
@@ -1378,6 +1379,11 @@ viewContent model =
             , lazy4 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI
             )
 
+        Pages.RepoSecrets org repo ->
+            ( String.join "/" [ org, repo ] ++ " secrets"
+            , lazy Pages.RepoSecrets.view model.secrets
+            )
+
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             let
                 page : String
@@ -1655,6 +1661,9 @@ setNewPage route model =
         ( Routes.Settings org repo, True ) ->
             loadSettingsPage model org repo
 
+        ( Routes.RepoSecrets org repo, True ) ->
+            loadRepoSecretsPage model org repo
+
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
             let
                 currentSession : Session
@@ -1770,7 +1779,18 @@ loadSettingsPage model org repo =
     , Cmd.batch
         [ getRepo model org repo
         , getCurrentUser model
-        , getRepoSecrets model org repo
+        ]
+    )
+
+
+{-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
+-}
+loadRepoSecretsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadRepoSecretsPage model org repo =
+    -- Fetch repo from Api
+    ( { model | page = Pages.RepoSecrets org repo, secrets = Loading, inTimeout = Nothing }
+    , Cmd.batch
+        [ getRepoSecrets model org repo
         ]
     )
 

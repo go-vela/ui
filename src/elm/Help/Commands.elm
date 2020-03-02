@@ -45,6 +45,9 @@ commands page =
         Pages.Settings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
+        Pages.RepoSecrets org repo ->
+            []
+
         Pages.Authenticate _ ->
             []
 

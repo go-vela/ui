@@ -25,6 +25,7 @@ type Route
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings Org Repo
+    | RepoSecrets Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | Login
@@ -47,6 +48,7 @@ routes =
         , parseAuth
         , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
         , map Settings (string </> string </> s "settings")
+        , map RepoSecrets (string </> string </> s "secrets")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Build (string </> string </> string </> fragment identity)
         , map NotFound (s "404")
@@ -86,6 +88,9 @@ routeToUrl route =
 
         Settings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
+
+        RepoSecrets org repo ->
+            "/" ++ org ++ "/" ++ repo ++ "/secrets"
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)

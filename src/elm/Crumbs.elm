@@ -87,6 +87,9 @@ toPath page =
         repoSettings =
             ( "Settings", Nothing )
 
+        repoSecrets =
+            ( "Secrets", Nothing )
+
         pages =
             case page of
                 Pages.Overview ->
@@ -118,6 +121,16 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, repoBuilds, repoSettings ]
 
+                Pages.RepoSecrets org repo ->
+                    let
+                        organizationPage =
+                            ( org, Nothing )
+
+                        repoBuilds =
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                    in
+                    [ overviewPage, organizationPage, repoBuilds, repoSecrets ]
+
                 Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
                     let
                         organizationPage =
@@ -135,11 +148,17 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
 
+                Pages.Login ->
+                    []
+
+                Pages.Logout ->
+                    []
+
+                Pages.Authenticate _ ->
+                    []
+
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]
-
-                _ ->
-                    []
     in
     pages
 

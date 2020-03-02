@@ -313,6 +313,9 @@ resourceLoaded args =
         Pages.Build _ _ _ _ ->
             args.build.success
 
+        Pages.RepoSecrets _ _ ->
+            args.repo.success
+
         Pages.Settings _ _ ->
             args.repo.success
 
@@ -348,6 +351,9 @@ resourceLoading args =
 
         Pages.Build _ _ _ _ ->
             args.build.loading
+
+        Pages.RepoSecrets _ _ ->
+            args.repo.loading
 
         Pages.Settings _ _ ->
             args.repo.loading

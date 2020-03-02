@@ -41,11 +41,7 @@ header {
 
   padding: 1em var(--horizontal-pad);
 
-  background: radial-gradient(
-    circle at 50% -200%,
-    var(--color-bg-light) -7%,
-    transparent 50%
-  );
+  background: radial-gradient(circle at 50% -200%, var(--color-bg-light) -7%, transparent 50%);
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
@@ -142,7 +138,7 @@ header {
       border-radius: 0 0 0 0.25em;
       transform: rotate(135deg);
 
-      content: '';
+      content: "";
 
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
@@ -230,7 +226,7 @@ nav {
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
 
-  content: '\2026';
+  content: "\2026";
 }
 
 .util {
@@ -255,13 +251,13 @@ nav {
   &::before {
     margin-right: 0.3em;
 
-    content: '[';
+    content: "[";
   }
 
   &::after {
     margin-left: 0.3em;
 
-    content: ']';
+    content: "]";
   }
 }
 
@@ -484,13 +480,11 @@ nav {
 }
 
 .build-animation.-bottom.-running {
-  animation: build-status-parallax-running 26s linear 26s infinite,
-    build-status-parallax-start 26s linear none;
+  animation: build-status-parallax-running 26s linear 26s infinite, build-status-parallax-start 26s linear none;
 }
 
 .build-animation.-top.-running {
-  animation: build-status-parallax-running 22s linear 22s infinite,
-    build-status-parallax-start 22s linear none;
+  animation: build-status-parallax-running 22s linear 22s infinite, build-status-parallax-start 22s linear none;
 }
 
 .build-animation.-bottom.-start {
@@ -658,7 +652,7 @@ nav {
 
   border-width: 5px;
 
-  content: ' ';
+  content: " ";
 }
 
 .recent-build-tooltip .line {
@@ -671,7 +665,7 @@ nav {
   margin-right: 0.5em;
 
   &:before {
-    content: '#';
+    content: "#";
   }
 }
 
@@ -938,7 +932,7 @@ nav {
   border: 1px solid var(--color-red);
 }
 
-.hooks {
+.table {
   width: 100%;
   margin: 1rem 0;
   padding-bottom: 0.5rem;
@@ -948,20 +942,20 @@ nav {
   background: var(--color-bg-dark);
 }
 
-.hooks .loading {
+.table .loading {
   display: flex;
 
   margin-top: 0.5em;
   margin-left: 0.4em;
 }
 
-.hooks .row.preview {
+.table .row.preview {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-.hooks .headers {
+.table .headers {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -972,7 +966,7 @@ nav {
   border-bottom: 1px solid var(--color-bg-light);
 }
 
-.hooks .header {
+.table .header {
   flex: 1;
 
   font-size: 1.2rem;
@@ -992,7 +986,7 @@ nav {
   stroke: var(--color-red);
 }
 
-.hooks .row .cell {
+.table .row .cell {
   flex: 1;
   align-items: center;
   justify-content: center;
@@ -1002,25 +996,25 @@ nav {
   text-align: center;
 }
 
-.hooks .source-id {
+.table .source-id {
   min-width: 330px;
 }
 
-.hooks .first-cell {
+.table .first-cell {
   width: 44px;
 }
 
-.hooks .headers .first-cell {
+.table .headers .first-cell {
   width: calc(2rem + 44px);
 }
 
-.hooks .cell.source-id {
+.table .cell.source-id {
   display: flex;
   flex-direction: row;
   justify-content: center;
 }
 
-.hooks .text {
+.table .text {
   flex: 1;
   padding: 3px 12px;
 
@@ -1029,7 +1023,7 @@ nav {
   background: var(--color-bg);
 }
 
-.hooks .details {
+.table .details {
   margin: 1rem;
 }
 
@@ -1041,7 +1035,7 @@ nav {
   color: var(--color-red-light);
 }
 
-.hooks .info {
+.table .info {
   display: flex;
   display: inline-block;
   flex-direction: row;
@@ -1055,50 +1049,50 @@ nav {
   border-left: 2px solid var(--color-bg-light);
 }
 
-.hooks .info:last-child {
+.table .info:last-child {
   border-bottom: none;
 }
 
-.hooks .info.-pending {
+.table .info.-pending {
   border-left-color: var(--color-bg-light);
 }
 
-.hooks .info.-running {
+.table .info.-running {
   border-left-color: var(--color-yellow);
 }
 
-.hooks .info.-success {
+.table .info.-success {
   border-left-color: var(--color-green);
 }
 
-.hooks .info.-failure,
-.hooks .info.-error {
+.table .info.-failure,
+.table .info.-error {
   border-left-color: var(--color-red);
 }
 
-.hooks .element span.-m-r,
+.table .element span.-m-r,
 .hook-build .-m-r {
   margin-right: 0.4em;
 }
 
-.hooks .error-label {
+.table .error-label {
   color: var(--color-red-light);
 }
 
-.hooks .hook-build-status.-pending {
+.table .hook-build-status.-pending {
   color: var(--color-offwhite);
 }
 
-.hooks .hook-build-status.-running {
+.table .hook-build-status.-running {
   color: var(--color-yellow);
 }
 
-.hooks .hook-build-status.-success {
+.table .hook-build-status.-success {
   color: var(--color-green);
 }
 
-.hooks .hook-build-status.-failure,
-.hooks .hook-build-status.-error {
+.table .hook-build-status.-failure,
+.table .hook-build-status.-error {
   color: var(--color-red-light);
 }
 
@@ -1198,7 +1192,7 @@ nav {
   &::after {
     display: block;
     position: absolute;
-    content: '';
+    content: "";
     top: -0.5rem;
     right: 0;
     border-color: transparent;
