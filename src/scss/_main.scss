@@ -1312,3 +1312,8 @@ nav {
     }
   }
 }
+
+// visually hide, but keep accessible by screen readers
+.visually-hidden {
+  @include visually-hidden();
+}

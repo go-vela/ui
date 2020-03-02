@@ -51,12 +51,13 @@ view args =
         , attribute "aria-label" "toggle contextual help for this page"
         ]
         [ details
-            [ class "details"
-            , class "help"
-            , class "-no-pad"
-            , attribute "role" "button"
-            , Util.open args.show
-            ]
+            ([ class "details"
+             , class "help"
+             , class "-no-pad"
+             , attribute "role" "button"
+             ]
+                ++ Util.open args.show
+            )
             [ summary
                 [ class "summary"
                 , class "-no-pad"

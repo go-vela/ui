@@ -43,6 +43,7 @@ import Html.Attributes
         ( attribute
         , checked
         , class
+        , classList
         , for
         , href
         , id
@@ -203,6 +204,7 @@ type alias Model =
     , shift : Bool
     , visibility : Visibility
     , showHelp : Bool
+    , showIdentity : Bool
     , favicon : Favicon
     }
 
@@ -262,6 +264,7 @@ init flags url navKey =
             , shift = False
             , visibility = Visible
             , showHelp = False
+            , showIdentity = False
             , favicon = defaultFavicon
             }
 
@@ -304,6 +307,7 @@ type Msg
     | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
+    | ShowHideIdentity (Maybe Bool)
     | Copy String
       -- Outgoing HTTP requests
     | SignInRequested
@@ -403,6 +407,19 @@ update msg model =
 
                         Nothing ->
                             not model.showHelp
+              }
+            , Cmd.none
+            )
+
+        ShowHideIdentity show ->
+            ( { model
+                | showIdentity =
+                    case show of
+                        Just s ->
+                            s
+
+                        Nothing ->
+                            not model.showIdentity
               }
             , Cmd.none
             )
@@ -1005,7 +1022,8 @@ subscriptions model =
     Sub.batch <|
         [ Interop.onSessionChange decodeOnSessionChange
         , Interop.onThemeChange decodeOnThemeChange
-        , onMouseDown model
+        , onMouseDown "contextual-help" model ShowHideHelp
+        , onMouseDown "identity" model ShowHideIdentity
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
@@ -1248,10 +1266,13 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
 
 {-| onMouseDown : takes model and returns subscriptions for handling onMouseDown events at the browser level
 -}
-onMouseDown : Model -> Sub Msg
-onMouseDown model =
+onMouseDown : String -> Model -> (Maybe Bool -> Msg) -> Sub Msg
+onMouseDown targetId model triggerMsg =
     if model.showHelp then
-        Browser.Events.onMouseDown (outsideTarget "contextual-help" <| ShowHideHelp <| Just False)
+        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
+
+    else if model.showIdentity then
+        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
 
     else
         Sub.none
@@ -1307,7 +1328,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, page = model.page, help = helpArgs model }
+        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
         , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos } navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
@@ -1505,24 +1526,37 @@ viewLogin =
         ]
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, page : Page, help : Help.Help.Args Msg } -> Html Msg
-viewHeader maybeSession { feedbackLink, docsLink, theme, page, help } =
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Help.Args Msg, showId : Bool } -> Html Msg
+viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
     let
         session : Session
         session =
             Maybe.withDefault defaultSession maybeSession
+
+        identityBaseClassList : Html.Attribute Msg
+        identityBaseClassList =
+            classList
+                [ ( "details", True )
+                , ( "-marker-right", True )
+                , ( "-no-pad", True )
+                , ( "identity-name", True )
+                ]
+
+        identityAttributeList : List (Html.Attribute Msg)
+        identityAttributeList =
+            attribute "role" "navigation" :: Util.open showId
     in
     header []
-        [ div [ class "identity", Util.testAttribute "identity" ]
+        [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
             [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
             , case session.username of
                 "" ->
-                    details [ class "details", class "-marker-right", class "-no-pad", class "identity-name", attribute "role" "navigation" ]
-                        [ summary [ class "summary" ] [ text "Vela" ] ]
+                    details (identityBaseClassList :: identityAttributeList)
+                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing) ] [ text "Vela" ] ]
 
                 _ ->
-                    details [ class "details", class "-marker-right", class "-no-pad", class "identity-name", attribute "role" "navigation" ]
-                        [ summary [ class "summary" ]
+                    details (identityBaseClassList :: identityAttributeList)
+                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing) ]
                             [ text session.username
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
@@ -1677,7 +1711,7 @@ setNewPage route model =
                     loadBuildPage model org repo buildNumber logFocus
 
         ( Routes.Settings, True ) ->
-            ( { model | page = Pages.Settings }, Cmd.none )
+            ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
 
         ( Routes.Logout, True ) ->
             ( { model | session = Nothing }

@@ -6,9 +6,10 @@
 // └─┐├┤  │  │ │││││ ┬└─┐
 // └─┘└─┘ ┴  ┴ ┴┘└┘└─┘└─┘
 
-// styles for the repo settings page
+// styles for the settings pages
 
-.repo-settings {
+.repo-settings,
+.my-settings {
   display: flex;
   flex-wrap: wrap;
 }
