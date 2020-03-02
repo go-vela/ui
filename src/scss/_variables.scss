@@ -38,7 +38,7 @@
   --color-slate: hsla(211.8, 8.8%, 37.8%, 0.5);
 
   // some common attributes
-  --horizontal-pad: 3em;
+  --horizontal-pad: 3rem;
   --line-width: 2px;
 
   // system font stack
@@ -50,3 +50,7 @@
   --font-code: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
 }
+
+// breakpoints
+
+$break-small: 34rem;

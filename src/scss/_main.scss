@@ -16,6 +16,11 @@ body {
   transition-duration: 0.2s;
 
   transition-property: background-color, color;
+
+  // variable adjustments for small screens
+  @include respond-to(small) {
+    --horizontal-pad: 1rem;
+  }
 }
 
 a {
@@ -31,126 +36,6 @@ a {
 
   &:hover {
     text-decoration: none;
-  }
-}
-
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 1em var(--horizontal-pad);
-
-  background: radial-gradient(
-    circle at 50% -200%,
-    var(--color-bg-light) -7%,
-    transparent 50%
-  );
-
-  border-top-width: 0;
-  border-bottom: var(--line-width) solid;
-  border-left-width: 0;
-  border-image-source: linear-gradient(
-    to right,
-    var(--color-primary) 55%,
-    transparent 55%,
-    transparent 58%,
-    var(--color-primary) 58%,
-    var(--color-primary) 69%,
-    transparent 69%,
-    transparent 75%,
-    var(--color-secondary) 75%,
-    var(--color-secondary) 76%,
-    transparent 76%
-  );
-  border-image-slice: 1;
-}
-
-.identity {
-  display: flex;
-  align-items: center;
-}
-
-.identity-logo-link {
-  margin-right: 1em;
-
-  text-decoration: none;
-  // override global `vertical-align: middle` for SVGs
-  svg {
-    vertical-align: text-bottom;
-  }
-}
-
-// Vela logo
-.vela-logo {
-  &-star {
-    fill: var(--color-lavender);
-  }
-
-  &-outer {
-    fill: var(--color-cyan);
-  }
-
-  &-inner {
-    fill: var(--color-text);
-  }
-}
-
-.help-links {
-  font-size: 80%;
-}
-
-.identity-name {
-  z-index: 9999;
-}
-
-.identity-menu {
-  position: absolute;
-  top: 1rem;
-  left: 0;
-
-  width: max-content;
-  min-width: 100%;
-  padding: 0;
-
-  font-size: 80%;
-
-  list-style: none;
-  background-color: var(--color-bg-dark);
-
-  border: 1px solid var(--color-bg-light);
-  box-shadow: 0 0 2px var(--color-black);
-
-  .identity-menu-item a {
-    padding: 0.5rem 1rem;
-    display: block;
-  }
-
-  .identity-menu-item:not(:first-child) a {
-    padding-top: 0;
-  }
-
-  @supports (clip-path: inset(50%)) {
-    &::after {
-      position: absolute;
-      top: -5px;
-      left: calc(50% - 6px);
-
-      display: block;
-
-      width: 10px;
-      height: 10px;
-
-      background-color: inherit;
-
-      border: inherit;
-      border-radius: 0 0 0 0.25em;
-      transform: rotate(135deg);
-
-      content: '';
-
-      clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
-    }
   }
 }
 

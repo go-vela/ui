@@ -37,3 +37,37 @@
     }
   }
 }
+
+// attaches a pointer to a parent container
+@mixin attach-pointer($size: 10px, $alignment: center, $side: top) {
+  @supports (clip-path: inset(50%)) {
+    &::after {
+      position: absolute;
+      top: -($size/2);
+      left: calc(50% - #{$size} / 2);
+
+      display: block;
+
+      width: $size;
+      height: $size;
+
+      background-color: inherit;
+
+      border: inherit;
+      transform: rotate(135deg);
+
+      content: '';
+
+      clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
+    }
+  }
+}
+
+// responsive mixin
+@mixin respond-to($media) {
+  @if $media == small {
+    @media only screen and (max-width: $break-small) {
+      @content;
+    }
+  }
+}

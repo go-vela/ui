@@ -1,0 +1,104 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// native header styles
+header {
+  display: flex;
+  flex-flow: wrap row;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 1rem var(--horizontal-pad);
+
+  background: radial-gradient(
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
+  );
+
+  border-top-width: 0;
+  border-bottom: var(--line-width) solid;
+  border-left-width: 0;
+  border-image-source: linear-gradient(
+    to right,
+    var(--color-primary) 55%,
+    transparent 55%,
+    transparent 58%,
+    var(--color-primary) 58%,
+    var(--color-primary) 69%,
+    transparent 69%,
+    transparent 75%,
+    var(--color-secondary) 75%,
+    var(--color-secondary) 76%,
+    transparent 76%
+  );
+  border-image-slice: 1;
+}
+
+// identity control (<details> overrides)
+.identity {
+  display: flex;
+  flex-shrink: 0;
+}
+
+// colorizing the Vela SVG
+.vela-logo {
+  &-star {
+    fill: var(--color-lavender);
+  }
+
+  &-outer {
+    fill: var(--color-cyan);
+  }
+
+  &-inner {
+    fill: var(--color-text);
+  }
+}
+
+.identity-logo-link {
+  margin-right: 1rem;
+
+  // override global `vertical-align: middle` for SVGs
+  svg {
+    vertical-align: text-bottom;
+  }
+}
+
+// bring it all the way to the top
+.identity-name {
+  z-index: 9999; // TODO: make this a lookup/variable
+}
+
+.identity-menu {
+  position: absolute;
+  top: 1rem;
+  left: 0;
+
+  width: max-content;
+  min-width: 100%;
+  padding: 0;
+
+  font-size: 80%;
+
+  list-style: none;
+  background-color: var(--color-bg-dark);
+
+  border: var(--line-width) solid var(--color-bg-light);
+
+  @include attach-pointer();
+}
+
+.identity-menu-item {
+  padding: 0.5rem 1rem;
+
+  user-select: none;
+}
+
+// help links
+.help-links {
+  flex-shrink: 0;
+
+  font-size: 80%;
+}
