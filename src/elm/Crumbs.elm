@@ -111,7 +111,7 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, repoBuilds, ( "Hooks" ++ pageNumber, Nothing ) ]
 
-                Pages.Settings org repo ->
+                Pages.RepoSettings org repo ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -154,11 +154,14 @@ toPath page =
                 Pages.Logout ->
                     []
 
-                Pages.Authenticate _ ->
-                    []
+                Pages.Settings ->
+                    [ ( "Overview", Just Pages.Overview ), ( "My Settings", Nothing ) ]
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]
+
+                Pages.Authenticate _ ->
+                    []
     in
     pages
 

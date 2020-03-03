@@ -194,7 +194,7 @@ viewFavorite favorites toggleFavorite filtered favorite =
             , a
                 [ class "button"
                 , class "-outline"
-                , Routes.href <| Routes.Settings org repo
+                , Routes.href <| Routes.RepoSettings org repo
                 ]
                 [ text "Settings" ]
             , a
