@@ -51,12 +51,13 @@ view args =
         , attribute "aria-label" "toggle contextual help for this page"
         ]
         [ details
-            [ class "details"
-            , class "help"
-            , class "-no-pad"
-            , attribute "role" "button"
-            , Util.open args.show
-            ]
+            ([ class "details"
+             , class "help"
+             , class "-no-pad"
+             , attribute "role" "button"
+             ]
+                ++ Util.open args.show
+            )
             [ summary
                 [ class "summary"
                 , class "-no-pad"
@@ -313,11 +314,14 @@ resourceLoaded args =
         Pages.Build _ _ _ _ ->
             args.build.success
 
-        Pages.Settings _ _ ->
+        Pages.RepoSettings _ _ ->
             args.repo.success
 
         Pages.Hooks _ _ _ _ ->
             args.hooks.success
+
+        Pages.Settings ->
+            True
 
         Pages.Login ->
             True
@@ -349,11 +353,14 @@ resourceLoading args =
         Pages.Build _ _ _ _ ->
             args.build.loading
 
-        Pages.Settings _ _ ->
+        Pages.RepoSettings _ _ ->
             args.repo.loading
 
         Pages.Hooks _ _ _ _ ->
             args.hooks.loading
+
+        Pages.Settings ->
+            False
 
         Pages.Login ->
             False

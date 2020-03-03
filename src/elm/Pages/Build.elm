@@ -268,13 +268,13 @@ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction s
             ]
     in
     details
-        [ classList
+        (classList
             [ ( "details", True )
             , ( "-with-border", True )
             , ( "-running", step.status == Vela.Running )
             ]
-        , Util.open step.viewing
-        ]
+            :: Util.open step.viewing
+        )
         stepSummary
 
 

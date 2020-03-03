@@ -108,7 +108,7 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, repoBuilds, ( "Hooks" ++ pageNumber, Nothing ) ]
 
-                Pages.Settings org repo ->
+                Pages.RepoSettings org repo ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -134,6 +134,9 @@ toPath page =
                             ( org, Nothing )
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
+
+                Pages.Settings ->
+                    [ ( "Overview", Just Pages.Overview ), ( "My Settings", Nothing ) ]
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]

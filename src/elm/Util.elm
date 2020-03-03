@@ -229,13 +229,13 @@ dispatch msg =
 
 {-| open : returns html attribute for open/closed details summaries
 -}
-open : Bool -> Html.Attribute msg
+open : Bool -> List (Html.Attribute msg)
 open isOpen =
     if isOpen then
-        attribute "open" ""
+        [ attribute "open" "" ]
 
     else
-        class ""
+        []
 
 
 {-| ariaHidden: returns the html attribute for setting aria-hidden=true
