@@ -1301,3 +1301,57 @@ nav {
     }
   }
 }
+
+.-m-r {
+  margin-right: 0.25rem;
+}
+
+.-m-l {
+  margin-left: 0.25rem;
+}
+
+.add-secret {
+  padding: 1rem;
+  background: var(--color-bg-dark);
+}
+
+.add-secret .label {
+  border-bottom: 2px solid var(--color-secondary);
+}
+.add-secret input {
+  margin-top: 1rem;
+}
+.add-secret input,
+.add-secret textarea,
+.update-secret textarea {
+  width: 70%;
+  border: 1px solid gray;
+  box-shadow: none;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+}
+
+.add-secret input {
+  width: 25%;
+}
+
+.add-secret textarea {
+  width: 70%;
+}
+.update-secret textarea {
+  width: 70%;
+}
+
+.update-secret {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid gray;
+}
+
+.table-label {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
