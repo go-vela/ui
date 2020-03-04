@@ -967,6 +967,7 @@ nav {
 
   margin-top: 0.3em;
   padding: 0.3em 1rem;
+  padding-left: 2rem;
 
   border-bottom: 1px solid var(--color-bg-light);
 }
@@ -1001,16 +1002,43 @@ nav {
   text-align: center;
 }
 
+.table .headers .header.-last {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 1rem;
+}
+
+.table .row .cell.-last {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 1rem;
+  button {
+    margin: 0.25rem 0;
+  }
+}
+
 .table .source-id {
   min-width: 330px;
 }
 
-.table .first-cell {
-  width: 44px;
+.table .headers .first-cell {
+  width: 2rem;
 }
 
-.table .headers .first-cell {
-  width: calc(2rem + 44px);
+.secret {
+  margin: 1rem;
+}
+.secrets-row {
+  padding-left: 2rem;
+}
+
+.filler-cell {
+  width: 6ch;
+}
+
+.table .headers .-label {
+  font-size: 1.5rem;
+  color: var(--color-primary);
 }
 
 .table .cell.source-id {
@@ -1320,9 +1348,20 @@ nav {
   background: var(--color-bg-dark);
 }
 
-.add-secret .label {
+.add-secret .header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
   border-bottom: 2px solid var(--color-secondary);
 }
+
+.add-secret h2 {
+  margin: 0;
+  border-bottom: 2px solid var(--color-secondary);
+}
+
 .add-secret input {
   margin-top: 1rem;
 }
@@ -1356,10 +1395,17 @@ nav {
   border-bottom: 1px solid gray;
 }
 
+.secrets-row {
+  padding-left: 2rem;
+}
 .table-label {
   font-size: 1.25rem;
   color: var(--color-primary);
 }
+
+// .edit-icon {
+//   stroke: var(--color-primary);
+// }
 
 // visually hide, but keep accessible by screen readers
 .visually-hidden {

@@ -227,3 +227,8 @@
 .buttons .button:not(:last-child) {
   margin-right: 0.5rem;
 }
+
+// slim modifier for placing buttons within tables
+.button.-slim {
+  padding: 0.25rem 1rem;
+}

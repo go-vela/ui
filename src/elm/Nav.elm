@@ -48,6 +48,8 @@ type alias Msgs msg =
     { fetchSourceRepos : msg
     , toggleFavorite : ToggleFavorite msg
     , refreshSettings : Org -> Repo -> msg
+    , refreshHooks : Org -> Repo -> msg
+    , refreshSecrets : Org -> Repo -> msg
     , restartBuild : Org -> Repo -> BuildNumber -> msg
     }
 
@@ -65,7 +67,7 @@ view model msgs =
 {-| navButton : uses current page to build the commonly used button on the right side of the nav
 -}
 navButton : PartialModel a -> Msgs msg -> Html msg
-navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuild } =
+navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets, restartBuild } =
     case model.page of
         Pages.Overview ->
             a
@@ -100,6 +102,13 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                 , a
                     [ class "button"
                     , class "-outline"
+                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.RepoSecrets org repo
+                    ]
+                    [ text "Secrets" ]
+                , a
+                    [ class "button"
+                    , class "-outline"
                     , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
                     , Routes.href <| Routes.Hooks org repo maybePage maybePerPage
                     ]
@@ -111,6 +120,11 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                     , Routes.href <| Routes.RepoSettings org repo
                     ]
                     [ text "Settings" ]
+                ]
+
+        Pages.RepoSettings org repo ->
+            div [ class "buttons" ]
+                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
                     [ class "button"
                     , class "-outline"
@@ -118,11 +132,13 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                     , Routes.href <| Routes.RepoSecrets org repo
                     ]
                     [ text "Secrets" ]
-                ]
-
-        Pages.RepoSettings org repo ->
-            div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.Hooks org repo Nothing Nothing
+                    ]
+                    [ text "Hooks" ]
                 , button
                     [ classList
                         [ ( "button", True )
@@ -131,15 +147,37 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                     , onClick <| refreshSettings org repo
                     , Util.testAttribute "refresh-repo-settings"
                     ]
-                    [ text "Refresh Settings"
+                    [ text "Refresh"
                     ]
+                ]
+
+        Pages.RepoSecrets org repo ->
+            div [ class "buttons" ]
+                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
                     [ class "button"
                     , class "-outline"
-                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets org repo
+                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.Hooks org repo Nothing Nothing
                     ]
-                    [ text "Secrets" ]
+                    [ text "Hooks" ]
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.RepoSettings org repo
+                    ]
+                    [ text "Settings" ]
+                , button
+                    [ classList
+                        [ ( "button", True )
+                        , ( "-outline", True )
+                        ]
+                    , onClick <| refreshSecrets org repo
+                    , Util.testAttribute "refresh-repo-settings"
+                    ]
+                    [ text "Refresh"
+                    ]
                 ]
 
         Pages.Build org repo buildNumber _ ->
@@ -160,17 +198,27 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, restartBuil
                 , a
                     [ class "button"
                     , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSettings org repo
-                    ]
-                    [ text "Settings" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
                     , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
                     , Routes.href <| Routes.RepoSecrets org repo
                     ]
                     [ text "Secrets" ]
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.RepoSettings org repo
+                    ]
+                    [ text "Settings" ]
+                , button
+                    [ classList
+                        [ ( "button", True )
+                        , ( "-outline", True )
+                        ]
+                    , onClick <| refreshHooks org repo
+                    , Util.testAttribute "refresh-repo-hooks"
+                    ]
+                    [ text "Refresh"
+                    ]
                 ]
 
         _ ->

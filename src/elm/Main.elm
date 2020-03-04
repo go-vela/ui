@@ -208,7 +208,7 @@ type alias Model =
     , showHelp : Bool
     , showIdentity : Bool
     , favicon : Favicon
-    , secrets : WebData Secrets
+    , secrets : Pages.RepoSecrets.Args
     }
 
 
@@ -269,7 +269,7 @@ init flags url navKey =
             , showHelp = False
             , showIdentity = False
             , favicon = defaultFavicon
-            , secrets = NotAsked
+            , secrets = Pages.RepoSecrets.init
             }
 
         ( newModel, newPage ) =
@@ -306,12 +306,15 @@ type Msg
     | SearchFavorites String
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
+    | RefreshHooks Org Repo
+    | RefreshSecrets Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
+    | ShowHideUpdateRepoSecret (Maybe Bool)
     | Copy String
       -- Outgoing HTTP requests
     | SignInRequested
@@ -425,6 +428,13 @@ update msg model =
 
                         Nothing ->
                             not model.showIdentity
+              }
+            , Cmd.none
+            )
+
+        ShowHideUpdateRepoSecret show ->
+            ( { model
+                | secrets = Pages.RepoSecrets.toggleUpdateSecret model.secrets show
               }
             , Cmd.none
             )
@@ -748,7 +758,11 @@ update msg model =
         SecretsResponse response ->
             case response of
                 Ok ( _, secrets ) ->
-                    ( { model | secrets = RemoteData.succeed secrets }, Cmd.none )
+                    let
+                        secrets_ =
+                            model.secrets
+                    in
+                    ( { model | secrets = { secrets_ | secrets = RemoteData.succeed secrets } }, Cmd.none )
 
                 Err error ->
                     ( model, addError error )
@@ -952,6 +966,20 @@ update msg model =
 
         RefreshSettings org repo ->
             ( { model | inTimeout = Nothing, repo = Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
+
+        RefreshHooks org repo ->
+            let
+                hooks =
+                    model.hooks
+            in
+            ( { model | hooks = { hooks | hooks = Loading } }, getHooks model org repo Nothing Nothing )
+
+        RefreshSecrets org repo ->
+            let
+                secrets =
+                    model.secrets
+            in
+            ( { model | secrets = { secrets | secrets = Loading } }, getRepoSecrets model org repo )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
@@ -1403,7 +1431,7 @@ viewContent model =
 
         Pages.RepoSecrets org repo ->
             ( String.join "/" [ org, repo ] ++ " secrets"
-            , lazy Pages.RepoSecrets.view model.secrets
+            , lazy2 Pages.RepoSecrets.view model.secrets repoSecretsMsgs
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
@@ -1833,9 +1861,14 @@ loadRepoSettingsPage model org repo =
 loadRepoSecretsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadRepoSecretsPage model org repo =
     -- Fetch repo from Api
-    ( { model | page = Pages.RepoSecrets org repo, secrets = Loading, inTimeout = Nothing }
+    let
+        secrets =
+            model.secrets
+    in
+    ( { model | page = Pages.RepoSecrets org repo, secrets = { secrets | secrets = Loading }, inTimeout = Nothing }
     , Cmd.batch
-        [ getRepoSecrets model org repo
+        [ getCurrentUser model
+        , getRepoSecrets model org repo
         ]
     )
 
@@ -2117,7 +2150,7 @@ buildMsgs =
 -}
 navMsgs : Nav.Msgs Msg
 navMsgs =
-    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RestartBuild
+    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets RestartBuild
 
 
 {-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
@@ -2139,6 +2172,13 @@ hooksMsgs =
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
     Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
+
+
+{-| repoSecretsMsgs : prepares the input record required for the RepoSecrets page to route Msgs back to Main.elm
+-}
+repoSecretsMsgs : Pages.RepoSecrets.Msgs Msg
+repoSecretsMsgs =
+    Pages.RepoSecrets.Msgs ShowHideUpdateRepoSecret
 
 
 

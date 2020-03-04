@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.RepoSecrets exposing (Msgs, view)
+module Pages.RepoSecrets exposing (Args, Msgs, init, toggleUpdateSecret, view)
 
 import FeatherIcons
 import Html
@@ -18,6 +18,7 @@ import Html
         , text
         )
 import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Util exposing (largeLoader)
@@ -29,52 +30,85 @@ import Vela
 
 
 type alias AddSecret msg =
-    msg
+    Maybe Bool -> msg
 
 
 {-| Msgs : record for routing msg updates to Main.elm
 -}
 type alias Msgs msg =
-    { addSecret : AddSecret msg
+    { showHideUpdateSecret : AddSecret msg
     }
+
+
+type alias Args =
+    { secrets : WebData Secrets
+    , showUpdateSecret : Bool
+    }
+
+
+toggleUpdateSecret : Args -> Maybe Bool -> Args
+toggleUpdateSecret args show =
+    case show of
+        Just s ->
+            { args | showUpdateSecret = s }
+
+        Nothing ->
+            { args | showUpdateSecret = not args.showUpdateSecret }
+
+
+init : Args
+init =
+    Args NotAsked False
 
 
 {-| view : takes model and renders page for managing repo secrets
 -}
-view : WebData Secrets -> Html msg
-view secrets =
-    case secrets of
-        Success s ->
-            if List.length s > 0 then
-                div [] [ addSecret, viewSecrets s ]
+view : Args -> Msgs msg -> Html msg
+view args msgs =
+    let
+        content =
+            case args.secrets of
+                Success s ->
+                    if List.length s > 0 then
+                        div []
+                            [ if args.showUpdateSecret then
+                                addSecret msgs.showHideUpdateSecret
 
-            else
-                div [] [ text "no secrets found for this repository" ]
+                              else
+                                text ""
+                            , viewSecrets s msgs
+                            ]
 
-        _ ->
-            div [] [ largeLoader ]
+                    else
+                        div [] [ text "no secrets found for this repository" ]
+
+                _ ->
+                    div [] [ largeLoader ]
+    in
+    -- div [] [ div [ class "header" ] [ Html.h2 [] [ text "Secrets" ] ], content ]
+    content
 
 
-addSecret : Html msg
-addSecret =
+addSecret : (Maybe Bool -> msg) -> Html msg
+addSecret showHideUpdateSecret =
     div [ class "add-secret" ]
-        [ div [ class "label" ] [ text "Add Secret" ]
+        [ div [] [ Html.h2 [] [ text "Add Secret" ] ]
         , div [] [ Html.input [ class "secret-name", Html.Attributes.placeholder "Secret Name" ] [] ]
         , div [] [ Html.textarea [ class "secret-value", Html.Attributes.placeholder "Secret Value" ] [] ]
-        , div [] [ Html.button [ class "button", class "-outline" ] [ text "Add" ] ]
+        , div [] [ Html.button [ class "button", class "-outline" ] [ text "Add" ], Html.button [ class "-m-l", class "button", class "-outline", onClick <| showHideUpdateSecret <| Just False ] [ text "Cancel" ] ]
         ]
 
 
-viewSecrets : Secrets -> Html msg
-viewSecrets secrets =
-    div [ class "table" ] <| secretsTable secrets
+viewSecrets : Secrets -> Msgs msg -> Html msg
+viewSecrets secrets msgs =
+    div [ class "table" ] <| secretsTable secrets msgs
 
 
 {-| secretsTable : renders secrets table
 -}
-secretsTable : Secrets -> List (Html msg)
-secretsTable secrets =
-    headers :: rows secrets
+secretsTable : Secrets -> Msgs msg -> List (Html msg)
+secretsTable secrets msgs =
+    headers :: rows secrets msgs
 
 
 {-| headers : renders secrets table headers
@@ -82,41 +116,62 @@ secretsTable secrets =
 headers : Html msg
 headers =
     div [ class "headers" ]
-        [ div [ class "first-cell", class "table-label" ] [ text "Secrets" ]
+        [ div [ class "secrets-first-cell", class "-label" ] [ text "Secrets" ]
         , div [ class "header" ] [ text "name" ]
+        , div [ class "header" ] [ text "type" ]
         , div [ class "header" ] [ text "events" ]
         , div [ class "header" ] [ text "images" ]
+        , div [ class "header", Html.Attributes.style "color" "var(--color-primary)" ] [ Html.button [ class "button", class "-outline", class "-slim" ] [ text "add secret" ] ]
+
+        -- , div [ class "header", class "-last" ] [ div [ class "-inner" ] [ Html.button [ class "button", class "-outline" ] [ text "Add Secret" ] ] ]
         ]
 
 
 {-| rows : renders secrets table rows
 -}
-rows : Secrets -> List (Html msg)
-rows secrets =
-    List.map (\secret -> row secret) secrets
+rows : Secrets -> Msgs msg -> List (Html msg)
+rows secrets msgs =
+    List.map (\secret -> row secret msgs) secrets
 
 
 {-| row : renders hooks table row wrapped in details element
 -}
-row : Secret -> Html msg
-row secret =
-    details [ class "details", class "-no-pad", Util.testAttribute "secret" ]
-        [ summary [ class "summary" ]
-            [ preview secret ]
-        , info secret
+row : Secret -> Msgs msg -> Html msg
+row secret msgs =
+    div [ class "details", class "-no-pad", Util.testAttribute "hook" ]
+        [ div [ class "secrets-row" ]
+            [ preview secret msgs ]
         ]
 
 
 {-| preview : renders the hook preview displayed as the clickable row
 -}
-preview : Secret -> Html msg
-preview secret =
+preview : Secret -> Msgs msg -> Html msg
+preview secret msgs =
     div [ class "row", class "preview" ]
         [ firstCell
         , cell secret.name <| class "host"
+        , cell secret.type_ <| class ""
         , arrayCell secret.events "no events"
         , arrayCell secret.images "no images"
+        , lastCell msgs
         ]
+
+
+{-| firstCell : renders the expansion chevron icon
+-}
+firstCell : Html msg
+firstCell =
+    div [ class "filler-cell" ]
+        []
+
+
+{-| cell : takes text and maybe attributes and renders cell data for hooks table row
+-}
+cell : String -> Html.Attribute msg -> Html msg
+cell txt cls =
+    div [ class "cell", cls ]
+        [ span [] [ text txt ] ]
 
 
 arrayCell : List String -> String -> Html msg
@@ -130,21 +185,9 @@ arrayCell images default =
                 [ code [ class "text" ] [ text default ] ]
 
 
-{-| cell : takes text and maybe attributes and renders cell data for hooks table row
--}
-cell : String -> Html.Attribute msg -> Html msg
-cell txt cls =
-    div [ class "cell", cls ]
-        [ span [] [ text txt ] ]
-
-
-{-| firstCell : renders the expansion chevron icon
--}
-firstCell : Html msg
-firstCell =
-    div [ class "first-cell" ]
-        [ FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-        ]
+lastCell : Msgs msg -> Html msg
+lastCell msgs =
+    div [ class "cell" ] [ Html.button [ class "button", class "-outline", class "-slim", onClick <| msgs.showHideUpdateSecret Nothing ] [ text "Edit" ] ]
 
 
 {-| info : renders the table row details when clicking/expanding a row
