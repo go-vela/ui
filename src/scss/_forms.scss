@@ -20,7 +20,7 @@
 
   // base for all but radio and checkbox controls
   // TODO: might want to include submit, color, button, and reset types
-  input:not([type='checkbox']):not([type='radio']) {
+  input:not([type="checkbox"]):not([type="radio"]) {
     position: relative;
 
     padding: 0.5rem;
@@ -46,7 +46,7 @@
   //  <svg ...></svg>
   // </div>
   &.-with-icon {
-    input:not([type='checkbox']):not([type='radio']) {
+    input:not([type="checkbox"]):not([type="radio"]) {
       padding-left: 2rem;
     }
 
@@ -67,7 +67,7 @@
     flex-grow: 1;
     flex-shrink: 1;
 
-    input:not([type='checkbox']):not([type='radio']) {
+    input:not([type="checkbox"]):not([type="radio"]) {
       width: 100%;
       max-width: 100%;
     }
@@ -76,8 +76,8 @@
 
 // radio & checkbox
 // hide the native controls, visually
-.form-control [type='checkbox'],
-.form-control [type='radio'] {
+.form-control [type="checkbox"],
+.form-control [type="radio"] {
   @include visually-hidden;
 
   // making room for custom styled checkbox indicators
@@ -90,9 +90,9 @@
 }
 
 // base for the replacement controls, just squares here
-.form-control [type='checkbox'] + .form-label::before,
-.form-control [type='radio'] + .form-label::before,
-.form-control [type='radio'] + .form-label::after {
+.form-control [type="checkbox"] + .form-label::before,
+.form-control [type="radio"] + .form-label::before,
+.form-control [type="radio"] + .form-label::after {
   position: absolute;
   top: 4px;
   left: 0;
@@ -102,18 +102,18 @@
 
   background-color: var(--color-primary);
 
-  content: '';
+  content: "";
 }
 
 // radio controls are round, m'kay.. well, at least these ones
-.form-control [type='radio'] + .form-label::before {
+.form-control [type="radio"] + .form-label::before {
   background-color: var(--color-bg);
   border: var(--line-width) solid var(--color-primary);
   border-radius: 50%;
 }
 
 // render checkmark for checkbox, invisible initially
-.form-control [type='checkbox'] + .form-label::after {
+.form-control [type="checkbox"] + .form-label::after {
   position: absolute;
   top: 10px;
   left: 3px;
@@ -128,11 +128,11 @@
 
   transition: opacity 0.1s ease-in-out;
 
-  content: '';
+  content: "";
 }
 
 // render selected radio mark, invisible initially
-.form-control [type='radio'] + .form-label::after {
+.form-control [type="radio"] + .form-label::after {
   background-color: var(--color-primary);
   border-radius: 50%;
   transform: scale(0.4);
@@ -140,22 +140,22 @@
 }
 
 // reveal check mark or selected radio when selected
-.form-control [type='checkbox']:checked + .form-label::after,
-.form-control [type='radio']:checked + .form-label::after {
+.form-control [type="checkbox"]:checked + .form-label::after,
+.form-control [type="radio"]:checked + .form-label::after {
   opacity: 1;
 }
 
 // focus styles
-.form-control [type='checkbox']:focus + .form-label::before,
-.form-control [type='radio']:focus + .form-label::before,
-.form-control input:focus:not([type='checkbox']):not([type='radio']) {
+.form-control [type="checkbox"]:focus + .form-label::before,
+.form-control [type="radio"]:focus + .form-label::before,
+.form-control input:focus:not([type="checkbox"]):not([type="radio"]) {
   outline: var(--color-secondary) dotted var(--line-width);
   outline-offset: var(--line-width);
 }
 
 // disabled styles
-.form-control [type='checkbox']:disabled,
-.form-control [type='radio']:disabled {
+.form-control [type="checkbox"]:disabled,
+.form-control [type="radio"]:disabled {
   + .form-label {
     color: var(--color-bg-light);
 
@@ -163,19 +163,19 @@
   }
 }
 
-.form-control [type='checkbox']:disabled + .form-label::before {
+.form-control [type="checkbox"]:disabled + .form-label::before {
   background-color: var(--color-bg-light);
 }
 
-.form-control [type='radio']:disabled + .form-label::before {
+.form-control [type="radio"]:disabled + .form-label::before {
   border-color: var(--color-bg-light);
 }
 
-.form-control [type='radio']:disabled + .form-label::after {
+.form-control [type="radio"]:disabled + .form-label::after {
   background-color: var(--color-bg-light);
 }
 
-.form-control input:disabled:not([type='checkbox']):not([type='radio']) {
+.form-control input:disabled:not([type="checkbox"]):not([type="radio"]) {
   color: var(--color-bg-light);
 
   border-color: var(--color-bg-light);
@@ -187,7 +187,7 @@
 }
 
 // styles for controls in an invalid state
-.form-control input:invalid:not([type='checkbox']):not([type='radio']) {
+.form-control input:invalid:not([type="checkbox"]):not([type="radio"]) {
   color: var(--color-red);
 
   border-color: var(--color-red);
@@ -220,6 +220,16 @@
 
     .form-control:not(:last-child) {
       margin-bottom: 0.5rem;
+    }
+  }
+
+  // .-row is for horizontally stacking controls
+  &.-row {
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+
+    .form-control:not(:last-child) {
+      margin-right: 0.5rem;
     }
   }
 

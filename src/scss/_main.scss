@@ -1361,6 +1361,39 @@ nav {
   margin: 0;
   border-bottom: 2px solid var(--color-secondary);
 }
+.new-secret section {
+  width: 30%;
+}
+.new-secret .secret-type h4 {
+  // padding: 0rem 2rem 0.3rem 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--color-secondary);
+}
+.added-image {
+  display: flex;
+  align-items: center;
+}
+.add {
+  color: green;
+}
+.trash {
+  color: red;
+}
+h4.-no-pad {
+  margin: 0;
+}
+
+.select-secret {
+  margin-top: 1rem;
+  // margin-left: 0.5rem;
+  background: var(--color-bg);
+  color: var(--color-primary);
+  font-size: 1rem;
+  border-radius: 0px;
+  > * {
+    border-radius: 0px;
+  }
+}
 
 .add-secret input {
   margin-top: 1rem;
@@ -1398,6 +1431,7 @@ nav {
 .secrets-row {
   padding-left: 2rem;
 }
+
 .table-label {
   font-size: 1.25rem;
   color: var(--color-primary);

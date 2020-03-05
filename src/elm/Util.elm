@@ -8,6 +8,7 @@ module Util exposing
     ( ariaHidden
     , dateToHumanReadable
     , dispatch
+    , filterEmptyList
     , filterEmptyLists
     , filterEmptyStringLists
     , fiveSecondsMillis
@@ -165,6 +166,13 @@ toTwoDigits int =
 formatTestTag : String -> String
 formatTestTag tag =
     String.replace " " "-" <| String.toLower tag
+
+
+{-| filterEmptyList : filters out empties from list of string
+-}
+filterEmptyList : List String -> List String
+filterEmptyList =
+    List.filter (\x -> not <| String.isEmpty x)
 
 
 {-| filterEmptyLists : filters out empties from list of (key, list)

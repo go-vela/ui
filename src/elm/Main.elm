@@ -360,6 +360,8 @@ type Msg
     | OnKeyUp String
     | UpdateUrl String
     | VisibilityChanged Visibility
+      -- Components
+    | RepoSecretsUpdate Pages.RepoSecrets.Msg
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -981,6 +983,11 @@ update msg model =
             in
             ( { model | secrets = { secrets | secrets = Loading } }, getRepoSecrets model org repo )
 
+        RepoSecretsUpdate m ->
+            ( { model | secrets = Pages.RepoSecrets.update model.secrets m }
+            , Cmd.none
+            )
+
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
             , Cmd.none
@@ -1431,7 +1438,7 @@ viewContent model =
 
         Pages.RepoSecrets org repo ->
             ( String.join "/" [ org, repo ] ++ " secrets"
-            , lazy2 Pages.RepoSecrets.view model.secrets repoSecretsMsgs
+            , Html.map (\m -> RepoSecretsUpdate m) <| lazy Pages.RepoSecrets.view model.secrets
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
@@ -2172,13 +2179,6 @@ hooksMsgs =
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
     Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
-
-
-{-| repoSecretsMsgs : prepares the input record required for the RepoSecrets page to route Msgs back to Main.elm
--}
-repoSecretsMsgs : Pages.RepoSecrets.Msgs Msg
-repoSecretsMsgs =
-    Pages.RepoSecrets.Msgs ShowHideUpdateRepoSecret
 
 
 
