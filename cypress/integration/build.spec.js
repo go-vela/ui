@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+ * Use of this source code is governed by the LICENSE file in this repository.
+ */
+
 context('Build', () => {
   context('logged in and server returning build error', () => {
     beforeEach(() => {
@@ -16,12 +21,7 @@ context('Build', () => {
   context('logged in and server returning 5 builds', () => {
     beforeEach(() => {
       cy.server();
-      cy.fixture('builds_5.json').as('builds5');
-      cy.route({
-        method: 'GET',
-        url: 'api/v1/repos/*/*/builds',
-        response: '@builds5',
-      });
+      cy.route('GET', '*api/v1/repos/*/*/builds*', 'fixture:builds_5.json');
       cy.login('/someorg/somerepo/1');
       cy.get('[data-test=build-history]').as('buildHistory');
     });

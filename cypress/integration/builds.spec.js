@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+ * Use of this source code is governed by the LICENSE file in this repository.
+ */
+
 context('Builds', () => {
   context('server returning builds error', () => {
     beforeEach(() => {
@@ -50,7 +55,7 @@ context('Builds', () => {
     });
   });
 
-  context('logged in and server returning 10 builds and running build', () => {
+  context('logged in and server returning 20 builds and running build', () => {
     beforeEach(() => {
       cy.server();
       cy.stubBuilds();
@@ -163,6 +168,51 @@ context('Builds', () => {
 
     it('builds should show login page', () => {
       cy.get('body').should('contain', 'Authorize Via');
+    });
+  });
+
+  context('build filters', () => {
+    beforeEach(() => {
+      cy.stubBuildsFilter();
+      cy.login('/someorg/somerepo');
+      cy.get('[data-test=build-filter]').as('buildsFilter');
+    });
+
+    it('renders builds filter', () => {
+      cy.get('@buildsFilter').should('be.visible');
+    });
+
+    it('shows all results by default', () => {
+      cy.get('[data-test=build]')
+        .should('be.visible')
+        .should('have.length', 10);
+    });
+
+    it('should only show 7 push events', () => {
+      cy.get('[data-test=build-filter-push]').click({ force: true });
+      cy.get('[data-test=build]')
+        .should('be.visible')
+        .should('have.length', 7);
+    });
+
+    it('should only show two pull events', () => {
+      cy.get('[data-test=build-filter-pull_request]').click({ force: true });
+      cy.get('[data-test=build]')
+        .should('be.visible')
+        .should('have.length', 2);
+    });
+
+    it('should only show one tag event', () => {
+      cy.get('[data-test=build-filter-tag]').click({ force: true });
+      cy.get('[data-test=build]')
+        .should('be.visible')
+        .should('have.length', 1);
+    });
+
+    it('should show no results', () => {
+      cy.get('[data-test=build-filter-deploy]').click({ force: true });
+      cy.get('[data-test=build]').should('not.be.visible');
+      cy.get('h1').should('contain', 'No builds for "deploy" event found.');
     });
   });
 });

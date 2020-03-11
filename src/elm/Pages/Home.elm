@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Home exposing (Msgs, view)
 
 import Dict exposing (Dict)
-import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
+import Favorites exposing (ToggleFavorite, starToggle)
 import FeatherIcons
 import Html
     exposing
@@ -120,7 +120,7 @@ viewFilteredFavorites favorites filter toggleFavorite =
         -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
             filteredRepos
-                |> List.map (viewFavorite favorites toggleFavorite)
+                |> List.map (viewFavorite favorites toggleFavorite True)
 
         else
             -- No repos matched the search
@@ -166,28 +166,35 @@ viewOrg org toggleFavorite favorites =
             [ text org
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
-            :: List.map (viewFavorite favorites toggleFavorite) favorites
+            :: List.map (viewFavorite favorites toggleFavorite False) favorites
         )
 
 
 {-| viewFavorite : takes favorites and favorite action and renders single favorite
 -}
-viewFavorite : Favorites -> ToggleFavorite msg -> String -> Html msg
-viewFavorite favorites toggleFavorite favorite =
+viewFavorite : Favorites -> ToggleFavorite msg -> Bool -> String -> Html msg
+viewFavorite favorites toggleFavorite filtered favorite =
     let
         ( org, repo ) =
             ( Maybe.withDefault "" <| List.Extra.getAt 0 <| String.split "/" favorite
             , Maybe.withDefault "" <| List.Extra.getAt 1 <| String.split "/" favorite
             )
+
+        name =
+            if filtered then
+                favorite
+
+            else
+                repo
     in
     div [ class "item", Util.testAttribute "repo-item" ]
-        [ div [] [ text repo ]
+        [ div [] [ text name ]
         , div [ class "buttons" ]
             [ starToggle org repo toggleFavorite <| List.member favorite favorites
             , a
                 [ class "button"
                 , class "-outline"
-                , Routes.href <| Routes.Settings org repo
+                , Routes.href <| Routes.RepoSettings org repo
                 ]
                 [ text "Settings" ]
             , a
@@ -200,7 +207,7 @@ viewFavorite favorites toggleFavorite favorite =
             , a
                 [ class "button"
                 , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing
+                , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
                 ]
                 [ text "View" ]
             ]

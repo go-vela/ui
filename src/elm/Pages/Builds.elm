@@ -6,30 +6,69 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Builds exposing (view)
 
-import Html exposing (Html, div, h1, p, text)
-import Html.Attributes exposing (class)
+import Html
+    exposing
+        ( Html
+        , a
+        , br
+        , code
+        , div
+        , em
+        , h1
+        , li
+        , ol
+        , p
+        , text
+        )
+import Html.Attributes exposing (class, href)
 import Pages.Build exposing (viewPreview)
 import RemoteData exposing (RemoteData(..))
 import Time exposing (Posix)
 import Util exposing (largeLoader)
-import Vela exposing (BuildsModel)
+import Vela exposing (BuildsModel, Event, Org, Repo)
 
 
 {-| view : takes org and repo and renders build previews
 -}
-view : BuildsModel -> Posix -> String -> String -> Html msg
-view buildsModel now org repo =
+view : BuildsModel -> Posix -> Org -> Repo -> Maybe Event -> Html msg
+view buildsModel now org repo maybeEvent =
     let
+        settingsLink : String
+        settingsLink =
+            "/" ++ String.join "/" [ org, repo ] ++ "/settings"
+
+        none : Html msg
         none =
-            div []
-                [ h1 []
-                    [ text "No Builds Found"
-                    ]
-                , p []
-                    [ text <|
-                        "Builds sent to Vela will show up here."
-                    ]
-                ]
+            case maybeEvent of
+                Nothing ->
+                    div []
+                        [ h1 [] [ text "Your respository has been added!" ]
+                        , p [] [ text "Builds will show up here once you have:" ]
+                        , ol [ class "list" ]
+                            [ li []
+                                [ text "A "
+                                , code [] [ text ".vela.yml" ]
+                                , text " file that describes your build pipeline in the root of your repository."
+                                , br [] []
+                                , a [ href "https://go-vela.github.io/docs/usage/getting-started/write_pipeline/" ] [ text "Review the documentation" ]
+                                , text " for help or "
+                                , a [ href "https://go-vela.github.io/docs/usage/pipeline/examples/" ] [ text "check some of the pipeline examples" ]
+                                , text "."
+                                ]
+                            , li []
+                                [ text "Triggered one of the "
+                                , a [ href settingsLink ] [ text "configured webhook events" ]
+                                , text " by performing the respective action via "
+                                , em [] [ text "Git" ]
+                                , text "."
+                                ]
+                            ]
+                        , p [] [ text "Happy building!" ]
+                        ]
+
+                Just event ->
+                    div []
+                        [ h1 [] [ text <| "No builds for \"" ++ event ++ "\" event found." ] ]
     in
     case buildsModel.builds of
         RemoteData.Success builds ->

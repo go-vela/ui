@@ -17,6 +17,7 @@ import Dict
 import Errors exposing (detailedErrorToString)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
+import Help.Help
 import Html
     exposing
         ( Html
@@ -27,6 +28,8 @@ import Html
         , footer
         , h1
         , header
+        , input
+        , label
         , li
         , main_
         , nav
@@ -38,11 +41,17 @@ import Html
 import Html.Attributes
     exposing
         ( attribute
+        , checked
         , class
+        , classList
+        , for
         , href
+        , id
+        , name
+        , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy7)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -69,7 +78,8 @@ import Pages.Build
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
-import Pages.Settings exposing (enableUpdate)
+import Pages.RepoSettings exposing (enableUpdate)
+import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (velaLogo)
@@ -95,11 +105,14 @@ import Vela
         , BuildNumber
         , Builds
         , BuildsModel
+        , ChownRepo
         , CurrentUser
         , EnableRepo
         , EnableRepos
         , EnableRepositoryPayload
         , Enabling(..)
+        , Event
+        , Favicon
         , Field
         , FocusFragment
         , HookBuilds
@@ -108,6 +121,7 @@ import Vela
         , Log
         , Logs
         , Org
+        , RepairRepo
         , Repo
         , RepoSearchFilters
         , Repositories
@@ -130,6 +144,7 @@ import Vela
         , decodeTheme
         , defaultBuilds
         , defaultEnableRepositoryPayload
+        , defaultFavicon
         , defaultHooks
         , defaultRepository
         , defaultSession
@@ -138,6 +153,8 @@ import Vela
         , encodeTheme
         , encodeUpdateRepository
         , encodeUpdateUser
+        , isComplete
+        , statusToFavicon
         , stringToTheme
         )
 
@@ -186,6 +203,9 @@ type alias Model =
     , theme : Theme
     , shift : Bool
     , visibility : Visibility
+    , showHelp : Bool
+    , showIdentity : Bool
+    , favicon : Favicon
     }
 
 
@@ -243,6 +263,9 @@ init flags url navKey =
             , theme = stringToTheme flags.velaTheme
             , shift = False
             , visibility = Visible
+            , showHelp = False
+            , showIdentity = False
+            , favicon = defaultFavicon
             }
 
         ( newModel, newPage ) =
@@ -283,6 +306,9 @@ type Msg
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
+    | ShowHideHelp (Maybe Bool)
+    | ShowHideIdentity (Maybe Bool)
+    | Copy String
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -293,6 +319,8 @@ type Msg
     | UpdateRepoTimeout Org Repo Field Int
     | EnableRepos Repositories
     | DisableRepo Repository
+    | ChownRepo Repository
+    | RepairRepo Repository
     | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
@@ -305,6 +333,8 @@ type Msg
     | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoDisabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RepoChownedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RepoRepairedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
@@ -315,6 +345,7 @@ type Msg
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
+    | FilterBuildEventBy (Maybe Event) Org Repo
     | FocusOn String
     | FocusResult (Result Dom.Error ())
     | OnKeyDown String
@@ -366,6 +397,41 @@ update msg model =
             ( model
             , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
             )
+
+        ShowHideHelp show ->
+            ( { model
+                | showHelp =
+                    case show of
+                        Just s ->
+                            s
+
+                        Nothing ->
+                            not model.showHelp
+              }
+            , Cmd.none
+            )
+
+        ShowHideIdentity show ->
+            ( { model
+                | showIdentity =
+                    case show of
+                        Just s ->
+                            s
+
+                        Nothing ->
+                            not model.showIdentity
+              }
+            , Cmd.none
+            )
+
+        Copy content ->
+            ( model, Cmd.none )
+                |> Alerting.addToast Alerts.successConfig
+                    AlertsUpdate
+                    (Alerts.Success ""
+                        ("Copied " ++ wrapAlertMessage content ++ "to your clipboard.")
+                        Nothing
+                    )
 
         EnableRepo repo ->
             let
@@ -491,7 +557,7 @@ update msg model =
             case response of
                 Ok ( _, updatedRepo ) ->
                     ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
-                        |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.Settings.alert field updatedRepo) Nothing)
+                        |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
 
                 Err error ->
                     ( { model | repo = toFailure error }, addError error )
@@ -536,6 +602,30 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
+        ChownRepo repo ->
+            ( model, Api.try (RepoChownedResponse repo) <| Api.chownRepo model repo )
+
+        RepoChownedResponse repo response ->
+            case response of
+                Ok _ ->
+                    ( model, Cmd.none )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("You are now the owner of " ++ repo.full_name) Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        RepairRepo repo ->
+            ( model, Api.try (RepoRepairedResponse repo) <| Api.repairRepo model repo )
+
+        RepoRepairedResponse repo response ->
+            case response of
+                Ok _ ->
+                    ( model, Cmd.none )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " has been repaired.") Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
         RestartedBuildResponse org repo buildNumber response ->
             case response of
                 Ok ( _, build ) ->
@@ -550,7 +640,7 @@ update msg model =
                             String.join "/" [ "", org, repo, newBuildNumber ]
                     in
                     ( model
-                    , getBuilds model org repo Nothing Nothing
+                    , getBuilds model org repo Nothing Nothing Nothing
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
 
@@ -571,12 +661,13 @@ update msg model =
                                 , repo = repo
                             }
                         , build = RemoteData.succeed build
+                        , favicon = statusToFavicon build.status
                       }
-                    , Cmd.none
+                    , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( { model | repo = toFailure error }, addError error )
 
         BuildsResponse org repo response ->
             let
@@ -660,7 +751,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 action =
-                    if Pages.Settings.validEventsUpdate model.repo payload then
+                    if Pages.RepoSettings.validEventsUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -681,7 +772,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 action =
-                    if Pages.Settings.validAccessUpdate model.repo payload then
+                    if Pages.RepoSettings.validAccessUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -757,7 +848,7 @@ update msg model =
 
         GotoPage pageNumber ->
             case model.page of
-                Pages.RepositoryBuilds org repo _ maybePerPage ->
+                Pages.RepositoryBuilds org repo _ maybePerPage maybeEvent ->
                     let
                         currentBuilds =
                             model.builds
@@ -765,7 +856,7 @@ update msg model =
                         loadingBuilds =
                             { currentBuilds | builds = Loading }
                     in
-                    ( { model | builds = loadingBuilds }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage )
+                    ( { model | builds = loadingBuilds }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent )
 
                 Pages.Hooks org repo _ maybePerPage ->
                     let
@@ -862,10 +953,17 @@ update msg model =
         Tick interval time ->
             case interval of
                 OneSecond ->
-                    ( { model | time = time }, Cmd.none )
+                    let
+                        ( favicon, cmd ) =
+                            refreshFavicon model.page model.favicon model.build
+                    in
+                    ( { model | time = time, favicon = favicon }, cmd )
 
                 FiveSecond data ->
                     ( model, refreshPage model data )
+
+        FilterBuildEventBy maybeEvent org repo ->
+            ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
 
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt FocusResult )
@@ -924,6 +1022,8 @@ subscriptions model =
     Sub.batch <|
         [ Interop.onSessionChange decodeOnSessionChange
         , Interop.onThemeChange decodeOnThemeChange
+        , onMouseDown "contextual-help" model ShowHideHelp
+        , onMouseDown "identity" model ShowHideIdentity
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
@@ -971,6 +1071,35 @@ refreshSubscriptions model =
                 []
 
 
+{-| refreshFavicon : takes page and restores the favicon to the default when not viewing the build page
+-}
+refreshFavicon : Page -> Favicon -> WebData Build -> ( Favicon, Cmd Msg )
+refreshFavicon page currentFavicon build =
+    case page of
+        Pages.Build _ _ _ _ ->
+            case build of
+                RemoteData.Success b ->
+                    let
+                        newFavicon =
+                            statusToFavicon b.status
+                    in
+                    if currentFavicon /= newFavicon then
+                        ( newFavicon, Interop.setFavicon <| Encode.string newFavicon )
+
+                    else
+                        ( currentFavicon, Cmd.none )
+
+                _ ->
+                    ( currentFavicon, Cmd.none )
+
+        _ ->
+            if currentFavicon /= defaultFavicon then
+                ( defaultFavicon, Interop.setFavicon <| Encode.string defaultFavicon )
+
+            else
+                ( currentFavicon, Cmd.none )
+
+
 {-| refreshPage : refreshes Vela data based on current page and build status
 -}
 refreshPage : Model -> RefreshData -> Cmd Msg
@@ -980,12 +1109,12 @@ refreshPage model _ =
             model.page
     in
     case page of
-        Pages.RepositoryBuilds org repo maybePage maybePerPage ->
-            getBuilds model org repo maybePage maybePerPage
+        Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
+            getBuilds model org repo maybePage maybePerPage maybeEvent
 
         Pages.Build org repo buildNumber _ ->
             Cmd.batch
-                [ getBuilds model org repo Nothing Nothing
+                [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber
                 , refreshLogs model org repo buildNumber model.steps Nothing
@@ -1042,18 +1171,20 @@ refreshBuildSteps model org repo buildNumber =
                 Success steps ->
                     Cmd.batch <|
                         List.map
-                            (\step -> getBuildStep model org repo buildNumber <| String.fromInt step.number)
+                            (\step ->
+                                if not <| isComplete step.status then
+                                    getBuildStep model org repo buildNumber <| String.fromInt step.number
+
+                                else
+                                    Cmd.none
+                            )
                         <|
                             filterCompletedSteps steps
 
                 _ ->
                     Cmd.none
     in
-    if shouldRefresh model.build then
-        refresh
-
-    else
-        Cmd.none
+    refresh
 
 
 {-| refreshHookBuilds : takes model org and repo and refreshes the hook builds being viewed by the user
@@ -1081,16 +1212,7 @@ shouldRefresh : WebData Build -> Bool
 shouldRefresh build =
     case build of
         Success bld ->
-            case bld.status of
-                -- Do not refresh a build in success or failure state
-                Vela.Success ->
-                    False
-
-                Vela.Failure ->
-                    False
-
-                _ ->
-                    True
+            not <| isComplete bld.status
 
         NotAsked ->
             True
@@ -1142,6 +1264,58 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
         Cmd.none
 
 
+{-| onMouseDown : takes model and returns subscriptions for handling onMouseDown events at the browser level
+-}
+onMouseDown : String -> Model -> (Maybe Bool -> Msg) -> Sub Msg
+onMouseDown targetId model triggerMsg =
+    if model.showHelp then
+        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
+
+    else if model.showIdentity then
+        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
+
+    else
+        Sub.none
+
+
+{-| outsideTarget : returns decoder for handling clicks that occur from outside the currently focused/open dropdown
+-}
+outsideTarget : String -> Msg -> Decode.Decoder Msg
+outsideTarget targetId msg =
+    Decode.field "target" (isOutsideTarget targetId)
+        |> Decode.andThen
+            (\isOutside ->
+                if isOutside then
+                    Decode.succeed msg
+
+                else
+                    Decode.fail "inside dropdown"
+            )
+
+
+{-| isOutsideTarget : returns decoder for determining if click target occurred from within a specified element
+-}
+isOutsideTarget : String -> Decode.Decoder Bool
+isOutsideTarget targetId =
+    Decode.oneOf
+        [ Decode.field "id" Decode.string
+            |> Decode.andThen
+                (\id ->
+                    if targetId == id then
+                        -- found match by id
+                        Decode.succeed False
+
+                    else
+                        -- try next decoder
+                        Decode.fail "continue"
+                )
+        , Decode.lazy (\_ -> isOutsideTarget targetId |> Decode.field "parentNode")
+
+        -- fallback if all previous decoders failed
+        , Decode.succeed True
+        ]
+
+
 
 -- VIEW
 
@@ -1154,7 +1328,7 @@ view model =
     in
     { title = "Vela - " ++ title
     , body =
-        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme }
+        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
         , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos } navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
@@ -1209,12 +1383,12 @@ viewContent model =
                 ]
             )
 
-        Pages.Settings org repo ->
+        Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy3 Pages.Settings.view model.repo model.inTimeout repoSettingsMsgs
+            , lazy4 Pages.RepoSettings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI
             )
 
-        Pages.RepositoryBuilds org repo maybePage _ ->
+        Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             let
                 page : String
                 page =
@@ -1224,11 +1398,27 @@ viewContent model =
 
                         Just p ->
                             " (page " ++ String.fromInt p ++ ")"
+
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.builds.builds, maybeEvent ) of
+                        ( Success result, Nothing ) ->
+                            not <| List.length result == 0
+
+                        ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
+                            True
+
+                        _ ->
+                            False
             in
             ( String.join "/" [ org, repo ] ++ " builds" ++ page
             , div []
-                [ Pager.view model.builds.pager Pager.defaultLabels GotoPage
-                , lazy4 Pages.Builds.view model.builds model.time org repo
+                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                , Pager.view model.builds.pager Pager.defaultLabels GotoPage
+                , lazy5 Pages.Builds.view model.builds model.time org repo maybeEvent
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -1246,6 +1436,11 @@ viewContent model =
                 org
                 repo
                 buildMsgs
+            )
+
+        Pages.Settings ->
+            ( "Settings"
+            , Pages.Settings.view model.session (Pages.Settings.Msgs Copy)
             )
 
         Pages.Login ->
@@ -1270,6 +1465,51 @@ viewContent model =
             )
 
 
+viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
+viewBuildsFilter shouldRender org repo maybeEvent =
+    let
+        eventEnum : List String
+        eventEnum =
+            [ "all", "push", "pull_request", "tag", "deploy" ]
+
+        eventToMaybe : String -> Maybe Event
+        eventToMaybe event =
+            case event of
+                "all" ->
+                    Nothing
+
+                _ ->
+                    Just event
+    in
+    if shouldRender then
+        div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
+            div [] [ text "Filter by Event:" ]
+                :: List.map
+                    (\e ->
+                        div [ class "form-control" ]
+                            [ input
+                                [ type_ "radio"
+                                , id <| "filter-" ++ e
+                                , name "build-filter"
+                                , Util.testAttribute <| "build-filter-" ++ e
+                                , checked <| maybeEvent == eventToMaybe e
+                                , onClick <| FilterBuildEventBy (eventToMaybe e) org repo
+                                , attribute "aria-label" <| "filter to show " ++ e ++ " events"
+                                ]
+                                []
+                            , label
+                                [ class "form-label"
+                                , for <| "filter-" ++ e
+                                ]
+                                [ text <| String.replace "_" " " e ]
+                            ]
+                    )
+                    eventEnum
+
+    else
+        text ""
+
+
 viewLogin : Html Msg
 viewLogin =
     div []
@@ -1285,29 +1525,44 @@ viewLogin =
         ]
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme } -> Html Msg
-viewHeader maybeSession { feedbackLink, docsLink, theme } =
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Help.Args Msg, showId : Bool } -> Html Msg
+viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
     let
         session : Session
         session =
             Maybe.withDefault defaultSession maybeSession
+
+        identityBaseClassList : Html.Attribute Msg
+        identityBaseClassList =
+            classList
+                [ ( "details", True )
+                , ( "-marker-right", True )
+                , ( "-no-pad", True )
+                , ( "identity-name", True )
+                ]
+
+        identityAttributeList : List (Html.Attribute Msg)
+        identityAttributeList =
+            attribute "role" "navigation" :: Util.open showId
     in
     header []
-        [ div [ class "identity", Util.testAttribute "identity" ]
+        [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
             [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
             , case session.username of
                 "" ->
-                    details [ class "details", class "-marker-right", class "-no-pad", class "identity-name", attribute "role" "navigation" ]
-                        [ summary [ class "summary" ] [ text "Vela" ] ]
+                    details (identityBaseClassList :: identityAttributeList)
+                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
 
                 _ ->
-                    details [ class "details", class "-marker-right", class "-no-pad", class "identity-name", attribute "role" "navigation" ]
-                        [ summary [ class "summary" ]
+                    details (identityBaseClassList :: identityAttributeList)
+                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ]
                             [ text session.username
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
                         , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                             [ li [ class "identity-menu-item" ]
+                                [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
+                            , li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]
@@ -1317,10 +1572,31 @@ viewHeader maybeSession { feedbackLink, docsLink, theme } =
                 [ li [] [ viewThemeToggle theme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
                 , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , li [] [ FeatherIcons.terminal |> FeatherIcons.withSize 18 |> FeatherIcons.toHtml [] ]
+                , Help.Help.view help
                 ]
             ]
         ]
+
+
+helpArg : WebData a -> Help.Help.Arg
+helpArg arg =
+    { success = Util.isSuccess arg, loading = Util.isLoading arg }
+
+
+helpArgs : Model -> Help.Help.Args Msg
+helpArgs model =
+    { user = helpArg model.user
+    , sourceRepos = helpArg model.sourceRepos
+    , builds = helpArg model.builds.builds
+    , build = helpArg model.build
+    , repo = helpArg model.repo
+    , hooks = helpArg model.hooks.hooks
+    , show = model.showHelp
+    , toggle = ShowHideHelp
+    , copy = Copy
+    , noOp = NoOp
+    , page = model.page
+    }
 
 
 viewUtil : Model -> Html Msg
@@ -1331,7 +1607,16 @@ viewUtil model =
 
 viewAlerts : Stack Alert -> Html Msg
 viewAlerts toasties =
-    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig Alerts.view AlertsUpdate toasties ]
+    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig (Alerts.view Copy) AlertsUpdate toasties ]
+
+
+wrapAlertMessage : String -> String
+wrapAlertMessage message =
+    if not <| String.isEmpty message then
+        "`" ++ message ++ "` "
+
+    else
+        message
 
 
 viewThemeToggle : Theme -> Html Msg
@@ -1397,16 +1682,16 @@ setNewPage route model =
         ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
             loadHooksPage model org repo maybePage maybePerPage
 
-        ( Routes.Settings org repo, True ) ->
-            loadSettingsPage model org repo
+        ( Routes.RepoSettings org repo, True ) ->
+            loadRepoSettingsPage model org repo
 
-        ( Routes.RepositoryBuilds org repo maybePage maybePerPage, True ) ->
+        ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
             let
                 currentSession : Session
                 currentSession =
                     Maybe.withDefault defaultSession model.session
             in
-            loadRepoBuildsPage model org repo currentSession maybePage maybePerPage
+            loadRepoBuildsPage model org repo currentSession maybePage maybePerPage maybeEvent
 
         ( Routes.Build org repo buildNumber logFocus, True ) ->
             case model.page of
@@ -1423,6 +1708,9 @@ setNewPage route model =
 
                 _ ->
                     loadBuildPage model org repo buildNumber logFocus
+
+        ( Routes.Settings, True ) ->
+            ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
 
         ( Routes.Logout, True ) ->
             ( { model | session = Nothing }
@@ -1508,10 +1796,10 @@ loadHooksPage model org repo maybePage maybePerPage =
 
 {-| loadSettingsPage : takes model org and repo and loads the page for updating repo configurations
 -}
-loadSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
-loadSettingsPage model org repo =
+loadRepoSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadRepoSettingsPage model org repo =
     -- Fetch repo from Api
-    ( { model | page = Pages.Settings org repo, repo = Loading, inTimeout = Nothing }
+    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }
     , Cmd.batch
         [ getRepo model org repo
         , getCurrentUser model
@@ -1524,8 +1812,8 @@ loadSettingsPage model org repo =
     loadRepoBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
 -}
-loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
-loadRepoBuildsPage model org repo _ maybePage maybePerPage =
+loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
+loadRepoBuildsPage model org repo _ maybePage maybePerPage maybeEvent =
     let
         -- Builds already loaded
         loadedBuilds =
@@ -1536,9 +1824,9 @@ loadRepoBuildsPage model org repo _ maybePage maybePerPage =
             { loadedBuilds | org = org, repo = repo, builds = Loading }
     in
     -- Fetch builds from Api
-    ( { model | page = Pages.RepositoryBuilds org repo maybePage maybePerPage, builds = loadingBuilds }
+    ( { model | page = Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, builds = loadingBuilds }
     , Cmd.batch
-        [ getBuilds model org repo maybePage maybePerPage
+        [ getBuilds model org repo maybePage maybePerPage maybeEvent
         , getCurrentUser model
         ]
     )
@@ -1571,7 +1859,7 @@ loadBuildPage model org repo buildNumber focusFragment =
         , logs = []
       }
     , Cmd.batch
-        [ getBuilds model org repo Nothing Nothing
+        [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
         , getAllBuildSteps model org repo buildNumber focusFragment
         ]
@@ -1815,9 +2103,9 @@ hooksMsgs =
 
 {-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm
 -}
-repoSettingsMsgs : Pages.Settings.Msgs Msg
+repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
-    Pages.Settings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo
+    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
 
 
 
@@ -1844,9 +2132,9 @@ getRepo model org repo =
     Api.try RepoResponse <| Api.getRepo model org repo
 
 
-getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
-getBuilds model org repo maybePage maybePerPage =
-    Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage org repo
+getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
+getBuilds model org repo maybePage maybePerPage maybeEvent =
+    Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
 
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg

@@ -101,24 +101,24 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing )
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
 
                         pageNumber =
                             pageToString maybePage
                     in
                     [ overviewPage, organizationPage, repoBuilds, ( "Hooks" ++ pageNumber, Nothing ) ]
 
-                Pages.Settings org repo ->
+                Pages.RepoSettings org repo ->
                     let
                         organizationPage =
                             ( org, Nothing )
 
                         repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing )
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                     in
                     [ overviewPage, organizationPage, repoBuilds, repoSettings ]
 
-                Pages.RepositoryBuilds org repo maybePage maybePerPage ->
+                Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -126,14 +126,17 @@ toPath page =
                         pageNumber =
                             pageToString maybePage
                     in
-                    [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage ) ]
+                    [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
 
                 Pages.Build org repo buildNumber logFocus ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
+
+                Pages.Settings ->
+                    [ ( "Overview", Just Pages.Overview ), ( "My Settings", Nothing ) ]
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]

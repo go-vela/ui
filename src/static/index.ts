@@ -4,6 +4,7 @@
 
 import { Elm, Flags, App, Config, Session, Theme } from '../elm/Main';
 import '../scss/style.scss';
+import ClipboardJS from 'clipboard';
 
 // Vela consts
 const feedbackURL: string = 'https://github.com/go-vela/ui/issues/new';
@@ -72,6 +73,21 @@ app.ports.setTheme.subscribe(theme => {
   localStorage.setItem(themeKey, theme);
   setTimeout(() => app.ports.onThemeChange.send(theme), 0);
 });
+
+app.ports.setFavicon.subscribe(function(url) {
+  var oldIcon = document.getElementById('favicon');
+  var newIcon = document.createElement('link');
+  newIcon.id = 'favicon';
+  newIcon.rel = 'shortcut icon';
+  newIcon.href = url;
+  if (oldIcon) {
+    document.head.removeChild(oldIcon);
+  }
+  document.head.appendChild(newIcon);
+});
+
+// initialize clipboard.js
+new ClipboardJS('.copy-button');
 
 /**
  * envOrNull is a basic helper that returns a substituted

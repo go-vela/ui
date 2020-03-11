@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api exposing
     ( Request(..)
     , addRepository
+    , chownRepo
     , deleteRepo
     , getAllBuilds
     , getAllHooks
@@ -22,6 +23,7 @@ module Api exposing
     , getStepLogs
     , getSteps
     , getUser
+    , repairRepo
     , restartBuild
     , try
     , tryAll
@@ -43,6 +45,7 @@ import Vela
         , BuildNumber
         , Builds
         , CurrentUser
+        , Event
         , Hook
         , Hooks
         , Log
@@ -298,6 +301,19 @@ delete api endpoint =
         }
 
 
+{-| patch : creates a PATCH request configuration
+-}
+patch : String -> Endpoint -> Request String
+patch api endpoint =
+    request
+        { method = "PATCH"
+        , headers = []
+        , url = Endpoint.toUrl api endpoint
+        , body = Http.emptyBody
+        , decoder = Json.Decode.string
+        }
+
+
 
 -- ENTRYPOINT
 
@@ -398,6 +414,22 @@ deleteRepo model repository =
         |> withAuth model.session
 
 
+{-| chownRepo : changes ownership of a repository
+-}
+chownRepo : PartialModel a -> Repository -> Request String
+chownRepo model repository =
+    patch model.velaAPI (Endpoint.RepositoryChown repository.org repository.name)
+        |> withAuth model.session
+
+
+{-| repairRepo: re-enables a webhook for a repository
+-}
+repairRepo : PartialModel a -> Repository -> Request String
+repairRepo model repository =
+    patch model.velaAPI (Endpoint.RepositoryRepair repository.org repository.name)
+        |> withAuth model.session
+
+
 {-| addRepository : adds a repository
 -}
 addRepository : PartialModel a -> Http.Body -> Request Repository
@@ -424,9 +456,9 @@ restartBuild model org repository buildNumber =
 
 {-| getBuilds : fetches vela builds by repository
 -}
-getBuilds : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Builds
-getBuilds model maybePage maybePerPage org repository =
-    get model.velaAPI (Endpoint.Builds maybePage maybePerPage org repository) decodeBuilds
+getBuilds : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Org -> Repo -> Request Builds
+getBuilds model maybePage maybePerPage maybeEvent org repository =
+    get model.velaAPI (Endpoint.Builds maybePage maybePerPage maybeEvent org repository) decodeBuilds
         |> withAuth model.session
 
 
@@ -438,7 +470,7 @@ getBuilds model maybePage maybePerPage org repository =
 getAllBuilds : PartialModel a -> Org -> Repo -> Request Build
 getAllBuilds model org repository =
     -- we using the max perPage setting of 100 to reduce the number of calls
-    get model.velaAPI (Endpoint.Builds (Just 1) (Just 100) org repository) decodeBuild
+    get model.velaAPI (Endpoint.Builds (Just 1) (Just 100) Nothing org repository) decodeBuild
         |> withAuth model.session
 
 
