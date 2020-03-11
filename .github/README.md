@@ -1,5 +1,6 @@
 # ui
 
+[![license](https://img.shields.io/crates/l/gl.svg)](LICENSE)
 [![Github Actions](https://github.com/go-vela/ui/workflows/ci/badge.svg?branch=master&event=push)](https://github.com/go-vela/ui/actions?query=branch%3Amaster+event%3Apush)
 
 vela ui
@@ -24,4 +25,6 @@ Please see our [contributing](CONTRIBUTING.md) documentation for further instruc
 Copyright (c) 2020 Target Brands, Inc.
 ```
 
-[![license](https://img.shields.io/crates/l/gl.svg)](LICENSE)
+Apache License, Version 2.0
+
+http://www.apache.org/licenses/LICENSE-2.0
