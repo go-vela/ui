@@ -2144,7 +2144,7 @@ getBuild model org repo buildNumber =
 
 getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 getAllBuildSteps model org repo buildNumber logFocus =
-    Api.try (StepsResponse org repo buildNumber logFocus) <| Api.getSteps model Nothing Nothing org repo buildNumber
+    Api.tryAll (StepsResponse org repo buildNumber logFocus) <| Api.getAllSteps model org repo buildNumber
 
 
 getBuildStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg
