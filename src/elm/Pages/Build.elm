@@ -117,8 +117,11 @@ viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusA
                 RemoteData.Success bld ->
                     ( viewPreview time org repo bld, Just <| String.fromInt bld.number )
 
-                _ ->
+                RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
+
+                _ ->
+                    ( text "", Nothing )
 
         buildSteps =
             case steps of
@@ -151,7 +154,11 @@ viewPreview now org repo build =
             [ buildStatusToIcon build.status ]
 
         commit =
-            [ text "commit ", a [ href build.source ] [ text <| trimCommitHash build.commit ] ]
+            [ text <| String.replace "_" " " build.event
+            , text " ("
+            , a [ href build.source ] [ text <| trimCommitHash build.commit ]
+            , text <| ")"
+            ]
 
         branch =
             [ a [ href <| buildBranchUrl build.clone build.branch ] [ text build.branch ] ]
@@ -261,13 +268,13 @@ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction s
             ]
     in
     details
-        [ classList
+        (classList
             [ ( "details", True )
             , ( "-with-border", True )
             , ( "-running", step.status == Vela.Running )
             ]
-        , Util.open step.viewing
-        ]
+            :: Util.open step.viewing
+        )
         stepSummary
 
 

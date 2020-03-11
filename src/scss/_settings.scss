@@ -6,9 +6,10 @@
 // └─┐├┤  │  │ │││││ ┬└─┐
 // └─┘└─┘ ┴  ┴ ┴┘└┘└─┘└─┘
 
-// styles for the repo settings page
+// styles for the settings pages
 
-.repo-settings {
+.repo-settings,
+.my-settings {
   display: flex;
   flex-wrap: wrap;
 }
@@ -26,14 +27,21 @@
   }
 }
 
-// for the enable admin section
-.enable-container {
+// for the admin action section
+.admin-action-container {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   margin-top: 1em;
+
+  button {
+    flex: 1 0 auto;
+    min-width: 6.5rem;
+  }
 }
 
-.enable-description {
+.admin-action-description {
   display: flex;
   flex-direction: column;
   margin-right: 0.8em;

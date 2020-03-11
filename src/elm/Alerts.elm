@@ -6,11 +6,14 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Alerts exposing (Alert(..), config, errorConfig, successConfig, view)
 
-import Html exposing (Html, a, div, h1, p, text)
-import Html.Attributes exposing (class, href)
+import FeatherIcons
+import Html exposing (Html, a, button, div, h1, p, text)
+import Html.Attributes exposing (attribute, class, href)
+import Html.Events
 import Toasty as Alerting
 import Toasty.Defaults as Alerts
 import Util
+import Vela exposing (Copy)
 
 
 
@@ -41,23 +44,23 @@ type Alert
 
 {-| view : Default theme view handling the three alert variants.
 -}
-view : Alert -> Html msg
-view toast =
+view : Copy msg -> Alert -> Html msg
+view copy toast =
     case toast of
         Success title message link ->
-            wrapAlert "-success" title message link
+            wrapAlert "-success" title message link Nothing
 
         Warning title message ->
-            wrapAlert "-warning" title message Nothing
+            wrapAlert "-warning" title message Nothing Nothing
 
         Error title message ->
-            wrapAlert "-error" title message Nothing
+            wrapAlert "-error" title message Nothing <| Just copy
 
 
 {-| wrapAlert : wraps an alert message in the appropriate html.
 -}
-wrapAlert : String -> String -> String -> Maybe Link -> Html msg
-wrapAlert variantClass title message link =
+wrapAlert : String -> String -> String -> Maybe Link -> Maybe (Copy msg) -> Html msg
+wrapAlert variantClass title message link copy =
     let
         hyperlink =
             case link of
@@ -69,13 +72,34 @@ wrapAlert variantClass title message link =
     in
     div
         [ class "alert-container", class variantClass ]
-        [ h1 [ class "-title" ] [ text title ]
+        [ h1 [ class "-title" ] [ text title, copyButton message copy ]
         , if String.isEmpty message then
             text ""
 
           else
             p [ class "-message" ] [ text message, hyperlink ]
         ]
+
+
+copyButton : String -> Maybe (Copy msg) -> Html msg
+copyButton copyContent copy =
+    case copy of
+        Just copyMsg ->
+            button
+                [ class "copy-button"
+                , attribute "aria-label" <| "copy error message '" ++ copyContent ++ "' to clipboard "
+                , class "button"
+                , class "-icon"
+                , Html.Events.onClick <| copyMsg copyContent
+                , attribute "data-clipboard-text" copyContent
+                ]
+                [ FeatherIcons.copy
+                    |> FeatherIcons.withSize 18
+                    |> FeatherIcons.toHtml []
+                ]
+
+        Nothing ->
+            text ""
 
 
 
@@ -85,6 +109,8 @@ wrapAlert variantClass title message link =
 {-| config : configurations for alert items, used for displaying notifications to the user
 
     config delays automatic dismissal x seconds and applies unique container and item styles
+
+    config applies animation overrides for pablen / toasty Elm package animations, bounceInRight and fadeOutRightBig
 
 -}
 config : Float -> Alerting.Config msg

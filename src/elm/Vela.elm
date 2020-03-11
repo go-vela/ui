@@ -11,6 +11,8 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
+    , ChownRepo
+    , Copy
     , CurrentUser
     , DisableRepo
     , EnableRepo
@@ -18,6 +20,8 @@ module Vela exposing
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
+    , Event
+    , Favicon
     , Favorites
     , Field
     , FocusFragment
@@ -29,6 +33,7 @@ module Vela exposing
     , LogFocus
     , Logs
     , Org
+    , RepairRepo
     , Repo
     , RepoSearchFilters
     , Repositories
@@ -65,6 +70,7 @@ module Vela exposing
     , decodeUser
     , defaultBuilds
     , defaultEnableRepositoryPayload
+    , defaultFavicon
     , defaultHooks
     , defaultRepository
     , defaultSession
@@ -75,6 +81,8 @@ module Vela exposing
     , encodeTheme
     , encodeUpdateRepository
     , encodeUpdateUser
+    , isComplete
+    , statusToFavicon
     , stringToTheme
     )
 
@@ -84,6 +92,7 @@ import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
+import Url.Builder as UB
 
 
 
@@ -100,6 +109,10 @@ type alias Org =
 
 
 type alias Repo =
+    String
+
+
+type alias Event =
     String
 
 
@@ -664,6 +677,67 @@ toStatus status =
             succeed Error
 
 
+{-| isComplete : helper to determine if status is 'complete'
+-}
+isComplete : Status -> Bool
+isComplete status =
+    case status of
+        Success ->
+            True
+
+        Failure ->
+            True
+
+        Error ->
+            True
+
+        _ ->
+            False
+
+
+
+-- STATUS FAVICONS
+
+
+type alias Favicon =
+    String
+
+
+{-| statusToFavicon : takes build status and returns absolute path to the appropriate favicon
+-}
+statusToFavicon : Status -> Favicon
+statusToFavicon status =
+    let
+        fileName =
+            "favicon"
+                ++ (case status of
+                        Pending ->
+                            "-pending"
+
+                        Running ->
+                            "-running"
+
+                        Success ->
+                            "-success"
+
+                        Error ->
+                            "-failure"
+
+                        Failure ->
+                            "-failure"
+                   )
+                ++ ".ico"
+    in
+    UB.absolute [ "images", fileName ] []
+
+
+{-| defaultFavicon : returns absolute path to default favicon
+-}
+defaultFavicon : String
+defaultFavicon =
+    UB.absolute [ "images", "favicon.ico" ] []
+
+
 
 -- STEP
 
@@ -854,6 +928,12 @@ type alias SearchFilter =
 -- UPDATES
 
 
+{-| Copy : takes a string and notifies the user of copy event
+-}
+type alias Copy msg =
+    String -> msg
+
+
 {-| DisableRepo : takes repo and disables it on Vela
 -}
 type alias DisableRepo msg =
@@ -870,3 +950,15 @@ type alias EnableRepo msg =
 -}
 type alias EnableRepos msg =
     Repositories -> msg
+
+
+{-| ChownRepo : takes repo and changes ownership on Vela
+-}
+type alias ChownRepo msg =
+    Repository -> msg
+
+
+{-| RepairRepo : takes repo and re-enables the webhook on it
+-}
+type alias RepairRepo msg =
+    Repository -> msg
