@@ -35,6 +35,7 @@ type Endpoint
     | Step Org Repo BuildNumber StepNumber
     | StepLogs Org Repo BuildNumber StepNumber
     | Secrets Type Org Name
+    | Secret Type Org String Name
 
 
 {-| toUrl : turns and Endpoint into a URL string
@@ -81,8 +82,11 @@ toUrl api endpoint =
         StepLogs org repo buildNumber stepNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "steps", stepNumber, "logs" ] []
 
-        Secrets type_ org name ->
-            url api [ "secrets", "native", type_, org, name ] []
+        Secrets type_ org key ->
+            url api [ "secrets", "native", type_, org, key ] []
+
+        Secret type_ org key name ->
+            url api [ "secrets", "native", type_, org, key, name ] []
 
 
 {-| url : creates a URL string with the given path segments and query parameters

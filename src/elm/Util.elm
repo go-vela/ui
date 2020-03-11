@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Util exposing
-    ( ariaHidden
+    ( addIfUniqueId
+    , ariaHidden
     , dateToHumanReadable
     , dispatch
     , filterEmptyList
@@ -14,9 +15,11 @@ module Util exposing
     , fiveSecondsMillis
     , formatRunTime
     , formatTestTag
+    , getById
     , isLoading
     , isSuccess
     , largeLoader
+    , mergeListsById
     , millisToSeconds
     , onClickPreventDefault
     , onClickStopPropogation
@@ -37,6 +40,7 @@ import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (custom)
 import Json.Decode as Decode
+import List.Extra
 import RemoteData exposing (WebData)
 import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone, posixToMillis)
@@ -187,6 +191,45 @@ filterEmptyLists =
 filterEmptyStringLists : List ( String, List String ) -> List ( String, List String )
 filterEmptyStringLists =
     List.filter (\( _, list ) -> List.isEmpty list == False)
+
+
+addIfUniqueId : { a | id : comparable } -> List { a | id : comparable } -> List { a | id : comparable }
+addIfUniqueId item list =
+    filterByUniqueId <| item :: list
+
+
+filterByUniqueId : List { a | id : comparable } -> List { a | id : comparable }
+filterByUniqueId list =
+    List.Extra.uniqueBy .id list
+
+
+{-| overwriteById : takes single item and list and updates the specific item by ID
+
+    returns Nothing if no update was needed
+
+-}
+overwriteById : { a | id : comparable } -> List { a | id : comparable } -> Maybe { a | id : comparable }
+overwriteById item list =
+    List.head <| List.filter (\a -> a.id == item.id) <| List.Extra.setIf (\a -> a.id == item.id) item list
+
+
+existsById : { a | id : comparable } -> List { a | id : comparable } -> Bool
+existsById item list =
+    List.length (List.filter (\a -> a.id == item.id) list) > 0
+
+
+{-| getById : takes item with id and list and extracts item
+-}
+getById : comparable -> List { a | id : comparable } -> Maybe { a | id : comparable }
+getById item list =
+    List.head <| List.filter (\a -> a.id == item) list
+
+
+{-| mergeListsById : takes two lists and merges them by unique id
+-}
+mergeListsById : List { a | id : comparable } -> List { a | id : comparable } -> List { a | id : comparable }
+mergeListsById listA listB =
+    List.filter (\a -> not <| existsById a listB) listA ++ listB
 
 
 {-| oneSecondMillis : single second in milliseconds for clock tick subscriptions

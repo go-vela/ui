@@ -1028,9 +1028,6 @@ nav {
 .secret {
   margin: 1rem;
 }
-.secrets-row {
-  padding-left: 2rem;
-}
 
 .filler-cell {
   width: 6ch;
@@ -1342,7 +1339,16 @@ nav {
 .-m-l {
   margin-left: 0.25rem;
 }
-
+.secrets-table .headers {
+  padding-left: 1rem;
+  position: relative;
+}
+.secrets-first-cell {
+  padding: 0.5rem 1rem;
+  padding-bottom: 0;
+  color: var(--color-primary);
+  font-size: 1.2rem;
+}
 .add-secret {
   padding: 1rem;
   background: var(--color-bg-dark);
@@ -1362,16 +1368,35 @@ nav {
   border-bottom: 2px solid var(--color-secondary);
 }
 .new-secret section {
-  width: 30%;
+  justify-content: flex-start;
 }
-.new-secret .secret-type h4 {
-  // padding: 0rem 2rem 0.3rem 0.5rem;
-  padding-bottom: 0.4rem;
-  border-bottom: 2px solid var(--color-secondary);
+.images {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 .added-image {
+  margin: 0.2rem 1rem;
   display: flex;
+  // display: inline-block;
+  padding: 0.3rem 1rem;
+  width: 25rem;
+  // flex-grow: 0;
+  // justify-content: space-between;
   align-items: center;
+  // width: auto;
+  // width: 0;
+  > * {
+    margin-right: 1rem;
+  }
+  .name {
+    flex: 1;
+    word-wrap: break-word;
+    min-width: 40%;
+    font-family: var(--font-code);
+    font-size: 0.9rem;
+  }
+  background: var(--color-bg);
 }
 .add {
   color: green;
@@ -1382,10 +1407,10 @@ nav {
 h4.-no-pad {
   margin: 0;
 }
-
-.select-secret {
+h4.-m-t {
   margin-top: 1rem;
-  // margin-left: 0.5rem;
+}
+.select-secret {
   background: var(--color-bg);
   color: var(--color-primary);
   font-size: 1rem;
@@ -1394,9 +1419,13 @@ h4.-no-pad {
     border-radius: 0px;
   }
 }
-
-.add-secret input {
+.no-secrets {
+  padding: 1rem;
+}
+.add-secret .subheader {
   margin-top: 1rem;
+  border-bottom: 2px solid var(--color-primary);
+  width: 80%;
 }
 .add-secret input,
 .add-secret textarea,
@@ -1423,18 +1452,19 @@ h4.-no-pad {
   width: 70%;
 }
 
+.add-secret .-m-t {
+  margin-top: 1rem;
+}
+
 .update-secret {
   padding-bottom: 0.5rem;
   border-bottom: 1px solid gray;
 }
 
-.secrets-row {
-  padding-left: 2rem;
-}
-
 .table-label {
   font-size: 1.25rem;
   color: var(--color-primary);
+  padding: 0.6rem 0rem 0rem 1rem;
 }
 
 // .edit-icon {

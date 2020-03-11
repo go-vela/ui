@@ -29,6 +29,7 @@ module Vela exposing
     , HookBuilds
     , Hooks
     , HooksModel
+    , Key
     , Log
     , LogFocus
     , Logs
@@ -41,6 +42,7 @@ module Vela exposing
     , Repository
     , SearchFilter
     , Secret
+    , SecretType(..)
     , Secrets
     , Session
     , SourceRepositories
@@ -52,13 +54,16 @@ module Vela exposing
     , Theme(..)
     , Type
     , UpdateRepositoryPayload
+    , UpdateSecretPayload
     , UpdateUserPayload
     , User
     , Viewing
+    , buildAddSecretPayload
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
+    , buildUpdateSecretPayload
     , decodeBuild
     , decodeBuilds
     , decodeCurrentUser
@@ -87,10 +92,13 @@ module Vela exposing
     , encodeSession
     , encodeTheme
     , encodeUpdateRepository
+    , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
+    , secretTypeToString
     , statusToFavicon
     , stringToTheme
+    , toSecretType
     )
 
 import Dict exposing (Dict)
@@ -116,6 +124,10 @@ type alias Org =
 
 
 type alias Repo =
+    String
+
+
+type alias Team =
     String
 
 
@@ -925,9 +937,9 @@ type alias Secret =
     { id : Int
     , org : Org
     , repo : Repo
-    , team : Team
+    , team : Key
     , name : String
-    , type_ : Type
+    , type_ : SecretType
     , images : List String
     , events : List String
     , allowCommand : Bool
@@ -938,7 +950,89 @@ type alias Type =
     String
 
 
-type alias Team =
+type SecretType
+    = Shared
+    | Org
+    | Repo
+
+
+{-| secretTypeDecoder : decodes string field "type" to the union type SecretType
+-}
+secretTypeDecoder : Decoder SecretType
+secretTypeDecoder =
+    string |> andThen toSecretTypeDecoder
+
+
+{-| toSecretTypeDecoder : helper to decode string to SecretType
+-}
+toSecretTypeDecoder : String -> Decoder SecretType
+toSecretTypeDecoder type_ =
+    case type_ of
+        "shared" ->
+            succeed Shared
+
+        "org" ->
+            succeed Org
+
+        "repo" ->
+            succeed Repo
+
+        _ ->
+            Decode.fail "unrecognized secret type"
+
+
+{-| toSecretType : helper to decode string to SecretType
+-}
+toSecretType : String -> SecretType
+toSecretType type_ =
+    case type_ of
+        "shared" ->
+            Shared
+
+        "org" ->
+            Org
+
+        "repo" ->
+            Repo
+
+        _ ->
+            Repo
+
+
+{-| secretTypeToString : helper to convert SecretType to string
+-}
+secretTypeToString : SecretType -> String
+secretTypeToString type_ =
+    case type_ of
+        Shared ->
+            "shared"
+
+        Org ->
+            "org"
+
+        Repo ->
+            "repo"
+
+
+{-| maybeSecretTypeToMaybeString : helper to convert Maybe SecretType to Maybe string
+-}
+maybeSecretTypeToMaybeString : Maybe SecretType -> Maybe String
+maybeSecretTypeToMaybeString type_ =
+    case type_ of
+        Just Shared ->
+            Just "shared"
+
+        Just Org ->
+            Just "org"
+
+        Just Repo ->
+            Just "repo"
+
+        _ ->
+            Nothing
+
+
+type alias Key =
     String
 
 
@@ -954,7 +1048,7 @@ decodeSecret =
         |> optional "repo" string ""
         |> optional "team" string ""
         |> optional "name" string ""
-        |> optional "type" string ""
+        |> optional "type" secretTypeDecoder Repo
         |> optional "images" (Decode.list string) []
         |> optional "events" (Decode.list string) []
         |> optional "allow_command" bool False
@@ -969,6 +1063,105 @@ decodeSecrets =
 
 type alias Secrets =
     List Secret
+
+
+type alias AddSecretPayload =
+    { type_ : SecretType
+    , org : Org
+    , repo : Maybe Repo
+    , team : Maybe Team
+    , name : Name
+    , value : String
+    , events : List String
+    , images : List String
+    , allowCommand : Bool
+    }
+
+
+encodeAddSecret : AddSecretPayload -> Encode.Value
+encodeAddSecret secret =
+    Encode.object
+        [ ( "type", secretTypeEncoder secret.type_ )
+        , ( "org", Encode.string secret.org )
+        , ( "repo", encodeOptional Encode.string secret.repo )
+        , ( "team", encodeOptional Encode.string secret.team )
+        , ( "name", Encode.string secret.name )
+        , ( "value", Encode.string secret.value )
+        , ( "events", Encode.list Encode.string secret.events )
+        , ( "images", Encode.list Encode.string secret.images )
+        , ( "allow_command", Encode.bool secret.allowCommand )
+        ]
+
+
+secretTypeEncoder : SecretType -> Encode.Value
+secretTypeEncoder type_ =
+    case type_ of
+        Org ->
+            Encode.string "org"
+
+        Repo ->
+            Encode.string "repo"
+
+        Shared ->
+            Encode.string "shared"
+
+
+buildAddSecretPayload :
+    SecretType
+    -> Org
+    -> Maybe Repo
+    -> Maybe Team
+    -> Name
+    -> String
+    -> List String
+    -> List String
+    -> Bool
+    -> AddSecretPayload
+buildAddSecretPayload type_ org repo team name value events images allowCommand =
+    AddSecretPayload type_ org repo team name value events images allowCommand
+
+
+type alias UpdateSecretPayload =
+    { type_ : Maybe SecretType
+    , org : Maybe Org
+    , repo : Maybe Repo
+    , team : Maybe Team
+    , name : Maybe Name
+    , value : Maybe String
+    , events : Maybe (List String)
+    , images : Maybe (List String)
+    , allowCommand : Maybe Bool
+    }
+
+
+encodeUpdateSecret : UpdateSecretPayload -> Encode.Value
+encodeUpdateSecret secret =
+    Encode.object
+        [ ( "type", encodeOptional Encode.string <| maybeSecretTypeToMaybeString secret.type_ )
+        , ( "org", encodeOptional Encode.string secret.org )
+        , ( "repo", encodeOptional Encode.string secret.repo )
+        , ( "team", encodeOptional Encode.string secret.team )
+        , ( "name", encodeOptional Encode.string secret.name )
+        , ( "value", encodeOptional Encode.string secret.value )
+        , ( "events", encodeOptionalList Encode.string secret.events )
+        , ( "images", encodeOptionalList Encode.string secret.images )
+        , ( "allow_command", encodeOptional Encode.bool secret.allowCommand )
+        ]
+
+
+buildUpdateSecretPayload :
+    Maybe SecretType
+    -> Maybe Org
+    -> Maybe Repo
+    -> Maybe Team
+    -> Maybe Name
+    -> Maybe String
+    -> Maybe (List String)
+    -> Maybe (List String)
+    -> Maybe Bool
+    -> UpdateSecretPayload
+buildUpdateSecretPayload type_ org repo team name value events images allowCommand =
+    UpdateSecretPayload type_ org repo team name value events images allowCommand
 
 
 
