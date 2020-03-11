@@ -25,6 +25,4 @@ Please see our [contributing](CONTRIBUTING.md) documentation for further instruc
 Copyright (c) 2020 Target Brands, Inc.
 ```
 
-Apache License, Version 2.0
-
-http://www.apache.org/licenses/LICENSE-2.0
+[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
