@@ -4,14 +4,28 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Secrets exposing (Msg, init, update, view)
+module Pages.Secrets exposing
+    ( Args
+    , Msg
+    , defaultSecretUpdate
+    , handleSelection
+    , init
+    , update
+    , view
+    )
 
 import Api
 import Html
     exposing
         ( Html
+        , a
+        , br
         , code
         , div
+        , em
+        , h4
+        , p
+        , section
         , span
         , text
         )
@@ -26,7 +40,8 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Util exposing (largeLoader)
 import Vela
     exposing
-        ( Key
+        ( AddSecretPayload
+        , Key
         , Name
         , Org
         , Repo
@@ -37,15 +52,13 @@ import Vela
         , Team
         , Type
         , UpdateSecretPayload
+        , buildAddSecretPayload
         , buildUpdateSecretPayload
+        , encodeAddSecret
         , encodeUpdateSecret
         , secretTypeToString
         , toSecretType
         )
-
-
-init =
-    ""
 
 
 {-| PartialModel : an abbreviated version of the main model
@@ -66,9 +79,17 @@ type alias Args msg =
     , selectedSecret : String
     , secretUpdate : SecretUpdate
     , secretAdd : SecretUpdate
-    , secretResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
-    , secretsResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> msg
+    , secretResponse : SecretResponse msg
+    , secretsResponse : SecretsResponse msg
     }
+
+
+type alias SecretResponse msg =
+    Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
+
+
+type alias SecretsResponse msg =
+    Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> msg
 
 
 type Msg
@@ -77,10 +98,10 @@ type Msg
     | OnChangeEvent String Bool
     | AddImage String
     | RemoveImage String
-    | OnChangeAllowCommand Bool
+    | OnChangeAllowCommand String
     | CancelUpdate
     | AddSecret
-    | UpdateSecret Type Org Key Name
+    | UpdateSecret
     | NoOp
 
 
@@ -91,9 +112,7 @@ type ManageSecretState
 
 
 type alias SecretUpdate =
-    { org : Org
-    , repo : Repo
-    , team : Team
+    { team : Team
     , name : String
     , value : String
     , type_ : SecretType
@@ -104,20 +123,53 @@ type alias SecretUpdate =
     }
 
 
-onChangeStringField : String -> String -> Args msg -> Args msg
-onChangeStringField field value secretsModel =
+defaultSecretUpdate : SecretUpdate
+defaultSecretUpdate =
+    SecretUpdate "" "" "" Vela.Repo [ "push", "pull" ] "" [] True
+
+
+init : SecretResponse msg -> SecretsResponse msg -> Args msg
+init secretResponse secretsResponse =
+    Args "" "" NotAsked Choose "default" defaultSecretUpdate defaultSecretUpdate secretResponse secretsResponse
+
+
+updateSecretModel : SecretUpdate -> Args msg -> Args msg
+updateSecretModel secret secretsModel =
     case secretsModel.manageState of
         Add ->
-            let
-                secretAdd =
-                    secretsModel.secretAdd
-            in
-            { secretsModel | secretAdd = updateSecretField field value secretAdd }
+            { secretsModel | secretAdd = secret }
 
         Update ->
-            secretsModel
+            { secretsModel | secretUpdate = secret }
 
         Choose ->
+            secretsModel
+
+
+getSecretUpdate : Args msg -> Maybe SecretUpdate
+getSecretUpdate secretsModel =
+    case secretsModel.manageState of
+        Add ->
+            Just secretsModel.secretAdd
+
+        Update ->
+            Just secretsModel.secretUpdate
+
+        Choose ->
+            Nothing
+
+
+onChangeStringField : String -> String -> Args msg -> Args msg
+onChangeStringField field value secretsModel =
+    let
+        secretUpdate =
+            getSecretUpdate secretsModel
+    in
+    case secretUpdate of
+        Just s ->
+            updateSecretModel (updateSecretField field value s) secretsModel
+
+        Nothing ->
             secretsModel
 
 
@@ -128,16 +180,87 @@ updateSecretField field value secret =
             { secret | team = value }
 
         "name" ->
-            { secret | imageInput = value }
+            { secret | name = value }
 
         "value" ->
-            { secret | imageInput = value }
+            { secret | value = value }
 
         "imageInput" ->
             { secret | imageInput = value }
 
         _ ->
             secret
+
+
+onChangeEvent : String -> Args msg -> Args msg
+onChangeEvent event secretsModel =
+    let
+        secretUpdate =
+            getSecretUpdate secretsModel
+    in
+    case secretUpdate of
+        Just s ->
+            updateSecretModel (updateSecretEvents event s) secretsModel
+
+        Nothing ->
+            secretsModel
+
+
+updateSecretEvents : String -> SecretUpdate -> SecretUpdate
+updateSecretEvents event secret =
+    { secret | events = toggleEvent event secret.events }
+
+
+onAddImage : String -> Args msg -> Args msg
+onAddImage image secretsModel =
+    let
+        secretUpdate =
+            getSecretUpdate secretsModel
+    in
+    case secretUpdate of
+        Just s ->
+            updateSecretModel (addImage image s) secretsModel
+
+        Nothing ->
+            secretsModel
+
+
+addImage : String -> SecretUpdate -> SecretUpdate
+addImage image secret =
+    { secret | images = Util.filterEmptyList <| List.Extra.unique <| image :: secret.images }
+
+
+onRemoveImage : String -> Args msg -> Args msg
+onRemoveImage image secretsModel =
+    let
+        secretUpdate =
+            getSecretUpdate secretsModel
+    in
+    case secretUpdate of
+        Just s ->
+            updateSecretModel (removeImage image s) secretsModel
+
+        Nothing ->
+            secretsModel
+
+
+removeImage : String -> SecretUpdate -> SecretUpdate
+removeImage image secret =
+    { secret | images = List.Extra.remove image secret.images }
+
+
+onChangeAllowCommand : String -> Args msg -> Args msg
+onChangeAllowCommand allow secretsModel =
+    let
+        secretUpdate =
+            getSecretUpdate secretsModel
+    in
+    case secretUpdate of
+        Just s ->
+            updateSecretModel { s | allowCommand = yesNoToBool allow } secretsModel
+
+        Nothing ->
+            secretsModel
 
 
 
@@ -148,20 +271,70 @@ updateSecretField field value secret =
 -}
 view : PartialModel a msg -> Html Msg
 view model =
-    case model.secretsModel.secrets of
-        Success s ->
+    let
+        secretsModel =
+            model.secretsModel
+    in
+    case secretsModel.secrets of
+        Success secrets ->
             div []
-                [ secretForm
-                , viewSecrets s
+                [ div [ class "add-secret" ]
+                    [ div []
+                        [ Html.h2 [] [ text "Update Secrets" ]
+                        , secretForm secretsModel secrets
+                        ]
+                    ]
+                , viewSecrets secrets
                 ]
 
         _ ->
             div [] [ largeLoader ]
 
 
-secretForm : Html Msg
-secretForm =
-    div [] []
+secretForm : Args msg -> Secrets -> Html Msg
+secretForm secretsModel secrets =
+    div []
+        [ selectSecret secretsModel secrets
+        , case secretsModel.manageState of
+            Add ->
+                addSecret secretsModel
+
+            Update ->
+                div [] [ text "update secret" ]
+
+            Choose ->
+                text ""
+        ]
+
+
+addSecret : Args msg -> Html Msg
+addSecret secretsModel =
+    let
+        secretUpdate =
+            secretsModel.secretAdd
+    in
+    div [ class "secret-form" ]
+        [ Html.h4 [ class "field-header" ] [ text "Name" ]
+        , nameInput secretsModel.secretAdd.name False
+        , Html.h4 [ class "field-header" ] [ text "Value" ]
+        , valueInput secretUpdate.value
+        , typeSelect secretUpdate
+        , teamInput secretUpdate
+        , eventsSelect secretUpdate
+        , imagesInput secretUpdate secretUpdate.imageInput
+        , allowCommandCheckbox secretUpdate
+        , help
+        , div [ class "-m-t" ]
+            [ Html.button [ class "button", class "-outline", onClick AddSecret ] [ text "Add" ]
+            , Html.button
+                [ class "-m-l"
+                , class "button"
+                , class "-outline"
+                , onClick CancelUpdate
+                ]
+                [ text "Cancel" ]
+            ]
+        ]
 
 
 viewSecrets : Secrets -> Html Msg
@@ -191,6 +364,7 @@ headers =
         , div [ class "header" ] [ text "type" ]
         , div [ class "header" ] [ text "events" ]
         , div [ class "header" ] [ text "images" ]
+        , div [ class "header" ] [ text "allow commands" ]
         ]
 
 
@@ -220,6 +394,7 @@ preview secret =
         , cell (secretTypeToString secret.type_) <| class ""
         , arrayCell secret.events "no events"
         , arrayCell secret.images "no images"
+        , cell (boolToYesNo secret.allowCommand) <| class ""
         ]
 
 
@@ -243,12 +418,12 @@ arrayCell images default =
 
 
 selectSecret : Args msg -> Secrets -> Html Msg
-selectSecret args secrets =
+selectSecret secretsModel secrets =
     div []
-        [ Html.h4 [ class "-no-pad", class "-m-t" ] [ text "Secret" ]
+        [ Html.h4 [ class "field-header" ] [ text "Secret" ]
         , Html.select
             [ class "select-secret"
-            , value args.selectedSecret
+            , value secretsModel.selectedSecret
             , onInput SelectSecret
             ]
           <|
@@ -285,14 +460,14 @@ valueInput val =
 
 
 typeSelect : SecretUpdate -> Html Msg
-typeSelect args =
+typeSelect secret =
     Html.section [ class "type", Util.testAttribute "" ]
-        [ Html.h4 [ class "-no-pad" ] [ text "Type" ]
+        [ Html.h4 [ class "field-header" ] [ text "Type" ]
         , div
             [ class "form-controls", class "-row" ]
-            [ radio (secretTypeToString args.type_) "repo" "Repo" <| OnChangeStringField "type" "repo"
-            , radio (secretTypeToString args.type_) "org" "Org (current org)" <| OnChangeStringField "type" "org"
-            , radio (secretTypeToString args.type_) "shared" "Shared" <| OnChangeStringField "type" "shared"
+            [ radio (secretTypeToString secret.type_) "repo" "Repo" <| OnChangeStringField "type" "repo"
+            , radio (secretTypeToString secret.type_) "org" "Org (current org)" <| OnChangeStringField "type" "org"
+            , radio (secretTypeToString secret.type_) "shared" "Shared" <| OnChangeStringField "type" "shared"
             ]
         ]
 
@@ -302,7 +477,7 @@ teamInput secret =
     case secret.type_ of
         Vela.Shared ->
             div []
-                [ Html.h4 [ class "-no-pad", class "-m-t" ] [ text "Team" ]
+                [ Html.h4 [ class "field-header" ] [ text "Team" ]
                 , div []
                     [ Html.textarea
                         [ value secret.team
@@ -321,7 +496,7 @@ teamInput secret =
 eventsSelect : SecretUpdate -> Html Msg
 eventsSelect secretUpdate =
     Html.section [ class "events", Util.testAttribute "" ]
-        [ Html.h4 [ class "-no-pad", class "-m-t" ] [ text "Limit to Events" ]
+        [ Html.h4 [ class "field-header" ] [ text "Limit to Events" ]
         , div [ class "form-controls", class "-row" ]
             [ checkbox "Push"
                 "push"
@@ -348,9 +523,15 @@ eventsSelect secretUpdate =
 
 
 imagesInput : SecretUpdate -> String -> Html Msg
-imagesInput args imageInput =
+imagesInput secret imageInput =
     Html.section [ class "image", Util.testAttribute "" ]
-        [ Html.h4 [ class "-no-pad", class "-m-t" ] [ text "Limit to Docker Images" ]
+        [ Html.h4 [ class "field-header" ]
+            [ text "Limit to Docker Images"
+            , span
+                [ class "field-description" ]
+                [ em [] [ text "(Leave blank to enable this secret for all images)" ]
+                ]
+            ]
         , div []
             [ Html.input
                 [ placeholder "Image Name"
@@ -368,7 +549,7 @@ imagesInput args imageInput =
                 [ text "Add Image"
                 ]
             ]
-        , div [ class "images" ] <| List.map addedImage args.images
+        , div [ class "images" ] <| List.map addedImage secret.images
         ]
 
 
@@ -387,34 +568,62 @@ addedImage image =
         ]
 
 
+allowCommandCheckbox : SecretUpdate -> Html Msg
+allowCommandCheckbox secretUpdate =
+    section [ class "type", Util.testAttribute "" ]
+        [ h4 [ class "field-header" ]
+            [ text "Allow Commands"
+            , span [ class "field-description" ]
+                [ em [] [ text "(\"No\" will disable this secret in " ]
+                , span [ class "-code" ] [ text "commands" ]
+                , em [] [ text ")" ]
+                ]
+            ]
+        , div
+            [ class "form-controls", class "-row" ]
+            [ radio (boolToYesNo secretUpdate.allowCommand) "yes" "Yes" <| OnChangeAllowCommand "yes"
+            , radio (boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
+            ]
+        ]
+
+
+help : Html Msg
+help =
+    div [] [ text "Need help? Visit our ", a [] [ text "docs" ], text "!" ]
+
+
 
 -- HELPERS
 
 
-getSecretAddKey : SecretUpdate -> String
-getSecretAddKey secretAdd =
-    case secretAdd.type_ of
+getKey : Args msg -> SecretUpdate -> String
+getKey secretsModel secret =
+    case secret.type_ of
         Vela.Repo ->
-            secretAdd.repo
+            secretsModel.repo
 
         Vela.Org ->
             "*"
 
         Vela.Shared ->
-            secretAdd.team
+            secret.team
 
 
-getSecretUpdateKey : SecretUpdate -> String
-getSecretUpdateKey secretUpdate =
-    case secretUpdate.type_ of
-        Vela.Repo ->
-            secretUpdate.repo
+toAddSecretPayload : Args msg -> SecretUpdate -> AddSecretPayload
+toAddSecretPayload secretsModel secret =
+    let
+        args =
+            case secret.type_ of
+                Vela.Repo ->
+                    { type_ = secret.type_, repo = Just secretsModel.repo, team = Nothing }
 
-        Vela.Org ->
-            "*"
+                Vela.Org ->
+                    { type_ = Vela.Org, repo = Just "*", team = Nothing }
 
-        Vela.Shared ->
-            secretUpdate.team
+                Vela.Shared ->
+                    { type_ = Vela.Org, repo = Nothing, team = Just secret.team }
+    in
+    buildAddSecretPayload args.type_ secretsModel.org args.repo args.team secret.name secret.value secret.events secret.images secret.allowCommand
 
 
 handleSelection : String -> ManageSecretState
@@ -431,9 +640,9 @@ handleSelection selection =
 
 
 getSelectedSecret : Args msg -> Maybe Secret
-getSelectedSecret args =
-    Util.getById (Maybe.withDefault 0 <| String.toInt args.selectedSecret) <|
-        case args.secrets of
+getSelectedSecret secretModel =
+    Util.getById (Maybe.withDefault 0 <| String.toInt secretModel.selectedSecret) <|
+        case secretModel.secrets of
             Success s ->
                 s
 
@@ -455,6 +664,20 @@ toggleEvent event events =
         event :: events
 
 
+boolToYesNo : Bool -> String
+boolToYesNo bool =
+    if bool then
+        "yes"
+
+    else
+        "no"
+
+
+yesNoToBool : String -> Bool
+yesNoToBool yesNo =
+    yesNo == "yes"
+
+
 
 -- UPDATE
 
@@ -464,12 +687,6 @@ update model msg =
     let
         secretsModel =
             model.secretsModel
-
-        secretAdd =
-            secretsModel.secretAdd
-
-        secretUpdate =
-            secretsModel.secretUpdate
 
         ( sm, action ) =
             case msg of
@@ -493,36 +710,40 @@ update model msg =
                     ( onChangeStringField field value secretsModel, Cmd.none )
 
                 OnChangeEvent event _ ->
-                    -- ( { secretsModel | newSecret = { newSecret | events = toggleEvent event newSecret.events } }, Cmd.none )
-                    ( secretsModel, Cmd.none )
+                    ( onChangeEvent event secretsModel, Cmd.none )
 
                 AddImage image ->
-                    -- ( { secretsModel | newSecret = { newSecret | images = Util.filterEmptyList <| List.Extra.unique <| image :: newSecret.images } }, Cmd.none )
-                    ( secretsModel, Cmd.none )
+                    ( onAddImage image secretsModel, Cmd.none )
 
                 RemoveImage image ->
-                    -- ( { secretsModel | newSecret = { newSecret | images = List.Extra.remove image newSecret.images } }, Cmd.none )
-                    ( secretsModel, Cmd.none )
+                    ( onRemoveImage image secretsModel, Cmd.none )
 
                 OnChangeAllowCommand allow ->
-                    -- ( { secretsModel | newSecret = { newSecret | allowCommand = allow } }, Cmd.none )
-                    ( secretsModel, Cmd.none )
+                    ( onChangeAllowCommand allow secretsModel, Cmd.none )
 
                 AddSecret ->
-                    ( secretsModel, Cmd.none )
+                    let
+                        secret =
+                            secretsModel.secretAdd
 
-                -- let
-                --     key =
-                --         getKey secretsModel
-                --     payload : UpdateSecretPayload
-                --     payload =
-                --         buildAddSecretPayload newSecret
-                --     body : Http.Body
-                --     body =
-                --         Http.jsonBody <| encodeUpdateSecret payload
-                -- in
-                -- ( args, Api.try args.secretResponse <| Api.addSecret model (secretTypeToString newSecret.type_) args.org key body )
-                UpdateSecret type_ org key name ->
+                        payload : AddSecretPayload
+                        payload =
+                            toAddSecretPayload secretsModel secretsModel.secretAdd
+
+                        body : Http.Body
+                        body =
+                            Http.jsonBody <| encodeAddSecret payload
+                    in
+                    ( secretsModel
+                    , Api.try secretsModel.secretResponse <|
+                        Api.addSecret model
+                            (secretTypeToString secret.type_)
+                            secretsModel.org
+                            (getKey secretsModel secret)
+                            body
+                    )
+
+                UpdateSecret ->
                     -- let
                     --     payload : UpdateSecretPayload
                     --     payload =

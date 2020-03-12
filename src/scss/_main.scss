@@ -1367,9 +1367,16 @@ nav {
   margin: 0;
   border-bottom: 2px solid var(--color-secondary);
 }
-.new-secret section {
-  justify-content: flex-start;
+
+.secret-form {
+  margin-bottom: 0.5rem;
 }
+
+.secret-form section {
+  justify-content: flex-start;
+  margin-bottom: 1.75rem;
+}
+
 .images {
   display: flex;
   flex-direction: column;
@@ -1465,6 +1472,20 @@ h4.-m-t {
   font-size: 1.25rem;
   color: var(--color-primary);
   padding: 0.6rem 0rem 0rem 1rem;
+}
+
+.field-description {
+  font-size: 1rem;
+  font-weight: 300;
+  margin-left: 1rem;
+}
+
+.field-header {
+  margin-bottom: 0.25rem;
+}
+
+.-code {
+  font-family: var(--font-code);
 }
 
 // .edit-icon {

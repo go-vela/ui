@@ -13,6 +13,7 @@ module Api exposing
     , getAllBuilds
     , getAllHooks
     , getAllRepositories
+    , getAllSteps
     , getBuild
     , getBuilds
     , getCurrentUser
@@ -497,6 +498,18 @@ getBuild model org repository buildNumber =
 getSteps : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> BuildNumber -> Request Steps
 getSteps model maybePage maybePerPage org repository buildNumber =
     get model.velaAPI (Endpoint.Steps maybePage maybePerPage org repository buildNumber) decodeSteps
+        |> withAuth model.session
+
+
+{-| getAllSteps : used in conjuction with 'tryAll', it retrieves all pages of the resource
+
+    Note: the singular version of the type/decoder is needed in this case as it turns it into a list
+
+-}
+getAllSteps : PartialModel a -> Org -> Repo -> BuildNumber -> Request Step
+getAllSteps model org repository buildNumber =
+    -- we are using the max perPage setting of 100 to reduce the number of calls
+    get model.velaAPI (Endpoint.Steps (Just 1) (Just 100) org repository buildNumber) decodeStep
         |> withAuth model.session
 
 

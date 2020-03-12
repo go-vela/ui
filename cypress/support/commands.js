@@ -138,7 +138,7 @@ Cypress.Commands.add('stubStepsWithLogs', () => {
   cy.fixture('steps_5.json').as('steps');
   cy.route({
     method: 'GET',
-    url: 'api/v1/repos/*/*/builds/*/steps',
+    url: 'api/v1/repos/*/*/builds/*/steps*',
     status: 200,
     response: '@steps',
   });
@@ -181,7 +181,7 @@ Cypress.Commands.add('stubStepsWithErrorLogs', () => {
   cy.fixture('steps_error.json').as('steps');
   cy.route({
     method: 'GET',
-    url: 'api/v1/repos/*/*/builds/*/steps',
+    url: 'api/v1/repos/*/*/builds/*/steps*',
     status: 200,
     response: '@steps',
   });

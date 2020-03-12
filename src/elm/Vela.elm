@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( AuthParams
+    ( AddSecretPayload
+    , AuthParams
     , Build
     , BuildIdentifier
     , BuildNumber
@@ -88,6 +89,7 @@ module Vela exposing
     , defaultSession
     , defaultUpdateRepositoryPayload
     , defaultUser
+    , encodeAddSecret
     , encodeEnableRepository
     , encodeSession
     , encodeTheme

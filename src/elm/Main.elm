@@ -78,8 +78,8 @@ import Pages.Build
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
-import Pages.RepoSecrets
 import Pages.RepoSettings exposing (enableUpdate)
+import Pages.Secrets
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
@@ -212,7 +212,7 @@ type alias Model =
     , showHelp : Bool
     , showIdentity : Bool
     , favicon : Favicon
-    , secrets : Pages.RepoSecrets.Args Msg
+    , secretsModel : Pages.Secrets.Args Msg
     }
 
 
@@ -273,7 +273,7 @@ init flags url navKey =
             , showHelp = False
             , showIdentity = False
             , favicon = defaultFavicon
-            , secrets = Pages.RepoSecrets.init AddSecretResponse SecretsResponse
+            , secretsModel = Pages.Secrets.init AddSecretResponse SecretsResponse
             }
 
         ( newModel, newPage ) =
@@ -318,7 +318,6 @@ type Msg
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
-    | ShowHideUpdateRepoSecret (Maybe Bool)
     | Copy String
       -- Outgoing HTTP requests
     | SignInRequested
@@ -366,7 +365,7 @@ type Msg
     | UpdateUrl String
     | VisibilityChanged Visibility
       -- Components
-    | RepoSecretsUpdate Org Repo Pages.RepoSecrets.Msg
+    | RepoSecretsUpdate Org Repo Pages.Secrets.Msg
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -435,13 +434,6 @@ update msg model =
 
                         Nothing ->
                             not model.showIdentity
-              }
-            , Cmd.none
-            )
-
-        ShowHideUpdateRepoSecret show ->
-            ( { model
-                | secrets = Pages.RepoSecrets.toggleUpdateSecret model.secrets show
               }
             , Cmd.none
             )
@@ -766,10 +758,10 @@ update msg model =
             case response of
                 Ok ( _, secret ) ->
                     let
-                        secrets_ =
-                            model.secrets
+                        secretsModel =
+                            model.secretsModel
                     in
-                    ( { model | secrets = { secrets_ | newSecret = Pages.RepoSecrets.defaultSecretUpdate } }
+                    ( { model | secretsModel = { secretsModel | secretAdd = Pages.Secrets.defaultSecretUpdate } }
                     , Cmd.batch [ getSecrets model "repo" secret.org secret.repo, getSecrets model "org" secret.org "*" ]
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (secret.name ++ " added to secrets.") Nothing)
@@ -781,18 +773,18 @@ update msg model =
             case response of
                 Ok ( _, secrets ) ->
                     let
-                        secrets_ =
-                            model.secrets
+                        secretsModel =
+                            model.secretsModel
 
                         mergedSecrets =
-                            case secrets_.secrets of
+                            case secretsModel.secrets of
                                 Success s ->
                                     RemoteData.succeed <| Util.mergeListsById s secrets
 
                                 _ ->
                                     RemoteData.succeed secrets
                     in
-                    ( { model | secrets = { secrets_ | secrets = mergedSecrets } }, Cmd.none )
+                    ( { model | secretsModel = { secretsModel | secrets = mergedSecrets } }, Cmd.none )
 
                 Err error ->
                     ( model, addError error )
@@ -1006,20 +998,20 @@ update msg model =
 
         RefreshSecrets org repo ->
             let
-                secrets =
-                    model.secrets
+                secretsModel =
+                    model.secretsModel
             in
-            ( { model | secrets = { secrets | secrets = Loading } }, getSecrets model "repo" org repo )
+            ( { model | secretsModel = { secretsModel | secrets = Loading } }, getSecrets model "repo" org repo )
 
         RepoSecretsUpdate org repo m ->
             let
-                args =
-                    model.secrets
+                secretsModel =
+                    model.secretsModel
 
-                ( secrets, action ) =
-                    Pages.RepoSecrets.update { args | org = org, repo = repo } model m
+                ( newModel, action ) =
+                    Pages.Secrets.update { model | secretsModel = { secretsModel | org = org, repo = repo } } m
             in
-            ( { model | secrets = secrets }
+            ( newModel
             , action
             )
 
@@ -1474,10 +1466,10 @@ viewContent model =
         Pages.RepoSecrets org repo ->
             let
                 args =
-                    model.secrets
+                    model.secretsModel
             in
             ( String.join "/" [ org, repo ] ++ " secrets"
-            , Html.map (\m -> RepoSecretsUpdate org repo m) <| lazy Pages.RepoSecrets.view { args | org = org, repo = repo }
+            , Html.map (\m -> RepoSecretsUpdate org repo m) <| lazy Pages.Secrets.view model
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
@@ -1908,10 +1900,10 @@ loadRepoSecretsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadRepoSecretsPage model org repo =
     -- Fetch secrets from Api
     let
-        secrets =
-            model.secrets
+        secretsModel =
+            model.secretsModel
     in
-    ( { model | page = Pages.RepoSecrets org repo, secrets = { secrets | secrets = Loading }, inTimeout = Nothing }
+    ( { model | page = Pages.RepoSecrets org repo, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
     , Cmd.batch
         [ getCurrentUser model
         , getSecrets model "repo" org repo
@@ -2257,7 +2249,7 @@ getBuild model org repo buildNumber =
 
 getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 getAllBuildSteps model org repo buildNumber logFocus =
-    Api.try (StepsResponse org repo buildNumber logFocus) <| Api.getSteps model Nothing Nothing org repo buildNumber
+    Api.tryAll (StepsResponse org repo buildNumber logFocus) <| Api.getAllSteps model org repo buildNumber
 
 
 getBuildStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg

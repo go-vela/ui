@@ -327,7 +327,7 @@ manageSecret args secrets =
                 Add ->
                     div []
                         [ selectSecret args secrets
-                        , div [ class "new-secret" ]
+                        , div [ class "secret-form" ]
                             [ Html.h4 [ class "subheader" ] [ text "Add a New Secret" ]
                             , Html.h4 [ class "-no-pad", class "-m-t" ] [ text "Name" ]
                             , nameInput args.newSecret.name False
@@ -358,7 +358,7 @@ manageSecret args secrets =
                         updateSecret =
                             case secret_ of
                                 Just s ->
-                                    [ div [ class "new-secret" ]
+                                    [ div [ class "secret-form" ]
                                         [ Html.h4 [ class "subheader" ] [ text "Update Existing Secret" ]
                                         , Html.h4 [ class "-no-pad", class "-m-t" ] [ text "Name" ]
                                         , nameInput s.name True
