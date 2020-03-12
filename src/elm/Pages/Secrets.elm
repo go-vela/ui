@@ -65,22 +65,18 @@ type alias Args msg =
     , manageState : ManageSecretState
     , selectedSecret : String
     , secretUpdate : SecretUpdate
-    , secretAdd : SecretAdd
+    , secretAdd : SecretUpdate
     , secretResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
     , secretsResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> msg
     }
 
 
 type Msg
-    = SelectSecret String
-    | OnChangeName String
-    | OnChangeValue String
-    | OnChangeType String
-    | OnChangeTeam String
+    = OnChangeStringField String String
+    | SelectSecret String
     | OnChangeEvent String Bool
     | AddImage String
     | RemoveImage String
-    | OnChangeImageInput String
     | OnChangeAllowCommand Bool
     | CancelUpdate
     | AddSecret
@@ -102,22 +98,46 @@ type alias SecretUpdate =
     , value : String
     , type_ : SecretType
     , events : List String
+    , imageInput : String
     , images : List String
     , allowCommand : Bool
     }
 
 
-type alias SecretAdd =
-    { org : Org
-    , repo : Repo
-    , team : Team
-    , name : String
-    , value : String
-    , type_ : SecretType
-    , events : List String
-    , images : List String
-    , allowCommand : Bool
-    }
+onChangeStringField : String -> String -> Args msg -> Args msg
+onChangeStringField field value secretsModel =
+    case secretsModel.manageState of
+        Add ->
+            let
+                secretAdd =
+                    secretsModel.secretAdd
+            in
+            { secretsModel | secretAdd = updateSecretField field value secretAdd }
+
+        Update ->
+            secretsModel
+
+        Choose ->
+            secretsModel
+
+
+updateSecretField : String -> String -> SecretUpdate -> SecretUpdate
+updateSecretField field value secret =
+    case field of
+        "team" ->
+            { secret | team = value }
+
+        "name" ->
+            { secret | imageInput = value }
+
+        "value" ->
+            { secret | imageInput = value }
+
+        "imageInput" ->
+            { secret | imageInput = value }
+
+        _ ->
+            secret
 
 
 
@@ -256,12 +276,12 @@ defaultOptions =
 
 nameInput : String -> Bool -> Html Msg
 nameInput val disable =
-    div [] [ Html.input [ disabled disable, value val, onInput OnChangeName, class "secret-name", Html.Attributes.placeholder "Secret Name" ] [] ]
+    div [] [ Html.input [ disabled disable, value val, onInput <| OnChangeStringField "name", class "secret-name", Html.Attributes.placeholder "Secret Name" ] [] ]
 
 
 valueInput : String -> Html Msg
 valueInput val =
-    div [] [ Html.textarea [ value val, onInput OnChangeValue, class "secret-value", Html.Attributes.placeholder "Secret Value" ] [] ]
+    div [] [ Html.textarea [ value val, onInput <| OnChangeStringField "value", class "secret-value", Html.Attributes.placeholder "Secret Value" ] [] ]
 
 
 typeSelect : SecretUpdate -> Html Msg
@@ -270,9 +290,9 @@ typeSelect args =
         [ Html.h4 [ class "-no-pad" ] [ text "Type" ]
         , div
             [ class "form-controls", class "-row" ]
-            [ radio (secretTypeToString args.type_) "repo" "Repo" <| OnChangeType "repo"
-            , radio (secretTypeToString args.type_) "org" "Org (current org)" <| OnChangeType "org"
-            , radio (secretTypeToString args.type_) "shared" "Shared" <| OnChangeType "shared"
+            [ radio (secretTypeToString args.type_) "repo" "Repo" <| OnChangeStringField "type" "repo"
+            , radio (secretTypeToString args.type_) "org" "Org (current org)" <| OnChangeStringField "type" "org"
+            , radio (secretTypeToString args.type_) "shared" "Shared" <| OnChangeStringField "type" "shared"
             ]
         ]
 
@@ -286,7 +306,7 @@ teamInput secret =
                 , div []
                     [ Html.textarea
                         [ value secret.team
-                        , onInput OnChangeTeam
+                        , onInput <| OnChangeStringField "team"
                         , class "team-value"
                         , Html.Attributes.placeholder "Team Name"
                         ]
@@ -334,7 +354,7 @@ imagesInput args imageInput =
         , div []
             [ Html.input
                 [ placeholder "Image Name"
-                , onInput OnChangeImageInput
+                , onInput <| OnChangeStringField "imageInput"
                 , value imageInput
                 ]
                 []
@@ -371,8 +391,8 @@ addedImage image =
 -- HELPERS
 
 
-getKey : SecretAdd -> String
-getKey secretAdd =
+getSecretAddKey : SecretUpdate -> String
+getSecretAddKey secretAdd =
     case secretAdd.type_ of
         Vela.Repo ->
             secretAdd.repo
@@ -382,6 +402,19 @@ getKey secretAdd =
 
         Vela.Shared ->
             secretAdd.team
+
+
+getSecretUpdateKey : SecretUpdate -> String
+getSecretUpdateKey secretUpdate =
+    case secretUpdate.type_ of
+        Vela.Repo ->
+            secretUpdate.repo
+
+        Vela.Org ->
+            "*"
+
+        Vela.Shared ->
+            secretUpdate.team
 
 
 handleSelection : String -> ManageSecretState
@@ -436,7 +469,7 @@ update model msg =
             secretsModel.secretAdd
 
         secretUpdate =
-            secretsModel.secretAdd
+            secretsModel.secretUpdate
 
         ( sm, action ) =
             case msg of
@@ -456,32 +489,24 @@ update model msg =
                     , Cmd.none
                     )
 
-                OnChangeName name ->
-                    ( { secretsModel | newSecret = { newSecret | name = name } }, Cmd.none )
-
-                OnChangeValue value ->
-                    ( { secretsModel | newSecret = { newSecret | value = value } }, Cmd.none )
-
-                OnChangeType type_ ->
-                    ( { secretsModel | newSecret = { newSecret | type_ = toSecretType type_ } }, Cmd.none )
-
-                OnChangeTeam team ->
-                    ( { secretsModel | newSecret = { newSecret | team = team } }, Cmd.none )
+                OnChangeStringField field value ->
+                    ( onChangeStringField field value secretsModel, Cmd.none )
 
                 OnChangeEvent event _ ->
-                    ( { secretsModel | newSecret = { newSecret | events = toggleEvent event newSecret.events } }, Cmd.none )
-
-                OnChangeImageInput input ->
-                    ( { secretsModel | imageInput = input }, Cmd.none )
+                    -- ( { secretsModel | newSecret = { newSecret | events = toggleEvent event newSecret.events } }, Cmd.none )
+                    ( secretsModel, Cmd.none )
 
                 AddImage image ->
-                    ( { secretsModel | newSecret = { newSecret | images = Util.filterEmptyList <| List.Extra.unique <| image :: newSecret.images } }, Cmd.none )
+                    -- ( { secretsModel | newSecret = { newSecret | images = Util.filterEmptyList <| List.Extra.unique <| image :: newSecret.images } }, Cmd.none )
+                    ( secretsModel, Cmd.none )
 
                 RemoveImage image ->
-                    ( { secretsModel | newSecret = { newSecret | images = List.Extra.remove image newSecret.images } }, Cmd.none )
+                    -- ( { secretsModel | newSecret = { newSecret | images = List.Extra.remove image newSecret.images } }, Cmd.none )
+                    ( secretsModel, Cmd.none )
 
                 OnChangeAllowCommand allow ->
-                    ( { secretsModel | newSecret = { newSecret | allowCommand = allow } }, Cmd.none )
+                    -- ( { secretsModel | newSecret = { newSecret | allowCommand = allow } }, Cmd.none )
+                    ( secretsModel, Cmd.none )
 
                 AddSecret ->
                     ( secretsModel, Cmd.none )
@@ -513,16 +538,3 @@ update model msg =
                     ( secretsModel, Cmd.none )
     in
     ( { model | secretsModel = sm }, action )
-
-
-onChangeString : String -> String -> Args msg -> Args msg
-onChangeString field value secretsModel =
-    case secretsModel.manageState of
-        Add ->
-            secretsModel
-
-        Update ->
-            secretsModel
-
-        Choose ->
-            secretsModel
