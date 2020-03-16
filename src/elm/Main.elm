@@ -1543,7 +1543,7 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
 
         identityAttributeList : List (Html.Attribute Msg)
         identityAttributeList =
-            attribute "role" "navigation" :: Util.open showId
+            attribute "role" "navigation" :: Util.attributesIf showId [ attribute "open" "" ]
     in
     header []
         [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
@@ -1561,9 +1561,25 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
                             ]
                         , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                             [ li [ class "identity-menu-item" ]
-                                [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
+                                [ a
+                                    ([ Routes.href Routes.Settings
+                                     , Util.testAttribute "settings-link"
+                                     , attribute "role" "menuitem"
+                                     ]
+                                        ++ Util.attributesIf (not showId) [ attribute "tabindex" "-1" ]
+                                    )
+                                    [ text "Settings" ]
+                                ]
                             , li [ class "identity-menu-item" ]
-                                [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
+                                [ a
+                                    ([ Routes.href Routes.Logout
+                                     , Util.testAttribute "logout-link"
+                                     , attribute "role" "menuitem"
+                                     ]
+                                        ++ Util.attributesIf (not showId) [ attribute "tabindex" "-1" ]
+                                    )
+                                    [ text "Logout" ]
+                                ]
                             ]
                         ]
             ]

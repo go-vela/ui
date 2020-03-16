@@ -56,7 +56,7 @@ view args =
              , class "-no-pad"
              , attribute "role" "button"
              ]
-                ++ Util.open args.show
+                ++ Util.attributesIf args.show [ attribute "open" "" ]
             )
             [ summary
                 [ class "summary"

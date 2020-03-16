@@ -24,7 +24,8 @@ import Html
         )
 import Html.Attributes
     exposing
-        ( class
+        ( attribute
+        , class
         , href
         )
 import Html.Events exposing (onClick)
@@ -122,7 +123,13 @@ rows now org repo hookBuilds hooks clickAction =
 -}
 row : Posix -> Org -> Repo -> Hook -> HookBuilds -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
 row now org repo hook hookBuilds clickAction =
-    details ([ class "details", class "-no-pad", Util.testAttribute "hook" ] ++ (Util.open <| hookOpen ( org, repo, String.fromInt hook.build_id ) hookBuilds))
+    details
+        ([ class "details"
+         , class "-no-pad"
+         , Util.testAttribute "hook"
+         ]
+            ++ (Util.attributesIf <| hookOpen ( org, repo, String.fromInt hook.build_id ) hookBuilds) [ attribute "open" "" ]
+        )
         [ summary [ class "summary", onClick (clickAction org repo <| String.fromInt hook.build_id) ]
             [ preview now hook ]
         , info now ( org, repo, String.fromInt hook.build_id ) hook hookBuilds

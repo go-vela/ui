@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Util exposing
     ( ariaHidden
+    , attributesIf
     , dateToHumanReadable
     , dispatch
     , filterEmptyLists
@@ -20,7 +21,6 @@ module Util exposing
     , onClickPreventDefault
     , onClickStopPropogation
     , oneSecondMillis
-    , open
     , pluralize
     , relativeTimeNoSeconds
     , secondsToMillis
@@ -229,10 +229,10 @@ dispatch msg =
 
 {-| open : returns html attribute for open/closed details summaries
 -}
-open : Bool -> List (Html.Attribute msg)
-open isOpen =
-    if isOpen then
-        [ attribute "open" "" ]
+attributesIf : Bool -> List (Html.Attribute msg) -> List (Html.Attribute msg)
+attributesIf condition attributes =
+    if condition then
+        attributes
 
     else
         []

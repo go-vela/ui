@@ -273,7 +273,7 @@ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction s
             , ( "-with-border", True )
             , ( "-running", step.status == Vela.Running )
             ]
-            :: Util.open step.viewing
+            :: Util.attributesIf step.viewing [ attribute "open" "" ]
         )
         stepSummary
 
