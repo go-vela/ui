@@ -20,8 +20,6 @@ cp .env.example .env
 
 Now, edit the values for each of the environment variables in the newly created `.env` file.
 
-Also, be sure to update `docker-compose.yml` by adjusting the value of `VELA_SOURCE_URL` to match the URL of your source control provider.
-
 ## Running locally
 
 ```bash
