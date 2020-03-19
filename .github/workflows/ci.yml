@@ -139,9 +139,6 @@ jobs:
     runs-on: ubuntu-16.04
     env:
       VELA_API: 'http://localhost:8080'
-      VELA_SOURCE_URL: ''
-      VELA_SOURCE_CLIENT: ''
-      VELA_SOURCE_SECRET: ''
       TERM: xterm
 
     steps:
