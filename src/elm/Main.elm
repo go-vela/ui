@@ -8,6 +8,7 @@ module Main exposing (main)
 
 import Alerts exposing (Alert)
 import Api
+import Api.Endpoint
 import Api.Pagination as Pagination
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
@@ -166,8 +167,6 @@ import Vela
 type alias Flags =
     { isDev : Bool
     , velaAPI : String
-    , velaSourceBaseURL : String
-    , velaSourceClient : String
     , velaFeedbackURL : String
     , velaDocsURL : String
     , velaSession : Maybe Session
@@ -187,8 +186,6 @@ type alias Model =
     , steps : WebData Steps
     , logs : Logs
     , velaAPI : String
-    , velaSourceBaseURL : String
-    , velaSourceOauthStartURL : String
     , velaFeedbackURL : String
     , velaDocsURL : String
     , navigationKey : Navigation.Key
@@ -237,17 +234,6 @@ init flags url navKey =
             , build = NotAsked
             , steps = NotAsked
             , logs = []
-            , velaSourceOauthStartURL =
-                buildUrl flags.velaSourceBaseURL
-                    [ "login"
-                    , "oauth"
-                    , "authorize"
-                    ]
-                    [ UB.string "scope" "user repo" -- access we need
-                    , UB.string "state" "1234"
-                    , UB.string "client_id" flags.velaSourceClient
-                    ]
-            , velaSourceBaseURL = flags.velaSourceBaseURL
             , velaFeedbackURL = flags.velaFeedbackURL
             , velaDocsURL = flags.velaDocsURL
             , navigationKey = navKey
@@ -370,7 +356,7 @@ update msg model =
             setNewPage route model
 
         SignInRequested ->
-            ( model, Navigation.load model.velaSourceOauthStartURL )
+            ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
 
         SessionChanged newSession ->
             ( { model | session = newSession }, Cmd.none )
@@ -437,7 +423,7 @@ update msg model =
             let
                 payload : EnableRepositoryPayload
                 payload =
-                    buildEnableRepositoryPayload repo model.velaSourceBaseURL
+                    buildEnableRepositoryPayload repo
 
                 body : Http.Body
                 body =
@@ -1894,14 +1880,14 @@ repoEnabledError sourceRepos repo error =
 
 {-| buildEnableRepositoryPayload : builds the payload for adding a repository via the api
 -}
-buildEnableRepositoryPayload : Repository -> String -> EnableRepositoryPayload
-buildEnableRepositoryPayload repo velaSourceBaseURL =
+buildEnableRepositoryPayload : Repository -> EnableRepositoryPayload
+buildEnableRepositoryPayload repo =
     { defaultEnableRepositoryPayload
         | org = repo.org
         , name = repo.name
         , full_name = repo.org ++ "/" ++ repo.name
-        , link = String.join "/" [ velaSourceBaseURL, repo.org, repo.name ]
-        , clone = String.join "/" [ velaSourceBaseURL, repo.org, repo.name ] ++ ".git"
+        , link = repo.link
+        , clone = repo.clone
     }
 
 

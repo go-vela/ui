@@ -47,10 +47,6 @@ export type Flags = {
   readonly isDev: boolean;
   /** @property velaAPI the API of the server that the UI will interface with */
   readonly velaAPI: string;
-  /** @property velaSourceBaseURL the base URL of the code management tool, ie. https://github.com */
-  readonly velaSourceBaseURL: string;
-  /** @property velaSourceClient the "Client ID" for the OAuth app set up in the source management tool */
-  readonly velaSourceClient: string;
   /** @property velaFeedbackURL allows you to customize the destination of the feedback link */
   readonly velaFeedbackURL: string;
   /** @property velaDocsURL allows you to customize the destination of the docs link */
