@@ -5,8 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( AddSecretPayload
-    , AuthParams
+    ( AuthParams
     , Build
     , BuildIdentifier
     , BuildNumber
@@ -59,7 +58,6 @@ module Vela exposing
     , UpdateUserPayload
     , User
     , Viewing
-    , buildAddSecretPayload
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
@@ -89,7 +87,6 @@ module Vela exposing
     , defaultSession
     , defaultUpdateRepositoryPayload
     , defaultUser
-    , encodeAddSecret
     , encodeEnableRepository
     , encodeSession
     , encodeTheme
@@ -97,6 +94,7 @@ module Vela exposing
     , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
+    , nullSecret
     , secretTypeToString
     , statusToFavicon
     , stringToTheme
@@ -958,6 +956,11 @@ type SecretType
     | Repo
 
 
+nullSecret : Secret
+nullSecret =
+    Secret 0 "" "" "" "" Org [] [] False
+
+
 {-| secretTypeDecoder : decodes string field "type" to the union type SecretType
 -}
 secretTypeDecoder : Decoder SecretType
@@ -1065,62 +1068,6 @@ decodeSecrets =
 
 type alias Secrets =
     List Secret
-
-
-type alias AddSecretPayload =
-    { type_ : SecretType
-    , org : Org
-    , repo : Maybe Repo
-    , team : Maybe Team
-    , name : Name
-    , value : String
-    , events : List String
-    , images : List String
-    , allowCommand : Bool
-    }
-
-
-encodeAddSecret : AddSecretPayload -> Encode.Value
-encodeAddSecret secret =
-    Encode.object
-        [ ( "type", secretTypeEncoder secret.type_ )
-        , ( "org", Encode.string secret.org )
-        , ( "repo", encodeOptional Encode.string secret.repo )
-        , ( "team", encodeOptional Encode.string secret.team )
-        , ( "name", Encode.string secret.name )
-        , ( "value", Encode.string secret.value )
-        , ( "events", Encode.list Encode.string secret.events )
-        , ( "images", Encode.list Encode.string secret.images )
-        , ( "allow_command", Encode.bool secret.allowCommand )
-        ]
-
-
-secretTypeEncoder : SecretType -> Encode.Value
-secretTypeEncoder type_ =
-    case type_ of
-        Org ->
-            Encode.string "org"
-
-        Repo ->
-            Encode.string "repo"
-
-        Shared ->
-            Encode.string "shared"
-
-
-buildAddSecretPayload :
-    SecretType
-    -> Org
-    -> Maybe Repo
-    -> Maybe Team
-    -> Name
-    -> String
-    -> List String
-    -> List String
-    -> Bool
-    -> AddSecretPayload
-buildAddSecretPayload type_ org repo team name value events images allowCommand =
-    AddSecretPayload type_ org repo team name value events images allowCommand
 
 
 type alias UpdateSecretPayload =

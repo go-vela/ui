@@ -273,7 +273,7 @@ init flags url navKey =
             , showHelp = False
             , showIdentity = False
             , favicon = defaultFavicon
-            , secretsModel = Pages.Secrets.init AddSecretResponse SecretsResponse
+            , secretsModel = Pages.Secrets.init SecretResponse SecretsResponse
             }
 
         ( newModel, newPage ) =
@@ -351,8 +351,8 @@ type Msg
     | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
+    | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
-    | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
@@ -754,17 +754,20 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        AddSecretResponse response ->
+        SecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
                     let
                         secretsModel =
                             model.secretsModel
+
+                        updatedSecretsModel =
+                            Pages.Secrets.reinitializeSecretUpdate secretsModel secret
                     in
-                    ( { model | secretsModel = { secretsModel | secretAdd = Pages.Secrets.defaultSecretUpdate } }
-                    , Cmd.batch [ getSecrets model "repo" secret.org secret.repo, getSecrets model "org" secret.org "*" ]
+                    ( { model | secretsModel = updatedSecretsModel }
+                    , Cmd.batch [ getSecrets model "repo" secretsModel.org secretsModel.repo, getSecrets model "org" secretsModel.org "*" ]
                     )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (secret.name ++ " added to secrets.") Nothing)
+                        |> secretResponseAlert secret secretsModel.manageState
 
                 Err error ->
                     ( model, addError error )
@@ -1081,6 +1084,27 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
+
+
+secretResponseAlert :
+    Secret
+    -> Pages.Secrets.ManageSecretState
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+secretResponseAlert secret secretUpdate =
+    let
+        msg =
+            case secretUpdate of
+                Pages.Secrets.Add ->
+                    secret.name ++ " added to secrets."
+
+                Pages.Secrets.Update ->
+                    "Updated secret `" ++ secret.name ++ "`."
+
+                Pages.Secrets.Choose ->
+                    ""
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
 
 
