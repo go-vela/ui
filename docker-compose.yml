@@ -60,7 +60,7 @@ services:
   #     VELA_QUEUE_CONFIG: redis://redis:6379
   #     VELA_QUEUE_WORKER_ROUTES: larger,docker,large:docker
   #     VELA_RUNTIME_DRIVER: docker
-  #     VELA_SERVER_ADDR: http://vela:8080
+  #     VELA_SERVER_ADDR: http://server:8080
   #     VELA_SERVER_SECRET: zB7mrKDTZqNeNTD8z47yG4DHywspAh
   #   restart: always
   #   ports:
