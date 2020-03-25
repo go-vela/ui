@@ -126,7 +126,7 @@ viewLine stepNumber line logFocus lineNumber clickAction shiftDown =
             , logFocusStyles logFocus lineNumber
             ]
             [ lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown
-            , code [] [ text <| String.trim line ]
+            , code [] [ text line ]
             ]
         ]
 
@@ -419,8 +419,9 @@ logFocusExists steps =
 decodeLogLine : Maybe (WebData Log) -> List String
 decodeLogLine log =
     List.filter (\line -> not <| String.isEmpty line) <|
-        String.lines <|
-            decodeLog log
+        List.map String.trim <|
+            String.lines <|
+                decodeLog log
 
 
 {-| decodeLog : returns a string from a Maybe Log and decodes it from base64
