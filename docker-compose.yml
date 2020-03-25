@@ -18,8 +18,7 @@ services:
 
   server:
     container_name: server
-    # image: target/vela-server
-    image: localhost:5000/vela-server
+    image: target/vela-server
     networks:
       - vela
     environment:
@@ -50,14 +49,13 @@ services:
 
   worker:
     container_name: worker
-    # image: target/vela-worker
-    image: localhost:5000/vela-worker
+    image: target/vela-worker
     networks:
       - vela
     environment:
       VELA_BUILD_LIMIT: 1
       VELA_BUILD_TIMEOUT: 30m
-      VELA_LOG_LEVEL: trace
+      VELA_LOG_LEVEL: debug
       VELA_QUEUE_DRIVER: redis
       VELA_QUEUE_CONFIG: redis://redis:6379
       VELA_QUEUE_WORKER_ROUTES: larger,docker,large:docker
