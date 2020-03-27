@@ -130,8 +130,8 @@ type alias Msgs msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> Msgs msg -> String -> Html msg
-view repo inTimeout actions velaAPI =
+view : WebData Repository -> Maybe Int -> Msgs msg -> String -> String -> Html msg
+view repo inTimeout actions velaAPI velaURL =
     let
         ( accessUpdate, timeoutUpdate, inTimeoutChange ) =
             ( actions.accessUpdate, actions.timeoutUpdate, actions.inTimeoutChange )
@@ -148,7 +148,7 @@ view repo inTimeout actions velaAPI =
                 [ events repo_ eventsUpdate
                 , access repo_ accessUpdate
                 , timeout inTimeout repo_ timeoutUpdate inTimeoutChange
-                , badge repo_ velaAPI actions.copy
+                , badge repo_ velaAPI velaURL actions.copy
                 , admin disableRepo enableRepo chownRepo repairRepo repo_
                 ]
 
@@ -187,16 +187,27 @@ access repo msg =
 
 {-| badge : takes repo and renders a section for getting your build status badge
 -}
-badge : Repository -> String -> Copy msg -> Html msg
-badge repo velaAPI copyMsg =
+badge : Repository -> String -> String -> Copy msg -> Html msg
+badge repo velaAPI velaURL copyMsg =
     let
         badgeURL : String
         badgeURL =
             String.join "/" [ velaAPI, "badge", repo.org, repo.name, "status.svg" ]
 
+        baseURL : String
+        baseURL =
+            velaURL
+                |> String.split "/"
+                |> List.take 3
+                |> String.join "/"
+
+        buildURL : String
+        buildURL =
+            String.join "/" [ baseURL, repo.org, repo.name ]
+
         mdCode : String
         mdCode =
-            "[![Build Status](" ++ badgeURL ++ ")](" ++ repo.link ++ ")"
+            "[![Build Status](" ++ badgeURL ++ ")](" ++ buildURL ++ ")"
     in
     section [ class "settings", Util.testAttribute "repo-settings-badge" ]
         [ h2 [ class "settings-title" ] [ text "Status Badge" ]
