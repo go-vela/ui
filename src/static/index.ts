@@ -28,8 +28,6 @@ const currentThemeState: Theme =
 const flags: Flags = {
   isDev: process.env.NODE_ENV === 'development',
   velaAPI: process.env.VELA_API || '$VELA_API',
-  velaSourceBaseURL: process.env.VELA_SOURCE_URL || '$VELA_SOURCE_URL',
-  velaSourceClient: process.env.VELA_SOURCE_CLIENT || '$VELA_SOURCE_CLIENT',
   velaFeedbackURL:
     process.env.VELA_FEEDBACK_URL ||
     envOrNull('VELA_FEEDBACK_URL', '$VELA_FEEDBACK_URL') ||

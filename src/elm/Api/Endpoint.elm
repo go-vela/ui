@@ -22,6 +22,7 @@ apiBase =
 -}
 type Endpoint
     = Authenticate AuthParams
+    | Login
     | CurrentUser
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Repository Org Repo
@@ -45,6 +46,9 @@ toUrl api endpoint =
     case endpoint of
         Authenticate { code, state } ->
             url api [ "authenticate" ] [ UB.string "code" <| Maybe.withDefault "" code, UB.string "state" <| Maybe.withDefault "" state ]
+
+        Login ->
+            url api [ "login" ] []
 
         Repositories maybePage maybePerPage ->
             url api [ "repos" ] <| Pagination.toQueryParams maybePage maybePerPage
@@ -93,9 +97,13 @@ toUrl api endpoint =
 -}
 url : String -> List String -> List QueryParameter -> String
 url api segments params =
-    -- "authenticate" doesn't live at the base api path
-    if List.head segments == Just "authenticate" then
-        UB.crossOrigin api segments params
+    -- "/authenticate" and "/login" don't live at the base api path
+    case List.head segments of
+        Just "authenticate" ->
+            UB.crossOrigin api segments params
 
-    else
-        UB.crossOrigin api (apiBase :: segments) params
+        Just "login" ->
+            UB.crossOrigin api segments params
+
+        _ ->
+            UB.crossOrigin api (apiBase :: segments) params
