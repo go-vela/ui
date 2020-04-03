@@ -87,7 +87,7 @@ toPath page =
         repoSettings =
             ( "Settings", Nothing )
 
-        repoSecrets =
+        secrets =
             ( "Secrets", Nothing )
 
         pages =
@@ -121,15 +121,55 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, repoBuilds, repoSettings ]
 
+                Pages.OrgSecrets org ->
+                    let
+                        organizationPage =
+                            ( org, Nothing )
+                    in
+                    [ overviewPage, secrets, organizationPage ]
+
                 Pages.RepoSecrets org repo ->
                     let
                         organizationPage =
                             ( org, Nothing )
 
                         repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                            ( repo, Nothing )
                     in
-                    [ overviewPage, organizationPage, repoBuilds, repoSecrets ]
+                    [ overviewPage, secrets, organizationPage, repoBuilds ]
+
+                Pages.SharedSecrets org team ->
+                    let
+                        organizationPage =
+                            ( org, Nothing )
+
+                        teamCrumb =
+                            ( team, Nothing )
+                    in
+                    [ overviewPage, secrets, organizationPage, teamCrumb ]
+
+                Pages.AddSecret ->
+                    let
+                        add =
+                            ( "Add", Nothing )
+                    in
+                    [ overviewPage, secrets, add ]
+
+                Pages.UpdateSecret org key name ->
+                    let
+                        update =
+                            ( "update", Nothing )
+
+                        organizationPage =
+                            ( org, Nothing )
+
+                        keyCrumb =
+                            ( key, Nothing )
+
+                        nameCrumb =
+                            ( name, Nothing )
+                    in
+                    [ overviewPage, secrets, update, organizationPage, keyCrumb, nameCrumb ]
 
                 Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
                     let

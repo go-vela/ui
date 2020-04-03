@@ -1444,6 +1444,52 @@ h4.-m-t {
     border-radius: 0px;
   }
 }
+.select-secret .menu {
+  position: absolute;
+  left: 5px;
+  margin-top: 5px;
+  background: white;
+  color: black;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  z-index: 11110;
+}
+
+.selected-item {
+  background: #3366ff;
+  color: white;
+  display: block;
+  padding: 5px 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.select-secret .list {
+  list-style: none;
+  padding: 0;
+  margin: auto;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.select-secret .item {
+  display: block;
+  padding: 5px 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.select-secret .input {
+  min-width: 120px;
+  color: black;
+  position: relative;
+  display: block;
+  padding: 0.8em;
+  font-size: 12px;
+}
+
 .no-secrets {
   padding: 1rem;
 }

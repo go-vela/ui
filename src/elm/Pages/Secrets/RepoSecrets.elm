@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Secrets exposing
+module Pages.Secrets.RepoSecrets exposing
     ( Args
     , ManageSecretState(..)
     , Msg
@@ -29,7 +29,14 @@ import Html
         , span
         , text
         )
-import Html.Attributes exposing (class, disabled, placeholder, value)
+import Html.Attributes
+    exposing
+        ( class
+        , disabled
+        , href
+        , placeholder
+        , value
+        )
 import Html.Events exposing (onClick, onInput)
 import Http
 import Http.Detailed
@@ -332,7 +339,7 @@ updateSecretField field value secret =
             { secret | value = value }
 
         "imageInput" ->
-            { secret | imageInput = value }
+            { secret | imageInput = String.replace " " "" value }
 
         _ ->
             secret
@@ -868,7 +875,12 @@ allowCommandCheckbox secretUpdate =
 -}
 help : Html Msg
 help =
-    div [] [ text "Need help? Visit our ", a [] [ text "docs" ], text "!" ]
+    div [] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
+
+
+secretsDocsURL : String
+secretsDocsURL =
+    "https://go-vela.github.io/docs/concepts/pipeline/secrets/"
 
 
 

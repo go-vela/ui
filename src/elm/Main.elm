@@ -80,7 +80,7 @@ import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
 import Pages.RepoSettings exposing (enableUpdate)
-import Pages.Secrets
+import Pages.Secrets.RepoSecrets
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
@@ -209,7 +209,7 @@ type alias Model =
     , showHelp : Bool
     , showIdentity : Bool
     , favicon : Favicon
-    , secretsModel : Pages.Secrets.Args Msg
+    , secretsModel : Pages.Secrets.RepoSecrets.Args Msg
     }
 
 
@@ -259,7 +259,7 @@ init flags url navKey =
             , showHelp = False
             , showIdentity = False
             , favicon = defaultFavicon
-            , secretsModel = Pages.Secrets.init SecretResponse SecretsResponse
+            , secretsModel = Pages.Secrets.RepoSecrets.init SecretResponse SecretsResponse
             }
 
         ( newModel, newPage ) =
@@ -351,7 +351,7 @@ type Msg
     | UpdateUrl String
     | VisibilityChanged Visibility
       -- Components
-    | RepoSecretsUpdate Org Repo Pages.Secrets.Msg
+    | RepoSecretsUpdate Org Repo Pages.Secrets.RepoSecrets.Msg
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -748,7 +748,7 @@ update msg model =
                             model.secretsModel
 
                         updatedSecretsModel =
-                            Pages.Secrets.reinitializeSecretUpdate secretsModel secret
+                            Pages.Secrets.RepoSecrets.reinitializeSecretUpdate secretsModel secret
                     in
                     ( { model | secretsModel = updatedSecretsModel }
                     , Cmd.batch [ getSecrets model "repo" secretsModel.org secretsModel.repo, getSecrets model "org" secretsModel.org "*" ]
@@ -998,7 +998,7 @@ update msg model =
                     model.secretsModel
 
                 ( newModel, action ) =
-                    Pages.Secrets.update { model | secretsModel = { secretsModel | org = org, repo = repo } } m
+                    Pages.Secrets.RepoSecrets.update { model | secretsModel = { secretsModel | org = org, repo = repo } } m
             in
             ( newModel
             , action
@@ -1074,20 +1074,20 @@ update msg model =
 
 secretResponseAlert :
     Secret
-    -> Pages.Secrets.ManageSecretState
+    -> Pages.Secrets.RepoSecrets.ManageSecretState
     -> ( { m | toasties : Stack Alert }, Cmd Msg )
     -> ( { m | toasties : Stack Alert }, Cmd Msg )
 secretResponseAlert secret secretUpdate =
     let
         msg =
             case secretUpdate of
-                Pages.Secrets.Add ->
+                Pages.Secrets.RepoSecrets.Add ->
                     secret.name ++ " added to secrets."
 
-                Pages.Secrets.Update ->
+                Pages.Secrets.RepoSecrets.Update ->
                     "Updated secret `" ++ secret.name ++ "`."
 
-                Pages.Secrets.Choose ->
+                Pages.Secrets.RepoSecrets.Choose ->
                     ""
     in
     Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
@@ -1473,13 +1473,49 @@ viewContent model =
             , lazy5 Pages.RepoSettings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
             )
 
+        Pages.OrgSecrets org ->
+            let
+                args =
+                    model.secretsModel
+            in
+            ( String.join "/" [ org ] ++ " org secrets"
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
+            )
+
         Pages.RepoSecrets org repo ->
             let
                 args =
                     model.secretsModel
             in
-            ( String.join "/" [ org, repo ] ++ " secrets"
-            , Html.map (\m -> RepoSecretsUpdate org repo m) <| lazy Pages.Secrets.view model
+            ( String.join "/" [ org, repo ] ++ " repo secrets"
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
+            )
+
+        Pages.SharedSecrets org team ->
+            let
+                args =
+                    model.secretsModel
+            in
+            ( String.join "/" [ org, team ] ++ " shared secrets"
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
+            )
+
+        Pages.AddSecret ->
+            let
+                args =
+                    model.secretsModel
+            in
+            ( "add secret"
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
+            )
+
+        Pages.UpdateSecret org key name ->
+            let
+                args =
+                    model.secretsModel
+            in
+            ( String.join "/" [ org, key, name ] ++ " udpate secret"
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
@@ -1685,6 +1721,7 @@ helpArgs model =
     , build = helpArg model.build
     , repo = helpArg model.repo
     , hooks = helpArg model.hooks.hooks
+    , secrets = helpArg model.secretsModel.secrets
     , show = model.showHelp
     , toggle = ShowHideHelp
     , copy = Copy
@@ -1779,8 +1816,20 @@ setNewPage route model =
         ( Routes.RepoSettings org repo, True ) ->
             loadRepoSettingsPage model org repo
 
+        ( Routes.OrgSecrets org, True ) ->
+            ( { model | page = Pages.OrgSecrets org }, Cmd.none )
+
         ( Routes.RepoSecrets org repo, True ) ->
             loadRepoSecretsPage model org repo
+
+        ( Routes.SharedSecrets org team, True ) ->
+            ( { model | page = Pages.SharedSecrets org team }, Cmd.none )
+
+        ( Routes.AddSecret, True ) ->
+            ( { model | page = Pages.AddSecret }, Cmd.none )
+
+        ( Routes.UpdateSecret org key name, True ) ->
+            ( { model | page = Pages.UpdateSecret org key name }, Cmd.none )
 
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
             let

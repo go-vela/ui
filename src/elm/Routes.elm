@@ -13,7 +13,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Event, FocusFragment, Org, Repo)
+import Vela exposing (AuthParams, BuildNumber, Event, FocusFragment, Key, Name, Org, Repo, Team)
 
 
 
@@ -24,7 +24,11 @@ type Route
     = Overview
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | OrgSecrets Org
     | RepoSecrets Org Repo
+    | SharedSecrets Org Team
+    | AddSecret
+    | UpdateSecret Org Key Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
@@ -91,8 +95,20 @@ routeToUrl route =
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
+        OrgSecrets org ->
+            "/" ++ org ++ "/*/secrets"
+
         RepoSecrets org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/secrets"
+
+        SharedSecrets org team ->
+            "/" ++ org ++ "/" ++ team ++ "/shared-secrets"
+
+        AddSecret ->
+            "/secrets/add"
+
+        UpdateSecret org key name ->
+            "/secrets/update/" ++ org ++ "/" ++ key ++ "/" ++ name
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
