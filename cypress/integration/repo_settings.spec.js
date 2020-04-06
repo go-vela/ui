@@ -9,12 +9,12 @@ context('Repo Settings', () => {
       cy.server();
       cy.route(
         'PUT',
-        '/api/v1/repos/*/octocat',
+        '/api/v1/repos/github/octocat',
         'fixture:repository_updated.json',
       );
       cy.route(
         'GET',
-        '/api/v1/repos/*/octocatbad',
+        '/api/v1/repos/github/octocatbad',
         'fixture:repository_bad.json',
       );
       cy.login('/github/octocatbad/settings');
