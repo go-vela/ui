@@ -9,12 +9,12 @@ context('Repo Settings', () => {
       cy.server();
       cy.route(
         'PUT',
-        '*api/v1/repos/*/octocat',
+        '/api/v1/repos/*/octocat',
         'fixture:repository_updated.json',
       );
       cy.route(
         'GET',
-        '*api/v1/repos/*/octocatbad',
+        '/api/v1/repos/*/octocatbad',
         'fixture:repository_bad.json',
       );
       cy.login('/github/octocatbad/settings');
@@ -31,11 +31,14 @@ context('Repo Settings', () => {
       cy.server();
       cy.route(
         'PUT',
-        '*api/v1/repos/*/octocat',
+        '/api/v1/repos/github/octocat',
         'fixture:repository_updated.json',
       );
-      cy.route('GET', '*api/v1/repos/*/octocat', 'fixture:repository.json');
+      cy.route('GET', '/api/v1/repos/github/octocat', 'fixture:repository.json').as(
+        'getRepo'
+      );
       cy.login('/github/octocat/settings');
+      cy.wait('@getRepo');
     });
 
     it('should show the repo in the breadcrumb', () => {
@@ -127,7 +130,7 @@ context('Repo Settings', () => {
     it('clicking button should prompt disable confirmation', () => {
       cy.route({
         method: 'DELETE',
-        url: '*api/v1/repos/DavidVader/**',
+        url: '/api/v1/repos/DavidVader/**',
         response: `"Repo DavidVader/applications deleted"`,
       });
       cy.get('[data-test=repo-disable]')
@@ -139,7 +142,7 @@ context('Repo Settings', () => {
     it('clicking button twice should disable the repo', () => {
       cy.route({
         method: 'DELETE',
-        url: '*api/v1/repos/DavidVader/**',
+        url: '/api/v1/repos/DavidVader/**',
         response: `"Repo DavidVader/applications deleted"`,
       });
       cy.get('[data-test=repo-disable]')
@@ -152,10 +155,10 @@ context('Repo Settings', () => {
     it('clicking button three times should re-enable the repo', () => {
       cy.route({
         method: 'DELETE',
-        url: '*api/v1/repos/github/**',
+        url: '/api/v1/repos/github/**',
         response: `"Repo github/octocat deleted"`,
       }).as('disable');
-      cy.route('POST', '*api/v1/repos*', 'fixture:add_repo_response.json').as(
+      cy.route('POST', '/api/v1/repos*', 'fixture:add_repo_response.json').as(
         'enable',
       );
       cy.get('[data-test=repo-disable]')
@@ -173,7 +176,7 @@ context('Repo Settings', () => {
     it('should show an success alert on successful removal of a repo', () => {
       cy.route({
         method: 'DELETE',
-        url: '*api/v1/repos/github/**',
+        url: '/api/v1/repos/github/**',
         response: `"Repo github/octocat deleted"`,
       });
       cy.get('[data-test=repo-disable]')
@@ -202,7 +205,7 @@ context('Repo Settings', () => {
     it('should show an success alert on successful chown of a repo', () => {
       cy.route({
         method: 'PATCH',
-        url: '*api/v1/repos/github/**',
+        url: '/api/v1/repos/github/**',
         response: '"Repo github/octocat changed owner"',
       });
       cy.get('[data-test=repo-chown]').click();
@@ -214,7 +217,7 @@ context('Repo Settings', () => {
     it('should show an error alert on failed chown of a repo', () => {
       cy.route({
         method: 'PATCH',
-        url: '*api/v1/repos/github/**',
+        url: '/api/v1/repos/github/**',
         status: 500,
         response: '"Unable to..."',
       });
@@ -233,7 +236,7 @@ context('Repo Settings', () => {
     it('should show an success alert on successful repair of a repo', () => {
       cy.route({
         method: 'PATCH',
-        url: '*api/v1/repos/github/**',
+        url: '/api/v1/repos/github/**',
         response: '"Repo github/octocat repaired."',
       });
       cy.get('[data-test=repo-repair]').click();
@@ -245,7 +248,7 @@ context('Repo Settings', () => {
     it('should show an error alert on a failed repair of a repo', () => {
       cy.route({
         method: 'PATCH',
-        url: '*api/v1/repos/github/**',
+        url: '/api/v1/repos/github/**',
         status: 500,
         response: '"Unable to..."',
       });

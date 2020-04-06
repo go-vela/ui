@@ -491,7 +491,8 @@ update msg model =
                     ( { model | repo = RemoteData.succeed repoResponse }, Cmd.none )
 
                 Err error ->
-                    ( { model | repo = toFailure error }, addError error )
+                    -- ( { model | repo = toFailure error }, addError error )
+                    ( { model | repo = RemoteData.succeed defaultRepository }, Cmd.none )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -512,7 +513,7 @@ update msg model =
                         | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
                         , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled }
                       }
-                    , Util.dispatch <| ToggleFavorite repo.org <| Just repo.name
+                    , Cmd.none
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
 
