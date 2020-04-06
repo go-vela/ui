@@ -483,7 +483,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | repo = toFailure error }, addError error )
+                    ( { model | user = toFailure error }, addError error )
 
         RepoResponse response ->
             case response of
@@ -537,7 +537,7 @@ update msg model =
                            )
 
                 Err error ->
-                    ( { model | repo = toFailure error }, addError error )
+                    ( { model | user = toFailure error }, addError error )
 
         RepoUpdatedResponse field response ->
             case response of
