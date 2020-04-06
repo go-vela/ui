@@ -79,9 +79,9 @@ context('Favorites', () => {
             cy.get('[data-test=star-toggle-cat-purr]').should('be.visible');
           });
 
-          it('star should not have favorited class', () => {
+          it('star should have favorited class', () => {
             cy.get('[data-test=star-toggle-cat-purr] > svg').should(
-              'not.have.class',
+              'have.class',
               'favorited',
             );
           });
