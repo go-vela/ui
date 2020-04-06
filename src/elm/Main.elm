@@ -1372,7 +1372,7 @@ viewContent model =
 
         Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy5 Pages.RepoSettings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
+            , Pages.RepoSettings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->

@@ -62,6 +62,8 @@ context('Repo Settings', () => {
     });
 
     it('clicking allow_push checkbox should toggle the value', () => {
+      cy.login('/github/octocat/settings');
+      cy.wait('@getRepo');
       cy.get('[data-test=repo-checkbox-allow_push] input').as(
         'allowPushCheckbox',
       );
@@ -98,6 +100,8 @@ context('Repo Settings', () => {
     });
 
     it('clicking update on build timeout should update timeout and hide button', () => {
+      cy.login('/github/octocat/settings');
+      cy.wait('@getRepo');
       cy.get('[data-test=repo-timeout]').as('repoTimeout');
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
       cy.get('@repoTimeoutInput')
@@ -130,8 +134,8 @@ context('Repo Settings', () => {
     it('clicking button should prompt disable confirmation', () => {
       cy.route({
         method: 'DELETE',
-        url: '/api/v1/repos/DavidVader/**',
-        response: `"Repo DavidVader/applications deleted"`,
+        url: '/api/v1/repos/github/octocat',
+        response: `"Repo github/octocat deleted"`,
       });
       cy.get('[data-test=repo-disable]')
         .first()
@@ -142,20 +146,22 @@ context('Repo Settings', () => {
     it('clicking button twice should disable the repo', () => {
       cy.route({
         method: 'DELETE',
-        url: '/api/v1/repos/DavidVader/**',
-        response: `"Repo DavidVader/applications deleted"`,
+        url: '/api/v1/repos/github/octocat',
+        response: `"Repo github/octocat deleted"`,
       });
       cy.get('[data-test=repo-disable]')
         .first()
         .click({ force: true })
         .click({ force: true });
-      cy.get('[data-test=repo-disabling]').should('contain', 'Disabling');
+      cy.get('[data-test=repo-enable]').should('contain', 'Enable');
     });
 
     it('clicking button three times should re-enable the repo', () => {
+      cy.login('/github/octocat/settings');
+      cy.wait('@getRepo');
       cy.route({
         method: 'DELETE',
-        url: '/api/v1/repos/github/**',
+        url: '/api/v1/repos/github/octocat',
         response: `"Repo github/octocat deleted"`,
       }).as('disable');
       cy.route('POST', '/api/v1/repos*', 'fixture:add_repo_response.json').as(
@@ -176,7 +182,7 @@ context('Repo Settings', () => {
     it('should show an success alert on successful removal of a repo', () => {
       cy.route({
         method: 'DELETE',
-        url: '/api/v1/repos/github/**',
+        url: '/api/v1/repos/github/octocat',
         response: `"Repo github/octocat deleted"`,
       });
       cy.get('[data-test=repo-disable]')
@@ -203,12 +209,14 @@ context('Repo Settings', () => {
     });
 
     it('should show an success alert on successful chown of a repo', () => {
+      cy.login('/github/octocat/settings');
+      cy.wait('@getRepo');
       cy.route({
         method: 'PATCH',
-        url: '/api/v1/repos/github/**',
+        url: '/api/v1/repos/github/octocat/chown',
         response: '"Repo github/octocat changed owner"',
       });
-      cy.get('[data-test=repo-chown]').click();
+      cy.get('[data-test=repo-chown]').click({ force: true });
       cy.get('[data-test=alerts]')
         .should('exist')
         .contains('Success');
@@ -217,7 +225,7 @@ context('Repo Settings', () => {
     it('should show an error alert on failed chown of a repo', () => {
       cy.route({
         method: 'PATCH',
-        url: '/api/v1/repos/github/**',
+        url: '/api/v1/repos/github/octocat/chown',
         status: 500,
         response: '"Unable to..."',
       });
@@ -236,7 +244,7 @@ context('Repo Settings', () => {
     it('should show an success alert on successful repair of a repo', () => {
       cy.route({
         method: 'PATCH',
-        url: '/api/v1/repos/github/**',
+        url: '/api/v1/repos/github/octocat/repair',
         response: '"Repo github/octocat repaired."',
       });
       cy.get('[data-test=repo-repair]').click();
@@ -248,7 +256,7 @@ context('Repo Settings', () => {
     it('should show an error alert on a failed repair of a repo', () => {
       cy.route({
         method: 'PATCH',
-        url: '/api/v1/repos/github/**',
+        url: '/api/v1/repos/github/octocat/repair',
         status: 500,
         response: '"Unable to..."',
       });
