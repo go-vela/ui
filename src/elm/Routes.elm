@@ -24,11 +24,13 @@ type Route
     = Overview
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | OrgSecrets Engine Type Org
-    | RepoSecrets Org Repo
-    | SharedSecrets Org Team
-    | AddSecret
-    | UpdateSecret Org Key Name
+    | OrgSecrets Engine Org
+    | RepoSecrets Engine Org Repo
+    | SharedSecrets Engine Org Team
+    | AddSecret Engine
+    | UpdateOrgSecret Engine Org Name
+    | UpdateRepoSecret Engine Org Repo Name
+    | UpdateSharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
@@ -53,7 +55,13 @@ routes =
         , map Settings (s "account" </> s "settings")
         , parseAuth
         , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
-        , map RepoSecrets (string </> string </> s "secrets")
+        , map OrgSecrets (s "account" </> s "secrets" </> string </> s "org" </> string)
+        , map RepoSecrets (s "account" </> s "secrets" </> string </> s "repo" </> string </> string)
+        , map SharedSecrets (s "account" </> s "secrets" </> string </> s "shared" </> string </> string)
+        , map AddSecret (s "account" </> s "secrets" </> string </> s "add")
+        , map UpdateOrgSecret (s "account" </> s "secrets" </> string </> s "org" </> string </> string </> s "update")
+        , map UpdateRepoSecret (s "account" </> s "secrets" </> string </> s "repo" </> string </> string </> string </> s "update")
+        , map UpdateRepoSecret (s "account" </> s "secrets" </> string </> s "shared" </> string </> string </> string </> s "update")
         , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Build (string </> string </> string </> fragment identity)
@@ -95,20 +103,26 @@ routeToUrl route =
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
-        OrgSecrets engine type_ org ->
-            "/account/secrets/" ++ engine ++ "/" ++ type_ ++ "/" ++ org
+        OrgSecrets engine org ->
+            "/account/secrets/" ++ engine ++ "/org/" ++ org
 
-        RepoSecrets org repo ->
-            "/" ++ org ++ "/" ++ repo ++ "/secrets"
+        RepoSecrets engine org repo ->
+            "/account/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo
 
-        SharedSecrets org team ->
-            "/" ++ org ++ "/" ++ team ++ "/shared-secrets"
+        SharedSecrets engine org team ->
+            "/account/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team
 
-        AddSecret ->
-            "/secrets/add"
+        AddSecret engine ->
+            "/account/secrets/" ++ engine ++ "/add"
 
-        UpdateSecret org key name ->
-            "/secrets/update/" ++ org ++ "/" ++ key ++ "/" ++ name
+        UpdateOrgSecret engine org name ->
+            "/account/secrets/" ++ engine ++ "/org/" ++ org ++ "/" ++ name ++ "/update"
+
+        UpdateRepoSecret engine org repo name ->
+            "/account/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo ++ "/" ++ name ++ "/update"
+
+        UpdateSharedSecret engine org team name ->
+            "/account/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ team ++ "/" ++ name ++ "/update"
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)

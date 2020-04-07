@@ -20,6 +20,7 @@ module Vela exposing
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
+    , Engine
     , Event
     , Favicon
     , Favorites
