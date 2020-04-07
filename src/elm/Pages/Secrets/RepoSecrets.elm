@@ -469,7 +469,7 @@ secretForm secretsModel secrets =
                 addSecret secretsModel
 
             Update ->
-                updateSecret secretsModel
+                manageSecret secretsModel
 
             Choose ->
                 text ""
@@ -507,10 +507,10 @@ addSecret secretsModel =
         ]
 
 
-{-| updateSecret : renders secret update form for updating a pre existing secret
+{-| manageSecret : renders secret update form for updating a pre existing secret
 -}
-updateSecret : Args msg -> Html Msg
-updateSecret secretsModel =
+manageSecret : Args msg -> Html Msg
+manageSecret secretsModel =
     let
         secretUpdate =
             secretsModel.secretUpdate

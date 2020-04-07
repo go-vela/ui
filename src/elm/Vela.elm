@@ -946,6 +946,10 @@ type alias Secret =
     }
 
 
+type alias Engine =
+    String
+
+
 type alias Type =
     String
 

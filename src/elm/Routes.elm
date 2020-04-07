@@ -13,7 +13,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Event, FocusFragment, Key, Name, Org, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Key, Name, Org, Repo, Team, Type)
 
 
 
@@ -24,7 +24,7 @@ type Route
     = Overview
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | OrgSecrets Org
+    | OrgSecrets Engine Type Org
     | RepoSecrets Org Repo
     | SharedSecrets Org Team
     | AddSecret
@@ -95,8 +95,8 @@ routeToUrl route =
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
-        OrgSecrets org ->
-            "/" ++ org ++ "/*/secrets"
+        OrgSecrets engine type_ org ->
+            "/account/secrets/" ++ engine ++ "/" ++ type_ ++ "/" ++ org
 
         RepoSecrets org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/secrets"
