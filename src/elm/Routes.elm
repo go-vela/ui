@@ -104,25 +104,25 @@ routeToUrl route =
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
         OrgSecrets engine org ->
-            "/account/secrets/" ++ engine ++ "/org/" ++ org
+            "/-/secrets/" ++ engine ++ "/org/" ++ org
 
         RepoSecrets engine org repo ->
-            "/account/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo
+            "/-/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo
 
         SharedSecrets engine org team ->
-            "/account/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team
+            "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team
 
         AddSecret engine ->
-            "/account/secrets/" ++ engine ++ "/add"
+            "/-/secrets/" ++ engine ++ "/add"
 
         UpdateOrgSecret engine org name ->
-            "/account/secrets/" ++ engine ++ "/org/" ++ org ++ "/" ++ name ++ "/update"
+            "/-/secrets/" ++ engine ++ "/org/" ++ org ++ "/" ++ name ++ "/update"
 
         UpdateRepoSecret engine org repo name ->
-            "/account/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo ++ "/" ++ name ++ "/update"
+            "/-/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo ++ "/" ++ name ++ "/update"
 
         UpdateSharedSecret engine org team name ->
-            "/account/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ team ++ "/" ++ name ++ "/update"
+            "/-/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ team ++ "/" ++ name ++ "/update"
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
