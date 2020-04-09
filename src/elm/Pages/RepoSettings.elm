@@ -286,6 +286,11 @@ events repo msg =
                 repo.allow_tag
               <|
                 msg repo.org repo.name "allow_tag"
+            , checkbox "Comment"
+                "allow_comment"
+                repo.allow_comment
+              <|
+                msg repo.org repo.name "allow_comment"
             ]
         ]
 
@@ -584,6 +589,7 @@ validEventsUpdate originalRepo repoUpdate =
                 || Maybe.withDefault repo.allow_pull repoUpdate.allow_pull
                 || Maybe.withDefault repo.allow_deploy repoUpdate.allow_deploy
                 || Maybe.withDefault repo.allow_tag repoUpdate.allow_tag
+                || Maybe.withDefault repo.allow_comment repoUpdate.allow_comment
 
         _ ->
             False
@@ -630,6 +636,9 @@ msgPrefix field =
         "allow_tag" ->
             "Tag events for $ "
 
+        "allow_comment" ->
+            "Comment events for $ "    
+
         "timeout" ->
             "Build timeout for $ "
 
@@ -660,8 +669,8 @@ msgSuffix field repo =
         "allow_deploy" ->
             toggleText "allow_deploy" repo.allow_deploy
 
-        "allow_tag" ->
-            toggleText "allow_tag" repo.allow_tag
+        "allow_comment" ->
+            toggleText "allow_comment" repo.allow_comment
 
         "timeout" ->
             "set to " ++ String.fromInt repo.timeout ++ " minute(s)."
