@@ -637,7 +637,7 @@ msgPrefix field =
             "Tag events for $ "
 
         "allow_comment" ->
-            "Comment events for $ "    
+            "Comment events for $ "
 
         "timeout" ->
             "Build timeout for $ "

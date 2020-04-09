@@ -530,7 +530,7 @@ buildUpdateRepoBoolPayload field value =
             { defaultUpdateRepositoryPayload | allow_tag = Just value }
 
         "allow_comment" ->
-            { defaultUpdateRepositoryPayload | allow_comment = Just value }            
+            { defaultUpdateRepositoryPayload | allow_comment = Just value }
 
         _ ->
             defaultUpdateRepositoryPayload
