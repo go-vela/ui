@@ -276,11 +276,6 @@ events repo msg =
                 repo.allow_pull
               <|
                 msg repo.org repo.name "allow_pull"
-            , checkbox "Deploy"
-                "allow_deploy"
-                repo.allow_deploy
-              <|
-                msg repo.org repo.name "allow_deploy"
             , checkbox "Tag"
                 "allow_tag"
                 repo.allow_tag
@@ -291,6 +286,11 @@ events repo msg =
                 repo.allow_comment
               <|
                 msg repo.org repo.name "allow_comment"
+            , checkbox "Deploy"
+                "allow_deploy"
+                repo.allow_deploy
+              <|
+                msg repo.org repo.name "allow_deploy"
             ]
         ]
 
