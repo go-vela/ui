@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Secrets.OrgSecrets exposing (view)
+module Pages.Secrets.UpdateSharedSecret exposing (view)
 
 import Api
 import Html
