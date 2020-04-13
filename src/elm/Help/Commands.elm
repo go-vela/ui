@@ -45,23 +45,31 @@ commands page =
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
-        Pages.OrgSecrets org ->
+        Pages.OrgSecrets engine org ->
             -- TODO: probably want this filled in
             []
 
-        Pages.RepoSecrets org repo ->
+        Pages.RepoSecrets engine org repo ->
             -- TODO: probably want this filled in
             []
 
-        Pages.SharedSecrets org key ->
+        Pages.SharedSecrets engine org key ->
             -- TODO: probably want this filled in
             []
 
-        Pages.AddSecret ->
+        Pages.AddSecret engine ->
             -- TODO: probably want this filled in
             []
 
-        Pages.UpdateSecret org key name ->
+        Pages.UpdateOrgSecret engine org name ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.UpdateRepoSecret engine org repo name ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.UpdateSharedSecret engine org team name ->
             -- TODO: probably want this filled in
             []
 

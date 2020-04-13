@@ -80,7 +80,9 @@ import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
 import Pages.RepoSettings exposing (enableUpdate)
+import Pages.Secrets.OrgSecrets
 import Pages.Secrets.RepoSecrets
+import Pages.Secrets.UpdateRepoSecret
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
@@ -113,6 +115,7 @@ import Vela
         , EnableRepos
         , EnableRepositoryPayload
         , Enabling(..)
+        , Engine
         , Event
         , Favicon
         , Field
@@ -1473,16 +1476,12 @@ viewContent model =
             , lazy5 Pages.RepoSettings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
             )
 
-        Pages.OrgSecrets org ->
-            let
-                args =
-                    model.secretsModel
-            in
+        Pages.OrgSecrets engine org ->
             ( String.join "/" [ org ] ++ " org secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.OrgSecrets.view ""
             )
 
-        Pages.RepoSecrets org repo ->
+        Pages.RepoSecrets engine org repo ->
             let
                 args =
                     model.secretsModel
@@ -1491,16 +1490,16 @@ viewContent model =
             , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
             )
 
-        Pages.SharedSecrets org team ->
+        Pages.SharedSecrets engine org team ->
             let
                 args =
                     model.secretsModel
             in
             ( String.join "/" [ org, team ] ++ " shared secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.SharedSecrets.view model
             )
 
-        Pages.AddSecret ->
+        Pages.AddSecret engine ->
             let
                 args =
                     model.secretsModel
@@ -1509,12 +1508,30 @@ viewContent model =
             , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
             )
 
-        Pages.UpdateSecret org key name ->
+        Pages.UpdateOrgSecret engine org name ->
             let
                 args =
                     model.secretsModel
             in
-            ( String.join "/" [ org, key, name ] ++ " udpate secret"
+            ( String.join "/" [ org, name ] ++ " update org secret"
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.OrgSecrets.view ""
+            )
+
+        Pages.UpdateRepoSecret engine org repo name ->
+            let
+                args =
+                    model.secretsModel
+            in
+            ( String.join "/" [ org, repo, name ] ++ " update repo secret"
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.OrgSecrets.view ""
+            )
+
+        Pages.UpdateSharedSecret engine org team name ->
+            let
+                args =
+                    model.secretsModel
+            in
+            ( String.join "/" [ org, name ] ++ " update repo secret"
             , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
             )
 
@@ -1816,20 +1833,26 @@ setNewPage route model =
         ( Routes.RepoSettings org repo, True ) ->
             loadRepoSettingsPage model org repo
 
-        ( Routes.OrgSecrets org, True ) ->
-            ( { model | page = Pages.OrgSecrets org }, Cmd.none )
+        ( Routes.OrgSecrets engine org, True ) ->
+            ( { model | page = Pages.OrgSecrets engine org }, Cmd.none )
 
-        ( Routes.RepoSecrets org repo, True ) ->
-            loadRepoSecretsPage model org repo
+        ( Routes.RepoSecrets engine org repo, True ) ->
+            loadRepoSecretsPage model engine org repo
 
-        ( Routes.SharedSecrets org team, True ) ->
-            ( { model | page = Pages.SharedSecrets org team }, Cmd.none )
+        ( Routes.SharedSecrets engine org team, True ) ->
+            ( { model | page = Pages.SharedSecrets engine org team }, Cmd.none )
 
-        ( Routes.AddSecret, True ) ->
-            ( { model | page = Pages.AddSecret }, Cmd.none )
+        ( Routes.AddSecret engine, True ) ->
+            ( { model | page = Pages.AddSecret engine }, Cmd.none )
 
-        ( Routes.UpdateSecret org key name, True ) ->
-            ( { model | page = Pages.UpdateSecret org key name }, Cmd.none )
+        ( Routes.UpdateOrgSecret engine org name, True ) ->
+            ( { model | page = Pages.UpdateOrgSecret engine org name }, Cmd.none )
+
+        ( Routes.UpdateRepoSecret engine org repo name, True ) ->
+            ( { model | page = Pages.UpdateRepoSecret engine org repo name }, Cmd.none )
+
+        ( Routes.UpdateSharedSecret engine org team name, True ) ->
+            ( { model | page = Pages.UpdateSharedSecret engine org team name }, Cmd.none )
 
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
             let
@@ -1955,14 +1978,14 @@ loadRepoSettingsPage model org repo =
 
 {-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
 -}
-loadRepoSecretsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
-loadRepoSecretsPage model org repo =
+loadRepoSecretsPage : Model -> Engine -> Org -> Repo -> ( Model, Cmd Msg )
+loadRepoSecretsPage model engine org repo =
     -- Fetch secrets from Api
     let
         secretsModel =
             model.secretsModel
     in
-    ( { model | page = Pages.RepoSecrets org repo, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
+    ( { model | page = Pages.RepoSecrets engine org repo, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
     , Cmd.batch
         [ getCurrentUser model
         , getSecrets model "repo" org repo

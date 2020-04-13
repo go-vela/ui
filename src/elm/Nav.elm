@@ -103,7 +103,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets org repo
+                    , Routes.href <| Routes.RepoSecrets "native" org repo
                     ]
                     [ text "Secrets" ]
                 , a
@@ -129,7 +129,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets org repo
+                    , Routes.href <| Routes.RepoSecrets "native" org repo
                     ]
                     [ text "Secrets" ]
                 , a
@@ -151,7 +151,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     ]
                 ]
 
-        Pages.RepoSecrets org repo ->
+        Pages.RepoSecrets engine org repo ->
             div [ class "buttons" ]
                 [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
@@ -199,7 +199,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets org repo
+                    , Routes.href <| Routes.RepoSecrets "native" org repo
                     ]
                     [ text "Secrets" ]
                 , a

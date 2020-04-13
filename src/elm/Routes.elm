@@ -55,13 +55,13 @@ routes =
         , map Settings (s "account" </> s "settings")
         , parseAuth
         , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
-        , map OrgSecrets (s "account" </> s "secrets" </> string </> s "org" </> string)
-        , map RepoSecrets (s "account" </> s "secrets" </> string </> s "repo" </> string </> string)
-        , map SharedSecrets (s "account" </> s "secrets" </> string </> s "shared" </> string </> string)
-        , map AddSecret (s "account" </> s "secrets" </> string </> s "add")
-        , map UpdateOrgSecret (s "account" </> s "secrets" </> string </> s "org" </> string </> string </> s "update")
-        , map UpdateRepoSecret (s "account" </> s "secrets" </> string </> s "repo" </> string </> string </> string </> s "update")
-        , map UpdateRepoSecret (s "account" </> s "secrets" </> string </> s "shared" </> string </> string </> string </> s "update")
+        , map OrgSecrets (s "-" </> s "secrets" </> string </> s "org" </> string)
+        , map RepoSecrets (s "-" </> s "secrets" </> string </> s "repo" </> string </> string)
+        , map SharedSecrets (s "-" </> s "secrets" </> string </> s "shared" </> string </> string)
+        , map AddSecret (s "-" </> s "secrets" </> string </> s "add")
+        , map UpdateOrgSecret (s "-" </> s "secrets" </> string </> s "org" </> string </> string </> s "update")
+        , map UpdateRepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> string </> s "update")
+        , map UpdateSharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string </> s "update")
         , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Build (string </> string </> string </> fragment identity)
@@ -122,7 +122,7 @@ routeToUrl route =
             "/-/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo ++ "/" ++ name ++ "/update"
 
         UpdateSharedSecret engine org team name ->
-            "/-/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ team ++ "/" ++ name ++ "/update"
+            "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team ++ "/" ++ name ++ "/update"
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
