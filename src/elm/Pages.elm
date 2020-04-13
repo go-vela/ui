@@ -19,9 +19,9 @@ type Page
     | RepoSecrets Engine Org Repo
     | SharedSecrets Engine Org Team
     | AddSecret Engine
-    | UpdateOrgSecret Engine Org Name
-    | UpdateRepoSecret Engine Org Repo Name
-    | UpdateSharedSecret Engine Org Team Name
+    | OrgSecret Engine Org Name
+    | RepoSecret Engine Org Repo Name
+    | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
@@ -65,14 +65,14 @@ toRoute page =
         AddSecret engine ->
             Routes.AddSecret engine
 
-        UpdateOrgSecret engine org name ->
-            Routes.UpdateOrgSecret engine org name
+        OrgSecret engine org name ->
+            Routes.OrgSecret engine org name
 
-        UpdateRepoSecret engine org repo name ->
-            Routes.UpdateRepoSecret engine org repo name
+        RepoSecret engine org repo name ->
+            Routes.RepoSecret engine org repo name
 
-        UpdateSharedSecret engine org team name ->
-            Routes.UpdateSharedSecret engine org team name
+        SharedSecret engine org team name ->
+            Routes.SharedSecret engine org team name
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent

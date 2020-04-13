@@ -59,4 +59,4 @@ import Vela
 -}
 view : PartialModel a msg -> Html Msg
 view model =
-    div [] []
+    div [] [ text "org secrets" ]

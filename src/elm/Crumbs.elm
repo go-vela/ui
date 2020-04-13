@@ -167,13 +167,10 @@ toPath page =
                     in
                     [ overviewPage, secrets, engineCrumb, add ]
 
-                Pages.UpdateOrgSecret engine org name ->
+                Pages.OrgSecret engine org name ->
                     let
                         engineCrumb =
                             ( engine, Nothing )
-
-                        update =
-                            ( "update", Nothing )
 
                         organizationPage =
                             ( org, Nothing )
@@ -181,15 +178,12 @@ toPath page =
                         nameCrumb =
                             ( name, Nothing )
                     in
-                    [ overviewPage, secrets, engineCrumb, organizationPage, nameCrumb, update ]
+                    [ overviewPage, secrets, engineCrumb, organizationPage, nameCrumb ]
 
-                Pages.UpdateRepoSecret engine org repo name ->
+                Pages.RepoSecret engine org repo name ->
                     let
                         engineCrumb =
                             ( engine, Nothing )
-
-                        update =
-                            ( "update", Nothing )
 
                         organizationPage =
                             ( org, Nothing )
@@ -200,15 +194,12 @@ toPath page =
                         nameCrumb =
                             ( name, Nothing )
                     in
-                    [ overviewPage, secrets, engineCrumb, organizationPage, repoBuilds, nameCrumb, update ]
+                    [ overviewPage, secrets, engineCrumb, organizationPage, repoBuilds, nameCrumb ]
 
-                Pages.UpdateSharedSecret engine org team name ->
+                Pages.SharedSecret engine org team name ->
                     let
                         engineCrumb =
                             ( engine, Nothing )
-
-                        update =
-                            ( "update", Nothing )
 
                         organizationPage =
                             ( org, Nothing )
@@ -219,7 +210,7 @@ toPath page =
                         nameCrumb =
                             ( name, Nothing )
                     in
-                    [ overviewPage, secrets, engineCrumb, organizationPage, teamCrumb, nameCrumb, update ]
+                    [ overviewPage, secrets, engineCrumb, organizationPage, teamCrumb, nameCrumb ]
 
                 Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
                     let

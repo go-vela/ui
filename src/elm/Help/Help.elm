@@ -327,13 +327,13 @@ resourceLoaded args =
         Pages.AddSecret _ ->
             args.secrets.success
 
-        Pages.UpdateOrgSecret _ _ _ ->
+        Pages.OrgSecret _ _ _ ->
             args.repo.loading
 
-        Pages.UpdateRepoSecret _ _ _ _ ->
+        Pages.RepoSecret _ _ _ _ ->
             args.repo.loading
 
-        Pages.UpdateSharedSecret _ _ _ _ ->
+        Pages.SharedSecret _ _ _ _ ->
             args.repo.loading
 
         Pages.RepoSettings _ _ ->
@@ -387,13 +387,13 @@ resourceLoading args =
         Pages.AddSecret _ ->
             args.repo.loading
 
-        Pages.UpdateOrgSecret _ _ _ ->
+        Pages.OrgSecret _ _ _ ->
             args.repo.loading
 
-        Pages.UpdateRepoSecret _ _ _ _ ->
+        Pages.RepoSecret _ _ _ _ ->
             args.repo.loading
 
-        Pages.UpdateSharedSecret _ _ _ _ ->
+        Pages.SharedSecret _ _ _ _ ->
             args.repo.loading
 
         Pages.RepoSettings _ _ ->

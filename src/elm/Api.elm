@@ -20,6 +20,7 @@ module Api exposing
     , getHooks
     , getRepo
     , getRepositories
+    , getSecret
     , getSecrets
     , getSourceRepositories
     , getStep
@@ -549,11 +550,19 @@ getAllHooks model org repository =
         |> withAuth model.session
 
 
-{-| getSecrets : fetches secrets for the given type org and name
+{-| getSecrets : fetches secrets for the given type org and key
 -}
 getSecrets : PartialModel a -> Type -> Org -> Key -> Request Secrets
 getSecrets model type_ org key =
     get model.velaAPI (Endpoint.Secrets type_ org key) decodeSecrets
+        |> withAuth model.session
+
+
+{-| getSecret : fetches secret for the given type org key and name
+-}
+getSecret : PartialModel a -> Type -> Org -> Key -> Name -> Request Secret
+getSecret model type_ org key name =
+    get model.velaAPI (Endpoint.Secret type_ org key name) decodeSecret
         |> withAuth model.session
 
 
