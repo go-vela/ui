@@ -82,11 +82,9 @@ import Pages.Hooks
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.AddSecret
 import Pages.Secrets.OrgSecret
-import Pages.Secrets.OrgSecrets
 import Pages.Secrets.RepoSecret
-import Pages.Secrets.RepoSecrets
+import Pages.Secrets.Secrets
 import Pages.Secrets.SharedSecret
-import Pages.Secrets.SharedSecrets
 import Pages.Secrets.Types
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
@@ -760,7 +758,7 @@ update msg model =
                             Pages.Secrets.AddSecret.reinitializeSecretUpdate secretsModel secret
                     in
                     ( { model | secretsModel = updatedSecretsModel }
-                    , Cmd.batch [ getSecrets model "repo" secretsModel.org secretsModel.repo, getSecrets model "org" secretsModel.org "*" ]
+                    , Cmd.none
                     )
                         |> secretResponseAlert secret Add
 
@@ -1483,21 +1481,31 @@ viewContent model =
 
         Pages.OrgSecrets engine org ->
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.OrgSecrets.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secrets.view model
             )
 
         Pages.RepoSecrets engine org repo ->
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecrets.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secrets.view model
             )
 
         Pages.SharedSecrets engine org team ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.SharedSecrets.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secrets.view model
             )
 
-        Pages.AddSecret engine ->
-            ( "add " ++ engine ++ " secret"
+        Pages.AddOrgSecret engine org ->
+            ( "add " ++ engine ++ " org secret"
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
+            )
+
+        Pages.AddRepoSecret engine org repo ->
+            ( "add " ++ engine ++ " repo secret"
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
+            )
+
+        Pages.AddSharedSecret engine org team ->
+            ( "add " ++ engine ++ " shared secret"
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
             )
 
@@ -1823,8 +1831,14 @@ setNewPage route model =
         ( Routes.SharedSecrets engine org team, True ) ->
             loadSharedSecretsPage model engine org team
 
-        ( Routes.AddSecret engine, True ) ->
-            loadAddSecretPage model engine
+        ( Routes.AddOrgSecret engine org, True ) ->
+            loadAddOrgSecretPage model engine org
+
+        ( Routes.AddRepoSecret engine org repo, True ) ->
+            loadAddRepoSecretPage model engine org repo
+
+        ( Routes.AddSharedSecret engine org team, True ) ->
+            loadAddSharedSecretPage model engine org team
 
         ( Routes.OrgSecret engine org name, True ) ->
             loadUpdateOrgSecretPage model engine org name
@@ -1966,7 +1980,16 @@ loadOrgSecretsPage model engine org =
         secretsModel =
             model.secretsModel
     in
-    ( { model | page = Pages.OrgSecrets engine org, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
+    ( { model
+        | page =
+            Pages.OrgSecrets engine org
+        , secretsModel =
+            { secretsModel
+                | secrets = Loading
+                , org = org
+                , type_ = Vela.OrgSecret
+            }
+      }
     , Cmd.batch
         [ getCurrentUser model
         , getSecrets model "org" org "*"
@@ -1983,11 +2006,19 @@ loadRepoSecretsPage model engine org repo =
         secretsModel =
             model.secretsModel
     in
-    ( { model | page = Pages.RepoSecrets engine org repo, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
+    ( { model
+        | page = Pages.RepoSecrets engine org repo
+        , secretsModel =
+            { secretsModel
+                | secrets = Loading
+                , org = org
+                , repo = repo
+                , type_ = Vela.RepoSecret
+            }
+      }
     , Cmd.batch
         [ getCurrentUser model
         , getSecrets model "repo" org repo
-        , getSecrets model "org" org "*"
         ]
     )
 
@@ -2001,7 +2032,17 @@ loadSharedSecretsPage model engine org team =
         secretsModel =
             model.secretsModel
     in
-    ( { model | page = Pages.SharedSecrets engine org team, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
+    ( { model
+        | page =
+            Pages.SharedSecrets engine org team
+        , secretsModel =
+            { secretsModel
+                | secrets = Loading
+                , org = org
+                , team = team
+                , type_ = Vela.SharedSecret
+            }
+      }
     , Cmd.batch
         [ getCurrentUser model
         , getSecrets model "shared" org team
@@ -2009,16 +2050,74 @@ loadSharedSecretsPage model engine org team =
     )
 
 
-{-| loadAddSecretPage : takes model and engine loads the page for adding secrets
+{-| loadAddOrgSecretPage : takes model and engine loads the page for adding secrets
 -}
-loadAddSecretPage : Model -> Engine -> ( Model, Cmd Msg )
-loadAddSecretPage model engine =
+loadAddOrgSecretPage : Model -> Engine -> Org -> ( Model, Cmd Msg )
+loadAddOrgSecretPage model engine org =
     -- Fetch secrets from Api
     let
         secretsModel =
             model.secretsModel
     in
-    ( { model | page = Pages.AddSecret engine, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
+    ( { model
+        | page = Pages.AddOrgSecret engine org
+        , secretsModel =
+            { secretsModel
+                | secrets = Loading
+                , org = org
+                , type_ = Vela.OrgSecret
+            }
+      }
+    , Cmd.batch
+        [ getCurrentUser model
+        ]
+    )
+
+
+{-| loadAddRepoSecretPage : takes model engine org and repo and loads the page for adding secrets
+-}
+loadAddRepoSecretPage : Model -> Engine -> Org -> Repo -> ( Model, Cmd Msg )
+loadAddRepoSecretPage model engine org repo =
+    -- Fetch secrets from Api
+    let
+        secretsModel =
+            model.secretsModel
+    in
+    ( { model
+        | page = Pages.AddRepoSecret engine org repo
+        , secretsModel =
+            { secretsModel
+                | secrets = Loading
+                , org = org
+                , repo = repo
+                , type_ = Vela.RepoSecret
+            }
+      }
+    , Cmd.batch
+        [ getCurrentUser model
+        ]
+    )
+
+
+{-| loadAddSharedSecretPage : takes model engine org and team and loads the page for adding secrets
+-}
+loadAddSharedSecretPage : Model -> Engine -> Org -> Team -> ( Model, Cmd Msg )
+loadAddSharedSecretPage model engine org team =
+    -- Fetch secrets from Api
+    let
+        secretsModel =
+            model.secretsModel
+    in
+    ( { model
+        | page = Pages.AddSharedSecret engine org team
+        , secretsModel =
+            { secretsModel
+                | secrets = Loading
+                , org = org
+                , team = team
+                , type_ = Vela.SharedSecret
+            }
+      }
     , Cmd.batch
         [ getCurrentUser model
         ]

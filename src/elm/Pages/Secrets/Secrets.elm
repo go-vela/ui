@@ -4,30 +4,17 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Secrets.RepoSecrets exposing (view)
+module Pages.Secrets.Secrets exposing (view)
 
-import Api
 import Html
     exposing
         ( Html
-        , a
-        , code
         , div
-        , em
-        , h4
-        , section
-        , span
-        , text
         )
 import Html.Attributes
     exposing
         ( class
-        , disabled
-        , href
-        , placeholder
-        , value
         )
-import Html.Events exposing (onClick, onInput)
 import Pages.Secrets.Types
     exposing
         ( ManageSecretState(..)
@@ -39,20 +26,9 @@ import Table.Table
 import Util exposing (largeLoader)
 import Vela
     exposing
-        ( Key
-        , Org
-        , Repo
-        , Secret
-        , SecretType
+        ( Secret
         , Secrets
-        , Session
-        , Team
-        , UpdateSecretPayload
-        , buildUpdateSecretPayload
-        , encodeUpdateSecret
-        , nullSecret
         , secretTypeToString
-        , toSecretType
         )
 
 
@@ -67,13 +43,24 @@ view model =
     let
         secretsModel =
             model.secretsModel
+
+        ( label, noSecrets ) =
+            case model.secretsModel.type_ of
+                Vela.OrgSecret ->
+                    ( "Org Secrets", "No secrets found for this organization" )
+
+                Vela.RepoSecret ->
+                    ( "Repo Secrets", "No secrets found for this repository" )
+
+                Vela.SharedSecret ->
+                    ( "Shared Secrets", "No secrets found for this organization/team" )
     in
     case secretsModel.secrets of
         Success secrets ->
             div []
                 [ Table.Table.view
-                    (Table.Table.Config "Secrets"
-                        "No secrets found for this repository"
+                    (Table.Table.Config label
+                        noSecrets
                         [ "name", "type", "events", "images", "allow command" ]
                         (secretsToRows secrets)
                     )

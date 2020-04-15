@@ -27,7 +27,9 @@ type Route
     | OrgSecrets Engine Org
     | RepoSecrets Engine Org Repo
     | SharedSecrets Engine Org Team
-    | AddSecret Engine
+    | AddOrgSecret Engine Org
+    | AddRepoSecret Engine Org Repo
+    | AddSharedSecret Engine Org Team
     | OrgSecret Engine Org Name
     | RepoSecret Engine Org Repo Name
     | SharedSecret Engine Org Team Name
@@ -58,7 +60,9 @@ routes =
         , map OrgSecrets (s "-" </> s "secrets" </> string </> s "org" </> string)
         , map RepoSecrets (s "-" </> s "secrets" </> string </> s "repo" </> string </> string)
         , map SharedSecrets (s "-" </> s "secrets" </> string </> s "shared" </> string </> string)
-        , map AddSecret (s "-" </> s "secrets" </> string </> s "add")
+        , map AddOrgSecret (s "-" </> s "secrets" </> string </> s "org" </> string </> s "add")
+        , map AddRepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> s "add")
+        , map AddSharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> s "add")
         , map OrgSecret (s "-" </> s "secrets" </> string </> s "org" </> string </> string)
         , map RepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> string)
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
@@ -112,8 +116,14 @@ routeToUrl route =
         SharedSecrets engine org team ->
             "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team
 
-        AddSecret engine ->
-            "/-/secrets/" ++ engine ++ "/add"
+        AddOrgSecret engine org ->
+            "/-/secrets/" ++ engine ++ "/org/" ++ org ++ "/add"
+
+        AddRepoSecret engine org repo ->
+            "/-/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo ++ "/add"
+
+        AddSharedSecret engine org team ->
+            "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team ++ "/add"
 
         OrgSecret engine org name ->
             "/-/secrets/" ++ engine ++ "/org/" ++ org ++ "/" ++ name

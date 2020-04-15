@@ -18,7 +18,9 @@ type Page
     | OrgSecrets Engine Org
     | RepoSecrets Engine Org Repo
     | SharedSecrets Engine Org Team
-    | AddSecret Engine
+    | AddOrgSecret Engine Org
+    | AddRepoSecret Engine Org Repo
+    | AddSharedSecret Engine Org Team
     | OrgSecret Engine Org Name
     | RepoSecret Engine Org Repo Name
     | SharedSecret Engine Org Team Name
@@ -62,8 +64,14 @@ toRoute page =
         SharedSecrets engine org repo ->
             Routes.SharedSecrets engine org repo
 
-        AddSecret engine ->
-            Routes.AddSecret engine
+        AddOrgSecret engine org ->
+            Routes.AddOrgSecret engine org
+
+        AddRepoSecret engine org repo ->
+            Routes.AddRepoSecret engine org repo
+
+        AddSharedSecret engine org team ->
+            Routes.AddSharedSecret engine org team
 
         OrgSecret engine org name ->
             Routes.OrgSecret engine org name

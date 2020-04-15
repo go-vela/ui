@@ -55,11 +55,10 @@ import Vela
     exposing
         ( Repo
         , Secret
-        , Secrets
+        , SecretType(..)
         , UpdateSecretPayload
         , buildUpdateSecretPayload
         , encodeUpdateSecret
-        , nullSecret
         , secretTypeToString
         , toSecretType
         )
@@ -69,10 +68,23 @@ view : PartialModel a msg -> Html Msg
 view model =
     div [ class "manage-secrets", Util.testAttribute "manage-secrets" ]
         [ div []
-            [ Html.h2 [] [ text "Add Secret" ]
+            [ Html.h2 [] [ header model.secretsModel.type_ ]
             , addSecret model.secretsModel
             ]
         ]
+
+
+header : SecretType -> Html Msg
+header type_ =
+    case type_ of
+        Vela.OrgSecret ->
+            text "Add Org Secret"
+
+        Vela.RepoSecret ->
+            text "Add Repo Secret"
+
+        Vela.SharedSecret ->
+            text "Add Shared Secret"
 
 
 {-| addSecret : renders secret update form for adding a new secret
@@ -88,8 +100,6 @@ addSecret secretsModel =
         , nameInput secretUpdate.name False
         , Html.h4 [ class "field-header" ] [ text "Value" ]
         , valueInput secretUpdate.value "Secret Value"
-        , typeSelect secretUpdate
-        , teamInput secretUpdate
         , eventsSelect secretUpdate
         , imagesInput secretUpdate secretUpdate.imageInput
         , help
@@ -97,30 +107,6 @@ addSecret secretsModel =
             [ Html.button [ class "button", class "-outline", onClick Pages.Secrets.Types.AddSecret ] [ text "Add" ]
             ]
         ]
-
-
-{-| secretsToOptions : converts secrets to Html options
--}
-secretsToOptions : Secrets -> List (Html Msg)
-secretsToOptions secrets =
-    defaultOptions ++ List.map secretToOption secrets
-
-
-{-| secretsToOption : converts secret to Html option
--}
-secretToOption : Secret -> Html Msg
-secretToOption secret =
-    Html.option [ value <| String.fromInt secret.id ] [ text secret.name ]
-
-
-{-| defaultOptions : default secrets Html options
--}
-defaultOptions : List (Html Msg)
-defaultOptions =
-    [ Html.option [ value "default" ]
-        [ text "Select Secret" ]
-    , Html.option [ value "new" ] [ text "<NEW SECRET>" ]
-    ]
 
 
 {-| nameInput : renders name input box
@@ -153,44 +139,6 @@ valueInput val placeholder_ =
             ]
             []
         ]
-
-
-{-| typeSelect : renders type input selection
--}
-typeSelect : SecretUpdate -> Html Msg
-typeSelect secret =
-    Html.section [ class "type", Util.testAttribute "" ]
-        [ Html.h4 [ class "field-header" ] [ text "Type" ]
-        , div
-            [ class "form-controls", class "-row" ]
-            [ radio (secretTypeToString secret.type_) "repo" "Repo" <| OnChangeStringField "type" "repo"
-            , radio (secretTypeToString secret.type_) "org" "Org (current org)" <| OnChangeStringField "type" "org"
-            , radio (secretTypeToString secret.type_) "shared" "Shared" <| OnChangeStringField "type" "shared"
-            ]
-        ]
-
-
-{-| teamInput : renders team input box
--}
-teamInput : SecretUpdate -> Html Msg
-teamInput secret =
-    case secret.type_ of
-        Vela.Shared ->
-            div []
-                [ Html.h4 [ class "field-header" ] [ text "Team" ]
-                , div []
-                    [ Html.textarea
-                        [ value secret.team
-                        , onInput <| OnChangeStringField "team"
-                        , class "team-value"
-                        , Html.Attributes.placeholder "Team Name"
-                        ]
-                        []
-                    ]
-                ]
-
-        _ ->
-            text ""
 
 
 {-| eventsSelect : renders events input selection
@@ -352,17 +300,17 @@ secretsDocsURL =
 
 {-| getKey : gets the appropriate secret key based on type
 -}
-getKey : Args msg -> SecretUpdate -> String
-getKey secretsModel secret =
-    case secret.type_ of
-        Vela.Repo ->
+getKey : Args msg -> String
+getKey secretsModel =
+    case secretsModel.type_ of
+        Vela.RepoSecret ->
             secretsModel.repo
 
-        Vela.Org ->
+        Vela.OrgSecret ->
             "*"
 
-        Vela.Shared ->
-            secret.team
+        Vela.SharedSecret ->
+            secretsModel.team
 
 
 {-| toAddSecretPayload : builds payload for adding secret
@@ -371,18 +319,18 @@ toAddSecretPayload : Args msg -> SecretUpdate -> UpdateSecretPayload
 toAddSecretPayload secretsModel secret =
     let
         args =
-            case secret.type_ of
-                Vela.Repo ->
+            case secretsModel.type_ of
+                Vela.RepoSecret ->
                     { repo = Just secretsModel.repo, team = Nothing }
 
-                Vela.Org ->
+                Vela.OrgSecret ->
                     { repo = Just "*", team = Nothing }
 
-                Vela.Shared ->
-                    { repo = Nothing, team = stringToMaybe secret.team }
+                Vela.SharedSecret ->
+                    { repo = Nothing, team = stringToMaybe secretsModel.team }
     in
     buildUpdateSecretPayload
-        (Just secret.type_)
+        (Just secretsModel.type_)
         (Just secretsModel.org)
         args.repo
         args.team
@@ -395,11 +343,11 @@ toAddSecretPayload secretsModel secret =
 
 {-| toUpdateSecretPayload : builds payload for updating secret
 -}
-toUpdateSecretPayload : SecretUpdate -> UpdateSecretPayload
-toUpdateSecretPayload secret =
+toUpdateSecretPayload : Args msg -> SecretUpdate -> UpdateSecretPayload
+toUpdateSecretPayload secretsModel secret =
     let
         args =
-            { type_ = Just secret.type_
+            { type_ = Just secretsModel.type_
             , org = Nothing
             , repo = Nothing
             , team = Nothing
@@ -426,18 +374,6 @@ stringToMaybe str =
 
     else
         Just trimmed
-
-
-{-| secretToSecretUpdate : takes selected secret and converts it to SecretUpdate for use in secrets form
--}
-secretToSecretUpdate : Maybe Secret -> SecretUpdate
-secretToSecretUpdate selectedSecret =
-    case selectedSecret of
-        Just secret ->
-            SecretUpdate secret.team secret.name "" secret.type_ secret.events "" secret.images secret.allowCommand
-
-        _ ->
-            defaultSecretUpdate
 
 
 {-| eventEnabled : takes event and returns if it is enabled
@@ -501,9 +437,9 @@ update model msg =
                     ( secretsModel
                     , Api.try secretsModel.secretResponse <|
                         Api.addSecret model
-                            (secretTypeToString secret.type_)
+                            (secretTypeToString secretsModel.type_)
                             secretsModel.org
-                            (getKey secretsModel secret)
+                            (getKey secretsModel)
                             body
                     )
     in
@@ -512,14 +448,14 @@ update model msg =
 
 defaultSecretUpdate : SecretUpdate
 defaultSecretUpdate =
-    SecretUpdate "" "" "" Vela.Repo [ "push", "pull" ] "" [] True
+    SecretUpdate "" "" [ "push", "pull" ] "" [] True
 
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
 init : SecretResponse msg -> SecretsResponse msg -> Args msg
 init secretResponse secretsResponse =
-    Args "" "" NotAsked defaultSecretUpdate defaultSecretUpdate secretResponse secretsResponse
+    Args "" "" "" Vela.RepoSecret NotAsked defaultSecretUpdate defaultSecretUpdate secretResponse secretsResponse
 
 
 {-| reinitializeSecretUpdate : takes an incoming secret and reinitializes the secrets page input arguments
@@ -557,12 +493,6 @@ onChangeStringField field value secretsModel =
 updateSecretField : String -> String -> SecretUpdate -> SecretUpdate
 updateSecretField field value secret =
     case field of
-        "type" ->
-            { secret | type_ = toSecretType value }
-
-        "team" ->
-            { secret | team = value }
-
         "name" ->
             { secret | name = value }
 

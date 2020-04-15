@@ -51,6 +51,8 @@ type alias PartialModel a msg =
 type alias Args msg =
     { org : Org
     , repo : Repo
+    , team : Team
+    , type_ : SecretType
     , secrets : WebData Secrets
     , secretUpdate : SecretUpdate
     , secretAdd : SecretUpdate
@@ -75,10 +77,8 @@ type alias Secret =
 {-| SecretUpdate : record to hold potential add/update secret fields
 -}
 type alias SecretUpdate =
-    { team : Team
-    , name : String
+    { name : String
     , value : String
-    , type_ : SecretType
     , events : List String
     , imageInput : String
     , images : List String

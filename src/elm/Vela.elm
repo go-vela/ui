@@ -956,14 +956,14 @@ type alias Type =
 
 
 type SecretType
-    = Shared
-    | Org
-    | Repo
+    = SharedSecret
+    | OrgSecret
+    | RepoSecret
 
 
 nullSecret : Secret
 nullSecret =
-    Secret 0 "" "" "" "" Org [] [] False
+    Secret 0 "" "" "" "" OrgSecret [] [] False
 
 
 {-| secretTypeDecoder : decodes string field "type" to the union type SecretType
@@ -979,13 +979,13 @@ toSecretTypeDecoder : String -> Decoder SecretType
 toSecretTypeDecoder type_ =
     case type_ of
         "shared" ->
-            succeed Shared
+            succeed SharedSecret
 
         "org" ->
-            succeed Org
+            succeed OrgSecret
 
         "repo" ->
-            succeed Repo
+            succeed RepoSecret
 
         _ ->
             Decode.fail "unrecognized secret type"
@@ -997,16 +997,16 @@ toSecretType : String -> SecretType
 toSecretType type_ =
     case type_ of
         "shared" ->
-            Shared
+            SharedSecret
 
         "org" ->
-            Org
+            OrgSecret
 
         "repo" ->
-            Repo
+            RepoSecret
 
         _ ->
-            Repo
+            RepoSecret
 
 
 {-| secretTypeToString : helper to convert SecretType to string
@@ -1014,13 +1014,13 @@ toSecretType type_ =
 secretTypeToString : SecretType -> String
 secretTypeToString type_ =
     case type_ of
-        Shared ->
+        SharedSecret ->
             "shared"
 
-        Org ->
+        OrgSecret ->
             "org"
 
-        Repo ->
+        RepoSecret ->
             "repo"
 
 
@@ -1029,13 +1029,13 @@ secretTypeToString type_ =
 maybeSecretTypeToMaybeString : Maybe SecretType -> Maybe String
 maybeSecretTypeToMaybeString type_ =
     case type_ of
-        Just Shared ->
+        Just SharedSecret ->
             Just "shared"
 
-        Just Org ->
+        Just OrgSecret ->
             Just "org"
 
-        Just Repo ->
+        Just RepoSecret ->
             Just "repo"
 
         _ ->
@@ -1058,7 +1058,7 @@ decodeSecret =
         |> optional "repo" string ""
         |> optional "team" string ""
         |> optional "name" string ""
-        |> optional "type" secretTypeDecoder Repo
+        |> optional "type" secretTypeDecoder RepoSecret
         |> optional "images" (Decode.list string) []
         |> optional "events" (Decode.list string) []
         |> optional "allow_command" bool False

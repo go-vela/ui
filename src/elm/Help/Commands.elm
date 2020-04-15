@@ -57,7 +57,15 @@ commands page =
             -- TODO: probably want this filled in
             []
 
-        Pages.AddSecret engine ->
+        Pages.AddOrgSecret engine org ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.AddRepoSecret engine org repo ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.AddSharedSecret engine org team ->
             -- TODO: probably want this filled in
             []
 
