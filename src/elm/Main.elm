@@ -268,7 +268,7 @@ init flags url navKey =
             , showHelp = False
             , showIdentity = False
             , favicon = defaultFavicon
-            , secretsModel = Pages.Secrets.RepoSecrets.init SecretResponse SecretsResponse
+            , secretsModel = Pages.Secrets.AddSecret.init SecretResponse SecretsResponse
             }
 
         ( newModel, newPage ) =
@@ -360,7 +360,7 @@ type Msg
     | UpdateUrl String
     | VisibilityChanged Visibility
       -- Components
-    | RepoSecretsUpdate Org Repo Pages.Secrets.Types.Msg
+    | AddSecretUpdate Engine Pages.Secrets.Types.Msg
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -757,12 +757,12 @@ update msg model =
                             model.secretsModel
 
                         updatedSecretsModel =
-                            Pages.Secrets.RepoSecrets.reinitializeSecretUpdate secretsModel secret
+                            Pages.Secrets.AddSecret.reinitializeSecretUpdate secretsModel secret
                     in
                     ( { model | secretsModel = updatedSecretsModel }
                     , Cmd.batch [ getSecrets model "repo" secretsModel.org secretsModel.repo, getSecrets model "org" secretsModel.org "*" ]
                     )
-                        |> secretResponseAlert secret secretsModel.manageState
+                        |> secretResponseAlert secret Add
 
                 Err error ->
                     ( model, addError error )
@@ -1001,13 +1001,10 @@ update msg model =
             in
             ( { model | secretsModel = { secretsModel | secrets = Loading } }, getSecrets model "repo" org repo )
 
-        RepoSecretsUpdate org repo m ->
+        AddSecretUpdate engine m ->
             let
-                secretsModel =
-                    model.secretsModel
-
                 ( newModel, action ) =
-                    Pages.Secrets.RepoSecrets.update { model | secretsModel = { secretsModel | org = org, repo = repo } } m
+                    Pages.Secrets.AddSecret.update model m
             in
             ( newModel
             , action
@@ -1081,23 +1078,25 @@ update msg model =
             ( model, Cmd.none )
 
 
+type SecretUpdateType
+    = Add
+    | Update
+
+
 secretResponseAlert :
     Secret
-    -> Pages.Secrets.Types.ManageSecretState
+    -> SecretUpdateType
     -> ( { m | toasties : Stack Alert }, Cmd Msg )
     -> ( { m | toasties : Stack Alert }, Cmd Msg )
 secretResponseAlert secret secretUpdate =
     let
         msg =
             case secretUpdate of
-                Pages.Secrets.Types.Add ->
+                Add ->
                     secret.name ++ " added to secrets."
 
-                Pages.Secrets.Types.Update ->
+                Update ->
                     "Updated secret `" ++ secret.name ++ "`."
-
-                Pages.Secrets.Types.Choose ->
-                    ""
     in
     Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
@@ -1499,7 +1498,7 @@ viewContent model =
 
         Pages.AddSecret engine ->
             ( "add " ++ engine ++ " secret"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.AddSecret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
             )
 
         Pages.OrgSecret engine org name ->

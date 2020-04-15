@@ -52,8 +52,6 @@ type alias Args msg =
     { org : Org
     , repo : Repo
     , secrets : WebData Secrets
-    , manageState : ManageSecretState
-    , selectedSecret : String
     , secretUpdate : SecretUpdate
     , secretAdd : SecretUpdate
     , secretResponse : SecretResponse msg
@@ -102,14 +100,11 @@ type alias SecretsResponse msg =
 
 type Msg
     = OnChangeStringField String String
-    | SelectSecret String
     | OnChangeEvent String Bool
     | AddImage String
     | RemoveImage String
     | OnChangeAllowCommand String
-    | CancelUpdate
     | AddSecret
-    | UpdateSecret
 
 
 type ManageSecretState
