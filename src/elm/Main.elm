@@ -81,10 +81,8 @@ import Pages.Home
 import Pages.Hooks
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.AddSecret
-import Pages.Secrets.OrgSecret
-import Pages.Secrets.RepoSecret
+import Pages.Secrets.Secret
 import Pages.Secrets.Secrets
-import Pages.Secrets.SharedSecret
 import Pages.Secrets.Types
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
@@ -1511,17 +1509,17 @@ viewContent model =
 
         Pages.OrgSecret engine org name ->
             ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.OrgSecret.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secret.view model
             )
 
         Pages.RepoSecret engine org repo name ->
             ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.RepoSecret.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secret.view model
             )
 
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.SharedSecret.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secret.view model
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->

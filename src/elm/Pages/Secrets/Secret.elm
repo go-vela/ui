@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Secrets.RepoSecret exposing (view)
+module Pages.Secrets.Secret exposing (view)
 
 import Api
 import Html
@@ -59,4 +59,4 @@ import Vela
 -}
 view : PartialModel a msg -> Html Msg
 view model =
-    div [] [ text "repo secret" ]
+    div [] [ text "secret" ]
