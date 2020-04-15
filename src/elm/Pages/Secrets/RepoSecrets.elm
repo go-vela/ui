@@ -51,6 +51,7 @@ import Pages.Secrets.Types
         , SecretsResponse
         )
 import RemoteData exposing (RemoteData(..), WebData)
+import Table.Table
 import Util exposing (largeLoader)
 import Vela
     exposing
@@ -345,7 +346,7 @@ onChangeAllowCommand allow secretsModel =
     in
     case secretUpdate of
         Just s ->
-            updateSecretModel { s | allowCommand = yesNoToBool allow } secretsModel
+            updateSecretModel { s | allowCommand = Util.yesNoToBool allow } secretsModel
 
         Nothing ->
             secretsModel
@@ -372,7 +373,7 @@ view model =
                         , secretForm secretsModel secrets
                         ]
                     ]
-                , viewSecrets secrets
+                , Table.Table.view [] []
                 ]
 
         _ ->
@@ -455,90 +456,6 @@ manageSecret secretsModel =
                 [ text "Cancel" ]
             ]
         ]
-
-
-{-| viewSecrets : renders secrets table
--}
-viewSecrets : Secrets -> Html Msg
-viewSecrets secrets =
-    div [ class "secrets-table", class "table" ] <| secretsTable secrets
-
-
-{-| secretsTable : renders secrets table
--}
-secretsTable : Secrets -> List (Html Msg)
-secretsTable secrets =
-    [ div [ class "table-label" ] [ text "Secrets" ], headers ]
-        ++ (if List.length secrets > 0 then
-                rows secrets
-
-            else
-                [ div [ class "no-secrets" ] [ text "No secrets found for this repository" ] ]
-           )
-
-
-{-| headers : renders secrets table headers
--}
-headers : Html Msg
-headers =
-    div [ class "headers" ]
-        [ div [ class "header" ] [ text "name" ]
-        , div [ class "header" ] [ text "type" ]
-        , div [ class "header" ] [ text "events" ]
-        , div [ class "header" ] [ text "images" ]
-        , div [ class "header" ] [ text "allow commands" ]
-        ]
-
-
-{-| rows : renders secrets table rows
--}
-rows : Secrets -> List (Html Msg)
-rows secrets =
-    List.map (\secret -> row secret) secrets
-
-
-{-| row : renders hooks table row wrapped in details element
--}
-row : Secret -> Html Msg
-row secret =
-    div [ class "details", class "-no-pad", Util.testAttribute "secret" ]
-        [ div [ class "secrets-row" ]
-            [ preview secret ]
-        ]
-
-
-{-| preview : renders the hook preview displayed as the clickable row
--}
-preview : Secret -> Html Msg
-preview secret =
-    div [ class "row", class "preview" ]
-        [ cell secret.name <| class "host"
-        , cell (secretTypeToString secret.type_) <| class ""
-        , arrayCell secret.events "no events"
-        , arrayCell secret.images "all images"
-        , cell (boolToYesNo secret.allowCommand) <| class ""
-        ]
-
-
-{-| cell : takes text and maybe attributes and renders cell data for hooks table row
--}
-cell : String -> Html.Attribute Msg -> Html Msg
-cell txt cls =
-    div [ class "cell", cls ]
-        [ span [] [ text txt ] ]
-
-
-{-| arrayCell : takes string array and renders cell
--}
-arrayCell : List String -> String -> Html Msg
-arrayCell images default =
-    div [ class "cell" ] <|
-        List.intersperse (text ",") <|
-            if List.length images > 0 then
-                List.map (\image -> code [ class "text", class "-m-l" ] [ text image ]) images
-
-            else
-                [ code [ class "text" ] [ text default ] ]
 
 
 {-| selectSecret : renders secret selection box
@@ -786,8 +703,8 @@ allowCommandCheckbox secretUpdate =
             ]
         , div
             [ class "form-controls", class "-row" ]
-            [ radio (boolToYesNo secretUpdate.allowCommand) "yes" "Yes" <| OnChangeAllowCommand "yes"
-            , radio (boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
+            [ radio (Util.boolToYesNo secretUpdate.allowCommand) "yes" "Yes" <| OnChangeAllowCommand "yes"
+            , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
             ]
         ]
 
@@ -981,21 +898,3 @@ toggleEvent event events =
 
     else
         event :: events
-
-
-{-| boolToYesNo : takes bool and converts to yes/no string
--}
-boolToYesNo : Bool -> String
-boolToYesNo bool =
-    if bool then
-        "yes"
-
-    else
-        "no"
-
-
-{-| yesNoToBool : takes yes/no string and converts to bool
--}
-yesNoToBool : String -> Bool
-yesNoToBool yesNo =
-    yesNo == "yes"

@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Util exposing
     ( addIfUniqueId
     , ariaHidden
+    , boolToYesNo
     , dateToHumanReadable
     , dispatch
     , filterEmptyList
@@ -32,6 +33,7 @@ module Util exposing
     , smallLoaderWithText
     , testAttribute
     , toTwoDigits
+    , yesNoToBool
     )
 
 import DateFormat exposing (monthNameFull)
@@ -326,6 +328,24 @@ pluralize num str =
 
     else
         str
+
+
+{-| boolToYesNo : takes bool and converts to yes/no string
+-}
+boolToYesNo : Bool -> String
+boolToYesNo bool =
+    if bool then
+        "yes"
+
+    else
+        "no"
+
+
+{-| yesNoToBool : takes yes/no string and converts to bool
+-}
+yesNoToBool : String -> Bool
+yesNoToBool yesNo =
+    yesNo == "yes"
 
 
 {-| onClickPreventDefault : returns custom onClick handler for calling javascript function preventDefault()
