@@ -373,11 +373,32 @@ view model =
                         , secretForm secretsModel secrets
                         ]
                     ]
-                , Table.Table.view [] []
+                , Table.Table.view
+                    (Table.Table.Config "Secrets"
+                        "No secrets found for this repository"
+                        [ "name", "type", "events", "images", "allow command" ]
+                        (secretsToRows secrets)
+                    )
                 ]
 
         _ ->
             div [] [ largeLoader ]
+
+
+secretsToRows : Secrets -> Table.Table.Rows Secret Msg
+secretsToRows =
+    List.map (\secret -> Table.Table.Row secret renderSecret)
+
+
+renderSecret : Secret -> Html msg
+renderSecret secret =
+    div [ class "row", class "preview" ]
+        [ Table.Table.cell secret.name <| class "host"
+        , Table.Table.cell (secretTypeToString secret.type_) <| class ""
+        , Table.Table.arrayCell secret.events "no events"
+        , Table.Table.arrayCell secret.images "all images"
+        , Table.Table.cell (Util.boolToYesNo secret.allowCommand) <| class ""
+        ]
 
 
 {-| secretForm : renders secret update form based on manage state

@@ -4,186 +4,97 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Table.Table exposing (Row, view)
+module Table.Table exposing (Config, Row, Rows, arrayCell, cell, view)
 
-import Api
 import Html
     exposing
         ( Html
-        , a
         , code
         , div
-        , em
-        , h4
-        , section
         , span
         , text
         )
 import Html.Attributes
     exposing
         ( class
-        , disabled
-        , href
-        , placeholder
-        , value
         )
-import Html.Events exposing (onClick, onInput)
-import Http
-import Http.Detailed
-import List.Extra
-import Pages exposing (Page(..))
-import Pages.RepoSettings exposing (checkbox, radio)
-import Pages.Secrets.Types exposing (Msg(..), PartialModel)
-import RemoteData exposing (RemoteData(..), WebData)
-import Util exposing (largeLoader)
-import Vela
-    exposing
-        ( Key
-        , Org
-        , Repo
-        , Repository
-        , Secret
-        , SecretType
-        , Secrets
-        , Session
-        , Team
-        , UpdateSecretPayload
-        , buildUpdateSecretPayload
-        , defaultRepository
-        , encodeUpdateSecret
-        , nullSecret
-        , secretTypeToString
-        , toSecretType
-        )
+import Util
 
 
-type alias Column data =
-    { name : String
-    , display : data -> Html Msg
-    }
+type alias Column =
+    String
 
 
-type alias Columns data =
-    List (Column data)
+type alias Columns =
+    List Column
 
 
-type alias Row data =
+type alias Row data msg =
     { data : data
-    , display : data -> Html Msg
+    , display : data -> Html msg
     }
 
 
-type alias Rows data =
-    List (Row data)
+type alias Rows data msg =
+    List (Row data msg)
 
 
-findColumn : Row data -> Columns data -> Maybe (Column data)
-findColumn row columns =
-    Nothing
-
-
-demoColumns : Columns Secret
-demoColumns =
-    [ Column "name of repo" (\repo -> div [] [ text repo.name ]) ]
-
-
-demoRows : Rows Secret
-demoRows =
-    [ Row (Secret 0 "org..." "repo..." "team..." "name..." Vela.Org [ "event..." ] [ "image..." ] True)
-        renderSecret
-    ]
-
-
-renderSecret : Secret -> Html Msg
-renderSecret secret =
-    div [ class "row", class "preview" ]
-        [ cell secret.name <| class "host"
-        , cell (secretTypeToString secret.type_) <| class ""
-        , arrayCell secret.events "no events"
-        , arrayCell secret.images "all images"
-        , cell (Util.boolToYesNo secret.allowCommand) <| class ""
-        ]
+type alias Config data msg =
+    { label : String
+    , noRows : String
+    , columns : Columns
+    , rows : Rows data msg
+    }
 
 
 {-| view : renders data table
 -}
-view : Columns data -> Rows data -> Html Msg
-view columns rows =
-    -- div [ class "secrets-table", class "table" ] <| table columns rows
-    div [ class "secrets-table", class "table" ] <| table demoColumns demoRows
+view : Config data msg -> Html msg
+view config =
+    div [ class "table", class "table" ] <| table config
 
 
 {-| table : renders table rows
 -}
-table : List (Column a) -> List (Row a) -> List (Html Msg)
-table columns rows =
-    [ div [ class "table-label" ] [ text "Secrets" ], headers columns ]
+table : Config a msg -> List (Html msg)
+table { label, noRows, columns, rows } =
+    [ div [ class "table-label" ] [ text label ], headers columns ]
         ++ (if List.length rows > 0 then
                 viewRows rows
 
             else
-                [ div [ class "no-secrets" ] [ text "No secrets found for this repository" ] ]
+                [ div [ class "no-rows" ] [ text noRows ] ]
            )
 
 
-{-| headers : renders secrets table headers
+{-| headers : renders table headers
 -}
-headers : List (Column a) -> Html Msg
+headers : Columns -> Html msg
 headers columns =
-    div [ class "headers" ]
-        [ div [ class "header" ] [ text "name" ]
-        , div [ class "header" ] [ text "type" ]
-        , div [ class "header" ] [ text "events" ]
-        , div [ class "header" ] [ text "images" ]
-        , div [ class "header" ] [ text "allow commands" ]
-        ]
+    div [ class "headers" ] <|
+        List.map (\col -> div [ class "header" ] [ text col ]) columns
 
 
 {-| viewRows : renders data table rows
 -}
-viewRows : Rows a -> List (Html Msg)
+viewRows : Rows a msg -> List (Html msg)
 viewRows rows =
     List.map viewRow rows
 
 
 {-| viewRow : renders hooks table row wrapped in details element
 -}
-viewRow : Row a -> Html Msg
+viewRow : Row a msg -> Html msg
 viewRow row =
-    div [ class "details", class "-no-pad", Util.testAttribute "secret" ]
-        [ div [ class "secrets-row" ]
+    div [ class "details", class "-no-pad", Util.testAttribute "row" ]
+        [ div [ class "row-display" ]
             [ row.display row.data ]
-        ]
-
-
-secretPreview : Row a -> Html Msg
-secretPreview row =
-    div [] [ text "secret.name" ]
-
-
-otherPreview : Row a -> Html Msg
-otherPreview row =
-    div [] [ text "other.other" ]
-
-
-{-| preview : renders the hook preview displayed as the clickable row
--}
-preview :
-    { a | name : String, type_ : SecretType, events : List String, images : List String, allowCommand : Bool }
-    -> Html Msg
-preview secret =
-    div [ class "row", class "preview" ]
-        [ cell secret.name <| class "host"
-        , cell (secretTypeToString secret.type_) <| class ""
-        , arrayCell secret.events "no events"
-        , arrayCell secret.images "all images"
-        , cell (Util.boolToYesNo secret.allowCommand) <| class ""
         ]
 
 
 {-| cell : takes text and maybe attributes and renders cell data for hooks table row
 -}
-cell : String -> Html.Attribute Msg -> Html Msg
+cell : String -> Html.Attribute msg -> Html msg
 cell txt cls =
     div [ class "cell", cls ]
         [ span [] [ text txt ] ]
@@ -191,7 +102,7 @@ cell txt cls =
 
 {-| arrayCell : takes string array and renders cell
 -}
-arrayCell : List String -> String -> Html Msg
+arrayCell : List String -> String -> Html msg
 arrayCell images default =
     div [ class "cell" ] <|
         List.intersperse (text ",") <|
