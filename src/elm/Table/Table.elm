@@ -4,7 +4,15 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Table.Table exposing (Config, Row, Rows, arrayCell, cell, view)
+module Table.Table exposing
+    ( Config
+    , Row
+    , Rows
+    , arrayCell
+    , cell
+    , customCell
+    , view
+    )
 
 import Html
     exposing
@@ -104,6 +112,14 @@ cell : String -> Html.Attribute msg -> Html msg
 cell txt cls =
     div [ class "cell", cls ]
         [ span [] [ text txt ] ]
+
+
+{-| customCell : takes html and maybe attributes and renders cell data for hooks table row
+-}
+customCell : Html msg -> Html.Attribute msg -> Html msg
+customCell element cls =
+    div [ class "cell", cls ]
+        [ span [] [ element ] ]
 
 
 {-| arrayCell : takes string array and renders cell

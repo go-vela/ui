@@ -31,6 +31,7 @@ import Util exposing (largeLoader)
 import Vela
     exposing
         ( Secret
+        , SecretType(..)
         , Secrets
         , secretTypeToString
         )
@@ -85,8 +86,8 @@ view model =
                 [ Table.Table.view
                     (Table.Table.Config label
                         noSecrets
-                        [ "name", "type", "events", "images", "allow command" ]
-                        (secretsToRows secrets)
+                        [ "name", "type", "events", "images", "allow command", "" ]
+                        (secretsToRows model.secretsModel.type_ secrets)
                         addSecret
                     )
                 ]
@@ -95,17 +96,32 @@ view model =
             div [] [ largeLoader ]
 
 
-secretsToRows : Secrets -> Table.Table.Rows Secret Msg
-secretsToRows =
-    List.map (\secret -> Table.Table.Row secret renderSecret)
+secretsToRows : SecretType -> Secrets -> Table.Table.Rows Secret Msg
+secretsToRows type_ =
+    List.map (\secret -> Table.Table.Row secret (renderSecret type_))
 
 
-renderSecret : Secret -> Html msg
-renderSecret secret =
+renderSecret : SecretType -> Secret -> Html msg
+renderSecret type_ secret =
     div [ class "row", class "preview" ]
         [ Table.Table.cell secret.name <| class "host"
         , Table.Table.cell (secretTypeToString secret.type_) <| class ""
         , Table.Table.arrayCell secret.events "no events"
         , Table.Table.arrayCell secret.images "all images"
         , Table.Table.cell (Util.boolToYesNo secret.allowCommand) <| class ""
+        , Table.Table.customCell (Html.a [ class "button", class "-outline", updateSecretHref type_ secret ] [ text "edit" ]) <| class ""
         ]
+
+
+updateSecretHref : SecretType -> Secret -> Html.Attribute msg
+updateSecretHref type_ secret =
+    Routes.href <|
+        case type_ of
+            Vela.OrgSecret ->
+                Routes.OrgSecret "native" secret.org secret.name
+
+            Vela.RepoSecret ->
+                Routes.RepoSecret "native" secret.org secret.repo secret.name
+
+            Vela.SharedSecret ->
+                Routes.SharedSecret "native" secret.org secret.team secret.name

@@ -265,7 +265,7 @@ init flags url navKey =
             , showHelp = False
             , showIdentity = False
             , favicon = defaultFavicon
-            , secretsModel = Pages.Secrets.Update.init SecretResponse SecretsResponse
+            , secretsModel = Pages.Secrets.Update.init SecretResponse SecretsResponse AddSecretResponse
             }
 
         ( newModel, newPage ) =
@@ -344,6 +344,7 @@ type Msg
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
+    | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
     | Error String
@@ -759,7 +760,24 @@ update msg model =
                     ( { model | secretsModel = updatedSecretsModel }
                     , Cmd.none
                     )
-                        |> secretResponseAlert secret Add
+
+                Err error ->
+                    ( model, addError error )
+
+        AddSecretResponse response ->
+            case response of
+                Ok ( _, secret ) ->
+                    let
+                        secretsModel =
+                            model.secretsModel
+
+                        updatedSecretsModel =
+                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
+                    in
+                    ( { model | secretsModel = updatedSecretsModel }
+                    , Cmd.none
+                    )
+                        |> addSecretResponseAlert secret
 
                 Err error ->
                     ( model, addError error )
@@ -1075,25 +1093,14 @@ update msg model =
             ( model, Cmd.none )
 
 
-type SecretUpdateType
-    = Add
-    | Update
-
-
-secretResponseAlert :
+addSecretResponseAlert :
     Secret
-    -> SecretUpdateType
     -> ( { m | toasties : Stack Alert }, Cmd Msg )
     -> ( { m | toasties : Stack Alert }, Cmd Msg )
-secretResponseAlert secret secretUpdate =
+addSecretResponseAlert secret =
     let
         msg =
-            case secretUpdate of
-                Add ->
-                    secret.name ++ " added to secrets."
-
-                Update ->
-                    "Updated secret `" ++ secret.name ++ "`."
+            secret.name ++ " added to secrets."
     in
     Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 

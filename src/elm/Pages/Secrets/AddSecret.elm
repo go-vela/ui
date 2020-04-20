@@ -27,7 +27,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick, onInput)
 import Pages exposing (Page(..))
-import Pages.RepoSettings exposing (checkbox, radio)
+import Pages.RepoSettings exposing (checkbox)
 import Pages.Secrets.Types
     exposing
         ( Args

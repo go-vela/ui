@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Secrets.Types exposing
-    ( Args
+    ( AddSecretResponse
+    , Args
     , ManageSecretState(..)
     , Msg(..)
     , PartialModel
@@ -59,6 +60,7 @@ type alias Args msg =
     , secretAdd : SecretUpdate
     , secretResponse : SecretResponse msg
     , secretsResponse : SecretsResponse msg
+    , addSecretResponse : AddSecretResponse msg
     }
 
 
@@ -102,6 +104,10 @@ type alias SecretResponse msg =
 
 type alias SecretsResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> msg
+
+
+type alias AddSecretResponse msg =
+    Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
 
 
 type Msg

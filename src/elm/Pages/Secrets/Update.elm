@@ -16,7 +16,8 @@ import Http
 import List.Extra
 import Pages.Secrets.Types
     exposing
-        ( Args
+        ( AddSecretResponse
+        , Args
         , Msg(..)
         , PartialModel
         , SecretResponse
@@ -39,9 +40,9 @@ import Vela
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
-init : SecretResponse msg -> SecretsResponse msg -> Args msg
-init secretResponse secretsResponse =
-    Args "" "" "" Vela.RepoSecret NotAsked defaultSecretUpdate defaultSecretUpdate secretResponse secretsResponse
+init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> Args msg
+init secretResponse secretsResponse addSecretsResponse =
+    Args "" "" "" Vela.RepoSecret NotAsked defaultSecretUpdate defaultSecretUpdate secretResponse secretsResponse addSecretsResponse
 
 
 {-| reinitializeSecretUpdate : takes an incoming secret and reinitializes the secrets page input arguments
@@ -80,7 +81,7 @@ updateSecretField : String -> String -> SecretUpdate -> SecretUpdate
 updateSecretField field value secret =
     case field of
         "name" ->
-            { secret | name = value }
+            { secret | name = String.replace " " "" value }
 
         "value" ->
             { secret | value = value }
@@ -272,7 +273,7 @@ update model msg =
                             Http.jsonBody <| encodeUpdateSecret payload
                     in
                     ( secretsModel
-                    , Api.try secretsModel.secretResponse <|
+                    , Api.try secretsModel.addSecretResponse <|
                         Api.addSecret model
                             (secretTypeToString secretsModel.type_)
                             secretsModel.org
