@@ -16,7 +16,8 @@
     "allow_pull": false,
     "allow_push": true,
     "allow_deploy": false,
-    "allow_tag": false
+    "allow_tag": false,
+    "allow_comment": false
   },
   {
     "id": 102,
@@ -35,7 +36,8 @@
     "allow_pull": false,
     "allow_push": true,
     "allow_deploy": false,
-    "allow_tag": false
+    "allow_tag": false,
+    "allow_comment": false
   },
   {
     "id": 103,
@@ -54,7 +56,8 @@
     "allow_pull": false,
     "allow_push": true,
     "allow_deploy": false,
-    "allow_tag": false
+    "allow_tag": false,
+    "allow_comment": false
   },
   {
     "id": 104,
@@ -73,7 +76,8 @@
     "allow_pull": false,
     "allow_push": true,
     "allow_deploy": false,
-    "allow_tag": false
+    "allow_tag": false,
+    "allow_comment": false
   },
   {
     "id": 105,
@@ -92,6 +96,7 @@
     "allow_pull": false,
     "allow_push": true,
     "allow_deploy": false,
-    "allow_tag": false
+    "allow_tag": false,
+    "allow_comment": false
   }
 ]

@@ -16,7 +16,8 @@
     "allow_pull": false,
     "allow_push": true,
     "allow_deploy": false,
-    "allow_tag": false
+    "allow_tag": false,
+    "allow_comment": false
   },
   {
     "id": 18,
@@ -35,7 +36,8 @@
     "allow_pull": false,
     "allow_push": true,
     "allow_deploy": false,
-    "allow_tag": false
+    "allow_tag": false,
+    "allow_comment": false
   },
   {
     "id": 17,
@@ -54,7 +56,8 @@
     "allow_pull": false,
     "allow_push": true,
     "allow_deploy": false,
-    "allow_tag": false
+    "allow_tag": false,
+    "allow_comment": false
   },
   {
     "id": 16,
@@ -73,6 +76,7 @@
     "allow_pull": false,
     "allow_push": true,
     "allow_deploy": false,
-    "allow_tag": false
+    "allow_tag": false,
+    "allow_comment": false
   }
 ]
