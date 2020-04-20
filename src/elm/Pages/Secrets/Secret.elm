@@ -33,9 +33,9 @@ import Http.Detailed
 import List.Extra
 import Pages exposing (Page(..))
 import Pages.RepoSettings exposing (checkbox, radio)
-import Pages.Secrets.Types exposing (Msg(..), PartialModel)
+import Pages.Secrets.Types exposing (Args, Msg(..), PartialModel, SecretUpdate)
 import RemoteData exposing (RemoteData(..), WebData)
-import Util exposing (largeLoader)
+import Util exposing (stringToMaybe)
 import Vela
     exposing
         ( Key
@@ -60,3 +60,45 @@ import Vela
 view : PartialModel a msg -> Html Msg
 view model =
     div [] [ text "secret" ]
+
+
+{-| toUpdateSecretPayload : builds payload for updating secret
+-}
+toUpdateSecretPayload : Args msg -> SecretUpdate -> UpdateSecretPayload
+toUpdateSecretPayload secretsModel secret =
+    let
+        args =
+            { type_ = Just secretsModel.type_
+            , org = Nothing
+            , repo = Nothing
+            , team = Nothing
+            , name = Nothing
+            , value = stringToMaybe secret.value
+            , events = Just secret.events
+            , images = Just secret.images
+            , allowCommand = Just secret.allowCommand
+            }
+    in
+    buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowCommand
+
+
+{-| allowCommandCheckbox : renders checkbox inputs for selecting allow\_command
+-}
+allowCommandCheckbox : SecretUpdate -> Html Msg
+allowCommandCheckbox secretUpdate =
+    section [ class "type", Util.testAttribute "" ]
+        [ h4 [ class "field-header" ]
+            [ text "Allow Commands"
+            , span [ class "field-description" ]
+                [ text "( "
+                , em [] [ text "\"No\" will disable this secret in " ]
+                , span [ class "-code" ] [ text "commands" ]
+                , text " )"
+                ]
+            ]
+        , div
+            [ class "form-controls", class "-row" ]
+            [ radio (Util.boolToYesNo secretUpdate.allowCommand) "yes" "Yes" <| OnChangeAllowCommand "yes"
+            , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
+            ]
+        ]

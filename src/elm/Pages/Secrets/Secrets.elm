@@ -9,11 +9,14 @@ module Pages.Secrets.Secrets exposing (view)
 import Html
     exposing
         ( Html
+        , a
         , div
+        , text
         )
 import Html.Attributes
     exposing
         ( class
+        , href
         )
 import Pages.Secrets.Types
     exposing
@@ -22,6 +25,7 @@ import Pages.Secrets.Types
         , PartialModel
         )
 import RemoteData exposing (RemoteData(..))
+import Routes
 import Table.Table
 import Util exposing (largeLoader)
 import Vela
@@ -44,16 +48,36 @@ view model =
         secretsModel =
             model.secretsModel
 
-        ( label, noSecrets ) =
+        ( label, noSecrets, addSecretRoute ) =
             case model.secretsModel.type_ of
                 Vela.OrgSecret ->
-                    ( "Org Secrets", "No secrets found for this organization" )
+                    ( "Org Secrets"
+                    , "No secrets found for this organization"
+                    , Routes.AddOrgSecret "native" secretsModel.org
+                    )
 
                 Vela.RepoSecret ->
-                    ( "Repo Secrets", "No secrets found for this repository" )
+                    ( "Repo Secrets"
+                    , "No secrets found for this repository"
+                    , Routes.AddRepoSecret "native" secretsModel.org secretsModel.repo
+                    )
 
                 Vela.SharedSecret ->
-                    ( "Shared Secrets", "No secrets found for this organization/team" )
+                    ( "Shared Secrets"
+                    , "No secrets found for this organization/team"
+                    , Routes.AddSharedSecret "native" secretsModel.org secretsModel.team
+                    )
+
+        addSecret =
+            Just <|
+                a
+                    [ class "add-secret"
+                    , class "button"
+                    , class "-outline"
+                    , Routes.href <|
+                        addSecretRoute
+                    ]
+                    [ text "Add Secret" ]
     in
     case secretsModel.secrets of
         Success secrets ->
@@ -63,6 +87,7 @@ view model =
                         noSecrets
                         [ "name", "type", "events", "images", "allow command" ]
                         (secretsToRows secrets)
+                        addSecret
                     )
                 ]
 

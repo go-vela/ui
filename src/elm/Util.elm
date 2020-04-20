@@ -31,6 +31,7 @@ module Util exposing
     , secondsToMillis
     , smallLoader
     , smallLoaderWithText
+    , stringToMaybe
     , testAttribute
     , toTwoDigits
     , yesNoToBool
@@ -346,6 +347,21 @@ boolToYesNo bool =
 yesNoToBool : String -> Bool
 yesNoToBool yesNo =
     yesNo == "yes"
+
+
+{-| stringToMaybe : takes string and returns nothing if trimmed string is empty
+-}
+stringToMaybe : String -> Maybe String
+stringToMaybe str =
+    let
+        trimmed =
+            String.trim str
+    in
+    if String.isEmpty trimmed then
+        Nothing
+
+    else
+        Just trimmed
 
 
 {-| onClickPreventDefault : returns custom onClick handler for calling javascript function preventDefault()

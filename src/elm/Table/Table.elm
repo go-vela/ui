@@ -44,6 +44,7 @@ type alias Config data msg =
     , noRows : String
     , columns : Columns
     , rows : Rows data msg
+    , action : Maybe (Html msg)
     }
 
 
@@ -57,8 +58,13 @@ view config =
 {-| table : renders table rows
 -}
 table : Config a msg -> List (Html msg)
-table { label, noRows, columns, rows } =
-    [ div [ class "table-label" ] [ text label ], headers columns ]
+table { label, noRows, columns, rows, action } =
+    [ div [ class "table-label" ]
+        [ text label
+        , Maybe.withDefault (text "") action
+        ]
+    , headers columns
+    ]
         ++ (if List.length rows > 0 then
                 viewRows rows
 

@@ -13,6 +13,7 @@ module Pages.Secrets.Types exposing
     , SecretResponse
     , SecretUpdate
     , SecretsResponse
+    , defaultSecretUpdate
     )
 
 import Http
@@ -84,6 +85,11 @@ type alias SecretUpdate =
     , images : List String
     , allowCommand : Bool
     }
+
+
+defaultSecretUpdate : SecretUpdate
+defaultSecretUpdate =
+    SecretUpdate "" "" [ "push", "tag", "deploy" ] "" [] True
 
 
 

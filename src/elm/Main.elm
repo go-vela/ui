@@ -84,6 +84,7 @@ import Pages.Secrets.AddSecret
 import Pages.Secrets.Secret
 import Pages.Secrets.Secrets
 import Pages.Secrets.Types
+import Pages.Secrets.Update
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
@@ -264,7 +265,7 @@ init flags url navKey =
             , showHelp = False
             , showIdentity = False
             , favicon = defaultFavicon
-            , secretsModel = Pages.Secrets.AddSecret.init SecretResponse SecretsResponse
+            , secretsModel = Pages.Secrets.Update.init SecretResponse SecretsResponse
             }
 
         ( newModel, newPage ) =
@@ -753,7 +754,7 @@ update msg model =
                             model.secretsModel
 
                         updatedSecretsModel =
-                            Pages.Secrets.AddSecret.reinitializeSecretUpdate secretsModel secret
+                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
                     in
                     ( { model | secretsModel = updatedSecretsModel }
                     , Cmd.none
@@ -1000,7 +1001,7 @@ update msg model =
         AddSecretUpdate engine m ->
             let
                 ( newModel, action ) =
-                    Pages.Secrets.AddSecret.update model m
+                    Pages.Secrets.Update.update model m
             in
             ( newModel
             , action
