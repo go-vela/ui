@@ -28,11 +28,17 @@ import Html.Attributes
         , value
         )
 import Html.Events exposing (onClick, onInput)
-import Http
-import Http.Detailed
-import List.Extra
 import Pages exposing (Page(..))
 import Pages.RepoSettings exposing (checkbox, radio)
+import Pages.Secrets.Form
+    exposing
+        ( viewAddedImages
+        , viewEventsSelect
+        , viewHelp
+        , viewImagesInput
+        , viewNameInput
+        , viewValueInput
+        )
 import Pages.Secrets.Types exposing (Args, Msg(..), PartialModel, SecretUpdate)
 import RemoteData exposing (RemoteData(..), WebData)
 import Util exposing (stringToMaybe)
@@ -55,11 +61,48 @@ import Vela
         )
 
 
-{-| view : takes model and renders page for managing org secrets
--}
 view : PartialModel a msg -> Html Msg
 view model =
-    div [] [ text "secret" ]
+    div [ class "manage-secrets", Util.testAttribute "manage-secrets" ]
+        [ div []
+            [ Html.h2 [] [ header model.secretsModel.type_ ]
+            , updateSecret model.secretsModel
+            ]
+        ]
+
+
+header : SecretType -> Html Msg
+header type_ =
+    case type_ of
+        Vela.OrgSecret ->
+            text "Org Secret"
+
+        Vela.RepoSecret ->
+            text "Repo Secret"
+
+        Vela.SharedSecret ->
+            text "Shared Secret"
+
+
+{-| updateSecret : renders secret update form for updating a preexisting secret
+-}
+updateSecret : Args msg -> Html Msg
+updateSecret secretsModel =
+    let
+        secretUpdate =
+            secretsModel.secretAdd
+    in
+    div [ class "secret-form" ]
+        [ Html.h4 [ class "field-header" ] [ text "Name" ]
+        , Html.h4 [ class "field-header" ] [ text "Value" ]
+        , viewValueInput secretUpdate.value "Secret Value"
+        , viewEventsSelect secretUpdate
+        , viewImagesInput secretUpdate secretUpdate.imageInput
+        , viewHelp
+        , div [ class "-m-t" ]
+            [ Html.button [ class "button", class "-outline", onClick Pages.Secrets.Types.AddSecret ] [ text "Add" ]
+            ]
+        ]
 
 
 {-| toUpdateSecretPayload : builds payload for updating secret
