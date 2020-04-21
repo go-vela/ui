@@ -43,7 +43,7 @@ import Vela
 -}
 init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> Args msg
 init secretResponse secretsResponse addSecretsResponse =
-    Args "" "" "" Vela.RepoSecret NotAsked defaultSecretUpdate secretResponse secretsResponse addSecretsResponse
+    Args "native" "" "" "" Vela.RepoSecret NotAsked defaultSecretUpdate secretResponse secretsResponse addSecretsResponse
 
 
 {-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments
@@ -206,6 +206,10 @@ toggleEvent event events =
 -}
 getKey : Args msg -> String
 getKey secretsModel =
+    let
+        _ =
+            Debug.log "??" secretsModel.team
+    in
     case secretsModel.type_ of
         Vela.RepoSecret ->
             secretsModel.repo
@@ -272,9 +276,6 @@ toUpdateSecretPayload secretsModel secret =
 update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
 update model msg =
     let
-        _ =
-            Debug.log "wat" "do"
-
         secretsModel =
             model.secretsModel
 
@@ -295,7 +296,7 @@ update model msg =
                 OnChangeAllowCommand allow ->
                     ( onChangeAllowCommand allow secretsModel, Cmd.none )
 
-                Pages.Secrets.Types.AddSecret ->
+                Pages.Secrets.Types.AddSecret engine ->
                     let
                         secret =
                             secretsModel.secretAdd
@@ -311,13 +312,14 @@ update model msg =
                     ( secretsModel
                     , Api.try secretsModel.addSecretResponse <|
                         Api.addSecret model
+                            engine
                             (secretTypeToString secretsModel.type_)
                             secretsModel.org
                             (getKey secretsModel)
                             body
                     )
 
-                Pages.Secrets.Types.UpdateSecret ->
+                Pages.Secrets.Types.UpdateSecret engine ->
                     let
                         secret =
                             secretsModel.secretAdd
@@ -333,6 +335,7 @@ update model msg =
                     ( secretsModel
                     , Api.try secretsModel.addSecretResponse <|
                         Api.updateSecret model
+                            engine
                             (secretTypeToString secretsModel.type_)
                             secretsModel.org
                             (getKey secretsModel)

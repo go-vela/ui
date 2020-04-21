@@ -84,6 +84,6 @@ addSecret secretsModel =
         , viewImagesInput secretUpdate secretUpdate.imageInput
         , viewHelp
         , div [ class "-m-t" ]
-            [ Html.button [ class "button", class "-outline", onClick Pages.Secrets.Types.AddSecret ] [ text "Add" ]
+            [ Html.button [ class "button", class "-outline", onClick <| Pages.Secrets.Types.AddSecret secretsModel.engine ] [ text "Add" ]
             ]
         ]

@@ -303,7 +303,7 @@ type Msg
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
-    | RefreshSecrets Org Repo
+    | RefreshSecrets Engine Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
@@ -1009,12 +1009,14 @@ update msg model =
             in
             ( { model | hooks = { hooks | hooks = Loading } }, getHooks model org repo Nothing Nothing )
 
-        RefreshSecrets org repo ->
+        RefreshSecrets engine org key ->
             let
                 secretsModel =
                     model.secretsModel
             in
-            ( { model | secretsModel = { secretsModel | secrets = Loading } }, getSecrets model "repo" org repo )
+            ( { model | secretsModel = { secretsModel | secrets = Loading } }
+            , getSecrets model engine "repo" org key
+            )
 
         AddSecretUpdate engine m ->
             let
@@ -1993,12 +1995,13 @@ loadOrgSecretsPage model engine org =
             { secretsModel
                 | secrets = Loading
                 , org = org
+                , engine = engine
                 , type_ = Vela.OrgSecret
             }
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSecrets model "org" org "*"
+        , getSecrets model engine "org" org "*"
         ]
     )
 
@@ -2019,12 +2022,13 @@ loadRepoSecretsPage model engine org repo =
                 | secrets = Loading
                 , org = org
                 , repo = repo
+                , engine = engine
                 , type_ = Vela.RepoSecret
             }
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSecrets model "repo" org repo
+        , getSecrets model engine "repo" org repo
         ]
     )
 
@@ -2046,12 +2050,13 @@ loadSharedSecretsPage model engine org team =
                 | secrets = Loading
                 , org = org
                 , team = team
+                , engine = engine
                 , type_ = Vela.SharedSecret
             }
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSecrets model "shared" org team
+        , getSecrets model engine "shared" org team
         ]
     )
 
@@ -2071,6 +2076,7 @@ loadAddOrgSecretPage model engine org =
             { secretsModel
                 | secrets = Loading
                 , org = org
+                , engine = engine
                 , type_ = Vela.OrgSecret
             }
       }
@@ -2096,6 +2102,7 @@ loadAddRepoSecretPage model engine org repo =
                 | secrets = Loading
                 , org = org
                 , repo = repo
+                , engine = engine
                 , type_ = Vela.RepoSecret
             }
       }
@@ -2121,6 +2128,7 @@ loadAddSharedSecretPage model engine org team =
                 | secrets = Loading
                 , org = org
                 , team = team
+                , engine = engine
                 , type_ = Vela.SharedSecret
             }
       }
@@ -2141,12 +2149,17 @@ loadUpdateOrgSecretPage model engine org name =
     in
     ( { model
         | page = Pages.OrgSecret engine org name
-        , secretsModel = { secretsModel | secrets = Loading }
-        , inTimeout = Nothing
+        , secretsModel =
+            { secretsModel
+                | secrets = Loading
+                , org = org
+                , engine = engine
+                , type_ = Vela.SharedSecret
+            }
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSecret model "org" org "*" name
+        , getSecret model engine "org" org "*" name
         ]
     )
 
@@ -2163,12 +2176,17 @@ loadUpdateRepoSecretPage model engine org repo name =
     ( { model
         | page = Pages.RepoSecret engine org repo name
         , secretsModel =
-            { secretsModel | secrets = Loading }
-        , inTimeout = Nothing
+            { secretsModel
+                | secrets = Loading
+                , org = org
+                , repo = repo
+                , engine = engine
+                , type_ = Vela.SharedSecret
+            }
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSecret model "repo" org repo name
+        , getSecret model engine "repo" org repo name
         ]
     )
 
@@ -2184,12 +2202,18 @@ loadUpdateSharedSecretPage model engine org team name =
     in
     ( { model
         | page = Pages.SharedSecret engine org team name
-        , secretsModel = { secretsModel | secrets = Loading }
-        , inTimeout = Nothing
+        , secretsModel =
+            { secretsModel
+                | secrets = Loading
+                , org = org
+                , team = team
+                , engine = engine
+                , type_ = Vela.SharedSecret
+            }
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSecret model "shared" org team name
+        , getSecret model engine "shared" org team name
         ]
     )
 
@@ -2572,14 +2596,14 @@ restartBuild model org repo buildNumber =
     Api.try (RestartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
 
 
-getSecrets : Model -> Type -> Org -> Repo -> Cmd Msg
-getSecrets model type_ org repo =
-    Api.try SecretsResponse <| Api.getSecrets model type_ org repo
+getSecrets : Model -> Engine -> Type -> Org -> Repo -> Cmd Msg
+getSecrets model engine type_ org repo =
+    Api.try SecretsResponse <| Api.getSecrets model engine type_ org repo
 
 
-getSecret : Model -> Type -> Org -> Key -> Name -> Cmd Msg
-getSecret model type_ org key name =
-    Api.try SecretResponse <| Api.getSecret model type_ org key name
+getSecret : Model -> Engine -> Type -> Org -> Key -> Name -> Cmd Msg
+getSecret model engine type_ org key name =
+    Api.try SecretResponse <| Api.getSecret model engine type_ org key name
 
 
 

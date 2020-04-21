@@ -23,7 +23,8 @@ import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Vela
     exposing
-        ( Key
+        ( Engine
+        , Key
         , Org
         , Repo
         , Secret
@@ -54,6 +55,7 @@ type alias Args msg =
     { org : Org
     , repo : Repo
     , team : Team
+    , engine : Engine
     , type_ : SecretType
     , secrets : WebData Secrets
     , secretAdd : SecretUpdate
@@ -115,8 +117,8 @@ type Msg
     | AddImage String
     | RemoveImage String
     | OnChangeAllowCommand String
-    | AddSecret
-    | UpdateSecret
+    | AddSecret Engine
+    | UpdateSecret Engine
 
 
 type ManageSecretState

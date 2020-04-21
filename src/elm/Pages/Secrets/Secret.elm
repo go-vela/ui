@@ -101,12 +101,12 @@ updateSecret secretsModel =
         , viewImagesInput secretUpdate secretUpdate.imageInput
         , viewHelp
         , div [ class "-m-t" ]
-            [ Html.button [ class "button", class "-outline", onClick Pages.Secrets.Types.UpdateSecret ] [ text "Update" ]
+            [ Html.button [ class "button", class "-outline", onClick <| Pages.Secrets.Types.UpdateSecret secretsModel.engine ] [ text "Update" ]
             ]
         ]
 
 
-{-| allowCommandCheckbox : renders checkbox inputs for selecting allow\_command
+{-| allowCommandCheckbox : renders checkbox inputs for selecting allowcommand
 -}
 allowCommandCheckbox : SecretUpdate -> Html Msg
 allowCommandCheckbox secretUpdate =

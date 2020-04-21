@@ -8,7 +8,7 @@ module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
 import Url.Builder as UB exposing (QueryParameter, string)
-import Vela exposing (AuthParams, BuildNumber, Event, Name, Org, Repo, StepNumber, Type)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, Name, Org, Repo, StepNumber, Type)
 
 
 {-| apiBase : is the versioned base of all API paths
@@ -35,8 +35,8 @@ type Endpoint
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | Step Org Repo BuildNumber StepNumber
     | StepLogs Org Repo BuildNumber StepNumber
-    | Secrets Type Org Name
-    | Secret Type Org String Name
+    | Secrets Engine Type Org Name
+    | Secret Engine Type Org String Name
 
 
 {-| toUrl : turns and Endpoint into a URL string
@@ -86,11 +86,11 @@ toUrl api endpoint =
         StepLogs org repo buildNumber stepNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "steps", stepNumber, "logs" ] []
 
-        Secrets type_ org key ->
-            url api [ "secrets", "native", type_, org, key ] []
+        Secrets engine type_ org key ->
+            url api [ "secrets", engine, type_, org, key ] []
 
-        Secret type_ org key name ->
-            url api [ "secrets", "native", type_, org, key, name ] []
+        Secret engine type_ org key name ->
+            url api [ "secrets", engine, type_, org, key, name ] []
 
 
 {-| url : creates a URL string with the given path segments and query parameters

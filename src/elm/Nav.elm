@@ -33,7 +33,7 @@ import Pages.Builds exposing (view)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import Util
-import Vela exposing (BuildNumber, CurrentUser, Org, Repo, SourceRepositories)
+import Vela exposing (BuildNumber, CurrentUser, Engine, Org, Repo, SourceRepositories)
 
 
 type alias PartialModel a =
@@ -49,7 +49,7 @@ type alias Msgs msg =
     , toggleFavorite : ToggleFavorite msg
     , refreshSettings : Org -> Repo -> msg
     , refreshHooks : Org -> Repo -> msg
-    , refreshSecrets : Org -> Repo -> msg
+    , refreshSecrets : Engine -> Org -> Repo -> msg
     , restartBuild : Org -> Repo -> BuildNumber -> msg
     }
 
@@ -173,7 +173,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                         [ ( "button", True )
                         , ( "-outline", True )
                         ]
-                    , onClick <| refreshSecrets org repo
+                    , onClick <| refreshSecrets engine org repo
                     , Util.testAttribute "refresh-repo-settings"
                     ]
                     [ text "Refresh"

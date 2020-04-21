@@ -50,6 +50,7 @@ import Vela
         , BuildNumber
         , Builds
         , CurrentUser
+        , Engine
         , Event
         , Hook
         , Hooks
@@ -552,31 +553,31 @@ getAllHooks model org repository =
 
 {-| getSecrets : fetches secrets for the given type org and key
 -}
-getSecrets : PartialModel a -> Type -> Org -> Key -> Request Secrets
-getSecrets model type_ org key =
-    get model.velaAPI (Endpoint.Secrets type_ org key) decodeSecrets
+getSecrets : PartialModel a -> Engine -> Type -> Org -> Key -> Request Secrets
+getSecrets model engine type_ org key =
+    get model.velaAPI (Endpoint.Secrets engine type_ org key) decodeSecrets
         |> withAuth model.session
 
 
 {-| getSecret : fetches secret for the given type org key and name
 -}
-getSecret : PartialModel a -> Type -> Org -> Key -> Name -> Request Secret
-getSecret model type_ org key name =
-    get model.velaAPI (Endpoint.Secret type_ org key name) decodeSecret
+getSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Request Secret
+getSecret model engine type_ org key name =
+    get model.velaAPI (Endpoint.Secret engine type_ org key name) decodeSecret
         |> withAuth model.session
 
 
 {-| updateSecret : updates a secret
 -}
-updateSecret : PartialModel a -> Type -> Org -> Key -> Name -> Http.Body -> Request Secret
-updateSecret model type_ org key name body =
-    put model.velaAPI (Endpoint.Secret type_ org key name) body decodeSecret
+updateSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Http.Body -> Request Secret
+updateSecret model engine type_ org key name body =
+    put model.velaAPI (Endpoint.Secret engine type_ org key name) body decodeSecret
         |> withAuth model.session
 
 
 {-| addSecret : adds a secret
 -}
-addSecret : PartialModel a -> Type -> Org -> Key -> Http.Body -> Request Secret
-addSecret model type_ org key body =
-    post model.velaAPI (Endpoint.Secrets type_ org key) body decodeSecret
+addSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Http.Body -> Request Secret
+addSecret model engine type_ org key body =
+    post model.velaAPI (Endpoint.Secrets engine type_ org key) body decodeSecret
         |> withAuth model.session
