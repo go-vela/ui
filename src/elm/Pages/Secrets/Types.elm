@@ -56,7 +56,6 @@ type alias Args msg =
     , team : Team
     , type_ : SecretType
     , secrets : WebData Secrets
-    , secretUpdate : SecretUpdate
     , secretAdd : SecretUpdate
     , secretResponse : SecretResponse msg
     , secretsResponse : SecretsResponse msg
@@ -117,6 +116,7 @@ type Msg
     | RemoveImage String
     | OnChangeAllowCommand String
     | AddSecret
+    | UpdateSecret
 
 
 type ManageSecretState

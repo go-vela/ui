@@ -75,13 +75,13 @@ header : SecretType -> Html Msg
 header type_ =
     case type_ of
         Vela.OrgSecret ->
-            text "Org Secret"
+            text "View/Edit Org Secret"
 
         Vela.RepoSecret ->
-            text "Repo Secret"
+            text "View/Edit Repo Secret"
 
         Vela.SharedSecret ->
-            text "Shared Secret"
+            text "View/Edit Shared Secret"
 
 
 {-| updateSecret : renders secret update form for updating a preexisting secret
@@ -94,35 +94,16 @@ updateSecret secretsModel =
     in
     div [ class "secret-form" ]
         [ Html.h4 [ class "field-header" ] [ text "Name" ]
+        , viewNameInput secretUpdate.name True
         , Html.h4 [ class "field-header" ] [ text "Value" ]
-        , viewValueInput secretUpdate.value "Secret Value"
+        , viewValueInput secretUpdate.value "Secret Value (leave blank to make no change)"
         , viewEventsSelect secretUpdate
         , viewImagesInput secretUpdate secretUpdate.imageInput
         , viewHelp
         , div [ class "-m-t" ]
-            [ Html.button [ class "button", class "-outline", onClick Pages.Secrets.Types.AddSecret ] [ text "Add" ]
+            [ Html.button [ class "button", class "-outline", onClick Pages.Secrets.Types.UpdateSecret ] [ text "Update" ]
             ]
         ]
-
-
-{-| toUpdateSecretPayload : builds payload for updating secret
--}
-toUpdateSecretPayload : Args msg -> SecretUpdate -> UpdateSecretPayload
-toUpdateSecretPayload secretsModel secret =
-    let
-        args =
-            { type_ = Just secretsModel.type_
-            , org = Nothing
-            , repo = Nothing
-            , team = Nothing
-            , name = Nothing
-            , value = stringToMaybe secret.value
-            , events = Just secret.events
-            , images = Just secret.images
-            , allowCommand = Just secret.allowCommand
-            }
-    in
-    buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowCommand
 
 
 {-| allowCommandCheckbox : renders checkbox inputs for selecting allow\_command

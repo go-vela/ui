@@ -1517,17 +1517,17 @@ viewContent model =
 
         Pages.OrgSecret engine org name ->
             ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.Secret.view model
             )
 
         Pages.RepoSecret engine org repo name ->
             ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.Secret.view model
             )
 
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.Secret.view model
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
@@ -2139,7 +2139,11 @@ loadUpdateOrgSecretPage model engine org name =
         secretsModel =
             model.secretsModel
     in
-    ( { model | page = Pages.OrgSecret engine org name, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
+    ( { model
+        | page = Pages.OrgSecret engine org name
+        , secretsModel = { secretsModel | secrets = Loading }
+        , inTimeout = Nothing
+      }
     , Cmd.batch
         [ getCurrentUser model
         , getSecret model "org" org "*" name
@@ -2156,7 +2160,12 @@ loadUpdateRepoSecretPage model engine org repo name =
         secretsModel =
             model.secretsModel
     in
-    ( { model | page = Pages.RepoSecret engine org repo name, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
+    ( { model
+        | page = Pages.RepoSecret engine org repo name
+        , secretsModel =
+            { secretsModel | secrets = Loading }
+        , inTimeout = Nothing
+      }
     , Cmd.batch
         [ getCurrentUser model
         , getSecret model "repo" org repo name
@@ -2173,7 +2182,11 @@ loadUpdateSharedSecretPage model engine org team name =
         secretsModel =
             model.secretsModel
     in
-    ( { model | page = Pages.SharedSecret engine org team name, secretsModel = { secretsModel | secrets = Loading }, inTimeout = Nothing }
+    ( { model
+        | page = Pages.SharedSecret engine org team name
+        , secretsModel = { secretsModel | secrets = Loading }
+        , inTimeout = Nothing
+      }
     , Cmd.batch
         [ getCurrentUser model
         , getSecret model "shared" org team name

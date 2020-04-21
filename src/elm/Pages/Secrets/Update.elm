@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Secrets.Update exposing
     ( init
+    , reinitializeSecretAdd
     , reinitializeSecretUpdate
     , update
     , updateSecretModel
@@ -42,14 +43,26 @@ import Vela
 -}
 init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> Args msg
 init secretResponse secretsResponse addSecretsResponse =
-    Args "" "" "" Vela.RepoSecret NotAsked defaultSecretUpdate defaultSecretUpdate secretResponse secretsResponse addSecretsResponse
+    Args "" "" "" Vela.RepoSecret NotAsked defaultSecretUpdate secretResponse secretsResponse addSecretsResponse
+
+
+{-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments
+-}
+reinitializeSecretAdd : Args msg -> Args msg
+reinitializeSecretAdd secretsModel =
+    { secretsModel | secretAdd = defaultSecretUpdate }
 
 
 {-| reinitializeSecretUpdate : takes an incoming secret and reinitializes the secrets page input arguments
 -}
 reinitializeSecretUpdate : Args msg -> Secret -> Args msg
 reinitializeSecretUpdate secretsModel secret =
-    { secretsModel | secretAdd = defaultSecretUpdate }
+    { secretsModel | secretAdd = initSecretUpdate secret }
+
+
+initSecretUpdate : Secret -> SecretUpdate
+initSecretUpdate secret =
+    SecretUpdate secret.name "" secret.events "" secret.images secret.allowCommand
 
 
 {-| updateSecretModel : makes an update to the appropriate secret update
@@ -232,6 +245,26 @@ toAddSecretPayload secretsModel secret =
         Nothing
 
 
+{-| toUpdateSecretPayload : builds payload for updating secret
+-}
+toUpdateSecretPayload : Args msg -> SecretUpdate -> UpdateSecretPayload
+toUpdateSecretPayload secretsModel secret =
+    let
+        args =
+            { type_ = Just secretsModel.type_
+            , org = Nothing
+            , repo = Nothing
+            , team = Nothing
+            , name = Nothing
+            , value = stringToMaybe secret.value
+            , events = Just secret.events
+            , images = Just secret.images
+            , allowCommand = Just secret.allowCommand
+            }
+    in
+    buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowCommand
+
+
 
 -- UPDATE
 
@@ -239,6 +272,9 @@ toAddSecretPayload secretsModel secret =
 update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
 update model msg =
     let
+        _ =
+            Debug.log "wat" "do"
+
         secretsModel =
             model.secretsModel
 
@@ -278,6 +314,29 @@ update model msg =
                             (secretTypeToString secretsModel.type_)
                             secretsModel.org
                             (getKey secretsModel)
+                            body
+                    )
+
+                Pages.Secrets.Types.UpdateSecret ->
+                    let
+                        secret =
+                            secretsModel.secretAdd
+
+                        payload : UpdateSecretPayload
+                        payload =
+                            toUpdateSecretPayload secretsModel secret
+
+                        body : Http.Body
+                        body =
+                            Http.jsonBody <| encodeUpdateSecret payload
+                    in
+                    ( secretsModel
+                    , Api.try secretsModel.addSecretResponse <|
+                        Api.updateSecret model
+                            (secretTypeToString secretsModel.type_)
+                            secretsModel.org
+                            (getKey secretsModel)
+                            secret.name
                             body
                     )
     in
