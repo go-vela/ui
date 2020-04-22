@@ -100,7 +100,7 @@ viewRows rows =
 -}
 viewRow : Row a msg -> Html msg
 viewRow row =
-    div [ class "details", class "-no-pad", Util.testAttribute "row" ]
+    div [ class "details", class "-no-pad", class "row-container", Util.testAttribute "row" ]
         [ div [ class "row-display" ]
             [ row.display row.data ]
         ]

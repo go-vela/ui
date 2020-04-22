@@ -63,12 +63,17 @@ import Vela
 
 view : PartialModel a msg -> Html Msg
 view model =
-    div [ class "manage-secrets", Util.testAttribute "manage-secrets" ]
-        [ div []
-            [ Html.h2 [] [ header model.secretsModel.type_ ]
-            , updateSecret model.secretsModel
+    let
+        secretsModel =
+            model.secretsModel
+    in
+    case secretsModel.secret of
+        div [ class "manage-secrets", Util.testAttribute "manage-secrets" ]
+            [ div []
+                [ Html.h2 [] [ header model.secretsModel.type_ ]
+                , updateSecret model.secretsModel
+                ]
             ]
-        ]
 
 
 header : SecretType -> Html Msg
