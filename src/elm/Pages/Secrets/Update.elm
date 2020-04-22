@@ -24,6 +24,7 @@ import Pages.Secrets.Types
         , SecretResponse
         , SecretUpdate
         , SecretsResponse
+        , UpdateSecretResponse
         , defaultSecretUpdate
         )
 import RemoteData exposing (RemoteData(..))
@@ -41,9 +42,19 @@ import Vela
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
-init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> Args msg
-init secretResponse secretsResponse addSecretsResponse =
-    Args "native" "" "" "" Vela.RepoSecret NotAsked defaultSecretUpdate secretResponse secretsResponse addSecretsResponse
+init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> Args msg
+init secretResponse secretsResponse addSecretResponse updateSecretResponse =
+    Args "native"
+        ""
+        ""
+        ""
+        Vela.RepoSecret
+        NotAsked
+        defaultSecretUpdate
+        secretResponse
+        secretsResponse
+        addSecretResponse
+        updateSecretResponse
 
 
 {-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments
@@ -206,10 +217,6 @@ toggleEvent event events =
 -}
 getKey : Args msg -> String
 getKey secretsModel =
-    let
-        _ =
-            Debug.log "??" secretsModel.team
-    in
     case secretsModel.type_ of
         Vela.RepoSecret ->
             secretsModel.repo
@@ -333,7 +340,7 @@ update model msg =
                             Http.jsonBody <| encodeUpdateSecret payload
                     in
                     ( secretsModel
-                    , Api.try secretsModel.addSecretResponse <|
+                    , Api.try secretsModel.updateSecretResponse <|
                         Api.updateSecret model
                             engine
                             (secretTypeToString secretsModel.type_)

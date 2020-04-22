@@ -14,6 +14,7 @@ module Pages.Secrets.Types exposing
     , SecretResponse
     , SecretUpdate
     , SecretsResponse
+    , UpdateSecretResponse
     , defaultSecretUpdate
     )
 
@@ -62,6 +63,7 @@ type alias Args msg =
     , secretResponse : SecretResponse msg
     , secretsResponse : SecretsResponse msg
     , addSecretResponse : AddSecretResponse msg
+    , updateSecretResponse : AddSecretResponse msg
     }
 
 
@@ -108,6 +110,10 @@ type alias SecretsResponse msg =
 
 
 type alias AddSecretResponse msg =
+    Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
+
+
+type alias UpdateSecretResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
 
 

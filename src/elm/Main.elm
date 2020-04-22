@@ -88,6 +88,7 @@ import Pages.Secrets.Update
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
+import String.Extra
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
 import Time
@@ -136,6 +137,7 @@ import Vela
         , Repositories
         , Repository
         , Secret
+        , SecretType(..)
         , Secrets
         , Session
         , SourceRepositories
@@ -167,6 +169,7 @@ import Vela
         , encodeUpdateRepository
         , encodeUpdateUser
         , isComplete
+        , secretTypeToString
         , statusToFavicon
         , stringToTheme
         )
@@ -265,7 +268,7 @@ init flags url navKey =
             , showHelp = False
             , showIdentity = False
             , favicon = defaultFavicon
-            , secretsModel = Pages.Secrets.Update.init SecretResponse SecretsResponse AddSecretResponse
+            , secretsModel = initSecretsModel
             }
 
         ( newModel, newPage ) =
@@ -345,6 +348,7 @@ type Msg
     | StepLogResponse FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
+    | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
     | Error String
@@ -782,6 +786,24 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
+        UpdateSecretResponse response ->
+            case response of
+                Ok ( _, secret ) ->
+                    let
+                        secretsModel =
+                            model.secretsModel
+
+                        updatedSecretsModel =
+                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
+                    in
+                    ( { model | secretsModel = updatedSecretsModel }
+                    , Cmd.none
+                    )
+                        |> updateSecretResponseAlert secret
+
+                Err error ->
+                    ( model, addError error )
+
         SecretsResponse response ->
             case response of
                 Ok ( _, secrets ) ->
@@ -1101,8 +1123,26 @@ addSecretResponseAlert :
     -> ( { m | toasties : Stack Alert }, Cmd Msg )
 addSecretResponseAlert secret =
     let
+        type_ =
+            secretTypeToString secret.type_
+
         msg =
-            secret.name ++ " added to secrets."
+            secret.name ++ " added to " ++ type_ ++ " secrets."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+updateSecretResponseAlert :
+    Secret
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+updateSecretResponseAlert secret =
+    let
+        type_ =
+            secretTypeToString secret.type_
+
+        msg =
+            String.Extra.toSentenceCase <| type_ ++ " secret " ++ secret.name ++ " updated."
     in
     Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
@@ -2154,7 +2194,7 @@ loadUpdateOrgSecretPage model engine org name =
                 | secrets = Loading
                 , org = org
                 , engine = engine
-                , type_ = Vela.SharedSecret
+                , type_ = Vela.OrgSecret
             }
       }
     , Cmd.batch
@@ -2181,7 +2221,7 @@ loadUpdateRepoSecretPage model engine org repo name =
                 , org = org
                 , repo = repo
                 , engine = engine
-                , type_ = Vela.SharedSecret
+                , type_ = Vela.RepoSecret
             }
       }
     , Cmd.batch
@@ -2517,6 +2557,11 @@ hooksMsgs =
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
     Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
+
+
+initSecretsModel : Pages.Secrets.Types.Args Msg
+initSecretsModel =
+    Pages.Secrets.Update.init SecretResponse SecretsResponse AddSecretResponse UpdateSecretResponse
 
 
 
