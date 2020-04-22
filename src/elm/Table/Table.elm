@@ -86,7 +86,7 @@ table { label, noRows, columns, rows, action } =
 headers : Columns -> Html msg
 headers columns =
     div [ class "headers" ] <|
-        List.map (\col -> div [ class "header" ] [ text col ]) columns
+        List.map (\col -> div [ class "header", class "column-width" ] [ text col ]) columns
 
 
 {-| viewRows : renders data table rows
@@ -126,7 +126,7 @@ customCell element cls =
 -}
 arrayCell : List String -> String -> Html msg
 arrayCell images default =
-    div [ class "cell" ] <|
+    div [ class "cell", class "column-width" ] <|
         List.intersperse (text ",") <|
             if List.length images > 0 then
                 List.map (\image -> code [ class "text", class "-m-l" ] [ text image ]) images

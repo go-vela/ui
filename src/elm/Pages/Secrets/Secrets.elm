@@ -86,7 +86,7 @@ view model =
                 [ Table.Table.view
                     (Table.Table.Config label
                         noSecrets
-                        [ "name", "type", "events", "images", "allow command", "" ]
+                        headers
                         (secretsToRows model.secretsModel.type_ secrets)
                         addSecret
                     )
@@ -99,6 +99,11 @@ view model =
 secretsToRows : SecretType -> Secrets -> Table.Table.Rows Secret Msg
 secretsToRows type_ =
     List.map (\secret -> Table.Table.Row secret (renderSecret type_))
+
+
+headers : List String
+headers =
+    [ "name", "type", "events", "images", "allow command", "???" ]
 
 
 renderSecret : SecretType -> Secret -> Html msg

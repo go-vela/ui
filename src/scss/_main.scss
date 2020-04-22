@@ -979,7 +979,9 @@ nav {
 
   text-align: center;
 }
-
+.column-width {
+  max-width: 300px;
+}
 .hooks.table .headers {
   padding-left: 4.25rem;
 }
@@ -1002,7 +1004,6 @@ nav {
   justify-content: center;
 
   font-weight: 300;
-  width: 300px;
   word-wrap: break-word;
   text-align: center;
 }
