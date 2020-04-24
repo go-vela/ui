@@ -1577,6 +1577,7 @@ helpArgs model =
     , build = helpArg model.build
     , repo = helpArg model.repo
     , hooks = helpArg model.hooks.hooks
+    , secrets = helpArg <| RemoteData.succeed []
     , show = model.showHelp
     , toggle = ShowHideHelp
     , copy = Copy
