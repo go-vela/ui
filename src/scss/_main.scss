@@ -143,7 +143,7 @@ header {
       border-radius: 0 0 0 0.25em;
       transform: rotate(135deg);
 
-      content: '';
+      content: "";
 
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
@@ -231,7 +231,7 @@ nav {
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
 
-  content: '\2026';
+  content: "\2026";
 }
 
 .util {
@@ -256,13 +256,13 @@ nav {
   &::before {
     margin-right: 0.3em;
 
-    content: '[';
+    content: "[";
   }
 
   &::after {
     margin-left: 0.3em;
 
-    content: ']';
+    content: "]";
   }
 }
 
@@ -657,7 +657,7 @@ nav {
 
   border-width: 5px;
 
-  content: ' ';
+  content: " ";
 }
 
 .recent-build-tooltip .line {
@@ -670,7 +670,7 @@ nav {
   margin-right: 0.5em;
 
   &:before {
-    content: '#';
+    content: "#";
   }
 }
 
@@ -1228,7 +1228,7 @@ nav {
   &::after {
     display: block;
     position: absolute;
-    content: '';
+    content: "";
     top: -0.5rem;
     right: 0;
     border-color: transparent;
