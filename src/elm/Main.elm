@@ -80,11 +80,9 @@ import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
 import Pages.RepoSettings exposing (enableUpdate)
-import Pages.Secrets.AddSecret
-import Pages.Secrets.Secret
-import Pages.Secrets.Secrets
-import Pages.Secrets.Types
+import Pages.Secrets.Model
 import Pages.Secrets.Update
+import Pages.Secrets.View
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
@@ -218,7 +216,7 @@ type alias Model =
     , showHelp : Bool
     , showIdentity : Bool
     , favicon : Favicon
-    , secretsModel : Pages.Secrets.Types.Args Msg
+    , secretsModel : Pages.Secrets.Model.Model Msg
     }
 
 
@@ -362,7 +360,7 @@ type Msg
     | UpdateUrl String
     | VisibilityChanged Visibility
       -- Components
-    | AddSecretUpdate Engine Pages.Secrets.Types.Msg
+    | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -1529,47 +1527,47 @@ viewContent model =
 
         Pages.OrgSecrets engine org ->
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secrets.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.View.secrets model
             )
 
         Pages.RepoSecrets engine org repo ->
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secrets.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.View.secrets model
             )
 
         Pages.SharedSecrets engine org team ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secrets.view model
+            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.View.secrets model
             )
 
-        Pages.AddOrgSecret engine org ->
+        Pages.AddOrgSecret engine _ ->
             ( "add " ++ engine ++ " org secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.addSecret model
             )
 
-        Pages.AddRepoSecret engine org repo ->
+        Pages.AddRepoSecret engine _ _ ->
             ( "add " ++ engine ++ " repo secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.addSecret model
             )
 
-        Pages.AddSharedSecret engine org team ->
+        Pages.AddSharedSecret engine _ _ ->
             ( "add " ++ engine ++ " shared secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.OrgSecret engine org name ->
             ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.Secret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.RepoSecret engine org repo name ->
             ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.Secret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.Secret.view model
+            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
@@ -1709,7 +1707,7 @@ viewLogin =
         ]
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Help.Args Msg, showId : Bool } -> Html Msg
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Help.Model Msg, showId : Bool } -> Html Msg
 viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
     let
         session : Session
@@ -1767,7 +1765,7 @@ helpArg arg =
     { success = Util.isSuccess arg, loading = Util.isLoading arg }
 
 
-helpArgs : Model -> Help.Help.Args Msg
+helpArgs : Model -> Help.Help.Model Msg
 helpArgs model =
     { user = helpArg model.user
     , sourceRepos = helpArg model.sourceRepos
@@ -2559,7 +2557,7 @@ repoSettingsMsgs =
     Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
 
 
-initSecretsModel : Pages.Secrets.Types.Args Msg
+initSecretsModel : Pages.Secrets.Model.Model Msg
 initSecretsModel =
     Pages.Secrets.Update.init SecretResponse SecretsResponse AddSecretResponse UpdateSecretResponse
 

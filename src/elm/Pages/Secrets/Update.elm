@@ -15,10 +15,10 @@ module Pages.Secrets.Update exposing
 import Api
 import Http
 import List.Extra
-import Pages.Secrets.Types
+import Pages.Secrets.Model
     exposing
         ( AddSecretResponse
-        , Args
+        , Model
         , Msg(..)
         , PartialModel
         , SecretForm
@@ -42,9 +42,9 @@ import Vela
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
-init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> Args msg
+init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> Model msg
 init secretResponse secretsResponse addSecretResponse updateSecretResponse =
-    Args "native"
+    Model "native"
         ""
         ""
         ""
@@ -59,14 +59,14 @@ init secretResponse secretsResponse addSecretResponse updateSecretResponse =
 
 {-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments
 -}
-reinitializeSecretAdd : Args msg -> Args msg
+reinitializeSecretAdd : Model msg -> Model msg
 reinitializeSecretAdd secretsModel =
     { secretsModel | form = defaultSecretUpdate }
 
 
 {-| reinitializeSecretUpdate : takes an incoming secret and reinitializes the secrets page input arguments
 -}
-reinitializeSecretUpdate : Args msg -> Secret -> Args msg
+reinitializeSecretUpdate : Model msg -> Secret -> Model msg
 reinitializeSecretUpdate secretsModel secret =
     { secretsModel | form = initSecretUpdate secret }
 
@@ -78,14 +78,14 @@ initSecretUpdate secret =
 
 {-| updateSecretModel : makes an update to the appropriate secret update
 -}
-updateSecretModel : SecretForm -> Args msg -> Args msg
+updateSecretModel : SecretForm -> Model msg -> Model msg
 updateSecretModel secret secretsModel =
     { secretsModel | form = secret }
 
 
 {-| onChangeStringField : takes field and value and updates the secrets model
 -}
-onChangeStringField : String -> String -> Args msg -> Args msg
+onChangeStringField : String -> String -> Model msg -> Model msg
 onChangeStringField field value secretsModel =
     let
         secretUpdate =
@@ -119,7 +119,7 @@ updateSecretField field value secret =
 
 {-| onChangeEvent : takes event and updates the secrets model based on the appropriate event
 -}
-onChangeEvent : String -> Args msg -> Args msg
+onChangeEvent : String -> Model msg -> Model msg
 onChangeEvent event secretsModel =
     let
         secretUpdate =
@@ -142,7 +142,7 @@ updateSecretEvents event secret =
 
 {-| onAddImage : takes image and updates secret update images
 -}
-onAddImage : String -> Args msg -> Args msg
+onAddImage : String -> Model msg -> Model msg
 onAddImage image secretsModel =
     let
         secretUpdate =
@@ -165,7 +165,7 @@ addImage image secret =
 
 {-| onRemoveImage : takes image and removes it to from secret update images
 -}
-onRemoveImage : String -> Args msg -> Args msg
+onRemoveImage : String -> Model msg -> Model msg
 onRemoveImage image secretsModel =
     let
         secretUpdate =
@@ -188,7 +188,7 @@ removeImage image secret =
 
 {-| onChangeAllowCommand : updates allow\_command field on secret update
 -}
-onChangeAllowCommand : String -> Args msg -> Args msg
+onChangeAllowCommand : String -> Model msg -> Model msg
 onChangeAllowCommand allow secretsModel =
     let
         secretUpdate =
@@ -215,7 +215,7 @@ toggleEvent event events =
 
 {-| getKey : gets the appropriate secret key based on type
 -}
-getKey : Args msg -> String
+getKey : Model msg -> String
 getKey secretsModel =
     case secretsModel.type_ of
         Vela.RepoSecret ->
@@ -230,7 +230,7 @@ getKey secretsModel =
 
 {-| toAddSecretPayload : builds payload for adding secret
 -}
-toAddSecretPayload : Args msg -> SecretForm -> UpdateSecretPayload
+toAddSecretPayload : Model msg -> SecretForm -> UpdateSecretPayload
 toAddSecretPayload secretsModel secret =
     let
         args =
@@ -258,7 +258,7 @@ toAddSecretPayload secretsModel secret =
 
 {-| toUpdateSecretPayload : builds payload for updating secret
 -}
-toUpdateSecretPayload : Args msg -> SecretForm -> UpdateSecretPayload
+toUpdateSecretPayload : Model msg -> SecretForm -> UpdateSecretPayload
 toUpdateSecretPayload secretsModel secret =
     let
         args =
@@ -303,7 +303,7 @@ update model msg =
                 OnChangeAllowCommand allow ->
                     ( onChangeAllowCommand allow secretsModel, Cmd.none )
 
-                Pages.Secrets.Types.AddSecret engine ->
+                Pages.Secrets.Model.AddSecret engine ->
                     let
                         secret =
                             secretsModel.form
@@ -326,7 +326,7 @@ update model msg =
                             body
                     )
 
-                Pages.Secrets.Types.UpdateSecret engine ->
+                Pages.Secrets.Model.UpdateSecret engine ->
                     let
                         secret =
                             secretsModel.form

@@ -4,10 +4,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Secrets.Types exposing
+module Pages.Secrets.Model exposing
     ( AddSecretResponse
-    , Args
     , ManageSecretState(..)
+    , Model
     , Msg(..)
     , PartialModel
     , Secret
@@ -46,13 +46,13 @@ type alias PartialModel a msg =
     { a
         | velaAPI : String
         , session : Maybe Session
-        , secretsModel : Args msg
+        , secretsModel : Model msg
     }
 
 
-{-| Args : record to hold page input arguments
+{-| Model : record to hold page input arguments
 -}
-type alias Args msg =
+type alias Model msg =
     { org : Org
     , repo : Repo
     , team : Team

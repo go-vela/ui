@@ -13,12 +13,37 @@ module Pages.Secrets.Form exposing
     , viewValueInput
     )
 
-import Html exposing (Html, a, div, em, h4, span, text)
-import Html.Attributes exposing (class, disabled, href, placeholder, value)
+import Html
+    exposing
+        ( Html
+        , a
+        , div
+        , em
+        , h4
+        , input
+        , label
+        , section
+        , span
+        , strong
+        , text
+        )
+import Html.Attributes
+    exposing
+        ( checked
+        , class
+        , disabled
+        , for
+        , href
+        , id
+        , placeholder
+        , type_
+        , value
+        )
 import Html.Events exposing (onClick, onInput)
 import Pages.RepoSettings exposing (checkbox)
-import Pages.Secrets.Types exposing (Msg(..), SecretForm)
+import Pages.Secrets.Model exposing (Msg(..), SecretForm)
 import Util
+import Vela exposing (Field)
 
 
 {-| viewAddedImages : renders added images
@@ -176,6 +201,44 @@ viewImagesInput secret imageInput =
                 ]
             ]
         , div [ class "images" ] <| viewAddedImages secret.images
+        ]
+
+
+{-| radio : takes current value, field id, title for label, and click action and renders an input radio.
+-}
+radio : String -> String -> Field -> msg -> Html msg
+radio value field title msg =
+    div [ class "form-control", Util.testAttribute <| "repo-radio-" ++ field ]
+        [ input
+            [ type_ "radio"
+            , id <| "radio-" ++ field
+            , checked (value == field)
+            , onClick msg
+            ]
+            []
+        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], text "tip" ]
+        ]
+
+
+{-| allowCommandCheckbox : renders checkbox inputs for selecting allowcommand
+-}
+allowCommandCheckbox : SecretForm -> Html Msg
+allowCommandCheckbox secretUpdate =
+    section [ class "type", Util.testAttribute "" ]
+        [ h4 [ class "field-header" ]
+            [ text "Allow Commands"
+            , span [ class "field-description" ]
+                [ text "( "
+                , em [] [ text "\"No\" will disable this secret in " ]
+                , span [ class "-code" ] [ text "commands" ]
+                , text " )"
+                ]
+            ]
+        , div
+            [ class "form-controls", class "-row" ]
+            [ radio (Util.boolToYesNo secretUpdate.allowCommand) "yes" "Yes" <| OnChangeAllowCommand "yes"
+            , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
+            ]
         ]
 
 
