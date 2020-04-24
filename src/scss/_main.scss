@@ -143,7 +143,7 @@ header {
       border-radius: 0 0 0 0.25em;
       transform: rotate(135deg);
 
-      content: "";
+      content: '';
 
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
@@ -231,7 +231,7 @@ nav {
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
 
-  content: "\2026";
+  content: '\2026';
 }
 
 .util {
@@ -256,13 +256,13 @@ nav {
   &::before {
     margin-right: 0.3em;
 
-    content: "[";
+    content: '[';
   }
 
   &::after {
     margin-left: 0.3em;
 
-    content: "]";
+    content: ']';
   }
 }
 
@@ -657,7 +657,7 @@ nav {
 
   border-width: 5px;
 
-  content: " ";
+  content: ' ';
 }
 
 .recent-build-tooltip .line {
@@ -670,7 +670,7 @@ nav {
   margin-right: 0.5em;
 
   &:before {
-    content: "#";
+    content: '#';
   }
 }
 
@@ -1228,7 +1228,7 @@ nav {
   &::after {
     display: block;
     position: absolute;
-    content: "";
+    content: '';
     top: -0.5rem;
     right: 0;
     border-color: transparent;
@@ -1336,201 +1336,6 @@ nav {
       margin: 0.5rem 1rem;
     }
   }
-}
-
-.-m-r {
-  margin-right: 0.25rem;
-}
-
-.-m-l {
-  margin-left: 0.25rem;
-}
-
-.table .headers {
-  padding-left: 1rem;
-  position: relative;
-}
-
-.secrets-first-cell {
-  padding: 0.5rem 1rem;
-  padding-bottom: 0;
-  color: var(--color-primary);
-  font-size: 1.2rem;
-}
-.manage-secrets {
-  padding: 1rem;
-  background: var(--color-bg-dark);
-}
-
-.manage-secrets .header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 2px solid var(--color-secondary);
-}
-
-.manage-secrets h2 {
-  margin: 0;
-  border-bottom: 2px solid var(--color-secondary);
-}
-
-.secret-form {
-  margin-bottom: 0.5rem;
-}
-
-.secret-form section {
-  justify-content: flex-start;
-  margin-bottom: 1rem;
-}
-
-.images {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-.added-image {
-  margin: 0.2rem 1rem;
-  display: flex;
-  padding: 0.3rem 1rem;
-  width: 25rem;
-  align-items: center;
-  background: var(--color-bg);
-  position: relative;
-}
-
-.added-image .name {
-  flex: 1;
-  word-wrap: break-word;
-  min-width: 40%;
-  font-family: var(--font-code);
-  font-size: 0.9rem;
-}
-
-.added-image .button.-hide {
-  visibility: hidden;
-}
-
-.added-image.chevron {
-  margin-left: 2rem;
-}
-
-.added-image.chevron:before {
-  content: "";
-  border-style: solid;
-  border-width: 0.1rem 1rem 0.1rem 0.2rem;
-  border-color: var(--color-primary);
-  position: absolute;
-  left: -1.5rem;
-}
-.add {
-  color: green;
-}
-.trash {
-  color: red;
-}
-h4.-no-pad {
-  margin: 0;
-}
-h4.-m-t {
-  margin-top: 1rem;
-}
-.select-secret {
-  background: var(--color-bg);
-  color: var(--color-primary);
-  font-size: 1rem;
-  border-radius: 0px;
-  > * {
-    border-radius: 0px;
-  }
-}
-.select-secret .menu {
-  position: absolute;
-  left: 5px;
-  margin-top: 5px;
-  background: white;
-  color: black;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  min-width: 120px;
-  z-index: 11110;
-}
-
-.selected-item {
-  background: #3366ff;
-  color: white;
-  display: block;
-  padding: 5px 10px;
-  border-bottom: 1px solid #ddd;
-  cursor: pointer;
-}
-
-.select-secret .list {
-  list-style: none;
-  padding: 0;
-  margin: auto;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.select-secret .item {
-  display: block;
-  padding: 5px 10px;
-  border-bottom: 1px solid #ddd;
-  cursor: pointer;
-}
-
-.select-secret .input {
-  min-width: 120px;
-  color: black;
-  position: relative;
-  display: block;
-  padding: 0.8em;
-  font-size: 12px;
-}
-
-.no-rows {
-  padding: 1rem;
-}
-.manage-secrets .subheader {
-  margin-top: 1rem;
-  border-bottom: 2px solid var(--color-primary);
-  width: 80%;
-}
-.manage-secrets input,
-.manage-secrets textarea,
-.update-secret textarea {
-  width: 70%;
-  border: 1px solid gray;
-  box-shadow: none;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-size: 1rem;
-  font-weight: 300;
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-}
-
-.manage-secrets input {
-  width: 25%;
-}
-
-.manage-secrets textarea {
-  width: 70%;
-}
-.update-secret textarea {
-  width: 70%;
-}
-
-.manage-secrets .-m-t {
-  margin-top: 1rem;
-}
-
-.update-secret {
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid gray;
 }
 
 .table-label {
