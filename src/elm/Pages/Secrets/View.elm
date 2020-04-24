@@ -61,7 +61,7 @@ secrets model =
             model.secretsModel
 
         ( label, noSecrets, addSecretRoute ) =
-            case model.secretsModel.type_ of
+            case secretsModel.type_ of
                 Vela.OrgSecret ->
                     ( "Org Secrets"
                     , "No secrets found for this organization"
@@ -89,7 +89,7 @@ secrets model =
                     , Routes.href <|
                         addSecretRoute
                     ]
-                    [ text "Add Secret" ]
+                    [ addHeader secretsModel.type_ ]
     in
     case secretsModel.secrets of
         Success s ->

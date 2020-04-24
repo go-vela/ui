@@ -2110,7 +2110,7 @@ loadAddOrgSecretPage model engine org =
     -- Fetch secrets from Api
     let
         secretsModel =
-            model.secretsModel
+            Pages.Secrets.Update.reinitializeSecretAdd model.secretsModel
     in
     ( { model
         | page = Pages.AddOrgSecret engine org
@@ -2135,7 +2135,7 @@ loadAddRepoSecretPage model engine org repo =
     -- Fetch secrets from Api
     let
         secretsModel =
-            model.secretsModel
+            Pages.Secrets.Update.reinitializeSecretAdd model.secretsModel
     in
     ( { model
         | page = Pages.AddRepoSecret engine org repo
@@ -2161,7 +2161,7 @@ loadAddSharedSecretPage model engine org team =
     -- Fetch secrets from Api
     let
         secretsModel =
-            model.secretsModel
+            Pages.Secrets.Update.reinitializeSecretAdd model.secretsModel
     in
     ( { model
         | page = Pages.AddSharedSecret engine org team
@@ -2172,6 +2172,7 @@ loadAddSharedSecretPage model engine org team =
                 , team = team
                 , engine = engine
                 , type_ = Vela.SharedSecret
+                , form = secretsModel.form
             }
       }
     , Cmd.batch
