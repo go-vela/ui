@@ -132,6 +132,14 @@ type alias Team =
     String
 
 
+type alias Engine =
+    String
+
+
+type alias Name =
+    String
+
+
 type alias Event =
     String
 
@@ -141,6 +149,14 @@ type alias BuildNumber =
 
 
 type alias StepNumber =
+    String
+
+
+type alias Type =
+    String
+
+
+type alias Key =
     String
 
 
@@ -956,14 +972,6 @@ type alias Secret =
     }
 
 
-type alias Engine =
-    String
-
-
-type alias Type =
-    String
-
-
 type SecretType
     = SharedSecret
     | OrgSecret
@@ -1049,14 +1057,6 @@ maybeSecretTypeToMaybeString type_ =
 
         _ ->
             Nothing
-
-
-type alias Key =
-    String
-
-
-type alias Name =
-    String
 
 
 decodeSecret : Decoder Secret
