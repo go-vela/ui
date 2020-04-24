@@ -1115,6 +1115,8 @@ update msg model =
             ( model, Cmd.none )
 
 
+{-| addSecretResponseAlert : takes secret and produces Toasty alert for when adding a secret
+-}
 addSecretResponseAlert :
     Secret
     -> ( { m | toasties : Stack Alert }, Cmd Msg )
@@ -1130,6 +1132,8 @@ addSecretResponseAlert secret =
     Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
 
+{-| updateSecretResponseAlert : takes secret and produces Toasty alert for when updating a secret
+-}
 updateSecretResponseAlert :
     Secret
     -> ( { m | toasties : Stack Alert }, Cmd Msg )
