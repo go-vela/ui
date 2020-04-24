@@ -17,7 +17,7 @@ import Html exposing (Html, a, div, em, h4, span, text)
 import Html.Attributes exposing (class, disabled, href, placeholder, value)
 import Html.Events exposing (onClick, onInput)
 import Pages.RepoSettings exposing (checkbox)
-import Pages.Secrets.Types exposing (Msg(..), SecretUpdate)
+import Pages.Secrets.Types exposing (Msg(..), SecretForm)
 import Util
 
 
@@ -109,7 +109,7 @@ viewValueInput val placeholder_ =
 
 {-| viewEventsSelect : renders events input selection
 -}
-viewEventsSelect : SecretUpdate -> Html Msg
+viewEventsSelect : SecretForm -> Html Msg
 viewEventsSelect secretUpdate =
     Html.section [ class "events", Util.testAttribute "" ]
         [ h4 [ class "field-header" ]
@@ -147,7 +147,7 @@ viewEventsSelect secretUpdate =
 
 {-| viewImagesInput : renders images input box and images
 -}
-viewImagesInput : SecretUpdate -> String -> Html Msg
+viewImagesInput : SecretForm -> String -> Html Msg
 viewImagesInput secret imageInput =
     Html.section [ class "image", Util.testAttribute "" ]
         [ Html.h4 [ class "field-header" ]

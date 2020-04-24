@@ -21,8 +21,8 @@ import Pages.Secrets.Types
         , Args
         , Msg(..)
         , PartialModel
+        , SecretForm
         , SecretResponse
-        , SecretUpdate
         , SecretsResponse
         , UpdateSecretResponse
         , defaultSecretUpdate
@@ -61,26 +61,26 @@ init secretResponse secretsResponse addSecretResponse updateSecretResponse =
 -}
 reinitializeSecretAdd : Args msg -> Args msg
 reinitializeSecretAdd secretsModel =
-    { secretsModel | secretAdd = defaultSecretUpdate }
+    { secretsModel | form = defaultSecretUpdate }
 
 
 {-| reinitializeSecretUpdate : takes an incoming secret and reinitializes the secrets page input arguments
 -}
 reinitializeSecretUpdate : Args msg -> Secret -> Args msg
 reinitializeSecretUpdate secretsModel secret =
-    { secretsModel | secretAdd = initSecretUpdate secret }
+    { secretsModel | form = initSecretUpdate secret }
 
 
-initSecretUpdate : Secret -> SecretUpdate
+initSecretUpdate : Secret -> SecretForm
 initSecretUpdate secret =
-    SecretUpdate secret.name "" secret.events "" secret.images secret.allowCommand
+    SecretForm secret.name "" secret.events "" secret.images secret.allowCommand
 
 
 {-| updateSecretModel : makes an update to the appropriate secret update
 -}
-updateSecretModel : SecretUpdate -> Args msg -> Args msg
+updateSecretModel : SecretForm -> Args msg -> Args msg
 updateSecretModel secret secretsModel =
-    { secretsModel | secretAdd = secret }
+    { secretsModel | form = secret }
 
 
 {-| onChangeStringField : takes field and value and updates the secrets model
@@ -89,7 +89,7 @@ onChangeStringField : String -> String -> Args msg -> Args msg
 onChangeStringField field value secretsModel =
     let
         secretUpdate =
-            Just secretsModel.secretAdd
+            Just secretsModel.form
     in
     case secretUpdate of
         Just s ->
@@ -101,7 +101,7 @@ onChangeStringField field value secretsModel =
 
 {-| updateSecretField : takes field and value and updates the secret update field
 -}
-updateSecretField : String -> String -> SecretUpdate -> SecretUpdate
+updateSecretField : String -> String -> SecretForm -> SecretForm
 updateSecretField field value secret =
     case field of
         "name" ->
@@ -123,7 +123,7 @@ onChangeEvent : String -> Args msg -> Args msg
 onChangeEvent event secretsModel =
     let
         secretUpdate =
-            Just secretsModel.secretAdd
+            Just secretsModel.form
     in
     case secretUpdate of
         Just s ->
@@ -135,7 +135,7 @@ onChangeEvent event secretsModel =
 
 {-| updateSecretEvents : takes event and updates secret update events
 -}
-updateSecretEvents : String -> SecretUpdate -> SecretUpdate
+updateSecretEvents : String -> SecretForm -> SecretForm
 updateSecretEvents event secret =
     { secret | events = toggleEvent event secret.events }
 
@@ -146,7 +146,7 @@ onAddImage : String -> Args msg -> Args msg
 onAddImage image secretsModel =
     let
         secretUpdate =
-            Just secretsModel.secretAdd
+            Just secretsModel.form
     in
     case secretUpdate of
         Just s ->
@@ -158,7 +158,7 @@ onAddImage image secretsModel =
 
 {-| addImage : takes image and adds it to secret update images
 -}
-addImage : String -> SecretUpdate -> SecretUpdate
+addImage : String -> SecretForm -> SecretForm
 addImage image secret =
     { secret | imageInput = "", images = Util.filterEmptyList <| List.Extra.unique <| image :: secret.images }
 
@@ -169,7 +169,7 @@ onRemoveImage : String -> Args msg -> Args msg
 onRemoveImage image secretsModel =
     let
         secretUpdate =
-            Just secretsModel.secretAdd
+            Just secretsModel.form
     in
     case secretUpdate of
         Just s ->
@@ -181,7 +181,7 @@ onRemoveImage image secretsModel =
 
 {-| removeImage : takes image and removes it to from secret update images
 -}
-removeImage : String -> SecretUpdate -> SecretUpdate
+removeImage : String -> SecretForm -> SecretForm
 removeImage image secret =
     { secret | images = List.Extra.remove image secret.images }
 
@@ -192,7 +192,7 @@ onChangeAllowCommand : String -> Args msg -> Args msg
 onChangeAllowCommand allow secretsModel =
     let
         secretUpdate =
-            Just secretsModel.secretAdd
+            Just secretsModel.form
     in
     case secretUpdate of
         Just s ->
@@ -230,7 +230,7 @@ getKey secretsModel =
 
 {-| toAddSecretPayload : builds payload for adding secret
 -}
-toAddSecretPayload : Args msg -> SecretUpdate -> UpdateSecretPayload
+toAddSecretPayload : Args msg -> SecretForm -> UpdateSecretPayload
 toAddSecretPayload secretsModel secret =
     let
         args =
@@ -258,7 +258,7 @@ toAddSecretPayload secretsModel secret =
 
 {-| toUpdateSecretPayload : builds payload for updating secret
 -}
-toUpdateSecretPayload : Args msg -> SecretUpdate -> UpdateSecretPayload
+toUpdateSecretPayload : Args msg -> SecretForm -> UpdateSecretPayload
 toUpdateSecretPayload secretsModel secret =
     let
         args =
@@ -306,7 +306,7 @@ update model msg =
                 Pages.Secrets.Types.AddSecret engine ->
                     let
                         secret =
-                            secretsModel.secretAdd
+                            secretsModel.form
 
                         payload : UpdateSecretPayload
                         payload =
@@ -329,7 +329,7 @@ update model msg =
                 Pages.Secrets.Types.UpdateSecret engine ->
                     let
                         secret =
-                            secretsModel.secretAdd
+                            secretsModel.form
 
                         payload : UpdateSecretPayload
                         payload =

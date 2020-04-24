@@ -11,8 +11,8 @@ module Pages.Secrets.Types exposing
     , Msg(..)
     , PartialModel
     , Secret
+    , SecretForm
     , SecretResponse
-    , SecretUpdate
     , SecretsResponse
     , UpdateSecretResponse
     , defaultSecretUpdate
@@ -59,7 +59,7 @@ type alias Args msg =
     , engine : Engine
     , type_ : SecretType
     , secrets : WebData Secrets
-    , secretAdd : SecretUpdate
+    , form : SecretForm
     , secretResponse : SecretResponse msg
     , secretsResponse : SecretsResponse msg
     , addSecretResponse : AddSecretResponse msg
@@ -80,9 +80,9 @@ type alias Secret =
     }
 
 
-{-| SecretUpdate : record to hold potential add/update secret fields
+{-| SecretForm : record to hold potential add/update secret fields
 -}
-type alias SecretUpdate =
+type alias SecretForm =
     { name : String
     , value : String
     , events : List String
@@ -92,9 +92,9 @@ type alias SecretUpdate =
     }
 
 
-defaultSecretUpdate : SecretUpdate
+defaultSecretUpdate : SecretForm
 defaultSecretUpdate =
-    SecretUpdate "" "" [] "" [] True
+    SecretForm "" "" [] "" [] True
 
 
 

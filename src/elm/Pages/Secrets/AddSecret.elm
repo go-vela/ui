@@ -9,39 +9,23 @@ module Pages.Secrets.AddSecret exposing (header, view)
 import Html
     exposing
         ( Html
-        , a
         , div
-        , em
         , h4
-        , section
-        , span
         , text
         )
-import Html.Attributes
-    exposing
-        ( class
-        , disabled
-        , href
-        , placeholder
-        , value
-        )
-import Html.Events exposing (onClick, onInput)
+import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 import Pages exposing (Page(..))
-import Pages.RepoSettings exposing (checkbox)
-import Pages.Secrets.Form exposing (viewAddedImages, viewEventsSelect, viewHelp, viewImagesInput, viewNameInput, viewValueInput)
+import Pages.Secrets.Form exposing (viewEventsSelect, viewHelp, viewImagesInput, viewNameInput, viewValueInput)
 import Pages.Secrets.Types
     exposing
         ( Args
         , Msg(..)
         , PartialModel
-        , SecretUpdate
         )
 import RemoteData exposing (RemoteData(..))
 import Util
-import Vela
-    exposing
-        ( SecretType(..)
-        )
+import Vela exposing (SecretType(..))
 
 
 view : PartialModel a msg -> Html Msg
@@ -73,7 +57,7 @@ addSecret : Args msg -> Html Msg
 addSecret secretsModel =
     let
         secretUpdate =
-            secretsModel.secretAdd
+            secretsModel.form
     in
     div [ class "secret-form" ]
         [ Html.h4 [ class "field-header" ] [ text "Name" ]

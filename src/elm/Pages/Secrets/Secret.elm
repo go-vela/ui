@@ -6,12 +6,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Secrets.Secret exposing (view)
 
-import Api
 import Html
     exposing
         ( Html
-        , a
-        , code
         , div
         , em
         , h4
@@ -22,51 +19,26 @@ import Html
 import Html.Attributes
     exposing
         ( class
-        , disabled
-        , href
-        , placeholder
-        , value
         )
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick)
 import Pages exposing (Page(..))
-import Pages.RepoSettings exposing (checkbox, radio)
+import Pages.RepoSettings exposing (radio)
 import Pages.Secrets.Form
     exposing
-        ( viewAddedImages
-        , viewEventsSelect
+        ( viewEventsSelect
         , viewHelp
         , viewImagesInput
         , viewNameInput
         , viewValueInput
         )
-import Pages.Secrets.Types exposing (Args, Msg(..), PartialModel, SecretUpdate)
-import RemoteData exposing (RemoteData(..), WebData)
-import Util exposing (stringToMaybe)
-import Vela
-    exposing
-        ( Key
-        , Org
-        , Repo
-        , Secret
-        , SecretType
-        , Secrets
-        , Session
-        , Team
-        , UpdateSecretPayload
-        , buildUpdateSecretPayload
-        , encodeUpdateSecret
-        , nullSecret
-        , secretTypeToString
-        , toSecretType
-        )
+import Pages.Secrets.Types exposing (Args, Msg(..), PartialModel, SecretForm)
+import RemoteData exposing (RemoteData(..))
+import Util
+import Vela exposing (SecretType)
 
 
 view : PartialModel a msg -> Html Msg
 view model =
-    let
-        secretsModel =
-            model.secretsModel
-    in
     div [ class "manage-secrets", Util.testAttribute "manage-secrets" ]
         [ div []
             [ Html.h2 [] [ header model.secretsModel.type_ ]
@@ -94,7 +66,7 @@ updateSecret : Args msg -> Html Msg
 updateSecret secretsModel =
     let
         secretUpdate =
-            secretsModel.secretAdd
+            secretsModel.form
     in
     div [ class "secret-form" ]
         [ Html.h4 [ class "field-header" ] [ text "Name" ]
@@ -112,7 +84,7 @@ updateSecret secretsModel =
 
 {-| allowCommandCheckbox : renders checkbox inputs for selecting allowcommand
 -}
-allowCommandCheckbox : SecretUpdate -> Html Msg
+allowCommandCheckbox : SecretForm -> Html Msg
 allowCommandCheckbox secretUpdate =
     section [ class "type", Util.testAttribute "" ]
         [ h4 [ class "field-header" ]
