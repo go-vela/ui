@@ -26,6 +26,7 @@ type alias Args msg =
     , build : Arg
     , repo : Arg
     , hooks : Arg
+    , secrets : Arg
     , show : Bool
     , toggle : Maybe Bool -> msg
     , copy : Copy msg
@@ -314,6 +315,33 @@ resourceLoaded args =
         Pages.Build _ _ _ _ ->
             args.build.success
 
+        Pages.OrgSecrets _ _ ->
+            args.secrets.success
+
+        Pages.RepoSecrets _ _ _ ->
+            args.secrets.success
+
+        Pages.SharedSecrets _ _ _ ->
+            args.secrets.success
+
+        Pages.AddOrgSecret _ _ ->
+            True
+
+        Pages.AddRepoSecret _ _ _ ->
+            True
+
+        Pages.AddSharedSecret _ _ _ ->
+            True
+
+        Pages.OrgSecret _ _ _ ->
+            True
+
+        Pages.RepoSecret _ _ _ _ ->
+            True
+
+        Pages.SharedSecret _ _ _ _ ->
+            True
+
         Pages.RepoSettings _ _ ->
             args.repo.success
 
@@ -352,6 +380,33 @@ resourceLoading args =
 
         Pages.Build _ _ _ _ ->
             args.build.loading
+
+        Pages.OrgSecrets _ _ ->
+            args.secrets.loading
+
+        Pages.RepoSecrets _ _ _ ->
+            args.secrets.loading
+
+        Pages.SharedSecrets _ _ _ ->
+            args.secrets.loading
+
+        Pages.AddOrgSecret _ _ ->
+            False
+
+        Pages.AddRepoSecret _ _ _ ->
+            False
+
+        Pages.AddSharedSecret _ _ _ ->
+            False
+
+        Pages.OrgSecret _ _ _ ->
+            False
+
+        Pages.RepoSecret _ _ _ _ ->
+            False
+
+        Pages.SharedSecret _ _ _ _ ->
+            False
 
         Pages.RepoSettings _ _ ->
             args.repo.loading

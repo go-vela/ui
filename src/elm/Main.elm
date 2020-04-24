@@ -112,6 +112,7 @@ import Vela
         , EnableRepos
         , EnableRepositoryPayload
         , Enabling(..)
+        , Engine
         , Event
         , Favicon
         , Field
@@ -121,6 +122,7 @@ import Vela
         , HooksModel
         , Log
         , Logs
+        , Name
         , Org
         , RepairRepo
         , Repo
@@ -132,6 +134,7 @@ import Vela
         , Step
         , StepNumber
         , Steps
+        , Team
         , Theme(..)
         , UpdateRepositoryPayload
         , UpdateUserPayload
@@ -288,6 +291,7 @@ type Msg
     | SearchFavorites String
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
+    | RefreshHooks Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
@@ -926,6 +930,13 @@ update msg model =
         RefreshSettings org repo ->
             ( { model | inTimeout = Nothing, repo = Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
 
+        RefreshHooks org repo ->
+            let
+                hooks =
+                    model.hooks
+            in
+            ( { model | hooks = { hooks | hooks = Loading } }, getHooks model org repo Nothing Nothing )
+
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
             , Cmd.none
@@ -1374,6 +1385,51 @@ viewContent model =
             , lazy5 Pages.RepoSettings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
             )
 
+        Pages.OrgSecrets engine org ->
+            ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets"
+            , Html.map (\m -> NoOp) <| div [] []
+            )
+
+        Pages.RepoSecrets engine org repo ->
+            ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
+            , Html.map (\m -> NoOp) <| div [] []
+            )
+
+        Pages.SharedSecrets engine org team ->
+            ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
+            , Html.map (\m -> NoOp) <| div [] []
+            )
+
+        Pages.AddOrgSecret engine org ->
+            ( "add " ++ engine ++ " org secret"
+            , Html.map (\m -> NoOp) <| div [] []
+            )
+
+        Pages.AddRepoSecret engine org repo ->
+            ( "add " ++ engine ++ " repo secret"
+            , Html.map (\m -> NoOp) <| div [] []
+            )
+
+        Pages.AddSharedSecret engine org team ->
+            ( "add " ++ engine ++ " shared secret"
+            , Html.map (\m -> NoOp) <| div [] []
+            )
+
+        Pages.OrgSecret engine org name ->
+            ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
+            , Html.map (\m -> NoOp) <| div [] []
+            )
+
+        Pages.RepoSecret engine org repo name ->
+            ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
+            , Html.map (\m -> NoOp) <| div [] []
+            )
+
+        Pages.SharedSecret engine org team name ->
+            ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
+            , Html.map (\m -> NoOp) <| div [] []
+            )
+
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             let
                 page : String
@@ -1577,6 +1633,7 @@ helpArgs model =
     , build = helpArg model.build
     , repo = helpArg model.repo
     , hooks = helpArg model.hooks.hooks
+    , secrets = helpArg <| RemoteData.succeed []
     , show = model.showHelp
     , toggle = ShowHideHelp
     , copy = Copy
@@ -1670,6 +1727,33 @@ setNewPage route model =
 
         ( Routes.RepoSettings org repo, True ) ->
             loadRepoSettingsPage model org repo
+
+        ( Routes.OrgSecrets engine org, True ) ->
+            ( model, Cmd.none )
+
+        ( Routes.RepoSecrets engine org repo, True ) ->
+            ( model, Cmd.none )
+
+        ( Routes.SharedSecrets engine org team, True ) ->
+            ( model, Cmd.none )
+
+        ( Routes.AddOrgSecret engine org, True ) ->
+            ( model, Cmd.none )
+
+        ( Routes.AddRepoSecret engine org repo, True ) ->
+            ( model, Cmd.none )
+
+        ( Routes.AddSharedSecret engine org team, True ) ->
+            ( model, Cmd.none )
+
+        ( Routes.OrgSecret engine org name, True ) ->
+            ( model, Cmd.none )
+
+        ( Routes.RepoSecret engine org repo name, True ) ->
+            ( model, Cmd.none )
+
+        ( Routes.SharedSecret engine org team name, True ) ->
+            ( model, Cmd.none )
 
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
             let
