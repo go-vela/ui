@@ -1,3 +1,4 @@
+
 {--
 Copyright (c) 2020 Target Brands, Inc. All rights reserved.
 Use of this source code is governed by the LICENSE file in this repository.
@@ -44,6 +45,42 @@ commands page =
 
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
+
+        Pages.OrgSecrets engine org ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.RepoSecrets engine org repo ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.SharedSecrets engine org key ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.AddOrgSecret engine org ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.AddRepoSecret engine org repo ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.AddSharedSecret engine org team ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.OrgSecret engine org name ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.RepoSecret engine org repo name ->
+            -- TODO: probably want this filled in
+            []
+
+        Pages.SharedSecret engine org team name ->
+            -- TODO: probably want this filled in
+            []
 
         Pages.Settings ->
             -- TODO: probably want this filled in
