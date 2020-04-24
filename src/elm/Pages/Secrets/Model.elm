@@ -10,7 +10,6 @@ module Pages.Secrets.Model exposing
     , Model
     , Msg(..)
     , PartialModel
-    , Secret
     , SecretForm
     , SecretResponse
     , SecretsResponse
@@ -25,7 +24,6 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Vela
     exposing
         ( Engine
-        , Key
         , Org
         , Repo
         , Secret
@@ -64,19 +62,6 @@ type alias Model msg =
     , secretsResponse : SecretsResponse msg
     , addSecretResponse : AddSecretResponse msg
     , updateSecretResponse : AddSecretResponse msg
-    }
-
-
-type alias Secret =
-    { id : Int
-    , org : Org
-    , repo : Repo
-    , team : Key
-    , name : String
-    , type_ : SecretType
-    , images : List String
-    , events : List String
-    , allowCommand : Bool
     }
 
 

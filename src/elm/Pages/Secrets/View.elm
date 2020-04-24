@@ -11,7 +11,6 @@ import Html
         ( Html
         , a
         , div
-        , em
         , h4
         , text
         )
@@ -35,7 +34,6 @@ import Pages.Secrets.Model
         , Model
         , Msg(..)
         , PartialModel
-        , SecretForm
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
@@ -109,16 +107,22 @@ secrets model =
             div [] [ largeLoader ]
 
 
+{-| secretsToRows : takes list of secrets and produces list of Table rows
+-}
 secretsToRows : SecretType -> Secrets -> Table.Table.Rows Secret Msg
 secretsToRows type_ =
     List.map (\secret -> Table.Table.Row secret (renderSecret type_))
 
 
+{-| tableHeaders : returns table headers for secrets table
+-}
 tableHeaders : List String
 tableHeaders =
     [ "name", "type", "events", "images", "allow command" ]
 
 
+{-| renderSecret : takes secret and secret type and renders a table row
+-}
 renderSecret : SecretType -> Secret -> Html msg
 renderSecret type_ secret =
     div [ class "row", class "preview" ]
@@ -133,6 +137,8 @@ renderSecret type_ secret =
         ]
 
 
+{-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
+-}
 updateSecretHref : SecretType -> Secret -> Html.Attribute msg
 updateSecretHref type_ secret =
     Routes.href <|
@@ -151,6 +157,8 @@ updateSecretHref type_ secret =
 -- ADD SECRET
 
 
+{-| addSecret : takes partial model and renders the Add Secret form
+-}
 addSecret : PartialModel a msg -> Html Msg
 addSecret model =
     div [ class "manage-secret", Util.testAttribute "manage-secret" ]
@@ -161,6 +169,8 @@ addSecret model =
         ]
 
 
+{-| addHeader : takes secret type and renders the Add Secret header
+-}
 addHeader : SecretType -> Html Msg
 addHeader type_ =
     case type_ of
@@ -200,6 +210,8 @@ addForm secretsModel =
 -- EDIT SECRET
 
 
+{-| editSecret : takes partial model and renders secret update form for editing a secret
+-}
 editSecret : PartialModel a msg -> Html Msg
 editSecret model =
     div [ class "manage-secret", Util.testAttribute "manage-secret" ]
@@ -210,6 +222,8 @@ editSecret model =
         ]
 
 
+{-| editHeader : takes secret type and renders view/edit secret header
+-}
 editHeader : SecretType -> Html Msg
 editHeader type_ =
     case type_ of
