@@ -730,8 +730,6 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-
-
         UpdateRepoEvent org repo field value ->
             let
                 payload : UpdateRepositoryPayload
@@ -939,8 +937,6 @@ update msg model =
             in
             ( { model | hooks = { hooks | hooks = Loading } }, getHooks model org repo Nothing Nothing )
 
-
-
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
             , Cmd.none
@@ -1007,8 +1003,6 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
-
-
 
 
 
@@ -1735,31 +1729,31 @@ setNewPage route model =
             loadRepoSettingsPage model org repo
 
         ( Routes.OrgSecrets engine org, True ) ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         ( Routes.RepoSecrets engine org repo, True ) ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         ( Routes.SharedSecrets engine org team, True ) ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         ( Routes.AddOrgSecret engine org, True ) ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         ( Routes.AddRepoSecret engine org repo, True ) ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         ( Routes.AddSharedSecret engine org team, True ) ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         ( Routes.OrgSecret engine org name, True ) ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         ( Routes.RepoSecret engine org repo name, True ) ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         ( Routes.SharedSecret engine org team name, True ) ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
             let
@@ -1881,8 +1875,6 @@ loadRepoSettingsPage model org repo =
         , getCurrentUser model
         ]
     )
-
-
 
 
 {-| loadRepoBuildsPage : takes model org and repo and loads the appropriate builds.
@@ -2162,7 +2154,7 @@ buildMsgs =
 -}
 navMsgs : Nav.Msgs Msg
 navMsgs =
-    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings   RestartBuild
+    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RestartBuild
 
 
 {-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
@@ -2184,7 +2176,6 @@ hooksMsgs =
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
     Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
-
 
 
 
