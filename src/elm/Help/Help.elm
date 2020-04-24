@@ -391,22 +391,22 @@ resourceLoading args =
             args.secrets.loading
 
         Pages.AddOrgSecret _ _ ->
-            True
+            False
 
         Pages.AddRepoSecret _ _ _ ->
-            True
+            False
 
         Pages.AddSharedSecret _ _ _ ->
-            True
+            False
 
         Pages.OrgSecret _ _ _ ->
-            True
+            False
 
         Pages.RepoSecret _ _ _ _ ->
-            True
+            False
 
         Pages.SharedSecret _ _ _ _ ->
-            True
+            False
 
         Pages.RepoSettings _ _ ->
             args.repo.loading
