@@ -125,11 +125,11 @@ customCell element cls =
 {-| arrayCell : takes string array and renders cell
 -}
 arrayCell : List String -> String -> Html msg
-arrayCell images default =
+arrayCell items default =
     div [ class "cell", class "column-width" ] <|
         List.intersperse (text ",") <|
-            if List.length images > 0 then
-                List.map (\image -> code [ class "text", class "-m-l" ] [ text image ]) images
+            if List.length items > 0 then
+                List.map (\item -> code [ class "text", class "-m-l" ] [ text item ]) items
 
             else
                 [ code [ class "text" ] [ text default ] ]
