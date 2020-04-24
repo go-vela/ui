@@ -80,15 +80,9 @@ import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
 import Pages.RepoSettings exposing (enableUpdate)
-import Pages.Secrets.AddSecret
-import Pages.Secrets.Secret
-import Pages.Secrets.Secrets
-import Pages.Secrets.Types
-import Pages.Secrets.Update
 import Pages.Settings
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import String.Extra
 import SvgBuilder exposing (velaLogo)
 import Task exposing (perform, succeed)
 import Time
@@ -126,7 +120,6 @@ import Vela
         , HookBuilds
         , Hooks
         , HooksModel
-        , Key
         , Log
         , Logs
         , Name
@@ -136,9 +129,6 @@ import Vela
         , RepoSearchFilters
         , Repositories
         , Repository
-        , Secret
-        , SecretType(..)
-        , Secrets
         , Session
         , SourceRepositories
         , Step
@@ -146,7 +136,6 @@ import Vela
         , Steps
         , Team
         , Theme(..)
-        , Type
         , UpdateRepositoryPayload
         , UpdateUserPayload
         , User
@@ -169,7 +158,6 @@ import Vela
         , encodeUpdateRepository
         , encodeUpdateUser
         , isComplete
-        , secretTypeToString
         , statusToFavicon
         , stringToTheme
         )
@@ -218,7 +206,6 @@ type alias Model =
     , showHelp : Bool
     , showIdentity : Bool
     , favicon : Favicon
-    , secretsModel : Pages.Secrets.Types.Args Msg
     }
 
 
@@ -268,7 +255,6 @@ init flags url navKey =
             , showHelp = False
             , showIdentity = False
             , favicon = defaultFavicon
-            , secretsModel = initSecretsModel
             }
 
         ( newModel, newPage ) =
@@ -306,7 +292,6 @@ type Msg
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
-    | RefreshSecrets Engine Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
@@ -346,10 +331,6 @@ type Msg
     | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
-    | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
-    | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
-    | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
-    | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
@@ -361,8 +342,6 @@ type Msg
     | OnKeyUp String
     | UpdateUrl String
     | VisibilityChanged Visibility
-      -- Components
-    | AddSecretUpdate Engine Pages.Secrets.Types.Msg
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -751,78 +730,7 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        SecretResponse response ->
-            case response of
-                Ok ( _, secret ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
 
-                        updatedSecretsModel =
-                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
-                    in
-                    ( { model | secretsModel = updatedSecretsModel }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( model, addError error )
-
-        AddSecretResponse response ->
-            case response of
-                Ok ( _, secret ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-
-                        updatedSecretsModel =
-                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
-                    in
-                    ( { model | secretsModel = updatedSecretsModel }
-                    , Cmd.none
-                    )
-                        |> addSecretResponseAlert secret
-
-                Err error ->
-                    ( model, addError error )
-
-        UpdateSecretResponse response ->
-            case response of
-                Ok ( _, secret ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-
-                        updatedSecretsModel =
-                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
-                    in
-                    ( { model | secretsModel = updatedSecretsModel }
-                    , Cmd.none
-                    )
-                        |> updateSecretResponseAlert secret
-
-                Err error ->
-                    ( model, addError error )
-
-        SecretsResponse response ->
-            case response of
-                Ok ( _, secrets ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-
-                        mergedSecrets =
-                            case secretsModel.secrets of
-                                Success s ->
-                                    RemoteData.succeed <| Util.mergeListsById s secrets
-
-                                _ ->
-                                    RemoteData.succeed secrets
-                    in
-                    ( { model | secretsModel = { secretsModel | secrets = mergedSecrets } }, Cmd.none )
-
-                Err error ->
-                    ( model, addError error )
 
         UpdateRepoEvent org repo field value ->
             let
@@ -1031,23 +939,7 @@ update msg model =
             in
             ( { model | hooks = { hooks | hooks = Loading } }, getHooks model org repo Nothing Nothing )
 
-        RefreshSecrets engine org key ->
-            let
-                secretsModel =
-                    model.secretsModel
-            in
-            ( { model | secretsModel = { secretsModel | secrets = Loading } }
-            , getSecrets model engine "repo" org key
-            )
 
-        AddSecretUpdate engine m ->
-            let
-                ( newModel, action ) =
-                    Pages.Secrets.Update.update model m
-            in
-            ( newModel
-            , action
-            )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
@@ -1117,34 +1009,6 @@ update msg model =
             ( model, Cmd.none )
 
 
-addSecretResponseAlert :
-    Secret
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-addSecretResponseAlert secret =
-    let
-        type_ =
-            secretTypeToString secret.type_
-
-        msg =
-            secret.name ++ " added to " ++ type_ ++ " secrets."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
-
-
-updateSecretResponseAlert :
-    Secret
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-updateSecretResponseAlert secret =
-    let
-        type_ =
-            secretTypeToString secret.type_
-
-        msg =
-            String.Extra.toSentenceCase <| type_ ++ " secret " ++ secret.name ++ " updated."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
 
 
@@ -1529,47 +1393,47 @@ viewContent model =
 
         Pages.OrgSecrets engine org ->
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secrets.view model
+            , Html.map (\m -> NoOp) <| div [] []
             )
 
         Pages.RepoSecrets engine org repo ->
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secrets.view model
+            , Html.map (\m -> NoOp) <| div [] []
             )
 
         Pages.SharedSecrets engine org team ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.Secrets.view model
+            , Html.map (\m -> NoOp) <| div [] []
             )
 
         Pages.AddOrgSecret engine org ->
             ( "add " ++ engine ++ " org secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
+            , Html.map (\m -> NoOp) <| div [] []
             )
 
         Pages.AddRepoSecret engine org repo ->
             ( "add " ++ engine ++ " repo secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
+            , Html.map (\m -> NoOp) <| div [] []
             )
 
         Pages.AddSharedSecret engine org team ->
             ( "add " ++ engine ++ " shared secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.AddSecret.view model
+            , Html.map (\m -> NoOp) <| div [] []
             )
 
         Pages.OrgSecret engine org name ->
             ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.Secret.view model
+            , Html.map (\m -> NoOp) <| div [] []
             )
 
         Pages.RepoSecret engine org repo name ->
             ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.Secret.view model
+            , Html.map (\m -> NoOp) <| div [] []
             )
 
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.Secret.view model
+            , Html.map (\m -> NoOp) <| div [] []
             )
 
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
@@ -1775,7 +1639,7 @@ helpArgs model =
     , build = helpArg model.build
     , repo = helpArg model.repo
     , hooks = helpArg model.hooks.hooks
-    , secrets = helpArg model.secretsModel.secrets
+    , secrets = helpArg <| RemoteData.succeed []
     , show = model.showHelp
     , toggle = ShowHideHelp
     , copy = Copy
@@ -1871,31 +1735,31 @@ setNewPage route model =
             loadRepoSettingsPage model org repo
 
         ( Routes.OrgSecrets engine org, True ) ->
-            loadOrgSecretsPage model engine org
+            (model, Cmd.none)
 
         ( Routes.RepoSecrets engine org repo, True ) ->
-            loadRepoSecretsPage model engine org repo
+            (model, Cmd.none)
 
         ( Routes.SharedSecrets engine org team, True ) ->
-            loadSharedSecretsPage model engine org team
+            (model, Cmd.none)
 
         ( Routes.AddOrgSecret engine org, True ) ->
-            loadAddOrgSecretPage model engine org
+            (model, Cmd.none)
 
         ( Routes.AddRepoSecret engine org repo, True ) ->
-            loadAddRepoSecretPage model engine org repo
+            (model, Cmd.none)
 
         ( Routes.AddSharedSecret engine org team, True ) ->
-            loadAddSharedSecretPage model engine org team
+            (model, Cmd.none)
 
         ( Routes.OrgSecret engine org name, True ) ->
-            loadUpdateOrgSecretPage model engine org name
+            (model, Cmd.none)
 
         ( Routes.RepoSecret engine org repo name, True ) ->
-            loadUpdateRepoSecretPage model engine org repo name
+            (model, Cmd.none)
 
         ( Routes.SharedSecret engine org team name, True ) ->
-            loadUpdateSharedSecretPage model engine org team name
+            (model, Cmd.none)
 
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
             let
@@ -2019,243 +1883,6 @@ loadRepoSettingsPage model org repo =
     )
 
 
-{-| loadOrgSecretsPage : takes model org and loads the page for managing org secrets
--}
-loadOrgSecretsPage : Model -> Engine -> Org -> ( Model, Cmd Msg )
-loadOrgSecretsPage model engine org =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page =
-            Pages.OrgSecrets engine org
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , engine = engine
-                , type_ = Vela.OrgSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        , getSecrets model engine "org" org "*"
-        ]
-    )
-
-
-{-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
--}
-loadRepoSecretsPage : Model -> Engine -> Org -> Repo -> ( Model, Cmd Msg )
-loadRepoSecretsPage model engine org repo =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page = Pages.RepoSecrets engine org repo
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , repo = repo
-                , engine = engine
-                , type_ = Vela.RepoSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        , getSecrets model engine "repo" org repo
-        ]
-    )
-
-
-{-| loadSharedSecretsPage : takes model org and team and loads the page for managing shared secrets
--}
-loadSharedSecretsPage : Model -> Engine -> Org -> Team -> ( Model, Cmd Msg )
-loadSharedSecretsPage model engine org team =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page =
-            Pages.SharedSecrets engine org team
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , team = team
-                , engine = engine
-                , type_ = Vela.SharedSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        , getSecrets model engine "shared" org team
-        ]
-    )
-
-
-{-| loadAddOrgSecretPage : takes model and engine loads the page for adding secrets
--}
-loadAddOrgSecretPage : Model -> Engine -> Org -> ( Model, Cmd Msg )
-loadAddOrgSecretPage model engine org =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page = Pages.AddOrgSecret engine org
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , engine = engine
-                , type_ = Vela.OrgSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
-    )
-
-
-{-| loadAddRepoSecretPage : takes model engine org and repo and loads the page for adding secrets
--}
-loadAddRepoSecretPage : Model -> Engine -> Org -> Repo -> ( Model, Cmd Msg )
-loadAddRepoSecretPage model engine org repo =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page = Pages.AddRepoSecret engine org repo
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , repo = repo
-                , engine = engine
-                , type_ = Vela.RepoSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
-    )
-
-
-{-| loadAddSharedSecretPage : takes model engine org and team and loads the page for adding secrets
--}
-loadAddSharedSecretPage : Model -> Engine -> Org -> Team -> ( Model, Cmd Msg )
-loadAddSharedSecretPage model engine org team =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page = Pages.AddSharedSecret engine org team
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , team = team
-                , engine = engine
-                , type_ = Vela.SharedSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
-    )
-
-
-{-| loadUpdateOrgSecretPage : takes model org and name and loads the page for updating a repo secret
--}
-loadUpdateOrgSecretPage : Model -> Engine -> Org -> Name -> ( Model, Cmd Msg )
-loadUpdateOrgSecretPage model engine org name =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page = Pages.OrgSecret engine org name
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , engine = engine
-                , type_ = Vela.OrgSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        , getSecret model engine "org" org "*" name
-        ]
-    )
-
-
-{-| loadUpdateRepoSecretPage : takes model org, repo and name and loads the page for updating a repo secret
--}
-loadUpdateRepoSecretPage : Model -> Engine -> Org -> Repo -> Name -> ( Model, Cmd Msg )
-loadUpdateRepoSecretPage model engine org repo name =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page = Pages.RepoSecret engine org repo name
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , repo = repo
-                , engine = engine
-                , type_ = Vela.RepoSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        , getSecret model engine "repo" org repo name
-        ]
-    )
-
-
-{-| loadUpdateSharedSecretPage : takes model org, team and name and loads the page for updating a shared secret
--}
-loadUpdateSharedSecretPage : Model -> Engine -> Org -> Team -> Name -> ( Model, Cmd Msg )
-loadUpdateSharedSecretPage model engine org team name =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page = Pages.SharedSecret engine org team name
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , team = team
-                , engine = engine
-                , type_ = Vela.SharedSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        , getSecret model engine "shared" org team name
-        ]
-    )
 
 
 {-| loadRepoBuildsPage : takes model org and repo and loads the appropriate builds.
@@ -2535,7 +2162,7 @@ buildMsgs =
 -}
 navMsgs : Nav.Msgs Msg
 navMsgs =
-    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets RestartBuild
+    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings   RestartBuild
 
 
 {-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
@@ -2558,10 +2185,6 @@ repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
     Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
 
-
-initSecretsModel : Pages.Secrets.Types.Args Msg
-initSecretsModel =
-    Pages.Secrets.Update.init SecretResponse SecretsResponse AddSecretResponse UpdateSecretResponse
 
 
 
@@ -2639,16 +2262,6 @@ getBuildStepsLogs model org repo buildNumber steps logFocus =
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 restartBuild model org repo buildNumber =
     Api.try (RestartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
-
-
-getSecrets : Model -> Engine -> Type -> Org -> Repo -> Cmd Msg
-getSecrets model engine type_ org repo =
-    Api.try SecretsResponse <| Api.getSecrets model engine type_ org repo
-
-
-getSecret : Model -> Engine -> Type -> Org -> Key -> Name -> Cmd Msg
-getSecret model engine type_ org key name =
-    Api.try SecretResponse <| Api.getSecret model engine type_ org key name
 
 
 
