@@ -338,6 +338,7 @@ resourceLoaded args =
 
         Pages.RepoSecret _ _ _ _ ->
             True
+
         Pages.SharedSecret _ _ _ _ ->
             True
 
