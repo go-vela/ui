@@ -20,6 +20,7 @@ module Vela exposing
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
+    , Engine
     , Event
     , Favicon
     , Favorites
@@ -32,6 +33,7 @@ module Vela exposing
     , Log
     , LogFocus
     , Logs
+    , Name
     , Org
     , RepairRepo
     , Repo
@@ -45,6 +47,7 @@ module Vela exposing
     , Step
     , StepNumber
     , Steps
+    , Team
     , Theme(..)
     , UpdateRepositoryPayload
     , UpdateUserPayload
@@ -109,6 +112,18 @@ type alias Org =
 
 
 type alias Repo =
+    String
+
+
+type alias Team =
+    String
+
+
+type alias Engine =
+    String
+
+
+type alias Name =
     String
 
 
