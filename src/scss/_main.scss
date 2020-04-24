@@ -41,7 +41,11 @@ header {
 
   padding: 1em var(--horizontal-pad);
 
-  background: radial-gradient(circle at 50% -200%, var(--color-bg-light) -7%, transparent 50%);
+  background: radial-gradient(
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
+  );
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
@@ -143,7 +147,7 @@ header {
       border-radius: 0 0 0 0.25em;
       transform: rotate(135deg);
 
-      content: "";
+      content: '';
 
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
@@ -231,7 +235,7 @@ nav {
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
 
-  content: "\2026";
+  content: '\2026';
 }
 
 .util {
@@ -256,13 +260,13 @@ nav {
   &::before {
     margin-right: 0.3em;
 
-    content: "[";
+    content: '[';
   }
 
   &::after {
     margin-left: 0.3em;
 
-    content: "]";
+    content: ']';
   }
 }
 
@@ -485,11 +489,13 @@ nav {
 }
 
 .build-animation.-bottom.-running {
-  animation: build-status-parallax-running 26s linear 26s infinite, build-status-parallax-start 26s linear none;
+  animation: build-status-parallax-running 26s linear 26s infinite,
+    build-status-parallax-start 26s linear none;
 }
 
 .build-animation.-top.-running {
-  animation: build-status-parallax-running 22s linear 22s infinite, build-status-parallax-start 22s linear none;
+  animation: build-status-parallax-running 22s linear 22s infinite,
+    build-status-parallax-start 22s linear none;
 }
 
 .build-animation.-bottom.-start {
@@ -657,7 +663,7 @@ nav {
 
   border-width: 5px;
 
-  content: " ";
+  content: ' ';
 }
 
 .recent-build-tooltip .line {
@@ -670,7 +676,7 @@ nav {
   margin-right: 0.5em;
 
   &:before {
-    content: "#";
+    content: '#';
   }
 }
 
@@ -958,7 +964,6 @@ nav {
   display: flex;
   flex-direction: row;
   align-items: center;
-  // border-bottom: 1px solid var(--color-primary);
 }
 
 .table .headers {
@@ -968,9 +973,11 @@ nav {
 
   margin-top: 0.3em;
   padding: 0.3em 1rem;
-  padding-left: 2rem;
+  padding-left: 1rem;
 
   border-bottom: 1px solid var(--color-bg-light);
+
+  position: relative;
 }
 
 .table .header {
@@ -996,9 +1003,7 @@ nav {
 .hook-status.-failure {
   stroke: var(--color-red);
 }
-.table .row-container {
-  // border-bottom: 1px solid var(--color-text);
-}
+
 .table .row .cell {
   flex: 1;
   align-items: center;
@@ -1016,10 +1021,11 @@ nav {
   padding-right: 1rem;
 }
 
-.table .row .cell.-last {
+.table .cell.-last {
   display: flex;
   justify-content: flex-end;
   padding-right: 1rem;
+
   button {
     margin: 0.25rem 0;
   }
@@ -1230,7 +1236,7 @@ nav {
   &::after {
     display: block;
     position: absolute;
-    content: "";
+    content: '';
     top: -0.5rem;
     right: 0;
     border-color: transparent;
@@ -1348,23 +1354,19 @@ nav {
   margin-left: 0.25rem;
 }
 
-.table .headers {
-  padding-left: 1rem;
-  position: relative;
-}
-
 .secrets-first-cell {
   padding: 0.5rem 1rem;
   padding-bottom: 0;
   color: var(--color-primary);
   font-size: 1.2rem;
 }
-.manage-secrets {
+
+.manage-secret {
   padding: 1rem;
   background: var(--color-bg-dark);
 }
 
-.manage-secrets .header {
+.manage-secret .header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -1373,7 +1375,7 @@ nav {
   border-bottom: 2px solid var(--color-secondary);
 }
 
-.manage-secrets h2 {
+.manage-secret h2 {
   margin: 0;
   border-bottom: 2px solid var(--color-secondary);
 }
@@ -1392,6 +1394,7 @@ nav {
   flex-direction: column;
   align-items: flex-start;
 }
+
 .added-image {
   margin: 0.2rem 1rem;
   display: flex;
@@ -1419,93 +1422,37 @@ nav {
 }
 
 .added-image.chevron:before {
-  content: "";
+  content: '';
   border-style: solid;
   border-width: 0.1rem 1rem 0.1rem 0.2rem;
   border-color: var(--color-primary);
   position: absolute;
   left: -1.5rem;
 }
-.add {
-  color: green;
-}
-.trash {
-  color: red;
-}
+
 h4.-no-pad {
   margin: 0;
 }
+
 h4.-m-t {
   margin-top: 1rem;
-}
-.select-secret {
-  background: var(--color-bg);
-  color: var(--color-primary);
-  font-size: 1rem;
-  border-radius: 0px;
-  > * {
-    border-radius: 0px;
-  }
-}
-.select-secret .menu {
-  position: absolute;
-  left: 5px;
-  margin-top: 5px;
-  background: white;
-  color: black;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  min-width: 120px;
-  z-index: 11110;
-}
-
-.selected-item {
-  background: #3366ff;
-  color: white;
-  display: block;
-  padding: 5px 10px;
-  border-bottom: 1px solid #ddd;
-  cursor: pointer;
-}
-
-.select-secret .list {
-  list-style: none;
-  padding: 0;
-  margin: auto;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.select-secret .item {
-  display: block;
-  padding: 5px 10px;
-  border-bottom: 1px solid #ddd;
-  cursor: pointer;
-}
-
-.select-secret .input {
-  min-width: 120px;
-  color: black;
-  position: relative;
-  display: block;
-  padding: 0.8em;
-  font-size: 12px;
 }
 
 .no-rows {
   padding: 1rem;
 }
-.manage-secrets .subheader {
+
+.manage-secret .subheader {
   margin-top: 1rem;
   border-bottom: 2px solid var(--color-primary);
   width: 80%;
 }
-.manage-secrets input,
-.manage-secrets textarea,
+
+.manage-secret input,
+.manage-secret textarea,
 .update-secret textarea {
   width: 70%;
-  border: 1px solid gray;
+  border: 1px solid var(--color-bg-light);
   box-shadow: none;
   background: var(--color-bg);
   color: var(--color-text);
@@ -1515,30 +1462,22 @@ h4.-m-t {
   padding: 0.5rem;
 }
 
-.manage-secrets input {
+.manage-secret input {
   width: 25%;
 }
 
-.manage-secrets textarea {
-  width: 70%;
-}
-.update-secret textarea {
+.manage-secret textarea {
   width: 70%;
 }
 
-.manage-secrets .-m-t {
+.manage-secret .-m-t {
   margin-top: 1rem;
-}
-
-.update-secret {
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid gray;
 }
 
 .table-label {
   font-size: 1.25rem;
   color: var(--color-primary);
-  padding: 0.6rem 0rem 0rem 1rem;
+  padding: 0.6rem 0 0 1rem;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -1547,6 +1486,7 @@ h4.-m-t {
 .table-label .add-secret {
   margin-right: 1em;
 }
+
 .field-description {
   font-size: 1rem;
   font-weight: 300;
@@ -1557,14 +1497,6 @@ h4.-m-t {
   margin-top: 1rem;
   margin-bottom: 0.25rem;
 }
-
-.-code {
-  font-family: var(--font-code);
-}
-
-// .edit-icon {
-//   stroke: var(--color-primary);
-// }
 
 // visually hide, but keep accessible by screen readers
 .visually-hidden {

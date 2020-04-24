@@ -153,7 +153,7 @@ updateSecretHref type_ secret =
 
 addSecret : PartialModel a msg -> Html Msg
 addSecret model =
-    div [ class "manage-secrets", Util.testAttribute "manage-secrets" ]
+    div [ class "manage-secret", Util.testAttribute "manage-secret" ]
         [ div []
             [ Html.h2 [] [ addHeader model.secretsModel.type_ ]
             , addForm model.secretsModel
@@ -202,7 +202,7 @@ addForm secretsModel =
 
 editSecret : PartialModel a msg -> Html Msg
 editSecret model =
-    div [ class "manage-secrets", Util.testAttribute "manage-secrets" ]
+    div [ class "manage-secret", Util.testAttribute "manage-secret" ]
         [ div []
             [ Html.h2 [] [ editHeader model.secretsModel.type_ ]
             , editForm model.secretsModel
