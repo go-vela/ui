@@ -8,7 +8,7 @@ module Pages exposing (Page(..), toRoute)
 
 import Api.Pagination as Pagination
 import Routes exposing (Route(..))
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Key, Name, Org, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
 
 type Page
