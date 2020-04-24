@@ -776,7 +776,7 @@ update msg model =
                             model.secretsModel
 
                         updatedSecretsModel =
-                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
+                            Pages.Secrets.Update.reinitializeSecretAdd secretsModel
                     in
                     ( { model | secretsModel = updatedSecretsModel }
                     , Cmd.none

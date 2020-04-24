@@ -94,7 +94,7 @@ type alias SecretUpdate =
 
 defaultSecretUpdate : SecretUpdate
 defaultSecretUpdate =
-    SecretUpdate "" "" [ "push", "tag", "deploy" ] "" [] True
+    SecretUpdate "" "" [] "" [] True
 
 
 
