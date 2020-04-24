@@ -103,32 +103,30 @@ secretsToRows type_ =
 
 headers : List String
 headers =
-    [ "name", "type", "events", "images", "allow command", " " ]
+    [ "name", "type", "events", "images", "allow command" ]
 
 
 renderSecret : SecretType -> Secret -> Html msg
 renderSecret type_ secret =
     div [ class "row", class "preview" ]
         [ Table.Table.cell secret.name <| class "host"
-
-        -- [ Table.Table.customCell (a [ updateSecretHref type_ secret ] [ text secret.name ]) <| class "host"
         , Table.Table.cell (secretTypeToString secret.type_) <| class ""
         , Table.Table.arrayCell secret.events "no events"
         , Table.Table.arrayCell secret.images "all images"
         , Table.Table.cell (Util.boolToYesNo secret.allowCommand) <| class ""
-        , Table.Table.customCell (Html.a [ class "button", class "-outline", updateSecretHref type_ secret ] [ text "edit" ]) <| class ""
+
+        -- , Table.Table.customCell (Html.a [ class "button", class "-outline", updateSecretHref type_ secret ] [ text "edit" ]) <| class ""
         ]
 
 
-updateSecretHref : SecretType -> Secret -> Html.Attribute msg
-updateSecretHref type_ secret =
-    Routes.href <|
-        case type_ of
-            Vela.OrgSecret ->
-                Routes.OrgSecret "native" secret.org secret.name
 
-            Vela.RepoSecret ->
-                Routes.RepoSecret "native" secret.org secret.repo secret.name
-
-            Vela.SharedSecret ->
-                Routes.SharedSecret "native" secret.org secret.team secret.name
+-- updateSecretHref : SecretType -> Secret -> Html.Attribute msg
+-- updateSecretHref type_ secret =
+--     Routes.href <|
+--         case type_ of
+--             Vela.OrgSecret ->
+--                 Routes.OrgSecret "native" secret.org secret.name
+--             Vela.RepoSecret ->
+--                 Routes.RepoSecret "native" secret.org secret.repo secret.name
+--             Vela.SharedSecret ->
+--                 Routes.SharedSecret "native" secret.org secret.team secret.name
