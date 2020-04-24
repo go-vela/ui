@@ -325,22 +325,21 @@ resourceLoaded args =
             args.secrets.success
 
         Pages.AddOrgSecret _ _ ->
-            args.secrets.success
+            True
 
         Pages.AddRepoSecret _ _ _ ->
-            args.secrets.success
+            True
 
         Pages.AddSharedSecret _ _ _ ->
-            args.secrets.success
+            True
 
         Pages.OrgSecret _ _ _ ->
-            args.repo.loading
+            True
 
         Pages.RepoSecret _ _ _ _ ->
-            args.repo.loading
-
+            True
         Pages.SharedSecret _ _ _ _ ->
-            args.repo.loading
+            True
 
         Pages.RepoSettings _ _ ->
             args.repo.success
@@ -382,31 +381,31 @@ resourceLoading args =
             args.build.loading
 
         Pages.OrgSecrets _ _ ->
-            args.repo.loading
+            args.secrets.loading
 
         Pages.RepoSecrets _ _ _ ->
-            args.repo.loading
+            args.secrets.loading
 
         Pages.SharedSecrets _ _ _ ->
-            args.repo.loading
+            args.secrets.loading
 
         Pages.AddOrgSecret _ _ ->
-            args.secrets.loading
+            True
 
         Pages.AddRepoSecret _ _ _ ->
-            args.secrets.loading
+            True
 
         Pages.AddSharedSecret _ _ _ ->
-            args.secrets.loading
+            True
 
         Pages.OrgSecret _ _ _ ->
-            args.repo.loading
+            True
 
         Pages.RepoSecret _ _ _ _ ->
-            args.repo.loading
+            True
 
         Pages.SharedSecret _ _ _ _ ->
-            args.repo.loading
+            True
 
         Pages.RepoSettings _ _ ->
             args.repo.loading
