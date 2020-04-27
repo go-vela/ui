@@ -1197,7 +1197,7 @@ decodeOnThemeChange inTheme =
             SetTheme Dark
 
 
-{-| refreshPage : takes model and determines if the page should automatically refresh data
+{-| refreshSubscriptions : takes model and returns the subscriptions for automatically refreshing page data
 -}
 refreshSubscriptions : Model -> Sub Msg
 refreshSubscriptions model =
@@ -1265,6 +1265,21 @@ refreshPage model _ =
             Cmd.batch
                 [ getHooks model org repo maybePage maybePerPage
                 , refreshHookBuilds model
+                ]
+
+        Pages.RepoSecrets engine org repo ->
+            Cmd.batch
+                [ getSecrets model engine "repo" org repo
+                ]
+
+        Pages.OrgSecrets engine org ->
+            Cmd.batch
+                [ getSecrets model engine "org" org "*"
+                ]
+
+        Pages.SharedSecrets engine org team ->
+            Cmd.batch
+                [ getSecrets model engine "shared" org team
                 ]
 
         _ ->
@@ -1531,17 +1546,17 @@ viewContent model =
 
         Pages.OrgSecrets engine org ->
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.View.secrets model
+            , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.secrets model
             )
 
         Pages.RepoSecrets engine org repo ->
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.View.secrets model
+            , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.secrets model
             )
 
         Pages.SharedSecrets engine org team ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
-            , Html.map (\m -> NoOp) <| lazy Pages.Secrets.View.secrets model
+            , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.secrets model
             )
 
         Pages.AddOrgSecret engine _ ->
