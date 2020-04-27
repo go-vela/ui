@@ -72,7 +72,7 @@ view { hooks, hookBuilds, time } org repo clickAction =
                 noHooks
 
             else
-                div [ class "hooks", class "table", Util.testAttribute "hooks" ] <|
+                div [ class "table", Util.testAttribute "hooks" ] <|
                     hooksTable time org repo hookBuilds hooks_ clickAction
 
         RemoteData.Loading ->
