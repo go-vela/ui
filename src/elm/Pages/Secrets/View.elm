@@ -10,7 +10,9 @@ import Html
     exposing
         ( Html
         , a
+        , button
         , div
+        , h2
         , h4
         , text
         )
@@ -126,14 +128,14 @@ tableHeaders =
 renderSecret : SecretType -> Secret -> Html msg
 renderSecret type_ secret =
     div [ class "row", class "preview" ]
-        [ Table.Table.customCell (Html.a [ updateSecretHref type_ secret ] [ text secret.name ]) <| class ""
+        [ Table.Table.customCell (a [ updateSecretHref type_ secret ] [ text secret.name ]) <| class ""
         , Table.Table.cell (secretTypeToString secret.type_) <| class ""
         , Table.Table.arrayCell secret.events "no events"
         , Table.Table.arrayCell secret.images "all images"
         , Table.Table.cell (Util.boolToYesNo secret.allowCommand) <| class ""
 
         -- TODO: change linked name to edit button, when table is fixed
-        -- , Table.Table.customCell (Html.a [ class "button", class "-outline", updateSecretHref type_ secret ] [ text "edit" ]) <| class ""
+        -- , Table.Table.customCell ( a [ class "button", class "-outline", updateSecretHref type_ secret ] [ text "edit" ]) <| class ""
         ]
 
 
@@ -163,7 +165,7 @@ addSecret : PartialModel a msg -> Html Msg
 addSecret model =
     div [ class "manage-secret", Util.testAttribute "manage-secret" ]
         [ div []
-            [ Html.h2 [] [ addHeader model.secretsModel.type_ ]
+            [ h2 [] [ addHeader model.secretsModel.type_ ]
             , addForm model.secretsModel
             ]
         ]
@@ -193,15 +195,15 @@ addForm secretsModel =
             secretsModel.form
     in
     div [ class "secret-form" ]
-        [ Html.h4 [ class "field-header" ] [ text "Name" ]
+        [ h4 [ class "field-header" ] [ text "Name" ]
         , viewNameInput secretUpdate.name False
-        , Html.h4 [ class "field-header" ] [ text "Value" ]
+        , h4 [ class "field-header" ] [ text "Value" ]
         , viewValueInput secretUpdate.value "Secret Value"
         , viewEventsSelect secretUpdate
         , viewImagesInput secretUpdate secretUpdate.imageInput
         , viewHelp
         , div [ class "-m-t" ]
-            [ Html.button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.AddSecret secretsModel.engine ] [ text "Add" ]
+            [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.AddSecret secretsModel.engine ] [ text "Add" ]
             ]
         ]
 
@@ -216,7 +218,7 @@ editSecret : PartialModel a msg -> Html Msg
 editSecret model =
     div [ class "manage-secret", Util.testAttribute "manage-secret" ]
         [ div []
-            [ Html.h2 [] [ editHeader model.secretsModel.type_ ]
+            [ h2 [] [ editHeader model.secretsModel.type_ ]
             , editForm model.secretsModel
             ]
         ]
@@ -246,9 +248,9 @@ editForm secretsModel =
             secretsModel.form
     in
     div [ class "secret-form" ]
-        [ Html.h4 [ class "field-header" ] [ text "Name" ]
+        [ h4 [ class "field-header" ] [ text "Name" ]
         , viewNameInput secretUpdate.name True
-        , Html.h4 [ class "field-header" ] [ text "Value" ]
+        , h4 [ class "field-header" ] [ text "Value" ]
         , viewValueInput secretUpdate.value "Secret Value (leave blank to make no change)"
         , viewEventsSelect secretUpdate
         , viewImagesInput secretUpdate secretUpdate.imageInput
@@ -256,6 +258,6 @@ editForm secretsModel =
         -- , allowCommandCheckbox secretUpdate
         , viewHelp
         , div [ class "-m-t" ]
-            [ Html.button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.UpdateSecret secretsModel.engine ] [ text "Update" ]
+            [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.UpdateSecret secretsModel.engine ] [ text "Update" ]
             ]
         ]

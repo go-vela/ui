@@ -17,6 +17,8 @@ import Html
     exposing
         ( Html
         , a
+        , button
+        , code
         , div
         , em
         , h4
@@ -26,6 +28,7 @@ import Html
         , span
         , strong
         , text
+        , textarea
         )
 import Html.Attributes
     exposing
@@ -62,10 +65,10 @@ viewAddedImages images =
 noImages : List (Html Msg)
 noImages =
     [ div [ class "added-image" ]
-        [ div [ class "name" ] [ text "enabled for all images" ]
+        [ div [ class "name" ] [ code [] [ text "enabled for all images" ] ]
 
         -- add button to match style
-        , Html.button
+        , button
             [ class "button"
             , class "-outline"
             , class "-hide"
@@ -83,7 +86,7 @@ addedImage : String -> Html Msg
 addedImage image =
     div [ class "added-image", class "chevron" ]
         [ div [ class "name" ] [ text image ]
-        , Html.button
+        , button
             [ class "button"
             , class "-outline"
             , onClick <| RemoveImage image
@@ -105,13 +108,13 @@ viewHelp =
 viewNameInput : String -> Bool -> Html Msg
 viewNameInput val disable =
     div []
-        [ Html.input
+        [ input
             [ disabled disable
             , value val
             , onInput <|
                 OnChangeStringField "name"
             , class "secret-name"
-            , Html.Attributes.placeholder "Secret Name"
+            , placeholder "Secret Name"
             ]
             []
         ]
@@ -122,11 +125,11 @@ viewNameInput val disable =
 viewValueInput : String -> String -> Html Msg
 viewValueInput val placeholder_ =
     div []
-        [ Html.textarea
+        [ textarea
             [ value val
             , onInput <| OnChangeStringField "value"
             , class "secret-value"
-            , Html.Attributes.placeholder placeholder_
+            , placeholder placeholder_
             ]
             []
         ]
@@ -136,7 +139,7 @@ viewValueInput val placeholder_ =
 -}
 viewEventsSelect : SecretForm -> Html Msg
 viewEventsSelect secretUpdate =
-    Html.section [ class "events", Util.testAttribute "" ]
+    section [ class "events", Util.testAttribute "" ]
         [ h4 [ class "field-header" ]
             [ text "Limit to Events"
             , span [ class "field-description" ]
@@ -174,8 +177,8 @@ viewEventsSelect secretUpdate =
 -}
 viewImagesInput : SecretForm -> String -> Html Msg
 viewImagesInput secret imageInput =
-    Html.section [ class "image", Util.testAttribute "" ]
-        [ Html.h4 [ class "field-header" ]
+    section [ class "image", Util.testAttribute "" ]
+        [ h4 [ class "field-header" ]
             [ text "Limit to Docker Images"
             , span
                 [ class "field-description" ]
@@ -183,13 +186,13 @@ viewImagesInput secret imageInput =
                 ]
             ]
         , div []
-            [ Html.input
+            [ input
                 [ placeholder "Image Name"
                 , onInput <| OnChangeStringField "imageInput"
                 , value imageInput
                 ]
                 []
-            , Html.button
+            , button
                 [ class "button"
                 , class "-outline"
                 , class "-slim"
