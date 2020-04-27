@@ -1035,7 +1035,7 @@ update msg model =
                     model.secretsModel
             in
             ( { model | secretsModel = { secretsModel | secrets = Loading } }
-            , getSecrets model engine "repo" org key
+            , getSecrets model engine type_ org key
             )
 
         AddSecretUpdate engine m ->
