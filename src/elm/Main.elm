@@ -304,7 +304,7 @@ type Msg
     | ChangeRepoTimeout String
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
-    | RefreshSecrets Engine Org Repo
+    | RefreshSecrets Engine Type Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
@@ -1029,7 +1029,7 @@ update msg model =
             in
             ( { model | hooks = { hooks | hooks = Loading } }, getHooks model org repo Nothing Nothing )
 
-        RefreshSecrets engine org key ->
+        RefreshSecrets engine type_ org key ->
             let
                 secretsModel =
                     model.secretsModel
