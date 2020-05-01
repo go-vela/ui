@@ -246,9 +246,7 @@ editForm secretsModel =
             secretsModel.form
     in
     div [ class "secret-form" ]
-        [ h4 [ class "field-header" ] [ text "Name" ]
-        , viewNameInput secretUpdate.name True
-        , h4 [ class "field-header" ] [ text "Value" ]
+        [ viewNameInput secretUpdate.name True
         , viewValueInput secretUpdate.value "Secret Value (leave blank to make no change)"
         , viewEventsSelect secretUpdate
         , viewImagesInput secretUpdate secretUpdate.imageInput
