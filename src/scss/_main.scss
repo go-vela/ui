@@ -953,15 +953,6 @@ nav {
   background: var(--color-bg-dark);
 }
 
-.table-label {
-  font-size: 1.25rem;
-  color: var(--color-primary);
-  padding-top: 0.6rem 0 0 1rem;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
 .table .loading {
   display: flex;
 
@@ -983,9 +974,11 @@ nav {
 
   margin-top: 0.3em;
   padding: 0.3em 1rem;
-  padding-left: 2rem;
+  padding-left: 1rem;
 
   border-bottom: 1px solid var(--color-bg-light);
+
+  position: relative;
 }
 
 .table .header {
@@ -1045,10 +1038,6 @@ nav {
 
 .table .headers .first-cell {
   width: 2rem;
-}
-
-.secret {
-  margin: 1rem;
 }
 
 .filler-cell {
@@ -1352,6 +1341,148 @@ nav {
       margin: 0.5rem 1rem;
     }
   }
+}
+
+.secrets-first-cell {
+  padding: 0.5rem 1rem;
+  padding-bottom: 0;
+  color: var(--color-primary);
+  font-size: 1.2rem;
+}
+
+.manage-secret .header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 2px solid var(--color-secondary);
+}
+
+.manage-secret h2 {
+  margin: 0;
+  border-bottom: 2px solid var(--color-secondary);
+}
+
+.secret-form {
+  margin-bottom: 0.5rem;
+  padding-top: 1rem;
+}
+
+.secret-form section {
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+}
+
+.secret-form .events {
+  padding-left: 1rem;
+}
+
+.images {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.add-image {
+  margin-left: 1rem;
+}
+
+.added-image {
+  margin: 0.2rem 1rem;
+  display: flex;
+  padding: 0.3rem 1rem;
+  align-items: center;
+  background: var(--color-bg-dark);
+  position: relative;
+}
+
+.added-image .name {
+  flex: 1;
+  word-wrap: break-word;
+  font-family: var(--font-code);
+  font-size: 0.9rem;
+}
+
+.images .added-image .button {
+  margin-left: 1rem;
+}
+
+.added-image.chevron {
+  margin-left: 2rem;
+}
+
+.added-image.chevron:before {
+  content: '';
+  border-style: solid;
+  border-width: 0.1rem 1rem 0.1rem 0.2rem;
+  border-color: var(--color-primary);
+  position: absolute;
+  left: -1.5rem;
+}
+
+.no-rows {
+  padding: 1rem;
+}
+
+.manage-secret .subheader {
+  margin-top: 1rem;
+  border-bottom: 2px solid var(--color-primary);
+  width: 80%;
+}
+
+.manage-secret textarea,
+.update-secret textarea {
+  width: 70%;
+  border: none;
+  box-shadow: none;
+  background: var(--color-bg-dark);
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+}
+
+.manage-secret input {
+  max-width: 400px;
+}
+
+.manage-secret textarea {
+  max-width: 70%;
+}
+
+.secret-form .help {
+  padding-bottom: 1rem;
+}
+
+.secret-form .form-action {
+  padding-left: 1rem;
+}
+
+.table-label {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  padding: 0.6rem 0 0 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.table-label .add-secret {
+  margin-right: 1em;
+}
+
+.field-description {
+  font-size: 1rem;
+  font-weight: 300;
+  margin-left: 1rem;
+}
+
+.field-header {
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  margin-left: 1rem;
 }
 
 // visually hide, but keep accessible by screen readers

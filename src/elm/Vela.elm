@@ -30,6 +30,7 @@ module Vela exposing
     , HookBuilds
     , Hooks
     , HooksModel
+    , Key
     , Log
     , LogFocus
     , Logs
@@ -41,6 +42,9 @@ module Vela exposing
     , Repositories
     , Repository
     , SearchFilter
+    , Secret
+    , SecretType(..)
+    , Secrets
     , Session
     , SourceRepositories
     , Status(..)
@@ -49,7 +53,9 @@ module Vela exposing
     , Steps
     , Team
     , Theme(..)
+    , Type
     , UpdateRepositoryPayload
+    , UpdateSecretPayload
     , UpdateUserPayload
     , User
     , Viewing
@@ -57,6 +63,7 @@ module Vela exposing
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
+    , buildUpdateSecretPayload
     , decodeBuild
     , decodeBuilds
     , decodeCurrentUser
@@ -65,6 +72,8 @@ module Vela exposing
     , decodeLog
     , decodeRepositories
     , decodeRepository
+    , decodeSecret
+    , decodeSecrets
     , decodeSession
     , decodeSourceRepositories
     , decodeStep
@@ -83,10 +92,14 @@ module Vela exposing
     , encodeSession
     , encodeTheme
     , encodeUpdateRepository
+    , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
+    , nullSecret
+    , secretTypeToString
     , statusToFavicon
     , stringToTheme
+    , toSecretType
     )
 
 import Dict exposing (Dict)
@@ -136,6 +149,14 @@ type alias BuildNumber =
 
 
 type alias StepNumber =
+    String
+
+
+type alias Type =
+    String
+
+
+type alias Key =
     String
 
 
@@ -937,6 +958,180 @@ type alias HookBuilds =
 
 type alias BuildIdentifier =
     ( Org, Repo, BuildNumber )
+
+
+
+-- SECRETS
+
+
+{-| Secret : record type for vela secrets
+-}
+type alias Secret =
+    { id : Int
+    , org : Org
+    , repo : Repo
+    , team : Key
+    , name : String
+    , type_ : SecretType
+    , images : List String
+    , events : List String
+    , allowCommand : Bool
+    }
+
+
+type SecretType
+    = SharedSecret
+    | OrgSecret
+    | RepoSecret
+
+
+nullSecret : Secret
+nullSecret =
+    Secret 0 "" "" "" "" OrgSecret [] [] False
+
+
+{-| secretTypeDecoder : decodes string field "type" to the union type SecretType
+-}
+secretTypeDecoder : Decoder SecretType
+secretTypeDecoder =
+    string |> andThen toSecretTypeDecoder
+
+
+{-| toSecretTypeDecoder : helper to decode string to SecretType
+-}
+toSecretTypeDecoder : String -> Decoder SecretType
+toSecretTypeDecoder type_ =
+    case type_ of
+        "shared" ->
+            succeed SharedSecret
+
+        "org" ->
+            succeed OrgSecret
+
+        "repo" ->
+            succeed RepoSecret
+
+        _ ->
+            Decode.fail "unrecognized secret type"
+
+
+{-| toSecretType : helper to decode string to SecretType
+-}
+toSecretType : String -> SecretType
+toSecretType type_ =
+    case type_ of
+        "shared" ->
+            SharedSecret
+
+        "org" ->
+            OrgSecret
+
+        "repo" ->
+            RepoSecret
+
+        _ ->
+            RepoSecret
+
+
+{-| secretTypeToString : helper to convert SecretType to string
+-}
+secretTypeToString : SecretType -> String
+secretTypeToString type_ =
+    case type_ of
+        SharedSecret ->
+            "shared"
+
+        OrgSecret ->
+            "org"
+
+        RepoSecret ->
+            "repo"
+
+
+{-| maybeSecretTypeToMaybeString : helper to convert Maybe SecretType to Maybe string
+-}
+maybeSecretTypeToMaybeString : Maybe SecretType -> Maybe String
+maybeSecretTypeToMaybeString type_ =
+    case type_ of
+        Just SharedSecret ->
+            Just "shared"
+
+        Just OrgSecret ->
+            Just "org"
+
+        Just RepoSecret ->
+            Just "repo"
+
+        _ ->
+            Nothing
+
+
+decodeSecret : Decoder Secret
+decodeSecret =
+    Decode.succeed Secret
+        |> optional "id" int -1
+        |> optional "org" string ""
+        |> optional "repo" string ""
+        |> optional "team" string ""
+        |> optional "name" string ""
+        |> optional "type" secretTypeDecoder RepoSecret
+        |> optional "images" (Decode.list string) []
+        |> optional "events" (Decode.list string) []
+        |> optional "allow_command" bool False
+
+
+{-| decodeSecrets : decodes json from vela into list of secrets
+-}
+decodeSecrets : Decoder Secrets
+decodeSecrets =
+    Decode.list decodeSecret
+
+
+type alias Secrets =
+    List Secret
+
+
+type alias UpdateSecretPayload =
+    { type_ : Maybe SecretType
+    , org : Maybe Org
+    , repo : Maybe Repo
+    , team : Maybe Team
+    , name : Maybe Name
+    , value : Maybe String
+    , events : Maybe (List String)
+    , images : Maybe (List String)
+    , allowCommand : Maybe Bool
+    }
+
+
+encodeUpdateSecret : UpdateSecretPayload -> Encode.Value
+encodeUpdateSecret secret =
+    Encode.object
+        [ ( "type", encodeOptional Encode.string <| maybeSecretTypeToMaybeString secret.type_ )
+        , ( "org", encodeOptional Encode.string secret.org )
+        , ( "repo", encodeOptional Encode.string secret.repo )
+        , ( "team", encodeOptional Encode.string secret.team )
+        , ( "name", encodeOptional Encode.string secret.name )
+        , ( "value", encodeOptional Encode.string secret.value )
+        , ( "events", encodeOptionalList Encode.string secret.events )
+        , ( "images", encodeOptionalList Encode.string secret.images )
+        , ( "allow_command", encodeOptional Encode.bool secret.allowCommand )
+        ]
+
+
+buildUpdateSecretPayload :
+    Maybe SecretType
+    -> Maybe Org
+    -> Maybe Repo
+    -> Maybe Team
+    -> Maybe Name
+    -> Maybe String
+    -> Maybe (List String)
+    -> Maybe (List String)
+    -> Maybe Bool
+    -> UpdateSecretPayload
+buildUpdateSecretPayload type_ org repo team name value events images allowCommand =
+    UpdateSecretPayload type_ org repo team name value events images allowCommand
 
 
 

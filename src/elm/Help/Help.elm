@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Help.Help exposing (Arg, Args, view)
+module Help.Help exposing (Arg, Model, view)
 
 import FeatherIcons
 import Help.Commands exposing (Command, commands)
@@ -17,9 +17,9 @@ import Util
 import Vela exposing (Copy)
 
 
-{-| Args : wrapper for help args, meant to slim down the input required to render contextual help for each page
+{-| Model : wrapper for help args, meant to slim down the input required to render contextual help for each page
 -}
-type alias Args msg =
+type alias Model msg =
     { user : Arg
     , sourceRepos : Arg
     , builds : Arg
@@ -45,7 +45,7 @@ type alias Arg =
 
 {-| view : takes help args and renders nav button for viewing contextual help for each page
 -}
-view : Args msg -> Html msg
+view : Model msg -> Html msg
 view args =
     li
         [ id "contextual-help"
@@ -74,7 +74,7 @@ view args =
 
 {-| help : takes help args and renders contextual help dropdown if focused
 -}
-help : Args msg -> Html msg
+help : Model msg -> Html msg
 help args =
     div [ class "tooltip", Util.testAttribute "help-tooltip" ] <|
         [ strong [] [ text "Manage Vela resources using the CLI" ]
@@ -85,7 +85,7 @@ help args =
 
 {-| body : takes args, (page, cli commands) and renders dropdown body
 -}
-body : Args msg -> List (Html msg)
+body : Model msg -> List (Html msg)
 body args =
     let
         ( copy, cmds ) =
@@ -106,7 +106,7 @@ body args =
 
 {-| footer : takes args, (page, cli commands) and renders dropdown footer
 -}
-footer : Args msg -> Html msg
+footer : Model msg -> Html msg
 footer args =
     if resourceLoading args then
         text ""
@@ -118,7 +118,7 @@ footer args =
         div [ class "help-footer", Util.testAttribute "help-footer" ] <| cliDocs args
 
 
-notLoadedDocs : Args msg -> List (Html msg)
+notLoadedDocs : Model msg -> List (Html msg)
 notLoadedDocs _ =
     [ a [ href <| usageDocsUrl "getting-started/start_build/" ] [ text "Getting Started Docs" ]
     ]
@@ -126,7 +126,7 @@ notLoadedDocs _ =
 
 {-| cliDocs : takes help args and renders footer docs links for commands
 -}
-cliDocs : Args msg -> List (Html msg)
+cliDocs : Model msg -> List (Html msg)
 cliDocs _ =
     [ a [ href <| cliDocsUrl "install" ] [ text "CLI Installation Docs" ]
     , a [ href <| cliDocsUrl "authentication" ] [ text "CLI Authentication Docs" ]
@@ -300,7 +300,7 @@ issuesBaseUrl =
 
 {-| resourceLoaded : takes help args and returns if the resource has been successfully loaded
 -}
-resourceLoaded : Args msg -> Bool
+resourceLoaded : Model msg -> Bool
 resourceLoaded args =
     case args.page of
         Pages.Overview ->
@@ -366,7 +366,7 @@ resourceLoaded args =
 
 {-| resourceLoading : takes help args and returns if the resource is loading
 -}
-resourceLoading : Args msg -> Bool
+resourceLoading : Model msg -> Bool
 resourceLoading args =
     case args.page of
         Pages.Overview ->

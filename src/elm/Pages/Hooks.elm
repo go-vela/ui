@@ -94,7 +94,12 @@ view { hooks, hookBuilds, time } org repo clickAction =
 -}
 hooksTable : Posix -> Org -> Repo -> HookBuilds -> Hooks -> (Org -> Repo -> BuildNumber -> msg) -> List (Html msg)
 hooksTable now org repo hookBuilds hooks clickAction =
-    headers :: rows now org repo hookBuilds hooks clickAction
+    [ label, headers ] ++ rows now org repo hookBuilds hooks clickAction
+
+
+label : Html msg
+label =
+    div [ class "table-label" ] [ text "Hooks" ]
 
 
 {-| headers : renders hooks table headers
@@ -102,8 +107,7 @@ hooksTable now org repo hookBuilds hooks clickAction =
 headers : Html msg
 headers =
     div [ class "headers" ]
-        [ div [ class "first-cell" ] [ text "" ]
-        , div [ class "header", class "source-id" ] [ text "source id" ]
+        [ div [ class "header", class "source-id" ] [ text "source id" ]
         , div [ class "header" ] [ text "created" ]
         , div [ class "header" ] [ text "host" ]
         , div [ class "header" ] [ text "event" ]
