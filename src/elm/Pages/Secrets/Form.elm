@@ -109,7 +109,7 @@ viewHelp =
 -}
 viewNameInput : String -> Bool -> Html Msg
 viewNameInput val disable =
-    div [ class "form-controls", class "-stack" ]
+    section [ class "form-control", class "-stack" ]
         [ label [ class "form-label", for <| "secret-name" ] [ strong [] [ text "Name" ] ]
         , input
             [ disabled disable
@@ -128,7 +128,7 @@ viewNameInput val disable =
 -}
 viewValueInput : String -> String -> Html Msg
 viewValueInput val placeholder_ =
-    div [ class "form-controls", class "-stack" ]
+    section [ class "form-control", class "-stack" ]
         [ label [ class "form-label", for <| "secret-value" ] [ strong [] [ text "Value" ] ]
         , textarea
             [ value val
@@ -148,8 +148,7 @@ viewValueInput val placeholder_ =
 -}
 viewEventsSelect : SecretForm -> Html Msg
 viewEventsSelect secretUpdate =
-    div
-        [ class "form-controls-container" ]
+    section []
         [ div [ for "events-select" ]
             [ strong [] [ text "Limit to Events" ]
             , span [ class "field-description" ]
@@ -190,11 +189,7 @@ viewEventsSelect secretUpdate =
 -}
 viewImagesInput : SecretForm -> String -> Html Msg
 viewImagesInput secret imageInput =
-    section
-        [ class "image"
-        , class "form-controls"
-        , class "-stack"
-        ]
+    section [ class "image" ]
         [ label [ for "images-select", class "form-label" ]
             [ strong [] [ text "Limit to Docker Images" ]
             , span

@@ -72,6 +72,14 @@
       max-width: 100%;
     }
   }
+
+  &.-stack {
+    flex-flow: row wrap;
+  }
+
+  .form-label {
+    flex: 1 0 100%;
+  }
 }
 
 // radio & checkbox
@@ -203,12 +211,6 @@
 //   <div class="form-control">..</div>
 //   <button class="button">..</button>
 // </div>
-
-// .form-controls-container is for padding controls that contain
-// additional heading elements. IE. group of radios with a heading description
-.form-controls-container {
-  padding: 0.5rem 1rem;
-}
 
 .form-controls {
   display: flex;
