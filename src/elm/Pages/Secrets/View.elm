@@ -245,7 +245,7 @@ editForm secretsModel =
         secretUpdate =
             secretsModel.form
     in
-    div [ class "secret-form" ]
+    div [ class "secret-form", class "edit-form" ]
         [ viewNameInput secretUpdate.name True
         , viewValueInput secretUpdate.value "Secret Value (leave blank to make no change)"
         , viewEventsSelect secretUpdate

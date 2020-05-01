@@ -190,15 +190,15 @@ viewEventsSelect secretUpdate =
 viewImagesInput : SecretForm -> String -> Html Msg
 viewImagesInput secret imageInput =
     section [ class "image" ]
-        [ label [ for "images-select", class "form-label" ]
-            [ strong [] [ text "Limit to Docker Images" ]
-            , span
-                [ class "field-description" ]
-                [ em [] [ text "(Leave blank to enable this secret for all images)" ]
+        [ div [ id "images-select", class "form-control", class "-stack" ]
+            [ label [ for "images-select", class "form-label" ]
+                [ strong [] [ text "Limit to Docker Images" ]
+                , span
+                    [ class "field-description" ]
+                    [ em [] [ text "(Leave blank to enable this secret for all images)" ]
+                    ]
                 ]
-            ]
-        , div [ id "images-select" ]
-            [ input
+            , input
                 [ placeholder "Image Name"
                 , onInput <| OnChangeStringField "imageInput"
                 , value imageInput
