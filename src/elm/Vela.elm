@@ -674,6 +674,7 @@ type Status
     | Running
     | Success
     | Failure
+    | Killed
     | Error
 
 
@@ -693,6 +694,9 @@ toStatus status =
 
         "failure" ->
             succeed Failure
+
+        "killed" ->
+            succeed Killed
 
         "error" ->
             succeed Error
@@ -748,6 +752,9 @@ statusToFavicon status =
                             "-failure"
 
                         Failure ->
+                            "-failure"
+
+                        Killed ->
                             "-failure"
                    )
                 ++ ".ico"
