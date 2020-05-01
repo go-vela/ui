@@ -202,7 +202,7 @@ addForm secretsModel =
         , viewEventsSelect secretUpdate
         , viewImagesInput secretUpdate secretUpdate.imageInput
         , viewHelp
-        , div [ class "-m-t" ]
+        , div [ class "form-action" ]
             [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.AddSecret secretsModel.engine ] [ text "Add" ]
             ]
         ]
@@ -257,7 +257,7 @@ editForm secretsModel =
 
         -- , allowCommandCheckbox secretUpdate
         , viewHelp
-        , div [ class "-m-t" ]
+        , div [ class "form-action" ]
             [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.UpdateSecret secretsModel.engine ] [ text "Update" ]
             ]
         ]

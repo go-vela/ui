@@ -195,8 +195,6 @@ viewImagesInput secret imageInput =
             , button
                 [ class "button"
                 , class "-outline"
-                , class "-slim"
-                , class "-m-l"
                 , onClick <| AddImage <| String.toLower imageInput
                 , disabled <| String.isEmpty <| String.trim imageInput
                 ]
@@ -233,7 +231,7 @@ allowCommandCheckbox secretUpdate =
             , span [ class "field-description" ]
                 [ text "( "
                 , em [] [ text "\"No\" will disable this secret in " ]
-                , span [ class "-code" ] [ text "commands" ]
+                , code [] [ text "commands" ]
                 , text " )"
                 ]
             ]
