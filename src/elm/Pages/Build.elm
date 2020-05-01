@@ -429,11 +429,14 @@ statusToString status =
         Vela.Success ->
             "success"
 
-        Vela.Error ->
-            "server error"
-
         Vela.Failure ->
             "failed"
+
+        Vela.Killed ->
+            "killed"
+
+        Vela.Error ->
+            "server error"
 
 
 {-| statusToClass : takes build status and returns css class
@@ -451,6 +454,9 @@ statusToClass status =
             class "-success"
 
         Vela.Failure ->
+            class "-failure"
+
+        Vela.Killed ->
             class "-failure"
 
         Vela.Error ->
