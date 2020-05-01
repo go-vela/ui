@@ -71,7 +71,7 @@ noImages =
         , button
             [ class "button"
             , class "-outline"
-            , class "-hide"
+            , class "visually-hidden"
             , disabled True
             ]
             [ text "remove"
