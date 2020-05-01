@@ -227,7 +227,7 @@ viewImagesInput secret imageInput =
 -}
 radio : String -> String -> Field -> msg -> Html msg
 radio value field title msg =
-    div [ class "form-control", Util.testAttribute <| "repo-radio-" ++ field ]
+    div [ class "form-control", Util.testAttribute <| "secret-radio-" ++ field ]
         [ input
             [ type_ "radio"
             , id <| "radio-" ++ field
