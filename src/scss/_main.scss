@@ -1346,7 +1346,6 @@ nav {
 
 .manage-secret {
   padding: 1rem;
-  background: var(--color-bg-dark);
 }
 
 .manage-secret .header {
@@ -1378,12 +1377,16 @@ nav {
   align-items: flex-start;
 }
 
+.add-image {
+  margin-left: 1rem;
+}
+
 .added-image {
   margin: 0.2rem 1rem;
   display: flex;
   padding: 0.3rem 1rem;
   align-items: center;
-  background: var(--color-bg);
+  background: var(--color-bg-dark);
   position: relative;
 }
 
@@ -1396,10 +1399,6 @@ nav {
 
 .images .added-image .button {
   margin-left: 1rem;
-}
-
-.added-image .button.-hide {
-  visibility: hidden;
 }
 
 .added-image.chevron {
@@ -1429,9 +1428,9 @@ nav {
 .manage-secret textarea,
 .update-secret textarea {
   width: 70%;
-  border: 1px solid var(--color-bg-light);
+  border: none;
   box-shadow: none;
-  background: var(--color-bg);
+  background: var(--color-bg-dark);
   color: var(--color-text);
   font-size: 1rem;
   font-weight: 300;
@@ -1447,8 +1446,13 @@ nav {
   width: 70%;
 }
 
+.secret-form .help {
+  padding: 1rem;
+  padding-top: 0rem;
+}
+
 .secret-form .form-action {
-  margin-top: 1rem;
+  padding-left: 1rem;
 }
 
 .table-label {
@@ -1473,6 +1477,7 @@ nav {
 .field-header {
   margin-top: 1rem;
   margin-bottom: 0.25rem;
+  margin-left: 1rem;
 }
 
 // visually hide, but keep accessible by screen readers

@@ -39,8 +39,10 @@ import Html.Attributes
         , href
         , id
         , placeholder
+        , rows
         , type_
         , value
+        , wrap
         )
 import Html.Events exposing (onClick, onInput)
 import Pages.RepoSettings exposing (checkbox)
@@ -100,21 +102,23 @@ addedImage image =
 -}
 viewHelp : Html Msg
 viewHelp =
-    div [] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
+    div [ class "help" ] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
 
 
 {-| viewNameInput : renders name input box
 -}
 viewNameInput : String -> Bool -> Html Msg
 viewNameInput val disable =
-    div []
-        [ input
+    div [ class "form-controls", class "-stack" ]
+        [ label [ class "form-label", for <| "secret-name" ] [ strong [] [ text "Name" ] ]
+        , input
             [ disabled disable
             , value val
             , onInput <|
                 OnChangeStringField "name"
             , class "secret-name"
             , placeholder "Secret Name"
+            , id "secret-name"
             ]
             []
         ]
@@ -124,12 +128,17 @@ viewNameInput val disable =
 -}
 viewValueInput : String -> String -> Html Msg
 viewValueInput val placeholder_ =
-    div []
-        [ textarea
+    div [ class "form-controls", class "-stack" ]
+        [ label [ class "form-label", for <| "secret-value" ] [ strong [] [ text "Value" ] ]
+        , textarea
             [ value val
             , onInput <| OnChangeStringField "value"
             , class "secret-value"
+            , class "form-control"
+            , rows 2
+            , wrap "soft"
             , placeholder placeholder_
+            , id "secret-value"
             ]
             []
         ]
@@ -139,16 +148,20 @@ viewValueInput val placeholder_ =
 -}
 viewEventsSelect : SecretForm -> Html Msg
 viewEventsSelect secretUpdate =
-    section [ class "events", Util.testAttribute "" ]
-        [ h4 [ class "field-header" ]
-            [ text "Limit to Events"
+    section
+        [ class "events"
+        , class "form-controls"
+        , class "-stack"
+        ]
+        [ label [ for "events-select" ]
+            [ strong [] [ text "Limit to Events" ]
             , span [ class "field-description" ]
                 [ text "( "
                 , em [] [ text "at least one event must be selected" ]
                 , text " )"
                 ]
             ]
-        , div [ class "form-controls", class "-row" ]
+        , div [ id "events-select" ]
             [ checkbox "Push"
                 "push"
                 (eventEnabled "push" secretUpdate.events)
@@ -177,15 +190,19 @@ viewEventsSelect secretUpdate =
 -}
 viewImagesInput : SecretForm -> String -> Html Msg
 viewImagesInput secret imageInput =
-    section [ class "image", Util.testAttribute "" ]
-        [ h4 [ class "field-header" ]
-            [ text "Limit to Docker Images"
+    section
+        [ class "image"
+        , class "form-controls"
+        , class "-stack"
+        ]
+        [ label [ for "images-select" ]
+            [ strong [] [ text "Limit to Docker Images" ]
             , span
                 [ class "field-description" ]
                 [ em [] [ text "(Leave blank to enable this secret for all images)" ]
                 ]
             ]
-        , div []
+        , div [ id "images-select" ]
             [ input
                 [ placeholder "Image Name"
                 , onInput <| OnChangeStringField "imageInput"
@@ -195,6 +212,7 @@ viewImagesInput secret imageInput =
             , button
                 [ class "button"
                 , class "-outline"
+                , class "add-image"
                 , onClick <| AddImage <| String.toLower imageInput
                 , disabled <| String.isEmpty <| String.trim imageInput
                 ]

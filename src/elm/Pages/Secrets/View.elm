@@ -195,9 +195,7 @@ addForm secretsModel =
             secretsModel.form
     in
     div [ class "secret-form" ]
-        [ h4 [ class "field-header" ] [ text "Name" ]
-        , viewNameInput secretUpdate.name False
-        , h4 [ class "field-header" ] [ text "Value" ]
+        [ viewNameInput secretUpdate.name False
         , viewValueInput secretUpdate.value "Secret Value"
         , viewEventsSelect secretUpdate
         , viewImagesInput secretUpdate secretUpdate.imageInput
