@@ -129,7 +129,7 @@ arrayCell items default =
     div [ class "cell", class "column-width" ] <|
         List.intersperse (text ",") <|
             if List.length items > 0 then
-                List.map (\item -> code [ class "text", class "-m-l" ] [ text item ]) items
+                List.map (\item -> code [ class "text" ] [ text item ]) items
 
             else
                 [ code [ class "text" ] [ text default ] ]

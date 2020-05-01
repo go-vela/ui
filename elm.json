@@ -14,6 +14,7 @@
       "elm/time": "1.0.0",
       "elm/url": "1.0.0",
       "elm-community/list-extra": "8.2.2",
+      "elm-community/string-extra": "4.0.1",
       "feathericons/elm-feather": "1.3.0",
       "jackfranklin/elm-parse-link-header": "2.0.2",
       "jzxhuang/http-extras": "2.0.2",

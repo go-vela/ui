@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api exposing
     ( Request(..)
     , addRepository
+    , addSecret
     , chownRepo
     , deleteRepo
     , getAllBuilds
@@ -19,6 +20,8 @@ module Api exposing
     , getHooks
     , getRepo
     , getRepositories
+    , getSecret
+    , getSecrets
     , getSourceRepositories
     , getStep
     , getStepLogs
@@ -30,6 +33,7 @@ module Api exposing
     , tryAll
     , updateCurrentUser
     , updateRepository
+    , updateSecret
     )
 
 import Api.Endpoint as Endpoint exposing (Endpoint(..))
@@ -46,19 +50,25 @@ import Vela
         , BuildNumber
         , Builds
         , CurrentUser
+        , Engine
         , Event
         , Hook
         , Hooks
+        , Key
         , Log
+        , Name
         , Org
         , Repo
         , Repositories
         , Repository
+        , Secret
+        , Secrets
         , Session
         , SourceRepositories
         , Step
         , StepNumber
         , Steps
+        , Type
         , User
         , decodeBuild
         , decodeBuilds
@@ -68,6 +78,8 @@ import Vela
         , decodeLog
         , decodeRepositories
         , decodeRepository
+        , decodeSecret
+        , decodeSecrets
         , decodeSourceRepositories
         , decodeStep
         , decodeSteps
@@ -536,4 +548,36 @@ getAllHooks : PartialModel a -> Org -> Repo -> Request Hook
 getAllHooks model org repository =
     -- we are using the max perPage setting of 100 to reduce the number of calls
     get model.velaAPI (Endpoint.Hooks (Just 1) (Just 100) org repository) decodeHook
+        |> withAuth model.session
+
+
+{-| getSecrets : fetches secrets for the given type org and key
+-}
+getSecrets : PartialModel a -> Engine -> Type -> Org -> Key -> Request Secrets
+getSecrets model engine type_ org key =
+    get model.velaAPI (Endpoint.Secrets engine type_ org key) decodeSecrets
+        |> withAuth model.session
+
+
+{-| getSecret : fetches secret for the given type org key and name
+-}
+getSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Request Secret
+getSecret model engine type_ org key name =
+    get model.velaAPI (Endpoint.Secret engine type_ org key name) decodeSecret
+        |> withAuth model.session
+
+
+{-| updateSecret : updates a secret
+-}
+updateSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Http.Body -> Request Secret
+updateSecret model engine type_ org key name body =
+    put model.velaAPI (Endpoint.Secret engine type_ org key name) body decodeSecret
+        |> withAuth model.session
+
+
+{-| addSecret : adds a secret
+-}
+addSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Http.Body -> Request Secret
+addSecret model engine type_ org key body =
+    post model.velaAPI (Endpoint.Secrets engine type_ org key) body decodeSecret
         |> withAuth model.session
