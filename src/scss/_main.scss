@@ -1371,6 +1371,10 @@ nav {
   margin-bottom: 1rem;
 }
 
+.secret-form .events {
+  padding-left: 1rem;
+}
+
 .images {
   display: flex;
   flex-direction: column;
@@ -1448,7 +1452,7 @@ nav {
 
 .secret-form .help {
   padding: 1rem;
-  padding-top: 0rem;
+  padding-top: 0;
 }
 
 .secret-form .form-action {

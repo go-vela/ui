@@ -148,12 +148,9 @@ viewValueInput val placeholder_ =
 -}
 viewEventsSelect : SecretForm -> Html Msg
 viewEventsSelect secretUpdate =
-    section
-        [ class "events"
-        , class "form-controls"
-        , class "-stack"
-        ]
-        [ label [ for "events-select" ]
+    div
+        [ class "form-controls-container" ]
+        [ div [ for "events-select" ]
             [ strong [] [ text "Limit to Events" ]
             , span [ class "field-description" ]
                 [ text "( "
@@ -161,7 +158,10 @@ viewEventsSelect secretUpdate =
                 , text " )"
                 ]
             ]
-        , div [ id "events-select" ]
+        , div
+            [ class "form-controls"
+            , class "-stack"
+            ]
             [ checkbox "Push"
                 "push"
                 (eventEnabled "push" secretUpdate.events)
@@ -195,7 +195,7 @@ viewImagesInput secret imageInput =
         , class "form-controls"
         , class "-stack"
         ]
-        [ label [ for "images-select" ]
+        [ label [ for "images-select", class "form-label" ]
             [ strong [] [ text "Limit to Docker Images" ]
             , span
                 [ class "field-description" ]
