@@ -35,7 +35,7 @@ jobs:
       - name: install
         run: |
           go get github.com/git-chglog/git-chglog/cmd/git-chglog
-          go get github.com/github-release/github-release 
+          go get github.com/github-release/github-release
 
       - name: changelog
         run: |
