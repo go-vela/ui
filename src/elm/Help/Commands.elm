@@ -7,7 +7,17 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Help.Commands exposing (Command, Commands, commands)
 
 import Pages exposing (Page(..))
-import Vela exposing (BuildNumber, Org, Repo)
+import Vela
+    exposing
+        ( BuildNumber
+        , Engine
+        , Key
+        , Org
+        , Repo
+        , SecretType(..)
+        , Type
+        , secretTypeToString
+        )
 
 
 type alias Command =
@@ -47,7 +57,7 @@ commands page =
 
         Pages.OrgSecrets engine org ->
             -- TODO: probably want this filled in
-            []
+            [ listOrgSecrets engine org ]
 
         Pages.RepoSecrets engine org repo ->
             -- TODO: probably want this filled in
@@ -321,6 +331,48 @@ listHooks _ _ =
     Command name noCmd noDocs issue
 
 
+{-| listOrgSecrets : returns cli command for listing org secrets
+
+    eg.
+    vela get secrets --type org --org octocat
+
+-}
+listOrgSecrets : Engine -> Org -> Command
+listOrgSecrets engine org =
+    let
+        name =
+            "List Org Secrets"
+
+        content =
+            Just <| "vela get secrets " ++ secretArgs engine Vela.RepoSecret org ""
+
+        docs =
+            Just "secrets/get"
+    in
+    Command name content docs noIssue
+
+
+{-| listRepoSecrets : returns cli command for listing repo secrets
+
+    eg.
+    vela get secrets --type repo --org octocat --repo hello-worlds
+
+-}
+listRepoSecrets : Engine -> Org -> Repo -> Command
+listRepoSecrets engine org repo =
+    let
+        name =
+            "List Repo Secrets"
+
+        content =
+            Just <| "vela get secrets " ++ secretArgs engine Vela.RepoSecret org repo
+
+        docs =
+            Just "secrets/get"
+    in
+    Command name content docs noIssue
+
+
 {-| authenticate : returns cli command for authenticating
 
     eg.
@@ -351,6 +403,31 @@ authenticate =
 repoArgs : Org -> Repo -> String
 repoArgs org repo =
     "--org " ++ org ++ " --repo " ++ repo
+
+
+{-| secretArgs : returns cli args for requesting org secrets
+
+    eg.
+    --type org --org octocat
+    --type repo --org octocat --repo hello-world
+    --type shared --org octocat --team ghe-admins
+
+-}
+secretArgs : Engine -> SecretType -> Org -> Key -> String
+secretArgs engine type_ org key =
+    let
+        keyFlag =
+            case type_ of
+                Vela.OrgSecret ->
+                    ""
+
+                Vela.RepoSecret ->
+                    " --repo " ++ key
+
+                Vela.SharedSecret ->
+                    " --team " ++ key
+    in
+    "--engine " ++ engine ++ " --type " ++ secretTypeToString ++ " --org " ++ org ++ keyFlag
 
 
 {-| buildArgs : returns cli args for requesting build resources
