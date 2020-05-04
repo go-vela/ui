@@ -35,7 +35,7 @@ jobs:
       - name: install
         run: |
           go get github.com/git-chglog/git-chglog/cmd/git-chglog
-          go get github.com/itchio/gothub
+          go get github.com/github-release/github-release 
 
       - name: changelog
         run: |
@@ -48,8 +48,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # https://github.com/itchio/gothub#gothub
-          $(go env GOPATH)/bin/gothub edit \
+          # https://github.com/github-release/github-release#how-to-use
+          $(go env GOPATH)/bin/github-release edit \
             --user go-vela \
             --repo ui \
             --tag ${{ steps.version.outputs.VERSION }} \
