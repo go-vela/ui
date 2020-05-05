@@ -4,23 +4,58 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Help.Commands exposing (Command, Commands, commands)
+module Help.Commands exposing
+    ( Command
+    , Commands
+    , Model
+    , cliDocsUrl
+    , commands
+    , issuesBaseUrl
+    , resourceLoaded
+    , resourceLoading
+    , usageDocsUrl
+    )
 
 import Pages exposing (Page(..))
 import String.Extra
 import Vela
     exposing
         ( BuildNumber
+        , Copy
         , Engine
         , Key
         , Name
         , Org
         , Repo
         , SecretType(..)
-        , Team
-        , Type
         , secretTypeToString
         )
+
+
+{-| Model : wrapper for help args, meant to slim down the input required to render contextual help for each page
+-}
+type alias Model msg =
+    { user : Arg
+    , sourceRepos : Arg
+    , builds : Arg
+    , build : Arg
+    , repo : Arg
+    , hooks : Arg
+    , secrets : Arg
+    , show : Bool
+    , toggle : Maybe Bool -> msg
+    , copy : Copy msg
+    , noOp : msg
+    , page : Page
+    }
+
+
+{-| Arg : type alias for extracting remotedata information
+-}
+type alias Arg =
+    { loading : Bool
+    , success : Bool
+    }
 
 
 type alias Command =
@@ -505,3 +540,175 @@ noDocs =
 noIssue : Maybe String
 noIssue =
     Nothing
+
+
+{-| cliDocsUrl : takes page and returns cli docs url
+-}
+cliDocsUrl : String -> String
+cliDocsUrl page =
+    cliDocsBase ++ page
+
+
+{-| usageDocsUrl : takes page and returns usage docs url
+-}
+usageDocsUrl : String -> String
+usageDocsUrl page =
+    usageDocsBase ++ page
+
+
+docsBase : String
+docsBase =
+    "https://go-vela.github.io/docs/"
+
+
+{-| cliDocsBase : returns base url for cli docs
+-}
+cliDocsBase : String
+cliDocsBase =
+    docsBase ++ "cli/"
+
+
+{-| usageDocsBase : returns base url for usage docs
+-}
+usageDocsBase : String
+usageDocsBase =
+    docsBase ++ "usage/"
+
+
+{-| usageDocsBase : returns base url for cli issues
+-}
+issuesBaseUrl : String
+issuesBaseUrl =
+    "https://github.com/go-vela/cli/issues/"
+
+
+{-| resourceLoaded : takes help args and returns if the resource has been successfully loaded
+-}
+resourceLoaded : Model msg -> Bool
+resourceLoaded args =
+    case args.page of
+        Pages.Overview ->
+            args.user.success
+
+        Pages.AddRepositories ->
+            args.sourceRepos.success
+
+        Pages.RepositoryBuilds _ _ _ _ _ ->
+            args.builds.success
+
+        Pages.Build _ _ _ _ ->
+            args.build.success
+
+        Pages.OrgSecrets _ _ ->
+            args.secrets.success
+
+        Pages.RepoSecrets _ _ _ ->
+            args.secrets.success
+
+        Pages.SharedSecrets _ _ _ ->
+            args.secrets.success
+
+        Pages.AddOrgSecret _ _ ->
+            True
+
+        Pages.AddRepoSecret _ _ _ ->
+            True
+
+        Pages.AddSharedSecret _ _ _ ->
+            True
+
+        Pages.OrgSecret _ _ _ ->
+            True
+
+        Pages.RepoSecret _ _ _ _ ->
+            True
+
+        Pages.SharedSecret _ _ _ _ ->
+            True
+
+        Pages.RepoSettings _ _ ->
+            args.repo.success
+
+        Pages.Hooks _ _ _ _ ->
+            args.hooks.success
+
+        Pages.Settings ->
+            True
+
+        Pages.Login ->
+            True
+
+        Pages.Logout ->
+            True
+
+        Pages.Authenticate _ ->
+            True
+
+        Pages.NotFound ->
+            False
+
+
+{-| resourceLoading : takes help args and returns if the resource is loading
+-}
+resourceLoading : Model msg -> Bool
+resourceLoading args =
+    case args.page of
+        Pages.Overview ->
+            args.user.loading
+
+        Pages.AddRepositories ->
+            args.sourceRepos.loading
+
+        Pages.RepositoryBuilds _ _ _ _ _ ->
+            args.builds.loading
+
+        Pages.Build _ _ _ _ ->
+            args.build.loading
+
+        Pages.OrgSecrets _ _ ->
+            args.secrets.loading
+
+        Pages.RepoSecrets _ _ _ ->
+            args.secrets.loading
+
+        Pages.SharedSecrets _ _ _ ->
+            args.secrets.loading
+
+        Pages.AddOrgSecret _ _ ->
+            False
+
+        Pages.AddRepoSecret _ _ _ ->
+            False
+
+        Pages.AddSharedSecret _ _ _ ->
+            False
+
+        Pages.OrgSecret _ _ _ ->
+            False
+
+        Pages.RepoSecret _ _ _ _ ->
+            False
+
+        Pages.SharedSecret _ _ _ _ ->
+            False
+
+        Pages.RepoSettings _ _ ->
+            args.repo.loading
+
+        Pages.Hooks _ _ _ _ ->
+            args.hooks.loading
+
+        Pages.Settings ->
+            False
+
+        Pages.Login ->
+            False
+
+        Pages.Logout ->
+            True
+
+        Pages.Authenticate _ ->
+            True
+
+        Pages.NotFound ->
+            False
