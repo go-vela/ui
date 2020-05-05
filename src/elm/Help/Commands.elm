@@ -341,7 +341,7 @@ listSecrets engine type_ org key =
             Just <| "vela get secrets " ++ secretBaseArgs engine type_ org key
 
         docs =
-            Just "secrets/get"
+            Just "secret/get"
     in
     Command name content docs noIssue
 
@@ -362,7 +362,7 @@ addSecret engine type_ org key =
             Just <| "vela add secret " ++ secretBaseArgs engine type_ org key ++ addSecretArgs
 
         docs =
-            Just "secrets/add"
+            Just "secret/add"
     in
     Command name content docs noIssue
 
@@ -385,7 +385,7 @@ viewSecret engine type_ org key name_ =
             Just <| "vela view secret " ++ secretBaseArgs engine type_ org key ++ " --name " ++ name_
 
         docs =
-            Just "secrets/view"
+            Just "secret/view"
     in
     Command name content docs noIssue
 
@@ -408,7 +408,7 @@ updateSecret engine type_ org key name_ =
             Just <| "vela update secret " ++ secretBaseArgs engine type_ org key ++ " --name " ++ name_ ++ " --value new_value"
 
         docs =
-            Just "secrets/update"
+            Just "secret/update"
     in
     Command name content docs noIssue
 
