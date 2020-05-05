@@ -7,14 +7,17 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Help.Commands exposing (Command, Commands, commands)
 
 import Pages exposing (Page(..))
+import String.Extra
 import Vela
     exposing
         ( BuildNumber
         , Engine
         , Key
+        , Name
         , Org
         , Repo
         , SecretType(..)
+        , Team
         , Type
         , secretTypeToString
         )
@@ -56,40 +59,31 @@ commands page =
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
         Pages.OrgSecrets engine org ->
-            -- TODO: probably want this filled in
-            [ listOrgSecrets engine org ]
+            [ listSecrets engine Vela.OrgSecret org Nothing ]
 
         Pages.RepoSecrets engine org repo ->
-            -- TODO: probably want this filled in
-            []
+            [ listSecrets engine Vela.RepoSecret org <| Just repo ]
 
         Pages.SharedSecrets engine org key ->
-            -- TODO: probably want this filled in
-            []
+            [ listSecrets engine Vela.SharedSecret org <| Just key ]
 
         Pages.AddOrgSecret engine org ->
-            -- TODO: probably want this filled in
-            []
+            [ addSecret engine Vela.OrgSecret org Nothing ]
 
         Pages.AddRepoSecret engine org repo ->
-            -- TODO: probably want this filled in
-            []
+            [ addSecret engine Vela.RepoSecret org <| Just repo ]
 
         Pages.AddSharedSecret engine org team ->
-            -- TODO: probably want this filled in
-            []
+            [ addSecret engine Vela.SharedSecret org <| Just team ]
 
         Pages.OrgSecret engine org name ->
-            -- TODO: probably want this filled in
-            []
+            [ viewSecret engine Vela.OrgSecret org Nothing name, updateSecret engine Vela.OrgSecret org Nothing name ]
 
         Pages.RepoSecret engine org repo name ->
-            -- TODO: probably want this filled in
-            []
+            [ viewSecret engine Vela.RepoSecret org (Just repo) name, updateSecret engine Vela.RepoSecret org (Just repo) name ]
 
         Pages.SharedSecret engine org team name ->
-            -- TODO: probably want this filled in
-            []
+            [ viewSecret engine Vela.SharedSecret org (Just team) name, updateSecret engine Vela.SharedSecret org (Just team) name ]
 
         Pages.Settings ->
             -- TODO: probably want this filled in
@@ -331,20 +325,20 @@ listHooks _ _ =
     Command name noCmd noDocs issue
 
 
-{-| listOrgSecrets : returns cli command for listing org secrets
+{-| listSecrets : returns cli command for listing secrets
 
     eg.
-    vela get secrets --type org --org octocat
+    vela get secrets --engine native --type repo --org octocat --team ghe-admins
 
 -}
-listOrgSecrets : Engine -> Org -> Command
-listOrgSecrets engine org =
+listSecrets : Engine -> SecretType -> Org -> Maybe Key -> Command
+listSecrets engine type_ org key =
     let
         name =
-            "List Org Secrets"
+            "List " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secrets"
 
         content =
-            Just <| "vela get secrets " ++ secretArgs engine Vela.RepoSecret org ""
+            Just <| "vela get secrets " ++ secretBaseArgs engine type_ org key
 
         docs =
             Just "secrets/get"
@@ -352,23 +346,69 @@ listOrgSecrets engine org =
     Command name content docs noIssue
 
 
-{-| listRepoSecrets : returns cli command for listing repo secrets
+{-| addSecret : returns cli command for adding a secret
 
     eg.
-    vela get secrets --type repo --org octocat --repo hello-worlds
+    vela add secret --engine native --type repo --org octocat --team ghe-admins --name password --value vela --event push
 
 -}
-listRepoSecrets : Engine -> Org -> Repo -> Command
-listRepoSecrets engine org repo =
+addSecret : Engine -> SecretType -> Org -> Maybe Key -> Command
+addSecret engine type_ org key =
     let
         name =
-            "List Repo Secrets"
+            "Add " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secret"
 
         content =
-            Just <| "vela get secrets " ++ secretArgs engine Vela.RepoSecret org repo
+            Just <| "vela add secret " ++ secretBaseArgs engine type_ org key ++ addSecretArgs
 
         docs =
-            Just "secrets/get"
+            Just "secrets/add"
+    in
+    Command name content docs noIssue
+
+
+{-| viewSecret : returns cli command for viewing a secret
+
+    eg.
+    vela view secret --engine native --type org --org octocat --name password
+    vela view secret --engine native --type repo --org octocat --repo hello-world --name password
+    vela view secret --engine native --type shared --org octocat --team ghe-admins --name password
+
+-}
+viewSecret : Engine -> SecretType -> Org -> Maybe Key -> Name -> Command
+viewSecret engine type_ org key name_ =
+    let
+        name =
+            "View " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secret"
+
+        content =
+            Just <| "vela view secret " ++ secretBaseArgs engine type_ org key ++ " --name " ++ name_
+
+        docs =
+            Just "secrets/view"
+    in
+    Command name content docs noIssue
+
+
+{-| updateSecret : returns cli command for updating an existing secret
+
+    eg.
+    vela update secret --engine native --type org --org octocat --name password --value new_value
+    vela update secret --engine native --type repo --org octocat --repo hello-world --name password --value new_value
+    vela update secret --engine native --type shared --org octocat --team ghe-admins --name password --value new_value
+
+-}
+updateSecret : Engine -> SecretType -> Org -> Maybe Key -> Name -> Command
+updateSecret engine type_ org key name_ =
+    let
+        name =
+            "Update " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secret"
+
+        content =
+            Just <| "vela update secret " ++ secretBaseArgs engine type_ org key ++ " --name " ++ name_ ++ " --value new_value"
+
+        docs =
+            Just "secrets/update"
     in
     Command name content docs noIssue
 
@@ -405,7 +445,7 @@ repoArgs org repo =
     "--org " ++ org ++ " --repo " ++ repo
 
 
-{-| secretArgs : returns cli args for requesting org secrets
+{-| secretBaseArgs : returns cli args for requesting secrets
 
     eg.
     --type org --org octocat
@@ -413,8 +453,8 @@ repoArgs org repo =
     --type shared --org octocat --team ghe-admins
 
 -}
-secretArgs : Engine -> SecretType -> Org -> Key -> String
-secretArgs engine type_ org key =
+secretBaseArgs : Engine -> SecretType -> Org -> Maybe Key -> String
+secretBaseArgs engine type_ org key =
     let
         keyFlag =
             case type_ of
@@ -422,12 +462,23 @@ secretArgs engine type_ org key =
                     ""
 
                 Vela.RepoSecret ->
-                    " --repo " ++ key
+                    " --repo " ++ Maybe.withDefault "" key
 
                 Vela.SharedSecret ->
-                    " --team " ++ key
+                    " --team " ++ Maybe.withDefault "" key
     in
-    "--engine " ++ engine ++ " --type " ++ secretTypeToString ++ " --org " ++ org ++ keyFlag
+    "--engine " ++ engine ++ " --type " ++ secretTypeToString type_ ++ " --org " ++ org ++ keyFlag
+
+
+{-| addSecretArgs : returns cli args for adding a secret
+
+    eg.
+     --name password --value vela --event push
+
+-}
+addSecretArgs : String
+addSecretArgs =
+    " --name password --value vela --event push"
 
 
 {-| buildArgs : returns cli args for requesting build resources
