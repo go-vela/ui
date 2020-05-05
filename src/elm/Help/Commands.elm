@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Help.Commands exposing
-    ( Command
+    ( Arg
+    , Command
     , Commands
     , Model
     , cliDocsUrl
@@ -18,6 +19,7 @@ module Help.Commands exposing
 
 import Pages exposing (Page(..))
 import String.Extra
+import Util exposing (anyBlank, noBlanks)
 import Vela
     exposing
         ( BuildNumber
@@ -599,32 +601,32 @@ resourceLoaded args =
         Pages.Build _ _ _ _ ->
             args.build.success
 
-        Pages.OrgSecrets _ _ ->
-            args.secrets.success
+        Pages.AddOrgSecret engine org ->
+            noBlanks [ engine, org ]
 
-        Pages.RepoSecrets _ _ _ ->
-            args.secrets.success
+        Pages.AddRepoSecret engine org repo ->
+            noBlanks [ engine, org, repo ]
 
-        Pages.SharedSecrets _ _ _ ->
-            args.secrets.success
+        Pages.AddSharedSecret engine org team ->
+            noBlanks [ engine, org, team ]
 
-        Pages.AddOrgSecret _ _ ->
-            True
+        Pages.OrgSecrets engine org ->
+            noBlanks [ engine, org ]
 
-        Pages.AddRepoSecret _ _ _ ->
-            True
+        Pages.RepoSecrets engine org repo ->
+            noBlanks [ engine, org, repo ]
 
-        Pages.AddSharedSecret _ _ _ ->
-            True
+        Pages.SharedSecrets engine org team ->
+            noBlanks [ engine, org, team ]
 
-        Pages.OrgSecret _ _ _ ->
-            True
+        Pages.OrgSecret engine org name ->
+            noBlanks [ engine, org, name ]
 
-        Pages.RepoSecret _ _ _ _ ->
-            True
+        Pages.RepoSecret engine org repo name ->
+            noBlanks [ engine, org, repo, name ]
 
-        Pages.SharedSecret _ _ _ _ ->
-            True
+        Pages.SharedSecret engine org team name ->
+            noBlanks [ engine, org, team, name ]
 
         Pages.RepoSettings _ _ ->
             args.repo.success
@@ -674,23 +676,23 @@ resourceLoading args =
         Pages.SharedSecrets _ _ _ ->
             args.secrets.loading
 
-        Pages.AddOrgSecret _ _ ->
-            False
+        Pages.AddOrgSecret engine org ->
+            anyBlank [ engine, org ]
 
-        Pages.AddRepoSecret _ _ _ ->
-            False
+        Pages.AddRepoSecret engine org repo ->
+            anyBlank [ engine, org, repo ]
 
-        Pages.AddSharedSecret _ _ _ ->
-            False
+        Pages.AddSharedSecret engine org team ->
+            anyBlank [ engine, org, team ]
 
-        Pages.OrgSecret _ _ _ ->
-            False
+        Pages.OrgSecret engine org name ->
+            anyBlank [ engine, org, name ]
 
-        Pages.RepoSecret _ _ _ _ ->
-            False
+        Pages.RepoSecret engine org repo name ->
+            anyBlank [ engine, org, repo, name ]
 
-        Pages.SharedSecret _ _ _ _ ->
-            False
+        Pages.SharedSecret engine org team name ->
+            anyBlank [ engine, org, team, name ]
 
         Pages.RepoSettings _ _ ->
             args.repo.loading

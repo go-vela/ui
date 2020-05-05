@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Help.View exposing (view)
+module Help.View exposing (help)
 
 import FeatherIcons
 import Help.Commands
@@ -27,10 +27,10 @@ import Util
 import Vela exposing (Copy)
 
 
-{-| view : takes help args and renders nav button for viewing contextual help for each page
+{-| help : takes help args and renders nav button for viewing contextual help for each page
 -}
-view : Model msg -> Html msg
-view args =
+help : Model msg -> Html msg
+help args =
     li
         [ id "contextual-help"
         , attribute "aria-label" "toggle contextual help for this page"
@@ -51,15 +51,15 @@ view args =
                 , Util.onClickPreventDefault (args.toggle Nothing)
                 ]
                 [ SvgBuilder.terminal ]
-            , help args
+            , tooltip args
             ]
         ]
 
 
-{-| help : takes help args and renders contextual help dropdown if focused
+{-| tooltip : takes help args and renders contextual help dropdown if focused
 -}
-help : Model msg -> Html msg
-help args =
+tooltip : Model msg -> Html msg
+tooltip args =
     div [ class "tooltip", Util.testAttribute "help-tooltip" ] <|
         [ strong [] [ text "Manage Vela resources using the CLI" ]
         ]
