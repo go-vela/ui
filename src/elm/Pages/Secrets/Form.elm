@@ -180,12 +180,12 @@ viewEventsSelect secretUpdate =
                 "comment"
                 (eventEnabled "comment" secretUpdate.events)
               <|
-                OnChangeEvent "comment"                
+                OnChangeEvent "comment"
             , checkbox "Deploy"
                 "deployment"
                 (eventEnabled "deployment" secretUpdate.events)
               <|
-                OnChangeEvent "deployment"                
+                OnChangeEvent "deployment"
             ]
         ]
 
