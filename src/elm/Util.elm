@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Util exposing
     ( addIfUniqueId
+    , anyBlank
     , ariaHidden
     , boolToYesNo
     , dateToHumanReadable
@@ -22,6 +23,7 @@ module Util exposing
     , largeLoader
     , mergeListsById
     , millisToSeconds
+    , noBlanks
     , onClickPreventDefault
     , onClickStopPropogation
     , oneSecondMillis
@@ -45,6 +47,7 @@ import Html.Events exposing (custom)
 import Json.Decode as Decode
 import List.Extra
 import RemoteData exposing (WebData)
+import String.Extra
 import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone, posixToMillis)
 
@@ -194,6 +197,25 @@ filterEmptyLists =
 filterEmptyStringLists : List ( String, List String ) -> List ( String, List String )
 filterEmptyStringLists =
     List.filter (\( _, list ) -> List.isEmpty list == False)
+
+
+{-| anyBlank : takes list of strings, returns true if any are blank
+-}
+anyBlank : List String -> Bool
+anyBlank strings =
+    case List.head <| List.filter String.Extra.isBlank strings of
+        Nothing ->
+            False
+
+        _ ->
+            True
+
+
+{-| noBlanks : takes list of strings, returns true if any are blank
+-}
+noBlanks : List String -> Bool
+noBlanks strings =
+    not <| anyBlank strings
 
 
 addIfUniqueId : { a | id : comparable } -> List { a | id : comparable } -> List { a | id : comparable }
