@@ -18,7 +18,8 @@ import Dict
 import Errors exposing (detailedErrorToString)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
-import Help.Help
+import Help.Commands
+import Help.View
 import Html
     exposing
         ( Html
@@ -1726,7 +1727,7 @@ viewLogin =
         ]
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Help.Model Msg, showId : Bool } -> Html Msg
+viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Commands.Model Msg, showId : Bool } -> Html Msg
 viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
     let
         session : Session
@@ -1773,18 +1774,18 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
                 [ li [] [ viewThemeToggle theme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
                 , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , Help.Help.view help
+                , Help.View.help help
                 ]
             ]
         ]
 
 
-helpArg : WebData a -> Help.Help.Arg
+helpArg : WebData a -> Help.Commands.Arg
 helpArg arg =
     { success = Util.isSuccess arg, loading = Util.isLoading arg }
 
 
-helpArgs : Model -> Help.Help.Model Msg
+helpArgs : Model -> Help.Commands.Model Msg
 helpArgs model =
     { user = helpArg model.user
     , sourceRepos = helpArg model.sourceRepos

@@ -99,6 +99,7 @@ module Vela exposing
     , secretTypeToString
     , statusToFavicon
     , stringToTheme
+    , toMaybeSecretType
     , toSecretType
     )
 
@@ -1031,6 +1032,24 @@ toSecretType type_ =
 
         _ ->
             RepoSecret
+
+
+{-| toMaybeSecretType : helper to decode string to Maybe SecretType
+-}
+toMaybeSecretType : String -> Maybe SecretType
+toMaybeSecretType type_ =
+    case type_ of
+        "shared" ->
+            Just SharedSecret
+
+        "org" ->
+            Just OrgSecret
+
+        "repo" ->
+            Just RepoSecret
+
+        _ ->
+            Nothing
 
 
 {-| secretTypeToString : helper to convert SecretType to string
