@@ -15,8 +15,8 @@ type Page
     = Overview
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | OrgSecrets Engine Org
-    | RepoSecrets Engine Org Repo
+    | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | RepoSecrets Engine Org Repo  
     | SharedSecrets Engine Org Team
     | AddOrgSecret Engine Org
     | AddRepoSecret Engine Org Repo
@@ -55,10 +55,10 @@ toRoute page =
         RepoSettings org repo ->
             Routes.RepoSettings org repo
 
-        OrgSecrets engine org ->
+        OrgSecrets engine org _ _ ->
             Routes.OrgSecrets engine org
 
-        RepoSecrets engine org repo ->
+        RepoSecrets engine org repo  ->
             Routes.RepoSecrets engine org repo
 
         SharedSecrets engine org repo ->
