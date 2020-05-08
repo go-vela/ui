@@ -25,8 +25,8 @@ type Route
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | RepoSecrets Engine Org Repo
-    | SharedSecrets Engine Org Team
+    | RepoSecrets Engine Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | SharedSecrets Engine Org Team (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | AddOrgSecret Engine Org
     | AddRepoSecret Engine Org Repo
     | AddSharedSecret Engine Org Team
@@ -58,8 +58,8 @@ routes =
         , parseAuth
         , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
         , map OrgSecrets (s "-" </> s "secrets" </> string </> s "org" </> string <?> Query.int "page" <?> Query.int "per_page")
-        , map RepoSecrets (s "-" </> s "secrets" </> string </> s "repo" </> string </> string)
-        , map SharedSecrets (s "-" </> s "secrets" </> string </> s "shared" </> string </> string)
+        , map RepoSecrets (s "-" </> s "secrets" </> string </> s "repo" </> string </> string <?> Query.int "page" <?> Query.int "per_page")
+        , map SharedSecrets (s "-" </> s "secrets" </> string </> s "shared" </> string </> string <?> Query.int "page" <?> Query.int "per_page")
         , map AddOrgSecret (s "-" </> s "secrets" </> string </> s "org" </> string </> s "add")
         , map AddRepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> s "add")
         , map AddSharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> s "add")
@@ -110,11 +110,11 @@ routeToUrl route =
         OrgSecrets engine org maybePage maybePerPage ->
             "/-/secrets/" ++ engine ++ "/org/" ++ org ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
-        RepoSecrets engine org repo ->
-            "/-/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo
+        RepoSecrets engine org repo maybePage maybePerPage ->
+            "/-/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
-        SharedSecrets engine org team ->
-            "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team
+        SharedSecrets engine org team maybePage maybePerPage ->
+            "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         AddOrgSecret engine org ->
             "/-/secrets/" ++ engine ++ "/org/" ++ org ++ "/add"

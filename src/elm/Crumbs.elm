@@ -137,7 +137,7 @@ toPath page =
                     in
                     [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets ]
 
-                Pages.RepoSecrets engine org repo ->
+                Pages.RepoSecrets engine org repo maybePage _ ->
                     let
                         engineCrumb =
                             ( engine, Nothing )
@@ -153,7 +153,7 @@ toPath page =
                     in
                     [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, repoSecrets ]
 
-                Pages.SharedSecrets engine org team ->
+                Pages.SharedSecrets engine org team maybePage _ ->
                     let
                         engineCrumb =
                             ( engine, Nothing )
@@ -197,7 +197,7 @@ toPath page =
                             ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         repoSecrets =
-                            ( repo, Just <| Pages.RepoSecrets engine org repo )
+                            ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
 
                         add =
                             ( "Add", Nothing )
@@ -216,7 +216,7 @@ toPath page =
                             ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         sharedSecrets =
-                            ( team, Just <| Pages.SharedSecrets engine org team )
+                            ( team, Just <| Pages.SharedSecrets engine org team Nothing Nothing )
 
                         add =
                             ( "Add", Nothing )
@@ -251,7 +251,7 @@ toPath page =
                             ( repo, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         repoSecrets =
-                            ( repo, Just <| Pages.RepoSecrets engine org repo )
+                            ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )
@@ -270,7 +270,7 @@ toPath page =
                             ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         sharedSecrets =
-                            ( org, Just <| Pages.SharedSecrets engine org team )
+                            ( org, Just <| Pages.SharedSecrets engine org team Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )

@@ -16,8 +16,8 @@ type Page
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | RepoSecrets Engine Org Repo
-    | SharedSecrets Engine Org Team
+    | RepoSecrets Engine Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | SharedSecrets Engine Org Team (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | AddOrgSecret Engine Org
     | AddRepoSecret Engine Org Repo
     | AddSharedSecret Engine Org Team
@@ -58,11 +58,11 @@ toRoute page =
         OrgSecrets engine org maybePage maybePerPage ->
             Routes.OrgSecrets engine org maybePage maybePerPage
 
-        RepoSecrets engine org repo ->
-            Routes.RepoSecrets engine org repo
+        RepoSecrets engine org repo maybePage maybePerPage ->
+            Routes.RepoSecrets engine org repo maybePage maybePerPage
 
-        SharedSecrets engine org repo ->
-            Routes.SharedSecrets engine org repo
+        SharedSecrets engine org repo maybePage maybePerPage ->
+            Routes.SharedSecrets engine org repo maybePage maybePerPage
 
         AddOrgSecret engine org ->
             Routes.AddOrgSecret engine org

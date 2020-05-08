@@ -112,7 +112,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo
+                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
                     ]
                     [ text "Secrets" ]
                 , a
@@ -138,7 +138,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo
+                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
                     ]
                     [ text "Secrets" ]
                 , a
@@ -174,7 +174,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     ]
                 ]
 
-        Pages.RepoSecrets engine org repo ->
+        Pages.RepoSecrets engine org repo _ _ ->
             div [ class "buttons" ]
                 [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
@@ -203,7 +203,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     ]
                 ]
 
-        Pages.SharedSecrets engine org team ->
+        Pages.SharedSecrets engine org team _ _ ->
             div [ class "buttons" ]
                 [ button
                     [ classList
@@ -236,7 +236,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo
+                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
                     ]
                     [ text "Secrets" ]
                 , a

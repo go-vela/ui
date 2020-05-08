@@ -98,10 +98,10 @@ commands page =
         Pages.OrgSecrets engine org _ _ ->
             [ listSecrets engine Vela.OrgSecret org Nothing ]
 
-        Pages.RepoSecrets engine org repo ->
+        Pages.RepoSecrets engine org repo _ _ ->
             [ listSecrets engine Vela.RepoSecret org <| Just repo ]
 
-        Pages.SharedSecrets engine org key ->
+        Pages.SharedSecrets engine org key _ _ ->
             [ listSecrets engine Vela.SharedSecret org <| Just key ]
 
         Pages.AddOrgSecret engine org ->
@@ -613,10 +613,10 @@ resourceLoaded args =
         Pages.OrgSecrets engine org _ _ ->
             noBlanks [ engine, org ]
 
-        Pages.RepoSecrets engine org repo ->
+        Pages.RepoSecrets engine org repo _ _ ->
             noBlanks [ engine, org, repo ]
 
-        Pages.SharedSecrets engine org team ->
+        Pages.SharedSecrets engine org team _ _ ->
             noBlanks [ engine, org, team ]
 
         Pages.OrgSecret engine org name ->
@@ -670,10 +670,10 @@ resourceLoading args =
         Pages.OrgSecrets _ _ _ _ ->
             args.secrets.loading
 
-        Pages.RepoSecrets _ _ _ ->
+        Pages.RepoSecrets _ _ _ _ _ ->
             args.secrets.loading
 
-        Pages.SharedSecrets _ _ _ ->
+        Pages.SharedSecrets _ _ _ _ _ ->
             args.secrets.loading
 
         Pages.AddOrgSecret engine org ->
