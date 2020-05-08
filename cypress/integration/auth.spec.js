@@ -118,9 +118,7 @@ context('Authentication', () => {
 
       cy.get('[data-test=page-h1]').contains('Authenticating');
 
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
 
       cy.location('pathname').should('eq', '/account/login');
     });

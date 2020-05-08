@@ -43,9 +43,7 @@ context('Overview/Repositories Page', () => {
     });
 
     it('it should take you to the repo build page when utilizing the View button', () => {
-      cy.get('[data-test=repo-view]')
-        .first()
-        .click();
+      cy.get('[data-test=repo-view]').first().click();
       cy.location('pathname').should('eq', '/github/octocat');
     });
     it('org should show', () => {
