@@ -24,7 +24,7 @@ type Route
     = Overview
     | AddRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | OrgSecrets Engine Org
+    | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | RepoSecrets Engine Org Repo
     | SharedSecrets Engine Org Team
     | AddOrgSecret Engine Org
@@ -57,7 +57,7 @@ routes =
         , map Settings (s "account" </> s "settings")
         , parseAuth
         , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
-        , map OrgSecrets (s "-" </> s "secrets" </> string </> s "org" </> string)
+        , map OrgSecrets (s "-" </> s "secrets" </> string </> s "org" </> string <?> Query.int "page" <?> Query.int "per_page")
         , map RepoSecrets (s "-" </> s "secrets" </> string </> s "repo" </> string </> string)
         , map SharedSecrets (s "-" </> s "secrets" </> string </> s "shared" </> string </> string)
         , map AddOrgSecret (s "-" </> s "secrets" </> string </> s "org" </> string </> s "add")
@@ -107,8 +107,8 @@ routeToUrl route =
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
-        OrgSecrets engine org ->
-            "/-/secrets/" ++ engine ++ "/org/" ++ org
+        OrgSecrets engine org maybePage maybePerPage ->
+            "/-/secrets/" ++ engine ++ "/org/" ++ org ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         RepoSecrets engine org repo ->
             "/-/secrets/" ++ engine ++ "/repo/" ++ org ++ "/" ++ repo

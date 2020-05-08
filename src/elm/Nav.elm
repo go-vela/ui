@@ -105,7 +105,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                         text "Refresh List"
                 ]
 
-        Pages.RepositoryBuilds org repo maybePage maybePerPage _ ->
+        Pages.RepositoryBuilds org repo _ _ _ ->
             div [ class "buttons" ]
                 [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
@@ -119,7 +119,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     [ class "button"
                     , class "-outline"
                     , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo maybePage maybePerPage
+                    , Routes.href <| Routes.Hooks org repo Nothing Nothing
                     ]
                     [ text "Hooks" ]
                 , a
@@ -160,6 +160,20 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     ]
                 ]
 
+        Pages.OrgSecrets engine org _ _ ->
+            div [ class "buttons" ]
+                [ button
+                    [ classList
+                        [ ( "button", True )
+                        , ( "-outline", True )
+                        ]
+                    , onClick <| refreshSecrets engine "org" org "*"
+                    , Util.testAttribute "refresh-repo-settings"
+                    ]
+                    [ text "Refresh"
+                    ]
+                ]
+
         Pages.RepoSecrets engine org repo ->
             div [ class "buttons" ]
                 [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
@@ -183,20 +197,6 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                         , ( "-outline", True )
                         ]
                     , onClick <| refreshSecrets engine "repo" org repo
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh"
-                    ]
-                ]
-
-        Pages.OrgSecrets engine org ->
-            div [ class "buttons" ]
-                [ button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSecrets engine "org" org "*"
                     , Util.testAttribute "refresh-repo-settings"
                     ]
                     [ text "Refresh"

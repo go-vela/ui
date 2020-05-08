@@ -95,7 +95,7 @@ commands page =
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
-        Pages.OrgSecrets engine org ->
+        Pages.OrgSecrets engine org _ _ ->
             [ listSecrets engine Vela.OrgSecret org Nothing ]
 
         Pages.RepoSecrets engine org repo ->
@@ -610,7 +610,7 @@ resourceLoaded args =
         Pages.AddSharedSecret engine org team ->
             noBlanks [ engine, org, team ]
 
-        Pages.OrgSecrets engine org ->
+        Pages.OrgSecrets engine org _ _ ->
             noBlanks [ engine, org ]
 
         Pages.RepoSecrets engine org repo ->
@@ -667,7 +667,7 @@ resourceLoading args =
         Pages.Build _ _ _ _ ->
             args.build.loading
 
-        Pages.OrgSecrets _ _ ->
+        Pages.OrgSecrets _ _ _ _ ->
             args.secrets.loading
 
         Pages.RepoSecrets _ _ _ ->

@@ -121,7 +121,7 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, repoBuilds, repoSettings ]
 
-                Pages.OrgSecrets engine org ->
+                Pages.OrgSecrets engine org maybePage _ ->
                     let
                         engineCrumb =
                             ( engine, Nothing )
@@ -129,8 +129,11 @@ toPath page =
                         typeCrumb =
                             ( "org", Nothing )
 
+                        pageNumber =
+                            pageToString maybePage
+
                         orgSecrets =
-                            ( org, Nothing )
+                            ( org ++ pageNumber, Nothing )
                     in
                     [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets ]
 
@@ -143,7 +146,7 @@ toPath page =
                             ( "repo", Nothing )
 
                         orgSecrets =
-                            ( org, Just <| Pages.OrgSecrets engine org )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         repoSecrets =
                             ( repo, Nothing )
@@ -159,7 +162,7 @@ toPath page =
                             ( "shared", Nothing )
 
                         orgSecrets =
-                            ( org, Just <| Pages.OrgSecrets engine org )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         teamSecrets =
                             ( team, Nothing )
@@ -175,7 +178,7 @@ toPath page =
                             ( "org", Nothing )
 
                         orgSecrets =
-                            ( org, Just <| Pages.OrgSecrets engine org )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         add =
                             ( "Add", Nothing )
@@ -191,7 +194,7 @@ toPath page =
                             ( "repo", Nothing )
 
                         orgSecrets =
-                            ( org, Just <| Pages.OrgSecrets engine org )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         repoSecrets =
                             ( repo, Just <| Pages.RepoSecrets engine org repo )
@@ -210,7 +213,7 @@ toPath page =
                             ( "shared", Nothing )
 
                         orgSecrets =
-                            ( org, Just <| Pages.OrgSecrets engine org )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         sharedSecrets =
                             ( team, Just <| Pages.SharedSecrets engine org team )
@@ -229,7 +232,7 @@ toPath page =
                             ( "org", Nothing )
 
                         orgSecrets =
-                            ( org, Just <| Pages.OrgSecrets engine org )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )
@@ -245,7 +248,7 @@ toPath page =
                             ( "repo", Nothing )
 
                         orgSecrets =
-                            ( repo, Just <| Pages.OrgSecrets engine org )
+                            ( repo, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         repoSecrets =
                             ( repo, Just <| Pages.RepoSecrets engine org repo )
@@ -264,7 +267,7 @@ toPath page =
                             ( "shared", Nothing )
 
                         orgSecrets =
-                            ( org, Just <| Pages.OrgSecrets engine org )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         sharedSecrets =
                             ( org, Just <| Pages.SharedSecrets engine org team )

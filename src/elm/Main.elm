@@ -1036,7 +1036,7 @@ update msg model =
                     model.secretsModel
             in
             ( { model | secretsModel = { secretsModel | secrets = Loading } }
-            , getSecrets model engine type_ org key
+            , getSecrets model Nothing Nothing engine type_ org key
             )
 
         AddSecretUpdate engine m ->
@@ -1268,19 +1268,19 @@ refreshPage model _ =
                 , refreshHookBuilds model
                 ]
 
-        Pages.RepoSecrets engine org repo ->
+        Pages.OrgSecrets engine org maybePage maybePerPage ->
             Cmd.batch
-                [ getSecrets model engine "repo" org repo
+                [ getSecrets model maybePage maybePerPage engine "org" org "*"
                 ]
 
-        Pages.OrgSecrets engine org ->
+        Pages.RepoSecrets engine org repo ->
             Cmd.batch
-                [ getSecrets model engine "org" org "*"
+                [ getSecrets model Nothing Nothing engine "repo" org repo
                 ]
 
         Pages.SharedSecrets engine org team ->
             Cmd.batch
-                [ getSecrets model engine "shared" org team
+                [ getSecrets model Nothing Nothing engine "shared" org team
                 ]
 
         _ ->
@@ -1545,7 +1545,7 @@ viewContent model =
             , lazy5 Pages.RepoSettings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
             )
 
-        Pages.OrgSecrets engine org ->
+        Pages.OrgSecrets engine org _ _ ->
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets"
             , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.secrets model
             )
@@ -1888,8 +1888,8 @@ setNewPage route model =
         ( Routes.RepoSettings org repo, True ) ->
             loadRepoSettingsPage model org repo
 
-        ( Routes.OrgSecrets engine org, True ) ->
-            loadOrgSecretsPage model engine org
+        ( Routes.OrgSecrets engine org maybePage maybePerPage, True ) ->
+            loadOrgSecretsPage model maybePage maybePerPage engine org
 
         ( Routes.RepoSecrets engine org repo, True ) ->
             loadRepoSecretsPage model engine org repo
@@ -2039,8 +2039,8 @@ loadRepoSettingsPage model org repo =
 
 {-| loadOrgSecretsPage : takes model org and loads the page for managing org secrets
 -}
-loadOrgSecretsPage : Model -> Engine -> Org -> ( Model, Cmd Msg )
-loadOrgSecretsPage model engine org =
+loadOrgSecretsPage : Model -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Engine -> Org -> ( Model, Cmd Msg )
+loadOrgSecretsPage model maybePage maybePerPage engine org =
     -- Fetch secrets from Api
     let
         secretsModel =
@@ -2048,7 +2048,7 @@ loadOrgSecretsPage model engine org =
     in
     ( { model
         | page =
-            Pages.OrgSecrets engine org
+            Pages.OrgSecrets engine org maybePage maybePerPage
         , secretsModel =
             { secretsModel
                 | secrets = Loading
@@ -2059,7 +2059,7 @@ loadOrgSecretsPage model engine org =
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSecrets model engine "org" org "*"
+        , getSecrets model maybePage maybePerPage engine "org" org "*"
         ]
     )
 
@@ -2086,7 +2086,7 @@ loadRepoSecretsPage model engine org repo =
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSecrets model engine "repo" org repo
+        , getSecrets model Nothing Nothing engine "repo" org repo
         ]
     )
 
@@ -2114,7 +2114,7 @@ loadSharedSecretsPage model engine org team =
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSecrets model engine "shared" org team
+        , getSecrets model Nothing Nothing engine "shared" org team
         ]
     )
 
@@ -2660,9 +2660,17 @@ restartBuild model org repo buildNumber =
     Api.try (RestartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
 
 
-getSecrets : Model -> Engine -> Type -> Org -> Repo -> Cmd Msg
-getSecrets model engine type_ org repo =
-    Api.try SecretsResponse <| Api.getSecrets model engine type_ org repo
+getSecrets :
+    Model
+    -> Maybe Pagination.Page
+    -> Maybe Pagination.PerPage
+    -> Engine
+    -> Type
+    -> Org
+    -> Repo
+    -> Cmd Msg
+getSecrets model maybePage maybePerPage engine type_ org repo =
+    Api.try SecretsResponse <| Api.getSecrets model maybePage maybePerPage engine type_ org repo
 
 
 getSecret : Model -> Engine -> Type -> Org -> Key -> Name -> Cmd Msg
