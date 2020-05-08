@@ -148,8 +148,11 @@ toPath page =
                         orgSecrets =
                             ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
+                        pageNumber =
+                            pageToString maybePage
+
                         repoSecrets =
-                            ( repo, Nothing )
+                            ( repo ++ pageNumber, Nothing )
                     in
                     [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, repoSecrets ]
 
@@ -164,8 +167,11 @@ toPath page =
                         orgSecrets =
                             ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
+                        pageNumber =
+                            pageToString maybePage
+
                         teamSecrets =
-                            ( team, Nothing )
+                            ( team ++ pageNumber, Nothing )
                     in
                     [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, teamSecrets ]
 
