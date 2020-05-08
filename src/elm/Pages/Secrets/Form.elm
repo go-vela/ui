@@ -171,16 +171,21 @@ viewEventsSelect secretUpdate =
                 (eventEnabled "pull_request" secretUpdate.events)
               <|
                 OnChangeEvent "pull_request"
-            , checkbox "Deploy"
-                "deployment"
-                (eventEnabled "deployment" secretUpdate.events)
-              <|
-                OnChangeEvent "deployment"
             , checkbox "Tag"
                 "tag"
                 (eventEnabled "tag" secretUpdate.events)
               <|
                 OnChangeEvent "tag"
+            , checkbox "Comment"
+                "comment"
+                (eventEnabled "comment" secretUpdate.events)
+              <|
+                OnChangeEvent "comment"
+            , checkbox "Deployment"
+                "deployment"
+                (eventEnabled "deployment" secretUpdate.events)
+              <|
+                OnChangeEvent "deployment"
             ]
         ]
 
