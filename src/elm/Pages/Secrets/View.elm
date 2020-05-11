@@ -105,6 +105,7 @@ secrets model =
                         tableHeaders
                         (secretsToRows model.secretsModel.type_ s)
                         add
+                        "secrets"
                     )
                 ]
 
@@ -140,7 +141,7 @@ tableHeaders =
 -}
 renderSecret : SecretType -> Secret -> Html msg
 renderSecret type_ secret =
-    div [ class "row", class "preview" ]
+    div [ class "row", class "preview", Util.testAttribute "secrets-row" ]
         [ Table.Table.customCell (a [ updateSecretHref type_ secret ] [ text secret.name ]) <| class ""
         , Table.Table.cell (secretTypeToString secret.type_) <| class ""
         , Table.Table.arrayCell secret.events "no events"
