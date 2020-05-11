@@ -15,6 +15,7 @@ module Pages.Secrets.Model exposing
     , SecretsResponse
     , UpdateSecretResponse
     , defaultSecretUpdate
+    , secretsResourceKey
     )
 
 import Http
@@ -57,12 +58,30 @@ type alias Model msg =
     , engine : Engine
     , type_ : SecretType
     , secrets : WebData Secrets
+    , secret : WebData Secret
     , form : SecretForm
     , secretResponse : SecretResponse msg
     , secretsResponse : SecretsResponse msg
     , addSecretResponse : AddSecretResponse msg
     , updateSecretResponse : AddSecretResponse msg
     }
+
+
+
+{- secretsResourceKey : takes Model returns maybe string for retrieving secrets based on type -}
+
+
+secretsResourceKey : Model msg -> Maybe String
+secretsResourceKey secretsModel =
+    case secretsModel.type_ of
+        Vela.OrgSecret ->
+            Nothing
+
+        Vela.RepoSecret ->
+            Just secretsModel.repo
+
+        Vela.SharedSecret ->
+            Just secretsModel.team
 
 
 {-| SecretForm : record to hold potential add/update secret fields

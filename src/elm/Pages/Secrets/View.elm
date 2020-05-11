@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Secrets.View exposing (addSecret, editSecret, secrets)
 
+import Errors exposing (viewResourceError)
 import Html
     exposing
         ( Html
@@ -13,7 +14,6 @@ import Html
         , button
         , div
         , h2
-        , h4
         , text
         )
 import Html.Attributes
@@ -36,6 +36,7 @@ import Pages.Secrets.Model
         , Model
         , Msg(..)
         , PartialModel
+        , secretsResourceKey
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
@@ -46,7 +47,9 @@ import Vela
         ( Secret
         , SecretType(..)
         , Secrets
+        , secretErrorLabel
         , secretTypeToString
+        , secretsErrorLabel
         )
 
 
@@ -104,6 +107,16 @@ secrets model =
                         add
                     )
                 ]
+
+        RemoteData.Failure _ ->
+            viewResourceError
+                { resourceLabel =
+                    secretsErrorLabel secretsModel.type_
+                        secretsModel.org
+                    <|
+                        secretsResourceKey secretsModel
+                , testLabel = "secrets"
+                }
 
         _ ->
             div [] [ largeLoader ]
@@ -214,12 +227,20 @@ addForm secretsModel =
 -}
 editSecret : PartialModel a msg -> Html Msg
 editSecret model =
-    div [ class "manage-secret", Util.testAttribute "manage-secret" ]
-        [ div []
-            [ h2 [] [ editHeader model.secretsModel.type_ ]
-            , editForm model.secretsModel
-            ]
-        ]
+    case model.secretsModel.secret of
+        Success _ ->
+            div [ class "manage-secret", Util.testAttribute "manage-secret" ]
+                [ div []
+                    [ h2 [] [ editHeader model.secretsModel.type_ ]
+                    , editForm model.secretsModel
+                    ]
+                ]
+
+        Failure _ ->
+            viewResourceError { resourceLabel = "secret", testLabel = "secret" }
+
+        _ ->
+            text ""
 
 
 {-| editHeader : takes secret type and renders view/edit secret header

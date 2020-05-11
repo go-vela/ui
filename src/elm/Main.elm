@@ -804,12 +804,13 @@ update msg model =
                     ( model, addError error )
 
         SecretsResponse response ->
+            let
+                secretsModel =
+                    model.secretsModel
+            in
             case response of
                 Ok ( _, secrets ) ->
                     let
-                        secretsModel =
-                            model.secretsModel
-
                         mergedSecrets =
                             case secretsModel.secrets of
                                 Success s ->
@@ -821,7 +822,7 @@ update msg model =
                     ( { model | secretsModel = { secretsModel | secrets = mergedSecrets } }, Cmd.none )
 
                 Err error ->
-                    ( model, addError error )
+                    ( { model | secretsModel = { secretsModel | secrets = toFailure error } }, addError error )
 
         UpdateRepoEvent org repo field value ->
             let

@@ -4,11 +4,13 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Errors exposing (detailedErrorToError, detailedErrorToString)
+module Errors exposing (detailedErrorToError, detailedErrorToString, viewResourceError)
 
+import Html exposing (Html, div, p, text)
 import Http exposing (Error(..))
 import Http.Detailed
 import Json.Decode as Decode
+import Util
 
 
 {-| errorDecoder : decodes error field from json
@@ -89,3 +91,17 @@ wrapErrorContent content =
 
     else
         " (" ++ content ++ ")"
+
+
+{-| viewResourceError : renders generic error message when there is a problem fetching a resource from Vela.
+-}
+viewResourceError : { resourceLabel : String, testLabel : String } -> Html msg
+viewResourceError { resourceLabel, testLabel } =
+    div [ Util.testAttribute <| testLabel ++ "-error" ]
+        [ p []
+            [ text <|
+                "There was an error fetching "
+                    ++ resourceLabel
+                    ++ ", please refresh or try again later!"
+            ]
+        ]

@@ -22,6 +22,7 @@ module Pages.RepoSettings exposing
     )
 
 import Dict exposing (Dict)
+import Errors exposing (viewResourceError)
 import FeatherIcons
 import Html
     exposing
@@ -163,12 +164,7 @@ view repo inTimeout actions velaAPI velaURL =
                 ]
 
         Failure _ ->
-            div []
-                [ p []
-                    [ text <|
-                        "There was an error fetching your repo settings... Click Refresh or try again later!"
-                    ]
-                ]
+            viewResourceError { resourceLabel = "your repo settings", testLabel = "settings" }
 
 
 {-| access : takes model and repo and renders the settings category for updating repo access
