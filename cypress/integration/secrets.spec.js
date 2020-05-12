@@ -16,7 +16,7 @@ context('Secrets', () => {
       cy.login('/-/secrets/native/org/github');
     });
 
-    it('hooks table should not show', () => {
+    it('secrets table should not show', () => {
       cy.get('[data-test=secrets]').should('not.be.visible');
     });
     it('error should show', () => {
