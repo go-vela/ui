@@ -55,6 +55,7 @@ init secretResponse secretsResponse addSecretResponse updateSecretResponse =
         secretsResponse
         addSecretResponse
         updateSecretResponse
+        []
 
 
 {-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments

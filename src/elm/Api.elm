@@ -553,9 +553,9 @@ getAllHooks model org repository =
 
 {-| getSecrets : fetches secrets for the given type org and key
 -}
-getSecrets : PartialModel a -> Engine -> Type -> Org -> Key -> Request Secrets
-getSecrets model engine type_ org key =
-    get model.velaAPI (Endpoint.Secrets engine type_ org key) decodeSecrets
+getSecrets : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Engine -> Type -> Org -> Key -> Request Secrets
+getSecrets model maybePage maybePerPage engine type_ org key =
+    get model.velaAPI (Endpoint.Secrets maybePage maybePerPage engine type_ org key) decodeSecrets
         |> withAuth model.session
 
 
@@ -579,5 +579,5 @@ updateSecret model engine type_ org key name body =
 -}
 addSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Http.Body -> Request Secret
 addSecret model engine type_ org key body =
-    post model.velaAPI (Endpoint.Secrets engine type_ org key) body decodeSecret
+    post model.velaAPI (Endpoint.Secrets Nothing Nothing engine type_ org key) body decodeSecret
         |> withAuth model.session
