@@ -20,6 +20,7 @@ module Pages.Secrets.Model exposing
 
 import Http
 import Http.Detailed
+import LinkHeader exposing (WebLink)
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Vela
@@ -64,6 +65,7 @@ type alias Model msg =
     , secretsResponse : SecretsResponse msg
     , addSecretResponse : AddSecretResponse msg
     , updateSecretResponse : AddSecretResponse msg
+    , pager : List WebLink
     }
 
 

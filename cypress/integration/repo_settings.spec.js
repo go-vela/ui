@@ -225,7 +225,7 @@ context('Repo Settings', () => {
     });
 
     it('Repair button should exist', () => {
-      cy.get('[data-test=repo-repair')
+      cy.get('[data-test=repo-repair]')
         .should('exist')
         .should('be.visible');
     });
@@ -240,6 +240,9 @@ context('Repo Settings', () => {
       cy.get('[data-test=alerts]')
         .should('exist')
         .contains('Success');
+      cy.get('[data-test=repo-disable]')
+        .should('exist')
+        .contains('Disable');
     });
 
     it('should show an error alert on a failed repair of a repo', () => {
@@ -253,6 +256,58 @@ context('Repo Settings', () => {
       cy.get('[data-test=alerts]')
         .should('exist')
         .contains('Error');
+      cy.get('[data-test=repo-disable]')
+        .should('exist')
+        .contains('Disable');
+    });
+  });
+
+  context('server returning inactive repo', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route(
+        'GET',
+        '*api/v1/repos/*/octocat',
+        'fixture:repository_inactive.json',
+      );
+      cy.login('/github/octocat/settings');
+    });
+
+    it('should show enable button', () => {
+      cy.get('[data-test=repo-enable]')
+        .should('exist')
+        .contains('Enable');
+    });
+
+    it('successful repair enables disable button', () => {
+      cy.route({
+        method: 'PATCH',
+        url: '*api/v1/repos/github/**',
+        response: '"Repo github/octocat repaired."',
+      });
+      cy.get('[data-test=repo-repair]').click();
+      cy.get('[data-test=alerts]')
+        .should('exist')
+        .contains('Success');
+      cy.get('[data-test=repo-disable')
+        .should('exist')
+        .contains('Disable');
+    });
+
+    it('failed repair keeps enable button enabled', () => {
+      cy.route({
+        method: 'PATCH',
+        url: '*api/v1/repos/github/**',
+        status: 500,
+        response: '"Unable to..."',
+      });
+      cy.get('[data-test=repo-repair]').click();
+      cy.get('[data-test=alerts]')
+        .should('exist')
+        .contains('Error');
+      cy.get('[data-test=repo-enable')
+        .should('exist')
+        .contains('Enable');
     });
   });
 });
