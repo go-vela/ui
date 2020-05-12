@@ -70,38 +70,15 @@ context('Secrets', () => {
           cy.get('[data-test=secrets-row-name]').contains('deployment');
         });
       });
+      it('clicking name should route to edit secret page', () => {
+        cy.get('@firstSecret').within(() => {
+          cy.get('[data-test=secrets-row-name]').click({ force: true });
+          cy.location('pathname').should(
+            'eq',
+            '/-/secrets/native/org/github/docker_username',
+          );
+        });
+      });
     });
   });
-
-  // context('server returning 10 hooks', () => {
-  //   beforeEach(() => {
-  //     cy.server();
-  //     cy.hookPages();
-
-  //     cy.login('/github/octocat/hooks');
-  //   });
-
-  //   it('hooks table should show 10 hooks', () => {
-  //     cy.get('[data-test=hook]').should('have.length', 10);
-  //   });
-
-  //   it('shows page 2 of the hooks', () => {
-  //     cy.visit('/github/octocat/hooks?page=2');
-  //     cy.get('[data-test=hook]').should('have.length', 10);
-  //     cy.get('[data-test="crumb-hooks-(page-2)"]')
-  //       .should('exist')
-  //       .should('contain', 'page 2');
-
-  //     cy.get('[data-test=pager-next]').should('be.disabled');
-  //   });
-
-  //   it("loads the first page when hitting the 'previous' button", () => {
-  //     cy.visit('/github/octocat/hooks?page=2');
-  //     cy.get('[data-test=pager-previous]')
-  //       .should('have.length', 2)
-  //       .first()
-  //       .click();
-  //     cy.location('pathname').should('eq', '/github/octocat/hooks');
-  //   });
-  // });
 });
