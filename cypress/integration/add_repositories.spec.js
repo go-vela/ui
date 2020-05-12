@@ -109,7 +109,7 @@ context('Add Repositories', () => {
     it('show a message and an alert when there is a server error', () => {
       cy.wait('@error');
       cy.get('.content-wrap').contains(
-        'There was an error fetching your available repositories... Click Refresh or try again later!',
+        'There was an error fetching your available repositories, please refresh or try again later!',
       );
     });
   });
@@ -127,7 +127,7 @@ context('Add Repositories', () => {
 
     it('show a message and an alert when the response is malformed', () => {
       cy.get('.content-wrap').contains(
-        'There was an error fetching your available repositories... Click Refresh or try again later!',
+        'There was an error fetching your available repositories, please refresh or try again later!',
       );
 
       cy.get('[data-test=alerts]')
