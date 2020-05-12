@@ -629,9 +629,19 @@ update msg model =
             ( model, Api.try (RepoRepairedResponse repo) <| Api.repairRepo model repo )
 
         RepoRepairedResponse repo response ->
+            let
+                currentRepo =
+                    RemoteData.withDefault defaultRepository model.repo
+            in
             case response of
                 Ok _ ->
-                    ( model, Cmd.none )
+                    -- TODO: could 'refresh' settings page instead
+                    ( { model
+                        | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
+                        , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled }
+                      }
+                    , Cmd.none
+                    )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " has been repaired.") Nothing)
 
                 Err error ->
