@@ -14,7 +14,9 @@ import Html
         , div
         , h2
         , h4
+        , td
         , text
+        , tr
         )
 import Html.Attributes
     exposing
@@ -127,16 +129,34 @@ tableHeaders =
 -}
 renderSecret : SecretType -> Secret -> Html msg
 renderSecret type_ secret =
-    div [ class "row", class "preview" ]
-        [ Table.Table.customCell (a [ updateSecretHref type_ secret ] [ text secret.name ]) <| class ""
-        , Table.Table.cell (secretTypeToString secret.type_) <| class ""
-        , Table.Table.arrayCell secret.events "no events"
-        , Table.Table.arrayCell secret.images "all images"
-        , Table.Table.cell (Util.boolToYesNo secret.allowCommand) <| class ""
+    tr [ class "row", class "preview" ]
+        [ td [] [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
+        , td [] [ text <| secretTypeToString secret.type_ ]
+        , td [] <| renderEvents secret.events
+        , td [] <| renderImages secret.images
+        , td [] [ text <| Util.boolToYesNo secret.allowCommand ]
 
         -- TODO: change linked name to edit button, when table is fixed
         -- , Table.Table.customCell ( a [ class "button", class "-outline", updateSecretHref type_ secret ] [ text "edit" ]) <| class ""
         ]
+
+
+renderEvents : List String -> List (Html msg)
+renderEvents events =
+    if List.length events == 0 then
+        [ text "no events" ]
+
+    else
+        List.map (\event -> Html.code [ class "secret-event" ] [ text event ]) events
+
+
+renderImages : List String -> List (Html msg)
+renderImages images =
+    if List.length images == 0 then
+        [ text "no images" ]
+
+    else
+        List.map (\image -> Html.code [ class "secret-image" ] [ text image ]) images
 
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page

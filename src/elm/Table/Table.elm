@@ -20,7 +20,13 @@ import Html
         , code
         , div
         , span
+        , table
+        , tbody
+        , td
         , text
+        , th
+        , thead
+        , tr
         )
 import Html.Attributes
     exposing
@@ -59,14 +65,28 @@ type alias Config data msg =
 {-| view : renders data table
 -}
 view : Config data msg -> Html msg
-view config =
-    div [ class "table", class "table" ] <| table config
+view { label, noRows, columns, rows, action } =
+    div []
+        [ Html.h2 []
+            [ text label
+            , Maybe.withDefault (text "") action
+            ]
+        , table [ class "table-base" ]
+            [ thead [] [ tr [] <| List.map (\col -> td [] [ text col ]) columns ]
+            , tbody [] <|
+                if List.length rows > 0 then
+                    List.map (\row_ -> row_.display row_.data) rows
+
+                else
+                    [ div [ class "no-rows" ] [ text noRows ] ]
+            ]
+        ]
 
 
-{-| table : renders table rows
+{-| table\_ : renders table rows
 -}
-table : Config a msg -> List (Html msg)
-table { label, noRows, columns, rows, action } =
+table_ : Config a msg -> List (Html msg)
+table_ { label, noRows, columns, rows, action } =
     [ div [ class "table-label" ]
         [ text label
         , Maybe.withDefault (text "") action
