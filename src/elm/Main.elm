@@ -761,29 +761,6 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        SecretsResponse response ->
-            case response of
-                Ok ( meta, secrets ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-
-                        mergedSecrets =
-                            case secretsModel.secrets of
-                                Success s ->
-                                    RemoteData.succeed <| Util.mergeListsById s secrets
-
-                                _ ->
-                                    RemoteData.succeed secrets
-
-                        pager =
-                            Pagination.get meta.headers
-                    in
-                    ( { model | secretsModel = { secretsModel | secrets = mergedSecrets, pager = pager } }, Cmd.none )
-
-                Err error ->
-                    ( model, addError error )
-
         SecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
@@ -836,6 +813,27 @@ update msg model =
 
                 Err error ->
                     ( model, addError error )
+
+        SecretsResponse response ->
+            let
+                secretsModel =
+                    model.secretsModel
+            in
+            case response of
+                Ok ( _, secrets ) ->
+                    let
+                        mergedSecrets =
+                            case secretsModel.secrets of
+                                Success s ->
+                                    RemoteData.succeed <| Util.mergeListsById s secrets
+
+                                _ ->
+                                    RemoteData.succeed secrets
+                    in
+                    ( { model | secretsModel = { secretsModel | secrets = mergedSecrets } }, Cmd.none )
+
+                Err error ->
+                    ( { model | secretsModel = { secretsModel | secrets = toFailure error } }, addError error )
 
         UpdateRepoEvent org repo field value ->
             let
