@@ -937,28 +937,101 @@ nav {
   border: 1px solid var(--color-red);
 }
 
+
 .table-base {
-  width: 100%;
+  border: 2px solid var(--color-bg-light);
   border-collapse: collapse;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  table-layout: fixed;
+  background-color: var(--color-bg-dark);
 }
-/* Zebra striping */
-.table-base tr:nth-of-type(odd) {
-  background: #eee;
-  color: black;
+
+.table-base tr {
+  border-bottom: 1px solid var(--color-bg-light);
+  padding: .35em;
+}
+
+.table-base caption {
+  font-size: 1.5em;
+  margin: .5em 0 .75em;
+  div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 1rem;
+  }
+}
+
+.table-base th,
+.table-base td {
+  padding: .625em;
+  text-align: center;
+}
+
+.table-base .-line-break {
+  word-wrap: break-word;
 }
 
 .table-base th {
-  background: #333;
-  color: white;
-  font-weight: bold;
-}
-.table-base td,
-.table-base th {
-  padding: 6px;
-  border: 1px solid #ccc;
-  text-align: left;
+  font-size: .85em;
+  letter-spacing: .1em;
+  text-transform: uppercase;
 }
 
+@media screen and (max-width: 600px) {
+  .table-base {
+    border: 0;
+  }
+
+  .table-base caption {
+    font-size: 1.3em;
+  }
+
+  .table-base thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
+
+  .table-base tr {
+    border-bottom: 3px solid var(--color-lavender);
+    display: block;
+    margin-bottom: .625em;
+  }
+
+  .table-base td {
+    border-bottom: 1px solid var(--color-bg-light);
+    display: block;
+    font-size: .8em;
+    text-align: right;
+  }
+
+  .table-base td::before {
+    /*
+    * aria-label has no advantage, it won't be read inside a table
+    content: attr(aria-label);
+    */
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .table-base td:last-child {
+    border-bottom: 0;
+  }
+}
+
+
+
+
+//end table-base
 .table {
   width: 100%;
   margin: 1rem 0;

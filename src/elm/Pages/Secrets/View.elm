@@ -14,14 +14,17 @@ import Html
         , div
         , h2
         , h4
+        , span
         , td
         , text
         , tr
         )
 import Html.Attributes
     exposing
-        ( class
+        ( attribute
+        , class
         , href
+        , scope
         )
 import Html.Events exposing (onClick)
 import Pages.Secrets.Form
@@ -129,34 +132,49 @@ tableHeaders =
 -}
 renderSecret : SecretType -> Secret -> Html msg
 renderSecret type_ secret =
-    tr [ class "row", class "preview" ]
-        [ td [] [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
-        , td [] [ text <| secretTypeToString secret.type_ ]
-        , td [] <| renderEvents secret.events
-        , td [] <| renderImages secret.images
-        , td [] [ text <| Util.boolToYesNo secret.allowCommand ]
-
-        -- TODO: change linked name to edit button, when table is fixed
-        -- , Table.Table.customCell ( a [ class "button", class "-outline", updateSecretHref type_ secret ] [ text "edit" ]) <| class ""
+    tr []
+        [ td
+            [ attribute "data-label" "name"
+            , scope "row"
+            , class "-line-break"
+            ]
+            [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
+        , td
+            [ attribute "data-label" "type"
+            , scope "row"
+            , class "-line-break"
+            ]
+            [ text <| secretTypeToString secret.type_ ]
+        , td
+            [ attribute "data-label" "events"
+            , scope "row"
+            , class "-line-break"
+            ]
+          <|
+            renderListCell secret.events "no events" "secret-event"
+        , td
+            [ attribute "data-label" "images"
+            , scope "row"
+            , class "-line-break"
+            ]
+          <|
+            renderListCell secret.images "no images" "secret-image"
+        , td
+            [ attribute "data-label" "allow command"
+            , scope "row"
+            , class "-line-break"
+            ]
+            [ text <| Util.boolToYesNo secret.allowCommand ]
         ]
 
 
-renderEvents : List String -> List (Html msg)
-renderEvents events =
-    if List.length events == 0 then
-        [ text "no events" ]
+renderListCell : List String -> String -> String -> List (Html msg)
+renderListCell items none itemClassName =
+    if List.length items == 0 then
+        [ text none ]
 
     else
-        List.map (\event -> Html.code [ class "secret-event" ] [ text event ]) events
-
-
-renderImages : List String -> List (Html msg)
-renderImages images =
-    if List.length images == 0 then
-        [ text "no images" ]
-
-    else
-        List.map (\image -> Html.code [ class "secret-image" ] [ text image ]) images
+        List.intersperse (text ", ") <| List.map (\item -> Html.code [ class itemClassName ] [ span [] [ text item ] ]) items
 
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page

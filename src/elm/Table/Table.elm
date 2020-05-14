@@ -30,7 +30,9 @@ import Html
         )
 import Html.Attributes
     exposing
-        ( class
+        ( attribute
+        , class
+        , scope
         )
 import Util
 
@@ -66,20 +68,25 @@ type alias Config data msg =
 -}
 view : Config data msg -> Html msg
 view { label, noRows, columns, rows, action } =
-    div []
-        [ Html.h2 []
-            [ text label
-            , Maybe.withDefault (text "") action
+    table [ class "table-base" ]
+        [ Html.caption []
+            [ div []
+                [ text label
+                , Maybe.withDefault (text "") action
+                ]
             ]
-        , table [ class "table-base" ]
-            [ thead [] [ tr [] <| List.map (\col -> td [] [ text col ]) columns ]
-            , tbody [] <|
-                if List.length rows > 0 then
-                    List.map (\row_ -> row_.display row_.data) rows
+        , thead [] [ tr [] <| List.map (\col -> th [ scope "col" ] [ text col ]) columns ]
+        , if List.length rows == 0 then
+            Html.tfoot [ class "no-rows" ] [ tr [] [ td [ attribute "colspan" "5" ] [ text noRows ] ] ]
 
-                else
-                    [ div [ class "no-rows" ] [ text noRows ] ]
-            ]
+          else
+            text ""
+        , tbody [] <|
+            if List.length rows > 0 then
+                List.map (\row_ -> row_.display row_.data) rows
+
+            else
+                []
         ]
 
 
