@@ -112,6 +112,7 @@ type Msg
     | OnChangeAllowCommand String
     | AddSecret Engine
     | UpdateSecret Engine
+    | NoOp
 
 
 type ManageSecretState

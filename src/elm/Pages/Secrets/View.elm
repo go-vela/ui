@@ -13,7 +13,6 @@ import Html
         , button
         , div
         , h2
-        , h4
         , span
         , td
         , text
@@ -44,7 +43,7 @@ import Pages.Secrets.Model
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
-import Table.Table
+import Table
 import Util exposing (largeLoader)
 import Vela
     exposing
@@ -61,8 +60,8 @@ import Vela
 
 {-| secrets : takes model and renders page for managing secrets
 -}
-secrets : PartialModel a msg -> Html Msg
-secrets model =
+secrets : PartialModel a msg -> Html Msg -> Html Msg
+secrets model pager =
     let
         secretsModel =
             model.secretsModel
@@ -96,17 +95,18 @@ secrets model =
                     , Routes.href <|
                         addSecretRoute
                     ]
-                    [ addHeader secretsModel.type_ ]
+                    [ addLabel secretsModel.type_ ]
     in
     case secretsModel.secrets of
         Success s ->
             div []
-                [ Table.Table.view
-                    (Table.Table.Config label
+                [ Table.view
+                    (Table.Config label
                         noSecrets
                         tableHeaders
                         (secretsToRows model.secretsModel.type_ s)
                         add
+                        pager
                     )
                 ]
 
@@ -116,9 +116,9 @@ secrets model =
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
-secretsToRows : SecretType -> Secrets -> Table.Table.Rows Secret Msg
+secretsToRows : SecretType -> Secrets -> Table.Rows Secret Msg
 secretsToRows type_ =
-    List.map (\secret -> Table.Table.Row secret (renderSecret type_))
+    List.map (\secret -> Table.Row secret (renderSecret type_))
 
 
 {-| tableHeaders : returns table headers for secrets table
@@ -203,16 +203,16 @@ addSecret : PartialModel a msg -> Html Msg
 addSecret model =
     div [ class "manage-secret", Util.testAttribute "manage-secret" ]
         [ div []
-            [ h2 [] [ addHeader model.secretsModel.type_ ]
+            [ h2 [] [ addLabel model.secretsModel.type_ ]
             , addForm model.secretsModel
             ]
         ]
 
 
-{-| addHeader : takes secret type and renders the Add Secret header
+{-| addLabel : takes secret type and renders the Add Secret header label
 -}
-addHeader : SecretType -> Html Msg
-addHeader type_ =
+addLabel : SecretType -> Html Msg
+addLabel type_ =
     case type_ of
         Vela.OrgSecret ->
             text "Add Org Secret"
