@@ -820,7 +820,7 @@ update msg model =
                     model.secretsModel
             in
             case response of
-                Ok ( _, secrets ) ->
+                Ok ( meta, secrets ) ->
                     let
                         mergedSecrets =
                             case secretsModel.secrets of
@@ -829,8 +829,11 @@ update msg model =
 
                                 _ ->
                                     RemoteData.succeed secrets
+
+                        pager =
+                            Pagination.get meta.headers
                     in
-                    ( { model | secretsModel = { secretsModel | secrets = mergedSecrets } }, Cmd.none )
+                    ( { model | secretsModel = { secretsModel | secrets = mergedSecrets, pager = pager } }, Cmd.none )
 
                 Err error ->
                     ( { model | secretsModel = { secretsModel | secrets = toFailure error } }, addError error )
