@@ -50,25 +50,27 @@ init secretResponse secretsResponse addSecretResponse updateSecretResponse =
         ""
         Vela.RepoSecret
         NotAsked
+        NotAsked
         defaultSecretUpdate
         secretResponse
         secretsResponse
         addSecretResponse
         updateSecretResponse
+        []
 
 
 {-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments
 -}
 reinitializeSecretAdd : Model msg -> Model msg
 reinitializeSecretAdd secretsModel =
-    { secretsModel | form = defaultSecretUpdate }
+    { secretsModel | form = defaultSecretUpdate, secret = RemoteData.NotAsked }
 
 
 {-| reinitializeSecretUpdate : takes an incoming secret and reinitializes the secrets page input arguments
 -}
 reinitializeSecretUpdate : Model msg -> Secret -> Model msg
 reinitializeSecretUpdate secretsModel secret =
-    { secretsModel | form = initSecretUpdate secret }
+    { secretsModel | form = initSecretUpdate secret, secret = RemoteData.succeed secret }
 
 
 initSecretUpdate : Secret -> SecretForm

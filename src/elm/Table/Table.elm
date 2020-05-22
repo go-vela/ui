@@ -53,6 +53,7 @@ type alias Config data msg =
     , columns : Columns
     , rows : Rows data msg
     , action : Maybe (Html msg)
+    , testLabel : String
     }
 
 
@@ -60,13 +61,13 @@ type alias Config data msg =
 -}
 view : Config data msg -> Html msg
 view config =
-    div [ class "table", class "table" ] <| table config
+    div [ class "table", class "table", Util.testAttribute <| config.testLabel ++ "-table" ] <| table config
 
 
 {-| table : renders table rows
 -}
 table : Config a msg -> List (Html msg)
-table { label, noRows, columns, rows, action } =
+table { label, noRows, columns, rows, action, testLabel } =
     [ div [ class "table-label" ]
         [ text label
         , Maybe.withDefault (text "") action
@@ -77,7 +78,7 @@ table { label, noRows, columns, rows, action } =
                 viewRows rows
 
             else
-                [ div [ class "no-rows" ] [ text noRows ] ]
+                [ div [ class "no-rows", Util.testAttribute <| testLabel ++ "-table-no-rows" ] [ text noRows ] ]
            )
 
 

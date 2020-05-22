@@ -35,7 +35,7 @@ type Endpoint
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | Step Org Repo BuildNumber StepNumber
     | StepLogs Org Repo BuildNumber StepNumber
-    | Secrets Engine Type Org Name
+    | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
     | Secret Engine Type Org String Name
 
 
@@ -86,8 +86,8 @@ toUrl api endpoint =
         StepLogs org repo buildNumber stepNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "steps", stepNumber, "logs" ] []
 
-        Secrets engine type_ org key ->
-            url api [ "secrets", engine, type_, org, key ] []
+        Secrets maybePage maybePerPage engine type_ org key ->
+            url api [ "secrets", engine, type_, org, key ] <| Pagination.toQueryParams maybePage maybePerPage
 
         Secret engine type_ org key name ->
             url api [ "secrets", engine, type_, org, key, name ] []

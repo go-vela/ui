@@ -96,7 +96,9 @@ module Vela exposing
     , encodeUpdateUser
     , isComplete
     , nullSecret
+    , secretErrorLabel
     , secretTypeToString
+    , secretsErrorLabel
     , statusToFavicon
     , stringToTheme
     , toMaybeSecretType
@@ -1065,6 +1067,45 @@ secretTypeToString type_ =
 
         RepoSecret ->
             "repo"
+
+
+{-| secretsErrorLabel : helper to convert SecretType to string for printing GET secrets resource errors
+-}
+secretsErrorLabel : SecretType -> Org -> Maybe Key -> String
+secretsErrorLabel type_ org key =
+    case type_ of
+        OrgSecret ->
+            "org secrets for " ++ org
+
+        RepoSecret ->
+            "repo secrets for " ++ org ++ "/" ++ Maybe.withDefault "" key
+
+        SharedSecret ->
+            "shared secrets for " ++ org ++ "/" ++ Maybe.withDefault "" key
+
+
+{-| secretErrorLabel : helper to convert SecretType to string for printing GET secret resource errors
+-}
+secretErrorLabel : Secret -> String
+secretErrorLabel secret =
+    "secret " ++ secretKey secret
+
+
+secretKey : Secret -> String
+secretKey { type_, org, repo, team, name } =
+    let
+        args =
+            case type_ of
+                OrgSecret ->
+                    [ org ]
+
+                RepoSecret ->
+                    [ org, repo ]
+
+                SharedSecret ->
+                    [ org, team ]
+    in
+    String.join "/" <| args ++ [ name ]
 
 
 {-| maybeSecretTypeToMaybeString : helper to convert Maybe SecretType to Maybe string
