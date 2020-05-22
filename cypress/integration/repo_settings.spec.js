@@ -21,9 +21,7 @@ context('Repo Settings', () => {
     });
 
     it('should show an error', () => {
-      cy.get('[data-test=alert]')
-        .should('be.visible')
-        .contains('Error');
+      cy.get('[data-test=alert]').should('be.visible').contains('Error');
     });
   });
   context('server returning repo', () => {
@@ -77,18 +75,14 @@ context('Repo Settings', () => {
     it('build timeout input should allow number input', () => {
       cy.get('[data-test=repo-timeout]').as('repoTimeout');
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
-      cy.get('@repoTimeoutInput')
-        .should('be.visible')
-        .type('123');
+      cy.get('@repoTimeoutInput').should('be.visible').type('123');
       cy.get('@repoTimeoutInput').should('have.value', '30123');
     });
 
     it('build timeout input should not allow letter/character input', () => {
       cy.get('[data-test=repo-timeout]').as('repoTimeout');
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
-      cy.get('@repoTimeoutInput')
-        .should('be.visible')
-        .type('cat');
+      cy.get('@repoTimeoutInput').should('be.visible').type('cat');
       cy.get('@repoTimeoutInput').should('not.have.value', 'cat');
       cy.get('@repoTimeoutInput').type('12cat34');
       cy.get('@repoTimeoutInput').should('have.value', '301234');
@@ -97,9 +91,7 @@ context('Repo Settings', () => {
     it('clicking update on build timeout should update timeout and hide button', () => {
       cy.get('[data-test=repo-timeout]').as('repoTimeout');
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
-      cy.get('@repoTimeoutInput')
-        .should('be.visible')
-        .clear();
+      cy.get('@repoTimeoutInput').should('be.visible').clear();
       cy.get('@repoTimeoutInput').type('80');
       cy.get('[data-test=repo-timeout] + button')
         .should('be.visible')
@@ -109,9 +101,7 @@ context('Repo Settings', () => {
 
     it('clicking Refresh Settings button should clear input', () => {
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
-      cy.get('@repoTimeoutInput')
-        .should('be.visible')
-        .type('123');
+      cy.get('@repoTimeoutInput').should('be.visible').type('123');
       cy.get('[data-test=refresh-repo-settings]')
         .should('be.visible')
         .click({ force: true });
@@ -119,9 +109,7 @@ context('Repo Settings', () => {
     });
 
     it('Disable button should exist', () => {
-      cy.get('[data-test=repo-disable]')
-        .should('exist')
-        .should('be.visible');
+      cy.get('[data-test=repo-disable]').should('exist').should('be.visible');
     });
 
     it('clicking button should prompt disable confirmation', () => {
@@ -130,9 +118,7 @@ context('Repo Settings', () => {
         url: '*api/v1/repos/DavidVader/**',
         response: `"Repo DavidVader/applications deleted"`,
       });
-      cy.get('[data-test=repo-disable]')
-        .first()
-        .click({ force: true });
+      cy.get('[data-test=repo-disable]').first().click({ force: true });
       cy.get('[data-test=repo-disable]').should('contain', 'Really Disable?');
     });
 
@@ -163,9 +149,7 @@ context('Repo Settings', () => {
         .click({ force: true })
         .click({ force: true });
       cy.wait('@disable');
-      cy.get('[data-test=repo-enable]')
-        .first()
-        .click({ force: true });
+      cy.get('[data-test=repo-enable]').first().click({ force: true });
       cy.wait('@enable');
       cy.get('[data-test=repo-disable]').should('contain', 'Disable');
     });
@@ -188,15 +172,11 @@ context('Repo Settings', () => {
     it('should copy markdown to clipboard and alert', () => {
       let clipboardContent;
       cy.get('[data-test=copy-md]').click();
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Copied');
+      cy.get('[data-test=alerts]').should('exist').contains('Copied');
     });
 
     it('Chown button should exist', () => {
-      cy.get('[data-test=repo-chown]')
-        .should('exist')
-        .should('be.visible');
+      cy.get('[data-test=repo-chown]').should('exist').should('be.visible');
     });
 
     it('should show an success alert on successful chown of a repo', () => {
@@ -206,9 +186,7 @@ context('Repo Settings', () => {
         response: '"Repo github/octocat changed owner"',
       });
       cy.get('[data-test=repo-chown]').click();
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Success');
+      cy.get('[data-test=alerts]').should('exist').contains('Success');
     });
 
     it('should show an error alert on failed chown of a repo', () => {
@@ -219,15 +197,11 @@ context('Repo Settings', () => {
         response: '"Unable to..."',
       });
       cy.get('[data-test=repo-chown]').click();
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
 
     it('Repair button should exist', () => {
-      cy.get('[data-test=repo-repair]')
-        .should('exist')
-        .should('be.visible');
+      cy.get('[data-test=repo-repair]').should('exist').should('be.visible');
     });
 
     it('should show an success alert on successful repair of a repo', () => {
@@ -237,12 +211,8 @@ context('Repo Settings', () => {
         response: '"Repo github/octocat repaired."',
       });
       cy.get('[data-test=repo-repair]').click();
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Success');
-      cy.get('[data-test=repo-disable]')
-        .should('exist')
-        .contains('Disable');
+      cy.get('[data-test=alerts]').should('exist').contains('Success');
+      cy.get('[data-test=repo-disable]').should('exist').contains('Disable');
     });
 
     it('should show an error alert on a failed repair of a repo', () => {
@@ -253,12 +223,8 @@ context('Repo Settings', () => {
         response: '"Unable to..."',
       });
       cy.get('[data-test=repo-repair]').click();
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
-      cy.get('[data-test=repo-disable]')
-        .should('exist')
-        .contains('Disable');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
+      cy.get('[data-test=repo-disable]').should('exist').contains('Disable');
     });
   });
 
@@ -274,9 +240,7 @@ context('Repo Settings', () => {
     });
 
     it('should show enable button', () => {
-      cy.get('[data-test=repo-enable]')
-        .should('exist')
-        .contains('Enable');
+      cy.get('[data-test=repo-enable]').should('exist').contains('Enable');
     });
 
     it('successful repair enables disable button', () => {
@@ -286,12 +250,8 @@ context('Repo Settings', () => {
         response: '"Repo github/octocat repaired."',
       });
       cy.get('[data-test=repo-repair]').click();
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Success');
-      cy.get('[data-test=repo-disable')
-        .should('exist')
-        .contains('Disable');
+      cy.get('[data-test=alerts]').should('exist').contains('Success');
+      cy.get('[data-test=repo-disable').should('exist').contains('Disable');
     });
 
     it('failed repair keeps enable button enabled', () => {
@@ -302,12 +262,8 @@ context('Repo Settings', () => {
         response: '"Unable to..."',
       });
       cy.get('[data-test=repo-repair]').click();
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
-      cy.get('[data-test=repo-enable')
-        .should('exist')
-        .contains('Enable');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
+      cy.get('[data-test=repo-enable').should('exist').contains('Enable');
     });
   });
 });

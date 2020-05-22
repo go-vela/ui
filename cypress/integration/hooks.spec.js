@@ -20,9 +20,7 @@ context('Hooks', () => {
       cy.get('[data-test=hooks]').should('not.be.visible');
     });
     it('error should show', () => {
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
     it('error banner should show', () => {
       cy.get('[data-test=hooks-error]')
@@ -70,12 +68,8 @@ context('Hooks', () => {
 
     context('hook', () => {
       beforeEach(() => {
-        cy.get('[data-test=hook]')
-          .first()
-          .as('firstHook');
-        cy.get('[data-test=hook]')
-          .last()
-          .as('lastHook');
+        cy.get('[data-test=hook]').first().as('firstHook');
+        cy.get('[data-test=hook]').last().as('lastHook');
       });
       it('should show source id', () => {
         cy.get('@firstHook').within(() => {
@@ -112,9 +106,7 @@ context('Hooks', () => {
               });
             });
             it('should show number', () => {
-              cy.get('@build')
-                .should('be.visible')
-                .contains('build:');
+              cy.get('@build').should('be.visible').contains('build:');
               cy.get('@build')
                 .should('be.visible')
                 .contains('github/octocat/3');

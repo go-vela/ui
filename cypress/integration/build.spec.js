@@ -13,9 +13,7 @@ context('Build', () => {
       cy.login('/someorg/somerepo/1');
     });
     it('error alert should show', () => {
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
   });
   context('logged in and server returning 5 builds', () => {
@@ -32,16 +30,11 @@ context('Build', () => {
 
     it('build history should have 5 builds', () => {
       cy.get('@buildHistory').should('be.visible');
-      cy.get('@buildHistory')
-        .children()
-        .should('have.length', 5);
+      cy.get('@buildHistory').children().should('have.length', 5);
     });
 
     it('clicking build history item should redirect to build page', () => {
-      cy.get('[data-test=recent-build-link-1]')
-        .children()
-        .last()
-        .click();
+      cy.get('[data-test=recent-build-link-1]').children().last().click();
       cy.location('pathname').should('eq', '/someorg/somerepo/105');
     });
   });
@@ -81,24 +74,17 @@ context('Build', () => {
 
       it('build history should have 10 builds', () => {
         cy.get('@buildHistory').should('be.visible');
-        cy.get('@buildHistory')
-          .children()
-          .should('have.length', 10);
+        cy.get('@buildHistory').children().should('have.length', 10);
       });
 
       it('clicking build history item should redirect to build page', () => {
-        cy.get('[data-test=recent-build-link-1]')
-          .children()
-          .last()
-          .click();
+        cy.get('[data-test=recent-build-link-1]').children().last().click();
         cy.location('pathname').should('eq', '/someorg/somerepo/10');
       });
 
       context('hover build history item', () => {
         beforeEach(() => {
-          cy.get('[data-test=build-history-tooltip]')
-            .last()
-            .as('tooltip');
+          cy.get('[data-test=build-history-tooltip]').last().as('tooltip');
         });
 
         it('should show build event', () => {
@@ -167,9 +153,7 @@ context('Build', () => {
       beforeEach(() => {
         cy.visit('/someorg/somerepo/1');
         cy.get('[data-test=full-build]').as('build');
-        cy.get('@build')
-          .get('[data-test=build-status]')
-          .as('buildStatus');
+        cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
       it('build should show', () => {
@@ -181,9 +165,7 @@ context('Build', () => {
       });
 
       it('build should show branch', () => {
-        cy.get('@build')
-          .should('be.visible')
-          .should('contain', 'infra');
+        cy.get('@build').should('be.visible').should('contain', 'infra');
       });
 
       it('build should have running style', () => {
@@ -195,9 +177,7 @@ context('Build', () => {
       beforeEach(() => {
         cy.visit('/someorg/somerepo/2');
         cy.get('[data-test=full-build]').as('build');
-        cy.get('@build')
-          .get('[data-test=build-status]')
-          .as('buildStatus');
+        cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
       it('build should have pending style', () => {
@@ -209,9 +189,7 @@ context('Build', () => {
       beforeEach(() => {
         cy.visit('/someorg/somerepo/3');
         cy.get('[data-test=full-build]').as('build');
-        cy.get('@build')
-          .get('[data-test=build-status]')
-          .as('buildStatus');
+        cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
       it('build should have success style', () => {
@@ -223,9 +201,7 @@ context('Build', () => {
       beforeEach(() => {
         cy.visit('/someorg/somerepo/4');
         cy.get('[data-test=full-build]').as('build');
-        cy.get('@build')
-          .get('[data-test=build-status]')
-          .as('buildStatus');
+        cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
       it('build should have failure style', () => {
@@ -237,9 +213,7 @@ context('Build', () => {
       beforeEach(() => {
         cy.visit('/someorg/somerepo/5');
         cy.get('[data-test=full-build]').as('build');
-        cy.get('@build')
-          .get('[data-test=build-status]')
-          .as('buildStatus');
+        cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
       it('build should have error style', () => {

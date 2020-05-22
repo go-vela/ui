@@ -20,9 +20,7 @@ context('Secrets', () => {
       cy.get('[data-test=secrets]').should('not.be.visible');
     });
     it('error should show', () => {
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
     it('error banner should show', () => {
       cy.get('[data-test=secrets-error]')
@@ -55,12 +53,8 @@ context('Secrets', () => {
 
     context('secret', () => {
       beforeEach(() => {
-        cy.get('[data-test=secrets-row]')
-          .first()
-          .as('firstSecret');
-        cy.get('[data-test=secrets-row]')
-          .last()
-          .as('lastSecret');
+        cy.get('[data-test=secrets-row]').first().as('firstSecret');
+        cy.get('[data-test=secrets-row]').last().as('lastSecret');
       });
       it('should show name', () => {
         cy.get('@firstSecret').within(() => {
