@@ -23,63 +23,37 @@ context('Steps', () => {
     });
 
     it('5 steps should show', () => {
-      cy.get('@steps')
-        .children()
-        .should('have.length', 5);
+      cy.get('@steps').children().should('have.length', 5);
     });
 
     it('steps should be in order by number', () => {
-      cy.get('@steps')
-        .children()
-        .first()
-        .should('contain', 'clone');
+      cy.get('@steps').children().first().should('contain', 'clone');
 
-      cy.get('@steps')
-        .children()
-        .last()
-        .should('contain', 'echo');
+      cy.get('@steps').children().last().should('contain', 'echo');
     });
 
     it('all 5 steps should have logs', () => {
-      cy.get('[data-test=logs-1]')
-        .should('exist')
-        .contains('$');
-      cy.get('[data-test=logs-2]')
-        .should('exist')
-        .contains('$');
-      cy.get('[data-test=logs-3]')
-        .should('exist')
-        .contains('$');
-      cy.get('[data-test=logs-4]')
-        .should('exist')
-        .contains('$');
-      cy.get('[data-test=logs-5]')
-        .should('exist')
-        .contains('$');
+      cy.get('[data-test=logs-1]').should('exist').contains('$');
+      cy.get('[data-test=logs-2]').should('exist').contains('$');
+      cy.get('[data-test=logs-3]').should('exist').contains('$');
+      cy.get('[data-test=logs-4]').should('exist').contains('$');
+      cy.get('[data-test=logs-5]').should('exist').contains('$');
       cy.get('[data-test=logs-6]').should('not.exist');
     });
 
     it('logs should be base64 decoded', () => {
       // all test logs have a '$' encoded in the source
-      cy.get('@logs')
-        .children()
-        .should('contain', '$');
+      cy.get('@logs').children().should('contain', '$');
     });
     it('clicking steps should show/hide logs', () => {
-      cy.get('@logs')
-        .children()
-        .should('be.not.visible');
+      cy.get('@logs').children().should('be.not.visible');
 
       cy.get('@stepHeaders').click({ force: true, multiple: true });
 
-      cy.get('@logs')
-        .children()
-        .should('be.visible');
+      cy.get('@logs').children().should('be.visible');
 
       cy.get('@stepHeaders').click({ force: true, multiple: true });
-      cy.get('@logs')
-        .children()
-        .should('be.not.visible');
+      cy.get('@logs').children().should('be.not.visible');
     });
     context('click log line number', () => {
       beforeEach(() => {
@@ -269,16 +243,12 @@ context('Steps', () => {
       cy.login('/someorg/somerepo/5');
       cy.get('[data-test=steps]').as('steps');
       cy.get('[data-test=step]').as('step');
-      cy.get('[data-test=step-header]')
-        .children()
-        .as('stepHeaders');
+      cy.get('[data-test=step-header]').children().as('stepHeaders');
       cy.get('@stepHeaders').click({ force: true, multiple: true });
       cy.get('[data-test=logs-2]').as('logs');
       cy.get('@stepHeaders').click({ force: true, multiple: true });
       cy.get('[data-test=full-build]').as('build');
-      cy.get('@build')
-        .get('[data-test=build-status]')
-        .as('buildStatus');
+      cy.get('@build').get('[data-test=build-status]').as('buildStatus');
     });
 
     it('build should have error style', () => {
@@ -295,37 +265,25 @@ context('Steps', () => {
     });
 
     it('first step should contain error', () => {
-      cy.get('[data-test=step]')
-        .first()
-        .as('cloneStep');
-      cy.get('@cloneStep')
-        .should('be.visible')
-        .click();
+      cy.get('[data-test=step]').first().as('cloneStep');
+      cy.get('@cloneStep').should('be.visible').click();
       cy.get('@cloneStep').contains('error:');
       cy.get('@cloneStep').contains('problem starting container');
     });
 
     it("first step should not have 'last' styles", () => {
-      cy.get('[data-test=step]')
-        .first()
-        .should('not.have.class', '-last');
+      cy.get('[data-test=step]').first().should('not.have.class', '-last');
     });
 
     it('last step should not contain error', () => {
-      cy.get('[data-test=step]')
-        .last()
-        .as('echoStep');
-      cy.get('@echoStep')
-        .should('be.visible')
-        .click({ force: true });
+      cy.get('[data-test=step]').last().as('echoStep');
+      cy.get('@echoStep').should('be.visible').click({ force: true });
       cy.get('@echoStep').should('not.contain', 'error:');
       cy.get('@echoStep').contains('$');
     });
 
     it("last step should have 'last' styles", () => {
-      cy.get('[data-test=step]')
-        .last()
-        .should('have.class', '-last');
+      cy.get('[data-test=step]').last().should('have.class', '-last');
     });
   });
 });

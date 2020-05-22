@@ -10,9 +10,7 @@ context('Crumbs', () => {
     });
 
     it('visit / should show overview', () => {
-      cy.get('[data-test=crumb-overview]')
-        .should('exist')
-        .contains('Overview');
+      cy.get('[data-test=crumb-overview]').should('exist').contains('Overview');
     });
 
     it('visit /account/add-repos should have Overview with link', () => {
@@ -24,9 +22,7 @@ context('Crumbs', () => {
 
     it('visit /account/add-repos should have Account without link', () => {
       cy.visit('/account/add-repos');
-      cy.get('[data-test=crumb-account]')
-        .should('exist')
-        .contains('Account');
+      cy.get('[data-test=crumb-account]').should('exist').contains('Account');
     });
 
     it('visit /account/add-repos should have Add Repositories without link', () => {

@@ -658,7 +658,8 @@ nav {
 
   margin-left: 0.5em;
 
-  border-color: transparent transparent var(--color-bg-light) transparent;
+  border-color: transparent;
+  border-bottom-color: var(--color-bg-light);
   border-style: solid;
 
   border-width: 5px;
