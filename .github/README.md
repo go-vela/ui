@@ -1,6 +1,6 @@
 # ui
 
-[![license](https://img.shields.io/crates/l/gl.svg)](LICENSE)
+[![license](https://img.shields.io/crates/l/gl.svg)](../LICENSE)
 [![Github Actions](https://github.com/go-vela/ui/workflows/ci/badge.svg?branch=master&event=push)](https://github.com/go-vela/ui/actions?query=branch%3Amaster+event%3Apush)
 
 vela ui
