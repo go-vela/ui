@@ -224,7 +224,9 @@ type alias Model =
 
 type Interval
     = OneSecond
+    | OneSecondHidden
     | FiveSecond RefreshData
+    | FiveSecondHidden RefreshData
 
 
 type alias RefreshData =
@@ -1115,6 +1117,16 @@ update msg model =
                 FiveSecond data ->
                     ( model, refreshPage model data )
 
+                OneSecondHidden ->
+                    let
+                        ( favicon, cmd ) =
+                            refreshFavicon model.page model.favicon model.build
+                    in
+                    ( { model | time = time, favicon = favicon }, cmd )
+
+                FiveSecondHidden data ->
+                    ( model, refreshPageHidden model data )
+
         FilterBuildEventBy maybeEvent org repo ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
 
@@ -1255,7 +1267,9 @@ refreshSubscriptions model =
                 ]
 
             Hidden ->
-                []
+                [ every Util.oneSecondMillis <| Tick OneSecondHidden
+                , every Util.fiveSecondsMillis <| Tick (FiveSecondHidden <| refreshData model)
+                ]
 
 
 {-| refreshFavicon : takes page and restores the favicon to the default when not viewing the build page
@@ -1326,6 +1340,24 @@ refreshPage model _ =
         Pages.SharedSecrets engine org team maybePage maybePerPage ->
             Cmd.batch
                 [ getSecrets model maybePage maybePerPage engine "shared" org team
+                ]
+
+        _ ->
+            Cmd.none
+
+
+{-| refreshPageHidden : refreshes Vela data based on current page and build status when tab is not visible
+-}
+refreshPageHidden : Model -> RefreshData -> Cmd Msg
+refreshPageHidden model _ =
+    let
+        page =
+            model.page
+    in
+    case page of
+        Pages.Build org repo buildNumber _ ->
+            Cmd.batch
+                [ refreshBuild model org repo buildNumber
                 ]
 
         _ ->
