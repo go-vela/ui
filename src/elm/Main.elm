@@ -1114,8 +1114,8 @@ update msg model =
                     in
                     ( { model | time = time, favicon = favicon }, cmd )
 
-                FiveSecond data ->
-                    ( model, refreshPage model data )
+                FiveSecond _ ->
+                    ( model, refreshPage model )
 
                 OneSecondHidden ->
                     let
@@ -1167,7 +1167,16 @@ update msg model =
             ( m, Cmd.none )
 
         VisibilityChanged visibility ->
-            ( { model | visibility = visibility, shift = False }, Cmd.none )
+            let
+                cmd =
+                    case visibility of
+                        Visible ->
+                            refreshPage model
+
+                        Hidden ->
+                            Cmd.none
+            in
+            ( { model | visibility = visibility, shift = False }, cmd )
 
         NoOp ->
             ( model, Cmd.none )
@@ -1303,8 +1312,8 @@ refreshFavicon page currentFavicon build =
 
 {-| refreshPage : refreshes Vela data based on current page and build status
 -}
-refreshPage : Model -> RefreshData -> Cmd Msg
-refreshPage model _ =
+refreshPage : Model -> Cmd Msg
+refreshPage model =
     let
         page =
             model.page
