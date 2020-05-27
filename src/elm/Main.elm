@@ -912,11 +912,11 @@ update msg model =
 
         ClickStep org repo buildNumber stepNumber _ ->
             let
-                ( steps, a ) =
+                ( steps, fetchStepLogs ) =
                     clickStep model.steps stepNumber
 
                 action =
-                    if a then
+                    if fetchStepLogs then
                         getBuildStepLogs model org repo buildNumber stepNumber Nothing
 
                     else
