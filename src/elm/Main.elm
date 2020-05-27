@@ -923,7 +923,7 @@ update msg model =
                         Cmd.none
 
                 stepOpened =
-                    not <| viewingStep steps stepNumber
+                    viewingStep steps stepNumber
 
                 focused =
                     logFocusExists steps
