@@ -68,39 +68,39 @@ context('Steps', () => {
         });
       });
     });
-    // context('click first step', () => {
-    //   beforeEach(() => {
-    //     cy.get('@stepHeaders').first().click({ force: true });
-    //   });
-    //   it('browser path should contain first step fragment', () => {
-    //     cy.hash().should('eq', '#step:1');
-    //   });
-    //   context('click last step', () => {
-    //     beforeEach(() => {
-    //       cy.get('@stepHeaders').last().click({ force: true });
-    //     });
-    //     it('browser path should contain last step fragment', () => {
-    //       cy.hash().should('eq', '#step:5');
-    //     });
-    //   });
-    // });
-    // context('click log line in last step', () => {
-    //   beforeEach(() => {
-    //     cy.get('@stepHeaders').last().click({ force: true });
-    //     cy.get('[data-test=logs-5]').within(() => {
-    //       cy.get('[data-test=log-line-num-2]').as('lineNumber');
-    //     });
-    //     cy.get('@lineNumber').click({ force: true });
-    //   });
-    //   context('click first step', () => {
-    //     beforeEach(() => {
-    //       cy.get('@stepHeaders').first().click({ force: true });
-    //     });
-    //     it('browser path should contain first step fragment', () => {
-    //       cy.hash().should('eq', '#step:1');
-    //     });
-    //   });
-    // });
+    context('click first step', () => {
+      beforeEach(() => {
+        cy.get('@stepHeaders').first().click({ force: true });
+      });
+      it('browser path should contain first step fragment', () => {
+        cy.hash().should('eq', '#step:1');
+      });
+      context('click last step', () => {
+        beforeEach(() => {
+          cy.get('@stepHeaders').last().click({ force: true });
+        });
+        it('browser path should contain last step fragment', () => {
+          cy.hash().should('eq', '#step:5');
+        });
+      });
+    });
+    context('click log line in last step', () => {
+      beforeEach(() => {
+        cy.get('@stepHeaders').last().click({ force: true });
+        cy.get('[data-test=logs-5]').within(() => {
+          cy.get('[data-test=log-line-num-2]').as('lineNumber');
+        });
+        cy.get('@lineNumber').click({ force: true });
+      });
+      context('click first step', () => {
+        beforeEach(() => {
+          cy.get('@stepHeaders').first().click({ force: true });
+        });
+        it('browser path should contain first step fragment', () => {
+          cy.hash().should('eq', '#step:1');
+        });
+      });
+    });
     context('click log line number', () => {
       beforeEach(() => {
         cy.get('@stepHeaders').click({ force: true, multiple: true });
@@ -217,6 +217,14 @@ context('Steps', () => {
           cy.get('@line2:4').should('have.class', '-focus');
         });
       });
+      context('click first step', () => {
+        beforeEach(() => {
+          cy.get('@stepHeaders').first().click({ force: true });
+        });
+        it('browser path should contain first step fragment', () => {
+          cy.hash().should('eq', '#step:1');
+        });
+      });
     });
     context('visit Build, then visit log line range with fragment', () => {
       beforeEach(() => {
@@ -251,6 +259,14 @@ context('Steps', () => {
         cy.get('@line2:3').should('have.class', '-focus');
         cy.get('@line2:4').should('have.class', '-focus');
       });
+      context('click first step', () => {
+        beforeEach(() => {
+          cy.get('@stepHeaders').first().click({ force: true });
+        });
+        it('browser path should contain first step fragment', () => {
+          cy.hash().should('eq', '#step:1');
+        });
+      });
     });
     context(
       'visit Build, click log line, then visit log line with fragment',
@@ -275,6 +291,14 @@ context('Steps', () => {
         });
         it('other line should be highlighted', () => {
           cy.get('@line2:2').should('have.class', '-focus');
+        });
+        context('click first step', () => {
+          beforeEach(() => {
+            cy.get('@stepHeaders').first().click({ force: true });
+          });
+          it('browser path should contain first step fragment', () => {
+            cy.hash().should('eq', '#step:1');
+          });
         });
       },
     );
