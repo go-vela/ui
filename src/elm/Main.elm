@@ -924,14 +924,11 @@ update msg model =
 
                 stepOpened =
                     viewingStep steps stepNumber
-
-                focused =
-                    logFocusExists steps
             in
             ( { model | steps = steps }
             , Cmd.batch <|
                 [ action
-                , if stepOpened && not focused then
+                , if stepOpened then
                     Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
 
                   else
