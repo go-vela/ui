@@ -45,65 +45,104 @@ context('Steps', () => {
       // all test logs have a '$' encoded in the source
       cy.get('@logs').children().should('contain', '$');
     });
-    it('clicking steps should show/hide logs', () => {
-      cy.get('@logs').children().should('be.not.visible');
-
-      cy.get('@stepHeaders').click({ force: true, multiple: true });
-
-      cy.get('@logs').children().should('be.visible');
-
-      cy.get('@stepHeaders').click({ force: true, multiple: true });
-      cy.get('@logs').children().should('be.not.visible');
+    context('click first step', () => {
+      beforeEach(() => {
+        cy.get('@stepHeaders').first().click({ force: true });
+      });
+      it('browser path should contain first step fragment', () => {
+        cy.hash().should('eq', '#step:1');
+      });
+      context('click last step', () => {
+        beforeEach(() => {
+          cy.get('@stepHeaders').last().click({ force: true });
+        });
+        it('browser path should contain last step fragment', () => {
+          cy.hash().should('eq', '#step:5');
+        });
+      });
+      context('click log line in last step', () => {
+        beforeEach(() => {
+          cy.get('@stepHeaders').last().click({ force: true });
+          cy.get('[data-test=logs-5]').within(() => {
+            cy.get('[data-test=log-line-num-2]').as('lineNumber');
+          });
+          cy.get('@lineNumber').click({ force: true });
+        });
+        context('click first step', () => {
+          beforeEach(() => {
+            cy.get('@stepHeaders').first().click({ force: true });
+          });
+          it('browser path should contain first step fragment', () => {
+            cy.hash().should('eq', '#step:1');
+          });
+        });
+      });
     });
-    context('click log line number', () => {
+    context('click steps', () => {
       beforeEach(() => {
         cy.get('@stepHeaders').click({ force: true, multiple: true });
-        cy.wait('@getLogs-1');
-        cy.get('@logs')
-          .first()
-          .within(() => {
-            cy.get('[data-test=log-line-3]').as('line');
-            cy.get('[data-test=log-line-num-3]').as('lineNumber');
-          });
-        cy.get('@lineNumber').click({ force: true });
       });
-
-      it('line should be highlighted', () => {
-        cy.get('@stepHeaders').click({ force: true, multiple: true });
-        cy.get('@lineNumber').click({ force: true });
-        cy.get('@line').should('have.class', '-focus');
+      it('should show logs', () => {
+        cy.get('@logs').children().should('be.visible');
       });
-
-      it('browser path should contain step and line fragment', () => {
-        cy.hash().should('eq', '#step:1:3');
-      });
-
-      context('click other log line number', () => {
+      context('click steps again', () => {
         beforeEach(() => {
-          cy.get('[data-test=logs-5]').within(() => {
-            cy.get('[data-test=log-line-2]').as('otherLine');
-            cy.get('[data-test=log-line-num-2]').as('otherLineNumber');
+          cy.get('@stepHeaders').click({ force: true, multiple: true });
+        });
+        it('should hide logs', () => {
+          cy.get('@logs').children().should('be.not.visible');
+        });
+      });
+      context('click log line number', () => {
+        beforeEach(() => {
+          cy.get('@stepHeaders').click({ force: true, multiple: true });
+          cy.wait('@getLogs-1');
+          cy.get('@logs')
+            .first()
+            .within(() => {
+              cy.get('[data-test=log-line-3]').as('line');
+              cy.get('[data-test=log-line-num-3]').as('lineNumber');
+            });
+          cy.get('@lineNumber').click({ force: true });
+        });
+
+        it('line should be highlighted', () => {
+          cy.get('@stepHeaders').click({ force: true, multiple: true });
+          cy.get('@lineNumber').click({ force: true });
+          cy.get('@line').should('have.class', '-focus');
+        });
+
+        it('browser path should contain step and line fragment', () => {
+          cy.hash().should('eq', '#step:1:3');
+        });
+
+        context('click other log line number', () => {
+          beforeEach(() => {
+            cy.get('[data-test=logs-5]').within(() => {
+              cy.get('[data-test=log-line-2]').as('otherLine');
+              cy.get('[data-test=log-line-num-2]').as('otherLineNumber');
+            });
+            cy.get('@otherLineNumber').click({ force: true });
+            cy.get('@stepHeaders').click({ force: true, multiple: true });
           });
-          cy.get('@otherLineNumber').click({ force: true });
-          cy.get('@stepHeaders').click({ force: true, multiple: true });
-        });
-        it('original line should not be highlighted', () => {
-          cy.get('@line').should('not.have.class', '-focus');
-        });
+          it('original line should not be highlighted', () => {
+            cy.get('@line').should('not.have.class', '-focus');
+          });
 
-        it('other line should be highlighted', () => {
-          cy.get('@otherLineNumber').click({ force: true });
-          cy.get('@otherLine').should('have.class', '-focus');
-        });
+          it('other line should be highlighted', () => {
+            cy.get('@otherLineNumber').click({ force: true });
+            cy.get('@otherLine').should('have.class', '-focus');
+          });
 
-        it('browser path should contain other step and line fragment', () => {
-          cy.get('@stepHeaders').click({ force: true, multiple: true });
-          cy.hash().should('eq', '#step:5:2');
-        });
+          it('browser path should contain other step and line fragment', () => {
+            cy.get('@stepHeaders').click({ force: true, multiple: true });
+            cy.hash().should('eq', '#step:5:2');
+          });
 
-        it('browser path should contain other step and line fragment', () => {
-          cy.get('@otherLineNumber').click({ force: true });
-          cy.hash().should('eq', '#step:5:2');
+          it('browser path should contain other step and line fragment', () => {
+            cy.get('@otherLineNumber').click({ force: true });
+            cy.hash().should('eq', '#step:5:2');
+          });
         });
       });
     });
@@ -234,7 +273,6 @@ context('Steps', () => {
       },
     );
   });
-
   context('visit build/steps with server error', () => {
     beforeEach(() => {
       cy.server();
