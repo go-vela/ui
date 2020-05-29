@@ -912,26 +912,23 @@ update msg model =
 
         ClickStep org repo buildNumber stepNumber _ ->
             let
-                ( steps, a ) =
+                ( steps, fetchStepLogs ) =
                     clickStep model.steps stepNumber
 
                 action =
-                    if a then
+                    if fetchStepLogs then
                         getBuildStepLogs model org repo buildNumber stepNumber Nothing
 
                     else
                         Cmd.none
 
                 stepOpened =
-                    not <| viewingStep steps stepNumber
-
-                focused =
-                    logFocusExists steps
+                    viewingStep steps stepNumber
             in
             ( { model | steps = steps }
             , Cmd.batch <|
                 [ action
-                , if stepOpened && not focused then
+                , if stepOpened then
                     Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
 
                   else
