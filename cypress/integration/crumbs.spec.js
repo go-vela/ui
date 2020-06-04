@@ -61,7 +61,24 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-not-found]').should('not', 'exist');
     });
   });
-  context('logged in - sessionstorage item exists', () => {
+  context('visit org secrets', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route(
+        'GET',
+        '*api/v1/secrets/native/repo/github/**',
+        'fixture:secrets_org_5.json',
+      ).as('secret');
+      cy.login('/-/secrets/native/org/github');
+    });
+    it('should show appropriate secrets crumbs', () => {
+      cy.get('[data-test=crumb-secrets]').should('exist');
+      cy.get('[data-test=crumb-native]').should('exist');
+      cy.get('[data-test=crumb-org]').should('exist');
+      cy.get('[data-test=crumb-github]').should('exist');
+    });
+  });
+  context('visit repo secret', () => {
     beforeEach(() => {
       cy.server();
       cy.route(
@@ -71,9 +88,27 @@ context('Crumbs', () => {
       ).as('secret');
       cy.login('/-/secrets/native/repo/github/octocat/password');
     });
-    it('visit /org/repo should show org and repo crumbs', () => {
-      cy.get('[data-test=crumb-org]').should('exist');
+    it('should show appropriate secrets crumbs', () => {
+      cy.get('[data-test=crumb-secrets]').should('exist');
+      cy.get('[data-test=crumb-native]').should('exist');
       cy.get('[data-test=crumb-repo]').should('exist');
+      cy.get('[data-test=crumb-github]').should('exist');
+      cy.get('[data-test=crumb-octocat]').should('exist');
+      cy.get('[data-test=crumb-password]').should('exist');
+    });
+  });
+  context('visit add repo secret', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.login('/-/secrets/native/repo/github/octocat/add');
+    });
+    it('should show appropriate secrets crumbs', () => {
+      cy.get('[data-test=crumb-secrets]').should('exist');
+      cy.get('[data-test=crumb-native]').should('exist');
+      cy.get('[data-test=crumb-repo]').should('exist');
+      cy.get('[data-test=crumb-github]').should('exist');
+      cy.get('[data-test=crumb-octocat]').should('exist');
+      cy.get('[data-test=crumb-add]').should('exist');
     });
   });
 });
