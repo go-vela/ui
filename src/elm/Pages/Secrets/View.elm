@@ -60,8 +60,8 @@ import Vela
 
 {-| secrets : takes model and renders page for managing secrets
 -}
-secrets : PartialModel a msg -> Html Msg -> Html Msg
-secrets model pager =
+secrets : PartialModel a msg -> Html Msg
+secrets model =
     let
         secretsModel =
             model.secretsModel
@@ -106,7 +106,6 @@ secrets model pager =
                         tableHeaders
                         (secretsToRows model.secretsModel.type_ s)
                         add
-                        pager
                     )
                 ]
 

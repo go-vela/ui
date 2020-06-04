@@ -55,14 +55,13 @@ type alias Config data msg =
     , columns : Columns
     , rows : Rows data msg
     , headerElement : Maybe (Html msg)
-    , pager : Html msg
     }
 
 
 {-| view : renders data table
 -}
 view : Config data msg -> Html msg
-view { label, noRows, columns, rows, headerElement, pager } =
+view { label, noRows, columns, rows, headerElement } =
     let
         numRows =
             List.length rows
@@ -75,7 +74,7 @@ view { label, noRows, columns, rows, headerElement, pager } =
                 ]
             ]
         , thead [] [ tr [] <| List.map (\col -> th [ scope "col" ] [ text col ]) columns ]
-        , footer noRows numRows pager
+        , footer noRows numRows
         , tbody [] <|
             if List.length rows > 0 then
                 List.map (\row_ -> row_.display row_.data) rows
@@ -85,10 +84,10 @@ view { label, noRows, columns, rows, headerElement, pager } =
         ]
 
 
-footer : String -> Int -> Html msg -> Html msg
-footer noRows numRows pager =
+footer : String -> Int -> Html msg
+footer noRows numRows =
     if numRows == 0 then
         Html.tfoot [ class "no-rows" ] [ tr [] [ td [ attribute "colspan" "5" ] [ text noRows ] ] ]
 
     else
-        pager
+        text ""
