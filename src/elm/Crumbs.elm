@@ -254,7 +254,7 @@ toPath page =
                             ( "repo", Nothing )
 
                         orgSecrets =
-                            ( repo, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         repoSecrets =
                             ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
@@ -276,7 +276,7 @@ toPath page =
                             ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         sharedSecrets =
-                            ( org, Just <| Pages.SharedSecrets engine org team Nothing Nothing )
+                            ( team, Just <| Pages.SharedSecrets engine org team Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )
