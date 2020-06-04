@@ -187,3 +187,4 @@ eventToQueryParam maybeEvent =
 href : Route -> Html.Attribute msg
 href route =
     Attr.href (routeToUrl route)
+
