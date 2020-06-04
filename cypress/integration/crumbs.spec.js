@@ -97,7 +97,7 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-password]').should('exist');
     });
   });
-  context('visit repo secret with special character secret key', () => {
+  context('visit shared secret with special characters in team and name', () => {
     beforeEach(() => {
       cy.server();
       cy.route(
