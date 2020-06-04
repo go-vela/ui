@@ -5,7 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Secrets.View exposing (addSecret, editSecret, secrets)
-import Url exposing (percentEncode)
+
 import Errors exposing (viewResourceError)
 import Html
     exposing
@@ -41,6 +41,7 @@ import Pages.Secrets.Model
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Table.Table
+import Url exposing (percentEncode)
 import Util exposing (largeLoader)
 import Vela
     exposing
@@ -158,6 +159,9 @@ renderSecret type_ secret =
 updateSecretHref : SecretType -> Secret -> Html.Attribute msg
 updateSecretHref type_ secret =
     let
+        encodedTeam =
+            percentEncode secret.team
+
         encodedName =
             percentEncode secret.name
     in
@@ -170,7 +174,7 @@ updateSecretHref type_ secret =
                 Routes.RepoSecret "native" secret.org secret.repo encodedName
 
             Vela.SharedSecret ->
-                Routes.SharedSecret "native" secret.org secret.team encodedName
+                Routes.SharedSecret "native" secret.org encodedTeam encodedName
 
 
 
