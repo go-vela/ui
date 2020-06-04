@@ -243,7 +243,7 @@ listSteps org repo buildNumber =
 {-| viewStep : returns cli command for viewing a step
 
     eg.
-    vela view step --org octocat --repo hello-world --build 14 --step 1
+    vela view step --org octocat --repo hello-world --build 14 --step-number 1
 
 -}
 viewStep : Org -> Repo -> BuildNumber -> Command
@@ -253,7 +253,7 @@ viewStep org repo buildNumber =
             "View Step"
 
         content =
-            Just <| "vela view step " ++ buildArgs org repo buildNumber ++ " --step 1"
+            Just <| "vela view step " ++ buildArgs org repo buildNumber ++ " --step-number 1"
 
         docs =
             Just "steps/get"
