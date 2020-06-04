@@ -97,22 +97,22 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-password]').should('exist');
     });
   });
-  context('visit repo secret with special character secret name', () => {
+  context('visit repo secret with special character secret key', () => {
     beforeEach(() => {
       cy.server();
       cy.route(
         'GET',
-        '*api/v1/secrets/native/repo/github/**',
-        'fixture:secret_repo.json',
+        '*api/v1/secrets/native/shared/github/**',
+        'fixture:secret_shared.json',
       ).as('secret');
-      cy.login('/-/secrets/native/repo/github/octocat/docker%2Fpassword');
+      cy.login('/-/secrets/native/shared/github/octo%2Fcat/docker%2Fpassword');
     });
     it('should show appropriate secrets crumbs', () => {
       cy.get('[data-test=crumb-secrets]').should('exist');
       cy.get('[data-test=crumb-native]').should('exist');
-      cy.get('[data-test=crumb-repo]').should('exist');
+      cy.get('[data-test=crumb-shared]').should('exist');
       cy.get('[data-test=crumb-github]').should('exist');
-      cy.get('[data-test=crumb-octocat]').should('exist');
+      cy.get('[data-test="crumb-octo/cat"]').should('exist');
       cy.get('[data-test="crumb-docker/password"]').should('exist');
     });
   });
