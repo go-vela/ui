@@ -97,25 +97,30 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-password]').should('exist');
     });
   });
-  context('visit shared secret with special characters in team and name', () => {
-    beforeEach(() => {
-      cy.server();
-      cy.route(
-        'GET',
-        '*api/v1/secrets/native/shared/github/**',
-        'fixture:secret_shared.json',
-      ).as('secret');
-      cy.login('/-/secrets/native/shared/github/octo%2Fcat/docker%2Fpassword');
-    });
-    it('should show appropriate secrets crumbs', () => {
-      cy.get('[data-test=crumb-secrets]').should('exist');
-      cy.get('[data-test=crumb-native]').should('exist');
-      cy.get('[data-test=crumb-shared]').should('exist');
-      cy.get('[data-test=crumb-github]').should('exist');
-      cy.get('[data-test="crumb-octo/cat"]').should('exist');
-      cy.get('[data-test="crumb-docker/password"]').should('exist');
-    });
-  });
+  context(
+    'visit shared secret with special characters in team and name',
+    () => {
+      beforeEach(() => {
+        cy.server();
+        cy.route(
+          'GET',
+          '*api/v1/secrets/native/shared/github/**',
+          'fixture:secret_shared.json',
+        ).as('secret');
+        cy.login(
+          '/-/secrets/native/shared/github/octo%2Fcat/docker%2Fpassword',
+        );
+      });
+      it('should show appropriate secrets crumbs', () => {
+        cy.get('[data-test=crumb-secrets]').should('exist');
+        cy.get('[data-test=crumb-native]').should('exist');
+        cy.get('[data-test=crumb-shared]').should('exist');
+        cy.get('[data-test=crumb-github]').should('exist');
+        cy.get('[data-test="crumb-octo/cat"]').should('exist');
+        cy.get('[data-test="crumb-docker/password"]').should('exist');
+      });
+    },
+  );
   context('visit add repo secret', () => {
     beforeEach(() => {
       cy.server();
