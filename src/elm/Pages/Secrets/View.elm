@@ -41,6 +41,7 @@ import Pages.Secrets.Model
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Table.Table
+import Url exposing (percentEncode)
 import Util exposing (largeLoader)
 import Vela
     exposing
@@ -157,16 +158,23 @@ renderSecret type_ secret =
 -}
 updateSecretHref : SecretType -> Secret -> Html.Attribute msg
 updateSecretHref type_ secret =
+    let
+        encodedTeam =
+            percentEncode secret.team
+
+        encodedName =
+            percentEncode secret.name
+    in
     Routes.href <|
         case type_ of
             Vela.OrgSecret ->
-                Routes.OrgSecret "native" secret.org secret.name
+                Routes.OrgSecret "native" secret.org encodedName
 
             Vela.RepoSecret ->
-                Routes.RepoSecret "native" secret.org secret.repo secret.name
+                Routes.RepoSecret "native" secret.org secret.repo encodedName
 
             Vela.SharedSecret ->
-                Routes.SharedSecret "native" secret.org secret.team secret.name
+                Routes.SharedSecret "native" secret.org encodedTeam encodedName
 
 
 
