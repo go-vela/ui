@@ -73,6 +73,15 @@ context('Secrets', () => {
           );
         });
       });
+      it('clicking name with special character should use encoded url', () => {
+        cy.get('@lastSecret').within(() => {
+          cy.get('[data-test=secrets-row-name]').click({ force: true });
+          cy.location('pathname').should(
+            'eq',
+            '/-/secrets/native/org/github/github%2Fdeployment',
+          );
+        });
+      });
     });
   });
 });
