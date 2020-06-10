@@ -166,22 +166,26 @@ context('Builds', () => {
     it('should only show 7 push events', () => {
       cy.get('[data-test=build-filter-push]').click({ force: true });
       cy.get('[data-test=build]').should('be.visible').should('have.length', 7);
+      cy.url().should('contain', '?event=push');
     });
 
     it('should only show two pull events', () => {
       cy.get('[data-test=build-filter-pull_request]').click({ force: true });
       cy.get('[data-test=build]').should('be.visible').should('have.length', 2);
+      cy.url().should('contain', '?event=pull_request');
     });
 
     it('should only show one tag event', () => {
       cy.get('[data-test=build-filter-tag]').click({ force: true });
       cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
+      cy.url().should('contain', '?event=tag');
     });
 
     it('should show no results', () => {
-      cy.get('[data-test=build-filter-deploy]').click({ force: true });
+      cy.get('[data-test=build-filter-deployment]').click({ force: true });
       cy.get('[data-test=build]').should('not.be.visible');
-      cy.get('h1').should('contain', 'No builds for "deploy" event found.');
+      cy.get('h1').should('contain', 'No builds for "deployment" event found.');
+      cy.url().should('contain', '?event=deployment');
     });
   });
 });
