@@ -814,13 +814,13 @@ nav {
 
 .log-content {
   display: flex;
-  // min-height: 20px;
 }
 
-.log-button button:hover {
+.line-number:hover {
   text-decoration: underline;
   cursor: pointer;
 }
+
 .no-logs {
   margin-left: 1.5em;
 }
