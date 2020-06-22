@@ -126,7 +126,7 @@ viewLines stepNumber logFocus log clickAction shiftDown =
         l =
             Ansi.Log.update output ansiLogModel
     in
-    div [] <| viewAnsiLogs l False stepNumber logFocus log clickAction shiftDown
+    Html.table [ class "log-table" ] <| viewAnsiLogs l False stepNumber logFocus log clickAction shiftDown
 
 
 {-| viewLine : takes step number, line focus information, and click action and renders a log line
@@ -571,19 +571,19 @@ viewAnsiLine { highlight, id, lineNo, line } stepNumber logFocus log clickAction
             String.isEmpty ""
     in
     Html.tr
-        [ Html.Attributes.id <| id ++ ":" ++ String.fromInt lineNo
+        [ Html.Attributes.id <|
+            id
+                ++ ":"
+                ++ String.fromInt lineNo
+        , Util.testAttribute <|
+            "log-line-"
+                ++ String.fromInt lineNo
+        , class "line"
         ]
-        [ div [ class "line" ]
-            [ div
-                [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNo
-                , class "wrapper"
-
-                -- , logFocusStyles logFocus lineNumber
-                ]
-                [ lineFocusButton stepNumber logFocus lineNo clickAction shiftDown
-                , Html.td [ class "log-content" ]
-                    [ code [] [ Ansi.Log.viewLine line ]
-                    ]
+        [ div [ class "wrapper", logFocusStyles logFocus lineNo ]
+            [ Html.td [ class "log-button" ] [ lineFocusButton stepNumber logFocus lineNo clickAction shiftDown ]
+            , Html.td []
+                [ code [] [ Ansi.Log.viewLine line ]
                 ]
             ]
         ]
