@@ -767,6 +767,11 @@ nav {
   font-size: 14px;
 }
 
+.log-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
 .logs .line {
   display: flex;
   align-items: flex-start;
@@ -813,7 +818,8 @@ nav {
 }
 
 .log-content {
-  display: flex;
+  word-break: break-all;
+  overflow: auto;
 }
 
 .line-number:hover {

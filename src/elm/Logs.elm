@@ -117,7 +117,7 @@ viewLines stepNumber logFocus log clickAction shiftDown =
         l =
             Ansi.Log.update output defaultLogModel
     in
-    Html.table [] <|
+    Html.table [ class "log-table" ] <|
         Array.toList <|
             Array.indexedMap
                 (\idx line ->
@@ -160,7 +160,7 @@ viewLine { id, lineNo, line, stepNumber, logFocus, setLogFocus, shiftDown } =
         [ div [ class "wrapper", logFocusStyles logFocus lineNo ]
             [ Html.td []
                 [ lineFocusButton stepNumber logFocus lineNo setLogFocus shiftDown ]
-            , Html.td []
+            , Html.td [ class "log-content" ]
                 [ code [] [ Ansi.Log.viewLine line ]
                 ]
             ]
