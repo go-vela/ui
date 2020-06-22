@@ -7,128 +7,130 @@
     font-weight: bold;
 }
 .ansi-faint {
-    color: darken(#e6e7e8, 50%);
+    // cannot use sass variables in functions
+    color: darken(hsl(0, 0%, 98%), 50%);
 }
 
 .ansi-framed {
-    background-color: darken(#e6e7e8, 70%);
-    border: 1px solid darken(#e6e7e8, 50%);
+    // cannot use sass variables in functions
+    background-color: darken(hsl(0, 0%, 98%), 70%);
+    border: 1px solid darken(hsl(0, 0%, 98%), 50%);
     border-radius: 5px;
 }
 
 .ansi-black-fg {
-    color: var(--base03);
+    color: var(--color-coal-light);
 }
 .ansi-red-fg {
-    color: var(--base08);
+    color: var(--color-red);
 }
 .ansi-green-fg {
-    color: var(--base0B);
+    color: var(--color-green);
 }
 .ansi-yellow-fg {
-    color: var(--base0A);
+    color: var(--color-yellow);
 }
 .ansi-blue-fg {
-    color: var(--base0D);
+    color: var(--color-blue);
 }
 .ansi-magenta-fg {
-    color: var(--base0E);
+    color: var(--color-lavender);
 }
 .ansi-cyan-fg {
-    color: var(--base0C);
+    color: var(--color-cyan);
 }
 .ansi-white-fg {
-    color: var(--base07);
+    color: var(--color-offwhite);
 }
 
 .ansi-bright-black-fg {
-    color: var(--grey-secondary);
+    color: var(--color-coal-light);
     font-weight: bold;
 }
 .ansi-bright-red-fg {
-    color: var(--base08);
+    color: var(--color-red);
     font-weight: bold;
 }
 .ansi-bright-green-fg {
-    color: var(--base0B);
+    color: var(--color-green);
     font-weight: bold;
 }
 .ansi-bright-yellow-fg {
-    color: var(--base0A);
+    color: var(--color-yellow);
     font-weight: bold;
 }
 .ansi-bright-blue-fg {
-    color: var(--base0D);
+    color: var(--color-blue);
     font-weight: bold;
 }
 .ansi-bright-magenta-fg {
-    color: var(--base0E);
+    color: var(--color-lavender);
     font-weight: bold;
 }
 .ansi-bright-cyan-fg {
-    color: var(--base0C);
+    color: var(--color-cyan);
     font-weight: bold;
 }
 .ansi-bright-white-fg {
-    color: var(--base07);
+    color: var(--color-white);
     font-weight: bold;
 }
 
 .ansi-black-bg {
-    background-color: var(--base03);
+    background-color: var(--color-coal-light);
 }
 .ansi-red-bg {
-    background-color: var(--base08);
+    background-color: var(--color-red);
 }
 .ansi-green-bg {
-    background-color: var(--base0B);
+    background-color: var(--color-green);
 }
 .ansi-yellow-bg {
-    background-color: var(--base0A);
+    background-color: var(--color-yellow);
 }
 .ansi-blue-bg {
-    background-color: var(--base0D);
+    background-color: var(--color-blue);
 }
 .ansi-magenta-bg {
-    background-color: var(--base0E);
+    background-color: var(--color-lavender);
 }
 .ansi-cyan-bg {
-    background-color: var(--base0C);
+    background-color: var(--color-cyan);
 }
 .ansi-white-bg {
-    background-color: var(--base07);
+    background-color: var(--color-offwhite);
 }
 
 .ansi-bright-black-bg {
-    background-color: var(--base03);
+    background-color: var(--color-coal-light);
     font-weight: bold;
 }
 .ansi-bright-red-bg {
-    background-color: var(--base08);
+    background-color: var(--color-red);
     font-weight: bold;
 }
 .ansi-bright-green-bg {
-    background-color: var(--base0B);
+    background-color: var(--color-green);
     font-weight: bold;
 }
 .ansi-bright-yellow-bg {
-    background-color: var(--base0A);
+    background-color: var(--color-yellow);
     font-weight: bold;
 }
 .ansi-bright-blue-bg {
-    background-color: var(--base0D);
+    background-color: var(--color-blue);
     font-weight: bold;
 }
 .ansi-bright-magenta-bg {
-    background-color: var(--base0E);
+    background-color: var(--color-lavender);
     font-weight: bold;
 }
 .ansi-bright-cyan-bg {
-    background-color: var(--base0C);
+    background-color: var(--color-cyan);
     font-weight: bold;
 }
 .ansi-bright-white-bg {
-    background-color: var(--base07);
+    background-color: var(--color-offwhite);
     font-weight: bold;
 }
 
