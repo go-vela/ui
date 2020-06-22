@@ -1,0 +1,152 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+/* ansi text */
+.ansi-bold {
+    font-weight: bold;
+}
+.ansi-faint {
+    color: darken(#e6e7e8, 50%);
+}
+
+.ansi-framed {
+    background-color: darken(#e6e7e8, 70%);
+    border: 1px solid darken(#e6e7e8, 50%);
+    border-radius: 5px;
+}
+
+.ansi-black-fg {
+    color: var(--base03);
+}
+.ansi-red-fg {
+    color: var(--base08);
+}
+.ansi-green-fg {
+    color: var(--base0B);
+}
+.ansi-yellow-fg {
+    color: var(--base0A);
+}
+.ansi-blue-fg {
+    color: var(--base0D);
+}
+.ansi-magenta-fg {
+    color: var(--base0E);
+}
+.ansi-cyan-fg {
+    color: var(--base0C);
+}
+.ansi-white-fg {
+    color: var(--base07);
+}
+
+.ansi-bright-black-fg {
+    color: var(--grey-secondary);
+    font-weight: bold;
+}
+.ansi-bright-red-fg {
+    color: var(--base08);
+    font-weight: bold;
+}
+.ansi-bright-green-fg {
+    color: var(--base0B);
+    font-weight: bold;
+}
+.ansi-bright-yellow-fg {
+    color: var(--base0A);
+    font-weight: bold;
+}
+.ansi-bright-blue-fg {
+    color: var(--base0D);
+    font-weight: bold;
+}
+.ansi-bright-magenta-fg {
+    color: var(--base0E);
+    font-weight: bold;
+}
+.ansi-bright-cyan-fg {
+    color: var(--base0C);
+    font-weight: bold;
+}
+.ansi-bright-white-fg {
+    color: var(--base07);
+    font-weight: bold;
+}
+
+.ansi-black-bg {
+    background-color: var(--base03);
+}
+.ansi-red-bg {
+    background-color: var(--base08);
+}
+.ansi-green-bg {
+    background-color: var(--base0B);
+}
+.ansi-yellow-bg {
+    background-color: var(--base0A);
+}
+.ansi-blue-bg {
+    background-color: var(--base0D);
+}
+.ansi-magenta-bg {
+    background-color: var(--base0E);
+}
+.ansi-cyan-bg {
+    background-color: var(--base0C);
+}
+.ansi-white-bg {
+    background-color: var(--base07);
+}
+
+.ansi-bright-black-bg {
+    background-color: var(--base03);
+    font-weight: bold;
+}
+.ansi-bright-red-bg {
+    background-color: var(--base08);
+    font-weight: bold;
+}
+.ansi-bright-green-bg {
+    background-color: var(--base0B);
+    font-weight: bold;
+}
+.ansi-bright-yellow-bg {
+    background-color: var(--base0A);
+    font-weight: bold;
+}
+.ansi-bright-blue-bg {
+    background-color: var(--base0D);
+    font-weight: bold;
+}
+.ansi-bright-magenta-bg {
+    background-color: var(--base0E);
+    font-weight: bold;
+}
+.ansi-bright-cyan-bg {
+    background-color: var(--base0C);
+    font-weight: bold;
+}
+.ansi-bright-white-bg {
+    background-color: var(--base07);
+    font-weight: bold;
+}
+
+.ansi-blink {
+    animation: 1s blinker step-end infinite;
+}
+
+.monospace-bold {
+    font-family: monospace;
+    font-weight: bold;
+}
+
+@keyframes blinker {
+    from,
+    to {
+        color: transparent;
+    }
+    50% {
+        color: inherit;
+    }
+}

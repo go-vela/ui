@@ -20,6 +20,7 @@ import Ansi
 import Ansi.Log
 import Array
 import Base64 exposing (decode)
+import Dict exposing (Dict)
 import Html
     exposing
         ( Html
@@ -39,6 +40,7 @@ import Json.Decode as Decode
 import List.Extra exposing (updateIf)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
+import Time
 import Util
 import Vela
     exposing
@@ -112,11 +114,19 @@ viewLogs stepNumber logFocus log clickAction shiftDown =
 -}
 viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
 viewLines stepNumber logFocus log clickAction shiftDown =
-    div [ class "lines" ] <|
-        List.indexedMap
-            (\idx -> \line -> viewLine stepNumber line logFocus (idx + 1) clickAction shiftDown)
-        <|
-            decodeLogLine log
+    -- div [ class "lines" ] <|
+    --     List.indexedMap
+    --         (\idx -> \line -> viewLine stepNumber line logFocus (idx + 1) clickAction shiftDown)
+    --     <|
+    --         decodeLogLine log
+    let
+        output =
+            decodeLog log
+
+        l =
+            Ansi.Log.update output ansiLogModel
+    in
+    div [] <| viewAnsiLogs l False stepNumber logFocus log clickAction shiftDown
 
 
 {-| viewLine : takes step number, line focus information, and click action and renders a log line
@@ -130,7 +140,7 @@ viewLine stepNumber line logFocus lineNumber clickAction shiftDown =
             , logFocusStyles logFocus lineNumber
             ]
             [ lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown
-            , code [] [ colorize line ]
+            , code [] [ text line ]
             ]
         ]
 
@@ -444,6 +454,20 @@ decodeLog log =
             ""
 
 
+setForeground : Maybe Ansi.Color -> Html.Attribute msg
+setForeground c =
+    let
+        color =
+            case c of
+                Just Ansi.Red ->
+                    "red"
+
+                _ ->
+                    ""
+    in
+    Html.Attributes.style "color" color
+
+
 {-| logNotEmpty : takes log string and returns True if content exists
 -}
 logNotEmpty : String -> Bool
@@ -490,8 +514,8 @@ position =
     }
 
 
-ansiLog : Ansi.Log.Model
-ansiLog =
+ansiLogModel : Ansi.Log.Model
+ansiLogModel =
     { lineDiscipline = Ansi.Log.Cooked
     , lines = Array.empty
     , position = position
@@ -501,52 +525,65 @@ ansiLog =
     }
 
 
-colorize : String -> Html msg
-colorize line =
+viewAnsiLogs :
+    Ansi.Log.Model
+    -> Bool
+    -> StepNumber
+    -> LogFocus
+    -> Maybe (WebData Log)
+    -> SetLogFocus msg
+    -> Bool
+    -> List (Html msg)
+viewAnsiLogs { lines } hl stepNumber logFocus log clickAction shiftDown =
+    Array.toList <|
+        Array.indexedMap
+            (\idx line ->
+                viewAnsiLine
+                    { highlight = hl
+                    , id = stepNumber
+                    , lineNo = idx + 1
+                    , line = line
+                    }
+                    stepNumber
+                    logFocus
+                    log
+                    clickAction
+                    shiftDown
+            )
+            lines
+
+
+viewAnsiLine :
+    { highlight : Bool
+    , id : String
+    , lineNo : Int
+    , line : Ansi.Log.Line
+    }
+    -> StepNumber
+    -> LogFocus
+    -> Maybe (WebData Log)
+    -> SetLogFocus msg
+    -> Bool
+    -> Html msg
+viewAnsiLine { highlight, id, lineNo, line } stepNumber logFocus log clickAction shiftDown =
     let
-        example =
-            Debug.log "example" "\u{001B}[1;32mhello\u{001B}[0m"
-
-        badExample =
-            Debug.log "bad example" "\\u{001B}[1;32mhello\\u{001B}[0m"
-
-        strA =
-            "\\u{001B}[1;32mhello\\u{001B}[0m"
-
-        strB =
-            "\u{001B}[1;32mhello\u{001B}[0m"
-
-        _ =
-            Debug.log "i thought this would work" <| String.replace "\\\\" "\\" strA
-
-        goodActions =
-            Ansi.parse example
-
-        badActions =
-            Ansi.parse badExample
-
-        _ =
-            Debug.log "line" line
-
-        _ =
-            Debug.log "modified" <| String.replace "\\" "\\\\" line
-
-        actions =
-            Ansi.parse line
-
-        _ =
-            Debug.log "my actions" actions
-
-        _ =
-            Debug.log "example actions" goodActions
-
-        _ =
-            Debug.log "bad actions" badActions
-
-        wtf =
-            Ansi.Log.update example ansiLog
-
-        _ =
-            Debug.log "uhhhhh" wtf
+        empty =
+            String.isEmpty ""
     in
-    text line
+    Html.tr
+        [ Html.Attributes.id <| id ++ ":" ++ String.fromInt lineNo
+        ]
+        [ div [ class "line" ]
+            [ div
+                [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNo
+                , class "wrapper"
+
+                -- , logFocusStyles logFocus lineNumber
+                ]
+                [ lineFocusButton stepNumber logFocus lineNo clickAction shiftDown
+                , Html.td [ class "log-content" ]
+                    [ code [] [ Ansi.Log.viewLine line ]
+                    ]
+                ]
+            ]
+        ]
