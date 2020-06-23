@@ -4,151 +4,189 @@
 
 /* ansi text */
 .ansi-bold {
-    font-weight: bold;
+  font-weight: bold;
 }
+
 .ansi-faint {
-    // cannot use sass variables in functions
-    color: darken(hsl(0, 0%, 98%), 50%);
+  // cannot use sass variables in functions
+  color: darken(hsl(0, 0%, 98%), 50%);
 }
 
 .ansi-framed {
-    // cannot use sass variables in functions
-    background-color: darken(hsl(0, 0%, 98%), 70%);
-    border: 1px solid darken(hsl(0, 0%, 98%), 50%);
-    border-radius: 5px;
+  // cannot use sass variables in functions
+  background-color: darken(hsl(0, 0%, 98%), 70%);
+  border: 1px solid darken(hsl(0, 0%, 98%), 50%);
+  border-radius: 5px;
 }
 
 .ansi-black-fg {
-    color: var(--color-coal-light);
+  color: var(--color-coal-light);
 }
+
 .ansi-red-fg {
-    color: var(--color-red-light);
+  color: var(--color-red-light);
 }
+
 .ansi-green-fg {
-    color: var(--color-green);
+  color: var(--color-green);
 }
+
 .ansi-yellow-fg {
-    color: var(--color-yellow);
+  color: var(--color-yellow);
 }
+
 .ansi-blue-fg {
-    color: var(--color-blue);
+  color: var(--color-blue);
 }
+
 .ansi-magenta-fg {
-    color: var(--color-lavender);
+  color: var(--color-lavender);
 }
+
 .ansi-cyan-fg {
-    color: var(--color-cyan);
+  color: var(--color-cyan);
 }
+
 .ansi-white-fg {
-    color: var(--color-offwhite);
+  color: var(--color-offwhite);
 }
 
 .ansi-bright-black-fg {
-    color: var(--color-coal-light);
-    font-weight: bold;
+  color: var(--color-coal-light);
+  font-weight: bold;
 }
+
 .ansi-bright-red-fg {
-    color: var(--color-red-light);
-    font-weight: bold;
+  color: var(--color-red-light);
+  font-weight: bold;
 }
+
 .ansi-bright-green-fg {
-    color: var(--color-green);
-    font-weight: bold;
+  color: var(--color-green);
+  font-weight: bold;
 }
+
 .ansi-bright-yellow-fg {
-    color: var(--color-yellow);
-    font-weight: bold;
+  color: var(--color-yellow);
+  font-weight: bold;
 }
+
 .ansi-bright-blue-fg {
-    color: var(--color-blue);
-    font-weight: bold;
+  color: var(--color-blue);
+  font-weight: bold;
 }
+
 .ansi-bright-magenta-fg {
-    color: var(--color-lavender);
-    font-weight: bold;
+  color: var(--color-lavender);
+  font-weight: bold;
 }
+
 .ansi-bright-cyan-fg {
-    color: var(--color-cyan);
-    font-weight: bold;
+  color: var(--color-cyan);
+  font-weight: bold;
 }
+
 .ansi-bright-white-fg {
-    color: var(--color-white);
-    font-weight: bold;
+  color: var(--color-white);
+  font-weight: bold;
 }
 
 .ansi-black-bg {
-    background-color: var(--color-coal-light);
+  background-color: var(--color-coal-light);
 }
+
 .ansi-red-bg {
-    background-color: var(--color-red-light);
+  background-color: var(--color-red-light);
 }
+
 .ansi-green-bg {
-    background-color: var(--color-green);
+  background-color: var(--color-green);
 }
+
 .ansi-yellow-bg {
-    background-color: var(--color-yellow);
+  background-color: var(--color-yellow);
 }
+
 .ansi-blue-bg {
-    background-color: var(--color-blue);
+  background-color: var(--color-blue);
 }
+
 .ansi-magenta-bg {
-    background-color: var(--color-lavender);
+  background-color: var(--color-lavender);
 }
+
 .ansi-cyan-bg {
-    background-color: var(--color-cyan);
+  background-color: var(--color-cyan);
 }
+
 .ansi-white-bg {
-    background-color: var(--color-offwhite);
+  background-color: var(--color-offwhite);
 }
 
 .ansi-bright-black-bg {
-    background-color: var(--color-coal-light);
-    font-weight: bold;
+  font-weight: bold;
+
+  background-color: var(--color-coal-light);
 }
+
 .ansi-bright-red-bg {
-    background-color: var(--color-red-light);
-    font-weight: bold;
+  font-weight: bold;
+
+  background-color: var(--color-red-light);
 }
+
 .ansi-bright-green-bg {
-    background-color: var(--color-green);
-    font-weight: bold;
+  font-weight: bold;
+
+  background-color: var(--color-green);
 }
+
 .ansi-bright-yellow-bg {
-    background-color: var(--color-yellow);
-    font-weight: bold;
+  font-weight: bold;
+
+  background-color: var(--color-yellow);
 }
+
 .ansi-bright-blue-bg {
-    background-color: var(--color-blue);
-    font-weight: bold;
+  font-weight: bold;
+
+  background-color: var(--color-blue);
 }
+
 .ansi-bright-magenta-bg {
-    background-color: var(--color-lavender);
-    font-weight: bold;
+  font-weight: bold;
+
+  background-color: var(--color-lavender);
 }
+
 .ansi-bright-cyan-bg {
-    background-color: var(--color-cyan);
-    font-weight: bold;
+  font-weight: bold;
+
+  background-color: var(--color-cyan);
 }
+
 .ansi-bright-white-bg {
-    background-color: var(--color-offwhite);
-    font-weight: bold;
+  font-weight: bold;
+
+  background-color: var(--color-offwhite);
 }
 
 .ansi-blink {
-    animation: 1s blinker step-end infinite;
+  animation: 1s blinker step-end infinite;
 }
 
 .monospace-bold {
-    font-family: monospace;
-    font-weight: bold;
+  font-weight: bold;
+  font-family: monospace;
 }
 
 @keyframes blinker {
-    from,
-    to {
-        color: transparent;
-    }
-    50% {
-        color: inherit;
-    }
+  from,
+  to {
+    color: transparent;
+  }
+
+  50% {
+    color: inherit;
+  }
 }
