@@ -206,6 +206,13 @@ viewFavorite favorites toggleFavorite filtered favorite =
                 [ text "Hooks" ]
             , a
                 [ class "button"
+                , class "-outline"
+                , Util.testAttribute "repo-secrets"
+                , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
+                ]
+                [ text "Secrets" ]
+            , a
+                [ class "button"
                 , Util.testAttribute "repo-view"
                 , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
                 ]

@@ -11,6 +11,7 @@ import Html.Attributes exposing (attribute)
 import Pages exposing (Page(..), toRoute)
 import Routes exposing (Route(..))
 import Tuple exposing (first, second)
+import Url exposing (percentDecode)
 import Util
 
 
@@ -87,6 +88,9 @@ toPath page =
         repoSettings =
             ( "Settings", Nothing )
 
+        secrets =
+            ( "Secrets", Nothing )
+
         pages =
             case page of
                 Pages.Overview ->
@@ -118,6 +122,168 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, repoBuilds, repoSettings ]
 
+                Pages.OrgSecrets engine org maybePage _ ->
+                    let
+                        engineCrumb =
+                            ( engine, Nothing )
+
+                        typeCrumb =
+                            ( "org", Nothing )
+
+                        pageNumber =
+                            pageToString maybePage
+
+                        orgSecrets =
+                            ( org ++ pageNumber, Nothing )
+                    in
+                    [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets ]
+
+                Pages.RepoSecrets engine org repo maybePage _ ->
+                    let
+                        engineCrumb =
+                            ( engine, Nothing )
+
+                        typeCrumb =
+                            ( "repo", Nothing )
+
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+
+                        pageNumber =
+                            pageToString maybePage
+
+                        repoSecrets =
+                            ( repo ++ pageNumber, Nothing )
+                    in
+                    [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, repoSecrets ]
+
+                Pages.SharedSecrets engine org team maybePage _ ->
+                    let
+                        engineCrumb =
+                            ( engine, Nothing )
+
+                        typeCrumb =
+                            ( "shared", Nothing )
+
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+
+                        pageNumber =
+                            pageToString maybePage
+
+                        teamSecrets =
+                            ( team ++ pageNumber, Nothing )
+                    in
+                    [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, teamSecrets ]
+
+                Pages.AddOrgSecret engine org ->
+                    let
+                        engineCrumb =
+                            ( engine, Nothing )
+
+                        typeCrumb =
+                            ( "org", Nothing )
+
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+
+                        add =
+                            ( "Add", Nothing )
+                    in
+                    [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, add ]
+
+                Pages.AddRepoSecret engine org repo ->
+                    let
+                        engineCrumb =
+                            ( engine, Nothing )
+
+                        typeCrumb =
+                            ( "repo", Nothing )
+
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+
+                        repoSecrets =
+                            ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
+
+                        add =
+                            ( "Add", Nothing )
+                    in
+                    [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, repoSecrets, add ]
+
+                Pages.AddSharedSecret engine org team ->
+                    let
+                        engineCrumb =
+                            ( engine, Nothing )
+
+                        typeCrumb =
+                            ( "shared", Nothing )
+
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+
+                        sharedSecrets =
+                            ( team, Just <| Pages.SharedSecrets engine org team Nothing Nothing )
+
+                        add =
+                            ( "Add", Nothing )
+                    in
+                    [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, sharedSecrets, add ]
+
+                Pages.OrgSecret engine org name ->
+                    let
+                        engineCrumb =
+                            ( engine, Nothing )
+
+                        typeCrumb =
+                            ( "org", Nothing )
+
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+
+                        nameCrumb =
+                            ( Maybe.withDefault name <| percentDecode name, Nothing )
+                    in
+                    [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, nameCrumb ]
+
+                Pages.RepoSecret engine org repo name ->
+                    let
+                        engineCrumb =
+                            ( engine, Nothing )
+
+                        typeCrumb =
+                            ( "repo", Nothing )
+
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+
+                        repoSecrets =
+                            ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
+
+                        nameCrumb =
+                            ( Maybe.withDefault name <| percentDecode name, Nothing )
+                    in
+                    [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, repoSecrets, nameCrumb ]
+
+                Pages.SharedSecret engine org team name ->
+                    let
+                        engineCrumb =
+                            ( engine, Nothing )
+
+                        typeCrumb =
+                            ( "shared", Nothing )
+
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+
+                        sharedSecrets =
+                            ( Maybe.withDefault team <| percentDecode team, Just <| Pages.SharedSecrets engine org team Nothing Nothing )
+
+                        nameCrumb =
+                            ( Maybe.withDefault name <| percentDecode name, Nothing )
+                    in
+                    [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, sharedSecrets, nameCrumb ]
+
                 Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
                     let
                         organizationPage =
@@ -135,13 +301,19 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
 
+                Pages.Login ->
+                    []
+
+                Pages.Logout ->
+                    []
+
                 Pages.Settings ->
                     [ ( "Overview", Just Pages.Overview ), ( "My Settings", Nothing ) ]
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]
 
-                _ ->
+                Pages.Authenticate _ ->
                     []
     in
     pages

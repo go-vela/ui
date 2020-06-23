@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Hooks exposing (hookStatus, receiveHookBuild, view)
 
 import Dict
+import Errors exposing (viewResourceError)
 import FeatherIcons
 import Html
     exposing
@@ -72,7 +73,7 @@ view { hooks, hookBuilds, time } org repo clickAction =
                 noHooks
 
             else
-                div [ class "hooks", Util.testAttribute "hooks" ] <|
+                div [ class "table", Util.testAttribute "hooks" ] <|
                     hooksTable time org repo hookBuilds hooks_ clickAction
 
         RemoteData.Loading ->
@@ -82,19 +83,19 @@ view { hooks, hookBuilds, time } org repo clickAction =
             Util.largeLoader
 
         RemoteData.Failure _ ->
-            div [ Util.testAttribute "hooks-error" ]
-                [ p []
-                    [ text <|
-                        "There was an error fetching hooks for this repository, please try again later!"
-                    ]
-                ]
+            viewResourceError { resourceLabel = "hooks for this repository", testLabel = "hooks" }
 
 
 {-| hooksTable : renders hooks table
 -}
 hooksTable : Posix -> Org -> Repo -> HookBuilds -> Hooks -> (Org -> Repo -> BuildNumber -> msg) -> List (Html msg)
 hooksTable now org repo hookBuilds hooks clickAction =
-    headers :: rows now org repo hookBuilds hooks clickAction
+    [ label, headers ] ++ rows now org repo hookBuilds hooks clickAction
+
+
+label : Html msg
+label =
+    div [ class "table-label" ] [ text "Hooks" ]
 
 
 {-| headers : renders hooks table headers
@@ -102,8 +103,7 @@ hooksTable now org repo hookBuilds hooks clickAction =
 headers : Html msg
 headers =
     div [ class "headers" ]
-        [ div [ class "first-cell" ] [ text "" ]
-        , div [ class "header", class "source-id" ] [ text "source id" ]
+        [ div [ class "header", class "source-id" ] [ text "source id" ]
         , div [ class "header" ] [ text "created" ]
         , div [ class "header" ] [ text "host" ]
         , div [ class "header" ] [ text "event" ]

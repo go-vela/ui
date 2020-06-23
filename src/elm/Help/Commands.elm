@@ -4,10 +4,60 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Help.Commands exposing (Command, Commands, commands)
+module Help.Commands exposing
+    ( Arg
+    , Command
+    , Commands
+    , Model
+    , cliDocsUrl
+    , commands
+    , issuesBaseUrl
+    , resourceLoaded
+    , resourceLoading
+    , usageDocsUrl
+    )
 
 import Pages exposing (Page(..))
-import Vela exposing (BuildNumber, Org, Repo)
+import String.Extra
+import Util exposing (anyBlank, noBlanks)
+import Vela
+    exposing
+        ( BuildNumber
+        , Copy
+        , Engine
+        , Key
+        , Name
+        , Org
+        , Repo
+        , SecretType(..)
+        , secretTypeToString
+        )
+
+
+{-| Model : wrapper for help args, meant to slim down the input required to render contextual help for each page
+-}
+type alias Model msg =
+    { user : Arg
+    , sourceRepos : Arg
+    , builds : Arg
+    , build : Arg
+    , repo : Arg
+    , hooks : Arg
+    , secrets : Arg
+    , show : Bool
+    , toggle : Maybe Bool -> msg
+    , copy : Copy msg
+    , noOp : msg
+    , page : Page
+    }
+
+
+{-| Arg : type alias for extracting remotedata information
+-}
+type alias Arg =
+    { loading : Bool
+    , success : Bool
+    }
 
 
 type alias Command =
@@ -44,6 +94,33 @@ commands page =
 
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
+
+        Pages.OrgSecrets engine org _ _ ->
+            [ listSecrets engine Vela.OrgSecret org Nothing ]
+
+        Pages.RepoSecrets engine org repo _ _ ->
+            [ listSecrets engine Vela.RepoSecret org <| Just repo ]
+
+        Pages.SharedSecrets engine org key _ _ ->
+            [ listSecrets engine Vela.SharedSecret org <| Just key ]
+
+        Pages.AddOrgSecret engine org ->
+            [ addSecret engine Vela.OrgSecret org Nothing ]
+
+        Pages.AddRepoSecret engine org repo ->
+            [ addSecret engine Vela.RepoSecret org <| Just repo ]
+
+        Pages.AddSharedSecret engine org team ->
+            [ addSecret engine Vela.SharedSecret org <| Just team ]
+
+        Pages.OrgSecret engine org name ->
+            [ viewSecret engine Vela.OrgSecret org Nothing name, updateSecret engine Vela.OrgSecret org Nothing name ]
+
+        Pages.RepoSecret engine org repo name ->
+            [ viewSecret engine Vela.RepoSecret org (Just repo) name, updateSecret engine Vela.RepoSecret org (Just repo) name ]
+
+        Pages.SharedSecret engine org team name ->
+            [ viewSecret engine Vela.SharedSecret org (Just team) name, updateSecret engine Vela.SharedSecret org (Just team) name ]
 
         Pages.Settings ->
             -- TODO: probably want this filled in
@@ -166,7 +243,7 @@ listSteps org repo buildNumber =
 {-| viewStep : returns cli command for viewing a step
 
     eg.
-    vela view step --org octocat --repo hello-world --build 14 --step 1
+    vela view step --org octocat --repo hello-world --build 14 --step-number 1
 
 -}
 viewStep : Org -> Repo -> BuildNumber -> Command
@@ -176,7 +253,7 @@ viewStep org repo buildNumber =
             "View Step"
 
         content =
-            Just <| "vela view step " ++ buildArgs org repo buildNumber ++ " --step 1"
+            Just <| "vela view step " ++ buildArgs org repo buildNumber ++ " --step-number 1"
 
         docs =
             Just "steps/get"
@@ -285,6 +362,94 @@ listHooks _ _ =
     Command name noCmd noDocs issue
 
 
+{-| listSecrets : returns cli command for listing secrets
+
+    eg.
+    vela get secrets --engine native --type repo --org octocat --team ghe-admins
+
+-}
+listSecrets : Engine -> SecretType -> Org -> Maybe Key -> Command
+listSecrets engine type_ org key =
+    let
+        name =
+            "List " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secrets"
+
+        content =
+            Just <| "vela get secrets " ++ secretBaseArgs engine type_ org key
+
+        docs =
+            Just "secret/get"
+    in
+    Command name content docs noIssue
+
+
+{-| addSecret : returns cli command for adding a secret
+
+    eg.
+    vela add secret --engine native --type repo --org octocat --team ghe-admins --name password --value vela --event push
+
+-}
+addSecret : Engine -> SecretType -> Org -> Maybe Key -> Command
+addSecret engine type_ org key =
+    let
+        name =
+            "Add " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secret"
+
+        content =
+            Just <| "vela add secret " ++ secretBaseArgs engine type_ org key ++ addSecretArgs
+
+        docs =
+            Just "secret/add"
+    in
+    Command name content docs noIssue
+
+
+{-| viewSecret : returns cli command for viewing a secret
+
+    eg.
+    vela view secret --engine native --type org --org octocat --name password
+    vela view secret --engine native --type repo --org octocat --repo hello-world --name password
+    vela view secret --engine native --type shared --org octocat --team ghe-admins --name password
+
+-}
+viewSecret : Engine -> SecretType -> Org -> Maybe Key -> Name -> Command
+viewSecret engine type_ org key name_ =
+    let
+        name =
+            "View " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secret"
+
+        content =
+            Just <| "vela view secret " ++ secretBaseArgs engine type_ org key ++ " --name " ++ name_
+
+        docs =
+            Just "secret/view"
+    in
+    Command name content docs noIssue
+
+
+{-| updateSecret : returns cli command for updating an existing secret
+
+    eg.
+    vela update secret --engine native --type org --org octocat --name password --value new_value
+    vela update secret --engine native --type repo --org octocat --repo hello-world --name password --value new_value
+    vela update secret --engine native --type shared --org octocat --team ghe-admins --name password --value new_value
+
+-}
+updateSecret : Engine -> SecretType -> Org -> Maybe Key -> Name -> Command
+updateSecret engine type_ org key name_ =
+    let
+        name =
+            "Update " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secret"
+
+        content =
+            Just <| "vela update secret " ++ secretBaseArgs engine type_ org key ++ " --name " ++ name_ ++ " --value new_value"
+
+        docs =
+            Just "secret/update"
+    in
+    Command name content docs noIssue
+
+
 {-| authenticate : returns cli command for authenticating
 
     eg.
@@ -317,6 +482,42 @@ repoArgs org repo =
     "--org " ++ org ++ " --repo " ++ repo
 
 
+{-| secretBaseArgs : returns cli args for requesting secrets
+
+    eg.
+    --type org --org octocat
+    --type repo --org octocat --repo hello-world
+    --type shared --org octocat --team ghe-admins
+
+-}
+secretBaseArgs : Engine -> SecretType -> Org -> Maybe Key -> String
+secretBaseArgs engine type_ org key =
+    let
+        keyFlag =
+            case type_ of
+                Vela.OrgSecret ->
+                    ""
+
+                Vela.RepoSecret ->
+                    " --repo " ++ Maybe.withDefault "" key
+
+                Vela.SharedSecret ->
+                    " --team " ++ Maybe.withDefault "" key
+    in
+    "--engine " ++ engine ++ " --type " ++ secretTypeToString type_ ++ " --org " ++ org ++ keyFlag
+
+
+{-| addSecretArgs : returns cli args for adding a secret
+
+    eg.
+     --name password --value vela --event push
+
+-}
+addSecretArgs : String
+addSecretArgs =
+    " --name password --value vela --event push"
+
+
 {-| buildArgs : returns cli args for requesting build resources
 
     eg.
@@ -341,3 +542,175 @@ noDocs =
 noIssue : Maybe String
 noIssue =
     Nothing
+
+
+{-| cliDocsUrl : takes page and returns cli docs url
+-}
+cliDocsUrl : String -> String
+cliDocsUrl page =
+    cliDocsBase ++ page
+
+
+{-| usageDocsUrl : takes page and returns usage docs url
+-}
+usageDocsUrl : String -> String
+usageDocsUrl page =
+    usageDocsBase ++ page
+
+
+docsBase : String
+docsBase =
+    "https://go-vela.github.io/docs/"
+
+
+{-| cliDocsBase : returns base url for cli docs
+-}
+cliDocsBase : String
+cliDocsBase =
+    docsBase ++ "cli/"
+
+
+{-| usageDocsBase : returns base url for usage docs
+-}
+usageDocsBase : String
+usageDocsBase =
+    docsBase ++ "usage/"
+
+
+{-| usageDocsBase : returns base url for cli issues
+-}
+issuesBaseUrl : String
+issuesBaseUrl =
+    "https://github.com/go-vela/cli/issues/"
+
+
+{-| resourceLoaded : takes help args and returns if the resource has been successfully loaded
+-}
+resourceLoaded : Model msg -> Bool
+resourceLoaded args =
+    case args.page of
+        Pages.Overview ->
+            args.user.success
+
+        Pages.AddRepositories ->
+            args.sourceRepos.success
+
+        Pages.RepositoryBuilds _ _ _ _ _ ->
+            args.builds.success
+
+        Pages.Build _ _ _ _ ->
+            args.build.success
+
+        Pages.AddOrgSecret engine org ->
+            noBlanks [ engine, org ]
+
+        Pages.AddRepoSecret engine org repo ->
+            noBlanks [ engine, org, repo ]
+
+        Pages.AddSharedSecret engine org team ->
+            noBlanks [ engine, org, team ]
+
+        Pages.OrgSecrets engine org _ _ ->
+            noBlanks [ engine, org ]
+
+        Pages.RepoSecrets engine org repo _ _ ->
+            noBlanks [ engine, org, repo ]
+
+        Pages.SharedSecrets engine org team _ _ ->
+            noBlanks [ engine, org, team ]
+
+        Pages.OrgSecret engine org name ->
+            noBlanks [ engine, org, name ]
+
+        Pages.RepoSecret engine org repo name ->
+            noBlanks [ engine, org, repo, name ]
+
+        Pages.SharedSecret engine org team name ->
+            noBlanks [ engine, org, team, name ]
+
+        Pages.RepoSettings _ _ ->
+            args.repo.success
+
+        Pages.Hooks _ _ _ _ ->
+            args.hooks.success
+
+        Pages.Settings ->
+            True
+
+        Pages.Login ->
+            True
+
+        Pages.Logout ->
+            True
+
+        Pages.Authenticate _ ->
+            True
+
+        Pages.NotFound ->
+            False
+
+
+{-| resourceLoading : takes help args and returns if the resource is loading
+-}
+resourceLoading : Model msg -> Bool
+resourceLoading args =
+    case args.page of
+        Pages.Overview ->
+            args.user.loading
+
+        Pages.AddRepositories ->
+            args.sourceRepos.loading
+
+        Pages.RepositoryBuilds _ _ _ _ _ ->
+            args.builds.loading
+
+        Pages.Build _ _ _ _ ->
+            args.build.loading
+
+        Pages.OrgSecrets _ _ _ _ ->
+            args.secrets.loading
+
+        Pages.RepoSecrets _ _ _ _ _ ->
+            args.secrets.loading
+
+        Pages.SharedSecrets _ _ _ _ _ ->
+            args.secrets.loading
+
+        Pages.AddOrgSecret engine org ->
+            anyBlank [ engine, org ]
+
+        Pages.AddRepoSecret engine org repo ->
+            anyBlank [ engine, org, repo ]
+
+        Pages.AddSharedSecret engine org team ->
+            anyBlank [ engine, org, team ]
+
+        Pages.OrgSecret engine org name ->
+            anyBlank [ engine, org, name ]
+
+        Pages.RepoSecret engine org repo name ->
+            anyBlank [ engine, org, repo, name ]
+
+        Pages.SharedSecret engine org team name ->
+            anyBlank [ engine, org, team, name ]
+
+        Pages.RepoSettings _ _ ->
+            args.repo.loading
+
+        Pages.Hooks _ _ _ _ ->
+            args.hooks.loading
+
+        Pages.Settings ->
+            False
+
+        Pages.Login ->
+            False
+
+        Pages.Logout ->
+            True
+
+        Pages.Authenticate _ ->
+            True
+
+        Pages.NotFound ->
+            False

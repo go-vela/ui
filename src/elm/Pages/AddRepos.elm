@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.AddRepos exposing (Msgs, PartialModel, view)
 
 import Dict
+import Errors exposing (viewResourceError)
 import Favorites
     exposing
         ( ToggleFavorite
@@ -121,12 +122,7 @@ view model actions =
             loading
 
         RemoteData.Failure _ ->
-            div []
-                [ p []
-                    [ text <|
-                        "There was an error fetching your available repositories... Click Refresh or try again later!"
-                    ]
-                ]
+            viewResourceError { resourceLabel = "your available repositories", testLabel = "repos" }
 
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search

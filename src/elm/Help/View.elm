@@ -4,10 +4,20 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Help.Help exposing (Arg, Args, view)
+module Help.View exposing (help)
 
 import FeatherIcons
-import Help.Commands exposing (Command, commands)
+import Help.Commands
+    exposing
+        ( Command
+        , Model
+        , cliDocsUrl
+        , commands
+        , issuesBaseUrl
+        , resourceLoaded
+        , resourceLoading
+        , usageDocsUrl
+        )
 import Html exposing (Html, a, button, details, div, input, label, li, span, strong, summary, text)
 import Html.Attributes exposing (attribute, class, for, href, id, size, value)
 import Html.Events
@@ -17,35 +27,10 @@ import Util
 import Vela exposing (Copy)
 
 
-{-| Args : wrapper for help args, meant to slim down the input required to render contextual help for each page
+{-| help : takes help args and renders nav button for viewing contextual help for each page
 -}
-type alias Args msg =
-    { user : Arg
-    , sourceRepos : Arg
-    , builds : Arg
-    , build : Arg
-    , repo : Arg
-    , hooks : Arg
-    , show : Bool
-    , toggle : Maybe Bool -> msg
-    , copy : Copy msg
-    , noOp : msg
-    , page : Page
-    }
-
-
-{-| Arg : type alias for extracting remotedata information
--}
-type alias Arg =
-    { loading : Bool
-    , success : Bool
-    }
-
-
-{-| view : takes help args and renders nav button for viewing contextual help for each page
--}
-view : Args msg -> Html msg
-view args =
+help : Model msg -> Html msg
+help args =
     li
         [ id "contextual-help"
         , attribute "aria-label" "toggle contextual help for this page"
@@ -66,15 +51,15 @@ view args =
                 , Util.onClickPreventDefault (args.toggle Nothing)
                 ]
                 [ SvgBuilder.terminal ]
-            , help args
+            , tooltip args
             ]
         ]
 
 
-{-| help : takes help args and renders contextual help dropdown if focused
+{-| tooltip : takes help args and renders contextual help dropdown if focused
 -}
-help : Args msg -> Html msg
-help args =
+tooltip : Model msg -> Html msg
+tooltip args =
     div [ class "tooltip", Util.testAttribute "help-tooltip" ] <|
         [ strong [] [ text "Manage Vela resources using the CLI" ]
         ]
@@ -84,7 +69,7 @@ help args =
 
 {-| body : takes args, (page, cli commands) and renders dropdown body
 -}
-body : Args msg -> List (Html msg)
+body : Model msg -> List (Html msg)
 body args =
     let
         ( copy, cmds ) =
@@ -105,7 +90,7 @@ body args =
 
 {-| footer : takes args, (page, cli commands) and renders dropdown footer
 -}
-footer : Args msg -> Html msg
+footer : Model msg -> Html msg
 footer args =
     if resourceLoading args then
         text ""
@@ -117,7 +102,7 @@ footer args =
         div [ class "help-footer", Util.testAttribute "help-footer" ] <| cliDocs args
 
 
-notLoadedDocs : Args msg -> List (Html msg)
+notLoadedDocs : Model msg -> List (Html msg)
 notLoadedDocs _ =
     [ a [ href <| usageDocsUrl "getting-started/start_build/" ] [ text "Getting Started Docs" ]
     ]
@@ -125,7 +110,7 @@ notLoadedDocs _ =
 
 {-| cliDocs : takes help args and renders footer docs links for commands
 -}
-cliDocs : Args msg -> List (Html msg)
+cliDocs : Model msg -> List (Html msg)
 cliDocs _ =
     [ a [ href <| cliDocsUrl "install" ] [ text "CLI Installation Docs" ]
     , a [ href <| cliDocsUrl "authentication" ] [ text "CLI Authentication Docs" ]
@@ -255,121 +240,3 @@ copyButton attributes copyText =
 cmdSize : String -> Int
 cmdSize content =
     max 18 <| String.length content
-
-
-{-| cliDocsUrl : takes page and returns cli docs url
--}
-cliDocsUrl : String -> String
-cliDocsUrl page =
-    cliDocsBase ++ page
-
-
-{-| usageDocsUrl : takes page and returns usage docs url
--}
-usageDocsUrl : String -> String
-usageDocsUrl page =
-    usageDocsBase ++ page
-
-
-docsBase : String
-docsBase =
-    "https://go-vela.github.io/docs/"
-
-
-{-| cliDocsBase : returns base url for cli docs
--}
-cliDocsBase : String
-cliDocsBase =
-    docsBase ++ "cli/"
-
-
-{-| usageDocsBase : returns base url for usage docs
--}
-usageDocsBase : String
-usageDocsBase =
-    docsBase ++ "usage/"
-
-
-{-| usageDocsBase : returns base url for cli issues
--}
-issuesBaseUrl : String
-issuesBaseUrl =
-    "https://github.com/go-vela/cli/issues/"
-
-
-{-| resourceLoaded : takes help args and returns if the resource has been successfully loaded
--}
-resourceLoaded : Args msg -> Bool
-resourceLoaded args =
-    case args.page of
-        Pages.Overview ->
-            args.user.success
-
-        Pages.AddRepositories ->
-            args.sourceRepos.success
-
-        Pages.RepositoryBuilds _ _ _ _ _ ->
-            args.builds.success
-
-        Pages.Build _ _ _ _ ->
-            args.build.success
-
-        Pages.RepoSettings _ _ ->
-            args.repo.success
-
-        Pages.Hooks _ _ _ _ ->
-            args.hooks.success
-
-        Pages.Settings ->
-            True
-
-        Pages.Login ->
-            True
-
-        Pages.Logout ->
-            True
-
-        Pages.Authenticate _ ->
-            True
-
-        Pages.NotFound ->
-            False
-
-
-{-| resourceLoading : takes help args and returns if the resource is loading
--}
-resourceLoading : Args msg -> Bool
-resourceLoading args =
-    case args.page of
-        Pages.Overview ->
-            args.user.loading
-
-        Pages.AddRepositories ->
-            args.sourceRepos.loading
-
-        Pages.RepositoryBuilds _ _ _ _ _ ->
-            args.builds.loading
-
-        Pages.Build _ _ _ _ ->
-            args.build.loading
-
-        Pages.RepoSettings _ _ ->
-            args.repo.loading
-
-        Pages.Hooks _ _ _ _ ->
-            args.hooks.loading
-
-        Pages.Settings ->
-            False
-
-        Pages.Login ->
-            False
-
-        Pages.Logout ->
-            True
-
-        Pages.Authenticate _ ->
-            True
-
-        Pages.NotFound ->
-            False

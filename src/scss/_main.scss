@@ -652,7 +652,8 @@ nav {
 
   margin-left: 0.5em;
 
-  border-color: transparent transparent var(--color-bg-light) transparent;
+  border-color: transparent;
+  border-bottom-color: var(--color-bg-light);
   border-style: solid;
 
   border-width: 5px;
@@ -942,7 +943,7 @@ nav {
   border: 1px solid var(--color-red);
 }
 
-.hooks {
+.table {
   width: 100%;
   margin: 1rem 0;
   padding-bottom: 0.5rem;
@@ -952,36 +953,44 @@ nav {
   background: var(--color-bg-dark);
 }
 
-.hooks .loading {
+.table .loading {
   display: flex;
 
   margin-top: 0.5em;
   margin-left: 0.4em;
 }
 
-.hooks .row.preview {
+.table .row.preview {
   display: flex;
   flex-direction: row;
   align-items: center;
+  // border-bottom: 1px solid var(--color-primary);
 }
 
-.hooks .headers {
+.table .headers {
   display: flex;
   flex-direction: row;
   align-items: center;
 
   margin-top: 0.3em;
   padding: 0.3em 1rem;
+  padding-left: 1rem;
 
   border-bottom: 1px solid var(--color-bg-light);
+
+  position: relative;
 }
 
-.hooks .header {
+.table .header {
   flex: 1;
 
   font-size: 1.2rem;
 
   text-align: center;
+}
+
+.hooks.table .headers {
+  padding-left: 4.25rem;
 }
 
 .hook-status {
@@ -996,35 +1005,57 @@ nav {
   stroke: var(--color-red);
 }
 
-.hooks .row .cell {
+.table .row .cell {
   flex: 1;
   align-items: center;
   justify-content: center;
 
   font-weight: 300;
-
+  width: 300px;
+  word-wrap: break-word;
   text-align: center;
 }
 
-.hooks .source-id {
+.table .headers .header.-last {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 1rem;
+}
+
+.table .cell.-last {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 1rem;
+
+  button {
+    margin: 0.25rem 0;
+  }
+}
+
+.table .source-id {
   min-width: 330px;
 }
 
-.hooks .first-cell {
-  width: 44px;
+.table .headers .first-cell {
+  width: 2rem;
 }
 
-.hooks .headers .first-cell {
-  width: calc(2rem + 44px);
+.filler-cell {
+  width: 6ch;
 }
 
-.hooks .cell.source-id {
+.table .headers .-label {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+}
+
+.table .cell.source-id {
   display: flex;
   flex-direction: row;
   justify-content: center;
 }
 
-.hooks .text {
+.table .text {
   flex: 1;
   padding: 3px 12px;
 
@@ -1033,7 +1064,7 @@ nav {
   background: var(--color-bg);
 }
 
-.hooks .details {
+.table .details {
   margin: 1rem;
 }
 
@@ -1045,7 +1076,7 @@ nav {
   color: var(--color-red-light);
 }
 
-.hooks .info {
+.table .info {
   display: flex;
   display: inline-block;
   flex-direction: row;
@@ -1059,50 +1090,50 @@ nav {
   border-left: 2px solid var(--color-bg-light);
 }
 
-.hooks .info:last-child {
+.table .info:last-child {
   border-bottom: none;
 }
 
-.hooks .info.-pending {
+.table .info.-pending {
   border-left-color: var(--color-bg-light);
 }
 
-.hooks .info.-running {
+.table .info.-running {
   border-left-color: var(--color-yellow);
 }
 
-.hooks .info.-success {
+.table .info.-success {
   border-left-color: var(--color-green);
 }
 
-.hooks .info.-failure,
-.hooks .info.-error {
+.table .info.-failure,
+.table .info.-error {
   border-left-color: var(--color-red);
 }
 
-.hooks .element span.-m-r,
+.table .element span.-m-r,
 .hook-build .-m-r {
   margin-right: 0.4em;
 }
 
-.hooks .error-label {
+.table .error-label {
   color: var(--color-red-light);
 }
 
-.hooks .hook-build-status.-pending {
+.table .hook-build-status.-pending {
   color: var(--color-offwhite);
 }
 
-.hooks .hook-build-status.-running {
+.table .hook-build-status.-running {
   color: var(--color-yellow);
 }
 
-.hooks .hook-build-status.-success {
+.table .hook-build-status.-success {
   color: var(--color-green);
 }
 
-.hooks .hook-build-status.-failure,
-.hooks .hook-build-status.-error {
+.table .hook-build-status.-failure,
+.table .hook-build-status.-error {
   color: var(--color-red-light);
 }
 
@@ -1310,6 +1341,148 @@ nav {
       margin: 0.5rem 1rem;
     }
   }
+}
+
+.secrets-first-cell {
+  padding: 0.5rem 1rem;
+  padding-bottom: 0;
+  color: var(--color-primary);
+  font-size: 1.2rem;
+}
+
+.manage-secret .header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 2px solid var(--color-secondary);
+}
+
+.manage-secret h2 {
+  margin: 0;
+  border-bottom: 2px solid var(--color-secondary);
+}
+
+.secret-form {
+  margin-bottom: 0.5rem;
+  padding-top: 1rem;
+}
+
+.secret-form section {
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+}
+
+.secret-form .events {
+  padding-left: 1rem;
+}
+
+.images {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.add-image {
+  margin-left: 1rem;
+}
+
+.added-image {
+  margin: 0.2rem 1rem;
+  display: flex;
+  padding: 0.3rem 1rem;
+  align-items: center;
+  background: var(--color-bg-dark);
+  position: relative;
+}
+
+.added-image .name {
+  flex: 1;
+  word-wrap: break-word;
+  font-family: var(--font-code);
+  font-size: 0.9rem;
+}
+
+.images .added-image .button {
+  margin-left: 1rem;
+}
+
+.added-image.chevron {
+  margin-left: 2rem;
+}
+
+.added-image.chevron:before {
+  content: '';
+  border-style: solid;
+  border-width: 0.1rem 1rem 0.1rem 0.2rem;
+  border-color: var(--color-primary);
+  position: absolute;
+  left: -1.5rem;
+}
+
+.no-rows {
+  padding: 1rem;
+}
+
+.manage-secret .subheader {
+  margin-top: 1rem;
+  border-bottom: 2px solid var(--color-primary);
+  width: 80%;
+}
+
+.manage-secret textarea,
+.update-secret textarea {
+  width: 70%;
+  border: none;
+  box-shadow: none;
+  background: var(--color-bg-dark);
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+}
+
+.manage-secret input {
+  max-width: 400px;
+}
+
+.manage-secret textarea {
+  max-width: 70%;
+}
+
+.secret-form .help {
+  padding-bottom: 1rem;
+}
+
+.secret-form .form-action {
+  padding-left: 1rem;
+}
+
+.table-label {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  padding: 0.6rem 0 0 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.table-label .add-secret {
+  margin-right: 1em;
+}
+
+.field-description {
+  font-size: 1rem;
+  font-weight: 300;
+  margin-left: 1rem;
+}
+
+.field-header {
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  margin-left: 1rem;
 }
 
 // visually hide, but keep accessible by screen readers

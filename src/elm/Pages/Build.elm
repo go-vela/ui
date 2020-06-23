@@ -429,11 +429,14 @@ statusToString status =
         Vela.Success ->
             "success"
 
-        Vela.Error ->
-            "server error"
-
         Vela.Failure ->
             "failed"
+
+        Vela.Killed ->
+            "killed"
+
+        Vela.Error ->
+            "server error"
 
 
 {-| statusToClass : takes build status and returns css class
@@ -451,6 +454,9 @@ statusToClass status =
             class "-success"
 
         Vela.Failure ->
+            class "-failure"
+
+        Vela.Killed ->
             class "-failure"
 
         Vela.Error ->
@@ -576,7 +582,7 @@ trimCommitHash commit =
 -- UPDATE HELPERS
 
 
-{-| clickStep : takes model org repo and step number and fetches step information from the api
+{-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs
 -}
 clickStep : WebData Steps -> StepNumber -> ( WebData Steps, Bool )
 clickStep steps stepNumber =
