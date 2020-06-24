@@ -227,3 +227,15 @@
 .buttons .button:not(:last-child) {
   margin-right: 0.5rem;
 }
+
+// modifying html button style
+button .-ptr:hover,
+button .-ptr:focus {
+  cursor: pointer;
+}
+
+// button underline style
+button .-link-ul:hover,
+button .-link-ul:focus {
+  text-decoration: underline;
+}
