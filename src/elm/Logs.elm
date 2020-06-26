@@ -499,6 +499,10 @@ toString log =
             ""
 
 
+
+-- ANSI
+
+
 {-| defaultLogModel : struct to represent default model required by ANSI parser
 -}
 defaultLogModel : Ansi.Log.Model

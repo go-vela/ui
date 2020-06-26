@@ -175,6 +175,48 @@ Cypress.Commands.add('stubStepsWithLogs', () => {
     }).as('getLogs-5');
   });
 });
+Cypress.Commands.add('stubStepsWithANSILogs', () => {
+  cy.server();
+  cy.fixture('steps_5.json').as('steps');
+  cy.route({
+    method: 'GET',
+    url: 'api/v1/repos/*/*/builds/*/steps*',
+    status: 200,
+    response: '@steps',
+  });
+  cy.fixture('ansi_logs').then(logs => {
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/1/logs',
+      status: 200,
+      response: logs[0],
+    }).as('getLogs-1');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
+      status: 200,
+      response: logs[1],
+    }).as('getLogs-2');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/3/logs',
+      status: 200,
+      response: logs[2],
+    }).as('getLogs-3');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/4/logs',
+      status: 200,
+      response: logs[3],
+    }).as('getLogs-4');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/5/logs',
+      status: 200,
+      response: logs[4],
+    }).as('getLogs-5');
+  });
+});
 
 Cypress.Commands.add('stubStepsWithErrorLogs', () => {
   cy.server();

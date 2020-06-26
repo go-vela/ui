@@ -229,13 +229,13 @@
 }
 
 // modifying html button style
-button .-ptr:hover,
-button .-ptr:focus {
+button.-ptr:hover,
+button.-ptr:focus {
   cursor: pointer;
 }
 
 // button underline style
-button .-link-ul:hover,
-button .-link-ul:focus {
+button.-link-ul:hover,
+button.-link-ul:focus {
   text-decoration: underline;
 }
