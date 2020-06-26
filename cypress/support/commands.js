@@ -184,7 +184,7 @@ Cypress.Commands.add('stubStepsWithANSILogs', () => {
     status: 200,
     response: '@steps',
   });
-  cy.fixture('ansi_logs').then(logs => {
+  cy.fixture('logs_ansi').then(logs => {
     cy.route({
       method: 'GET',
       url: 'api/v1/repos/*/*/builds/*/steps/1/logs',

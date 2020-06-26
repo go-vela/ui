@@ -150,21 +150,26 @@ viewLine :
     }
     -> Html msg
 viewLine { id, lineNo, line, stepNumber, logFocus, setLogFocus, shiftDown } =
+    let
+        lineNumber =
+            String.fromInt lineNo
+    in
     Html.tr
         [ Html.Attributes.id <|
             id
                 ++ ":"
                 ++ String.fromInt lineNo
-        , Util.testAttribute <|
-            "log-line-"
-                ++ String.fromInt lineNo
         , class "line"
         ]
-        [ div [ class "wrapper", logFocusStyles logFocus lineNo ]
+        [ div
+            [ class "wrapper"
+            , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, lineNumber ]
+            , logFocusStyles logFocus lineNo
+            ]
             [ Html.td []
                 [ lineFocusButton stepNumber logFocus lineNo setLogFocus shiftDown ]
-            , Html.td [ class "log-content" ]
-                [ code [] [ Ansi.Log.viewLine line ]
+            , Html.td [ class "-word-break-all", class "-overflow-auto" ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, lineNumber ] ] [ Ansi.Log.viewLine line ]
                 ]
             ]
         ]
@@ -178,7 +183,7 @@ lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown =
         [ Util.onClickPreventDefault <|
             clickAction <|
                 logRangeId stepNumber lineNumber logFocus shiftDown
-        , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
         , id <| stepAndLineToFocusId stepNumber lineNumber
         , class "line-number"
         , class "-link-ul"
