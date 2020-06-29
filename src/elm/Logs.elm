@@ -124,7 +124,7 @@ viewLine : StepNumber -> String -> LogFocus -> Int -> SetLogFocus msg -> Bool ->
 viewLine stepNumber line logFocus lineNumber clickAction shiftDown =
     div [ class "line" ]
         [ div
-            [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber
+            [ Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, lineNumber ]
             , class "wrapper"
             , logFocusStyles logFocus lineNumber
             ]
@@ -142,7 +142,7 @@ lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown =
         [ Util.onClickPreventDefault <|
             clickAction <|
                 logRangeId stepNumber lineNumber logFocus shiftDown
-        , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
         , id <| stepAndLineToFocusId stepNumber lineNumber
         , class "line-number"
         , attribute "aria-label" <| "focus step " ++ stepNumber
