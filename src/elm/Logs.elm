@@ -124,7 +124,7 @@ viewLine : StepNumber -> String -> LogFocus -> Int -> SetLogFocus msg -> Bool ->
 viewLine stepNumber line logFocus lineNumber clickAction shiftDown =
     div [ class "line" ]
         [ div
-            [ Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, lineNumber ]
+            [ Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
             , class "wrapper"
             , logFocusStyles logFocus lineNumber
             ]
