@@ -36,7 +36,7 @@
 }
 
 .ansi-blue-fg {
-  color: var(--color-blue);
+  color: var(--color-cyan-dark);
 }
 
 .ansi-magenta-fg {
@@ -72,7 +72,7 @@
 }
 
 .ansi-bright-blue-fg {
-  color: var(--color-blue);
+  color: var(--color-cyan-dark);
   font-weight: bold;
 }
 
@@ -108,7 +108,7 @@
 }
 
 .ansi-blue-bg {
-  background-color: var(--color-blue);
+  background-color: var(--color-cyan-dark);
 }
 
 .ansi-magenta-bg {
@@ -150,7 +150,7 @@
 .ansi-bright-blue-bg {
   font-weight: bold;
 
-  background-color: var(--color-blue);
+  background-color: var(--color-cyan-dark);
 }
 
 .ansi-bright-magenta-bg {
