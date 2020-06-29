@@ -117,15 +117,13 @@ viewLines stepNumber logFocus log clickAction shiftDown =
         Array.toList <|
             Array.indexedMap
                 (\idx line ->
-                    viewLine
-                        { id = stepNumber
-                        , lineNo = idx + 1
-                        , line = line
-                        , stepNumber = stepNumber
-                        , logFocus = logFocus
-                        , setLogFocus = clickAction
-                        , shiftDown = shiftDown
-                        }
+                    viewLine stepNumber
+                        (idx + 1)
+                        line
+                        stepNumber
+                        logFocus
+                        clickAction
+                        shiftDown
                 )
             <|
                 decodeAnsi log
@@ -133,17 +131,8 @@ viewLines stepNumber logFocus log clickAction shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine :
-    { id : String
-    , lineNo : Int
-    , line : Ansi.Log.Line
-    , stepNumber : StepNumber
-    , logFocus : LogFocus
-    , setLogFocus : SetLogFocus msg
-    , shiftDown : Bool
-    }
-    -> Html msg
-viewLine { id, lineNo, line, stepNumber, logFocus, setLogFocus, shiftDown } =
+viewLine : String -> Int -> Ansi.Log.Line -> StepNumber -> LogFocus -> SetLogFocus msg -> Bool -> Html msg
+viewLine id lineNo line stepNumber logFocus setLogFocus shiftDown =
     Html.tr
         [ Html.Attributes.id <|
             id
