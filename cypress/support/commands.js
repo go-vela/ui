@@ -300,3 +300,11 @@ Cypress.Commands.add('setTheme', theme => {
     win.localStorage.setItem('vela-theme', theme);
   });
 });
+
+Cypress.Commands.add('clickSteps', theme => {
+  cy.get('[data-test=step-header-1]').click({ force: true });
+  cy.get('[data-test=step-header-2]').click({ force: true });
+  cy.get('[data-test=step-header-3]').click({ force: true });
+  cy.get('[data-test=step-header-4]').click({ force: true });
+  cy.get('[data-test=step-header-5]').click({ force: true });
+});
