@@ -113,13 +113,6 @@ viewLogs stepNumber logFocus log clickAction shiftDown =
 -}
 viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
 viewLines stepNumber logFocus log clickAction shiftDown =
-    let
-        output =
-            decodeLog log
-
-        l =
-            Ansi.Log.update output defaultLogModel
-    in
     Html.table [ class "log-table" ] <|
         Array.toList <|
             Array.indexedMap
@@ -134,7 +127,8 @@ viewLines stepNumber logFocus log clickAction shiftDown =
                         , shiftDown = shiftDown
                         }
                 )
-                l.lines
+            <|
+                decodeAnsi log
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -545,3 +539,10 @@ defaultPosition =
     { row = 0
     , column = 0
     }
+
+
+{-| decodeAnsi : takes maybe log parses into ansi decoded log line array
+-}
+decodeAnsi : Maybe (WebData Log) -> Array.Array Ansi.Log.Line
+decodeAnsi log =
+    .lines <| Ansi.Log.update (decodeLog log) defaultLogModel
