@@ -211,25 +211,17 @@ context('Steps', () => {
         cy.visit('/someorg/somerepo/1');
         cy.visit('/someorg/somerepo/1#step:2:2:5');
         cy.reload();
+        cy.wait('@getLogs-2');
       });
       it('range start line should be highlighted', () => {
-        cy.wait('@getLogs-2');
         cy.get('[data-test=log-line-2-2]').should('have.class', '-focus');
       });
       it('range end line should be highlighted', () => {
-        cy.wait('@getLogs-2');
         cy.get('[data-test=log-line-2-5]').should('have.class', '-focus');
       });
       it('lines between range start and end should be highlighted', () => {
-        cy.wait('@getLogs-2');
-        cy.get('[data-test=logs-2]').within(() => {
-          cy.get('[data-test=log-line-2-3]').as('line2:3');
-          cy.get('[data-test=log-line-num-3]').as('lineNumber2:3');
-          cy.get('[data-test=log-line-2-4]').as('line2:4');
-          cy.get('[data-test=log-line-num-4]').as('lineNumber2:4');
-        });
-        cy.get('@line2:3').should('have.class', '-focus');
-        cy.get('@line2:4').should('have.class', '-focus');
+        cy.get('[data-test=log-line-2-3]').should('have.class', '-focus');
+        cy.get('[data-test=log-line-2-4]').should('have.class', '-focus');
       });
       context('click first step', () => {
         beforeEach(() => {
@@ -246,14 +238,10 @@ context('Steps', () => {
         beforeEach(() => {
           cy.visit('/someorg/somerepo/1');
           cy.get('@stepHeaders').click({ force: true, multiple: true });
-          cy.get('[data-test=logs-3]').within(() => {
-            cy.get('[data-test=log-line-3]').as('line3:3');
-            cy.get('[data-test=log-line-num-3]').as('lineNumber3:3');
-          });
-          cy.get('[data-test=logs-2]').within(() => {
-            cy.get('[data-test=log-line-2]').as('line2:2');
-            cy.get('[data-test=log-line-num-2]').as('lineNumber2:2');
-          });
+          cy.get('[data-test=log-line-2-2]').as('line2:2');
+          cy.get('[data-test=log-line-num-2-2]').as('lineNumber2:2');
+          cy.get('[data-test=log-line-3-3]').as('line3:3');
+          cy.get('[data-test=log-line-num-3-3]').as('lineNumber3:3');
           cy.get('@lineNumber3:3').click({ force: true });
           cy.visit('/someorg/somerepo/1#step:2:2');
           cy.reload();
