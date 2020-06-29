@@ -162,15 +162,9 @@ viewLine { id, lineNo, line, stepNumber, logFocus, setLogFocus, shiftDown } =
         , class "line"
         ]
         [ div
-<<<<<<< HEAD
             [ class "wrapper"
             , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, lineNumber ]
             , logFocusStyles logFocus lineNo
-=======
-            [ Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
-            , class "wrapper"
-            , logFocusStyles logFocus lineNumber
->>>>>>> fix_cypress_step_logs
             ]
             [ Html.td []
                 [ lineFocusButton stepNumber logFocus lineNo setLogFocus shiftDown ]
