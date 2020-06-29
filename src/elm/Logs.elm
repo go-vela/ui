@@ -144,10 +144,6 @@ viewLine :
     }
     -> Html msg
 viewLine { id, lineNo, line, stepNumber, logFocus, setLogFocus, shiftDown } =
-    let
-        lineNumber =
-            String.fromInt lineNo
-    in
     Html.tr
         [ Html.Attributes.id <|
             id
@@ -157,13 +153,14 @@ viewLine { id, lineNo, line, stepNumber, logFocus, setLogFocus, shiftDown } =
         ]
         [ div
             [ class "wrapper"
-            , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, lineNumber ]
+            , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNo ]
             , logFocusStyles logFocus lineNo
             ]
             [ Html.td []
                 [ lineFocusButton stepNumber logFocus lineNo setLogFocus shiftDown ]
             , Html.td [ class "-word-break-all", class "-overflow-auto" ]
-                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, lineNumber ] ] [ Ansi.Log.viewLine line ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNo ] ]
+                    [ Ansi.Log.viewLine line ]
                 ]
             ]
         ]
