@@ -102,12 +102,8 @@ context('Steps', () => {
       beforeEach(() => {
         cy.clickSteps();
         cy.wait('@getLogs-1');
-        cy.get('@logs')
-          .first()
-          .within(() => {
-            cy.get('[data-test=log-line-1-3]').as('line');
-            cy.get('[data-test=log-line-num-1-3]').as('lineNumber');
-          });
+        cy.get('[data-test=log-line-1-3]').as('line');
+        cy.get('[data-test=log-line-num-1-3]').as('lineNumber');
         cy.get('@lineNumber').click({ force: true });
       });
 
