@@ -132,23 +132,23 @@ viewLines stepNumber logFocus log clickAction shiftDown =
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
 viewLine : String -> Int -> Ansi.Log.Line -> StepNumber -> LogFocus -> SetLogFocus msg -> Bool -> Html msg
-viewLine id lineNo line stepNumber logFocus setLogFocus shiftDown =
+viewLine id lineNumber line stepNumber logFocus setLogFocus shiftDown =
     Html.tr
         [ Html.Attributes.id <|
             id
                 ++ ":"
-                ++ String.fromInt lineNo
+                ++ String.fromInt lineNumber
         , class "line"
         ]
         [ div
             [ class "wrapper"
-            , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNo ]
-            , logFocusStyles logFocus lineNo
+            , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
+            , logFocusStyles logFocus lineNumber
             ]
             [ Html.td []
-                [ lineFocusButton stepNumber logFocus lineNo setLogFocus shiftDown ]
+                [ lineFocusButton stepNumber logFocus lineNumber setLogFocus shiftDown ]
             , Html.td [ class "-word-break-all", class "-overflow-auto" ]
-                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNo ] ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
                     [ Ansi.Log.viewLine line ]
                 ]
             ]
