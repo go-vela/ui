@@ -166,8 +166,8 @@ lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown =
         , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
         , id <| stepAndLineToFocusId stepNumber lineNumber
         , class "line-number"
-        , class "-link-ul"
-        , class "-ptr"
+        , class "button"
+        , class "-link"
         , attribute "aria-label" <| "focus step " ++ stepNumber
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
