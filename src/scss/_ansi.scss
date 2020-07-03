@@ -8,14 +8,12 @@
 }
 
 .ansi-faint {
-  // cannot use sass variables in functions
-  color: darken(hsl(0, 0%, 98%), 50%);
+  color: var(--color-coal-light);
 }
 
 .ansi-framed {
-  // cannot use sass variables in functions
-  background-color: darken(hsl(0, 0%, 98%), 70%);
-  border: 1px solid darken(hsl(0, 0%, 98%), 50%);
+  background-color: var(--color-coal);
+  border: 1px solid var(--color-coal-light);
   border-radius: 5px;
 }
 
@@ -177,7 +175,7 @@
 
 .monospace-bold {
   font-weight: bold;
-  font-family: monospace;
+  font-family: var(--font-code);
 }
 
 @keyframes blinker {
