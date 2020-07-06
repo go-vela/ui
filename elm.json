@@ -21,7 +21,8 @@
       "krisajenkins/remotedata": "6.0.1",
       "pablen/toasty": "1.2.0",
       "ryannhg/date-format": "2.3.0",
-      "truqu/elm-base64": "2.0.4"
+      "truqu/elm-base64": "2.0.4",
+      "vito/elm-ansi": "9.0.1"
     },
     "indirect": {
       "elm/bytes": "1.0.8",
