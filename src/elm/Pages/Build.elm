@@ -253,7 +253,7 @@ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction s
         stepSummary =
             [ summary
                 [ class "summary"
-                , Util.testAttribute "step-header"
+                , Util.testAttribute <| "step-header-" ++ stepNumber
                 , onClick <| expandAction org repo buildNum stepNumber ("#step:" ++ stepNumber)
                 , id <| stepToFocusId <| String.fromInt step.number
                 ]

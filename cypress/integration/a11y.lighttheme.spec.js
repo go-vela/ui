@@ -92,7 +92,7 @@ context('Accessibility (a11y)', () => {
       cy.login('/someorg/somerepo/1');
       cy.injectAxe();
       cy.wait(500);
-      cy.get('[data-test=step-header]').click({ multiple: true });
+      cy.clickSteps();
       cy.checkA11y(A11Y_OPTS);
     });
   });
