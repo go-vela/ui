@@ -1,0 +1,190 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+/* ansi text */
+.ansi-bold {
+  font-weight: bold;
+}
+
+.ansi-faint {
+  color: var(--color-coal-light);
+}
+
+.ansi-framed {
+  background-color: var(--color-coal);
+  border: 1px solid var(--color-coal-light);
+  border-radius: 5px;
+}
+
+.ansi-black-fg {
+  color: var(--color-coal-light);
+}
+
+.ansi-red-fg {
+  color: var(--color-red-light);
+}
+
+.ansi-green-fg {
+  color: var(--color-green);
+}
+
+.ansi-yellow-fg {
+  color: var(--color-yellow);
+}
+
+.ansi-blue-fg {
+  color: var(--color-cyan-dark);
+}
+
+.ansi-magenta-fg {
+  color: var(--color-lavender);
+}
+
+.ansi-cyan-fg {
+  color: var(--color-cyan);
+}
+
+.ansi-white-fg {
+  color: var(--color-offwhite);
+}
+
+.ansi-bright-black-fg {
+  color: var(--color-coal-light);
+  font-weight: bold;
+}
+
+.ansi-bright-red-fg {
+  color: var(--color-red-light);
+  font-weight: bold;
+}
+
+.ansi-bright-green-fg {
+  color: var(--color-green);
+  font-weight: bold;
+}
+
+.ansi-bright-yellow-fg {
+  color: var(--color-yellow);
+  font-weight: bold;
+}
+
+.ansi-bright-blue-fg {
+  color: var(--color-cyan-dark);
+  font-weight: bold;
+}
+
+.ansi-bright-magenta-fg {
+  color: var(--color-lavender);
+  font-weight: bold;
+}
+
+.ansi-bright-cyan-fg {
+  color: var(--color-cyan);
+  font-weight: bold;
+}
+
+.ansi-bright-white-fg {
+  color: var(--color-white);
+  font-weight: bold;
+}
+
+.ansi-black-bg {
+  background-color: var(--color-coal-light);
+}
+
+.ansi-red-bg {
+  background-color: var(--color-red-light);
+}
+
+.ansi-green-bg {
+  background-color: var(--color-green);
+}
+
+.ansi-yellow-bg {
+  background-color: var(--color-yellow);
+}
+
+.ansi-blue-bg {
+  background-color: var(--color-cyan-dark);
+}
+
+.ansi-magenta-bg {
+  background-color: var(--color-lavender);
+}
+
+.ansi-cyan-bg {
+  background-color: var(--color-cyan);
+}
+
+.ansi-white-bg {
+  background-color: var(--color-offwhite);
+}
+
+.ansi-bright-black-bg {
+  font-weight: bold;
+
+  background-color: var(--color-coal-light);
+}
+
+.ansi-bright-red-bg {
+  font-weight: bold;
+
+  background-color: var(--color-red-light);
+}
+
+.ansi-bright-green-bg {
+  font-weight: bold;
+
+  background-color: var(--color-green);
+}
+
+.ansi-bright-yellow-bg {
+  font-weight: bold;
+
+  background-color: var(--color-yellow);
+}
+
+.ansi-bright-blue-bg {
+  font-weight: bold;
+
+  background-color: var(--color-cyan-dark);
+}
+
+.ansi-bright-magenta-bg {
+  font-weight: bold;
+
+  background-color: var(--color-lavender);
+}
+
+.ansi-bright-cyan-bg {
+  font-weight: bold;
+
+  background-color: var(--color-cyan);
+}
+
+.ansi-bright-white-bg {
+  font-weight: bold;
+
+  background-color: var(--color-offwhite);
+}
+
+.ansi-blink {
+  animation: 1s blinker step-end infinite;
+}
+
+.monospace-bold {
+  font-weight: bold;
+  font-family: var(--font-code);
+}
+
+@keyframes blinker {
+  from,
+  to {
+    color: transparent;
+  }
+
+  50% {
+    color: inherit;
+  }
+}
