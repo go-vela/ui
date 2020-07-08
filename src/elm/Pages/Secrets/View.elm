@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Secrets.View exposing (addSecret, editSecret, secrets)
 
+import Errors exposing (viewResourceError)
 import Html
     exposing
         ( Html
@@ -40,17 +41,21 @@ import Pages.Secrets.Model
         , Model
         , Msg(..)
         , PartialModel
+        , secretsResourceKey
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Table
+import Url exposing (percentEncode)
 import Util exposing (largeLoader)
 import Vela
     exposing
         ( Secret
         , SecretType(..)
         , Secrets
+        , secretErrorLabel
         , secretTypeToString
+        , secretsErrorLabel
         )
 
 
@@ -108,6 +113,16 @@ secrets model =
                         add
                     )
                 ]
+
+        RemoteData.Failure _ ->
+            viewResourceError
+                { resourceLabel =
+                    secretsErrorLabel secretsModel.type_
+                        secretsModel.org
+                    <|
+                        secretsResourceKey secretsModel
+                , testLabel = "secrets"
+                }
 
         _ ->
             div [] [ largeLoader ]
@@ -180,16 +195,23 @@ renderListCell items none itemClassName =
 -}
 updateSecretHref : SecretType -> Secret -> Html.Attribute msg
 updateSecretHref type_ secret =
+    let
+        encodedTeam =
+            percentEncode secret.team
+
+        encodedName =
+            percentEncode secret.name
+    in
     Routes.href <|
         case type_ of
             Vela.OrgSecret ->
-                Routes.OrgSecret "native" secret.org secret.name
+                Routes.OrgSecret "native" secret.org encodedName
 
             Vela.RepoSecret ->
-                Routes.RepoSecret "native" secret.org secret.repo secret.name
+                Routes.RepoSecret "native" secret.org secret.repo encodedName
 
             Vela.SharedSecret ->
-                Routes.SharedSecret "native" secret.org secret.team secret.name
+                Routes.SharedSecret "native" secret.org encodedTeam encodedName
 
 
 
@@ -251,12 +273,20 @@ addForm secretsModel =
 -}
 editSecret : PartialModel a msg -> Html Msg
 editSecret model =
-    div [ class "manage-secret", Util.testAttribute "manage-secret" ]
-        [ div []
-            [ h2 [] [ editHeader model.secretsModel.type_ ]
-            , editForm model.secretsModel
-            ]
-        ]
+    case model.secretsModel.secret of
+        Success _ ->
+            div [ class "manage-secret", Util.testAttribute "manage-secret" ]
+                [ div []
+                    [ h2 [] [ editHeader model.secretsModel.type_ ]
+                    , editForm model.secretsModel
+                    ]
+                ]
+
+        Failure _ ->
+            viewResourceError { resourceLabel = "secret", testLabel = "secret" }
+
+        _ ->
+            text ""
 
 
 {-| editHeader : takes secret type and renders view/edit secret header

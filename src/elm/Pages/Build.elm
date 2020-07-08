@@ -253,7 +253,7 @@ viewStepDetails now org repo buildNumber step logs expandAction logFocusAction s
         stepSummary =
             [ summary
                 [ class "summary"
-                , Util.testAttribute "step-header"
+                , Util.testAttribute <| "step-header-" ++ stepNumber
                 , onClick <| expandAction org repo buildNum stepNumber ("#step:" ++ stepNumber)
                 , id <| stepToFocusId <| String.fromInt step.number
                 ]
@@ -582,7 +582,7 @@ trimCommitHash commit =
 -- UPDATE HELPERS
 
 
-{-| clickStep : takes model org repo and step number and fetches step information from the api
+{-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs
 -}
 clickStep : WebData Steps -> StepNumber -> ( WebData Steps, Bool )
 clickStep steps stepNumber =

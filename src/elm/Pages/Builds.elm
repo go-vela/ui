@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Builds exposing (view)
 
+import Errors exposing (viewResourceError)
 import Html
     exposing
         ( Html
@@ -42,7 +43,7 @@ view buildsModel now org repo maybeEvent =
             case maybeEvent of
                 Nothing ->
                     div []
-                        [ h1 [] [ text "Your respository has been added!" ]
+                        [ h1 [] [ text "Your repository has been added!" ]
                         , p [] [ text "Builds will show up here once you have:" ]
                         , ol [ class "list" ]
                             [ li []
@@ -85,9 +86,4 @@ view buildsModel now org repo maybeEvent =
             largeLoader
 
         RemoteData.Failure _ ->
-            div [ Util.testAttribute "builds-error" ]
-                [ p []
-                    [ text <|
-                        "There was an error fetching builds for this repository, please try again later!"
-                    ]
-                ]
+            viewResourceError { resourceLabel = "builds for this repository", testLabel = "builds" }

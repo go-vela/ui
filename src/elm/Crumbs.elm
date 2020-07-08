@@ -11,6 +11,7 @@ import Html.Attributes exposing (attribute)
 import Pages exposing (Page(..), toRoute)
 import Routes exposing (Route(..))
 import Tuple exposing (first, second)
+import Url exposing (percentDecode)
 import Util
 
 
@@ -241,7 +242,7 @@ toPath page =
                             ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         nameCrumb =
-                            ( name, Nothing )
+                            ( Maybe.withDefault name <| percentDecode name, Nothing )
                     in
                     [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, nameCrumb ]
 
@@ -254,13 +255,13 @@ toPath page =
                             ( "repo", Nothing )
 
                         orgSecrets =
-                            ( repo, Just <| Pages.OrgSecrets engine org Nothing Nothing )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         repoSecrets =
                             ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
 
                         nameCrumb =
-                            ( name, Nothing )
+                            ( Maybe.withDefault name <| percentDecode name, Nothing )
                     in
                     [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, repoSecrets, nameCrumb ]
 
@@ -276,10 +277,10 @@ toPath page =
                             ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         sharedSecrets =
-                            ( org, Just <| Pages.SharedSecrets engine org team Nothing Nothing )
+                            ( Maybe.withDefault team <| percentDecode team, Just <| Pages.SharedSecrets engine org team Nothing Nothing )
 
                         nameCrumb =
-                            ( name, Nothing )
+                            ( Maybe.withDefault name <| percentDecode name, Nothing )
                     in
                     [ overviewPage, secrets, engineCrumb, typeCrumb, orgSecrets, sharedSecrets, nameCrumb ]
 

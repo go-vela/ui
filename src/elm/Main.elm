@@ -224,7 +224,9 @@ type alias Model =
 
 type Interval
     = OneSecond
+    | OneSecondHidden
     | FiveSecond RefreshData
+    | FiveSecondHidden RefreshData
 
 
 type alias RefreshData =
@@ -761,29 +763,6 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        SecretsResponse response ->
-            case response of
-                Ok ( meta, secrets ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-
-                        mergedSecrets =
-                            case secretsModel.secrets of
-                                Success s ->
-                                    RemoteData.succeed <| Util.mergeListsById s secrets
-
-                                _ ->
-                                    RemoteData.succeed secrets
-
-                        pager =
-                            Pagination.get meta.headers
-                    in
-                    ( { model | secretsModel = { secretsModel | secrets = mergedSecrets, pager = pager } }, Cmd.none )
-
-                Err error ->
-                    ( model, addError error )
-
         SecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
@@ -836,6 +815,30 @@ update msg model =
 
                 Err error ->
                     ( model, addError error )
+
+        SecretsResponse response ->
+            let
+                secretsModel =
+                    model.secretsModel
+            in
+            case response of
+                Ok ( meta, secrets ) ->
+                    let
+                        mergedSecrets =
+                            case secretsModel.secrets of
+                                Success s ->
+                                    RemoteData.succeed <| Util.mergeListsById s secrets
+
+                                _ ->
+                                    RemoteData.succeed secrets
+
+                        pager =
+                            Pagination.get meta.headers
+                    in
+                    ( { model | secretsModel = { secretsModel | secrets = mergedSecrets, pager = pager } }, Cmd.none )
+
+                Err error ->
+                    ( { model | secretsModel = { secretsModel | secrets = toFailure error } }, addError error )
 
         UpdateRepoEvent org repo field value ->
             let
@@ -909,26 +912,23 @@ update msg model =
 
         ClickStep org repo buildNumber stepNumber _ ->
             let
-                ( steps, a ) =
+                ( steps, fetchStepLogs ) =
                     clickStep model.steps stepNumber
 
                 action =
-                    if a then
+                    if fetchStepLogs then
                         getBuildStepLogs model org repo buildNumber stepNumber Nothing
 
                     else
                         Cmd.none
 
                 stepOpened =
-                    not <| viewingStep steps stepNumber
-
-                focused =
-                    logFocusExists steps
+                    viewingStep steps stepNumber
             in
             ( { model | steps = steps }
             , Cmd.batch <|
                 [ action
-                , if stepOpened && not focused then
+                , if stepOpened then
                     Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
 
                   else
@@ -1111,8 +1111,18 @@ update msg model =
                     in
                     ( { model | time = time, favicon = favicon }, cmd )
 
-                FiveSecond data ->
-                    ( model, refreshPage model data )
+                FiveSecond _ ->
+                    ( model, refreshPage model )
+
+                OneSecondHidden ->
+                    let
+                        ( favicon, cmd ) =
+                            refreshFavicon model.page model.favicon model.build
+                    in
+                    ( { model | time = time, favicon = favicon }, cmd )
+
+                FiveSecondHidden data ->
+                    ( model, refreshPageHidden model data )
 
         FilterBuildEventBy maybeEvent org repo ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
@@ -1154,7 +1164,16 @@ update msg model =
             ( m, Cmd.none )
 
         VisibilityChanged visibility ->
-            ( { model | visibility = visibility, shift = False }, Cmd.none )
+            let
+                cmd =
+                    case visibility of
+                        Visible ->
+                            refreshPage model
+
+                        Hidden ->
+                            Cmd.none
+            in
+            ( { model | visibility = visibility, shift = False }, cmd )
 
         NoOp ->
             ( model, Cmd.none )
@@ -1254,7 +1273,9 @@ refreshSubscriptions model =
                 ]
 
             Hidden ->
-                []
+                [ every Util.oneSecondMillis <| Tick OneSecondHidden
+                , every Util.fiveSecondsMillis <| Tick (FiveSecondHidden <| refreshData model)
+                ]
 
 
 {-| refreshFavicon : takes page and restores the favicon to the default when not viewing the build page
@@ -1288,8 +1309,8 @@ refreshFavicon page currentFavicon build =
 
 {-| refreshPage : refreshes Vela data based on current page and build status
 -}
-refreshPage : Model -> RefreshData -> Cmd Msg
-refreshPage model _ =
+refreshPage : Model -> Cmd Msg
+refreshPage model =
     let
         page =
             model.page
@@ -1325,6 +1346,24 @@ refreshPage model _ =
         Pages.SharedSecrets engine org team maybePage maybePerPage ->
             Cmd.batch
                 [ getSecrets model maybePage maybePerPage engine "shared" org team
+                ]
+
+        _ ->
+            Cmd.none
+
+
+{-| refreshPageHidden : refreshes Vela data based on current page and build status when tab is not visible
+-}
+refreshPageHidden : Model -> RefreshData -> Cmd Msg
+refreshPageHidden model _ =
+    let
+        page =
+            model.page
+    in
+    case page of
+        Pages.Build org repo buildNumber _ ->
+            Cmd.batch
+                [ refreshBuild model org repo buildNumber
                 ]
 
         _ ->
@@ -1738,7 +1777,7 @@ viewBuildsFilter shouldRender org repo maybeEvent =
     let
         eventEnum : List String
         eventEnum =
-            [ "all", "push", "pull_request", "tag", "deploy" ]
+            [ "all", "push", "pull_request", "tag", "deployment" ]
 
         eventToMaybe : String -> Maybe Event
         eventToMaybe event =

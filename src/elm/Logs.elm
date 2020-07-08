@@ -16,6 +16,8 @@ module Logs exposing
     , view
     )
 
+import Ansi.Log
+import Array
 import Base64 exposing (decode)
 import Html
     exposing
@@ -111,25 +113,44 @@ viewLogs stepNumber logFocus log clickAction shiftDown =
 -}
 viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
 viewLines stepNumber logFocus log clickAction shiftDown =
-    div [ class "lines" ] <|
-        List.indexedMap
-            (\idx -> \line -> viewLine stepNumber line logFocus (idx + 1) clickAction shiftDown)
-        <|
-            decodeLogLine log
+    Html.table [ class "log-table" ] <|
+        Array.toList <|
+            Array.indexedMap
+                (\idx line ->
+                    viewLine stepNumber
+                        (idx + 1)
+                        line
+                        stepNumber
+                        logFocus
+                        clickAction
+                        shiftDown
+                )
+            <|
+                decodeAnsi log
 
 
-{-| viewLine : takes step number, line focus information, and click action and renders a log line
+{-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : StepNumber -> String -> LogFocus -> Int -> SetLogFocus msg -> Bool -> Html msg
-viewLine stepNumber line logFocus lineNumber clickAction shiftDown =
-    div [ class "line" ]
+viewLine : String -> Int -> Ansi.Log.Line -> StepNumber -> LogFocus -> SetLogFocus msg -> Bool -> Html msg
+viewLine id lineNumber line stepNumber logFocus setLogFocus shiftDown =
+    Html.tr
+        [ Html.Attributes.id <|
+            id
+                ++ ":"
+                ++ String.fromInt lineNumber
+        , class "line"
+        ]
         [ div
-            [ Util.testAttribute <| "log-line-" ++ String.fromInt lineNumber
-            , class "wrapper"
+            [ class "wrapper"
+            , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
             , logFocusStyles logFocus lineNumber
             ]
-            [ lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown
-            , code [] [ text line ]
+            [ Html.td []
+                [ lineFocusButton stepNumber logFocus lineNumber setLogFocus shiftDown ]
+            , Html.td [ class "-word-break-all", class "-overflow-auto" ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
+                    [ Ansi.Log.viewLine line ]
+                ]
             ]
         ]
 
@@ -142,9 +163,11 @@ lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown =
         [ Util.onClickPreventDefault <|
             clickAction <|
                 logRangeId stepNumber lineNumber logFocus shiftDown
-        , Util.testAttribute <| "log-line-num-" ++ String.fromInt lineNumber
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
         , id <| stepAndLineToFocusId stepNumber lineNumber
         , class "line-number"
+        , class "button"
+        , class "-link"
         , attribute "aria-label" <| "focus step " ++ stepNumber
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
@@ -425,16 +448,6 @@ logFocusExists steps =
         /= ( Nothing, Nothing )
 
 
-{-| decodeLogLine : takes maybe log and decodes it based on
--}
-decodeLogLine : Maybe (WebData Log) -> List String
-decodeLogLine log =
-    List.filter (\line -> not <| String.isEmpty line) <|
-        List.map String.trim <|
-            String.lines <|
-                decodeLog log
-
-
 {-| decodeLog : returns a string from a Maybe Log and decodes it from base64
 -}
 decodeLog : Maybe (WebData Log) -> String
@@ -469,3 +482,56 @@ toString log =
 
         Nothing ->
             ""
+
+
+
+-- ANSI
+
+
+{-| defaultLogModel : struct to represent default model required by ANSI parser
+-}
+defaultLogModel : Ansi.Log.Model
+defaultLogModel =
+    { lineDiscipline = Ansi.Log.Cooked
+    , lines = Array.empty
+    , position = defaultPosition
+    , savedPosition = Nothing
+    , style = defaultLogStyle
+    , remainder = ""
+    }
+
+
+{-| defaultLogStyle : struct to represent default style required by ANSI model
+-}
+defaultLogStyle : Ansi.Log.Style
+defaultLogStyle =
+    { foreground = Nothing
+    , background = Nothing
+    , bold = False
+    , faint = False
+    , italic = False
+    , underline = False
+    , blink = False
+    , inverted = False
+    , fraktur = False
+    , framed = False
+    }
+
+
+{-| defaultPosition : default ANSI cursor position
+-}
+defaultPosition : Ansi.Log.CursorPosition
+defaultPosition =
+    { row = 0
+    , column = 0
+    }
+
+
+{-| decodeAnsi : takes maybe log parses into ansi decoded log line array
+
+    see: https://package.elm-lang.org/packages/vito/elm-ansi
+
+-}
+decodeAnsi : Maybe (WebData Log) -> Array.Array Ansi.Log.Line
+decodeAnsi log =
+    .lines <| Ansi.Log.update (decodeLog log) defaultLogModel

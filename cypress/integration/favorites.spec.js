@@ -88,9 +88,7 @@ context('Favorites', () => {
 
           context('add favorite cat/purr', () => {
             beforeEach(() => {
-              cy.get('@togglePurr')
-                .should('exist')
-                .click();
+              cy.get('@togglePurr').should('exist').click();
             });
 
             it('star should have favorited class', () => {
@@ -101,9 +99,7 @@ context('Favorites', () => {
             });
 
             it('should show a success alert', () => {
-              cy.get('[data-test=alerts]')
-                .should('exist')
-                .contains('Success');
+              cy.get('[data-test=alerts]').should('exist').contains('Success');
               cy.get('[data-test=alerts]')
                 .children()
                 .last()
@@ -113,9 +109,7 @@ context('Favorites', () => {
             context('remove favorite cat/purr', () => {
               beforeEach(() => {
                 cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
-                cy.get('@togglePurr')
-                  .should('exist')
-                  .click();
+                cy.get('@togglePurr').should('exist').click();
               });
 
               it('should show a success alert', () => {
@@ -153,9 +147,7 @@ context('Favorites', () => {
             'not.have.class',
             'favorited',
           );
-          cy.get('@togglePurr')
-            .should('exist')
-            .click();
+          cy.get('@togglePurr').should('exist').click();
           cy.get('[data-test=star-toggle-cat-purr] > svg').should(
             'have.class',
             'favorited',
@@ -164,9 +156,7 @@ context('Favorites', () => {
 
         context('add favorite cat/purr', () => {
           beforeEach(() => {
-            cy.get('@togglePurr')
-              .should('exist')
-              .click();
+            cy.get('@togglePurr').should('exist').click();
           });
 
           it('star should add favorited class', () => {
@@ -205,9 +195,7 @@ context('Favorites', () => {
           context('remove favorite cat/purr', () => {
             beforeEach(() => {
               cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
-              cy.get('@togglePurr')
-                .should('exist')
-                .click();
+              cy.get('@togglePurr').should('exist').click();
             });
 
             it('star should not have favorited class', () => {

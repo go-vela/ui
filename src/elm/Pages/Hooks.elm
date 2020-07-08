@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Hooks exposing (hookStatus, receiveHookBuild, view)
 
 import Dict
+import Errors exposing (viewResourceError)
 import FeatherIcons
 import Html
     exposing
@@ -82,12 +83,7 @@ view { hooks, hookBuilds, time } org repo clickAction =
             Util.largeLoader
 
         RemoteData.Failure _ ->
-            div [ Util.testAttribute "hooks-error" ]
-                [ p []
-                    [ text <|
-                        "There was an error fetching hooks for this repository, please try again later!"
-                    ]
-                ]
+            viewResourceError { resourceLabel = "hooks for this repository", testLabel = "hooks" }
 
 
 {-| hooksTable : renders hooks table

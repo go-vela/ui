@@ -28,9 +28,7 @@ context('Add Repositories', () => {
 
       // show
       cy.get('@catOrg').click();
-      cy.get('@catRepos')
-        .should('have.length', 3)
-        .and('be.visible');
+      cy.get('@catRepos').should('have.length', 3).and('be.visible');
 
       // hide
       cy.get('@catOrg').click();
@@ -64,9 +62,7 @@ context('Add Repositories', () => {
         .should('be.visible')
         .and('contain', 'Failed');
 
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
 
     it('disables the refresh list button while loading', () => {
@@ -109,7 +105,7 @@ context('Add Repositories', () => {
     it('show a message and an alert when there is a server error', () => {
       cy.wait('@error');
       cy.get('.content-wrap').contains(
-        'There was an error fetching your available repositories... Click Refresh or try again later!',
+        'There was an error fetching your available repositories, please refresh or try again later!',
       );
     });
   });
@@ -127,7 +123,7 @@ context('Add Repositories', () => {
 
     it('show a message and an alert when the response is malformed', () => {
       cy.get('.content-wrap').contains(
-        'There was an error fetching your available repositories... Click Refresh or try again later!',
+        'There was an error fetching your available repositories, please refresh or try again later!',
       );
 
       cy.get('[data-test=alerts]')

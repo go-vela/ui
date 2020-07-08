@@ -21,9 +21,7 @@ context('Builds', () => {
       cy.get('[data-test=builds]').should('not.be.visible');
     });
     it('error should show', () => {
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
     it('error banner should show', () => {
       cy.get('[data-test=builds-error]')
@@ -63,14 +61,8 @@ context('Builds', () => {
       cy.login('/someorg/somerepo');
 
       cy.get('[data-test=builds]').as('builds');
-      cy.get('@builds')
-        .children()
-        .first()
-        .as('firstBuild');
-      cy.get('@builds')
-        .children()
-        .last()
-        .as('lastBuild');
+      cy.get('@builds').children().first().as('firstBuild');
+      cy.get('@builds').children().last().as('lastBuild');
     });
 
     it('builds should show', () => {
@@ -78,22 +70,14 @@ context('Builds', () => {
     });
 
     it('builds should show build number', () => {
-      cy.get('@firstBuild')
-        .should('exist')
-        .should('contain', '#1');
-      cy.get('@lastBuild')
-        .should('exist')
-        .should('contain', '#10');
+      cy.get('@firstBuild').should('exist').should('contain', '#1');
+      cy.get('@lastBuild').should('exist').should('contain', '#10');
     });
 
     it('build page 2 should show the next set of results', () => {
       cy.visit('/someorg/somerepo?page=2');
-      cy.get('@firstBuild')
-        .should('exist')
-        .should('contain', '#11');
-      cy.get('@lastBuild')
-        .should('exist')
-        .should('contain', '#20');
+      cy.get('@firstBuild').should('exist').should('contain', '#11');
+      cy.get('@lastBuild').should('exist').should('contain', '#20');
       cy.get('[data-test="crumb-somerepo-(page-2)"]')
         .should('exist')
         .should('contain', 'page 2');
@@ -116,12 +100,8 @@ context('Builds', () => {
     });
 
     it('builds should show branch', () => {
-      cy.get('@firstBuild')
-        .should('be.visible')
-        .should('contain', 'infra');
-      cy.get('@lastBuild')
-        .should('be.visible')
-        .should('contain', 'terra');
+      cy.get('@firstBuild').should('be.visible').should('contain', 'infra');
+      cy.get('@lastBuild').should('be.visible').should('contain', 'terra');
     });
 
     it('build should having running style', () => {
@@ -132,10 +112,7 @@ context('Builds', () => {
     });
 
     it('clicking build number should redirect to build page', () => {
-      cy.get('@firstBuild')
-        .get('[data-test=build-number]')
-        .first()
-        .click();
+      cy.get('@firstBuild').get('[data-test=build-number]').first().click();
       cy.location('pathname').should('eq', '/someorg/somerepo/1');
     });
   });
@@ -148,9 +125,7 @@ context('Builds', () => {
     });
 
     it('error alert should show', () => {
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Error');
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
   });
 
@@ -190,29 +165,27 @@ context('Builds', () => {
 
     it('should only show 7 push events', () => {
       cy.get('[data-test=build-filter-push]').click({ force: true });
-      cy.get('[data-test=build]')
-        .should('be.visible')
-        .should('have.length', 7);
+      cy.get('[data-test=build]').should('be.visible').should('have.length', 7);
+      cy.url().should('contain', '?event=push');
     });
 
     it('should only show two pull events', () => {
       cy.get('[data-test=build-filter-pull_request]').click({ force: true });
-      cy.get('[data-test=build]')
-        .should('be.visible')
-        .should('have.length', 2);
+      cy.get('[data-test=build]').should('be.visible').should('have.length', 2);
+      cy.url().should('contain', '?event=pull_request');
     });
 
     it('should only show one tag event', () => {
       cy.get('[data-test=build-filter-tag]').click({ force: true });
-      cy.get('[data-test=build]')
-        .should('be.visible')
-        .should('have.length', 1);
+      cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
+      cy.url().should('contain', '?event=tag');
     });
 
     it('should show no results', () => {
-      cy.get('[data-test=build-filter-deploy]').click({ force: true });
+      cy.get('[data-test=build-filter-deployment]').click({ force: true });
       cy.get('[data-test=build]').should('not.be.visible');
-      cy.get('h1').should('contain', 'No builds for "deploy" event found.');
+      cy.get('h1').should('contain', 'No builds for "deployment" event found.');
+      cy.url().should('contain', '?event=deployment');
     });
   });
 });
