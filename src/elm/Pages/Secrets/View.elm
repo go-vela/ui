@@ -53,7 +53,6 @@ import Vela
         ( Secret
         , SecretType(..)
         , Secrets
-        , secretErrorLabel
         , secretTypeToString
         , secretsErrorLabel
         )
@@ -126,7 +125,7 @@ secrets model =
                         secretsModel.org
                     <|
                         secretsResourceKey secretsModel
-                , testLabel = "secrets"
+                , testLabel = testLabel
                 }
 
         _ ->
@@ -188,6 +187,8 @@ renderSecret type_ secret =
         ]
 
 
+{-| renderListCell : takes list of items, text for none and className and renders a table cell
+-}
 renderListCell : List String -> String -> String -> List (Html msg)
 renderListCell items none itemClassName =
     if List.length items == 0 then
