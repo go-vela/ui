@@ -101,12 +101,17 @@ secrets model =
                         addSecretRoute
                     ]
                     [ addLabel secretsModel.type_ ]
+
+        testLabel =
+            "secrets-table"
     in
     case secretsModel.secrets of
         Success s ->
             div []
                 [ Table.view
-                    (Table.Config label
+                    (Table.Config
+                        label
+                        testLabel
                         noSecrets
                         tableHeaders
                         (secretsToRows model.secretsModel.type_ s)
@@ -139,7 +144,7 @@ secretsToRows type_ =
 -}
 tableHeaders : List String
 tableHeaders =
-    [ "Name", "Type", "Events", "Images", "Allow Command" ]
+    [ "name", "type", "events", "images", "allow command" ]
 
 
 {-| renderSecret : takes secret and secret type and renders a table row

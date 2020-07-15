@@ -351,8 +351,5 @@ update model msg =
                             secret.name
                             body
                     )
-
-                _ ->
-                    ( secretsModel, Cmd.none )
     in
     ( { model | secretsModel = sm }, action )

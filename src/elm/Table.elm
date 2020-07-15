@@ -29,6 +29,8 @@ import Html.Attributes
         , class
         , scope
         )
+import String.Extra
+import Util
 
 
 type alias Column =
@@ -51,6 +53,7 @@ type alias Rows data msg =
 
 type alias Config data msg =
     { label : String
+    , testLabel : String
     , noRows : String
     , columns : Columns
     , rows : Rows data msg
@@ -61,19 +64,19 @@ type alias Config data msg =
 {-| view : renders data table
 -}
 view : Config data msg -> Html msg
-view { label, noRows, columns, rows, headerElement } =
+view { label, testLabel, noRows, columns, rows, headerElement } =
     let
         numRows =
             List.length rows
     in
-    Html.table [ class "table-base" ]
+    Html.table [ class "table-base", Util.testAttribute testLabel ]
         [ Html.caption []
             [ div []
                 [ text label
                 , Maybe.withDefault (text "") headerElement
                 ]
             ]
-        , thead [] [ tr [] <| List.map (\col -> th [ scope "col" ] [ text col ]) columns ]
+        , thead [] [ tr [] <| List.map (\col -> th [ scope "col" ] [ text <| String.Extra.toTitleCase col ]) columns ]
         , footer noRows numRows
         , tbody [] <|
             if List.length rows > 0 then
