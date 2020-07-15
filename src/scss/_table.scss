@@ -3,306 +3,317 @@
 // Use of this source code is governed by the LICENSE file in this repository.
 
 .table-base {
-    width: 100%;
-    margin: 0;
-    margin-bottom: 1rem;
-    padding: 0;
+  width: 100%;
+  margin: 0;
+  margin-bottom: 1rem;
+  padding: 0;
 
-    table-layout: fixed;
-    background-color: var(--color-bg-dark);
-    border: 2px solid var(--color-bg-light);
-    border-collapse: collapse;
+  table-layout: fixed;
+  background-color: var(--color-bg-dark);
+  border-collapse: collapse;
+}
+
+.table-base thead {
+  border-bottom: 2px solid var(--color-lavender);
 }
 
 .table-base tr {
-    padding: 0.35em;
+  padding: 0.35em;
 
-    border-bottom: 1px solid var(--color-bg-light);
+  border-bottom: 1px solid var(--color-bg-light);
+}
+
+.table-base tr:last-child {
+  border-bottom: none;
 }
 
 .table-base caption {
-    margin: 0.5em 0 0.75em;
+  margin: 0.5em 0 0.75em;
 
-    font-size: 1.5em;
+  font-size: 1.5em;
 
-    div {
-        display: flex;
-        justify-content: space-between;
-        padding-left: 1rem;
-    }
+  div {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1rem;
+  }
 }
 
-.table-base th,
-.table-base td {
-    padding: 0.625em;
+.table-base th {
+  padding: 0.625em;
 
-    font-weight: lighter;
-    text-align: center;
+  font-weight: bold;
+
+  text-align: left;
+}
+
+.table-base td {
+  padding: 0.625em;
+
+  font-weight: lighter;
 }
 
 .table-base .-line-break {
-    word-wrap: break-word;
+  word-wrap: break-word;
 }
 
 // end table-base
 
 .table {
-    width: 100%;
-    margin: 1rem 0;
-    padding-bottom: 0.5rem;
+  width: 100%;
+  margin: 1rem 0;
+  padding-bottom: 0.5rem;
 
-    font-size: 1rem;
+  font-size: 1rem;
 
-    background: var(--color-bg-dark);
+  background: var(--color-bg-dark);
 }
 
 .table .loading {
-    display: flex;
+  display: flex;
 
-    margin-top: 0.5em;
-    margin-left: 0.4em;
+  margin-top: 0.5em;
+  margin-left: 0.4em;
 }
 
 .table .row.preview {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .table .headers {
-    position: relative;
+  position: relative;
 
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 
-    margin-top: 0.3em;
-    padding: 0.3em 1rem;
-    padding-left: 1rem;
+  margin-top: 0.3em;
+  padding: 0.3em 1rem;
+  padding-left: 1rem;
 
-    border-bottom: 1px solid var(--color-bg-light);
+  border-bottom: 1px solid var(--color-bg-light);
 }
 
 .table .header {
-    flex: 1;
+  flex: 1;
 
-    font-size: 1.2rem;
-
-    text-align: center;
+  font-size: 1.2rem;
 }
 
 .hooks.table .headers {
-    padding-left: 4.25rem;
+  padding-left: 4.25rem;
 }
 
 .hook-status {
-    fill: none;
+  fill: none;
 }
 
 .hook-status.-success {
-    stroke: var(--color-green);
+  stroke: var(--color-green);
 }
 
 .hook-status.-failure {
-    stroke: var(--color-red);
+  stroke: var(--color-red);
 }
 
 .table .row .cell {
-    flex: 1;
-    align-items: center;
-    justify-content: center;
-    width: 300px;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  width: 300px;
 
-    font-weight: lighter;
-    text-align: center;
-    word-wrap: break-word;
+  font-weight: lighter;
+  text-align: center;
+  word-wrap: break-word;
 }
 
 .table .headers .header.-last {
-    display: flex;
-    justify-content: flex-end;
-    padding-right: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 1rem;
 }
 
 .table .cell.-last {
-    display: flex;
-    justify-content: flex-end;
-    padding-right: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 1rem;
 
-    button {
-        margin: 0.25rem 0;
-    }
+  button {
+    margin: 0.25rem 0;
+  }
 }
 
 .table .source-id {
-    min-width: 330px;
+  min-width: 330px;
 }
 
 .table .headers .first-cell {
-    width: 2rem;
+  width: 2rem;
 }
 
 .filler-cell {
-    width: 6ch;
+  width: 6ch;
 }
 
 .table .headers .-label {
-    color: var(--color-primary);
-    font-size: 1.5rem;
+  color: var(--color-primary);
+  font-size: 1.5rem;
 }
 
 .table .cell.source-id {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 }
 
 .table .text {
-    flex: 1;
-    padding: 3px 12px;
+  flex: 1;
+  padding: 3px 12px;
 
-    text-align: center;
+  text-align: center;
 
-    background: var(--color-bg);
+  background: var(--color-bg);
 }
 
 .table .details {
-    margin: 1rem;
+  margin: 1rem;
 }
 
 .preview .status.success {
-    color: var(--color-green);
+  color: var(--color-green);
 }
 
 .preview .status.failure {
-    color: var(--color-red-light);
+  color: var(--color-red-light);
 }
 
 .table .info {
-    display: flex;
-    display: inline-block;
-    flex-direction: row;
+  display: flex;
+  display: inline-block;
+  flex-direction: row;
 
-    width: 100%;
-    padding: 0.4em 1em;
+  width: 100%;
+  padding: 0.4em 1em;
 
-    font-size: 14px;
+  font-size: 14px;
 
-    border-bottom: 1px solid var(--color-bg-light);
-    border-left: 2px solid var(--color-bg-light);
+  border-bottom: 1px solid var(--color-bg-light);
+  border-left: 2px solid var(--color-bg-light);
 }
 
 .table .info:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .table .info.-pending {
-    border-left-color: var(--color-bg-light);
+  border-left-color: var(--color-bg-light);
 }
 
 .table .info.-running {
-    border-left-color: var(--color-yellow);
+  border-left-color: var(--color-yellow);
 }
 
 .table .info.-success {
-    border-left-color: var(--color-green);
+  border-left-color: var(--color-green);
 }
 
 .table .info.-failure,
 .table .info.-error {
-    border-left-color: var(--color-red);
+  border-left-color: var(--color-red);
 }
 
 .table .element span.-m-r,
 .hook-build .-m-r {
-    margin-right: 0.4em;
+  margin-right: 0.4em;
 }
 
 .table .error-label {
-    color: var(--color-red-light);
+  color: var(--color-red-light);
 }
 
 .table .hook-build-status.-pending {
-    color: var(--color-offwhite);
+  color: var(--color-offwhite);
 }
 
 .table .hook-build-status.-running {
-    color: var(--color-yellow);
+  color: var(--color-yellow);
 }
 
 .table .hook-build-status.-success {
-    color: var(--color-green);
+  color: var(--color-green);
 }
 
 .table .hook-build-status.-failure,
 .table .hook-build-status.-error {
-    color: var(--color-red-light);
+  color: var(--color-red-light);
 }
 
 .table-label {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 0.6rem 0 0 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 0.6rem 0 0 1rem;
 
-    color: var(--color-primary);
-    font-size: 1.25rem;
+  color: var(--color-primary);
+  font-size: 1.25rem;
 }
 
 .table-label .add-secret {
-    margin-right: 1em;
+  margin-right: 1em;
 }
 
 /* responsive style */
 
 @media screen and (max-width: 600px) {
-    .table-base {
-        border: 0;
-    }
+  .table-base {
+    border: 0;
+  }
 
-    .table-base caption {
-        font-size: 1.3em;
-    }
+  .table-base caption {
+    font-size: 1.3em;
+  }
 
-    .table-base thead {
-        position: absolute;
+  .table-base thead {
+    position: absolute;
 
-        width: 1px;
-        height: 1px;
-        margin: -1px;
-        padding: 0;
-        overflow: hidden;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
 
-        border: none;
+    border: none;
 
-        clip: rect(0 0 0 0);
-    }
+    clip: rect(0 0 0 0);
+  }
 
-    .table-base tr {
-        display: block;
-        margin-bottom: 0.625em;
+  .table-base tr {
+    display: block;
+    margin-bottom: 0.625em;
 
-        border-bottom: 3px solid var(--color-lavender);
-    }
+    border-bottom: 3px solid var(--color-lavender);
+  }
 
-    .table-base td {
-        display: block;
+  .table-base td {
+    display: block;
 
-        font-size: 0.8em;
-        text-align: right;
+    font-size: 0.8em;
+    text-align: right;
 
-        border-bottom: 1px solid var(--color-bg-light);
-    }
+    border-bottom: 1px solid var(--color-bg-light);
+  }
 
-    .table-base td::before {
-        float: left;
+  .table-base td::before {
+    float: left;
 
-        font-weight: bold;
+    font-weight: bold;
 
-        content: attr(data-label);
-    }
+    content: attr(data-label);
+  }
 
-    .table-base td:last-child {
-        border-bottom: 0;
-    }
+  .table-base td:last-child {
+    border-bottom: 0;
+  }
 }

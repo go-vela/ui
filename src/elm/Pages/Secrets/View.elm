@@ -139,7 +139,7 @@ secretsToRows type_ =
 -}
 tableHeaders : List String
 tableHeaders =
-    [ "name", "type", "events", "images", "allow command" ]
+    [ "Name", "Type", "Events", "Images", "Allow Command" ]
 
 
 {-| renderSecret : takes secret and secret type and renders a table row
@@ -188,7 +188,7 @@ renderListCell items none itemClassName =
         [ text none ]
 
     else
-        List.intersperse (text ", ") <| List.map (\item -> Html.code [ class itemClassName ] [ span [] [ text item ] ]) items
+        List.intersperse (text ", ") <| List.map (\item -> Html.code [ class itemClassName ] [ span [] [ text item ] ]) <| List.sort items
 
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
