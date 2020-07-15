@@ -33,24 +33,34 @@ import String.Extra
 import Util
 
 
+{-| Column : string alias for table column headers
+-}
 type alias Column =
     String
 
 
+{-| Columns : list of columns
+-}
 type alias Columns =
     List Column
 
 
+{-| Rows : object containing render data and msg
+-}
 type alias Row data msg =
     { data : data
     , display : data -> Html msg
     }
 
 
+{-| Rows : list of rows with render data and msg
+-}
 type alias Rows data msg =
     List (Row data msg)
 
 
+{-| Config : configurations for rendering the data table
+-}
 type alias Config data msg =
     { label : String
     , testLabel : String
@@ -69,7 +79,7 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
         numRows =
             List.length rows
     in
-    Html.table [ class "table-base", Util.testAttribute testLabel ]
+    Html.table [ class "table-base", Util.testAttribute <| testLabel ++ "-table" ]
         [ Html.caption []
             [ div []
                 [ text label
@@ -87,6 +97,8 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
         ]
 
 
+{-| footer : renders data table footer
+-}
 footer : String -> Int -> Html msg
 footer noRows numRows =
     if numRows == 0 then

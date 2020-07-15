@@ -103,7 +103,7 @@ secrets model =
                     [ addLabel secretsModel.type_ ]
 
         testLabel =
-            "secrets-table"
+            "secrets"
     in
     case secretsModel.secrets of
         Success s ->
@@ -151,11 +151,12 @@ tableHeaders =
 -}
 renderSecret : SecretType -> Secret -> Html msg
 renderSecret type_ secret =
-    tr []
+    tr [ Util.testAttribute <| "secrets-row" ]
         [ td
             [ attribute "data-label" "name"
             , scope "row"
             , class "-line-break"
+            , Util.testAttribute <| "secrets-row-name"
             ]
             [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
         , td
