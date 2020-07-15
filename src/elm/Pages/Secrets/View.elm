@@ -188,7 +188,22 @@ renderListCell items none itemClassName =
         [ text none ]
 
     else
-        List.intersperse (text ", ") <| List.map (\item -> Html.code [ class itemClassName ] [ span [] [ text item ] ]) <| List.sort items
+        let
+            content =
+                items
+                    |> List.sort
+                    |> List.indexedMap
+                        (\i item ->
+                            if i + 1 < List.length items then
+                                Just <| item ++ ", "
+
+                            else
+                                Just item
+                        )
+                    |> List.filterMap identity
+                    |> String.concat
+        in
+        [ Html.code [ class itemClassName ] [ span [] [ text content ] ] ]
 
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
