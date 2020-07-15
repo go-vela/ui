@@ -581,7 +581,7 @@ usageDocsBase =
 -}
 issuesBaseUrl : String
 issuesBaseUrl =
-    "https://github.com/go-vela/cli/issues/"
+    "https://github.com/go-vela/community/issues/"
 
 
 {-| resourceLoaded : takes help args and returns if the resource has been successfully loaded
