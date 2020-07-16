@@ -64,6 +64,7 @@ import Vela
         , StepNumber
         , Steps
         )
+import Html exposing (strong)
 
 
 
@@ -207,8 +208,10 @@ viewPreview now org repo build =
                         ]
                     ]
                 , div [ class "row" ]
-                    [ div [ class "message" ] message
+                     [ strong                        
+                        [ class "message" ] message 
                     ]
+                   
                 , viewError build
                 ]
             ]
