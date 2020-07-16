@@ -165,9 +165,9 @@ viewPreview now org repo build =
 
         sender =
             [ text build.sender ]
-        
+
         message =
-            [text build.message]
+            [ text build.message ]
 
         id =
             [ a
@@ -206,14 +206,8 @@ viewPreview now org repo build =
                         , div [ class "duration" ] duration
                         ]
                     ]
-                    , div [ class "row" ]
-                    [ 
-                        
-                        div [ class "message" ] message
-                         
-                        
-
-                    
+                , div [ class "row" ]
+                    [ div [ class "message" ] message
                     ]
                 , viewError build
                 ]
