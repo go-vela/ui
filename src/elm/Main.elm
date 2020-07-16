@@ -1588,7 +1588,7 @@ viewContent model =
             )
 
         Pages.AddRepositories ->
-            ( "Add Repositories"
+            ( "Add Rrepositories"
             , lazy2 Pages.AddRepos.view
                 { user = model.user
                 , sourceRepos = model.sourceRepos
