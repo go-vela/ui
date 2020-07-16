@@ -29,6 +29,7 @@ import Html
         , em
         , li
         , span
+        , strong
         , summary
         , text
         , ul
@@ -64,7 +65,6 @@ import Vela
         , StepNumber
         , Steps
         )
-import Html exposing (strong)
 
 
 
@@ -208,10 +208,10 @@ viewPreview now org repo build =
                         ]
                     ]
                 , div [ class "row" ]
-                     [ strong                        
-                        [ class "message" ] message 
+                    [ strong
+                        [ class "message" ]
+                        message
                     ]
-                   
                 , viewError build
                 ]
             ]
