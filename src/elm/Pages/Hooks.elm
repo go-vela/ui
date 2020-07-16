@@ -21,18 +21,23 @@ import Html
         , small
         , span
         , summary
+        , td
         , text
+        , tr
         )
 import Html.Attributes
     exposing
-        ( class
+        ( attribute
+        , class
         , href
+        , scope
         )
 import Html.Events exposing (onClick)
 import Pages.Build exposing (statusToClass, statusToString)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (hookStatusToIcon)
+import Table
 import Time exposing (Posix)
 import Util
 import Vela
@@ -69,12 +74,24 @@ view : PartialModel -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -
 view { hooks, hookBuilds, time } org repo clickAction =
     case hooks.hooks of
         RemoteData.Success hooks_ ->
-            if List.length hooks_ == 0 then
-                noHooks
-
-            else
-                div [ class "table", Util.testAttribute "hooks" ] <|
-                    hooksTable time org repo hookBuilds hooks_ clickAction
+            let
+                ( label, testLabel, noSecrets ) =
+                    ( "Hooks"
+                    , "hooks"
+                    , "No hooks found for this organization/repo"
+                    )
+            in
+            div []
+                [ Table.view
+                    (Table.Config
+                        label
+                        testLabel
+                        noSecrets
+                        tableHeaders
+                        (hooksToRows time hooks_)
+                        Nothing
+                    )
+                ]
 
         RemoteData.Loading ->
             Util.largeLoader
@@ -86,15 +103,139 @@ view { hooks, hookBuilds, time } org repo clickAction =
             viewResourceError { resourceLabel = "hooks for this repository", testLabel = "hooks" }
 
 
+{-| hooksToRows : takes list of hooks and produces list of Table rows
+-}
+hooksToRows : Posix -> Hooks -> Table.Rows Hook msg
+hooksToRows now =
+    List.map (\hook -> Table.Row hook (renderHook now))
+
+
+{-| tableHeaders : returns table headers for secrets table
+-}
+tableHeaders : Table.Columns
+tableHeaders =
+    [ ( Just "-icon", "" )
+    , ( Nothing, "source" )
+    , ( Nothing, "created" )
+    , ( Nothing, "host" )
+    , ( Nothing, "event" )
+    , ( Nothing, "branch" )
+    ]
+
+
+{-| renderHook : takes hook and renders a table row
+-}
+renderHook : Posix -> Hook -> Html msg
+renderHook now hook =
+    details
+        ([ class "details"
+         , class "-no-pad"
+         , Util.testAttribute "hook"
+         ]
+            ++ (Util.open <| hookOpen ( "org", "repo", String.fromInt hook.build_id ) Dict.empty)
+        )
+        [ summary
+            [ class "summary"
+
+            -- , onClick (clickAction org repo <| String.fromInt hook.build_id)
+            ]
+            [ tr [ Util.testAttribute <| "secrets-row" ]
+                [ td
+                    [ attribute "data-label" "status"
+                    , scope "row"
+                    , class "-line-break"
+                    , class "-icon"
+                    ]
+                    [ hookStatusToIcon hook.status ]
+                , td
+                    [ attribute "data-label" "source-id"
+                    , scope "row"
+                    , class "-line-break"
+                    ]
+                    [ small [] [ code [ class "source-id" ] [ text hook.source_id ] ] ]
+                , td
+                    [ attribute "data-label" "created"
+                    , scope "row"
+                    , class "-line-break"
+                    ]
+                    [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
+                , td
+                    [ attribute "data-label" "host"
+                    , scope "row"
+                    , class "-line-break"
+                    ]
+                    [ text hook.host ]
+                , td
+                    [ attribute "data-label" "event"
+                    , scope "row"
+                    , class "-line-break"
+                    ]
+                    [ text hook.event ]
+                , td
+                    [ attribute "data-label" "branch"
+                    , scope "row"
+                    , class "-line-break"
+                    ]
+                    [ text hook.branch ]
+                ]
+            ]
+        , error "failed to fetch a build for this hook"
+        ]
+
+
+
+-- [ td
+--     [ attribute "data-label" "status"
+--     , scope "row"
+--     , class "-line-break"
+--     , class "-icon"
+--     ]
+--     [ hookStatusToIcon hook.status ]
+-- , td
+--     [ attribute "data-label" "source-id"
+--     , scope "row"
+--     , class "-line-break"
+--     ]
+--     [ small [] [ code [ class "source-id" ] [ text hook.source_id ] ] ]
+-- , td
+--     [ attribute "data-label" "created"
+--     , scope "row"
+--     , class "-line-break"
+--     ]
+--     [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
+-- , td
+--     [ attribute "data-label" "host"
+--     , scope "row"
+--     , class "-line-break"
+--     ]
+--     [ text hook.host ]
+-- , td
+--     [ attribute "data-label" "event"
+--     , scope "row"
+--     , class "-line-break"
+--     ]
+--     [ text hook.event ]
+-- , td
+--     [ attribute "data-label" "branch"
+--     , scope "row"
+--     , class "-line-break"
+--     ]
+--     [ text hook.branch ]
+-- ]
+
+
 {-| hooksTable : renders hooks table
 -}
 hooksTable : Posix -> Org -> Repo -> HookBuilds -> Hooks -> (Org -> Repo -> BuildNumber -> msg) -> List (Html msg)
 hooksTable now org repo hookBuilds hooks clickAction =
-    [ label, headers ] ++ rows now org repo hookBuilds hooks clickAction
+    [ renderLabel
+    , headers
+    ]
+        ++ rows now org repo hookBuilds hooks clickAction
 
 
-label : Html msg
-label =
+renderLabel : Html msg
+renderLabel =
     div [ class "table-label" ] [ text "Hooks" ]
 
 

@@ -5,7 +5,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Table exposing
-    ( Config
+    ( Column
+    , Columns
+    , Config
     , Row
     , Rows
     , view
@@ -36,7 +38,7 @@ import Util
 {-| Column : string alias for table column headers
 -}
 type alias Column =
-    String
+    ( Maybe String, String )
 
 
 {-| Columns : list of columns
@@ -86,7 +88,7 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
                 , Maybe.withDefault (text "") headerElement
                 ]
             ]
-        , thead [] [ tr [] <| List.map (\col -> th [ scope "col" ] [ text <| String.Extra.toTitleCase col ]) columns ]
+        , thead [] [ tr [] <| List.map (\( className, col ) -> th [ class <| Maybe.withDefault "" className, scope "col" ] [ text <| String.Extra.toTitleCase col ]) columns ]
         , footer noRows numRows
         , tbody [] <|
             if List.length rows > 0 then
