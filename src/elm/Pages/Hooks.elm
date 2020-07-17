@@ -106,8 +106,12 @@ view { hooks, hookBuilds, time } org repo clickAction =
 {-| hooksToRows : takes list of hooks and produces list of Table rows
 -}
 hooksToRows : Posix -> Hooks -> Table.Rows Hook msg
-hooksToRows now =
-    List.map (\hook -> Table.Row hook (renderHook now))
+hooksToRows now hooks =
+    let
+        pairs =
+            List.map (\hook -> ( Table.Row hook (renderHook now), Table.Row hook.error renderHookError )) hooks
+    in
+    []
 
 
 {-| tableHeaders : returns table headers for secrets table
@@ -127,101 +131,50 @@ tableHeaders =
 -}
 renderHook : Posix -> Hook -> Html msg
 renderHook now hook =
-    details
-        ([ class "details"
-         , class "-no-pad"
-         , Util.testAttribute "hook"
-         ]
-            ++ (Util.open <| hookOpen ( "org", "repo", String.fromInt hook.build_id ) Dict.empty)
-        )
-        [ summary
-            [ class "summary"
-
-            -- , onClick (clickAction org repo <| String.fromInt hook.build_id)
+    tr [ Util.testAttribute <| "secrets-row" ]
+        [ td
+            [ attribute "data-label" "status"
+            , scope "row"
+            , class "-line-break"
+            , class "-icon"
             ]
-            [ tr [ Util.testAttribute <| "secrets-row" ]
-                [ td
-                    [ attribute "data-label" "status"
-                    , scope "row"
-                    , class "-line-break"
-                    , class "-icon"
-                    ]
-                    [ hookStatusToIcon hook.status ]
-                , td
-                    [ attribute "data-label" "source-id"
-                    , scope "row"
-                    , class "-line-break"
-                    ]
-                    [ small [] [ code [ class "source-id" ] [ text hook.source_id ] ] ]
-                , td
-                    [ attribute "data-label" "created"
-                    , scope "row"
-                    , class "-line-break"
-                    ]
-                    [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
-                , td
-                    [ attribute "data-label" "host"
-                    , scope "row"
-                    , class "-line-break"
-                    ]
-                    [ text hook.host ]
-                , td
-                    [ attribute "data-label" "event"
-                    , scope "row"
-                    , class "-line-break"
-                    ]
-                    [ text hook.event ]
-                , td
-                    [ attribute "data-label" "branch"
-                    , scope "row"
-                    , class "-line-break"
-                    ]
-                    [ text hook.branch ]
-                ]
+            [ hookStatusToIcon hook.status ]
+        , td
+            [ attribute "data-label" "source-id"
+            , scope "row"
+            , class "-line-break"
             ]
-        , error "failed to fetch a build for this hook"
+            [ small [] [ code [ class "source-id" ] [ text hook.source_id ] ] ]
+        , td
+            [ attribute "data-label" "created"
+            , scope "row"
+            , class "-line-break"
+            ]
+            [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
+        , td
+            [ attribute "data-label" "host"
+            , scope "row"
+            , class "-line-break"
+            ]
+            [ text hook.host ]
+        , td
+            [ attribute "data-label" "event"
+            , scope "row"
+            , class "-line-break"
+            ]
+            [ text hook.event ]
+        , td
+            [ attribute "data-label" "branch"
+            , scope "row"
+            , class "-line-break"
+            ]
+            [ text hook.branch ]
         ]
 
 
-
--- [ td
---     [ attribute "data-label" "status"
---     , scope "row"
---     , class "-line-break"
---     , class "-icon"
---     ]
---     [ hookStatusToIcon hook.status ]
--- , td
---     [ attribute "data-label" "source-id"
---     , scope "row"
---     , class "-line-break"
---     ]
---     [ small [] [ code [ class "source-id" ] [ text hook.source_id ] ] ]
--- , td
---     [ attribute "data-label" "created"
---     , scope "row"
---     , class "-line-break"
---     ]
---     [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
--- , td
---     [ attribute "data-label" "host"
---     , scope "row"
---     , class "-line-break"
---     ]
---     [ text hook.host ]
--- , td
---     [ attribute "data-label" "event"
---     , scope "row"
---     , class "-line-break"
---     ]
---     [ text hook.event ]
--- , td
---     [ attribute "data-label" "branch"
---     , scope "row"
---     , class "-line-break"
---     ]
---     [ text hook.branch ]
--- ]
+renderHookError : String -> Html msg
+renderHookError err =
+    tr [] [ td [ attribute "colspan" "5" ] [ text err ] ]
 
 
 {-| hooksTable : renders hooks table
