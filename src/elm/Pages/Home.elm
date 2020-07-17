@@ -68,7 +68,7 @@ view user filter { toggleFavorite, search } =
                     [ text "To display a repository here, click the "
                     , SvgBuilder.star False
                     ]
-                , p [] [ text "Add repositoriees from your GitHub account to Vela now!" ]
+                , p [] [ text "Add repositories from your GitHub account to Vela now!" ]
                 , a [ class "button", Routes.href Routes.AddRepositories ] [ text "Add Repositoriess" ]
                 ]
     in

@@ -18,7 +18,7 @@ services:
 
   server:
     container_name: server
-    image: localhost:5000/vela-server
+    image: target/vela-server
     networks:
       - vela
     environment:
