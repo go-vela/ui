@@ -74,19 +74,12 @@ view : PartialModel -> String -> String -> (Org -> Repo -> BuildNumber -> msg) -
 view { hooks, hookBuilds, time } org repo clickAction =
     case hooks.hooks of
         RemoteData.Success hooks_ ->
-            let
-                ( label, testLabel, noSecrets ) =
-                    ( "Hooks"
-                    , "hooks"
-                    , "No hooks found for this organization/repo"
-                    )
-            in
             div []
                 [ Table.view
                     (Table.Config
-                        label
-                        testLabel
-                        noSecrets
+                        "Hooks"
+                        "hooks"
+                        "No hooks found for this organization/repo"
                         tableHeaders
                         (hooksToRows time hooks_)
                         Nothing
@@ -107,11 +100,19 @@ view { hooks, hookBuilds, time } org repo clickAction =
 -}
 hooksToRows : Posix -> Hooks -> Table.Rows Hook msg
 hooksToRows now hooks =
-    let
-        pairs =
-            List.map (\hook -> ( Table.Row hook (renderHook now), Table.Row hook.error renderHookError )) hooks
-    in
-    []
+    hooks
+        |> List.map (\hook -> [ Just <| Table.Row hook (renderHook now), hookErrorRow hook ])
+        |> List.concat
+        |> List.filterMap identity
+
+
+hookErrorRow : Hook -> Maybe (Table.Row Hook msg)
+hookErrorRow hook =
+    if not <| String.isEmpty hook.error then
+        Just <| Table.Row hook renderHookError
+
+    else
+        Nothing
 
 
 {-| tableHeaders : returns table headers for secrets table
@@ -142,7 +143,7 @@ renderHook now hook =
         , td
             [ attribute "data-label" "source-id"
             , scope "row"
-            , class "-line-break"
+            , class "-line-no-break"
             ]
             [ small [] [ code [ class "source-id" ] [ text hook.source_id ] ] ]
         , td
@@ -172,9 +173,9 @@ renderHook now hook =
         ]
 
 
-renderHookError : String -> Html msg
-renderHookError err =
-    tr [] [ td [ attribute "colspan" "5" ] [ text err ] ]
+renderHookError : Hook -> Html msg
+renderHookError hook =
+    tr [] [ td [ attribute "colspan" "5" ] [ text hook.error ] ]
 
 
 {-| hooksTable : renders hooks table
