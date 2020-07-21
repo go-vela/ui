@@ -123,7 +123,6 @@ import Vela
         , Favicon
         , Field
         , FocusFragment
-        , HookBuilds
         , Hooks
         , HooksModel
         , Key
@@ -211,7 +210,6 @@ type alias Model =
     , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
-    , hookBuilds : HookBuilds
     , theme : Theme
     , shift : Bool
     , visibility : Visibility
@@ -263,7 +261,6 @@ init flags url navKey =
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
             , entryURL = url
-            , hookBuilds = Dict.empty
             , theme = stringToTheme flags.velaTheme
             , shift = False
             , visibility = Visible
@@ -309,7 +306,6 @@ type Msg
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
     | RefreshSecrets Engine Type Org Repo
-    | ClickHook Org Repo BuildNumber
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
@@ -336,7 +332,6 @@ type Msg
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoFavoritedResponse String Bool (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
-    | HookBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoDisabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
@@ -901,14 +896,6 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
             )
 
-        ClickHook org repo buildNumber ->
-            let
-                ( hookBuilds, action ) =
-                    clickHook model org repo buildNumber
-            in
-            ( { model | hookBuilds = hookBuilds }
-            , action
-            )
 
         ClickStep org repo buildNumber stepNumber _ ->
             let
@@ -1023,13 +1010,6 @@ update msg model =
                 Err error ->
                     ( { model | hooks = { currentHooks | hooks = toFailure error } }, addError error )
 
-        HookBuildResponse org repo buildNumber response ->
-            case response of
-                Ok ( _, build ) ->
-                    ( { model | hookBuilds = Pages.Hooks.receiveHookBuild ( org, repo, buildNumber ) (RemoteData.succeed build) model.hookBuilds }, Cmd.none )
-
-                Err error ->
-                    ( { model | hookBuilds = Pages.Hooks.receiveHookBuild ( org, repo, buildNumber ) (toFailure error) model.hookBuilds }, Cmd.none )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.successConfig AlertsUpdate subMsg model
@@ -1330,7 +1310,6 @@ refreshPage model =
         Pages.Hooks org repo maybePage maybePerPage ->
             Cmd.batch
                 [ getHooks model org repo maybePage maybePerPage
-                , refreshHookBuilds model
                 ]
 
         Pages.OrgSecrets engine org maybePage maybePerPage ->
@@ -1427,25 +1406,6 @@ refreshBuildSteps model org repo buildNumber =
     refresh
 
 
-{-| refreshHookBuilds : takes model org and repo and refreshes the hook builds being viewed by the user
--}
-refreshHookBuilds : Model -> Cmd Msg
-refreshHookBuilds model =
-    let
-        builds =
-            Dict.keys model.hookBuilds
-
-        buildsToRefresh =
-            List.filter
-                (\build -> shouldRefreshHookBuild <| Maybe.withDefault ( NotAsked, False ) <| Dict.get build model.hookBuilds)
-                builds
-
-        refreshCmds =
-            List.map (\( org, repo, buildNumber ) -> getHookBuild model org repo buildNumber) buildsToRefresh
-    in
-    Cmd.batch refreshCmds
-
-
 {-| shouldRefresh : takes build and returns true if a refresh is required
 -}
 shouldRefresh : WebData Build -> Bool
@@ -1463,13 +1423,6 @@ shouldRefresh build =
 
         Loading ->
             False
-
-
-{-| shouldRefreshHookBuild : takes build and viewing state and returns true if a refresh is required
--}
-shouldRefreshHookBuild : ( WebData Build, Viewing ) -> Bool
-shouldRefreshHookBuild ( build, viewing ) =
-    viewing && shouldRefresh build
 
 
 {-| filterCompletedSteps : filters out completed steps based on success and failure
@@ -1611,14 +1564,10 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " hooks" ++ page
             , div []
                 [ Pager.view model.hooks.pager Pager.defaultLabels GotoPage
-                , lazy4 Pages.Hooks.view
+                , lazy Pages.Hooks.view
                     { hooks = model.hooks
-                    , hookBuilds = model.hookBuilds
                     , time = model.time
                     }
-                    org
-                    repo
-                    hooksMsgs
                 , Pager.view model.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -2121,7 +2070,7 @@ loadHooksPage model org repo maybePage maybePerPage =
         loadingHooks =
             { loadedHooks | hooks = Loading }
     in
-    ( { model | page = Pages.Hooks org repo maybePage maybePerPage, hooks = loadingHooks, hookBuilds = Dict.empty }
+    ( { model | page = Pages.Hooks org repo maybePage maybePerPage, hooks = loadingHooks }
     , Cmd.batch
         [ getHooks model org repo maybePage maybePerPage
         , getCurrentUser model
@@ -2629,38 +2578,6 @@ addLog incomingLog logs =
     RemoteData.succeed incomingLog :: logs
 
 
-{-| clickHook : takes model org repo and build number and fetches build information from the api
--}
-clickHook : Model -> Org -> Repo -> BuildNumber -> ( HookBuilds, Cmd Msg )
-clickHook model org repo buildNumber =
-    if buildNumber == "0" then
-        ( model.hookBuilds
-        , Cmd.none
-        )
-
-    else
-        let
-            ( buildInfo, action ) =
-                case Dict.get ( org, repo, buildNumber ) model.hookBuilds of
-                    Just ( webdataBuild, viewing ) ->
-                        case webdataBuild of
-                            Success _ ->
-                                ( ( webdataBuild, not viewing ), Cmd.none )
-
-                            Failure err ->
-                                ( ( Failure err, not viewing ), Cmd.none )
-
-                            _ ->
-                                ( ( Loading, not viewing ), Cmd.none )
-
-                    _ ->
-                        ( ( Loading, True ), getHookBuild model org repo buildNumber )
-        in
-        ( Dict.update ( org, repo, buildNumber ) (\_ -> Just buildInfo) model.hookBuilds
-        , action
-        )
-
-
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
 -}
 homeMsgs : Pages.Home.Msgs Msg
@@ -2689,13 +2606,6 @@ addReposMsgs =
     Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
 
 
-{-| hooksMsgs : prepares the input record required for the Hooks page to route Msgs back to Main.elm
--}
-hooksMsgs : Org -> Repo -> BuildNumber -> Msg
-hooksMsgs =
-    ClickHook
-
-
 {-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm
 -}
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
@@ -2720,12 +2630,6 @@ getCurrentUser model =
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getHooks model org repo maybePage maybePerPage =
     Api.try (HooksResponse org repo) <| Api.getHooks model maybePage maybePerPage org repo
-
-
-getHookBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-getHookBuild model org repo buildNumber =
-    Api.try (HookBuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
-
 
 getRepo : Model -> Org -> Repo -> Cmd Msg
 getRepo model org repo =
