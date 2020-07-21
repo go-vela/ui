@@ -143,7 +143,7 @@ header {
       border-radius: 0 0 0 0.25em;
       transform: rotate(135deg);
 
-      content: "";
+      content: '';
 
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
@@ -1029,7 +1029,7 @@ nav {
   &::after {
     display: block;
     position: absolute;
-    content: "";
+    content: '';
     top: -0.5rem;
     right: 0;
     border-color: transparent;
@@ -1209,7 +1209,7 @@ nav {
 }
 
 .added-image.chevron:before {
-  content: "";
+  content: '';
   border-style: solid;
   border-width: 0.1rem 1rem 0.1rem 0.2rem;
   border-color: var(--color-primary);
