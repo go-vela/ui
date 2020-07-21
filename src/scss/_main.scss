@@ -40,9 +40,13 @@ header {
   justify-content: space-between;
 
   padding: 1em var(--horizontal-pad);
-
-  background: radial-gradient(circle at 50% -200%, var(--color-bg-light) -7%, transparent 50%);
-
+  
+  background: radial-gradient(
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
+  );
+  
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
