@@ -154,34 +154,34 @@ renderSecret type_ secret =
         [ td
             [ attribute "data-label" "name"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             , Util.testAttribute <| "secrets-row-name"
             ]
             [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             ]
             [ text <| secretTypeToString secret.type_ ]
         , td
             [ attribute "data-label" "events"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             ]
           <|
             renderListCell secret.events "no events" "secret-event"
         , td
             [ attribute "data-label" "images"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             ]
           <|
             renderListCell secret.images "no images" "secret-image"
         , td
             [ attribute "data-label" "allow command"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             ]
             [ text <| Util.boolToYesNo secret.allowCommand ]
         ]

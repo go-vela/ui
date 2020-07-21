@@ -54,10 +54,6 @@
   font-weight: lighter;
 }
 
-.table-base .-line-break {
-  word-wrap: break-word;
-}
-
 /* responsive style applied when screen width is reduced to < 600px */
 @media screen and (max-width: 600px) {
   .table-base {

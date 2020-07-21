@@ -147,7 +147,7 @@ viewLine id lineNumber line stepNumber logFocus setLogFocus shiftDown =
             ]
             [ Html.td []
                 [ lineFocusButton stepNumber logFocus lineNumber setLogFocus shiftDown ]
-            , Html.td [ class "-word-break-all", class "-overflow-auto" ]
+            , Html.td [ class "break-all", class "-overflow-auto" ]
                 [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
                     [ Ansi.Log.viewLine line ]
                 ]
