@@ -172,12 +172,14 @@ context('Build', () => {
         cy.get('@buildStatus').should('have.class', '-running');
       });
 
-      it('build should display commit message', () =>{
-        cy.get('@build').find('.message').should('be.visible')
-      })
-      it('longer build commit message should be truncated with ellipsis', () =>{
-        cy.get('@build').find('.message').should('have.css', 'text-overflow', 'ellipsis');
-      })
+      it('build should display commit message', () => {
+        cy.get('@build').find('.message').should('be.visible');
+      });
+      it('longer build commit message should be truncated with ellipsis', () => {
+        cy.get('@build')
+          .find('.message')
+          .should('have.css', 'text-overflow', 'ellipsis');
+      });
     });
 
     context('visit pending build', () => {

@@ -48,13 +48,15 @@ context('Builds', () => {
       cy.get('@builds').should('be.visible');
     });
 
-    it('builds should display commit message', () =>{
-      cy.get('@builds').find('.message').should('be.visible')
-    })
+    it('builds should display commit message', () => {
+      cy.get('@builds').find('.message').should('be.visible');
+    });
 
-    it('longer build commit message should be truncated with ellipsis', () =>{
-      cy.get('@builds').find('.message').should('have.css', 'text-overflow', 'ellipsis');
-    })
+    it('longer build commit message should be truncated with ellipsis', () => {
+      cy.get('@builds')
+        .find('.message')
+        .should('have.css', 'text-overflow', 'ellipsis');
+    });
 
     it('pagination controls should not show', () => {
       cy.get('[data-test=pager-previous]').should('not.be.visible');
@@ -82,12 +84,14 @@ context('Builds', () => {
       cy.get('@lastBuild').should('exist').should('contain', '#10');
     });
 
-    it('builds should display commit message', () =>{
-      cy.get('@builds').find('.message').should('be.visible')
-    })
-    it('longer build commit message should be truncated with ellipsis', () =>{
-      cy.get('@builds').find('.message').should('have.css', 'text-overflow', 'ellipsis');
-    })
+    it('builds should display commit message', () => {
+      cy.get('@builds').find('.message').should('be.visible');
+    });
+    it('longer build commit message should be truncated with ellipsis', () => {
+      cy.get('@builds')
+        .find('.message')
+        .should('have.css', 'text-overflow', 'ellipsis');
+    });
 
     it('build page 2 should show the next set of results', () => {
       cy.visit('/someorg/somerepo?page=2');
@@ -126,15 +130,19 @@ context('Builds', () => {
         .should('have.class', '-running');
     });
 
-    it('build should display commit message', () =>{
-      cy.get('@firstBuild').find('.message').should('be.visible')
-      cy.get('@lastBuild').find('.message').should('be.visible')
-    })
+    it('build should display commit message', () => {
+      cy.get('@firstBuild').find('.message').should('be.visible');
+      cy.get('@lastBuild').find('.message').should('be.visible');
+    });
 
-    it('longer build commit message should be truncated with ellipsis', () =>{
-      cy.get('@firstBuild').find('.message').should('have.css', 'text-overflow', 'ellipsis');
-      cy.get('@lastBuild').find('.message').should('have.css', 'text-overflow', 'ellipsis');
-    })
+    it('longer build commit message should be truncated with ellipsis', () => {
+      cy.get('@firstBuild')
+        .find('.message')
+        .should('have.css', 'text-overflow', 'ellipsis');
+      cy.get('@lastBuild')
+        .find('.message')
+        .should('have.css', 'text-overflow', 'ellipsis');
+    });
 
     it('clicking build number should redirect to build page', () => {
       cy.get('@firstBuild').get('[data-test=build-number]').first().click();
@@ -205,7 +213,7 @@ context('Builds', () => {
       cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
       cy.url().should('contain', '?event=tag');
     });
-     
+
     it('should show no results', () => {
       cy.get('[data-test=build-filter-deployment]').click({ force: true });
       cy.get('[data-test=build]').should('not.be.visible');
