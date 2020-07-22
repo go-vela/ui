@@ -66,7 +66,7 @@ context('Secrets', () => {
       });
       it('clicking name should route to edit secret page', () => {
         cy.get('@firstSecret').within(() => {
-          cy.get('[data-test=secrets-row-name]').click({ force: true });
+          cy.get('[data-test=secrets-row-name] > a').click({ force: true });
           cy.location('pathname').should(
             'eq',
             '/-/secrets/native/org/github/docker_username',
@@ -75,7 +75,7 @@ context('Secrets', () => {
       });
       it('clicking name with special character should use encoded url', () => {
         cy.get('@lastSecret').within(() => {
-          cy.get('[data-test=secrets-row-name]').click({ force: true });
+          cy.get('[data-test=secrets-row-name] > a').click({ force: true });
           cy.location('pathname').should(
             'eq',
             '/-/secrets/native/org/github/github%2Fdeployment',

@@ -1641,27 +1641,27 @@ viewContent model =
             in
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ page
             , div []
-                [ Pager.view model.secretsModel.pager Pager.defaultLabels GotoPage
+                [ Pager.view model.secretsModel.pager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.secrets model
-                , Pager.view model.secretsModel.pager Pager.defaultLabels GotoPage
+                , Pager.view model.secretsModel.pager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 ]
             )
 
         Pages.RepoSecrets engine org repo _ _ ->
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
             , div []
-                [ Pager.view model.secretsModel.pager Pager.defaultLabels GotoPage
+                [ Pager.view model.secretsModel.pager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.secrets model
-                , Pager.view model.secretsModel.pager Pager.defaultLabels GotoPage
+                , Pager.view model.secretsModel.pager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 ]
             )
 
         Pages.SharedSecrets engine org team _ _ ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
-                [ Pager.view model.secretsModel.pager Pager.defaultLabels GotoPage
+                [ Pager.view model.secretsModel.pager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.secrets model
-                , Pager.view model.secretsModel.pager Pager.defaultLabels GotoPage
+                , Pager.view model.secretsModel.pager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 ]
             )
 
