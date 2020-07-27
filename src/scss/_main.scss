@@ -412,7 +412,6 @@ nav {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-
   padding: 0 24px;
 }
 
@@ -441,6 +440,14 @@ nav {
 
 .git-info .sender {
   margin: 0 8px 0 8px;
+}
+
+.row .message {
+  font-size: 1rem;
+  width: 60%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .time-info {
