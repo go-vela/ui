@@ -109,6 +109,18 @@
     }
 }
 
+.hook-status {
+    fill: none;
+}
+
+.hook-status.-success {
+    stroke: var(--color-green);
+}
+
+.hook-status.-failure {
+    stroke: var(--color-red);
+}
+
 /* responsive style applied when screen width is reduced to < 600px */
 @media screen and (max-width: 600px) {
     .table-base {
@@ -174,16 +186,4 @@
     .table-base td:last-child {
         border-bottom: 0;
     }
-}
-
-.hook-status {
-    fill: none;
-}
-
-.hook-status.-success {
-    stroke: var(--color-green);
-}
-
-.hook-status.-failure {
-    stroke: var(--color-red);
 }
