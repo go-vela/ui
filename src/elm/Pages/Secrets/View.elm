@@ -160,7 +160,7 @@ renderSecret type_ secret =
             [ attribute "data-label" "name"
             , scope "row"
             , class "-line-break"
-            , Util.testAttribute <| "secrets-row-name"
+            , Util.testAttribute <| "hooks-row-name"
             ]
             [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
         , td

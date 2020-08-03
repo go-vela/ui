@@ -104,7 +104,7 @@ tableHeaders =
 -}
 renderHook : Posix -> Hook -> Html msg
 renderHook now hook =
-    tr [ Util.testAttribute <| "secrets-row", hookStatusToRowClass hook.status ]
+    tr [ Util.testAttribute <| "hooks-row", hookStatusToRowClass hook.status ]
         [ td
             [ attribute "data-label" "status"
             , scope "row"
@@ -156,7 +156,7 @@ hookErrorRow hook =
 
 renderHookError : Hook -> Html msg
 renderHookError hook =
-    tr [ class "error-data" ] [ td [ attribute "colspan" "5" ] [ small [ class "error-content" ] [ text hook.error ] ] ]
+    tr [ class "error-data", Util.testAttribute "hooks-error" ] [ td [ attribute "colspan" "6" ] [ small [ class "error-content" ] [ text hook.error ] ] ]
 
 
 {-| hookStatus : takes hook status and maps it to a string, for strict typing.

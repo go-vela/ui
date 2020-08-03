@@ -49,9 +49,9 @@
 
     font-weight: bold;
 
-    text-align: left;
-
     white-space: nowrap;
+
+    text-align: left;
 }
 
 .table-base td {
@@ -69,10 +69,12 @@
 }
 
 .table-base .source-id {
-    background-color: var(--color-bg);
     padding: 0.2rem 1rem;
-    word-wrap: break-word;
+
     font-weight: 300;
+    word-wrap: break-word;
+
+    background-color: var(--color-bg);
 }
 
 .table-base tr.-success {
@@ -80,17 +82,17 @@
 }
 
 .table-base tr.-error {
-    border-left: 2px solid var(--color-red);
 
     border-bottom: none;
+    border-left: 2px solid var(--color-red);
 }
 
 .table-base tr.error-data {
-    border-left: 2px solid var(--color-red);
-
-    border-bottom: 1px solid var(--color-bg-light);
 
     color: var(--color-red-light);
+
+    border-bottom: 1px solid var(--color-bg-light);
+    border-left: 2px solid var(--color-red);
 
     td {
         padding-top: 0;
@@ -98,9 +100,10 @@
 }
 
 .table-base tr.-error {
-    border-left: 2px solid var(--color-red);
 
     border-bottom: none;
+    border-left: 2px solid var(--color-red);
+
     .error-content {
         color: var(--color-red-light);
     }
@@ -133,14 +136,22 @@
     .table-base tr {
         display: block;
         margin-bottom: 0.625em;
-
-        border-bottom: 3px solid var(--color-lavender);
+    
+        border-bottom: 2px solid var(--color-lavender);
     }
 
     .table-base tr .-icon {
         width: inherit;
 
         padding-left: 0.6rem;
+    }
+
+    .table-base tr.-error {
+        margin-bottom: 0;
+    }
+
+    .table-base tr.error-data {    
+        border-bottom: 2px solid var(--color-lavender);
     }
 
     .table-base td {
@@ -165,56 +176,6 @@
     }
 }
 
-// end table-base
-
-// style below this should be removed when integrating new table with the rest of the application
-.table {
-    width: 100%;
-    margin: 1rem 0;
-    padding-bottom: 0.5rem;
-
-    font-size: 1rem;
-
-    background: var(--color-bg-dark);
-}
-
-.table .loading {
-    display: flex;
-
-    margin-top: 0.5em;
-    margin-left: 0.4em;
-}
-
-.table .row.preview {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.table .headers {
-    position: relative;
-
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-
-    margin-top: 0.3em;
-    padding: 0.3em 1rem;
-    padding-left: 1rem;
-
-    border-bottom: 1px solid var(--color-bg-light);
-}
-
-.table .header {
-    flex: 1;
-
-    font-size: 1.2rem;
-}
-
-.hooks.table .headers {
-    padding-left: 4.25rem;
-}
-
 .hook-status {
     fill: none;
 }
@@ -225,150 +186,4 @@
 
 .hook-status.-failure {
     stroke: var(--color-red);
-}
-
-.table .row .cell {
-    flex: 1;
-    align-items: center;
-    justify-content: center;
-    width: 300px;
-
-    font-weight: lighter;
-    text-align: center;
-    word-wrap: break-word;
-}
-
-.table .headers .header.-last {
-    display: flex;
-    justify-content: flex-end;
-    padding-right: 1rem;
-}
-
-.table .cell.-last {
-    display: flex;
-    justify-content: flex-end;
-    padding-right: 1rem;
-
-    button {
-        margin: 0.25rem 0;
-    }
-}
-
-.table .source-id {
-    min-width: 330px;
-}
-
-.table .headers .first-cell {
-    width: 2rem;
-}
-
-.filler-cell {
-    width: 6ch;
-}
-
-.table .headers .-label {
-    color: var(--color-primary);
-    font-size: 1.5rem;
-}
-
-.table .cell.source-id {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-}
-
-.table .text {
-    flex: 1;
-    padding: 3px 12px;
-
-    text-align: center;
-
-    background: var(--color-bg);
-}
-
-.table .details {
-    margin: 1rem;
-}
-
-.preview .status.success {
-    color: var(--color-green);
-}
-
-.preview .status.failure {
-    color: var(--color-red-light);
-}
-
-.table .info {
-    display: flex;
-    display: inline-block;
-    flex-direction: row;
-
-    width: 100%;
-    padding: 0.4em 1em;
-
-    font-size: 14px;
-
-    border-bottom: 1px solid var(--color-bg-light);
-    border-left: 2px solid var(--color-bg-light);
-}
-
-.table .info:last-child {
-    border-bottom: none;
-}
-
-.table .info.-pending {
-    border-left-color: var(--color-bg-light);
-}
-
-.table .info.-running {
-    border-left-color: var(--color-yellow);
-}
-
-.table .info.-success {
-    border-left-color: var(--color-green);
-}
-
-.table .info.-failure,
-.table .info.-error {
-    border-left-color: var(--color-red);
-}
-
-.table .element span.-m-r,
-.hook-build .-m-r {
-    margin-right: 0.4em;
-}
-
-.table .error-label {
-    color: var(--color-red-light);
-}
-
-.table .hook-build-status.-pending {
-    color: var(--color-offwhite);
-}
-
-.table .hook-build-status.-running {
-    color: var(--color-yellow);
-}
-
-.table .hook-build-status.-success {
-    color: var(--color-green);
-}
-
-.table .hook-build-status.-failure,
-.table .hook-build-status.-error {
-    color: var(--color-red-light);
-}
-
-.table-label {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 0.6rem 0 0 1rem;
-
-    color: var(--color-primary);
-    font-size: 1.25rem;
-}
-
-.table-label .add-secret {
-    margin-right: 1em;
 }
