@@ -8,7 +8,7 @@ context('Steps', () => {
     beforeEach(() => {
       cy.server();
       cy.stubBuild();
-      cy.stubStepsWithLogs();
+      cy.stubStepsWithLogsAndSkipped();
       cy.login('/someorg/somerepo/1');
       cy.get('[data-test=steps]').as('steps');
       cy.get('[data-test=step]').as('step');

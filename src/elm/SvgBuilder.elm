@@ -119,8 +119,8 @@ buildSuccess =
         ]
 
 
-{-| buildFailure : produces svg icon for build status - failure
--}
+
+{-build new icon and case like above for skidpped icon. "kill is skidpped" -}
 buildFailure : Html msg
 buildFailure =
     svg
@@ -134,7 +134,6 @@ buildFailure =
         [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
         , Svg.path [ d "M15 15l14 14M29 15L15 29" ] []
         ]
-
 
 {-| buildStatusAnimation : takes dashes as particles an svg meant to parallax scroll on a running build
 -}
@@ -239,7 +238,7 @@ stepSuccess =
 {-| stepFailure : produces svg icon for step status - failure
 -}
 stepFailure : Html msg
-stepFailure =
+stepFailure = {- Here. -}
     svg
         [ class "-icon -failure"
         , strokeWidth "2"
@@ -260,6 +259,60 @@ stepFailure =
             []
         ]
 
+{-| Not sure if needed but we're gonna find out.-}
+stepSkipped : Html msg
+stepSkipped = {- Here. -}
+    svg
+        [ class "-icon -skip"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "32"
+        , height "32"
+        , ariaHidden
+        ]
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+                , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
+            ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke", d "M30.88 16.987l-9.744-5.625-9.747 9.383"][] 
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+                , d "M33 14l1 6h-6z"
+                , Svg.Attributes.fill "#734F96"
+            ] []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+                , Svg.Attributes.fill "#734F96"
+                , Svg.Attributes.x "9"
+                , Svg.Attributes.y "28"
+                , Svg.Attributes.width "5"
+                , Svg.Attributes.height "5"
+                , Svg.Attributes.rx "3.5"
+
+            ][]
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+                , Svg.Attributes.fill "#734F96"
+                , Svg.Attributes.x "19"
+                , Svg.Attributes.y "28"
+                , Svg.Attributes.width "5"
+                , Svg.Attributes.height "5"
+                , Svg.Attributes.rx "3.5"
+
+            ][]
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+                , Svg.Attributes.fill "#734F96"
+                , Svg.Attributes.x "29"
+                , Svg.Attributes.y "28"
+                , Svg.Attributes.width "5"
+                , Svg.Attributes.height "5"
+                , Svg.Attributes.rx "3.5"
+
+            ][]
+        ]
 
 {-| hookSuccess: produces the svg for the hook status success
 -}
@@ -459,7 +512,7 @@ stepStatusToIcon status =
             stepFailure
 
         Vela.Killed ->
-            stepFailure
+            stepSkipped
 
         Vela.Error ->
             stepFailure

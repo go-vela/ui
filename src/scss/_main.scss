@@ -1164,7 +1164,7 @@ nav {
   }
 
   &.-failure,
-  &.-error {
+  &.-error { //here
     stroke: var(--color-red);
   }
 
@@ -1175,6 +1175,10 @@ nav {
 
   .-inner {
     fill: var(--color-primary);
+  }
+
+  &.-skip { //here
+    stroke: #734F96;
   }
 }
 
