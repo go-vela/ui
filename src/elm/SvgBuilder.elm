@@ -288,12 +288,12 @@ stepSkipped =
         , Svg.path
             [ attribute "vector-effect" "non-scaling-stroke"
             , d "M33 14l1 6h-6z"
-            , Svg.Attributes.fill "#734F96"
+            , Svg.Attributes.fill "var(--color-lavender)"
             ]
             []
         , Svg.rect
             [ attribute "vector-effect" "non-scaling-stroke"
-            , Svg.Attributes.fill "#734F96"
+            , Svg.Attributes.fill "var(--color-lavender)"
             , Svg.Attributes.x "9"
             , Svg.Attributes.y "28"
             , Svg.Attributes.width "5"
@@ -303,7 +303,7 @@ stepSkipped =
             []
         , Svg.rect
             [ attribute "vector-effect" "non-scaling-stroke"
-            , Svg.Attributes.fill "#734F96"
+            , Svg.Attributes.fill "var(--color-lavender)"
             , Svg.Attributes.x "19"
             , Svg.Attributes.y "28"
             , Svg.Attributes.width "5"
@@ -313,7 +313,7 @@ stepSkipped =
             []
         , Svg.rect
             [ attribute "vector-effect" "non-scaling-stroke"
-            , Svg.Attributes.fill "#734F96"
+            , Svg.Attributes.fill "var(--color-lavender)"
             , Svg.Attributes.x "29"
             , Svg.Attributes.y "28"
             , Svg.Attributes.width "5"
