@@ -95,32 +95,32 @@ commands page =
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
-        Pages.OrgSecrets engine org _ _ ->
-            [ listSecrets engine Vela.OrgSecret org Nothing ]
+        Pages.OrgSecrets secretEngine org _ _ ->
+            [ listSecrets secretEngine Vela.OrgSecret org Nothing ]
 
-        Pages.RepoSecrets engine org repo _ _ ->
-            [ listSecrets engine Vela.RepoSecret org <| Just repo ]
+        Pages.RepoSecrets secretEngine org repo _ _ ->
+            [ listSecrets secretEngine Vela.RepoSecret org <| Just repo ]
 
-        Pages.SharedSecrets engine org key _ _ ->
-            [ listSecrets engine Vela.SharedSecret org <| Just key ]
+        Pages.SharedSecrets secretEngine org key _ _ ->
+            [ listSecrets secretEngine Vela.SharedSecret org <| Just key ]
 
-        Pages.AddOrgSecret engine org ->
-            [ addSecret engine Vela.OrgSecret org Nothing ]
+        Pages.AddOrgSecret secretEngine org ->
+            [ addSecret secretEngine Vela.OrgSecret org Nothing ]
 
-        Pages.AddRepoSecret engine org repo ->
-            [ addSecret engine Vela.RepoSecret org <| Just repo ]
+        Pages.AddRepoSecret secretEngine org repo ->
+            [ addSecret secretEngine Vela.RepoSecret org <| Just repo ]
 
-        Pages.AddSharedSecret engine org team ->
-            [ addSecret engine Vela.SharedSecret org <| Just team ]
+        Pages.AddSharedSecret secretEngine org team ->
+            [ addSecret secretEngine Vela.SharedSecret org <| Just team ]
 
-        Pages.OrgSecret engine org name ->
-            [ viewSecret engine Vela.OrgSecret org Nothing name, updateSecret engine Vela.OrgSecret org Nothing name ]
+        Pages.OrgSecret secretEngine org name ->
+            [ viewSecret secretEngine Vela.OrgSecret org Nothing name, updateSecret secretEngine Vela.OrgSecret org Nothing name ]
 
-        Pages.RepoSecret engine org repo name ->
-            [ viewSecret engine Vela.RepoSecret org (Just repo) name, updateSecret engine Vela.RepoSecret org (Just repo) name ]
+        Pages.RepoSecret secretEngine org repo name ->
+            [ viewSecret secretEngine Vela.RepoSecret org (Just repo) name, updateSecret secretEngine Vela.RepoSecret org (Just repo) name ]
 
-        Pages.SharedSecret engine org team name ->
-            [ viewSecret engine Vela.SharedSecret org (Just team) name, updateSecret engine Vela.SharedSecret org (Just team) name ]
+        Pages.SharedSecret secretEngine org team name ->
+            [ viewSecret secretEngine Vela.SharedSecret org (Just team) name, updateSecret secretEngine Vela.SharedSecret org (Just team) name ]
 
         Pages.Settings ->
             -- TODO: probably want this filled in
@@ -365,17 +365,17 @@ listHooks _ _ =
 {-| listSecrets : returns cli command for listing secrets
 
     eg.
-    vela get secrets --engine native --type repo --org octocat --team ghe-admins
+    vela get secrets --secret.engine native --secret.type repo --org octocat --team ghe-admins
 
 -}
 listSecrets : Engine -> SecretType -> Org -> Maybe Key -> Command
-listSecrets engine type_ org key =
+listSecrets secretEngine secretType org key =
     let
         name =
-            "List " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secrets"
+            "List " ++ (String.Extra.toSentenceCase <| secretTypeToString secretType) ++ " Secrets"
 
         content =
-            Just <| "vela get secrets " ++ secretBaseArgs engine type_ org key
+            Just <| "vela get secrets " ++ secretBaseArgs secretEngine secretType org key
 
         docs =
             Just "secret/get"
@@ -386,17 +386,17 @@ listSecrets engine type_ org key =
 {-| addSecret : returns cli command for adding a secret
 
     eg.
-    vela add secret --engine native --type repo --org octocat --team ghe-admins --name password --value vela --event push
+    vela add secret --secret.engine native --secret.type repo --org octocat --team ghe-admins --name password --value vela --event push
 
 -}
 addSecret : Engine -> SecretType -> Org -> Maybe Key -> Command
-addSecret engine type_ org key =
+addSecret secretEngine secretType org key =
     let
         name =
-            "Add " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secret"
+            "Add " ++ (String.Extra.toSentenceCase <| secretTypeToString secretType) ++ " Secret"
 
         content =
-            Just <| "vela add secret " ++ secretBaseArgs engine type_ org key ++ addSecretArgs
+            Just <| "vela add secret " ++ secretBaseArgs secretEngine secretType org key ++ addSecretArgs
 
         docs =
             Just "secret/add"
@@ -407,19 +407,19 @@ addSecret engine type_ org key =
 {-| viewSecret : returns cli command for viewing a secret
 
     eg.
-    vela view secret --engine native --type org --org octocat --name password
-    vela view secret --engine native --type repo --org octocat --repo hello-world --name password
-    vela view secret --engine native --type shared --org octocat --team ghe-admins --name password
+    vela view secret --secret.engine native --secret.type org --org octocat --name password
+    vela view secret --secret.engine native --secret.type repo --org octocat --repo hello-world --name password
+    vela view secret --secret.engine native --secret.type shared --org octocat --team ghe-admins --name password
 
 -}
 viewSecret : Engine -> SecretType -> Org -> Maybe Key -> Name -> Command
-viewSecret engine type_ org key name_ =
+viewSecret secretEngine secretType org key name_ =
     let
         name =
-            "View " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secret"
+            "View " ++ (String.Extra.toSentenceCase <| secretTypeToString secretType) ++ " Secret"
 
         content =
-            Just <| "vela view secret " ++ secretBaseArgs engine type_ org key ++ " --name " ++ name_
+            Just <| "vela view secret " ++ secretBaseArgs secretEngine secretType org key ++ " --name " ++ name_
 
         docs =
             Just "secret/view"
@@ -430,19 +430,19 @@ viewSecret engine type_ org key name_ =
 {-| updateSecret : returns cli command for updating an existing secret
 
     eg.
-    vela update secret --engine native --type org --org octocat --name password --value new_value
-    vela update secret --engine native --type repo --org octocat --repo hello-world --name password --value new_value
-    vela update secret --engine native --type shared --org octocat --team ghe-admins --name password --value new_value
+    vela update secret --secret.engine native --secret.type org --org octocat --name password --value new_value
+    vela update secret --secret.engine native --secret.type repo --org octocat --repo hello-world --name password --value new_value
+    vela update secret --secret.engine native --secret.type shared --org octocat --team ghe-admins --name password --value new_value
 
 -}
 updateSecret : Engine -> SecretType -> Org -> Maybe Key -> Name -> Command
-updateSecret engine type_ org key name_ =
+updateSecret secretEngine secretType org key name_ =
     let
         name =
-            "Update " ++ (String.Extra.toSentenceCase <| secretTypeToString type_) ++ " Secret"
+            "Update " ++ (String.Extra.toSentenceCase <| secretTypeToString secretType) ++ " Secret"
 
         content =
-            Just <| "vela update secret " ++ secretBaseArgs engine type_ org key ++ " --name " ++ name_ ++ " --value new_value"
+            Just <| "vela update secret " ++ secretBaseArgs secretEngine secretType org key ++ " --name " ++ name_ ++ " --value new_value"
 
         docs =
             Just "secret/update"
@@ -485,16 +485,16 @@ repoArgs org repo =
 {-| secretBaseArgs : returns cli args for requesting secrets
 
     eg.
-    --type org --org octocat
-    --type repo --org octocat --repo hello-world
-    --type shared --org octocat --team ghe-admins
+    --secret.type org --org octocat
+    --secret.type repo --org octocat --repo hello-world
+    --secret.type shared --org octocat --team ghe-admins
 
 -}
 secretBaseArgs : Engine -> SecretType -> Org -> Maybe Key -> String
-secretBaseArgs engine type_ org key =
+secretBaseArgs secretEngine secretType org key =
     let
         keyFlag =
-            case type_ of
+            case secretType of
                 Vela.OrgSecret ->
                     ""
 
@@ -504,7 +504,7 @@ secretBaseArgs engine type_ org key =
                 Vela.SharedSecret ->
                     " --team " ++ Maybe.withDefault "" key
     in
-    "--engine " ++ engine ++ " --type " ++ secretTypeToString type_ ++ " --org " ++ org ++ keyFlag
+    "--secret.engine " ++ secretEngine ++ " --secret.type " ++ secretTypeToString secretType ++ " --org " ++ org ++ keyFlag
 
 
 {-| addSecretArgs : returns cli args for adding a secret
@@ -601,32 +601,32 @@ resourceLoaded args =
         Pages.Build _ _ _ _ ->
             args.build.success
 
-        Pages.AddOrgSecret engine org ->
-            noBlanks [ engine, org ]
+        Pages.AddOrgSecret secretEngine org ->
+            noBlanks [ secretEngine, org ]
 
-        Pages.AddRepoSecret engine org repo ->
-            noBlanks [ engine, org, repo ]
+        Pages.AddRepoSecret secretEngine org repo ->
+            noBlanks [ secretEngine, org, repo ]
 
-        Pages.AddSharedSecret engine org team ->
-            noBlanks [ engine, org, team ]
+        Pages.AddSharedSecret secretEngine org team ->
+            noBlanks [ secretEngine, org, team ]
 
-        Pages.OrgSecrets engine org _ _ ->
-            noBlanks [ engine, org ]
+        Pages.OrgSecrets secretEngine org _ _ ->
+            noBlanks [ secretEngine, org ]
 
-        Pages.RepoSecrets engine org repo _ _ ->
-            noBlanks [ engine, org, repo ]
+        Pages.RepoSecrets secretEngine org repo _ _ ->
+            noBlanks [ secretEngine, org, repo ]
 
-        Pages.SharedSecrets engine org team _ _ ->
-            noBlanks [ engine, org, team ]
+        Pages.SharedSecrets secretEngine org team _ _ ->
+            noBlanks [ secretEngine, org, team ]
 
-        Pages.OrgSecret engine org name ->
-            noBlanks [ engine, org, name ]
+        Pages.OrgSecret secretEngine org name ->
+            noBlanks [ secretEngine, org, name ]
 
-        Pages.RepoSecret engine org repo name ->
-            noBlanks [ engine, org, repo, name ]
+        Pages.RepoSecret secretEngine org repo name ->
+            noBlanks [ secretEngine, org, repo, name ]
 
-        Pages.SharedSecret engine org team name ->
-            noBlanks [ engine, org, team, name ]
+        Pages.SharedSecret secretEngine org team name ->
+            noBlanks [ secretEngine, org, team, name ]
 
         Pages.RepoSettings _ _ ->
             args.repo.success
@@ -676,23 +676,23 @@ resourceLoading args =
         Pages.SharedSecrets _ _ _ _ _ ->
             args.secrets.loading
 
-        Pages.AddOrgSecret engine org ->
-            anyBlank [ engine, org ]
+        Pages.AddOrgSecret secretEngine org ->
+            anyBlank [ secretEngine, org ]
 
-        Pages.AddRepoSecret engine org repo ->
-            anyBlank [ engine, org, repo ]
+        Pages.AddRepoSecret secretEngine org repo ->
+            anyBlank [ secretEngine, org, repo ]
 
-        Pages.AddSharedSecret engine org team ->
-            anyBlank [ engine, org, team ]
+        Pages.AddSharedSecret secretEngine org team ->
+            anyBlank [ secretEngine, org, team ]
 
-        Pages.OrgSecret engine org name ->
-            anyBlank [ engine, org, name ]
+        Pages.OrgSecret secretEngine org name ->
+            anyBlank [ secretEngine, org, name ]
 
-        Pages.RepoSecret engine org repo name ->
-            anyBlank [ engine, org, repo, name ]
+        Pages.RepoSecret secretEngine org repo name ->
+            anyBlank [ secretEngine, org, repo, name ]
 
-        Pages.SharedSecret engine org team name ->
-            anyBlank [ engine, org, team, name ]
+        Pages.SharedSecret secretEngine org team name ->
+            anyBlank [ secretEngine, org, team, name ]
 
         Pages.RepoSettings _ _ ->
             args.repo.loading
