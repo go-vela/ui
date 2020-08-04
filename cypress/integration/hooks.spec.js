@@ -135,17 +135,19 @@ context('Hooks', () => {
         .click();
       cy.location('pathname').should('eq', '/github/octocat/hooks');
     });
-    
+
     context('force 550, 750 resolution', () => {
       beforeEach(() => {
-        cy.viewport(550, 750)
-      })
+        cy.viewport(550, 750);
+      });
       it('rows have responsive style', () => {
-        cy.get('[data-test=hooks-row]').first().should('have.css',
-         'border-bottom', '2px solid rgb(149, 94, 166)'); // check for lavender border
-        cy.get('[data-test=hooks-table]').first().should('have.css',
-        'border', '0px none rgb(250, 250, 250)'); // no base border
-      })
-    })
+        cy.get('[data-test=hooks-row]')
+          .first()
+          .should('have.css', 'border-bottom', '2px solid rgb(149, 94, 166)'); // check for lavender border
+        cy.get('[data-test=hooks-table]')
+          .first()
+          .should('have.css', 'border', '0px none rgb(250, 250, 250)'); // no base border
+      });
+    });
   });
 });

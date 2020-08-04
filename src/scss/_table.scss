@@ -3,181 +3,179 @@
 // Use of this source code is governed by the LICENSE file in this repository.
 
 .table-base {
-    width: 100%;
-    margin: 0;
-    margin-bottom: 1rem;
-    padding: 0;
+  width: 100%;
+  margin: 0;
+  margin-bottom: 1rem;
+  padding: 0;
 
-    background-color: var(--color-bg-dark);
-    border-collapse: collapse;
+  background-color: var(--color-bg-dark);
+  border-collapse: collapse;
 }
 
 .table-base thead {
-    border-bottom: 2px solid var(--color-lavender);
+  border-bottom: 2px solid var(--color-lavender);
 }
 
 .table-base tr .-icon {
-    width: 3rem;
+  width: 3rem;
 
-    padding-left: 1.25rem;
+  padding-left: 1.25rem;
 }
 
 .table-base tr {
-    padding: 0.35em;
+  padding: 0.35em;
 
-    border-bottom: 1px solid var(--color-bg-light);
+  border-bottom: 1px solid var(--color-bg-light);
 }
 
 .table-base tr:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .table-base caption {
-    margin: 0.5em 0 0.75em;
+  margin: 0.5em 0 0.75em;
 
-    font-size: 1.5em;
+  font-size: 1.5em;
 
-    div {
-        display: flex;
-        justify-content: space-between;
-        padding-left: 1rem;
-    }
+  div {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1rem;
+  }
 }
 
 .table-base th {
-    padding: 0.625em;
+  padding: 0.625em;
 
-    font-weight: bold;
+  font-weight: bold;
 
-    white-space: nowrap;
+  white-space: nowrap;
 
-    text-align: left;
+  text-align: left;
 }
 
 .table-base td {
-    padding: 0.625em;
+  padding: 0.625em;
 
-    font-weight: lighter;
+  font-weight: lighter;
 }
 
 .table-base .-line-break {
-    word-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .table-base .-line-no-break {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 .table-base .source-id {
-    padding: 0.2rem 1rem;
+  padding: 0.2rem 1rem;
 
-    font-weight: 300;
-    word-wrap: break-word;
+  font-weight: 300;
+  word-wrap: break-word;
 
-    background-color: var(--color-bg);
+  background-color: var(--color-bg);
 }
 
 .table-base tr.-success {
-    border-left: 2px solid var(--color-green);
+  border-left: 2px solid var(--color-green);
 }
 
 .table-base tr.error-data {
+  color: var(--color-red-light);
 
-    color: var(--color-red-light);
+  border-bottom: 1px solid var(--color-bg-light);
+  border-left: 2px solid var(--color-red);
 
-    border-bottom: 1px solid var(--color-bg-light);
-    border-left: 2px solid var(--color-red);
-
-    td {
-        padding-top: 0;
-    }
+  td {
+    padding-top: 0;
+  }
 }
 
 .table-base tr.-error {
+  border-bottom: none;
+  border-left: 2px solid var(--color-red);
 
-    border-bottom: none;
-    border-left: 2px solid var(--color-red);
-
-    .error-content {
-        color: var(--color-red-light);
-    }
+  .error-content {
+    color: var(--color-red-light);
+  }
 }
 
 .hook-status {
-    fill: none;
+  fill: none;
 }
 
 .hook-status.-success {
-    stroke: var(--color-green);
+  stroke: var(--color-green);
 }
 
 .hook-status.-failure {
-    stroke: var(--color-red);
+  stroke: var(--color-red);
 }
 
 /* responsive style applied when screen width is reduced to < 600px */
 @media screen and (max-width: 600px) {
-    .table-base {
-        border: 0;
-    }
+  .table-base {
+    border: 0;
+  }
 
-    .table-base caption {
-        font-size: 1.3em;
-    }
+  .table-base caption {
+    font-size: 1.3em;
+  }
 
-    .table-base thead {
-        position: absolute;
+  .table-base thead {
+    position: absolute;
 
-        width: 1px;
-        height: 1px;
-        margin: -1px;
-        padding: 0;
-        overflow: hidden;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
 
-        border: none;
+    border: none;
 
-        clip: rect(0 0 0 0);
-    }
+    clip: rect(0 0 0 0);
+  }
 
-    .table-base tr {
-        display: block;
-        margin-bottom: 0.625em;
-    
-        border-bottom: 2px solid var(--color-lavender);
-    }
+  .table-base tr {
+    display: block;
+    margin-bottom: 0.625em;
 
-    .table-base tr .-icon {
-        width: inherit;
+    border-bottom: 2px solid var(--color-lavender);
+  }
 
-        padding-left: 0.6rem;
-    }
+  .table-base tr .-icon {
+    width: inherit;
 
-    .table-base tr.-error {
-        margin-bottom: 0;
-    }
+    padding-left: 0.6rem;
+  }
 
-    .table-base tr.error-data {    
-        border-bottom: 2px solid var(--color-lavender);
-    }
+  .table-base tr.-error {
+    margin-bottom: 0;
+  }
 
-    .table-base td {
-        display: block;
+  .table-base tr.error-data {
+    border-bottom: 2px solid var(--color-lavender);
+  }
 
-        font-size: 0.8em;
-        text-align: right;
+  .table-base td {
+    display: block;
 
-        border-bottom: 1px solid var(--color-bg-light);
-    }
+    font-size: 0.8em;
+    text-align: right;
 
-    .table-base td::before {
-        float: left;
+    border-bottom: 1px solid var(--color-bg-light);
+  }
 
-        font-weight: bold;
+  .table-base td::before {
+    float: left;
 
-        content: attr(data-label);
-    }
+    font-weight: bold;
 
-    .table-base td:last-child {
-        border-bottom: 0;
-    }
+    content: attr(data-label);
+  }
+
+  .table-base td:last-child {
+    border-bottom: 0;
+  }
 }
