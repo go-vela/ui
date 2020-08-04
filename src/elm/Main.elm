@@ -896,7 +896,6 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
             )
 
-
         ClickStep org repo buildNumber stepNumber _ ->
             let
                 ( steps, fetchStepLogs ) =
@@ -1009,7 +1008,6 @@ update msg model =
 
                 Err error ->
                     ( { model | hooks = { currentHooks | hooks = toFailure error } }, addError error )
-
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.successConfig AlertsUpdate subMsg model
@@ -2630,6 +2628,7 @@ getCurrentUser model =
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getHooks model org repo maybePage maybePerPage =
     Api.try (HooksResponse org repo) <| Api.getHooks model maybePage maybePerPage org repo
+
 
 getRepo : Model -> Org -> Repo -> Cmd Msg
 getRepo model org repo =
