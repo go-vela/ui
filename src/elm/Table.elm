@@ -90,12 +90,7 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
             ]
         , thead [] [ tr [] <| List.map (\( className, col ) -> th [ class <| Maybe.withDefault "" className, scope "col" ] [ text <| String.Extra.toTitleCase col ]) columns ]
         , footer noRows numRows
-        , tbody [] <|
-            if List.length rows > 0 then
-                List.map (\row_ -> row_.display row_.data) rows
-
-            else
-                []
+        , tbody [] <| List.map (\row_ -> row_.display row_.data) rows
         ]
 
 

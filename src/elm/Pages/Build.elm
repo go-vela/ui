@@ -29,6 +29,7 @@ import Html
         , em
         , li
         , span
+        , strong
         , summary
         , text
         , ul
@@ -166,6 +167,9 @@ viewPreview now org repo build =
         sender =
             [ text build.sender ]
 
+        message =
+            [ text build.message ]
+
         id =
             [ a
                 [ Util.testAttribute "build-number"
@@ -202,6 +206,11 @@ viewPreview now org repo build =
                         , span [ class "delimiter" ] [ text "/" ]
                         , div [ class "duration" ] duration
                         ]
+                    ]
+                , div [ class "row" ]
+                    [ strong
+                        [ class "message" ]
+                        message
                     ]
                 , viewError build
                 ]

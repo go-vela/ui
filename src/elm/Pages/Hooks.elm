@@ -108,38 +108,38 @@ renderHook now hook =
         [ td
             [ attribute "data-label" "status"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             , class "-icon"
             ]
             [ hookStatusToIcon hook.status ]
         , td
             [ attribute "data-label" "source-id"
             , scope "row"
-            , class "-line-no-break"
+            , class "no-wrap"
             ]
-            [ small [] [ code [ class "source-id" ] [ text hook.source_id ] ] ]
+            [ small [] [ code [ class "source-id", class "break-word" ] [ text hook.source_id ] ] ]
         , td
             [ attribute "data-label" "created"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             ]
             [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
         , td
             [ attribute "data-label" "host"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             ]
             [ text hook.host ]
         , td
             [ attribute "data-label" "event"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             ]
             [ text hook.event ]
         , td
             [ attribute "data-label" "branch"
             , scope "row"
-            , class "-line-break"
+            , class "break-word"
             ]
             [ text hook.branch ]
         ]
