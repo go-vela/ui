@@ -14,12 +14,17 @@ import Html
         , button
         , div
         , h2
+        , span
+        , td
         , text
+        , tr
         )
 import Html.Attributes
     exposing
-        ( class
+        ( attribute
+        , class
         , href
+        , scope
         )
 import Html.Events exposing (onClick)
 import Pages.Secrets.Form
@@ -40,7 +45,7 @@ import Pages.Secrets.Model
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
-import Table.Table
+import Table
 import Url exposing (percentEncode)
 import Util exposing (largeLoader)
 import Vela
@@ -48,7 +53,6 @@ import Vela
         ( Secret
         , SecretType(..)
         , Secrets
-        , secretErrorLabel
         , secretTypeToString
         , secretsErrorLabel
         )
@@ -95,18 +99,22 @@ secrets model =
                     , Routes.href <|
                         addSecretRoute
                     ]
-                    [ addHeader secretsModel.type_ ]
+                    [ addLabel secretsModel.type_ ]
+
+        testLabel =
+            "secrets"
     in
     case secretsModel.secrets of
         Success s ->
             div []
-                [ Table.Table.view
-                    (Table.Table.Config label
+                [ Table.view
+                    (Table.Config
+                        label
+                        testLabel
                         noSecrets
                         tableHeaders
                         (secretsToRows model.secretsModel.type_ s)
                         add
-                        "secrets"
                     )
                 ]
 
@@ -117,7 +125,7 @@ secrets model =
                         secretsModel.org
                     <|
                         secretsResourceKey secretsModel
-                , testLabel = "secrets"
+                , testLabel = testLabel
                 }
 
         _ ->
@@ -126,9 +134,9 @@ secrets model =
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
-secretsToRows : SecretType -> Secrets -> Table.Table.Rows Secret Msg
+secretsToRows : SecretType -> Secrets -> Table.Rows Secret Msg
 secretsToRows type_ =
-    List.map (\secret -> Table.Table.Row secret (renderSecret type_))
+    List.map (\secret -> Table.Row secret (renderSecret type_))
 
 
 {-| tableHeaders : returns table headers for secrets table
@@ -142,16 +150,67 @@ tableHeaders =
 -}
 renderSecret : SecretType -> Secret -> Html msg
 renderSecret type_ secret =
-    div [ class "row", class "preview", Util.testAttribute "secrets-row" ]
-        [ Table.Table.customCell (a [ updateSecretHref type_ secret, Util.testAttribute "secrets-row-name" ] [ text secret.name ]) <| class ""
-        , Table.Table.cell (secretTypeToString secret.type_) <| class ""
-        , Table.Table.arrayCell secret.events "no events"
-        , Table.Table.arrayCell secret.images "all images"
-        , Table.Table.cell (Util.boolToYesNo secret.allowCommand) <| class ""
-
-        -- TODO: change linked name to edit button, when table is fixed
-        -- , Table.Table.customCell ( a [ class "button", class "-outline", updateSecretHref type_ secret ] [ text "edit" ]) <| class ""
+    tr [ Util.testAttribute <| "secrets-row" ]
+        [ td
+            [ attribute "data-label" "name"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "secrets-row-name"
+            ]
+            [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
+        , td
+            [ attribute "data-label" "type"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| secretTypeToString secret.type_ ]
+        , td
+            [ attribute "data-label" "events"
+            , scope "row"
+            , class "break-word"
+            ]
+          <|
+            renderListCell secret.events "no events" "secret-event"
+        , td
+            [ attribute "data-label" "images"
+            , scope "row"
+            , class "break-word"
+            ]
+          <|
+            renderListCell secret.images "no images" "secret-image"
+        , td
+            [ attribute "data-label" "allow command"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| Util.boolToYesNo secret.allowCommand ]
         ]
+
+
+{-| renderListCell : takes list of items, text for none and className and renders a table cell
+-}
+renderListCell : List String -> String -> String -> List (Html msg)
+renderListCell items none itemClassName =
+    if List.length items == 0 then
+        [ text none ]
+
+    else
+        let
+            content =
+                items
+                    |> List.sort
+                    |> List.indexedMap
+                        (\i item ->
+                            if i + 1 < List.length items then
+                                Just <| item ++ ", "
+
+                            else
+                                Just item
+                        )
+                    |> List.filterMap identity
+                    |> String.concat
+        in
+        [ Html.code [ class itemClassName ] [ span [] [ text content ] ] ]
 
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
@@ -187,16 +246,16 @@ addSecret : PartialModel a msg -> Html Msg
 addSecret model =
     div [ class "manage-secret", Util.testAttribute "manage-secret" ]
         [ div []
-            [ h2 [] [ addHeader model.secretsModel.type_ ]
+            [ h2 [] [ addLabel model.secretsModel.type_ ]
             , addForm model.secretsModel
             ]
         ]
 
 
-{-| addHeader : takes secret type and renders the Add Secret header
+{-| addLabel : takes secret type and renders the Add Secret header label
 -}
-addHeader : SecretType -> Html Msg
-addHeader type_ =
+addLabel : SecretType -> Html Msg
+addLabel type_ =
     case type_ of
         Vela.OrgSecret ->
             text "Add Org Secret"
