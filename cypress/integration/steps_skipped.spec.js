@@ -33,7 +33,7 @@ context('Steps', () => {
 
     it('all 5 steps should have logs', () => {
       cy.get('[data-test=logs-1]').should('exist').contains('$');
-      cy.get('[data-test=logs-2]').should('exist').contains('$');
+      cy.get('[data-test=logs-2]').should('not.exist');
       cy.get('[data-test=logs-3]').should('exist').contains('$');
       cy.get('[data-test=logs-4]').should('exist').contains('$');
       // cy.get('[data-test=logs-5]').should('not.exist');

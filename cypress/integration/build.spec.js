@@ -196,7 +196,7 @@ context('Build', () => {
 
     context('visit success build', () => {
       beforeEach(() => {
-        cy.visit('/someorg/somerepo/3');
+        cy.visit('/someorg/somerepo/');
         cy.get('[data-test=full-build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
