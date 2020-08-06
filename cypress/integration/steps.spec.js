@@ -31,12 +31,12 @@ context('Steps', () => {
       cy.get('@steps').children().last().should('contain', 'echo');
     });
 
-    it('all 5 steps should have logs', () => {
+    it('First 4 steps should have logs', () => {
       cy.get('[data-test=logs-1]').should('exist').contains('$');
       cy.get('[data-test=logs-2]').should('exist').contains('$');
       cy.get('[data-test=logs-3]').should('exist').contains('$');
       cy.get('[data-test=logs-4]').should('exist').contains('$');
-      // cy.get('[data-test=logs-5]').should('not.exist');
+      cy.get('[data-test=logs-5]').should('not.exist');
       cy.get('[data-test=logs-6]').should('not.exist');
     });
 
@@ -86,7 +86,7 @@ context('Steps', () => {
     context('click log line in last step', () => {
       beforeEach(() => {
         cy.get('[data-test=step-header-5]').click({ force: true });
-        cy.get('[data-test=log-line-num-5-2]').as('lineNumber');
+        cy.get('[data-test=step-error]').as('lineNumber');
         cy.get('@lineNumber').click({ force: true });
       });
       context('click first step', () => {
@@ -119,8 +119,8 @@ context('Steps', () => {
 
       context('click other log line number', () => {
         beforeEach(() => {
-          cy.get('[data-test=log-line-5-2]').as('otherLine');
-          cy.get('[data-test=log-line-num-5-2]').as('otherLineNumber');
+          cy.get('[data-test=log-line-3-2]').as('otherLine');
+          cy.get('[data-test=log-line-num-3-2]').as('otherLineNumber');
           cy.get('@otherLineNumber').click({ force: true });
         });
         it('original line should not be highlighted', () => {
@@ -134,12 +134,12 @@ context('Steps', () => {
 
         it('browser path should contain other step and line fragment', () => {
           cy.clickSteps();
-          cy.hash().should('eq', '#step:5:2');
+          cy.hash().should('eq', '#step:3:2');
         });
 
         it('browser path should contain other step and line fragment', () => {
           cy.get('@otherLineNumber').click({ force: true });
-          cy.hash().should('eq', '#step:5:2');
+          cy.hash().should('eq', '#step:3:2');
         });
       });
     });
@@ -252,6 +252,12 @@ context('Steps', () => {
           it('browser path should contain first step fragment', () => {
             cy.hash().should('eq', '#step:1');
           });
+
+          it('last step should contain killed/skip', () => {
+            cy.get('[data-test=step]').last().as('killStep');
+            cy.get('@killStep').should('be.visible').click();
+            cy.get('@killStep').contains('step was killed');
+          });
         });
       },
     );
@@ -295,10 +301,10 @@ context('Steps', () => {
       cy.get('[data-test=step]').first().should('not.have.class', '-last');
     });
 
-    it('last step should not contain error', () => {
+    it('last step should not contain killed/skipped', () => {
       cy.get('[data-test=step]').last().as('echoStep');
       cy.get('@echoStep').should('be.visible').click({ force: true });
-      cy.get('@echoStep').should('not.contain', 'error:');
+      cy.get('@echoStep').should('not.contain', 'step was killed');
       cy.get('@echoStep').contains('$');
     });
 
