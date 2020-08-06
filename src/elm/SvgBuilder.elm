@@ -242,7 +242,6 @@ stepSuccess =
 -}
 stepFailure : Html msg
 stepFailure =
-    {- Here. -}
     svg
         [ class "-icon -failure"
         , strokeWidth "2"
@@ -268,7 +267,6 @@ stepFailure =
 -}
 stepSkipped : Html msg
 stepSkipped =
-    {- Here. -}
     svg
         [ class "-icon -skip"
         , strokeWidth "2"
