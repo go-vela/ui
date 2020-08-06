@@ -263,8 +263,9 @@ stepFailure =
         ]
 
 
-{-| Not sure if needed but we're gonna find out.
+{-| stepSkipped : produces svg icon for step status - killed
 -}
+{-| Note: killed and skipped means the same thing.  -}
 stepSkipped : Html msg
 stepSkipped =
     svg
