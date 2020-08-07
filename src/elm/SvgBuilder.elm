@@ -119,10 +119,8 @@ buildSuccess =
         ]
 
 
-
-{- build new icon and case like above for skidpped icon. "kill is skidpped" -}
-
-
+{-| buildFailure : produces svg icon for build status - failure
+-}
 buildFailure : Html msg
 buildFailure =
     svg
