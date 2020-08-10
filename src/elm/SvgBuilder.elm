@@ -261,6 +261,66 @@ stepFailure =
         ]
 
 
+{-| stepSkipped : produces svg icon for step status - killed
+Note: killed/skipped are the same thing.
+-}
+stepSkipped : Html msg
+stepSkipped =
+    svg
+        [ class "-icon -skip"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "32"
+        , height "32"
+        , ariaHidden
+        ]
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
+            ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke", d "M30.88 16.987l-9.744-5.625-9.747 9.383" ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M33 14l1 6h-6z"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            ]
+            []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            , Svg.Attributes.x "9"
+            , Svg.Attributes.y "28"
+            , Svg.Attributes.width "5"
+            , Svg.Attributes.height "5"
+            , Svg.Attributes.rx "3.5"
+            ]
+            []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            , Svg.Attributes.x "19"
+            , Svg.Attributes.y "28"
+            , Svg.Attributes.width "5"
+            , Svg.Attributes.height "5"
+            , Svg.Attributes.rx "3.5"
+            ]
+            []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            , Svg.Attributes.x "29"
+            , Svg.Attributes.y "28"
+            , Svg.Attributes.width "5"
+            , Svg.Attributes.height "5"
+            , Svg.Attributes.rx "3.5"
+            ]
+            []
+        ]
+
+
 {-| hookSuccess: produces the svg for the hook status success
 -}
 hookSuccess : Html msg
@@ -459,7 +519,7 @@ stepStatusToIcon status =
             stepFailure
 
         Vela.Killed ->
-            stepFailure
+            stepSkipped
 
         Vela.Error ->
             stepFailure
