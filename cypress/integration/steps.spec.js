@@ -304,6 +304,7 @@ context('Steps', () => {
     it('last step should not contain killed/skipped', () => {
       cy.get('[data-test=step]').last().as('echoStep');
       cy.get('@echoStep').should('be.visible').click({ force: true });
+      cy.get('@echoStep').should('not.contain', 'error:');
       cy.get('@echoStep').should('not.contain', 'step was killed');
       cy.get('@echoStep').contains('$');
     });
