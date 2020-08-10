@@ -18,19 +18,13 @@ import Pages.Build.Model
         )
 import Pages.Build.View exposing (PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
-import Util exposing (stringToMaybe)
 import Vela
     exposing
-        ( Build
-        , BuildNumber
-        , Builds
+        ( BuildNumber
         , FocusFragment
-        , Logs
         , Org
         , Repo
         , SecretType(..)
-        , Status
-        , Step
         , StepNumber
         , Steps
         )
@@ -73,8 +67,10 @@ update model msg getBuildStepLogs =
                 ]
             )
 
-        _ ->
-            ( model, Cmd.none )
+        FocusLogs url ->
+            ( model
+            , Navigation.pushUrl model.navigationKey url
+            )
 
 
 {-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs
@@ -105,37 +101,6 @@ toggleStepView steps stepNumber =
         (\step -> String.fromInt step.number == stepNumber)
         (\step -> { step | viewing = not step.viewing })
         steps
-
-
-{-| clickLogLine : takes model and line number and sets the focus on the log line
--}
-clickLogLine : WebData Steps -> Navigation.Key -> StepNumber -> Maybe Int -> ( WebData Steps, Cmd msg )
-clickLogLine steps navKey stepNumber lineNumber =
-    let
-        stepOpened =
-            Maybe.withDefault False <|
-                List.head <|
-                    List.map (\step -> not step.viewing) <|
-                        List.filter (\step -> String.fromInt step.number == stepNumber) <|
-                            RemoteData.withDefault [] steps
-    in
-    ( steps
-    , if stepOpened then
-        Navigation.pushUrl navKey <|
-            "#step:"
-                ++ stepNumber
-                ++ (case lineNumber of
-                        Just line ->
-                            ":"
-                                ++ String.fromInt line
-
-                        Nothing ->
-                            ""
-                   )
-
-      else
-        Cmd.none
-    )
 
 
 {-| viewingStep : takes steps and step number and returns the step viewing state

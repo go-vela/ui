@@ -368,8 +368,6 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-
-
         NewRoute route ->
             setNewPage route model
 
@@ -1428,7 +1426,6 @@ shouldRefresh build =
         Success bld ->
             not <| isComplete bld.status
 
-        -- constantly  refresh  due to success  bug
         NotAsked ->
             True
 

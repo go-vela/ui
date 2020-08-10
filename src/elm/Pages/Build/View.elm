@@ -40,8 +40,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
-import List.Extra exposing (updateIf)
-import Logs exposing (SetLogFocus, stepToFocusId)
+import Logs exposing (stepToFocusId)
 import Pages exposing (Page(..))
 import Pages.Build.Model exposing (Msg(..))
 import RemoteData exposing (WebData)
@@ -59,7 +58,6 @@ import Vela
         , Repo
         , Status
         , Step
-        , StepNumber
         , Steps
         )
 

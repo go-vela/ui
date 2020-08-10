@@ -22,4 +22,3 @@ import Vela
 type Msg
     = ExpandStep Org Repo BuildNumber StepNumber String
     | FocusLogs String
-    | FollowLogs Bool
