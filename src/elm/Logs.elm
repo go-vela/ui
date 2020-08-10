@@ -19,6 +19,7 @@ module Logs exposing
 import Ansi.Log
 import Array
 import Base64 exposing (decode)
+import FeatherIcons
 import Html
     exposing
         ( Html
@@ -47,6 +48,7 @@ import Vela
         , Logs
         , Org
         , Repo
+        , Status
         , Step
         , StepNumber
         , Steps
@@ -83,19 +85,19 @@ view step logs clickAction shiftDown =
             stepKilled step
 
         _ ->
-            viewLogs (String.fromInt step.number) step.logFocus (getStepLog step logs) clickAction shiftDown
+            viewLogs step.status (String.fromInt step.number) step.logFocus (getStepLog step logs) clickAction shiftDown
 
 
 {-| viewLogs : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
 -}
-viewLogs : StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
-viewLogs stepNumber logFocus log clickAction shiftDown =
+viewLogs : Status -> StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
+viewLogs status stepNumber logFocus log clickAction shiftDown =
     let
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
                     if logNotEmpty <| decodeLog log then
-                        viewLines stepNumber logFocus log clickAction shiftDown
+                        viewLines status stepNumber logFocus log clickAction shiftDown
 
                     else
                         code [] [ span [ class "no-logs" ] [ text "No logs for this step." ] ]
@@ -111,22 +113,57 @@ viewLogs stepNumber logFocus log clickAction shiftDown =
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
-viewLines stepNumber logFocus log clickAction shiftDown =
-    Html.table [ class "log-table" ] <|
-        Array.toList <|
-            Array.indexedMap
-                (\idx line ->
-                    viewLine stepNumber
-                        (idx + 1)
-                        line
-                        stepNumber
-                        logFocus
-                        clickAction
-                        shiftDown
-                )
-            <|
-                decodeAnsi log
+viewLines : Status -> StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
+viewLines status stepNumber logFocus log clickAction shiftDown =
+    let
+        logsActions =
+            case status of
+                Vela.Running ->
+                    Just <|
+                        Html.tr []
+                            [ Html.td []
+                                [ button [ class "button", class "-icon" ]
+                                    [ FeatherIcons.play |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                                ]
+                            ]
+
+                _ ->
+                    Just <|
+                        Html.tr
+                            [ class "line" ]
+                            [ div [ class "wrapper", class "justify-flex-end" ]
+                                [ button [ class "button", class "-icon", attribute "data-tooltip" "download logs", class "tooltip-left" ]
+                                    [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                                , button [ attribute "data-tooltip" "jump to bottom", class "tooltip-left", class "button", class "-icon" ]
+                                    [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                                ]
+                            ]
+
+        lines =
+            log
+                |> decodeAnsi
+                |> Array.indexedMap
+                    (\idx line ->
+                        Just <|
+                            viewLine stepNumber
+                                (idx + 1)
+                                line
+                                stepNumber
+                                logFocus
+                                clickAction
+                                shiftDown
+                    )
+                |> Array.toList
+
+        logs =
+            logsActions
+                :: lines
+                |> List.filterMap identity
+
+        tracker =
+            span [ id <| "tracker-" ++ stepNumber ] []
+    in
+    Html.table [ class "log-table" ] <| logs ++ [ tracker ]
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log

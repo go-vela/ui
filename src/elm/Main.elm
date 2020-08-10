@@ -9,7 +9,6 @@ module Main exposing (main)
 import Alerts exposing (Alert)
 import Api
 import Api.Endpoint
-import Api.Header as Header
 import Api.Pagination as Pagination
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
@@ -66,7 +65,6 @@ import Logs
         ( focusFragmentToFocusId
         , focusLogs
         , focusStep
-        , logFocusExists
         , logFocusFragment
         )
 import Nav
@@ -200,6 +198,7 @@ type alias Model =
     , build : WebData Build
     , steps : WebData Steps
     , logs : Logs
+    , followLogs : Bool
     , velaAPI : String
     , velaFeedbackURL : String
     , velaDocsURL : String
@@ -252,6 +251,7 @@ init flags url navKey =
             , build = NotAsked
             , steps = NotAsked
             , logs = []
+            , followLogs = False
             , velaFeedbackURL = flags.velaFeedbackURL
             , velaDocsURL = flags.velaDocsURL
             , navigationKey = navKey
@@ -312,6 +312,7 @@ type Msg
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
     | ClickStep Org Repo BuildNumber StepNumber String
+    | FollowLogs Bool
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
@@ -753,7 +754,17 @@ update msg model =
 
                         action =
                             if not <| String.isEmpty focusId then
+                                let
+                                    _ =
+                                        Debug.log "follow" focusId
+                                in
                                 Util.dispatch <| FocusOn <| focusId
+                                -- if not model.followLogs then
+                                --     let
+                                --         _ =
+                                --             Debug.log "follow" focusId
+                                --     in
+                                --     Util.dispatch <| FocusOn <| "tracker-3"
 
                             else
                                 Cmd.none
@@ -934,6 +945,11 @@ update msg model =
                   else
                     Cmd.none
                 ]
+            )
+
+        FollowLogs follow ->
+            ( { model | followLogs = follow }
+            , Cmd.none
             )
 
         SetTheme theme ->
@@ -1452,8 +1468,10 @@ shouldRefresh : WebData Build -> Bool
 shouldRefresh build =
     case build of
         Success bld ->
-            not <| isComplete bld.status
+            -- not <| isComplete bld.status
+            True
 
+        -- constantly  refresh  due to success  bug
         NotAsked ->
             True
 
@@ -1738,6 +1756,7 @@ viewContent model =
                 , build = model.build
                 , steps = model.steps
                 , logs = model.logs
+                , followLogs = model.followLogs
                 , shift = model.shift
                 }
                 org
@@ -2672,7 +2691,7 @@ homeMsgs =
 -}
 buildMsgs : Pages.Build.Msgs Msg
 buildMsgs =
-    Pages.Build.Msgs ClickStep UpdateUrl
+    Pages.Build.Msgs ClickStep UpdateUrl FollowLogs
 
 
 {-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm

@@ -83,6 +83,12 @@ type alias FocusLogs msg =
     String -> msg
 
 
+{-| FollowLogs : type alias for toggling log following
+-}
+type alias FollowLogs msg =
+    Bool -> msg
+
+
 {-| PartialModel : type alias for passing in the main model with the navigation key for pushing log fragment urls
 -}
 type alias PartialModel =
@@ -91,6 +97,7 @@ type alias PartialModel =
     , build : WebData Build
     , steps : WebData Steps
     , logs : Logs
+    , followLogs : Bool
     , shift : Bool
     }
 
@@ -100,6 +107,7 @@ type alias PartialModel =
 type alias Msgs msg =
     { expandAction : ExpandStep msg
     , logFocusAction : FocusLogs msg
+    , setFollowLogs : FollowLogs msg
     }
 
 
@@ -111,12 +119,12 @@ type alias Msgs msg =
 {-| viewBuild : renders entire build based on current application time
 -}
 viewBuild : PartialModel -> Org -> Repo -> Msgs msg -> Html msg
-viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusAction } =
+viewBuild { time, build, steps, logs, followLogs, shift } org repo { expandAction, logFocusAction, setFollowLogs } =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview time org repo bld, Just <| String.fromInt bld.number )
+                    ( viewPreview time org repo followLogs (Just setFollowLogs) bld, Just <| String.fromInt bld.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
@@ -148,8 +156,8 @@ viewBuild { time, build, steps, logs, shift } org repo { expandAction, logFocusA
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Org -> Repo -> Build -> Html msg
-viewPreview now org repo build =
+viewPreview : Posix -> Org -> Repo -> Bool -> Maybe (FollowLogs msg) -> Build -> Html msg
+viewPreview now org repo followLogs setFollowLogs build =
     let
         status =
             [ buildStatusToIcon build.status ]
@@ -187,6 +195,9 @@ viewPreview now org repo build =
         statusClass =
             statusToClass build.status
 
+        followButton =
+            followLogsButton build.status followLogs setFollowLogs
+
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
@@ -211,6 +222,9 @@ viewPreview now org repo build =
                     [ strong
                         [ class "message" ]
                         message
+                    , div []
+                        [ followButton
+                        ]
                     ]
                 , viewError build
                 ]
@@ -220,6 +234,36 @@ viewPreview now org repo build =
         [ div [ class "build", statusClass ] <|
             buildStatusStyles markdown build.status build.number
         ]
+
+
+followLogsButton : Status -> Bool -> Maybe (FollowLogs msg) -> Html msg
+followLogsButton status followLogs setFollowLogs =
+    let
+        ( tooltip, icon ) =
+            if followLogs then
+                ( "stop following logs", FeatherIcons.pauseCircle )
+
+            else
+                ( "start following logs", FeatherIcons.playCircle )
+    in
+    case setFollowLogs of
+        Just set ->
+            case status of
+                Vela.Running ->
+                    Html.button
+                        [ class "tooltip-left"
+                        , attribute "data-tooltip" tooltip
+                        , class "button"
+                        , class "-icon"
+                        , onClick <| set <| not followLogs
+                        ]
+                        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+                _ ->
+                    text ""
+
+        _ ->
+            text ""
 
 
 {-| viewSteps : sorts and renders build steps
