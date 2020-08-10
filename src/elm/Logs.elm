@@ -528,9 +528,7 @@ defaultPosition =
 
 
 {-| decodeAnsi : takes maybe log parses into ansi decoded log line array
-
-    see: https://package.elm-lang.org/packages/vito/elm-ansi
-
+see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 -}
 decodeAnsi : Maybe (WebData Log) -> Array.Array Ansi.Log.Line
 decodeAnsi log =
