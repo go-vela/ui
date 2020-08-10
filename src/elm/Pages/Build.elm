@@ -249,7 +249,8 @@ followLogsButton status followLogs setFollowLogs =
     case setFollowLogs of
         Just set ->
             case status of
-                Vela.Running ->
+                -- Vela.Running ->
+                _ ->
                     Html.button
                         [ class "tooltip-left"
                         , attribute "data-tooltip" tooltip
@@ -259,9 +260,8 @@ followLogsButton status followLogs setFollowLogs =
                         ]
                         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
-                _ ->
-                    text ""
-
+        -- _ ->
+        --     text ""
         _ ->
             text ""
 

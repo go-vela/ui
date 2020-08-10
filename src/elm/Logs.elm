@@ -161,7 +161,14 @@ viewLines status stepNumber logFocus log clickAction shiftDown =
                 |> List.filterMap identity
 
         tracker =
-            span [ id <| "tracker-" ++ stepNumber ] []
+            Html.tr [ class "line", class "tracker" ]
+                [ button
+                    [ id <|
+                        stepTrackerFocusId stepNumber
+                    , Html.Attributes.autofocus True
+                    ]
+                    []
+                ]
     in
     Html.table [ class "log-table" ] <| logs ++ [ tracker ]
 
@@ -276,6 +283,13 @@ stepToFocusId stepNumber =
 stepAndLineToFocusId : StepNumber -> Int -> String
 stepAndLineToFocusId stepNumber lineNumber =
     "step-" ++ stepNumber ++ "-line-" ++ String.fromInt lineNumber
+
+
+{-| stepTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+-}
+stepTrackerFocusId : StepNumber -> String
+stepTrackerFocusId stepNumber =
+    "step-" ++ stepNumber ++ "-line-tracker"
 
 
 {-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus id for auto focusing on page load

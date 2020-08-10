@@ -753,18 +753,16 @@ update msg model =
                             focusFragmentToFocusId logFocus
 
                         action =
-                            if not <| String.isEmpty focusId then
+                            if model.followLogs then
                                 let
-                                    _ =
-                                        Debug.log "follow" focusId
+                                    f =
+                                        -- "step-3-line-1001"
+                                        "step-3-line-tracker"
                                 in
+                                Util.dispatch <| FocusOn <| f
+
+                            else if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
-                                -- if not model.followLogs then
-                                --     let
-                                --         _ =
-                                --             Debug.log "follow" focusId
-                                --     in
-                                --     Util.dispatch <| FocusOn <| "tracker-3"
 
                             else
                                 Cmd.none
@@ -1144,6 +1142,10 @@ update msg model =
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
 
         FocusOn id ->
+            let
+                _ =
+                    Debug.log "???" id
+            in
             ( model, Dom.focus id |> Task.attempt FocusResult )
 
         FocusResult result ->
@@ -2555,23 +2557,22 @@ stepsIds steps =
 -}
 logIds : Logs -> List Int
 logIds logs =
-    List.map (\log -> log.id) <| successfulLogs logs
+    List.map (\log -> log.id) <| successful logs
 
 
-{-| logIds : extracts successful logs from list of logs and returns List Log
+{-| successful : extracts successful items from list of items and returns List item
 -}
-successfulLogs : Logs -> List Log
-successfulLogs logs =
+successful : List (WebData a) -> List a
+successful =
     List.filterMap
-        (\log ->
-            case log of
-                Success log_ ->
-                    Just log_
+        (\item ->
+            case item of
+                Success item_ ->
+                    Just item_
 
                 _ ->
                     Nothing
         )
-        logs
 
 
 {-| updateStep : takes model and incoming step and updates the list of steps if necessary

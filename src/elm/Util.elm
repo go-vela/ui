@@ -46,7 +46,7 @@ import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (custom)
 import Json.Decode as Decode
 import List.Extra
-import RemoteData exposing (WebData)
+import RemoteData exposing (RemoteData(..), WebData)
 import String.Extra
 import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone, posixToMillis)
@@ -398,3 +398,18 @@ onClickPreventDefault message =
 onClickStopPropogation : msg -> Html.Attribute msg
 onClickStopPropogation message =
     custom "click" (Decode.succeed { message = message, stopPropagation = True, preventDefault = False })
+
+
+{-| successful : extracts successful items from list of WebData items and returns List item
+-}
+successful : List (WebData a) -> List a
+successful =
+    List.filterMap
+        (\item ->
+            case item of
+                Success item_ ->
+                    Just item_
+
+                _ ->
+                    Nothing
+        )
