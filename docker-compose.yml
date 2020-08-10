@@ -26,7 +26,7 @@ services:
       VELA_WEBUI_ADDR: 'http://ui:80'
       VELA_DATABASE_DRIVER: postgres
       VELA_DATABASE_CONFIG: postgres://vela:zB7mrKDTZqNeNTD8z47yG4DHywspAh@postgres:5432/vela?sslmode=disable
-      VELA_LOG_LEVEL: trace
+      VELA_LOG_LEVEL: debug
       VELA_QUEUE_DRIVER: redis
       VELA_QUEUE_CONFIG: redis://redis:6379
       VELA_QUEUE_WORKER_ROUTES: larger,docker,large:docker

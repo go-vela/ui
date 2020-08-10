@@ -164,9 +164,6 @@ viewPreview now org repo build =
         statusClass =
             statusToClass build.status
 
-        followButton =
-            followLogsButton build.status
-
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
@@ -200,33 +197,6 @@ viewPreview now org repo build =
         [ div [ class "build", statusClass ] <|
             buildStatusStyles markdown build.status build.number
         ]
-
-
-followLogsButton : Status -> Bool -> Bool -> Html Msg
-followLogsButton status followLogs setFollowLogs =
-    let
-        ( tooltip, icon ) =
-            if followLogs then
-                ( "stop following logs", FeatherIcons.pauseCircle )
-
-            else
-                ( "start following logs", FeatherIcons.playCircle )
-    in
-    if setFollowLogs then
-        case status of
-            -- Vela.Running ->
-            _ ->
-                Html.button
-                    [ class "tooltip-left"
-                    , attribute "data-tooltip" tooltip
-                    , class "button"
-                    , class "-icon"
-                    , onClick <| FollowLogs <| not followLogs
-                    ]
-                    [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-    else
-        text ""
 
 
 {-| viewSteps : sorts and renders build steps
