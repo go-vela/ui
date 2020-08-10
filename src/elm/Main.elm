@@ -196,7 +196,6 @@ type alias Model =
     , build : WebData Build
     , steps : WebData Steps
     , logs : Logs
-    , followLogs : Bool
     , velaAPI : String
     , velaFeedbackURL : String
     , velaDocsURL : String
@@ -249,7 +248,6 @@ init flags url navKey =
             , build = NotAsked
             , steps = NotAsked
             , logs = []
-            , followLogs = False
             , velaFeedbackURL = flags.velaFeedbackURL
             , velaDocsURL = flags.velaDocsURL
             , navigationKey = navKey
@@ -309,7 +307,6 @@ type Msg
     | RefreshSecrets Engine Type Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
-    | FollowLogs Bool
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
@@ -751,15 +748,7 @@ update msg model =
                             focusFragmentToFocusId logFocus
 
                         action =
-                            if model.followLogs then
-                                let
-                                    f =
-                                        -- "step-3-line-1001"
-                                        "step-3-line-tracker"
-                                in
-                                Util.dispatch <| FocusOn <| f
-
-                            else if not <| String.isEmpty focusId then
+                            if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
 
                             else
@@ -915,11 +904,6 @@ update msg model =
             in
             ( { model | hookBuilds = hookBuilds }
             , action
-            )
-
-        FollowLogs follow ->
-            ( { model | followLogs = follow }
-            , Cmd.none
             )
 
         SetTheme theme ->
@@ -1741,7 +1725,6 @@ viewContent model =
                     , build = model.build
                     , steps = model.steps
                     , logs = model.logs
-                    , followLogs = model.followLogs
                     , shift = model.shift
                     }
                     org

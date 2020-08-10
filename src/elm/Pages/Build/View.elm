@@ -77,7 +77,6 @@ type alias PartialModel a =
         , build : WebData Build
         , steps : WebData Steps
         , logs : Logs
-        , followLogs : Bool
         , shift : Bool
     }
 
@@ -89,12 +88,12 @@ type alias PartialModel a =
 {-| viewBuild : renders entire build based on current application time
 -}
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
-viewBuild { time, build, steps, logs, followLogs, shift } org repo =
+viewBuild { time, build, steps, logs, shift } org repo =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview time org repo followLogs True bld, Just <| String.fromInt bld.number )
+                    ( viewPreview time org repo bld, Just <| String.fromInt bld.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
@@ -126,8 +125,8 @@ viewBuild { time, build, steps, logs, followLogs, shift } org repo =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Org -> Repo -> Bool -> Bool -> Build -> Html Msg
-viewPreview now org repo followLogs setFollowLogs build =
+viewPreview : Posix -> Org -> Repo -> Build -> Html Msg
+viewPreview now org repo build =
     let
         status =
             [ buildStatusToIcon build.status ]
@@ -166,7 +165,7 @@ viewPreview now org repo followLogs setFollowLogs build =
             statusToClass build.status
 
         followButton =
-            followLogsButton build.status followLogs setFollowLogs
+            followLogsButton build.status
 
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
@@ -192,9 +191,6 @@ viewPreview now org repo followLogs setFollowLogs build =
                     [ strong
                         [ class "message" ]
                         message
-                    , div []
-                        [ followButton
-                        ]
                     ]
                 , viewError build
                 ]
