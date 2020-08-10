@@ -1107,10 +1107,6 @@ update msg model =
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
 
         FocusOn id ->
-            let
-                _ =
-                    Debug.log "???" id
-            in
             ( model, Dom.focus id |> Task.attempt FocusResult )
 
         FocusResult result ->
