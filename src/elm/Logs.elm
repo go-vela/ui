@@ -134,7 +134,14 @@ viewLines status stepNumber logFocus log clickAction shiftDown =
                             [ div [ class "wrapper", class "justify-flex-end" ]
                                 [ button [ class "button", class "-icon", attribute "data-tooltip" "download logs", class "tooltip-left" ]
                                     [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                                , button [ attribute "data-tooltip" "jump to bottom", class "tooltip-left", class "button", class "-icon" ]
+                                , button
+                                    [ attribute "data-tooltip" "jump to bottom"
+                                    , class "tooltip-left"
+                                    , class "button"
+                                    , class "-icon"
+
+                                    -- TODO: add onclick
+                                    ]
                                     [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
                                 ]
                             ]

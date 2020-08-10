@@ -34,6 +34,7 @@ module Util exposing
     , smallLoader
     , smallLoaderWithText
     , stringToMaybe
+    , successful
     , testAttribute
     , toTwoDigits
     , yesNoToBool

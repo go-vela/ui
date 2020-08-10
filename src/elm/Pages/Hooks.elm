@@ -29,7 +29,7 @@ import Html.Attributes
         , href
         )
 import Html.Events exposing (onClick)
-import Pages.Build exposing (statusToClass, statusToString)
+import Pages.Build.View exposing (statusToClass, statusToString)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (hookStatusToIcon)

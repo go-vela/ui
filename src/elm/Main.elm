@@ -71,11 +71,9 @@ import Nav
 import Pager
 import Pages exposing (Page(..))
 import Pages.AddRepos
-import Pages.Build
-    exposing
-        ( clickStep
-        , viewingStep
-        )
+import Pages.Build.Model
+import Pages.Build.Update
+import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
@@ -311,7 +309,6 @@ type Msg
     | RefreshSecrets Engine Type Org Repo
     | ClickHook Org Repo BuildNumber
     | SetTheme Theme
-    | ClickStep Org Repo BuildNumber StepNumber String
     | FollowLogs Bool
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
@@ -365,6 +362,7 @@ type Msg
     | UpdateUrl String
     | VisibilityChanged Visibility
       -- Components
+    | BuildUpdate Pages.Build.Model.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
@@ -919,32 +917,6 @@ update msg model =
             , action
             )
 
-        ClickStep org repo buildNumber stepNumber _ ->
-            let
-                ( steps, fetchStepLogs ) =
-                    clickStep model.steps stepNumber
-
-                action =
-                    if fetchStepLogs then
-                        getBuildStepLogs model org repo buildNumber stepNumber Nothing
-
-                    else
-                        Cmd.none
-
-                stepOpened =
-                    viewingStep steps stepNumber
-            in
-            ( { model | steps = steps }
-            , Cmd.batch <|
-                [ action
-                , if stepOpened then
-                    Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
-
-                  else
-                    Cmd.none
-                ]
-            )
-
         FollowLogs follow ->
             ( { model | followLogs = follow }
             , Cmd.none
@@ -1095,6 +1067,15 @@ update msg model =
             in
             ( { model | secretsModel = { secretsModel | secrets = Loading } }
             , getSecrets model Nothing Nothing engine type_ org key
+            )
+
+        BuildUpdate m ->
+            let
+                ( newModel, action ) =
+                    Pages.Build.Update.update model m getBuildStepLogs
+            in
+            ( newModel
+            , action
             )
 
         AddSecretUpdate engine m ->
@@ -1745,25 +1726,26 @@ viewContent model =
             , div []
                 [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
-                , lazy5 Pages.Builds.view model.builds model.time org repo maybeEvent
+                , Html.map (\m -> BuildUpdate m) <|
+                    lazy5 Pages.Builds.view model.builds model.time org repo maybeEvent
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , lazy4 Pages.Build.viewBuild
-                { navigationKey = model.navigationKey
-                , time = model.time
-                , build = model.build
-                , steps = model.steps
-                , logs = model.logs
-                , followLogs = model.followLogs
-                , shift = model.shift
-                }
-                org
-                repo
-                buildMsgs
+            , Html.map (\m -> BuildUpdate m) <|
+                lazy3 Pages.Build.View.viewBuild
+                    { navigationKey = model.navigationKey
+                    , time = model.time
+                    , build = model.build
+                    , steps = model.steps
+                    , logs = model.logs
+                    , followLogs = model.followLogs
+                    , shift = model.shift
+                    }
+                    org
+                    repo
             )
 
         Pages.Settings ->
@@ -1931,7 +1913,7 @@ helpArgs model =
 viewUtil : Model -> Html Msg
 viewUtil model =
     div [ class "util" ]
-        [ lazy7 Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
+        [ lazy7 Pages.Build.View.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
 
 
 viewAlerts : Stack Alert -> Html Msg
@@ -2557,22 +2539,7 @@ stepsIds steps =
 -}
 logIds : Logs -> List Int
 logIds logs =
-    List.map (\log -> log.id) <| successful logs
-
-
-{-| successful : extracts successful items from list of items and returns List item
--}
-successful : List (WebData a) -> List a
-successful =
-    List.filterMap
-        (\item ->
-            case item of
-                Success item_ ->
-                    Just item_
-
-                _ ->
-                    Nothing
-        )
+    List.map (\log -> log.id) <| Util.successful logs
 
 
 {-| updateStep : takes model and incoming step and updates the list of steps if necessary
@@ -2686,13 +2653,6 @@ clickHook model org repo buildNumber =
 homeMsgs : Pages.Home.Msgs Msg
 homeMsgs =
     Pages.Home.Msgs ToggleFavorite SearchFavorites
-
-
-{-| buildMsgs : prepares the input record required for the Build page to route Msgs back to Main.elm
--}
-buildMsgs : Pages.Build.Msgs Msg
-buildMsgs =
-    Pages.Build.Msgs ClickStep UpdateUrl FollowLogs
 
 
 {-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm

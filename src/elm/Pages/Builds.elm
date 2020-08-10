@@ -22,7 +22,8 @@ import Html
         , text
         )
 import Html.Attributes exposing (class, href)
-import Pages.Build exposing (viewPreview)
+import Pages.Build.Model exposing (Msg)
+import Pages.Build.View exposing (viewPreview)
 import RemoteData exposing (RemoteData(..))
 import Time exposing (Posix)
 import Util exposing (largeLoader)
@@ -31,7 +32,7 @@ import Vela exposing (BuildsModel, Event, Org, Repo)
 
 {-| view : takes org and repo and renders build previews
 -}
-view : BuildsModel -> Posix -> Org -> Repo -> Maybe Event -> Html msg
+view : BuildsModel -> Posix -> Org -> Repo -> Maybe Event -> Html Msg
 view buildsModel now org repo maybeEvent =
     let
         settingsLink : String
@@ -77,7 +78,7 @@ view buildsModel now org repo maybeEvent =
                 none
 
             else
-                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now org repo False Nothing) builds
+                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now org repo False False) builds
 
         RemoteData.Loading ->
             largeLoader
