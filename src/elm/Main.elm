@@ -65,7 +65,6 @@ import Logs
         ( focusFragmentToFocusId
         , focusLogs
         , focusStep
-        , logFocusFragment
         )
 import Nav
 import Pager
@@ -356,7 +355,6 @@ type Msg
     | FocusResult (Result Dom.Error ())
     | OnKeyDown String
     | OnKeyUp String
-    | UpdateUrl String
     | VisibilityChanged Visibility
       -- Components
     | BuildUpdate Pages.Build.Model.Msg
@@ -370,10 +368,7 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        UpdateUrl url ->
-            ( model
-            , Navigation.pushUrl model.navigationKey url
-            )
+
 
         NewRoute route ->
             setNewPage route model
@@ -1431,8 +1426,7 @@ shouldRefresh : WebData Build -> Bool
 shouldRefresh build =
     case build of
         Success bld ->
-            -- not <| isComplete bld.status
-            True
+            not <| isComplete bld.status
 
         -- constantly  refresh  due to success  bug
         NotAsked ->
