@@ -72,6 +72,11 @@ update model msg getBuildStepLogs =
             , Navigation.pushUrl model.navigationKey url
             )
 
+        FollowLogs follow ->
+            ( { model | followLogs = follow }
+            , Cmd.none
+            )
+
 
 {-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs
 -}
