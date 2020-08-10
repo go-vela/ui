@@ -753,7 +753,7 @@ update msg model =
 
                         action =
                             if not <| String.isEmpty focusId then
-                                Util.dispatch <| FocusOn <| focusId
+                                Util.dispatch <| FocusOn <| Util.extractFocusIdFromRange focusId
 
                             else
                                 Cmd.none
