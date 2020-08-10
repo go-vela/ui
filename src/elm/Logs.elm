@@ -113,28 +113,20 @@ viewLogs stepNumber logFocus log clickAction shiftDown =
 -}
 viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
 viewLines stepNumber logFocus log clickAction shiftDown =
-    let
-        lines =
-            log
-                |> decodeAnsi
-                |> Array.indexedMap
-                    (\idx line ->
-                        Just <|
-                            viewLine stepNumber
-                                (idx + 1)
-                                line
-                                stepNumber
-                                logFocus
-                                clickAction
-                                shiftDown
-                    )
-                |> Array.toList
-
-        logs =
-            lines
-                |> List.filterMap identity
-    in
-    Html.table [ class "log-table" ] <| logs
+    Html.table [ class "log-table" ] <|
+        Array.toList <|
+            Array.indexedMap
+                (\idx line ->
+                    viewLine stepNumber
+                        (idx + 1)
+                        line
+                        stepNumber
+                        logFocus
+                        clickAction
+                        shiftDown
+                )
+            <|
+                decodeAnsi log
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
