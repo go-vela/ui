@@ -11,6 +11,7 @@ module Util exposing
     , boolToYesNo
     , dateToHumanReadable
     , dispatch
+    , extractFocusIdFromRange
     , filterEmptyList
     , filterEmptyLists
     , filterEmptyStringLists
@@ -398,3 +399,30 @@ onClickPreventDefault message =
 onClickStopPropogation : msg -> Html.Attribute msg
 onClickStopPropogation message =
     custom "click" (Decode.succeed { message = message, stopPropagation = True, preventDefault = False })
+
+
+{-| extractFocusIdFromRange : takes focusId with possible range and extracts the id to focus on
+-}
+extractFocusIdFromRange : String -> String
+extractFocusIdFromRange focusId =
+    let
+        focusArgs =
+            String.split "-" focusId
+
+        isRange =
+            List.length focusArgs == 5
+    in
+    if isRange then
+        let
+            dropTail =
+                List.Extra.init focusArgs
+        in
+        case dropTail of
+            Just l ->
+                String.join "-" l
+
+            Nothing ->
+                focusId
+
+    else
+        focusId
