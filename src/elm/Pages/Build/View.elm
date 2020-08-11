@@ -40,8 +40,8 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
-import Logs exposing (stepToFocusId)
 import Pages exposing (Page(..))
+import Pages.Build.Logs exposing (followLogsButton, stepToFocusId)
 import Pages.Build.Model exposing (Msg(..))
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
@@ -103,7 +103,7 @@ viewBuild { time, build, steps, logs, followLogs, shift } org repo =
         buildSteps =
             case steps of
                 RemoteData.Success steps_ ->
-                    viewSteps time org repo buildNumber steps_ logs shift
+                    viewSteps time org repo buildNumber steps_ logs followLogs shift
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
@@ -164,7 +164,11 @@ viewPreview now org repo followLogs full build =
             statusToClass build.status
 
         followButton =
-            followLogsButton build.status followLogs full
+            if full then
+                followLogsButton build.status followLogs
+
+            else
+                text ""
 
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
@@ -204,42 +208,15 @@ viewPreview now org repo followLogs full build =
         ]
 
 
-followLogsButton : Status -> Bool -> Bool -> Html Msg
-followLogsButton status followLogs full =
-    let
-        ( tooltip, icon ) =
-            if followLogs then
-                ( "stop following logs", FeatherIcons.pauseCircle )
-
-            else
-                ( "start following logs", FeatherIcons.playCircle )
-    in
-    if full then
-        case status of
-            -- Vela.Running ->
-            _ ->
-                Html.button
-                    [ class "tooltip-left"
-                    , attribute "data-tooltip" tooltip
-                    , class "button"
-                    , class "-icon"
-                    , onClick <| FollowLogs <| not followLogs
-                    ]
-                    [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-    else
-        text ""
-
-
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> Bool -> Html Msg
-viewSteps now org repo buildNumber steps logs shift =
+viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> Bool -> Bool -> Html Msg
+viewSteps now org repo buildNumber steps logs followLogs shift =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
                 (\step ->
-                    viewStep now org repo buildNumber step steps logs shift
+                    viewStep now org repo buildNumber step steps logs followLogs shift
                 )
             <|
                 steps
@@ -248,19 +225,19 @@ viewSteps now org repo buildNumber steps logs shift =
 
 {-| viewStep : renders single build step
 -}
-viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> Bool -> Html Msg
-viewStep now org repo buildNumber step steps logs shift =
+viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> Bool -> Bool -> Html Msg
+viewStep now org repo buildNumber step steps logs followLogs shift =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
-        , viewStepDetails now org repo buildNumber step logs shift
+        , viewStepDetails now org repo buildNumber step logs followLogs shift
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> Bool -> Html Msg
-viewStepDetails now org repo buildNumber step logs shift =
+viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> Bool -> Bool -> Html Msg
+viewStepDetails now org repo buildNumber step logs followLogs shift =
     let
         buildNum =
             Maybe.withDefault "" buildNumber
@@ -282,7 +259,7 @@ viewStepDetails now org repo buildNumber step logs shift =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ Logs.view step logs FocusLogs shift ]
+            , div [ class "logs-container" ] [ Pages.Build.Logs.view step logs followLogs shift ]
             ]
     in
     details

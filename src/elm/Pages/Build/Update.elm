@@ -4,11 +4,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (update)
+module Pages.Build.Update exposing (setStepView, update)
 
+import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import List.Extra
-import Logs
+import Pages.Build.Logs
     exposing
         ( logFocusFragment
         )
@@ -18,6 +19,7 @@ import Pages.Build.Model
         )
 import Pages.Build.View exposing (PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
+import Task
 import Vela
     exposing
         ( BuildNumber
@@ -38,8 +40,8 @@ type alias GetLogs a msg =
 -- UPDATE
 
 
-update : PartialModel a -> Msg -> GetLogs a msg -> ( PartialModel a, Cmd msg )
-update model msg getBuildStepLogs =
+update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> ( PartialModel a, Cmd msg )
+update model msg getBuildStepLogs focusResult =
     case msg of
         ExpandStep org repo buildNumber stepNumber _ ->
             let
@@ -77,6 +79,9 @@ update model msg getBuildStepLogs =
             , Cmd.none
             )
 
+        FocusOn id ->
+            ( model, Dom.focus id |> Task.attempt focusResult )
+
 
 {-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs
 -}
@@ -105,6 +110,16 @@ toggleStepView steps stepNumber =
     List.Extra.updateIf
         (\step -> String.fromInt step.number == stepNumber)
         (\step -> { step | viewing = not step.viewing })
+        steps
+
+
+{-| setStepView : takes steps and step number and sets that steps viewing state
+-}
+setStepView : Steps -> String -> Bool -> Steps
+setStepView steps stepNumber value =
+    List.Extra.updateIf
+        (\step -> String.fromInt step.number == stepNumber)
+        (\step -> { step | viewing = value })
         steps
 
 

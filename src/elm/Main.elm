@@ -60,16 +60,16 @@ import Interop
 import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
 import List.Extra exposing (setIf, updateIf)
-import Logs
+import Nav
+import Pager
+import Pages exposing (Page(..))
+import Pages.AddRepos
+import Pages.Build.Logs
     exposing
         ( focusFragmentToFocusId
         , focusLogs
         , focusStep
         )
-import Nav
-import Pager
-import Pages exposing (Page(..))
-import Pages.AddRepos
 import Pages.Build.Model
 import Pages.Build.Update
 import Pages.Build.View
@@ -343,7 +343,7 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
-    | StepLogResponse FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
+    | StepLogResponse StepNumber FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -735,29 +735,25 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        StepLogResponse logFocus response ->
+        StepLogResponse stepNumber logFocus response ->
             case response of
                 Ok ( _, log ) ->
                     let
                         focusId =
-                            focusFragmentToFocusId logFocus
+                            if model.followLogs then
+                                Pages.Build.Logs.stepBottomTrackerFocusId stepNumber
+
+                            else
+                                focusFragmentToFocusId logFocus
 
                         action =
-                            if model.followLogs then
-                                let
-                                    f =
-                                        -- "step-3-line-1001"
-                                        "step-3-line-tracker"
-                                in
-                                Util.dispatch <| FocusOn <| f
-
-                            else if not <| String.isEmpty focusId then
+                            if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
 
                             else
                                 Cmd.none
                     in
-                    ( updateLogs model log, action )
+                    ( updateLogs log model, action )
 
                 Err error ->
                     ( model, addError error )
@@ -1059,7 +1055,7 @@ update msg model =
         BuildUpdate m ->
             let
                 ( newModel, action ) =
-                    Pages.Build.Update.update model m getBuildStepLogs
+                    Pages.Build.Update.update model m getBuildStepLogs FocusResult
             in
             ( newModel
             , action
@@ -2554,16 +2550,33 @@ updateStep model incomingStep =
         { model | steps = RemoteData.succeed <| incomingStep :: steps }
 
 
+followStep : StepNumber -> Model -> Model
+followStep stepNumber model =
+    case model.steps of
+        RemoteData.Success steps ->
+            { model | steps = RemoteData.succeed <| Pages.Build.Update.setStepView steps stepNumber True }
+
+        _ ->
+            model
+
+
 {-| updateLogs : takes model and incoming log and updates the list of logs if necessary
 -}
-updateLogs : Model -> Log -> Model
-updateLogs model incomingLog =
+updateLogs : Log -> Model -> Model
+updateLogs incomingLog model =
     let
         logs =
             model.logs
 
         logExists =
             List.member incomingLog.id <| logIds logs
+
+        steps =
+            if True then
+                model.steps
+
+            else
+                model.steps
     in
     if logExists then
         { model | logs = updateLog incomingLog logs }
@@ -2717,7 +2730,7 @@ getBuildStep model org repo buildNumber stepNumber =
 
 getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Cmd Msg
 getBuildStepLogs model org repo buildNumber stepNumber logFocus =
-    Api.try (StepLogResponse logFocus) <| Api.getStepLogs model org repo buildNumber stepNumber
+    Api.try (StepLogResponse stepNumber logFocus) <| Api.getStepLogs model org repo buildNumber stepNumber
 
 
 getBuildStepsLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Cmd Msg
@@ -2734,7 +2747,7 @@ getBuildStepsLogs model org repo buildNumber steps logFocus =
     Cmd.batch <|
         List.map
             (\step ->
-                if step.viewing then
+                if step.viewing || model.followLogs then
                     getBuildStepLogs model org repo buildNumber (String.fromInt step.number) logFocus
 
                 else
