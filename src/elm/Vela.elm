@@ -27,7 +27,6 @@ module Vela exposing
     , Field
     , FocusFragment
     , Hook
-    , HookBuilds
     , Hooks
     , HooksModel
     , Key
@@ -953,10 +952,6 @@ type alias Hooks =
 
 type alias Viewing =
     Bool
-
-
-type alias HookBuilds =
-    Dict BuildIdentifier ( WebData Build, Viewing )
 
 
 type alias BuildIdentifier =

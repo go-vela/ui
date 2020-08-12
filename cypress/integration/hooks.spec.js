@@ -55,11 +55,11 @@ context('Hooks', () => {
     });
 
     it('hooks table should show', () => {
-      cy.get('[data-test=hooks]').should('be.visible');
+      cy.get('[data-test=hooks-table]').should('be.visible');
     });
 
     it('hooks table should show 5 hooks', () => {
-      cy.get('[data-test=hook]').should('have.length', 5);
+      cy.get('[data-test=hooks-row]').should('have.length', 5);
     });
 
     it('pagination controls should not show', () => {
@@ -68,8 +68,8 @@ context('Hooks', () => {
 
     context('hook', () => {
       beforeEach(() => {
-        cy.get('[data-test=hook]').first().as('firstHook');
-        cy.get('[data-test=hook]').last().as('lastHook');
+        cy.get('[data-test=hooks-row]').first().as('firstHook');
+        cy.get('[data-test=hooks-row]').last().as('lastHook');
       });
       it('should show source id', () => {
         cy.get('@firstHook').within(() => {
@@ -77,56 +77,10 @@ context('Hooks', () => {
         });
       });
       it('should show event', () => {
-        cy.get('@firstHook').within(() => {
-          cy.get('.event').contains('push');
-        });
+        cy.get('@firstHook').contains('push');
       });
       it('should show host', () => {
-        cy.get('@firstHook').within(() => {
-          cy.get('.host').contains('github.com');
-        });
-      });
-      context('success', () => {
-        beforeEach(() => {
-          cy.get('@firstHook').within(() => {
-            cy.get('.hook-status').as('success');
-          });
-        });
-        it('should have success styles', () => {
-          cy.get('@success').should('have.class', '-success');
-        });
-        context('expanded', () => {
-          beforeEach(() => {
-            cy.get('@firstHook').click();
-          });
-          context('build', () => {
-            beforeEach(() => {
-              cy.get('@firstHook').within(() => {
-                cy.get('.info').as('build');
-              });
-            });
-            it('should show number', () => {
-              cy.get('@build').should('be.visible').contains('build:');
-              cy.get('@build')
-                .should('be.visible')
-                .contains('github/octocat/3');
-            });
-            it('build number should redirect to build page', () => {
-              cy.get('@build').within(() => {
-                cy.get('[data-test=build-link]').click();
-                cy.location('pathname').should('eq', '/github/octocat/3');
-              });
-            });
-            it('should be running', () => {
-              cy.get('@build')
-                .get('.hook-build-status')
-                .should('have.class', '-running');
-            });
-            it('should show duration', () => {
-              cy.get('@build').contains('duration');
-            });
-          });
-        });
+        cy.get('@firstHook').contains('github.com');
       });
       context('failure', () => {
         beforeEach(() => {
@@ -137,21 +91,14 @@ context('Hooks', () => {
         it('should have failure styles', () => {
           cy.get('@failure').should('have.class', '-failure');
         });
-        context('expanded', () => {
+        context('error', () => {
           beforeEach(() => {
-            cy.get('@lastHook').click();
+            cy.get('[data-test=hooks-error]').as('error');
           });
-          context('error', () => {
-            beforeEach(() => {
-              cy.get('@lastHook').within(() => {
-                cy.get('.info').as('error');
-              });
-            });
-            it('should show error', () => {
-              cy.get('@error').contains(
-                'github/octocat does not have tag events enabled',
-              );
-            });
+          it('should show error', () => {
+            cy.get('@error').contains(
+              'github/octocat does not have tag events enabled',
+            );
           });
         });
       });
@@ -167,12 +114,12 @@ context('Hooks', () => {
     });
 
     it('hooks table should show 10 hooks', () => {
-      cy.get('[data-test=hook]').should('have.length', 10);
+      cy.get('[data-test=hooks-row]').should('have.length', 10);
     });
 
     it('shows page 2 of the hooks', () => {
       cy.visit('/github/octocat/hooks?page=2');
-      cy.get('[data-test=hook]').should('have.length', 10);
+      cy.get('[data-test=hooks-row]').should('have.length', 10);
       cy.get('[data-test="crumb-hooks-(page-2)"]')
         .should('exist')
         .should('contain', 'page 2');
@@ -187,6 +134,20 @@ context('Hooks', () => {
         .first()
         .click();
       cy.location('pathname').should('eq', '/github/octocat/hooks');
+    });
+
+    context('force 550, 750 resolution', () => {
+      beforeEach(() => {
+        cy.viewport(550, 750);
+      });
+      it('rows have responsive style', () => {
+        cy.get('[data-test=hooks-row]')
+          .first()
+          .should('have.css', 'border-bottom', '2px solid rgb(149, 94, 166)'); // check for lavender border
+        cy.get('[data-test=hooks-table]')
+          .first()
+          .should('have.css', 'border', '0px none rgb(250, 250, 250)'); // no base border
+      });
     });
   });
 });
