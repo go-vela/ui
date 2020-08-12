@@ -714,17 +714,6 @@ update msg model =
         StepResponse _ _ _ _ response ->
             case response of
                 Ok ( _, step ) ->
-                    let
-                        steps =
-                            model.steps
-
-                        followedSteps =
-                            if model.followLogs then
-                                followSteps model
-
-                            else
-                                steps
-                    in
                     ( updateStep model step, Cmd.none )
 
                 Err error ->
@@ -737,20 +726,23 @@ update msg model =
                         sortedSteps =
                             List.sortBy (\step -> step.number) stepsResponse
 
-                        steps =
-                            RemoteData.succeed <| focusStep logFocus sortedSteps
+                        focusedSteps =
+                            Pages.Build.Logs.updateStepStates model.steps <| focusStep logFocus sortedSteps
 
                         followedSteps =
                             if model.followLogs then
-                                followSteps model
+                                followSteps focusedSteps
 
                             else
-                                steps
+                                focusedSteps
+
+                        updatedModel =
+                            { model | steps = followedSteps }
 
                         cmd =
-                            getBuildStepsLogs model org repo buildNumber followedSteps logFocus False
+                            getBuildStepsLogs updatedModel org repo buildNumber followedSteps logFocus False
                     in
-                    ( { model | steps = followedSteps }, cmd )
+                    ( { updatedModel | steps = followedSteps }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -766,11 +758,15 @@ update msg model =
                                 )
 
                             else
-                                ( model.steps, focusFragmentToFocusId logFocus )
+                                ( model.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId logFocus )
 
                         action =
                             if not <| String.isEmpty focusId then
-                                Util.dispatch <| FocusOn <| Util.extractFocusIdFromRange focusId
+                                let
+                                    _ =
+                                        Debug.log "focusing on" focusId
+                                in
+                                Util.dispatch <| FocusOn <| focusId
 
                             else
                                 Cmd.none
@@ -1302,11 +1298,11 @@ refreshPage model =
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             getBuilds model org repo maybePage maybePerPage maybeEvent
 
-        Pages.Build org repo buildNumber _ ->
+        Pages.Build org repo buildNumber focusFragment ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
-                , refreshBuildSteps model org repo buildNumber
+                , refreshBuildSteps model org repo buildNumber focusFragment
                 , refreshLogs model org repo buildNumber model.steps Nothing
                 ]
 
@@ -1385,28 +1381,17 @@ refreshBuild model org repo buildNumber =
 
 {-| refreshBuildSteps : takes model org repo and build number and refreshes the build steps based on step status
 -}
-refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-refreshBuildSteps model org repo buildNumber =
+refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
+refreshBuildSteps model org repo buildNumber focusFragment =
     let
         refresh =
-            case model.steps of
-                Success steps ->
-                    Cmd.batch <|
-                        List.map
-                            (\step ->
-                                if not <| isComplete step.status then
-                                    getBuildStep model org repo buildNumber <| String.fromInt step.number
-
-                                else
-                                    Cmd.none
-                            )
-                        <|
-                            filterCompletedSteps steps
-
-                _ ->
-                    Cmd.none
+            getAllBuildSteps model org repo buildNumber focusFragment
     in
-    refresh
+    if shouldRefresh model.build then
+        refresh
+
+    else
+        Cmd.none
 
 
 {-| shouldRefresh : takes build and returns true if a refresh is required
@@ -1415,9 +1400,7 @@ shouldRefresh : WebData Build -> Bool
 shouldRefresh build =
     case build of
         Success bld ->
-            -- constantly  refresh  due to success  bug
-            -- not <| isComplete bld.status
-            True
+            not <| isComplete bld.status
 
         NotAsked ->
             True
@@ -2517,7 +2500,16 @@ updateStep model incomingStep =
             | steps =
                 RemoteData.succeed <|
                     updateIf (\step -> incomingStep.number == step.number)
-                        (\step -> { incomingStep | viewing = step.viewing })
+                        (\step ->
+                            { incomingStep
+                                | viewing =
+                                    if model.followLogs && step.status /= Vela.Pending then
+                                        True
+
+                                    else
+                                        step.viewing
+                            }
+                        )
                         steps
         }
 
@@ -2535,14 +2527,14 @@ followStep stepNumber model =
             model.steps
 
 
-followSteps : Model -> WebData Steps
-followSteps model =
-    case model.steps of
-        RemoteData.Success steps ->
-            RemoteData.succeed <| Pages.Build.Update.viewRunningSteps steps True
+followSteps : WebData Steps -> WebData Steps
+followSteps steps =
+    case steps of
+        RemoteData.Success steps_ ->
+            RemoteData.succeed <| Pages.Build.Update.viewRunningSteps steps_ True
 
         _ ->
-            model.steps
+            steps
 
 
 {-| updateLogs : takes model and incoming log and updates the list of logs if necessary

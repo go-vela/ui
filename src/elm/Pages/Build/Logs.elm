@@ -16,6 +16,7 @@ module Pages.Build.Logs exposing
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
     , stepToFocusId
+    , updateStepStates
     , view
     )
 
@@ -249,7 +250,7 @@ stepTopTrackerFocusId stepNumber =
 -}
 stepBottomTrackerFocusId : StepNumber -> String
 stepBottomTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker-bottom"
+    "step-" ++ stepNumber ++ "-line-tracker"
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -465,6 +466,16 @@ focusLogs model steps org repo buildNumber focusFragment getLogs =
     , stepsOut
     , action
     )
+
+
+updateStepStates : WebData Steps -> Steps -> WebData Steps
+updateStepStates currentSteps incomingSteps =
+    case currentSteps of
+        RemoteData.Success currentSteps_ ->
+            List.map (\incomingStep -> Util.overwriteById incomingStep currentSteps_) incomingSteps |> List.filterMap identity |> RemoteData.succeed
+
+        _ ->
+            RemoteData.succeed incomingSteps
 
 
 {-| updateStepLogFocus : takes steps and line focus and sets a new log line focus
