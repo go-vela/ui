@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (setStepView, update)
+module Pages.Build.Update exposing (setStepView, update, viewRunningStep, viewRunningSteps)
 
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
@@ -33,7 +33,7 @@ import Vela
 
 
 type alias GetLogs a msg =
-    PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Cmd msg
+    PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd msg
 
 
 
@@ -50,7 +50,7 @@ update model msg getBuildStepLogs focusResult =
 
                 action =
                     if fetchStepLogs then
-                        getBuildStepLogs model org repo buildNumber stepNumber Nothing
+                        getBuildStepLogs model org repo buildNumber stepNumber Nothing False
 
                     else
                         Cmd.none
@@ -119,6 +119,32 @@ setStepView : Steps -> String -> Bool -> Steps
 setStepView steps stepNumber value =
     List.Extra.updateIf
         (\step -> String.fromInt step.number == stepNumber)
+        (\step -> { step | viewing = value })
+        steps
+
+
+{-| viewRunningStep : takes steps and step number and sets that steps viewing state if the step is running
+-}
+viewRunningStep : Steps -> String -> Bool -> Steps
+viewRunningStep steps stepNumber value =
+    List.Extra.updateIf
+        (\step ->
+            String.fromInt step.number
+                == stepNumber
+                && (step.status /= Vela.Pending)
+        )
+        (\step -> { step | viewing = value })
+        steps
+
+
+{-| openRunningStep : takes steps and sets steps viewing state if the step is running
+-}
+viewRunningSteps : Steps -> Bool -> Steps
+viewRunningSteps steps value =
+    List.Extra.updateIf
+        (\step ->
+            step.status /= Vela.Pending
+        )
         (\step -> { step | viewing = value })
         steps
 

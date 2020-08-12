@@ -10,6 +10,7 @@ module Pages.Build.Logs exposing
     , focusLogs
     , focusStep
     , followLogsButton
+    , logEmpty
     , logFocusExists
     , logFocusFragment
     , stepAndLineToFocusId
@@ -70,7 +71,7 @@ type alias SetLogFocus msg =
 
 
 type alias GetLogsFromSteps a msg =
-    a -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Cmd msg
+    a -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Bool -> Cmd msg
 
 
 
@@ -100,7 +101,7 @@ viewLogs stepStatus stepNumber logFocus log followLogs shiftDown =
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
-                    if logNotEmpty <| decodeLog log then
+                    if not <| logEmpty log then
                         viewLines stepStatus stepNumber logFocus log followLogs shiftDown
 
                     else
@@ -135,6 +136,9 @@ viewLines stepStatus stepNumber logFocus log followLogs shiftDown =
                     )
                 |> Array.toList
 
+        long =
+            List.length lines > 25
+
         topActions =
             case stepStatus of
                 _ ->
@@ -144,14 +148,18 @@ viewLines stepStatus stepNumber logFocus log followLogs shiftDown =
                             [ div [ class "wrapper", class "justify-flex-end" ]
                                 [ button [ class "button", class "-icon", attribute "data-tooltip" "download logs", class "tooltip-left" ]
                                     [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                                , button
-                                    [ attribute "data-tooltip" "jump to bottom"
-                                    , class "tooltip-left"
-                                    , class "button"
-                                    , class "-icon"
-                                    , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
-                                    ]
-                                    [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                                , if long then
+                                    button
+                                        [ attribute "data-tooltip" "jump to bottom"
+                                        , class "tooltip-left"
+                                        , class "button"
+                                        , class "-icon"
+                                        , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
+                                        ]
+                                        [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+                                  else
+                                    text ""
                                 ]
                             ]
 
@@ -161,7 +169,7 @@ viewLines stepStatus stepNumber logFocus log followLogs shiftDown =
                     [ class "line" ]
                     [ div [ class "wrapper", class "justify-flex-end" ] <|
                         [ followLogsButton stepStatus followLogs
-                        , if List.length lines > 25 then
+                        , if long then
                             button
                                 [ attribute "data-tooltip" "jump to top"
                                 , class "tooltip-left"
@@ -444,7 +452,7 @@ focusLogs model steps org repo buildNumber focusFragment getLogs =
                     in
                     ( focusedSteps
                     , Cmd.batch
-                        [ getLogs model org repo buildNumber focusedSteps focusFragment
+                        [ getLogs model org repo buildNumber focusedSteps focusFragment False
                         ]
                     )
 
@@ -575,11 +583,11 @@ decodeLog log =
             ""
 
 
-{-| logNotEmpty : takes log string and returns True if content exists
+{-| logEmpty : takes log string and returns True if content does not exist
 -}
-logNotEmpty : String -> Bool
-logNotEmpty log =
-    not << String.isEmpty <| String.replace " " "" log
+logEmpty : Maybe (WebData Log) -> Bool
+logEmpty log =
+    String.isEmpty <| String.replace " " "" <| decodeLog log
 
 
 {-| toString : returns a string from a Maybe Log

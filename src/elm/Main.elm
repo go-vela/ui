@@ -343,7 +343,7 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
-    | StepLogResponse StepNumber FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
+    | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -676,6 +676,13 @@ update msg model =
                             }
                         , build = RemoteData.succeed build
                         , favicon = statusToFavicon build.status
+                        , followLogs =
+                            case build.status of
+                                Vela.Running ->
+                                    model.followLogs
+
+                                _ ->
+                                    False
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
@@ -712,6 +719,17 @@ update msg model =
         StepResponse _ _ _ _ response ->
             case response of
                 Ok ( _, step ) ->
+                    let
+                        steps =
+                            model.steps
+
+                        followedSteps =
+                            if model.followLogs then
+                                followSteps model
+
+                            else
+                                steps
+                    in
                     ( updateStep model step, Cmd.none )
 
                 Err error ->
@@ -727,24 +745,33 @@ update msg model =
                         steps =
                             RemoteData.succeed <| focusStep logFocus sortedSteps
 
+                        followedSteps =
+                            if model.followLogs then
+                                followSteps model
+
+                            else
+                                steps
+
                         cmd =
-                            getBuildStepsLogs model org repo buildNumber steps logFocus
+                            getBuildStepsLogs model org repo buildNumber followedSteps logFocus False
                     in
-                    ( { model | steps = steps }, cmd )
+                    ( { model | steps = followedSteps }, cmd )
 
                 Err error ->
                     ( model, addError error )
 
-        StepLogResponse stepNumber logFocus response ->
+        StepLogResponse stepNumber logFocus isRefresh response ->
             case response of
                 Ok ( _, log ) ->
                     let
-                        focusId =
-                            if model.followLogs then
-                                Pages.Build.Logs.stepBottomTrackerFocusId stepNumber
+                        ( steps, focusId ) =
+                            if model.followLogs && isRefresh then
+                                ( followStep stepNumber model
+                                , Pages.Build.Logs.stepBottomTrackerFocusId stepNumber
+                                )
 
                             else
-                                focusFragmentToFocusId logFocus
+                                ( model.steps, focusFragmentToFocusId logFocus )
 
                         action =
                             if not <| String.isEmpty focusId then
@@ -753,7 +780,7 @@ update msg model =
                             else
                                 Cmd.none
                     in
-                    ( updateLogs log model, action )
+                    ( updateLogs log { model | steps = steps }, action )
 
                 Err error ->
                     ( model, addError error )
@@ -1475,7 +1502,7 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
                         []
 
         refresh =
-            getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment
+            getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
     in
     if shouldRefresh model.build then
         refresh
@@ -2433,6 +2460,7 @@ loadBuildPage model org repo buildNumber focusFragment =
         , builds = builds
         , build = Loading
         , steps = NotAsked
+        , followLogs = False
         , logs = []
       }
     , Cmd.batch
@@ -2550,14 +2578,24 @@ updateStep model incomingStep =
         { model | steps = RemoteData.succeed <| incomingStep :: steps }
 
 
-followStep : StepNumber -> Model -> Model
+followStep : StepNumber -> Model -> WebData Steps
 followStep stepNumber model =
     case model.steps of
         RemoteData.Success steps ->
-            { model | steps = RemoteData.succeed <| Pages.Build.Update.setStepView steps stepNumber True }
+            RemoteData.succeed <| Pages.Build.Update.viewRunningStep steps stepNumber True
 
         _ ->
-            model
+            model.steps
+
+
+followSteps : Model -> WebData Steps
+followSteps model =
+    case model.steps of
+        RemoteData.Success steps ->
+            RemoteData.succeed <| Pages.Build.Update.viewRunningSteps steps True
+
+        _ ->
+            model.steps
 
 
 {-| updateLogs : takes model and incoming log and updates the list of logs if necessary
@@ -2570,13 +2608,6 @@ updateLogs incomingLog model =
 
         logExists =
             List.member incomingLog.id <| logIds logs
-
-        steps =
-            if True then
-                model.steps
-
-            else
-                model.steps
     in
     if logExists then
         { model | logs = updateLog incomingLog logs }
@@ -2728,13 +2759,13 @@ getBuildStep model org repo buildNumber stepNumber =
     Api.try (StepResponse org repo buildNumber stepNumber) <| Api.getStep model org repo buildNumber stepNumber
 
 
-getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Cmd Msg
-getBuildStepLogs model org repo buildNumber stepNumber logFocus =
-    Api.try (StepLogResponse stepNumber logFocus) <| Api.getStepLogs model org repo buildNumber stepNumber
+getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg
+getBuildStepLogs model org repo buildNumber stepNumber logFocus isRefresh =
+    Api.try (StepLogResponse stepNumber logFocus isRefresh) <| Api.getStepLogs model org repo buildNumber stepNumber
 
 
-getBuildStepsLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Cmd Msg
-getBuildStepsLogs model org repo buildNumber steps logFocus =
+getBuildStepsLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Bool -> Cmd Msg
+getBuildStepsLogs model org repo buildNumber steps logFocus isRefresh =
     let
         buildSteps =
             case steps of
@@ -2748,7 +2779,7 @@ getBuildStepsLogs model org repo buildNumber steps logFocus =
         List.map
             (\step ->
                 if step.viewing || model.followLogs then
-                    getBuildStepLogs model org repo buildNumber (String.fromInt step.number) logFocus
+                    getBuildStepLogs model org repo buildNumber (String.fromInt step.number) logFocus isRefresh
 
                 else
                     Cmd.none
