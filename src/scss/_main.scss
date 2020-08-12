@@ -1292,6 +1292,10 @@ nav {
   word-wrap: break-word;
 }
 
+.no-wrap {
+  white-space: nowrap;
+}
+
 .overflow-auto {
   overflow: auto;
 }
