@@ -835,14 +835,16 @@ nav {
   margin-left: 1.5em;
 }
 
-.step-error {
+.step-error,
+.step-skipped {
   margin-left: 1.5em;
 
   color: var(--color-red-light);
   font-size: 14px;
 }
 
-.step-error .message {
+.step-error .message,
+.step-skipped .message {
   margin-left: 0.2em;
 }
 

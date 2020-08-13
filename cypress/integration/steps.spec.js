@@ -86,7 +86,7 @@ context('Steps', () => {
     context('click log line in last step', () => {
       beforeEach(() => {
         cy.get('[data-test=step-header-5]').click({ force: true });
-        cy.get('[data-test=step-error]').as('lineNumber');
+        cy.get('[data-test=step-skipped]').as('lineNumber');
         cy.get('@lineNumber').click({ force: true });
       });
       context('click first step', () => {
@@ -256,7 +256,7 @@ context('Steps', () => {
           it('last step should contain killed/skip', () => {
             cy.get('[data-test=step]').last().as('killStep');
             cy.get('@killStep').should('be.visible').click();
-            cy.get('@killStep').contains('step was killed');
+            cy.get('@killStep').contains('step was skipped');
           });
         });
       },

@@ -80,7 +80,7 @@ view step logs clickAction shiftDown =
             stepError step
 
         Vela.Killed ->
-            stepKilled step
+            stepSkipped step
 
         _ ->
             viewLogs (String.fromInt step.number) step.logFocus (getStepLog step logs) clickAction shiftDown
@@ -191,11 +191,22 @@ stepError step =
 
 
 {-| stepKilled : renders message for a killed step
+
+    NOTE: not used, but keeping around for future
+
 -}
 stepKilled : Step -> Html msg
 stepKilled _ =
     div [ class "step-error", Util.testAttribute "step-error" ]
         [ span [ class "label" ] [ text "step was killed" ] ]
+
+
+{-| stepSkipped : renders message for a skipped step
+-}
+stepSkipped : Step -> Html msg
+stepSkipped _ =
+    div [ class "step-skipped", Util.testAttribute "step-skipped" ]
+        [ span [ class "label" ] [ text "step was skipped" ] ]
 
 
 
