@@ -7,7 +7,8 @@ import '../scss/style.scss';
 import ClipboardJS from 'clipboard';
 
 // Vela consts
-const feedbackURL: string = 'https://github.com/go-vela/ui/issues/new';
+const feedbackURL: string =
+  'https://github.com/go-vela/community/issues/new/choose';
 const docsURL: string = 'https://go-vela.github.io/docs';
 
 // setup for session state
@@ -72,7 +73,7 @@ app.ports.setTheme.subscribe(theme => {
   setTimeout(() => app.ports.onThemeChange.send(theme), 0);
 });
 
-app.ports.setFavicon.subscribe(function (url) {
+app.ports.setFavicon.subscribe(function(url) {
   var oldIcon = document.getElementById('favicon');
   var newIcon = document.createElement('link');
   newIcon.id = 'favicon';
