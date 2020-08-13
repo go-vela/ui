@@ -173,11 +173,11 @@ context('Build', () => {
       });
 
       it('build should display commit message', () => {
-        cy.get('@build').find('.message').should('be.visible');
+        cy.get('@build').find('.commit-msg').should('be.visible');
       });
       it('longer build commit message should be truncated with ellipsis', () => {
         cy.get('@build')
-          .find('.message')
+          .find('.commit-msg')
           .should('have.css', 'text-overflow', 'ellipsis');
       });
     });
