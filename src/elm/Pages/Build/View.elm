@@ -160,9 +160,16 @@ viewPreview now org repo expanding build =
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
-                [ div [ class "row -left" ]
-                    [ div [ class "id" ] id
-                    , div [ class "commit-msg" ] [ strong [] message ]
+                [ div [ class "row" ]
+                    [ div [ class "flex", class "flex-1" ]
+                        [ div [ class "id" ] id
+                        , div [ class "commit-msg" ] [ strong [] message ]
+                        ]
+                    , div [ class "time-info" ]
+                        [ div [ class "age" ] age
+                        , span [ class "delimiter" ] [ text "/" ]
+                        , div [ class "duration" ] duration
+                        ]
                     ]
                 , div [ class "row" ]
                     [ div [ class "git-info" ]
@@ -172,14 +179,8 @@ viewPreview now org repo expanding build =
                         , text "by"
                         , div [ class "sender" ] sender
                         ]
-                    , div [ class "time-info" ]
-                        [ div [ class "age" ] age
-                        , span [ class "delimiter" ] [ text "/" ]
-                        , div [ class "duration" ] duration
-                        ]
+                    , div [ class "flex" ] logActions
                     ]
-                , div [ class "row", class "-right" ]
-                    logActions
                 , viewError build
                 ]
             ]
