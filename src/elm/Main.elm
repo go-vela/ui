@@ -9,7 +9,6 @@ module Main exposing (main)
 import Alerts exposing (Alert)
 import Api
 import Api.Endpoint
-import Api.Header as Header
 import Api.Pagination as Pagination
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
@@ -66,18 +65,14 @@ import Logs
         ( focusFragmentToFocusId
         , focusLogs
         , focusStep
-        , logFocusExists
-        , logFocusFragment
         )
 import Nav
 import Pager
 import Pages exposing (Page(..))
 import Pages.AddRepos
-import Pages.Build
-    exposing
-        ( clickStep
-        , viewingStep
-        )
+import Pages.Build.Model
+import Pages.Build.Update
+import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
@@ -307,7 +302,6 @@ type Msg
     | RefreshHooks Org Repo
     | RefreshSecrets Engine Type Org Repo
     | SetTheme Theme
-    | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
@@ -356,9 +350,9 @@ type Msg
     | FocusResult (Result Dom.Error ())
     | OnKeyDown String
     | OnKeyUp String
-    | UpdateUrl String
     | VisibilityChanged Visibility
       -- Components
+    | BuildUpdate Pages.Build.Model.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
@@ -369,11 +363,6 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        UpdateUrl url ->
-            ( model
-            , Navigation.pushUrl model.navigationKey url
-            )
-
         NewRoute route ->
             setNewPage route model
 
@@ -896,32 +885,6 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
             )
 
-        ClickStep org repo buildNumber stepNumber _ ->
-            let
-                ( steps, fetchStepLogs ) =
-                    clickStep model.steps stepNumber
-
-                action =
-                    if fetchStepLogs then
-                        getBuildStepLogs model org repo buildNumber stepNumber Nothing
-
-                    else
-                        Cmd.none
-
-                stepOpened =
-                    viewingStep steps stepNumber
-            in
-            ( { model | steps = steps }
-            , Cmd.batch <|
-                [ action
-                , if stepOpened then
-                    Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
-
-                  else
-                    Cmd.none
-                ]
-            )
-
         SetTheme theme ->
             if theme == model.theme then
                 ( model, Cmd.none )
@@ -1059,6 +1022,15 @@ update msg model =
             in
             ( { model | secretsModel = { secretsModel | secrets = Loading } }
             , getSecrets model Nothing Nothing engine type_ org key
+            )
+
+        BuildUpdate m ->
+            let
+                ( newModel, action ) =
+                    Pages.Build.Update.update model m getBuildStepLogs
+            in
+            ( newModel
+            , action
             )
 
         AddSecretUpdate engine m ->
@@ -1672,24 +1644,25 @@ viewContent model =
             , div []
                 [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
-                , lazy5 Pages.Builds.view model.builds model.time org repo maybeEvent
+                , Html.map (\m -> BuildUpdate m) <|
+                    lazy5 Pages.Builds.view model.builds model.time org repo maybeEvent
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , lazy4 Pages.Build.viewBuild
-                { navigationKey = model.navigationKey
-                , time = model.time
-                , build = model.build
-                , steps = model.steps
-                , logs = model.logs
-                , shift = model.shift
-                }
-                org
-                repo
-                buildMsgs
+            , Html.map (\m -> BuildUpdate m) <|
+                lazy3 Pages.Build.View.viewBuild
+                    { navigationKey = model.navigationKey
+                    , time = model.time
+                    , build = model.build
+                    , steps = model.steps
+                    , logs = model.logs
+                    , shift = model.shift
+                    }
+                    org
+                    repo
             )
 
         Pages.Settings ->
@@ -1857,7 +1830,7 @@ helpArgs model =
 viewUtil : Model -> Html Msg
 viewUtil model =
     div [ class "util" ]
-        [ lazy7 Pages.Build.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
+        [ lazy7 Pages.Build.View.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
 
 
 viewAlerts : Stack Alert -> Html Msg
@@ -2483,23 +2456,7 @@ stepsIds steps =
 -}
 logIds : Logs -> List Int
 logIds logs =
-    List.map (\log -> log.id) <| successfulLogs logs
-
-
-{-| logIds : extracts successful logs from list of logs and returns List Log
--}
-successfulLogs : Logs -> List Log
-successfulLogs logs =
-    List.filterMap
-        (\log ->
-            case log of
-                Success log_ ->
-                    Just log_
-
-                _ ->
-                    Nothing
-        )
-        logs
+    List.map (\log -> log.id) <| Util.successful logs
 
 
 {-| updateStep : takes model and incoming step and updates the list of steps if necessary
@@ -2581,13 +2538,6 @@ addLog incomingLog logs =
 homeMsgs : Pages.Home.Msgs Msg
 homeMsgs =
     Pages.Home.Msgs ToggleFavorite SearchFavorites
-
-
-{-| buildMsgs : prepares the input record required for the Build page to route Msgs back to Main.elm
--}
-buildMsgs : Pages.Build.Msgs Msg
-buildMsgs =
-    Pages.Build.Msgs ClickStep UpdateUrl
 
 
 {-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm
