@@ -20,7 +20,6 @@ module Pages.Build.Logs exposing
     , stepFollowButton
     , stepLogFocus
     , stepToFocusId
-    , stepsFollowButton
     , updateSteps
     , view
     , viewingStep
@@ -60,7 +59,6 @@ import Vela
         , Logs
         , Org
         , Repo
-        , Status
         , Step
         , StepNumber
         , Steps
@@ -247,26 +245,6 @@ stepFollowButton stepNumber following =
         , class "-icon"
         , class "follow"
         , onClick <| FollowStep toFollow
-        ]
-        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-
-stepsFollowButton : Bool -> Html Msg
-stepsFollowButton expanding =
-    let
-        ( tooltip, icon ) =
-            if expanding then
-                ( "stop auto expanding steps", FeatherIcons.pauseCircle )
-
-            else
-                ( "start auto expanding steps", FeatherIcons.playCircle )
-    in
-    Html.button
-        [ class "tooltip-left"
-        , attribute "data-tooltip" tooltip
-        , class "button"
-        , class "-icon"
-        , onClick <| FollowSteps expanding
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 

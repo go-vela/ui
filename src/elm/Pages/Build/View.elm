@@ -41,7 +41,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import Pages exposing (Page(..))
-import Pages.Build.Logs exposing (stepToFocusId, stepsFollowButton)
+import Pages.Build.Logs exposing (stepToFocusId)
 import Pages.Build.Model exposing (Msg(..))
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
@@ -93,7 +93,7 @@ viewBuild { time, build, steps, logs, follow, expand, shift } org repo =
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview time org repo (Just expand) True bld, Just <| String.fromInt bld.number )
+                    ( viewPreview time org repo (Just expand) bld, Just <| String.fromInt bld.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
@@ -125,8 +125,8 @@ viewBuild { time, build, steps, logs, follow, expand, shift } org repo =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Org -> Repo -> Maybe Bool -> Bool -> Build -> Html Msg
-viewPreview now org repo expanding full build =
+viewPreview : Posix -> Org -> Repo -> Maybe Bool -> Build -> Html Msg
+viewPreview now org repo expanding build =
     let
         status =
             [ buildStatusToIcon build.status ]
@@ -167,7 +167,7 @@ viewPreview now org repo expanding full build =
         followButton =
             case expanding of
                 Just e ->
-                    stepsFollowButton e
+                    autoExpandStepsButton e
 
                 Nothing ->
                     text ""
@@ -273,6 +273,50 @@ viewStepDetails now org repo buildNumber step logs follow shift =
             :: Util.open step.viewing
         )
         stepSummary
+
+
+autoExpandStepsButton : Bool -> Html Msg
+autoExpandStepsButton expanding =
+    let
+        ( tooltip, icon ) =
+            if expanding then
+                ( "stop auto expanding steps", FeatherIcons.pauseCircle )
+
+            else
+                ( "start auto expanding steps", FeatherIcons.playCircle )
+    in
+    Html.button
+        [ class "tooltip-left"
+        , attribute "data-tooltip" tooltip
+        , class "button"
+        , class "-icon"
+        , onClick <| FollowSteps expanding
+        ]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+
+collapseAllButton : Html Msg
+collapseAllButton =
+    Html.button
+        [ class "tooltip-left"
+        , attribute "data-tooltip" "collapse all steps"
+        , class "button"
+        , class "-icon"
+        , onClick <| FollowSteps False
+        ]
+        [ FeatherIcons.minusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+
+expandAllButton : Html Msg
+expandAllButton =
+    Html.button
+        [ class "tooltip-left"
+        , attribute "data-tooltip" "expand all steps"
+        , class "button"
+        , class "-icon"
+        , onClick <| FollowSteps False
+        ]
+        [ FeatherIcons.plusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| viewStepIcon : renders a build step status icon
