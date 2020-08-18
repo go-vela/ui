@@ -792,6 +792,10 @@ nav {
   width: 100%;
 }
 
+.log-table tr td:nth-child(2) {
+  padding-left: 1rem;
+}
+
 .logs .line {
   display: flex;
   align-items: flex-start;
@@ -813,19 +817,31 @@ nav {
   }
 }
 
-.line-number {
-  padding: 0;
+.log-table tr:hover,
+.log-table tr:focus {
+  background-color: var(--color-bg);
+}
+
+.log-table .line-number {
   position: relative;
-  color: var(--color-primary);
-  font-size: 14px;
   font-family: var(--font-code);
 
   background: none;
-  border: none;
 
   user-select: none;
 
+  text-align: right;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+
   width: 6ch;
+
+  &:hover,
+  &:focus {
+    text-decoration: underline;
+  }
 }
 
 .logs .-focus {
