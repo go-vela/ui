@@ -20,10 +20,10 @@ import Vela
 
 
 type Msg
-    = ExpandStep Org Repo BuildNumber StepNumber String
+    = ExpandStep Org Repo BuildNumber StepNumber
     | FocusLogs String
     | FollowStep Int
-    | FollowSteps Bool
-    | ExpandAllSteps
+    | FollowSteps Org Repo BuildNumber Bool
+    | ExpandAllSteps Org Repo BuildNumber
     | CollapseAllSteps
     | FocusOn String

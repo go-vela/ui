@@ -128,6 +128,9 @@ viewBuild { time, build, steps, logs, follow, expand, shift } org repo =
 viewPreview : Posix -> Org -> Repo -> Maybe Bool -> Build -> Html Msg
 viewPreview now org repo expanding build =
     let
+        buildNumber =
+            String.fromInt build.number
+
         status =
             [ buildStatusToIcon build.status ]
 
@@ -150,9 +153,9 @@ viewPreview now org repo expanding build =
         id =
             [ a
                 [ Util.testAttribute "build-number"
-                , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
+                , Routes.href <| Routes.Build org repo buildNumber Nothing
                 ]
-                [ text <| "#" ++ String.fromInt build.number ]
+                [ text <| "#" ++ buildNumber ]
             ]
 
         age =
@@ -167,7 +170,10 @@ viewPreview now org repo expanding build =
         logActions =
             case expanding of
                 Just e ->
-                    [ autoExpandStepsButton e, collapseAllButton, expandAllButton ]
+                    [ collapseAllButton
+                    , expandAllButton org repo buildNumber
+                    , autoExpandStepsButton org repo buildNumber e
+                    ]
 
                 Nothing ->
                     [ text "" ]
@@ -250,8 +256,8 @@ viewStepDetails now org repo buildNumber step logs follow shift =
             [ summary
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
-                , onClick <| ExpandStep org repo buildNum stepNumber ("#step:" ++ stepNumber)
-                , id <| stepToFocusId <| String.fromInt step.number
+                , onClick <| ExpandStep org repo buildNum stepNumber
+                , id <| stepToFocusId stepNumber
                 ]
                 [ div
                     [ class "-info" ]
@@ -274,8 +280,8 @@ viewStepDetails now org repo buildNumber step logs follow shift =
         stepSummary
 
 
-autoExpandStepsButton : Bool -> Html Msg
-autoExpandStepsButton expanding =
+autoExpandStepsButton : Org -> Repo -> BuildNumber -> Bool -> Html Msg
+autoExpandStepsButton org repo buildNumber expanding =
     let
         ( tooltip, icon ) =
             if expanding then
@@ -289,7 +295,8 @@ autoExpandStepsButton expanding =
         , attribute "data-tooltip" tooltip
         , class "button"
         , class "-icon"
-        , onClick <| FollowSteps expanding
+        , class "-log-action"
+        , onClick <| FollowSteps org repo buildNumber expanding
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
@@ -301,19 +308,21 @@ collapseAllButton =
         , attribute "data-tooltip" "collapse all steps"
         , class "button"
         , class "-icon"
+        , class "-log-action"
         , onClick CollapseAllSteps
         ]
         [ FeatherIcons.minusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
-expandAllButton : Html Msg
-expandAllButton =
+expandAllButton : Org -> Repo -> BuildNumber -> Html Msg
+expandAllButton org repo buildNumber =
     Html.button
         [ class "tooltip-left"
         , attribute "data-tooltip" "expand all steps"
         , class "button"
         , class "-icon"
-        , onClick ExpandAllSteps
+        , class "-log-action"
+        , onClick <| ExpandAllSteps org repo buildNumber
         ]
         [ FeatherIcons.plusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 

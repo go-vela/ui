@@ -33,8 +33,16 @@ import Vela
         )
 
 
-type alias GetLogs a msg =
+type alias GetStepLogs a msg =
     PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd msg
+
+
+type alias GetStepsLogs a msg =
+    PartialModel a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
+
+
+type alias GetLogs a msg =
+    ( GetStepLogs a msg, GetStepsLogs a msg )
 
 
 
@@ -42,9 +50,9 @@ type alias GetLogs a msg =
 
 
 update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> ( PartialModel a, Cmd msg )
-update model msg getBuildStepLogs focusResult =
+update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
     case msg of
-        ExpandStep org repo buildNumber stepNumber _ ->
+        ExpandStep org repo buildNumber stepNumber ->
             let
                 ( steps, fetchStepLogs ) =
                     clickStep model.steps stepNumber
@@ -80,21 +88,52 @@ update model msg getBuildStepLogs focusResult =
             , Cmd.none
             )
 
-        FollowSteps expanding ->
+        FollowSteps org repo buildNumber expanding ->
+            let
+                steps =
+                    case model.steps of
+                        RemoteData.Success steps_ ->
+                            RemoteData.succeed <| Pages.Build.Logs.autoSetSteps True steps_
+
+                        _ ->
+                            model.steps
+
+                action =
+                    getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
+            in
             ( { model | expand = not expanding }
             , Cmd.none
             )
 
         CollapseAllSteps ->
-            -- ( { model | steps = collapseAllSteps model.steps }
-            ( model
+            let
+                steps =
+                    case model.steps of
+                        RemoteData.Success steps_ ->
+                            RemoteData.succeed <| Pages.Build.Logs.autoSetSteps False steps_
+
+                        _ ->
+                            model.steps
+            in
+            ( { model | steps = steps }
             , Cmd.none
             )
 
-        ExpandAllSteps ->
-            -- ( { model | steps = expandAllSteps model.steps }
-            ( model
-            , Cmd.none
+        ExpandAllSteps org repo buildNumber ->
+            let
+                steps =
+                    case model.steps of
+                        RemoteData.Success steps_ ->
+                            RemoteData.succeed <| Pages.Build.Logs.autoSetSteps True steps_
+
+                        _ ->
+                            model.steps
+
+                action =
+                    getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
+            in
+            ( { model | steps = steps }
+            , action
             )
 
         FocusOn id ->

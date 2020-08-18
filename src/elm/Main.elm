@@ -756,7 +756,7 @@ update msg model =
                             else
                                 ( model.steps, "" )
 
-                        action =
+                        cmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
 
@@ -767,7 +767,7 @@ update msg model =
                         { model
                             | steps = steps
                         }
-                    , action
+                    , cmd
                     )
 
                 Err error ->
@@ -860,7 +860,7 @@ update msg model =
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
 
-                action =
+                cmd =
                     if Pages.RepoSettings.validEventsUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
@@ -868,7 +868,7 @@ update msg model =
                         addErrorString "Could not disable webhook event. At least one event must be active."
             in
             ( model
-            , action
+            , cmd
             )
 
         UpdateRepoAccess org repo field value ->
@@ -881,7 +881,7 @@ update msg model =
                 body =
                     Http.jsonBody <| encodeUpdateRepository payload
 
-                action =
+                cmd =
                     if Pages.RepoSettings.validAccessUpdate model.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
@@ -889,7 +889,7 @@ update msg model =
                         Cmd.none
             in
             ( model
-            , action
+            , cmd
             )
 
         UpdateRepoTimeout org repo field value ->
@@ -1053,7 +1053,7 @@ update msg model =
         BuildUpdate m ->
             let
                 ( newModel, action ) =
-                    Pages.Build.Update.update model m getBuildStepLogs FocusResult
+                    Pages.Build.Update.update model m ( getBuildStepLogs, getBuildStepsLogs ) FocusResult
             in
             ( newModel
             , action

@@ -6,7 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Logs exposing
     ( SetLogFocus
-    , expandSteps
+    , autoSetSteps
     , focusFragmentToFocusId
     , focusLogs
     , focusStep
@@ -18,7 +18,6 @@ module Pages.Build.Logs exposing
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
     , stepFollowButton
-    , stepLogFocus
     , stepToFocusId
     , updateSteps
     , view
@@ -36,7 +35,10 @@ import Html
         , code
         , div
         , span
+        , table
+        , td
         , text
+        , tr
         )
 import Html.Attributes
     exposing
@@ -151,42 +153,50 @@ viewLines stepNumber logFocus log following shiftDown =
 
         topActions =
             Just <|
-                Html.tr
+                tr
                     [ class "line" ]
                     [ div [ class "wrapper", class "justify-flex-end" ]
-                        [ button [ class "button", class "-icon", attribute "data-tooltip" "download logs", class "tooltip-left" ]
+                        [ button
+                            [ class "button"
+                            , class "-icon"
+                            , class "-log-action"
+                            , attribute "data-tooltip" "download logs"
+                            , class "tooltip-left"
+                            ]
                             [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                        , stepFollowButton stepNumber following
                         , if long then
                             button
                                 [ attribute "data-tooltip" "jump to bottom"
                                 , class "tooltip-left"
                                 , class "button"
                                 , class "-icon"
+                                , class "-log-action"
                                 , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
                                 ]
                                 [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
                           else
                             text ""
+                        , stepFollowButton stepNumber following
                         ]
                     ]
 
         bottomActions =
             Just <|
-                Html.tr
+                tr
                     [ class "line" ]
                     [ div [ class "wrapper", class "justify-flex-end" ] <|
                         if long then
-                            [ stepFollowButton stepNumber following
-                            , button
+                            [ button
                                 [ attribute "data-tooltip" "jump to top"
                                 , class "tooltip-left"
                                 , class "button"
                                 , class "-icon"
+                                , class "-log-action"
                                 , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
                                 ]
                                 [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                            , stepFollowButton stepNumber following
                             ]
 
                         else
@@ -200,7 +210,7 @@ viewLines stepNumber logFocus log following shiftDown =
                 |> List.filterMap identity
 
         topTracker =
-            Html.tr [ class "line", class "tracker" ]
+            tr [ class "line", class "tracker" ]
                 [ button
                     [ id <|
                         stepTopTrackerFocusId stepNumber
@@ -210,7 +220,7 @@ viewLines stepNumber logFocus log following shiftDown =
                 ]
 
         bottomTracker =
-            Html.tr [ class "line", class "tracker" ]
+            tr [ class "line", class "tracker" ]
                 [ button
                     [ id <|
                         stepBottomTrackerFocusId stepNumber
@@ -219,7 +229,7 @@ viewLines stepNumber logFocus log following shiftDown =
                     []
                 ]
     in
-    Html.table [ class "log-table" ] <| topTracker :: logs ++ [ bottomTracker ]
+    table [ class "log-table" ] <| topTracker :: logs ++ [ bottomTracker ]
 
 
 stepFollowButton : StepNumber -> Int -> Html Msg
@@ -238,12 +248,12 @@ stepFollowButton stepNumber following =
             else
                 ( "start following step logs", FeatherIcons.playCircle, stepNum )
     in
-    Html.button
+    button
         [ class "tooltip-left"
         , attribute "data-tooltip" tooltip
         , class "button"
         , class "-icon"
-        , class "follow"
+        , class "-log-action"
         , onClick <| FollowStep toFollow
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -267,7 +277,7 @@ stepBottomTrackerFocusId stepNumber =
 -}
 viewLine : String -> Int -> Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
 viewLine id lineNumber line stepNumber logFocus shiftDown =
-    Html.tr
+    tr
         [ Html.Attributes.id <|
             id
                 ++ ":"
@@ -279,9 +289,9 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
             , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
             , logFocusStyles logFocus lineNumber
             ]
-            [ Html.td []
+            [ td []
                 [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
-            , Html.td [ class "break-all", class "overflow-auto" ]
+            , td [ class "break-all", class "overflow-auto" ]
                 [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
                     [ Ansi.Log.viewLine line ]
                 ]
@@ -479,12 +489,14 @@ updateSteps logFocus isRefresh autoExpand currentSteps incomingSteps =
                 RemoteData.Success steps ->
                     List.map
                         (\incomingStep ->
+                            let
+                                ( v, lF ) =
+                                    getStepInfo steps incomingStep.number
+                            in
                             Util.overwriteById
                                 { incomingStep
-                                    | viewing =
-                                        (viewingStep currentSteps <| String.fromInt incomingStep.number)
-                                            || (autoExpand && incomingStep.status /= Vela.Pending)
-                                    , logFocus = stepLogFocus currentSteps <| String.fromInt incomingStep.number
+                                    | viewing = v || (autoExpand && incomingStep.status /= Vela.Pending)
+                                    , logFocus = lF
                                 }
                                 steps
                         )
@@ -501,27 +513,31 @@ updateSteps logFocus isRefresh autoExpand currentSteps incomingSteps =
         focusStep logFocus updatedSteps
 
 
-expandSteps : WebData Steps -> Steps -> Steps
-expandSteps currentSteps incomingSteps =
-    case currentSteps of
-        RemoteData.Success steps ->
-            List.map
-                (\incomingStep ->
-                    Util.overwriteById
-                        { incomingStep
-                            | viewing =
-                                (viewingStep currentSteps <| String.fromInt incomingStep.number)
-                                    || incomingStep.status
-                                    /= Vela.Pending
-                            , logFocus = stepLogFocus currentSteps <| String.fromInt incomingStep.number
-                        }
-                        steps
-                )
-                incomingSteps
-                |> List.filterMap identity
+autoSetSteps : Bool -> Steps -> Steps
+autoSetSteps viewing steps =
+    List.map
+        (\step ->
+            let
+                ( _, lF ) =
+                    getStepInfo steps step.number
+            in
+            { step
+                | viewing = viewing
+                , logFocus = lF
+            }
+        )
+        steps
 
-        _ ->
-            incomingSteps
+
+{-| getStepInfo : takes steps and step number and returns the step update information
+-}
+getStepInfo : Steps -> Int -> ( Bool, ( Maybe Int, Maybe Int ) )
+getStepInfo steps stepNumber =
+    Maybe.withDefault ( False, ( Nothing, Nothing ) ) <|
+        List.head <|
+            List.map (\step -> ( step.viewing, step.logFocus )) <|
+                List.filter (\step -> step.number == stepNumber) <|
+                    steps
 
 
 {-| viewingStep : takes steps and step number and returns the step viewing state
@@ -531,17 +547,6 @@ viewingStep steps stepNumber =
     Maybe.withDefault False <|
         List.head <|
             List.map (\step -> step.viewing) <|
-                List.filter (\step -> String.fromInt step.number == stepNumber) <|
-                    RemoteData.withDefault [] steps
-
-
-{-| stepLogFocus : takes steps and step number and returns the log focus for that step
--}
-stepLogFocus : WebData Steps -> StepNumber -> ( Maybe Int, Maybe Int )
-stepLogFocus steps stepNumber =
-    Maybe.withDefault ( Nothing, Nothing ) <|
-        List.head <|
-            List.map (\step -> step.logFocus) <|
                 List.filter (\step -> String.fromInt step.number == stepNumber) <|
                     RemoteData.withDefault [] steps
 
