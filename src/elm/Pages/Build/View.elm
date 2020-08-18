@@ -49,18 +49,21 @@ import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( decodeAnsi
+        , decodeLog
         , getStepLog
         , logEmpty
         , logFocusStyles
         , logRangeId
         , stepAndLineToFocusId
         , stepBottomTrackerFocusId
+        , stepLogsFilename
         , stepToFocusId
         , stepTopTrackerFocusId
         )
 import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
+import String
 import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone, millisToPosix)
 import Util
@@ -93,13 +96,13 @@ viewBuild { time, build, steps, logs, followingStep, autoExpandSteps, shift } or
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview time org repo (Just autoExpandSteps) bld, Just <| String.fromInt bld.number )
+                    ( viewPreview time org repo (Just autoExpandSteps) bld, String.fromInt bld.number )
 
                 RemoteData.Loading ->
-                    ( Util.largeLoader, Nothing )
+                    ( Util.largeLoader, "" )
 
                 _ ->
-                    ( text "", Nothing )
+                    ( text "", "" )
 
         buildSteps =
             case steps of
@@ -212,7 +215,7 @@ viewPreview now org repo expanding build =
 
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> Int -> Bool -> Html Msg
+viewSteps : Posix -> Org -> Repo -> BuildNumber -> Steps -> Logs -> Int -> Bool -> Html Msg
 viewSteps now org repo buildNumber steps logs follow shift =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
@@ -227,7 +230,7 @@ viewSteps now org repo buildNumber steps logs follow shift =
 
 {-| viewStep : renders single build step
 -}
-viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> Int -> Bool -> Html Msg
+viewStep : Posix -> Org -> Repo -> BuildNumber -> Step -> Steps -> Logs -> Int -> Bool -> Html Msg
 viewStep now org repo buildNumber step steps logs follow shift =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
@@ -238,12 +241,9 @@ viewStep now org repo buildNumber step steps logs follow shift =
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> Int -> Bool -> Html Msg
+viewStepDetails : Posix -> Org -> Repo -> BuildNumber -> Step -> Logs -> Int -> Bool -> Html Msg
 viewStepDetails now org repo buildNumber step logs follow shift =
     let
-        buildNum =
-            Maybe.withDefault "" buildNumber
-
         stepNumber =
             String.fromInt step.number
 
@@ -251,7 +251,7 @@ viewStepDetails now org repo buildNumber step logs follow shift =
             [ summary
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
-                , onClick <| ExpandStep org repo buildNum stepNumber
+                , onClick <| ExpandStep org repo buildNumber stepNumber
                 , id <| stepToFocusId stepNumber
                 ]
                 [ div
@@ -261,7 +261,7 @@ viewStepDetails now org repo buildNumber step logs follow shift =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ viewLogs step logs follow shift ]
+            , div [ class "logs-container" ] [ viewLogs org repo buildNumber step logs follow shift ]
             ]
     in
     details
@@ -277,8 +277,8 @@ viewStepDetails now org repo buildNumber step logs follow shift =
 
 {-| viewLogs : takes step and logs and renders step logs or step error
 -}
-viewLogs : Step -> Logs -> Int -> Bool -> Html Msg
-viewLogs step logs follow shiftDown =
+viewLogs : Org -> Repo -> BuildNumber -> Step -> Logs -> Int -> Bool -> Html Msg
+viewLogs org repo buildNumber step logs follow shiftDown =
     case step.status of
         Vela.Error ->
             stepError step
@@ -287,19 +287,19 @@ viewLogs step logs follow shiftDown =
             stepSkipped step
 
         _ ->
-            viewLogLines (String.fromInt step.number) step.logFocus (getStepLog step logs) follow shiftDown
+            viewLogLines org repo buildNumber (String.fromInt step.number) step.name step.logFocus (getStepLog step logs) follow shiftDown
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
 -}
-viewLogLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLogLines stepNumber logFocus log following shiftDown =
+viewLogLines : Org -> Repo -> BuildNumber -> StepNumber -> String -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
+viewLogLines org repo buildNumber stepNumber stepName logFocus log following shiftDown =
     let
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
                     if not <| logEmpty log then
-                        viewLines stepNumber logFocus log following shiftDown
+                        viewLines org repo buildNumber stepNumber stepName logFocus log following shiftDown
 
                     else
                         code []
@@ -320,8 +320,8 @@ viewLogLines stepNumber logFocus log following shiftDown =
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLines stepNumber logFocus log following shiftDown =
+viewLines : Org -> Repo -> BuildNumber -> StepNumber -> String -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
+viewLines org repo buildNumber stepNumber stepName logFocus log following shiftDown =
     let
         lines =
             log
@@ -342,7 +342,7 @@ viewLines stepNumber logFocus log following shiftDown =
             List.length lines > 25
 
         logs =
-            topLogActions stepNumber following long
+            topLogActions org repo buildNumber stepNumber stepName following long (decodeLog log)
                 :: lines
                 ++ [ bottomLogActions stepNumber following long ]
                 |> List.filterMap identity
@@ -418,8 +418,8 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
 
 {-| topLogActions : renders action buttons for the top of a step log
 -}
-topLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
-topLogActions stepNumber following long =
+topLogActions : Org -> Repo -> BuildNumber -> StepNumber -> String -> Int -> Bool -> String -> Maybe (Html Msg)
+topLogActions org repo buildNumber stepNumber stepName following long logs =
     tr
         [ class "line" ]
         [ div [ class "wrapper", class "buttons", class "justify-flex-end" ]
@@ -428,6 +428,7 @@ topLogActions stepNumber following long =
                 , class "-icon"
                 , attribute "data-tooltip" "download logs"
                 , class "tooltip-left"
+                , onClick <| DownloadLogs (stepLogsFilename org repo buildNumber stepNumber stepName) <| logs
                 ]
                 [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
             , if long then

@@ -8,6 +8,7 @@ module Pages.Build.Update exposing (expandActiveStep, update)
 
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
+import File.Download as Download
 import List.Extra
 import Pages.Build.Logs exposing (logFocusFragment)
 import Pages.Build.Model
@@ -61,6 +62,11 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
         FocusLogs url ->
             ( model
             , Navigation.pushUrl model.navigationKey url
+            )
+
+        DownloadLogs filename logs ->
+            ( model
+            , Download.string filename "text" logs
             )
 
         FollowStep step ->

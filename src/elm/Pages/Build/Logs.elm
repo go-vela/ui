@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Build.Logs exposing
     ( SetLogFocus
     , decodeAnsi
+    , decodeLog
     , focusFragmentToFocusId
     , focusLogs
     , focusStep
@@ -20,6 +21,7 @@ module Pages.Build.Logs exposing
     , mergeSteps
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
+    , stepLogsFilename
     , stepToFocusId
     , stepTopTrackerFocusId
     )
@@ -415,6 +417,13 @@ stepTopTrackerFocusId stepNumber =
 stepBottomTrackerFocusId : StepNumber -> String
 stepBottomTrackerFocusId stepNumber =
     "step-" ++ stepNumber ++ "-line-tracker"
+
+
+{-| stepLogsFilename : takes step information and produces a filename for downloading logs
+-}
+stepLogsFilename : Org -> Repo -> BuildNumber -> StepNumber -> String -> String
+stepLogsFilename org repo buildNumber stepNumber stepName =
+    String.join "-" [ org, repo, buildNumber, stepNumber, stepName ]
 
 
 
