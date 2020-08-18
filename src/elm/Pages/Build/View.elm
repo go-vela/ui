@@ -164,13 +164,13 @@ viewPreview now org repo expanding build =
         statusClass =
             statusToClass build.status
 
-        followButton =
+        logActions =
             case expanding of
                 Just e ->
-                    autoExpandStepsButton e
+                    [ autoExpandStepsButton e, collapseAllButton, expandAllButton ]
 
                 Nothing ->
-                    text ""
+                    [ text "" ]
 
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
@@ -197,8 +197,7 @@ viewPreview now org repo expanding build =
                         [ class "message" ]
                         message
                     , div []
-                        [ followButton
-                        ]
+                        logActions
                     ]
                 , viewError build
                 ]
@@ -302,7 +301,7 @@ collapseAllButton =
         , attribute "data-tooltip" "collapse all steps"
         , class "button"
         , class "-icon"
-        , onClick <| FollowSteps False
+        , onClick CollapseAllSteps
         ]
         [ FeatherIcons.minusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
@@ -314,7 +313,7 @@ expandAllButton =
         , attribute "data-tooltip" "expand all steps"
         , class "button"
         , class "-icon"
-        , onClick <| FollowSteps False
+        , onClick ExpandAllSteps
         ]
         [ FeatherIcons.plusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 

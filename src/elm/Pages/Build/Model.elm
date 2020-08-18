@@ -24,4 +24,6 @@ type Msg
     | FocusLogs String
     | FollowStep Int
     | FollowSteps Bool
+    | ExpandAllSteps
+    | CollapseAllSteps
     | FocusOn String

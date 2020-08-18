@@ -85,6 +85,18 @@ update model msg getBuildStepLogs focusResult =
             , Cmd.none
             )
 
+        CollapseAllSteps ->
+            -- ( { model | steps = collapseAllSteps model.steps }
+            ( model
+            , Cmd.none
+            )
+
+        ExpandAllSteps ->
+            -- ( { model | steps = expandAllSteps model.steps }
+            ( model
+            , Cmd.none
+            )
+
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt focusResult )
 
