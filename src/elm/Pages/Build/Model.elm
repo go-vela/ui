@@ -36,8 +36,8 @@ type alias PartialModel a =
         , steps : WebData Steps
         , logs : Logs
         , shift : Bool
-        , follow : Int
-        , expand : Bool
+        , followingStep : Int
+        , autoExpandSteps : Bool
     }
 
 

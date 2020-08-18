@@ -67,12 +67,12 @@ import Vela
 {-| viewBuild : renders entire build based on current application time
 -}
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
-viewBuild { time, build, steps, logs, follow, expand, shift } org repo =
+viewBuild { time, build, steps, logs, followingStep, autoExpandSteps, shift } org repo =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview time org repo (Just expand) bld, Just <| String.fromInt bld.number )
+                    ( viewPreview time org repo (Just autoExpandSteps) bld, Just <| String.fromInt bld.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
@@ -83,7 +83,7 @@ viewBuild { time, build, steps, logs, follow, expand, shift } org repo =
         buildSteps =
             case steps of
                 RemoteData.Success steps_ ->
-                    viewSteps time org repo buildNumber steps_ logs follow shift
+                    viewSteps time org repo buildNumber steps_ logs followingStep shift
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]

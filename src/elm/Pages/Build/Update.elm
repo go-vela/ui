@@ -68,7 +68,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             )
 
         FollowStep step ->
-            ( { model | follow = step }
+            ( { model | followingStep = step }
             , Cmd.none
             )
 
@@ -85,7 +85,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
             in
-            ( { model | expand = not expanding, steps = steps }
+            ( { model | autoExpandSteps = not expanding, steps = steps }
             , action
             )
 

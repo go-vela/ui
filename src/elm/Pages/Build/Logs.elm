@@ -492,7 +492,7 @@ focusLogs model steps org repo buildNumber focusFragment getLogs =
 
 
 mergeSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
-mergeSteps logFocus isRefresh autoExpand currentSteps incomingSteps =
+mergeSteps logFocus refresh autoExpand currentSteps incomingSteps =
     let
         updatedSteps =
             case currentSteps of
@@ -516,7 +516,7 @@ mergeSteps logFocus isRefresh autoExpand currentSteps incomingSteps =
                 _ ->
                     incomingSteps
     in
-    if isRefresh then
+    if refresh then
         updatedSteps
 
     else
