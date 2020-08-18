@@ -302,7 +302,6 @@ type Msg
     | RefreshHooks Org Repo
     | RefreshSecrets Engine Type Org Repo
     | SetTheme Theme
-    | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
@@ -886,31 +885,6 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
             )
 
-        ClickStep org repo buildNumber stepNumber _ ->
-            let
-                ( steps, fetchStepLogs ) =
-                    clickStep model.steps stepNumber
-
-                action =
-                    if fetchStepLogs then
-                        getBuildStepLogs model org repo buildNumber stepNumber Nothing
-
-                    else
-                        Cmd.none
-
-                stepOpened =
-                    viewingStep steps stepNumber
-            in
-            ( { model | steps = steps }
-            , Cmd.batch <|
-                [ action
-                , if stepOpened then
-                    Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
-
-                  else
-                    Cmd.none
-                ]
-            )
 
         SetTheme theme ->
             if theme == model.theme then
