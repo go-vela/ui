@@ -817,6 +817,11 @@ nav {
   }
 }
 
+.log-table tr:hover,
+.log-table tr:focus {
+  background-color: var(--color-bg);
+}
+
 .log-table .line-number {
   position: relative;
   font-family: var(--font-code);
@@ -833,12 +838,9 @@ nav {
 
   width: 6ch;
 
-  &:hover {
-    background-color: var(--color-bg);
-  }
-
+  &:hover,
   &:focus {
-    background-color: inherit;
+    text-decoration: underline;
   }
 }
 
