@@ -829,9 +829,12 @@ nav {
 
   width: 6ch;
 
-  &:hover,
-  &:focus {
+  &:hover {
     background-color: var(--color-bg);
+  }
+
+  &:focus {
+    background-color: inherit;
   }
 }
 
