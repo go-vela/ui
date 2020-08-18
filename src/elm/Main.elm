@@ -302,6 +302,7 @@ type Msg
     | RefreshHooks Org Repo
     | RefreshSecrets Engine Type Org Repo
     | SetTheme Theme
+    | ClickStep Org Repo BuildNumber StepNumber String
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
