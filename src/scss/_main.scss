@@ -798,6 +798,10 @@ nav {
   margin: 0 0.5em;
 }
 
+.logs code > div {
+  white-space: pre-wrap;
+}
+
 .line .wrapper {
   display: flex;
   flex: 1;
