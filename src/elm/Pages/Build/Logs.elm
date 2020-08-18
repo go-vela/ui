@@ -22,7 +22,6 @@ module Pages.Build.Logs exposing
     , stepBottomTrackerFocusId
     , stepToFocusId
     , stepTopTrackerFocusId
-    , viewingStep
     )
 
 import Ansi.Log
@@ -185,34 +184,34 @@ mergeSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
 mergeSteps logFocus refresh autoExpand currentSteps incomingSteps =
     let
         updatedSteps =
-            RemoteData.unwrap incomingSteps
-                (\steps ->
-                    List.map
-                        (\incomingStep ->
-                            let
-                                ( viewing, focus ) =
-                                    getStepInfo steps incomingStep.number
-
-                                shouldView =
-                                    (autoExpand && incomingStep.status /= Vela.Pending) || viewing
-                            in
-                            Util.overwriteById
-                                { incomingStep
-                                    | viewing = shouldView
-                                    , logFocus = focus
-                                }
-                                steps
-                        )
+            currentSteps
+                |> RemoteData.unwrap incomingSteps
+                    (\steps ->
                         incomingSteps
-                        |> List.filterMap identity
-                )
-                currentSteps
+                            |> List.map
+                                (\incomingStep ->
+                                    let
+                                        ( viewing, focus ) =
+                                            getStepInfo steps incomingStep.number
+
+                                        shouldView =
+                                            (autoExpand && incomingStep.status /= Vela.Pending) || viewing
+                                    in
+                                    Util.overwriteById
+                                        { incomingStep
+                                            | viewing = shouldView
+                                            , logFocus = focus
+                                        }
+                                        steps
+                                )
+                            |> List.filterMap identity
+                    )
     in
-    if refresh then
-        updatedSteps
+    if not refresh then
+        focusStep logFocus updatedSteps
 
     else
-        focusStep logFocus updatedSteps
+        updatedSteps
 
 
 {-| getCurrentStep : takes steps and returns the newest running or pending step
@@ -235,22 +234,11 @@ getCurrentStep steps =
 -}
 getStepInfo : Steps -> Int -> ( Bool, ( Maybe Int, Maybe Int ) )
 getStepInfo steps stepNumber =
-    Maybe.withDefault ( False, ( Nothing, Nothing ) ) <|
-        List.head <|
-            List.map (\step -> ( step.viewing, step.logFocus )) <|
-                List.filter (\step -> step.number == stepNumber) <|
-                    steps
-
-
-{-| viewingStep : takes steps and step number and returns the step viewing state
--}
-viewingStep : WebData Steps -> StepNumber -> Bool
-viewingStep steps stepNumber =
-    Maybe.withDefault False <|
-        List.head <|
-            List.map (\step -> step.viewing) <|
-                List.filter (\step -> String.fromInt step.number == stepNumber) <|
-                    RemoteData.withDefault [] steps
+    steps
+        |> List.filter (\step -> step.number == stepNumber)
+        |> List.map (\step -> ( step.viewing, step.logFocus ))
+        |> List.head
+        |> Maybe.withDefault ( False, ( Nothing, Nothing ) )
 
 
 {-| focusLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.

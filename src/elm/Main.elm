@@ -53,7 +53,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -68,11 +68,12 @@ import Pages.AddRepos
 import Pages.Build.Logs
     exposing
         ( focusFragmentToFocusId
+        , focusLogs
         , getCurrentStep
         , stepBottomTrackerFocusId
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (expandFollowedStep)
+import Pages.Build.Update exposing (expandActiveStep)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -746,7 +747,9 @@ update msg model =
 
                         ( steps, focusId ) =
                             if following && refresh && onFollowedStep then
-                                ( expandFollowedStep model.steps stepNumber
+                                ( model.steps
+                                    |> RemoteData.unwrap model.steps
+                                        (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
                                 , stepBottomTrackerFocusId <| String.fromInt model.followingStep
                                 )
 
@@ -2485,8 +2488,8 @@ updateStep model incomingStep =
     if stepExists then
         { model
             | steps =
-                RemoteData.succeed <|
-                    updateIf (\step -> incomingStep.number == step.number)
+                steps
+                    |> updateIf (\step -> incomingStep.number == step.number)
                         (\step ->
                             let
                                 shouldView =
@@ -2498,7 +2501,7 @@ updateStep model incomingStep =
                                 | viewing = step.viewing || shouldView
                             }
                         )
-                        steps
+                    |> RemoteData.succeed
         }
 
     else

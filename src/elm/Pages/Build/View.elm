@@ -170,8 +170,8 @@ viewPreview now org repo expanding build =
         logActions =
             case expanding of
                 Just e ->
-                    [ collapseAllButton
-                    , expandAllButton org repo buildNumber
+                    [ collapseAllStepsButton
+                    , expandAllStepsButton org repo buildNumber
                     , autoExpandStepsButton org repo buildNumber e
                     ]
 
@@ -200,7 +200,7 @@ viewPreview now org repo expanding build =
                         , text "by"
                         , div [ class "sender" ] sender
                         ]
-                    , div [ class "flex" ] logActions
+                    , div [ class "flex", class "buttons" ] logActions
                     ]
                 , viewError build
                 ]
@@ -344,56 +344,53 @@ viewLines stepNumber logFocus log following shiftDown =
             List.length lines > 25
 
         topActions =
-            Just <|
-                tr
-                    [ class "line" ]
-                    [ div [ class "wrapper", class "justify-flex-end" ]
-                        [ button
-                            [ class "button"
-                            , class "-icon"
-                            , class "-log-action"
-                            , attribute "data-tooltip" "download logs"
-                            , class "tooltip-left"
-                            ]
-                            [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                        , if long then
-                            button
-                                [ attribute "data-tooltip" "jump to bottom"
-                                , class "tooltip-left"
-                                , class "button"
-                                , class "-icon"
-                                , class "-log-action"
-                                , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
-                                ]
-                                [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-                          else
-                            text ""
-                        , stepFollowButton stepNumber following
+            tr
+                [ class "line" ]
+                [ div [ class "wrapper", class "buttons", class "justify-flex-end" ]
+                    [ button
+                        [ class "button"
+                        , class "-icon"
+                        , attribute "data-tooltip" "download logs"
+                        , class "tooltip-left"
                         ]
+                        [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                    , if long then
+                        button
+                            [ attribute "data-tooltip" "jump to bottom"
+                            , class "tooltip-left"
+                            , class "button"
+                            , class "-icon"
+                            , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
+                            ]
+                            [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+                      else
+                        text ""
+                    , stepFollowButton stepNumber following
                     ]
+                ]
+                |> Just
 
         bottomActions =
-            Just <|
-                tr
-                    [ class "line" ]
-                    [ div [ class "wrapper", class "justify-flex-end" ] <|
-                        if long then
-                            [ button
-                                [ attribute "data-tooltip" "jump to top"
-                                , class "tooltip-left"
-                                , class "button"
-                                , class "-icon"
-                                , class "-log-action"
-                                , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
-                                ]
-                                [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                            , stepFollowButton stepNumber following
+            tr
+                [ class "line" ]
+                [ div [ class "wrapper", class "buttons", class "justify-flex-end" ] <|
+                    if long then
+                        [ button
+                            [ attribute "data-tooltip" "jump to top"
+                            , class "tooltip-left"
+                            , class "button"
+                            , class "-icon"
+                            , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
                             ]
+                            [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                        , stepFollowButton stepNumber following
+                        ]
 
-                        else
-                            [ text "" ]
-                    ]
+                    else
+                        [ text "" ]
+                ]
+                |> Just
 
         logs =
             topActions
@@ -445,7 +442,6 @@ stepFollowButton stepNumber following =
         , attribute "data-tooltip" tooltip
         , class "button"
         , class "-icon"
-        , class "-log-action"
         , onClick <| FollowStep toFollow
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -546,33 +542,34 @@ autoExpandStepsButton org repo buildNumber expanding =
         , attribute "data-tooltip" tooltip
         , class "button"
         , class "-icon"
-        , class "-log-action"
         , onClick <| FollowSteps org repo buildNumber expanding
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
-collapseAllButton : Html Msg
-collapseAllButton =
+{-| collapseAllStepsButton : renders a button for collapsing all steps
+-}
+collapseAllStepsButton : Html Msg
+collapseAllStepsButton =
     Html.button
         [ class "tooltip-left"
         , attribute "data-tooltip" "collapse all steps"
         , class "button"
         , class "-icon"
-        , class "-log-action"
         , onClick CollapseAllSteps
         ]
         [ FeatherIcons.minusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
-expandAllButton : Org -> Repo -> BuildNumber -> Html Msg
-expandAllButton org repo buildNumber =
+{-| expandAllStepsButton : renders a button for expanding all steps
+-}
+expandAllStepsButton : Org -> Repo -> BuildNumber -> Html Msg
+expandAllStepsButton org repo buildNumber =
     Html.button
         [ class "tooltip-left"
         , attribute "data-tooltip" "expand all steps"
         , class "button"
         , class "-icon"
-        , class "-log-action"
         , onClick <| ExpandAllSteps org repo buildNumber
         ]
         [ FeatherIcons.plusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]

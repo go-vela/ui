@@ -4,16 +4,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandFollowedStep, update)
+module Pages.Build.Update exposing (expandActiveStep, update)
 
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import List.Extra
-import Pages.Build.Logs
-    exposing
-        ( logFocusFragment
-        , viewingStep
-        )
+import Pages.Build.Logs exposing (logFocusFragment)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -49,7 +45,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         Cmd.none
 
                 stepOpened =
-                    viewingStep steps stepNumber
+                    isViewingStep steps stepNumber
             in
             ( { model | steps = steps }
             , Cmd.batch <|
@@ -75,9 +71,9 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
         FollowSteps org repo buildNumber expanding ->
             let
                 steps =
-                    RemoteData.unwrap model.steps
-                        (\steps_ -> steps_ |> expandActiveSteps |> RemoteData.succeed)
-                        model.steps
+                    model.steps
+                        |> RemoteData.unwrap model.steps
+                            (\steps_ -> steps_ |> expandActiveSteps |> RemoteData.succeed)
 
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
@@ -89,9 +85,9 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
         CollapseAllSteps ->
             let
                 steps =
-                    RemoteData.unwrap model.steps
-                        (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
-                        model.steps
+                    model.steps
+                        |> RemoteData.unwrap model.steps
+                            (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
             in
             ( { model | steps = steps }
             , Cmd.none
@@ -123,7 +119,7 @@ clickStep steps stepNumber =
         ( stepsOut, action ) =
             RemoteData.unwrap ( steps, False )
                 (\steps_ ->
-                    ( RemoteData.succeed <| toggleStepView steps_ stepNumber
+                    ( toggleStepView stepNumber steps_ |> RemoteData.succeed
                     , True
                     )
                 )
@@ -134,14 +130,25 @@ clickStep steps stepNumber =
     )
 
 
+{-| isViewingStep : takes steps and step number and returns the step viewing state
+-}
+isViewingStep : WebData Steps -> StepNumber -> Bool
+isViewingStep steps stepNumber =
+    steps
+        |> RemoteData.withDefault []
+        |> List.filter (\step -> String.fromInt step.number == stepNumber)
+        |> List.map (\step -> step.viewing)
+        |> List.head
+        |> Maybe.withDefault False
+
+
 {-| toggleStepView : takes steps and step number and toggles that steps viewing state
 -}
-toggleStepView : Steps -> String -> Steps
-toggleStepView steps stepNumber =
+toggleStepView : String -> Steps -> Steps
+toggleStepView stepNumber =
     List.Extra.updateIf
         (\step -> String.fromInt step.number == stepNumber)
         (\step -> { step | viewing = not step.viewing })
-        steps
 
 
 {-| setAllStepViews : takes steps and value and sets all steps viewing state
@@ -158,15 +165,6 @@ expandActiveSteps steps =
     List.Extra.updateIf
         (\step -> step.status /= Vela.Pending)
         (\step -> { step | viewing = True })
-        steps
-
-
-{-| expandFollowedStep : takes steps and step number and sets that steps viewing state if the step is running
--}
-expandFollowedStep : WebData Steps -> String -> WebData Steps
-expandFollowedStep steps stepNumber =
-    RemoteData.unwrap steps
-        (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
         steps
 
 
