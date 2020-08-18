@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (update)
+module Pages.Build.Update exposing (update, viewRunningStep)
 
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation

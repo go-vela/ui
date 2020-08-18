@@ -178,13 +178,8 @@ viewPreview now org repo expanding build =
                         , div [ class "duration" ] duration
                         ]
                     ]
-                , div [ class "row" ]
-                    [ strong
-                        [ class "message" ]
-                        message
-                    , div []
-                        logActions
-                    ]
+                , div [ class "row", class "-right" ]
+                    logActions
                 , viewError build
                 ]
             ]

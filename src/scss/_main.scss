@@ -415,6 +415,9 @@ nav {
   &.-left {
     justify-content: flex-start;
   }
+  &.-right {
+    justify-content: flex-end;
+  }
 }
 
 .build .error {
@@ -1329,7 +1332,6 @@ nav {
 }
 
 .justify-flex-end {
-  margin-left: 12px;
   justify-content: flex-end;
 }
 
