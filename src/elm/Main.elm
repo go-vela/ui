@@ -885,7 +885,6 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
             )
 
-
         SetTheme theme ->
             if theme == model.theme then
                 ( model, Cmd.none )
