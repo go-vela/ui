@@ -171,7 +171,7 @@ viewRunningStep steps stepNumber value =
             steps
 
 
-{-| openRunningStep : takes steps and sets steps viewing state if the step is running
+{-| viewRunningSteps : takes steps and sets steps viewing state if the step is not pending
 -}
 viewRunningSteps : Steps -> Steps
 viewRunningSteps steps =
