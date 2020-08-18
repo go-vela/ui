@@ -885,15 +885,6 @@ update msg model =
             , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
             )
 
-<<<<<<< HEAD
-        ClickHook org repo buildNumber ->
-            let
-                ( hookBuilds, action ) =
-                    clickHook model org repo buildNumber
-            in
-            ( { model | hookBuilds = hookBuilds }
-            , action
-=======
         ClickStep org repo buildNumber stepNumber _ ->
             let
                 ( steps, fetchStepLogs ) =
@@ -918,7 +909,6 @@ update msg model =
                   else
                     Cmd.none
                 ]
->>>>>>> master
             )
 
         SetTheme theme ->
