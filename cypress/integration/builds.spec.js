@@ -49,12 +49,12 @@ context('Builds', () => {
     });
 
     it('builds should display commit message', () => {
-      cy.get('@builds').find('.message').should('be.visible');
+      cy.get('@builds').find('.commit-msg').should('be.visible');
     });
 
     it('longer build commit message should be truncated with ellipsis', () => {
       cy.get('@builds')
-        .find('.message')
+        .find('.commit-msg')
         .should('have.css', 'text-overflow', 'ellipsis');
     });
 
@@ -85,11 +85,11 @@ context('Builds', () => {
     });
 
     it('builds should display commit message', () => {
-      cy.get('@builds').find('.message').should('be.visible');
+      cy.get('@builds').find('.commit-msg').should('be.visible');
     });
     it('longer build commit message should be truncated with ellipsis', () => {
       cy.get('@builds')
-        .find('.message')
+        .find('.commit-msg')
         .should('have.css', 'text-overflow', 'ellipsis');
     });
 
@@ -131,16 +131,16 @@ context('Builds', () => {
     });
 
     it('build should display commit message', () => {
-      cy.get('@firstBuild').find('.message').should('be.visible');
-      cy.get('@lastBuild').find('.message').should('be.visible');
+      cy.get('@firstBuild').find('.commit-msg').should('be.visible');
+      cy.get('@lastBuild').find('.commit-msg').should('be.visible');
     });
 
     it('longer build commit message should be truncated with ellipsis', () => {
       cy.get('@firstBuild')
-        .find('.message')
+        .find('.commit-msg')
         .should('have.css', 'text-overflow', 'ellipsis');
       cy.get('@lastBuild')
-        .find('.message')
+        .find('.commit-msg')
         .should('have.css', 'text-overflow', 'ellipsis');
     });
 

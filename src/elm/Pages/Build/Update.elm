@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (setStepView, update, viewRunningStep, viewRunningSteps)
+module Pages.Build.Update exposing (update)
 
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
@@ -16,33 +16,17 @@ import Pages.Build.Logs
         )
 import Pages.Build.Model
     exposing
-        ( Msg(..)
+        ( GetLogs
+        , Msg(..)
+        , PartialModel
         )
-import Pages.Build.View exposing (PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Task
 import Vela
     exposing
-        ( BuildNumber
-        , FocusFragment
-        , Org
-        , Repo
-        , SecretType(..)
-        , StepNumber
+        ( StepNumber
         , Steps
         )
-
-
-type alias GetStepLogs a msg =
-    PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd msg
-
-
-type alias GetStepsLogs a msg =
-    PartialModel a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
-
-
-type alias GetLogs a msg =
-    ( GetStepLogs a msg, GetStepsLogs a msg )
 
 
 

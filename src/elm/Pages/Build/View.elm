@@ -5,15 +5,13 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build.View exposing
-    ( PartialModel
-    , statusToClass
+    ( statusToClass
     , statusToString
     , viewBuild
     , viewBuildHistory
     , viewPreview
     )
 
-import Browser.Navigation as Navigation
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Html
@@ -42,7 +40,7 @@ import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (stepToFocusId)
-import Pages.Build.Model exposing (Msg(..))
+import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
@@ -60,25 +58,6 @@ import Vela
         , Step
         , Steps
         )
-
-
-
--- TYPES
-
-
-{-| PartialModel : an abbreviated version of the main model
--}
-type alias PartialModel a =
-    { a
-        | navigationKey : Navigation.Key
-        , time : Posix
-        , build : WebData Build
-        , steps : WebData Steps
-        , logs : Logs
-        , follow : Int
-        , expand : Bool
-        , shift : Bool
-    }
 
 
 
@@ -148,7 +127,7 @@ viewPreview now org repo expanding build =
             [ text build.sender ]
 
         message =
-            [ text build.message ]
+            [ text <| "- " ++ build.message ]
 
         id =
             [ a
@@ -181,8 +160,9 @@ viewPreview now org repo expanding build =
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
-                [ div [ class "row" ]
+                [ div [ class "row -left" ]
                     [ div [ class "id" ] id
+                    , div [ class "commit-msg" ] [ strong [] message ]
                     ]
                 , div [ class "row" ]
                     [ div [ class "git-info" ]
