@@ -465,7 +465,7 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
         [ div
             [ class "wrapper"
             , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
-            , logFocusStyles logFocus lineNumber
+            , class <| logFocusStyles logFocus lineNumber
             ]
             [ td []
                 [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]

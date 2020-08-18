@@ -28,14 +28,6 @@ module Pages.Build.Logs exposing
 import Ansi.Log
 import Array
 import Base64 exposing (decode)
-import Html
-import Html.Attributes
-    exposing
-        ( attribute
-        , class
-        , id
-        )
-import Html.Events exposing (onClick)
 import List.Extra exposing (updateIf)
 import Pages exposing (Page)
 import Pages.Build.Model exposing (Msg(..))
@@ -187,54 +179,34 @@ focusStep focusFragment steps =
             steps
 
 
-{-| focusLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
--}
-focusLogs : a -> Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Page, Steps, Cmd msg )
-focusLogs model steps org repo buildNumber focusFragment getLogs =
-    let
-        ( stepsOut, action ) =
-            let
-                focusedSteps =
-                    updateStepLogFocus steps focusFragment
-            in
-            ( focusedSteps
-            , Cmd.batch
-                [ getLogs model org repo buildNumber focusedSteps focusFragment False
-                ]
-            )
-    in
-    ( Pages.Build org repo buildNumber focusFragment
-    , stepsOut
-    , action
-    )
-
-
 {-| mergeSteps : takes takes current steps and incoming step information and merges them, updating old logs and retaining previous state.
 -}
 mergeSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
 mergeSteps logFocus refresh autoExpand currentSteps incomingSteps =
     let
         updatedSteps =
-            case currentSteps of
-                RemoteData.Success steps ->
+            RemoteData.unwrap incomingSteps
+                (\steps ->
                     List.map
                         (\incomingStep ->
                             let
-                                ( v, lF ) =
+                                ( viewing, focus ) =
                                     getStepInfo steps incomingStep.number
+
+                                shouldView =
+                                    (autoExpand && incomingStep.status /= Vela.Pending) || viewing
                             in
                             Util.overwriteById
                                 { incomingStep
-                                    | viewing = v || (autoExpand && incomingStep.status /= Vela.Pending)
-                                    , logFocus = lF
+                                    | viewing = shouldView
+                                    , logFocus = focus
                                 }
                                 steps
                         )
                         incomingSteps
                         |> List.filterMap identity
-
-                _ ->
-                    incomingSteps
+                )
+                currentSteps
     in
     if refresh then
         updatedSteps
@@ -279,6 +251,28 @@ viewingStep steps stepNumber =
             List.map (\step -> step.viewing) <|
                 List.filter (\step -> String.fromInt step.number == stepNumber) <|
                     RemoteData.withDefault [] steps
+
+
+{-| focusLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+-}
+focusLogs : a -> Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Page, Steps, Cmd msg )
+focusLogs model steps org repo buildNumber focusFragment getLogs =
+    let
+        ( stepsOut, action ) =
+            let
+                focusedSteps =
+                    updateStepLogFocus steps focusFragment
+            in
+            ( focusedSteps
+            , Cmd.batch
+                [ getLogs model org repo buildNumber focusedSteps focusFragment False
+                ]
+            )
+    in
+    ( Pages.Build org repo buildNumber focusFragment
+    , stepsOut
+    , action
+    )
 
 
 {-| updateStepLogFocus : takes steps and line focus and sets a new log line focus
@@ -341,7 +335,7 @@ clearStepLogFocus step =
 
 {-| logFocusStyles : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
 -}
-logFocusStyles : LogFocus -> Int -> Html.Attribute msg
+logFocusStyles : LogFocus -> Int -> String
 logFocusStyles logFocus lineNumber =
     case logFocus of
         ( Just lineA, Just lineB ) ->
@@ -354,20 +348,20 @@ logFocusStyles logFocus lineNumber =
                         ( lineB, lineA )
             in
             if lineNumber >= a && lineNumber <= b then
-                class "-focus"
+                "-focus"
 
             else
-                class ""
+                ""
 
         ( Just lineA, Nothing ) ->
             if lineA == lineNumber then
-                class "-focus"
+                "-focus"
 
             else
-                class ""
+                ""
 
         _ ->
-            class ""
+            ""
 
 
 {-| logFocusExists : takes steps and returns if a line or range has already been focused
@@ -421,6 +415,20 @@ toString log =
             ""
 
 
+{-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+-}
+stepTopTrackerFocusId : StepNumber -> String
+stepTopTrackerFocusId stepNumber =
+    "step-" ++ stepNumber ++ "-line-tracker-top"
+
+
+{-| stepBottomTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+-}
+stepBottomTrackerFocusId : StepNumber -> String
+stepBottomTrackerFocusId stepNumber =
+    "step-" ++ stepNumber ++ "-line-tracker"
+
+
 
 -- ANSI
 
@@ -470,17 +478,3 @@ see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 decodeAnsi : Maybe (WebData Log) -> Array.Array Ansi.Log.Line
 decodeAnsi log =
     .lines <| Ansi.Log.update (decodeLog log) defaultLogModel
-
-
-{-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
--}
-stepTopTrackerFocusId : StepNumber -> String
-stepTopTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker-top"
-
-
-{-| stepBottomTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
--}
-stepBottomTrackerFocusId : StepNumber -> String
-stepBottomTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker"

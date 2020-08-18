@@ -68,12 +68,11 @@ import Pages.AddRepos
 import Pages.Build.Logs
     exposing
         ( focusFragmentToFocusId
-        , focusLogs
         , getCurrentStep
         , stepBottomTrackerFocusId
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (viewRunningStep)
+import Pages.Build.Update exposing (expandFollowedStep)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -747,7 +746,7 @@ update msg model =
 
                         ( steps, focusId ) =
                             if following && refresh && onFollowedStep then
-                                ( viewRunningStep model.steps stepNumber True
+                                ( expandFollowedStep model.steps stepNumber
                                 , stepBottomTrackerFocusId <| String.fromInt model.followingStep
                                 )
 

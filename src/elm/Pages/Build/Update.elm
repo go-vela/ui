@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (update, viewRunningStep)
+module Pages.Build.Update exposing (expandFollowedStep, update)
 
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
@@ -76,7 +76,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             let
                 steps =
                     RemoteData.unwrap model.steps
-                        (\steps_ -> steps_ |> viewRunningSteps |> RemoteData.succeed)
+                        (\steps_ -> steps_ |> expandActiveSteps |> RemoteData.succeed)
                         model.steps
 
                 action =
@@ -90,7 +90,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             let
                 steps =
                     RemoteData.unwrap model.steps
-                        (\steps_ -> steps_ |> setStepsViews False |> RemoteData.succeed)
+                        (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
                         model.steps
             in
             ( { model | steps = steps }
@@ -101,7 +101,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             let
                 steps =
                     RemoteData.unwrap model.steps
-                        (\steps_ -> steps_ |> setStepsViews True |> RemoteData.succeed)
+                        (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
                         model.steps
 
                 action =
@@ -144,40 +144,37 @@ toggleStepView steps stepNumber =
         steps
 
 
-{-| setStepsViews : takes steps and value and sets all steps viewing state
+{-| setAllStepViews : takes steps and value and sets all steps viewing state
 -}
-setStepsViews : Bool -> Steps -> Steps
-setStepsViews value =
+setAllStepViews : Bool -> Steps -> Steps
+setAllStepViews value =
     List.map (\step -> { step | viewing = value })
 
 
-{-| viewRunningStep : takes steps and step number and sets that steps viewing state if the step is running
+{-| expandActiveSteps : takes steps and sets steps viewing state if the step is active
 -}
-viewRunningStep : WebData Steps -> String -> Bool -> WebData Steps
-viewRunningStep steps stepNumber value =
-    case steps of
-        RemoteData.Success s ->
-            RemoteData.succeed <|
-                List.Extra.updateIf
-                    (\step ->
-                        String.fromInt step.number
-                            == stepNumber
-                            && (step.status /= Vela.Pending)
-                    )
-                    (\step -> { step | viewing = value })
-                    s
-
-        _ ->
-            steps
-
-
-{-| viewRunningSteps : takes steps and sets steps viewing state if the step is not pending
--}
-viewRunningSteps : Steps -> Steps
-viewRunningSteps steps =
+expandActiveSteps : Steps -> Steps
+expandActiveSteps steps =
     List.Extra.updateIf
-        (\step ->
-            step.status /= Vela.Pending
-        )
+        (\step -> step.status /= Vela.Pending)
+        (\step -> { step | viewing = True })
+        steps
+
+
+{-| expandFollowedStep : takes steps and step number and sets that steps viewing state if the step is running
+-}
+expandFollowedStep : WebData Steps -> String -> WebData Steps
+expandFollowedStep steps stepNumber =
+    RemoteData.unwrap steps
+        (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
+        steps
+
+
+{-| expandActiveStep : takes steps and sets step viewing state if the step is active
+-}
+expandActiveStep : StepNumber -> Steps -> Steps
+expandActiveStep stepNumber steps =
+    List.Extra.updateIf
+        (\step -> (String.fromInt step.number == stepNumber) && (step.status /= Vela.Pending))
         (\step -> { step | viewing = True })
         steps
