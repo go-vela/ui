@@ -399,8 +399,8 @@ viewLines stepNumber logFocus log following shiftDown =
                 |> List.filterMap identity
 
         topTracker =
-            tr [ class "line", class "tracker" ]
-                [ button
+            tr [ class "line", class "opacity-0" ]
+                [ button -- auto page focus requires button role
                     [ id <|
                         stepTopTrackerFocusId stepNumber
                     , Html.Attributes.autofocus True
@@ -409,8 +409,8 @@ viewLines stepNumber logFocus log following shiftDown =
                 ]
 
         bottomTracker =
-            tr [ class "line", class "tracker" ]
-                [ button
+            tr [ class "line", class "opacity-0" ]
+                [ button -- auto page focus requires button role
                     [ id <|
                         stepBottomTrackerFocusId stepNumber
                     , Html.Attributes.autofocus True
