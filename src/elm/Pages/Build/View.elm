@@ -143,7 +143,7 @@ viewPreview now org repo build =
             [ text build.sender ]
 
         message =
-            [ text build.message ]
+            [ text <| "- " ++ build.message ]
 
         id =
             [ a
@@ -165,8 +165,9 @@ viewPreview now org repo build =
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
-                [ div [ class "row" ]
+                [ div [ class "row -left" ]
                     [ div [ class "id" ] id
+                    , div [ class "commit-msg" ] [ strong [] message ]
                     ]
                 , div [ class "row" ]
                     [ div [ class "git-info" ]
@@ -181,11 +182,6 @@ viewPreview now org repo build =
                         , span [ class "delimiter" ] [ text "/" ]
                         , div [ class "duration" ] duration
                         ]
-                    ]
-                , div [ class "row" ]
-                    [ strong
-                        [ class "message" ]
-                        message
                     ]
                 , viewError build
                 ]

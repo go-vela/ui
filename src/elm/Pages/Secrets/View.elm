@@ -141,9 +141,14 @@ secretsToRows type_ =
 
 {-| tableHeaders : returns table headers for secrets table
 -}
-tableHeaders : List String
+tableHeaders : Table.Columns
 tableHeaders =
-    [ "name", "type", "events", "images", "allow command" ]
+    [ ( Nothing, "name" )
+    , ( Nothing, "type" )
+    , ( Nothing, "events" )
+    , ( Nothing, "images" )
+    , ( Nothing, "allow command" )
+    ]
 
 
 {-| renderSecret : takes secret and secret type and renders a table row

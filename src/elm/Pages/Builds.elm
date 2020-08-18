@@ -52,9 +52,9 @@ view buildsModel now org repo maybeEvent =
                                 , code [] [ text ".vela.yml" ]
                                 , text " file that describes your build pipeline in the root of your repository."
                                 , br [] []
-                                , a [ href "https://go-vela.github.io/docs/usage/getting-started/write_pipeline/" ] [ text "Review the documentation" ]
+                                , a [ href "https://go-vela.github.io/docs/usage/getting-started/" ] [ text "Review the documentation" ]
                                 , text " for help or "
-                                , a [ href "https://go-vela.github.io/docs/usage/pipeline/examples/" ] [ text "check some of the pipeline examples" ]
+                                , a [ href "https://go-vela.github.io/docs/usage/samples/" ] [ text "check some of the pipeline examples" ]
                                 , text "."
                                 ]
                             , li []
