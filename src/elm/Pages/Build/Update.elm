@@ -75,12 +75,9 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
         FollowSteps org repo buildNumber expanding ->
             let
                 steps =
-                    case model.steps of
-                        RemoteData.Success steps_ ->
-                            steps_ |> viewRunningSteps |> RemoteData.succeed
-
-                        _ ->
-                            model.steps
+                    RemoteData.unwrap model.steps
+                        (\steps_ -> steps_ |> viewRunningSteps |> RemoteData.succeed)
+                        model.steps
 
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
@@ -92,12 +89,9 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
         CollapseAllSteps ->
             let
                 steps =
-                    case model.steps of
-                        RemoteData.Success steps_ ->
-                            steps_ |> setStepsViews False |> RemoteData.succeed
-
-                        _ ->
-                            model.steps
+                    RemoteData.unwrap model.steps
+                        (\steps_ -> steps_ |> setStepsViews False |> RemoteData.succeed)
+                        model.steps
             in
             ( { model | steps = steps }
             , Cmd.none
@@ -106,12 +100,9 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
         ExpandAllSteps org repo buildNumber ->
             let
                 steps =
-                    case model.steps of
-                        RemoteData.Success steps_ ->
-                            steps_ |> setStepsViews True |> RemoteData.succeed
-
-                        _ ->
-                            model.steps
+                    RemoteData.unwrap model.steps
+                        (\steps_ -> steps_ |> setStepsViews True |> RemoteData.succeed)
+                        model.steps
 
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
@@ -130,14 +121,13 @@ clickStep : WebData Steps -> StepNumber -> ( WebData Steps, Bool )
 clickStep steps stepNumber =
     let
         ( stepsOut, action ) =
-            case steps of
-                RemoteData.Success steps_ ->
+            RemoteData.unwrap ( steps, False )
+                (\steps_ ->
                     ( RemoteData.succeed <| toggleStepView steps_ stepNumber
                     , True
                     )
-
-                _ ->
-                    ( steps, False )
+                )
+                steps
     in
     ( stepsOut
     , action
@@ -151,16 +141,6 @@ toggleStepView steps stepNumber =
     List.Extra.updateIf
         (\step -> String.fromInt step.number == stepNumber)
         (\step -> { step | viewing = not step.viewing })
-        steps
-
-
-{-| setStepView : takes steps and step number and sets that steps viewing state
--}
-setStepView : Steps -> String -> Bool -> Steps
-setStepView steps stepNumber value =
-    List.Extra.updateIf
-        (\step -> String.fromInt step.number == stepNumber)
-        (\step -> { step | viewing = value })
         steps
 
 
