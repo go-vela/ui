@@ -181,16 +181,9 @@ viewPreview now org repo expanding build =
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
-                [ div [ class "row" ]
-                    [ div [ class "flex", class "flex-1" ]
-                        [ div [ class "id" ] id
-                        , div [ class "commit-msg" ] [ strong [] message ]
-                        ]
-                    , div [ class "time-info" ]
-                        [ div [ class "age" ] age
-                        , span [ class "delimiter" ] [ text "/" ]
-                        , div [ class "duration" ] duration
-                        ]
+                [ div [ class "row -left" ]
+                    [ div [ class "id" ] id
+                    , div [ class "commit-msg" ] [ strong [] message ]
                     ]
                 , div [ class "row" ]
                     [ div [ class "git-info" ]
@@ -200,9 +193,14 @@ viewPreview now org repo expanding build =
                         , text "by"
                         , div [ class "sender" ] sender
                         ]
-                    , div [ class "flex", class "buttons" ] logActions
+                    , div [ class "time-info" ]
+                        [ div [ class "age" ] age
+                        , span [ class "delimiter" ] [ text "/" ]
+                        , div [ class "duration" ] duration
+                        ]
                     ]
-                , viewError build
+                , div [ class "row", class "" ]
+                    [ viewError build, div [ class "buttons", class "log-actions" ] logActions ]
                 ]
             ]
     in
@@ -343,64 +341,16 @@ viewLines stepNumber logFocus log following shiftDown =
         long =
             List.length lines > 25
 
-        topActions =
-            tr
-                [ class "line" ]
-                [ div [ class "wrapper", class "buttons", class "justify-flex-end" ]
-                    [ button
-                        [ class "button"
-                        , class "-icon"
-                        , attribute "data-tooltip" "download logs"
-                        , class "tooltip-left"
-                        ]
-                        [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                    , if long then
-                        button
-                            [ attribute "data-tooltip" "jump to bottom"
-                            , class "tooltip-left"
-                            , class "button"
-                            , class "-icon"
-                            , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
-                            ]
-                            [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-                      else
-                        text ""
-                    , stepFollowButton stepNumber following
-                    ]
-                ]
-                |> Just
-
-        bottomActions =
-            tr
-                [ class "line" ]
-                [ div [ class "wrapper", class "buttons", class "justify-flex-end" ] <|
-                    if long then
-                        [ button
-                            [ attribute "data-tooltip" "jump to top"
-                            , class "tooltip-left"
-                            , class "button"
-                            , class "-icon"
-                            , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
-                            ]
-                            [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                        , stepFollowButton stepNumber following
-                        ]
-
-                    else
-                        [ text "" ]
-                ]
-                |> Just
-
         logs =
-            topActions
+            topLogActions stepNumber following long
                 :: lines
-                ++ [ bottomActions ]
+                ++ [ bottomLogActions stepNumber following long ]
                 |> List.filterMap identity
 
         topTracker =
             tr [ class "line", class "opacity-0" ]
-                [ button -- auto page focus requires button role
+                [ button
+                    -- auto page focus requires button role
                     [ id <|
                         stepTopTrackerFocusId stepNumber
                     , Html.Attributes.autofocus True
@@ -410,7 +360,8 @@ viewLines stepNumber logFocus log following shiftDown =
 
         bottomTracker =
             tr [ class "line", class "opacity-0" ]
-                [ button -- auto page focus requires button role
+                [ button
+                    -- auto page focus requires button role
                     [ id <|
                         stepBottomTrackerFocusId stepNumber
                     , Html.Attributes.autofocus True
@@ -419,32 +370,6 @@ viewLines stepNumber logFocus log following shiftDown =
                 ]
     in
     table [ class "log-table" ] <| topTracker :: logs ++ [ bottomTracker ]
-
-
-stepFollowButton : StepNumber -> Int -> Html Msg
-stepFollowButton stepNumber following =
-    let
-        stepNum =
-            Maybe.withDefault 0 <| String.toInt stepNumber
-
-        ( tooltip, icon, toFollow ) =
-            if following == 0 then
-                ( "start following step logs", FeatherIcons.playCircle, stepNum )
-
-            else if following == (Maybe.withDefault 0 <| String.toInt stepNumber) then
-                ( "stop following step logs", FeatherIcons.pauseCircle, 0 )
-
-            else
-                ( "start following step logs", FeatherIcons.playCircle, stepNum )
-    in
-    button
-        [ class "tooltip-left"
-        , attribute "data-tooltip" tooltip
-        , class "button"
-        , class "-icon"
-        , onClick <| FollowStep toFollow
-        ]
-        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -489,6 +414,91 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
         , attribute "aria-label" <| "focus step " ++ stepNumber
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
+
+
+{-| topLogActions : renders action buttons for the top of a step log
+-}
+topLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
+topLogActions stepNumber following long =
+    tr
+        [ class "line" ]
+        [ div [ class "wrapper", class "buttons", class "justify-flex-end" ]
+            [ button
+                [ class "button"
+                , class "-icon"
+                , attribute "data-tooltip" "download logs"
+                , class "tooltip-left"
+                ]
+                [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+            , if long then
+                button
+                    [ attribute "data-tooltip" "jump to bottom"
+                    , class "tooltip-left"
+                    , class "button"
+                    , class "-icon"
+                    , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
+                    ]
+                    [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+              else
+                text ""
+            , stepFollowButton stepNumber following
+            ]
+        ]
+        |> Just
+
+
+{-| bottomLogActions : renders action buttons for the bottom of a step log
+-}
+bottomLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
+bottomLogActions stepNumber following long =
+    tr
+        [ class "line" ]
+        [ div [ class "wrapper", class "buttons", class "justify-flex-end" ] <|
+            if long then
+                [ button
+                    [ attribute "data-tooltip" "jump to top"
+                    , class "tooltip-left"
+                    , class "button"
+                    , class "-icon"
+                    , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
+                    ]
+                    [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                , stepFollowButton stepNumber following
+                ]
+
+            else
+                [ text "" ]
+        ]
+        |> Just
+
+
+{-| stepFollowButton : renders button for following step logs
+-}
+stepFollowButton : StepNumber -> Int -> Html Msg
+stepFollowButton stepNumber following =
+    let
+        stepNum =
+            Maybe.withDefault 0 <| String.toInt stepNumber
+
+        ( tooltip, icon, toFollow ) =
+            if following == 0 then
+                ( "start following step logs", FeatherIcons.playCircle, stepNum )
+
+            else if following == (Maybe.withDefault 0 <| String.toInt stepNumber) then
+                ( "stop following step logs", FeatherIcons.pauseCircle, 0 )
+
+            else
+                ( "start following step logs", FeatherIcons.playCircle, stepNum )
+    in
+    button
+        [ class "tooltip-left"
+        , attribute "data-tooltip" tooltip
+        , class "button"
+        , class "-icon"
+        , onClick <| FollowStep toFollow
+        ]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| stepError : checks for build error and renders message
@@ -588,22 +598,20 @@ viewError : Build -> Html msg
 viewError build =
     case build.status of
         Vela.Error ->
-            div [ class "row" ]
-                [ div [ class "error", Util.testAttribute "build-error" ]
-                    [ span [ class "label" ] [ text "error:" ]
-                    , span [ class "message" ]
-                        [ text <|
-                            if String.isEmpty build.error then
-                                "no error msg"
+            div [ class "error", Util.testAttribute "build-error" ]
+                [ span [ class "label" ] [ text "error:" ]
+                , span [ class "message" ]
+                    [ text <|
+                        if String.isEmpty build.error then
+                            "no error msg"
 
-                            else
-                                build.error
-                        ]
+                        else
+                            build.error
                     ]
                 ]
 
         _ ->
-            text ""
+            div [] []
 
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
