@@ -6,38 +6,29 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Logs exposing
     ( SetLogFocus
+    , decodeAnsi
     , focusFragmentToFocusId
     , focusLogs
     , focusStep
     , getCurrentStep
+    , getStepLog
     , logEmpty
     , logFocusExists
     , logFocusFragment
+    , logFocusStyles
+    , logRangeId
     , mergeSteps
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
-    , stepFollowButton
     , stepToFocusId
-    , view
+    , stepTopTrackerFocusId
     , viewingStep
     )
 
 import Ansi.Log
 import Array
 import Base64 exposing (decode)
-import FeatherIcons
 import Html
-    exposing
-        ( Html
-        , button
-        , code
-        , div
-        , span
-        , table
-        , td
-        , text
-        , tr
-        )
 import Html.Attributes
     exposing
         ( attribute
@@ -77,278 +68,6 @@ type alias SetLogFocus msg =
 
 type alias GetLogsFromSteps a msg =
     a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
-
-
-
--- VIEW
-
-
-{-| view : takes step and logs and renders step logs or step error
--}
-view : Step -> Logs -> Int -> Bool -> Html Msg
-view step logs follow shiftDown =
-    case step.status of
-        Vela.Error ->
-            stepError step
-
-        Vela.Killed ->
-            stepSkipped step
-
-        _ ->
-            viewLogs (String.fromInt step.number) step.logFocus (getStepLog step logs) follow shiftDown
-
-
-{-| viewLogs : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
--}
-viewLogs : StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLogs stepNumber logFocus log following shiftDown =
-    let
-        content =
-            case Maybe.withDefault RemoteData.NotAsked log of
-                RemoteData.Success _ ->
-                    if not <| logEmpty log then
-                        viewLines stepNumber logFocus log following shiftDown
-
-                    else
-                        code []
-                            [ span [ class "no-logs" ]
-                                [ text "No logs for this step."
-                                , stepFollowButton stepNumber following
-                                ]
-                            ]
-
-                RemoteData.Failure _ ->
-                    code [ Util.testAttribute "logs-error" ] [ text "error" ]
-
-                _ ->
-                    div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
-    in
-    div [ class "logs", Util.testAttribute <| "logs-" ++ stepNumber ] [ content ]
-
-
-{-| viewLines : takes step number, line focus information and click action and renders logs
--}
-viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLines stepNumber logFocus log following shiftDown =
-    let
-        lines =
-            log
-                |> decodeAnsi
-                |> Array.indexedMap
-                    (\idx line ->
-                        Just <|
-                            viewLine stepNumber
-                                (idx + 1)
-                                line
-                                stepNumber
-                                logFocus
-                                shiftDown
-                    )
-                |> Array.toList
-
-        long =
-            List.length lines > 25
-
-        topActions =
-            Just <|
-                tr
-                    [ class "line" ]
-                    [ div [ class "wrapper", class "justify-flex-end" ]
-                        [ button
-                            [ class "button"
-                            , class "-icon"
-                            , class "-log-action"
-                            , attribute "data-tooltip" "download logs"
-                            , class "tooltip-left"
-                            ]
-                            [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                        , if long then
-                            button
-                                [ attribute "data-tooltip" "jump to bottom"
-                                , class "tooltip-left"
-                                , class "button"
-                                , class "-icon"
-                                , class "-log-action"
-                                , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
-                                ]
-                                [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-                          else
-                            text ""
-                        , stepFollowButton stepNumber following
-                        ]
-                    ]
-
-        bottomActions =
-            Just <|
-                tr
-                    [ class "line" ]
-                    [ div [ class "wrapper", class "justify-flex-end" ] <|
-                        if long then
-                            [ button
-                                [ attribute "data-tooltip" "jump to top"
-                                , class "tooltip-left"
-                                , class "button"
-                                , class "-icon"
-                                , class "-log-action"
-                                , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
-                                ]
-                                [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                            , stepFollowButton stepNumber following
-                            ]
-
-                        else
-                            [ text "" ]
-                    ]
-
-        logs =
-            topActions
-                :: lines
-                ++ [ bottomActions ]
-                |> List.filterMap identity
-
-        topTracker =
-            tr [ class "line", class "tracker" ]
-                [ button
-                    [ id <|
-                        stepTopTrackerFocusId stepNumber
-                    , Html.Attributes.autofocus True
-                    ]
-                    []
-                ]
-
-        bottomTracker =
-            tr [ class "line", class "tracker" ]
-                [ button
-                    [ id <|
-                        stepBottomTrackerFocusId stepNumber
-                    , Html.Attributes.autofocus True
-                    ]
-                    []
-                ]
-    in
-    table [ class "log-table" ] <| topTracker :: logs ++ [ bottomTracker ]
-
-
-stepFollowButton : StepNumber -> Int -> Html Msg
-stepFollowButton stepNumber following =
-    let
-        stepNum =
-            Maybe.withDefault 0 <| String.toInt stepNumber
-
-        ( tooltip, icon, toFollow ) =
-            if following == 0 then
-                ( "start following step logs", FeatherIcons.playCircle, stepNum )
-
-            else if following == (Maybe.withDefault 0 <| String.toInt stepNumber) then
-                ( "stop following step logs", FeatherIcons.pauseCircle, 0 )
-
-            else
-                ( "start following step logs", FeatherIcons.playCircle, stepNum )
-    in
-    button
-        [ class "tooltip-left"
-        , attribute "data-tooltip" tooltip
-        , class "button"
-        , class "-icon"
-        , class "-log-action"
-        , onClick <| FollowStep toFollow
-        ]
-        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-
-{-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
--}
-stepTopTrackerFocusId : StepNumber -> String
-stepTopTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker-top"
-
-
-{-| stepBottomTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
--}
-stepBottomTrackerFocusId : StepNumber -> String
-stepBottomTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker"
-
-
-{-| viewLine : takes log line and focus information and renders line number button and log
--}
-viewLine : String -> Int -> Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
-viewLine id lineNumber line stepNumber logFocus shiftDown =
-    tr
-        [ Html.Attributes.id <|
-            id
-                ++ ":"
-                ++ String.fromInt lineNumber
-        , class "line"
-        ]
-        [ div
-            [ class "wrapper"
-            , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
-            , logFocusStyles logFocus lineNumber
-            ]
-            [ td []
-                [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
-            , td [ class "break-all", class "overflow-auto" ]
-                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
-                    [ Ansi.Log.viewLine line ]
-                ]
-            ]
-        ]
-
-
-{-| lineFocusButton : renders button for focusing log line ranges
--}
-lineFocusButton : StepNumber -> LogFocus -> Int -> Bool -> Html Msg
-lineFocusButton stepNumber logFocus lineNumber shiftDown =
-    button
-        [ Util.onClickPreventDefault <|
-            FocusLogs <|
-                logRangeId stepNumber lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
-        , id <| stepAndLineToFocusId stepNumber lineNumber
-        , class "line-number"
-        , class "button"
-        , class "-link"
-        , attribute "aria-label" <| "focus step " ++ stepNumber
-        ]
-        [ span [] [ text <| String.fromInt lineNumber ] ]
-
-
-{-| stepError : checks for build error and renders message
--}
-stepError : Step -> Html msg
-stepError step =
-    div [ class "step-error", Util.testAttribute "step-error" ]
-        [ span [ class "label" ] [ text "error:" ]
-        , span [ class "message" ]
-            [ text <|
-                if String.isEmpty step.error then
-                    "no error msg"
-
-                else
-                    step.error
-            ]
-        ]
-
-
-{-| stepKilled : renders message for a killed step
-
-    NOTE: not used, but keeping around for future
-
--}
-stepKilled : Step -> Html msg
-stepKilled _ =
-    div [ class "step-error", Util.testAttribute "step-error" ]
-        [ span [ class "label" ] [ text "step was killed" ] ]
-
-
-{-| stepSkipped : renders message for a skipped step
--}
-stepSkipped : Step -> Html msg
-stepSkipped _ =
-    div [ class "step-skipped", Util.testAttribute "step-skipped" ]
-        [ span [ class "label" ] [ text "step was skipped" ] ]
 
 
 
@@ -490,6 +209,8 @@ focusLogs model steps org repo buildNumber focusFragment getLogs =
     )
 
 
+{-| mergeSteps : takes takes current steps and incoming step information and merges them, updating old logs and retaining previous state.
+-}
 mergeSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
 mergeSteps logFocus refresh autoExpand currentSteps incomingSteps =
     let
@@ -520,6 +241,22 @@ mergeSteps logFocus refresh autoExpand currentSteps incomingSteps =
 
     else
         focusStep logFocus updatedSteps
+
+
+{-| getCurrentStep : takes steps and returns the newest running or pending step
+-}
+getCurrentStep : Steps -> Int
+getCurrentStep steps =
+    let
+        step =
+            steps
+                |> List.filter (\s -> s.status == Vela.Pending || s.status == Vela.Running)
+                |> List.map (\s -> s.number)
+                |> List.sort
+                |> List.head
+                |> Maybe.withDefault 0
+    in
+    step
 
 
 {-| getStepInfo : takes steps and step number and returns the step update information
@@ -633,22 +370,6 @@ logFocusStyles logFocus lineNumber =
             class ""
 
 
-{-| getCurrentStep : takes steps and returns the newest running or pending step
--}
-getCurrentStep : Steps -> Int
-getCurrentStep steps =
-    let
-        step =
-            steps
-                |> List.filter (\s -> s.status == Vela.Pending || s.status == Vela.Running)
-                |> List.map (\s -> s.number)
-                |> List.sort
-                |> List.head
-                |> Maybe.withDefault 0
-    in
-    step
-
-
 {-| logFocusExists : takes steps and returns if a line or range has already been focused
 -}
 logFocusExists : WebData Steps -> Bool
@@ -749,3 +470,17 @@ see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 decodeAnsi : Maybe (WebData Log) -> Array.Array Ansi.Log.Line
 decodeAnsi log =
     .lines <| Ansi.Log.update (decodeLog log) defaultLogModel
+
+
+{-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+-}
+stepTopTrackerFocusId : StepNumber -> String
+stepTopTrackerFocusId stepNumber =
+    "step-" ++ stepNumber ++ "-line-tracker-top"
+
+
+{-| stepBottomTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+-}
+stepBottomTrackerFocusId : StepNumber -> String
+stepBottomTrackerFocusId stepNumber =
+    "step-" ++ stepNumber ++ "-line-tracker"

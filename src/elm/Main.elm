@@ -764,10 +764,7 @@ update msg model =
                             else
                                 Cmd.none
                     in
-                    ( updateLogs log
-                        { model
-                            | steps = steps
-                        }
+                    ( updateLogs { model | steps = steps } log
                     , cmd
                     )
 
@@ -2511,8 +2508,8 @@ updateStep model incomingStep =
 
 {-| updateLogs : takes model and incoming log and updates the list of logs if necessary
 -}
-updateLogs : Log -> Model -> Model
-updateLogs incomingLog model =
+updateLogs : Model -> Log -> Model
+updateLogs model incomingLog =
     let
         logs =
             model.logs
