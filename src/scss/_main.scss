@@ -41,7 +41,11 @@ header {
 
   padding: 1em var(--horizontal-pad);
 
-  background: radial-gradient(circle at 50% -200%, var(--color-bg-light) -7%, transparent 50%);
+  background: radial-gradient(
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
+  );
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
@@ -143,7 +147,7 @@ header {
       border-radius: 0 0 0 0.25em;
       transform: rotate(135deg);
 
-      content: "";
+      content: '';
 
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
@@ -231,7 +235,7 @@ nav {
   /* ellipsis character */
   animation: ellipsis steps(4, end) 900ms infinite;
 
-  content: "\2026";
+  content: '\2026';
 }
 
 .util {
@@ -256,13 +260,13 @@ nav {
   &::before {
     margin-right: 0.3em;
 
-    content: "[";
+    content: '[';
   }
 
   &::after {
     margin-left: 0.3em;
 
-    content: "]";
+    content: ']';
   }
 }
 
@@ -498,11 +502,13 @@ nav {
 }
 
 .build-animation.-bottom.-running {
-  animation: build-status-parallax-running 26s linear 26s infinite, build-status-parallax-start 26s linear none;
+  animation: build-status-parallax-running 26s linear 26s infinite,
+    build-status-parallax-start 26s linear none;
 }
 
 .build-animation.-top.-running {
-  animation: build-status-parallax-running 22s linear 22s infinite, build-status-parallax-start 22s linear none;
+  animation: build-status-parallax-running 22s linear 22s infinite,
+    build-status-parallax-start 22s linear none;
 }
 
 .build-animation.-bottom.-start {
@@ -671,7 +677,7 @@ nav {
 
   border-width: 5px;
 
-  content: " ";
+  content: ' ';
 }
 
 .recent-build-tooltip .line {
@@ -684,7 +690,7 @@ nav {
   margin-right: 0.5em;
 
   &:before {
-    content: "#";
+    content: '#';
   }
 }
 
@@ -1068,7 +1074,7 @@ nav {
   &::after {
     display: block;
     position: absolute;
-    content: "";
+    content: '';
     top: -0.5rem;
     right: 0;
     border-color: transparent;
@@ -1248,7 +1254,7 @@ nav {
 }
 
 .added-image.chevron:before {
-  content: "";
+  content: '';
   border-style: solid;
   border-width: 0.1rem 1rem 0.1rem 0.2rem;
   border-color: var(--color-primary);
@@ -1388,7 +1394,7 @@ nav {
   z-index: 1001;
   border: 4px solid transparent;
   background: transparent;
-  content: "";
+  content: '';
   bottom: 100%;
   left: 50%;
   margin-left: -6px;
