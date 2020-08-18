@@ -6,18 +6,24 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Logs exposing
     ( SetLogFocus
+    , expandSteps
     , focusFragmentToFocusId
     , focusLogs
     , focusStep
-    , followLogsButton
+    , getCurrentStep
+    , latestTracker
     , logEmpty
     , logFocusExists
     , logFocusFragment
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
+    , stepFollowButton
+    , stepLogFocus
     , stepToFocusId
-    , updateStepStates
+    , stepsFollowButton
+    , updateSteps
     , view
+    , viewingStep
     )
 
 import Ansi.Log
@@ -72,7 +78,7 @@ type alias SetLogFocus msg =
 
 
 type alias GetLogsFromSteps a msg =
-    a -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Bool -> Cmd msg
+    a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
 
 
 
@@ -81,8 +87,8 @@ type alias GetLogsFromSteps a msg =
 
 {-| view : takes step and logs and renders step logs or step error
 -}
-view : Step -> Logs -> Bool -> Bool -> Html Msg
-view step logs clickAction shiftDown =
+view : Step -> Logs -> Int -> Bool -> Html Msg
+view step logs follow shiftDown =
     case step.status of
         Vela.Error ->
             stepError step
@@ -91,22 +97,27 @@ view step logs clickAction shiftDown =
             stepKilled step
 
         _ ->
-            viewLogs step.status (String.fromInt step.number) step.logFocus (getStepLog step logs) clickAction shiftDown
+            viewLogs (String.fromInt step.number) step.logFocus (getStepLog step logs) follow shiftDown
 
 
 {-| viewLogs : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
 -}
-viewLogs : Status -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Bool -> Bool -> Html Msg
-viewLogs stepStatus stepNumber logFocus log followLogs shiftDown =
+viewLogs : StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
+viewLogs stepNumber logFocus log following shiftDown =
     let
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
                     if not <| logEmpty log then
-                        viewLines stepStatus stepNumber logFocus log followLogs shiftDown
+                        viewLines stepNumber logFocus log following shiftDown
 
                     else
-                        code [] [ span [ class "no-logs" ] [ text "No logs for this step." ] ]
+                        code []
+                            [ span [ class "no-logs" ]
+                                [ text "No logs for this step."
+                                , stepFollowButton stepNumber following
+                                ]
+                            ]
 
                 RemoteData.Failure _ ->
                     code [ Util.testAttribute "logs-error" ] [ text "error" ]
@@ -119,8 +130,8 @@ viewLogs stepStatus stepNumber logFocus log followLogs shiftDown =
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : Status -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Bool -> Bool -> Html Msg
-viewLines stepStatus stepNumber logFocus log followLogs shiftDown =
+viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
+viewLines stepNumber logFocus log following shiftDown =
     let
         lines =
             log
@@ -141,37 +152,36 @@ viewLines stepStatus stepNumber logFocus log followLogs shiftDown =
             List.length lines > 25
 
         topActions =
-            case stepStatus of
-                _ ->
-                    Just <|
-                        Html.tr
-                            [ class "line" ]
-                            [ div [ class "wrapper", class "justify-flex-end" ]
-                                [ button [ class "button", class "-icon", attribute "data-tooltip" "download logs", class "tooltip-left" ]
-                                    [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                                , if long then
-                                    button
-                                        [ attribute "data-tooltip" "jump to bottom"
-                                        , class "tooltip-left"
-                                        , class "button"
-                                        , class "-icon"
-                                        , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
-                                        ]
-                                        [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-                                  else
-                                    text ""
+            Just <|
+                Html.tr
+                    [ class "line" ]
+                    [ div [ class "wrapper", class "justify-flex-end" ]
+                        [ button [ class "button", class "-icon", attribute "data-tooltip" "download logs", class "tooltip-left" ]
+                            [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                        , stepFollowButton stepNumber following
+                        , if long then
+                            button
+                                [ attribute "data-tooltip" "jump to bottom"
+                                , class "tooltip-left"
+                                , class "button"
+                                , class "-icon"
+                                , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
                                 ]
-                            ]
+                                [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+                          else
+                            text ""
+                        ]
+                    ]
 
         bottomActions =
             Just <|
                 Html.tr
                     [ class "line" ]
                     [ div [ class "wrapper", class "justify-flex-end" ] <|
-                        [ followLogsButton stepStatus followLogs
-                        , if long then
-                            button
+                        if long then
+                            [ stepFollowButton stepNumber following
+                            , button
                                 [ attribute "data-tooltip" "jump to top"
                                 , class "tooltip-left"
                                 , class "button"
@@ -179,10 +189,10 @@ viewLines stepStatus stepNumber logFocus log followLogs shiftDown =
                                 , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
                                 ]
                                 [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+                            ]
 
-                          else
-                            text ""
-                        ]
+                        else
+                            [ text "" ]
                     ]
 
         logs =
@@ -214,29 +224,51 @@ viewLines stepStatus stepNumber logFocus log followLogs shiftDown =
     Html.table [ class "log-table" ] <| topTracker :: logs ++ [ bottomTracker ]
 
 
-followLogsButton : Status -> Bool -> Html Msg
-followLogsButton status followLogs =
+stepFollowButton : StepNumber -> Int -> Html Msg
+stepFollowButton stepNumber following =
     let
-        ( tooltip, icon ) =
-            if followLogs then
-                ( "stop following logs", FeatherIcons.pauseCircle )
+        stepNum =
+            Maybe.withDefault 0 <| String.toInt stepNumber
+
+        ( tooltip, icon, toFollow ) =
+            if following == 0 then
+                ( "start following step logs", FeatherIcons.playCircle, stepNum )
+
+            else if following == (Maybe.withDefault 0 <| String.toInt stepNumber) then
+                ( "stop following step logs", FeatherIcons.pauseCircle, 0 )
 
             else
-                ( "start following logs", FeatherIcons.playCircle )
+                ( "start following step logs", FeatherIcons.playCircle, stepNum )
     in
-    case status of
-        Vela.Running ->
-            Html.button
-                [ class "tooltip-left"
-                , attribute "data-tooltip" tooltip
-                , class "button"
-                , class "-icon"
-                , onClick <| FollowLogs <| not followLogs
-                ]
-                [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+    Html.button
+        [ class "tooltip-left"
+        , attribute "data-tooltip" tooltip
+        , class "button"
+        , class "-icon"
+        , class "follow"
+        , onClick <| FollowStep toFollow
+        ]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
-        _ ->
-            text ""
+
+stepsFollowButton : Bool -> Html Msg
+stepsFollowButton expanding =
+    let
+        ( tooltip, icon ) =
+            if expanding then
+                ( "stop auto expanding steps", FeatherIcons.pauseCircle )
+
+            else
+                ( "start auto expanding steps", FeatherIcons.playCircle )
+    in
+    Html.button
+        [ class "tooltip-left"
+        , attribute "data-tooltip" tooltip
+        , class "button"
+        , class "-icon"
+        , onClick <| FollowSteps expanding
+        ]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
@@ -441,26 +473,19 @@ focusStep focusFragment steps =
 
 {-| focusLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
 -}
-focusLogs : a -> WebData Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Page, WebData Steps, Cmd msg )
+focusLogs : a -> Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Page, Steps, Cmd msg )
 focusLogs model steps org repo buildNumber focusFragment getLogs =
     let
         ( stepsOut, action ) =
-            case steps of
-                RemoteData.Success steps_ ->
-                    let
-                        focusedSteps =
-                            RemoteData.succeed <| updateStepLogFocus steps_ focusFragment
-                    in
-                    ( focusedSteps
-                    , Cmd.batch
-                        [ getLogs model org repo buildNumber focusedSteps focusFragment False
-                        ]
-                    )
-
-                _ ->
-                    ( steps
-                    , Cmd.none
-                    )
+            let
+                focusedSteps =
+                    updateStepLogFocus steps focusFragment
+            in
+            ( focusedSteps
+            , Cmd.batch
+                [ getLogs model org repo buildNumber focusedSteps focusFragment False
+                ]
+            )
     in
     ( Pages.Build org repo buildNumber focusFragment
     , stepsOut
@@ -468,14 +493,79 @@ focusLogs model steps org repo buildNumber focusFragment getLogs =
     )
 
 
-updateStepStates : WebData Steps -> Steps -> WebData Steps
-updateStepStates currentSteps incomingSteps =
+updateSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
+updateSteps logFocus isRefresh autoExpand currentSteps incomingSteps =
+    let
+        updatedSteps =
+            case currentSteps of
+                RemoteData.Success steps ->
+                    List.map
+                        (\incomingStep ->
+                            Util.overwriteById
+                                { incomingStep
+                                    | viewing =
+                                        (viewingStep currentSteps <| String.fromInt incomingStep.number)
+                                            || (autoExpand && incomingStep.status /= Vela.Pending)
+                                    , logFocus = stepLogFocus currentSteps <| String.fromInt incomingStep.number
+                                }
+                                steps
+                        )
+                        incomingSteps
+                        |> List.filterMap identity
+
+                _ ->
+                    incomingSteps
+    in
+    if isRefresh then
+        updatedSteps
+
+    else
+        focusStep logFocus updatedSteps
+
+
+expandSteps : WebData Steps -> Steps -> Steps
+expandSteps currentSteps incomingSteps =
     case currentSteps of
-        RemoteData.Success currentSteps_ ->
-            List.map (\incomingStep -> Util.overwriteById incomingStep currentSteps_) incomingSteps |> List.filterMap identity |> RemoteData.succeed
+        RemoteData.Success steps ->
+            List.map
+                (\incomingStep ->
+                    Util.overwriteById
+                        { incomingStep
+                            | viewing =
+                                (viewingStep currentSteps <| String.fromInt incomingStep.number)
+                                    || incomingStep.status
+                                    /= Vela.Pending
+                            , logFocus = stepLogFocus currentSteps <| String.fromInt incomingStep.number
+                        }
+                        steps
+                )
+                incomingSteps
+                |> List.filterMap identity
 
         _ ->
-            RemoteData.succeed incomingSteps
+            incomingSteps
+
+
+{-| viewingStep : takes steps and step number and returns the step viewing state
+-}
+viewingStep : WebData Steps -> StepNumber -> Bool
+viewingStep steps stepNumber =
+    Maybe.withDefault False <|
+        List.head <|
+            List.map (\step -> step.viewing) <|
+                List.filter (\step -> String.fromInt step.number == stepNumber) <|
+                    RemoteData.withDefault [] steps
+
+
+{-| stepLogFocus : takes steps and step number and returns the log focus for that step
+-}
+stepLogFocus : WebData Steps -> StepNumber -> ( Maybe Int, Maybe Int )
+stepLogFocus steps stepNumber =
+    Maybe.withDefault ( Nothing, Nothing ) <|
+        List.head <|
+            List.map (\step -> step.logFocus) <|
+                List.filter (\step -> String.fromInt step.number == stepNumber) <|
+                    RemoteData.withDefault [] steps
 
 
 {-| updateStepLogFocus : takes steps and line focus and sets a new log line focus
@@ -565,6 +655,29 @@ logFocusStyles logFocus lineNumber =
 
         _ ->
             class ""
+
+
+{-| getCurrentStep : takes steps and returns the newest running or pending step
+-}
+getCurrentStep : Steps -> Int
+getCurrentStep steps =
+    let
+        step =
+            steps
+                |> List.filter (\s -> s.status == Vela.Pending || s.status == Vela.Running)
+                |> List.map (\s -> s.number)
+                |> List.sort
+                |> List.head
+                |> Maybe.withDefault 0
+    in
+    step
+
+
+{-| latestTracker : takes steps and returns the focus id for the latest running or pending build
+-}
+latestTracker : Int -> String
+latestTracker following =
+    stepBottomTrackerFocusId <| String.fromInt following
 
 
 {-| logFocusExists : takes steps and returns if a line or range has already been focused

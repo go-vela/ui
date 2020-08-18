@@ -60,6 +60,7 @@ import Interop
 import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
 import List.Extra exposing (setIf, updateIf)
+import Maybe
 import Nav
 import Pager
 import Pages exposing (Page(..))
@@ -68,7 +69,6 @@ import Pages.Build.Logs
     exposing
         ( focusFragmentToFocusId
         , focusLogs
-        , focusStep
         )
 import Pages.Build.Model
 import Pages.Build.Update
@@ -194,7 +194,8 @@ type alias Model =
     , build : WebData Build
     , steps : WebData Steps
     , logs : Logs
-    , followLogs : Bool
+    , follow : Int
+    , expand : Bool
     , velaAPI : String
     , velaFeedbackURL : String
     , velaDocsURL : String
@@ -246,7 +247,8 @@ init flags url navKey =
             , build = NotAsked
             , steps = NotAsked
             , logs = []
-            , followLogs = False
+            , follow = 0
+            , expand = False
             , velaFeedbackURL = flags.velaFeedbackURL
             , velaDocsURL = flags.velaDocsURL
             , navigationKey = navKey
@@ -336,7 +338,7 @@ type Msg
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
-    | StepsResponse Org Repo BuildNumber (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
+    | StepsResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -671,13 +673,6 @@ update msg model =
                             }
                         , build = RemoteData.succeed build
                         , favicon = statusToFavicon build.status
-                        , followLogs =
-                            case build.status of
-                                Vela.Running ->
-                                    model.followLogs
-
-                                _ ->
-                                    False
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
@@ -719,30 +714,22 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        StepsResponse org repo buildNumber logFocus response ->
+        StepsResponse org repo buildNumber logFocus isRefresh response ->
             case response of
-                Ok ( _, stepsResponse ) ->
+                Ok ( _, steps ) ->
                     let
-                        sortedSteps =
-                            List.sortBy (\step -> step.number) stepsResponse
-
-                        focusedSteps =
-                            Pages.Build.Logs.updateStepStates model.steps <| focusStep logFocus sortedSteps
-
-                        followedSteps =
-                            if model.followLogs then
-                                followSteps focusedSteps
-
-                            else
-                                focusedSteps
+                        updatedSteps =
+                            steps
+                                |> List.sortBy .number
+                                |> Pages.Build.Logs.updateSteps logFocus isRefresh model.expand model.steps
 
                         updatedModel =
-                            { model | steps = followedSteps }
+                            { model | steps = RemoteData.succeed updatedSteps }
 
                         cmd =
-                            getBuildStepsLogs updatedModel org repo buildNumber followedSteps logFocus False
+                            getBuildStepsLogs updatedModel org repo buildNumber updatedSteps logFocus isRefresh
                     in
-                    ( { updatedModel | steps = followedSteps }, cmd )
+                    ( { updatedModel | steps = RemoteData.succeed updatedSteps }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -751,27 +738,37 @@ update msg model =
             case response of
                 Ok ( _, log ) ->
                     let
+                        isFollowing =
+                            model.follow /= 0
+
+                        isFollowedStep =
+                            model.follow == (Maybe.withDefault -1 <| String.toInt stepNumber)
+
                         ( steps, focusId ) =
-                            if model.followLogs && isRefresh then
+                            if isFollowing && isRefresh && isFollowedStep then
                                 ( followStep stepNumber model
-                                , Pages.Build.Logs.stepBottomTrackerFocusId stepNumber
+                                , Pages.Build.Logs.latestTracker model.follow
                                 )
 
-                            else
+                            else if not isRefresh then
                                 ( model.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId logFocus )
+
+                            else
+                                ( model.steps, "" )
 
                         action =
                             if not <| String.isEmpty focusId then
-                                let
-                                    _ =
-                                        Debug.log "focusing on" focusId
-                                in
                                 Util.dispatch <| FocusOn <| focusId
 
                             else
                                 Cmd.none
                     in
-                    ( updateLogs log { model | steps = steps }, action )
+                    ( updateLogs log
+                        { model
+                            | steps = steps
+                        }
+                    , action
+                    )
 
                 Err error ->
                     ( model, addError error )
@@ -1385,7 +1382,7 @@ refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd 
 refreshBuildSteps model org repo buildNumber focusFragment =
     let
         refresh =
-            getAllBuildSteps model org repo buildNumber focusFragment
+            getAllBuildSteps model org repo buildNumber focusFragment True
     in
     if shouldRefresh model.build then
         refresh
@@ -1426,14 +1423,13 @@ refreshLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragm
 refreshLogs model org repo buildNumber inSteps focusFragment =
     let
         stepsToRefresh =
-            RemoteData.succeed <|
-                case inSteps of
-                    Success s ->
-                        -- Do not refresh logs for a step in success or failure state
-                        List.filter (\step -> step.status /= Vela.Success && step.status /= Vela.Failure) s
+            case inSteps of
+                Success s ->
+                    -- Do not refresh logs for a step in success or failure state
+                    List.filter (\step -> step.status /= Vela.Success && step.status /= Vela.Failure) s
 
-                    _ ->
-                        []
+                _ ->
+                    []
 
         refresh =
             getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
@@ -1677,7 +1673,8 @@ viewContent model =
                     , build = model.build
                     , steps = model.steps
                     , logs = model.logs
-                    , followLogs = model.followLogs
+                    , follow = model.follow
+                    , expand = model.expand
                     , shift = model.shift
                     }
                     org
@@ -1973,9 +1970,9 @@ setNewPage route model =
                     if not <| buildChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
                             ( page, steps, action ) =
-                                focusLogs model model.steps org repo buildNumber logFocus getBuildStepsLogs
+                                focusLogs model (RemoteData.withDefault [] model.steps) org repo buildNumber logFocus getBuildStepsLogs
                         in
-                        ( { model | page = page, steps = steps }, action )
+                        ( { model | page = page, steps = RemoteData.succeed steps }, action )
 
                     else
                         loadBuildPage model org repo buildNumber logFocus
@@ -2390,13 +2387,14 @@ loadBuildPage model org repo buildNumber focusFragment =
         , builds = builds
         , build = Loading
         , steps = NotAsked
-        , followLogs = False
+        , follow = 0
+        , expand = False
         , logs = []
       }
     , Cmd.batch
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
-        , getAllBuildSteps model org repo buildNumber focusFragment
+        , getAllBuildSteps model org repo buildNumber focusFragment False
         ]
     )
 
@@ -2494,6 +2492,9 @@ updateStep model incomingStep =
 
         stepExists =
             List.member incomingStep.number <| stepsIds steps
+
+        current =
+            Pages.Build.Logs.getCurrentStep steps
     in
     if stepExists then
         { model
@@ -2503,7 +2504,12 @@ updateStep model incomingStep =
                         (\step ->
                             { incomingStep
                                 | viewing =
-                                    if model.followLogs && step.status /= Vela.Pending then
+                                    if
+                                        (model.follow /= 0)
+                                            && step.status
+                                            /= Vela.Pending
+                                            && (current == step.number)
+                                    then
                                         True
 
                                     else
@@ -2644,9 +2650,9 @@ getBuild model org repo buildNumber =
     Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
 
 
-getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
-getAllBuildSteps model org repo buildNumber logFocus =
-    Api.tryAll (StepsResponse org repo buildNumber logFocus) <| Api.getAllSteps model org repo buildNumber
+getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
+getAllBuildSteps model org repo buildNumber logFocus isRefresh =
+    Api.tryAll (StepsResponse org repo buildNumber logFocus isRefresh) <| Api.getAllSteps model org repo buildNumber
 
 
 getBuildStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg
@@ -2659,27 +2665,18 @@ getBuildStepLogs model org repo buildNumber stepNumber logFocus isRefresh =
     Api.try (StepLogResponse stepNumber logFocus isRefresh) <| Api.getStepLogs model org repo buildNumber stepNumber
 
 
-getBuildStepsLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Bool -> Cmd Msg
+getBuildStepsLogs : Model -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd Msg
 getBuildStepsLogs model org repo buildNumber steps logFocus isRefresh =
-    let
-        buildSteps =
-            case steps of
-                RemoteData.Success s ->
-                    s
-
-                _ ->
-                    []
-    in
     Cmd.batch <|
         List.map
             (\step ->
-                if step.viewing || model.followLogs then
+                if step.viewing || model.expand then
                     getBuildStepLogs model org repo buildNumber (String.fromInt step.number) logFocus isRefresh
 
                 else
                     Cmd.none
             )
-            buildSteps
+            steps
 
 
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg

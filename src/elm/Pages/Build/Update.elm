@@ -12,6 +12,7 @@ import List.Extra
 import Pages.Build.Logs
     exposing
         ( logFocusFragment
+        , viewingStep
         )
 import Pages.Build.Model
     exposing
@@ -50,7 +51,7 @@ update model msg getBuildStepLogs focusResult =
 
                 action =
                     if fetchStepLogs then
-                        getBuildStepLogs model org repo buildNumber stepNumber Nothing False
+                        getBuildStepLogs model org repo buildNumber stepNumber Nothing True
 
                     else
                         Cmd.none
@@ -74,8 +75,13 @@ update model msg getBuildStepLogs focusResult =
             , Navigation.pushUrl model.navigationKey url
             )
 
-        FollowLogs follow ->
-            ( { model | followLogs = follow }
+        FollowStep step ->
+            ( { model | follow = step }
+            , Cmd.none
+            )
+
+        FollowSteps expanding ->
+            ( { model | expand = not expanding }
             , Cmd.none
             )
 
@@ -143,18 +149,7 @@ viewRunningSteps : Steps -> Bool -> Steps
 viewRunningSteps steps value =
     List.Extra.updateIf
         (\step ->
-            step.status /= Vela.Pending
+            step.status == Vela.Running
         )
         (\step -> { step | viewing = value })
         steps
-
-
-{-| viewingStep : takes steps and step number and returns the step viewing state
--}
-viewingStep : WebData Steps -> StepNumber -> Bool
-viewingStep steps stepNumber =
-    Maybe.withDefault False <|
-        List.head <|
-            List.map (\step -> step.viewing) <|
-                List.filter (\step -> String.fromInt step.number == stepNumber) <|
-                    RemoteData.withDefault [] steps

@@ -41,7 +41,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import Pages exposing (Page(..))
-import Pages.Build.Logs exposing (followLogsButton, stepToFocusId)
+import Pages.Build.Logs exposing (stepToFocusId, stepsFollowButton)
 import Pages.Build.Model exposing (Msg(..))
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
@@ -75,7 +75,8 @@ type alias PartialModel a =
         , build : WebData Build
         , steps : WebData Steps
         , logs : Logs
-        , followLogs : Bool
+        , follow : Int
+        , expand : Bool
         , shift : Bool
     }
 
@@ -87,12 +88,12 @@ type alias PartialModel a =
 {-| viewBuild : renders entire build based on current application time
 -}
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
-viewBuild { time, build, steps, logs, followLogs, shift } org repo =
+viewBuild { time, build, steps, logs, follow, expand, shift } org repo =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview time org repo followLogs True bld, Just <| String.fromInt bld.number )
+                    ( viewPreview time org repo (Just expand) True bld, Just <| String.fromInt bld.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, Nothing )
@@ -103,7 +104,7 @@ viewBuild { time, build, steps, logs, followLogs, shift } org repo =
         buildSteps =
             case steps of
                 RemoteData.Success steps_ ->
-                    viewSteps time org repo buildNumber steps_ logs followLogs shift
+                    viewSteps time org repo buildNumber steps_ logs follow shift
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
@@ -124,8 +125,8 @@ viewBuild { time, build, steps, logs, followLogs, shift } org repo =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Org -> Repo -> Bool -> Bool -> Build -> Html Msg
-viewPreview now org repo followLogs full build =
+viewPreview : Posix -> Org -> Repo -> Maybe Bool -> Bool -> Build -> Html Msg
+viewPreview now org repo expanding full build =
     let
         status =
             [ buildStatusToIcon build.status ]
@@ -164,11 +165,12 @@ viewPreview now org repo followLogs full build =
             statusToClass build.status
 
         followButton =
-            if full then
-                followLogsButton build.status followLogs
+            case expanding of
+                Just e ->
+                    stepsFollowButton e
 
-            else
-                text ""
+                Nothing ->
+                    text ""
 
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
@@ -210,13 +212,13 @@ viewPreview now org repo followLogs full build =
 
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> Bool -> Bool -> Html Msg
-viewSteps now org repo buildNumber steps logs followLogs shift =
+viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> Int -> Bool -> Html Msg
+viewSteps now org repo buildNumber steps logs follow shift =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
                 (\step ->
-                    viewStep now org repo buildNumber step steps logs followLogs shift
+                    viewStep now org repo buildNumber step steps logs follow shift
                 )
             <|
                 steps
@@ -225,19 +227,19 @@ viewSteps now org repo buildNumber steps logs followLogs shift =
 
 {-| viewStep : renders single build step
 -}
-viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> Bool -> Bool -> Html Msg
-viewStep now org repo buildNumber step steps logs followLogs shift =
+viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> Int -> Bool -> Html Msg
+viewStep now org repo buildNumber step steps logs follow shift =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
-        , viewStepDetails now org repo buildNumber step logs followLogs shift
+        , viewStepDetails now org repo buildNumber step logs follow shift
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> Bool -> Bool -> Html Msg
-viewStepDetails now org repo buildNumber step logs followLogs shift =
+viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> Int -> Bool -> Html Msg
+viewStepDetails now org repo buildNumber step logs follow shift =
     let
         buildNum =
             Maybe.withDefault "" buildNumber
@@ -259,7 +261,7 @@ viewStepDetails now org repo buildNumber step logs followLogs shift =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ Pages.Build.Logs.view step logs followLogs shift ]
+            , div [ class "logs-container" ] [ Pages.Build.Logs.view step logs follow shift ]
             ]
     in
     details

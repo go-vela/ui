@@ -78,7 +78,7 @@ view buildsModel now org repo maybeEvent =
                 none
 
             else
-                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now org repo False False) builds
+                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now org repo Nothing False) builds
 
         RemoteData.Loading ->
             largeLoader
