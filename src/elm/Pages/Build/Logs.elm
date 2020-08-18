@@ -6,7 +6,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Logs exposing
     ( SetLogFocus
-    , autoSetSteps
     , focusFragmentToFocusId
     , focusLogs
     , focusStep
@@ -15,11 +14,11 @@ module Pages.Build.Logs exposing
     , logEmpty
     , logFocusExists
     , logFocusFragment
+    , mergeSteps
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
     , stepFollowButton
     , stepToFocusId
-    , updateSteps
     , view
     , viewingStep
     )
@@ -481,8 +480,8 @@ focusLogs model steps org repo buildNumber focusFragment getLogs =
     )
 
 
-updateSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
-updateSteps logFocus isRefresh autoExpand currentSteps incomingSteps =
+mergeSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
+mergeSteps logFocus isRefresh autoExpand currentSteps incomingSteps =
     let
         updatedSteps =
             case currentSteps of
@@ -511,22 +510,6 @@ updateSteps logFocus isRefresh autoExpand currentSteps incomingSteps =
 
     else
         focusStep logFocus updatedSteps
-
-
-autoSetSteps : Bool -> Steps -> Steps
-autoSetSteps viewing steps =
-    List.map
-        (\step ->
-            let
-                ( _, lF ) =
-                    getStepInfo steps step.number
-            in
-            { step
-                | viewing = viewing
-                , logFocus = lF
-            }
-        )
-        steps
 
 
 {-| getStepInfo : takes steps and step number and returns the step update information

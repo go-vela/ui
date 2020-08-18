@@ -721,7 +721,7 @@ update msg model =
                         updatedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Logs.updateSteps logFocus isRefresh model.expand model.steps
+                                |> Pages.Build.Logs.mergeSteps logFocus isRefresh model.expand model.steps
 
                         updatedModel =
                             { model | steps = RemoteData.succeed updatedSteps }
@@ -1408,13 +1408,6 @@ shouldRefresh build =
 
         Loading ->
             False
-
-
-{-| filterCompletedSteps : filters out completed steps based on success and failure
--}
-filterCompletedSteps : Steps -> Steps
-filterCompletedSteps steps =
-    List.filter (\step -> step.status /= Vela.Success && step.status /= Vela.Failure) steps
 
 
 {-| refreshLogs : takes model org repo and build number and steps and refreshes the build step logs depending on their status
@@ -2531,16 +2524,6 @@ followStep stepNumber model =
 
         _ ->
             model.steps
-
-
-followSteps : WebData Steps -> WebData Steps
-followSteps steps =
-    case steps of
-        RemoteData.Success steps_ ->
-            RemoteData.succeed <| Pages.Build.Update.viewRunningSteps steps_ True
-
-        _ ->
-            steps
 
 
 {-| updateLogs : takes model and incoming log and updates the list of logs if necessary
