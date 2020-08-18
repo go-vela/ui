@@ -69,9 +69,11 @@ import Pages.Build.Logs
     exposing
         ( focusFragmentToFocusId
         , focusLogs
+        , getCurrentStep
+        , stepBottomTrackerFocusId
         )
 import Pages.Build.Model
-import Pages.Build.Update
+import Pages.Build.Update exposing (viewRunningStep)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -717,18 +719,18 @@ update msg model =
             case response of
                 Ok ( _, steps ) ->
                     let
-                        updatedSteps =
+                        mergedSteps =
                             steps
                                 |> List.sortBy .number
                                 |> Pages.Build.Logs.mergeSteps logFocus refresh model.autoExpandSteps model.steps
 
                         updatedModel =
-                            { model | steps = RemoteData.succeed updatedSteps }
+                            { model | steps = RemoteData.succeed mergedSteps }
 
                         cmd =
-                            getBuildStepsLogs updatedModel org repo buildNumber updatedSteps logFocus refresh
+                            getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
                     in
-                    ( { updatedModel | steps = RemoteData.succeed updatedSteps }, cmd )
+                    ( { updatedModel | steps = RemoteData.succeed mergedSteps }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -740,13 +742,13 @@ update msg model =
                         following =
                             model.followingStep /= 0
 
-                        isFollowedStep =
+                        onFollowedStep =
                             model.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                         ( steps, focusId ) =
-                            if following && refresh && isFollowedStep then
-                                ( followStep stepNumber model
-                                , Pages.Build.Logs.latestTracker model.followingStep
+                            if following && refresh && onFollowedStep then
+                                ( viewRunningStep model.steps stepNumber True
+                                , stepBottomTrackerFocusId <| String.fromInt model.followingStep
                                 )
 
                             else if not refresh then
@@ -1379,12 +1381,8 @@ refreshBuild model org repo buildNumber =
 -}
 refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildSteps model org repo buildNumber focusFragment =
-    let
-        refresh =
-            getAllBuildSteps model org repo buildNumber focusFragment True
-    in
     if shouldRefresh model.build then
-        refresh
+        getAllBuildSteps model org repo buildNumber focusFragment True
 
     else
         Cmd.none
@@ -2485,8 +2483,8 @@ updateStep model incomingStep =
         stepExists =
             List.member incomingStep.number <| stepsIds steps
 
-        current =
-            Pages.Build.Logs.getCurrentStep steps
+        following =
+            model.followingStep /= 0
     in
     if stepExists then
         { model
@@ -2494,18 +2492,14 @@ updateStep model incomingStep =
                 RemoteData.succeed <|
                     updateIf (\step -> incomingStep.number == step.number)
                         (\step ->
+                            let
+                                shouldView =
+                                    following
+                                        && (step.status /= Vela.Pending)
+                                        && (step.number == getCurrentStep steps)
+                            in
                             { incomingStep
-                                | viewing =
-                                    if
-                                        (model.followingStep /= 0)
-                                            && step.status
-                                            /= Vela.Pending
-                                            && (current == step.number)
-                                    then
-                                        True
-
-                                    else
-                                        step.viewing
+                                | viewing = step.viewing || shouldView
                             }
                         )
                         steps
@@ -2513,16 +2507,6 @@ updateStep model incomingStep =
 
     else
         { model | steps = RemoteData.succeed <| incomingStep :: steps }
-
-
-followStep : StepNumber -> Model -> WebData Steps
-followStep stepNumber model =
-    case model.steps of
-        RemoteData.Success steps ->
-            RemoteData.succeed <| Pages.Build.Update.viewRunningStep steps stepNumber True
-
-        _ ->
-            model.steps
 
 
 {-| updateLogs : takes model and incoming log and updates the list of logs if necessary

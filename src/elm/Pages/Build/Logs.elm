@@ -10,7 +10,6 @@ module Pages.Build.Logs exposing
     , focusLogs
     , focusStep
     , getCurrentStep
-    , latestTracker
     , logEmpty
     , logFocusExists
     , logFocusFragment
@@ -648,13 +647,6 @@ getCurrentStep steps =
                 |> Maybe.withDefault 0
     in
     step
-
-
-{-| latestTracker : takes steps and returns the focus id for the latest running or pending build
--}
-latestTracker : Int -> String
-latestTracker following =
-    stepBottomTrackerFocusId <| String.fromInt following
 
 
 {-| logFocusExists : takes steps and returns if a line or range has already been focused

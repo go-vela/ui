@@ -173,16 +173,22 @@ setStepsViews value =
 
 {-| viewRunningStep : takes steps and step number and sets that steps viewing state if the step is running
 -}
-viewRunningStep : Steps -> String -> Bool -> Steps
+viewRunningStep : WebData Steps -> String -> Bool -> WebData Steps
 viewRunningStep steps stepNumber value =
-    List.Extra.updateIf
-        (\step ->
-            String.fromInt step.number
-                == stepNumber
-                && (step.status /= Vela.Pending)
-        )
-        (\step -> { step | viewing = value })
-        steps
+    case steps of
+        RemoteData.Success s ->
+            RemoteData.succeed <|
+                List.Extra.updateIf
+                    (\step ->
+                        String.fromInt step.number
+                            == stepNumber
+                            && (step.status /= Vela.Pending)
+                    )
+                    (\step -> { step | viewing = value })
+                    s
+
+        _ ->
+            steps
 
 
 {-| openRunningStep : takes steps and sets steps viewing state if the step is running
