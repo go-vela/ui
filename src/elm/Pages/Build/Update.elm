@@ -14,24 +14,16 @@ import Logs
         )
 import Pages.Build.Model
     exposing
-        ( Msg(..)
+        ( GetLogs
+        , Msg(..)
+        , PartialModel
         )
-import Pages.Build.View exposing (PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Vela
     exposing
-        ( BuildNumber
-        , FocusFragment
-        , Org
-        , Repo
-        , SecretType(..)
-        , StepNumber
+        ( StepNumber
         , Steps
         )
-
-
-type alias GetLogs a msg =
-    PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Cmd msg
 
 
 
