@@ -298,16 +298,7 @@ viewLogLines org repo buildNumber stepNumber stepName logFocus log following shi
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
-                    if not <| logEmpty log then
-                        viewLines org repo buildNumber stepNumber stepName logFocus log following shiftDown
-
-                    else
-                        code []
-                            [ span [ class "no-logs" ]
-                                [ text "No logs for this step."
-                                , stepFollowButton stepNumber following
-                                ]
-                            ]
+                    viewLines org repo buildNumber stepNumber stepName logFocus log following shiftDown
 
                 RemoteData.Failure _ ->
                     code [ Util.testAttribute "logs-error" ] [ text "error" ]
@@ -324,19 +315,30 @@ viewLines : Org -> Repo -> BuildNumber -> StepNumber -> String -> LogFocus -> Ma
 viewLines org repo buildNumber stepNumber stepName logFocus log following shiftDown =
     let
         lines =
-            log
-                |> decodeAnsi
-                |> Array.indexedMap
-                    (\idx line ->
-                        Just <|
-                            viewLine stepNumber
-                                (idx + 1)
-                                line
-                                stepNumber
-                                logFocus
-                                shiftDown
-                    )
-                |> Array.toList
+            if not <| logEmpty log then
+                log
+                    |> decodeAnsi
+                    |> Array.indexedMap
+                        (\idx line ->
+                            Just <|
+                                viewLine stepNumber
+                                    (idx + 1)
+                                    (Just line)
+                                    stepNumber
+                                    logFocus
+                                    shiftDown
+                        )
+                    |> Array.toList
+
+            else
+                [ Just <|
+                    viewLine stepNumber
+                        1
+                        Nothing
+                        stepNumber
+                        logFocus
+                        shiftDown
+                ]
 
         long =
             List.length lines > 25
@@ -374,7 +376,7 @@ viewLines org repo buildNumber stepNumber stepName logFocus log following shiftD
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : String -> Int -> Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
+viewLine : String -> Int -> Maybe Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
 viewLine id lineNumber line stepNumber logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
@@ -383,17 +385,39 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
                 ++ String.fromInt lineNumber
         , class "line"
         ]
-        [ div
-            [ class "wrapper"
-            , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
-            , class <| logFocusStyles logFocus lineNumber
-            ]
-            [ td []
-                [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
-            , td [ class "break-all", class "overflow-auto" ]
-                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
-                    [ Ansi.Log.viewLine line ]
-                ]
+        [ case line of
+            Just l ->
+                div
+                    [ class "wrapper"
+                    , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
+                    , class <| logFocusStyles logFocus lineNumber
+                    ]
+                    [ td []
+                        [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
+                    , td [ class "break-all", class "overflow-auto" ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
+                            [ Ansi.Log.viewLine l
+                            ]
+                        ]
+                    ]
+
+            Nothing ->
+                noLogs stepNumber
+        ]
+
+
+{-| noLogs : takes step number and renders log line with no data
+-}
+noLogs : StepNumber -> Html Msg
+noLogs stepNumber =
+    div
+        [ class "wrapper"
+        , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, "no-logs" ]
+        ]
+        [ td [] []
+        , td [ class "break-all", class "overflow-auto" ]
+            [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, "no-logs" ] ]
+                [ text "No data" ]
             ]
         ]
 
