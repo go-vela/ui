@@ -367,7 +367,7 @@ stepTopTrackerFocusId stepNumber =
 -}
 stepBottomTrackerFocusId : StepNumber -> String
 stepBottomTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker"
+    "step-" ++ stepNumber ++ "-line-tracker-bottom"
 
 
 {-| stepLogsFilename : takes step information and produces a filename for downloading logs

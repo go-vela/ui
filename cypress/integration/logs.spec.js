@@ -74,6 +74,31 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
         cy.get('[data-test=download-logs-2]').should('not.exist');
       });
     });
+
+    it('should have trackers', () => {
+      cy.get('[data-test=logs-2]').within(() => {
+        cy.get('[data-test=bottom-log-tracker-2]').should('exist');
+        cy.get('[data-test=top-log-tracker-2]').should('exist');
+      });
+    });
+
+    it('bottom tracker should not have focus', () => {
+      cy.focused().should('not.have.attr', 'data-test', 'bottom-log-tracker-2')
+    });
+
+    it('click jump to bottom should focus bottom tracker', () => {
+      cy.get('[data-test=jump-to-bottom-2]').click({ force: true });
+      cy.focused().should('have.attr', 'data-test', 'bottom-log-tracker-2')
+    });
+
+    it('top tracker should not have focus', () => {
+      cy.focused().should('not.have.attr', 'data-test', 'top-log-tracker-2')
+    });
+
+    it('click jump to top should focus top tracker', () => {
+      cy.get('[data-test=jump-to-top-2]').click({ force: true });
+      cy.focused().should('have.attr', 'data-test', 'top-log-tracker-2')
+    });
   });
 
   context('log with < 25 lines (short)', () => {

@@ -365,7 +365,7 @@ viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
                     -- auto page focus requires button role
                     [ id <|
                         stepTopTrackerFocusId stepNumber
-                    , Html.Attributes.autofocus True
+                    , Util.testAttribute <| "top-log-tracker-" ++ stepNumber
                     ]
                     []
                 ]
@@ -376,7 +376,7 @@ viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
                     -- auto page focus requires button role
                     [ id <|
                         stepBottomTrackerFocusId stepNumber
-                    , Html.Attributes.autofocus True
+                    , Util.testAttribute <| "bottom-log-tracker-" ++ stepNumber
                     ]
                     []
                 ]
