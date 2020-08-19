@@ -772,10 +772,21 @@ nav {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+
+  .-right {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .buttons {
+    margin: 0.2rem;
+  }
 }
 
 .step .-info .-duration {
   font-family: var(--font-code);
+  display: flex;
+  align-items: center;
 }
 
 .loading-logs {
@@ -810,6 +821,14 @@ nav {
   display: flex;
   align-items: flex-start;
   margin: 0 0.5em;
+
+  &.-align-center {
+    align-items: center;
+  }
+
+  .no-data {
+    margin-left: 1rem;
+  }
 }
 
 .logs code > div {

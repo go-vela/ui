@@ -18,7 +18,6 @@ module Pages.Build.Logs exposing
     , logFocusFragment
     , logFocusStyles
     , logRangeId
-    , mergeSteps
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
     , stepLogsFilename
@@ -33,7 +32,6 @@ import List.Extra exposing (updateIf)
 import Pages exposing (Page)
 import Pages.Build.Model exposing (Msg(..))
 import RemoteData exposing (WebData)
-import Util
 import Vela
     exposing
         ( BuildNumber
@@ -180,42 +178,6 @@ focusStep focusFragment steps =
             steps
 
 
-{-| mergeSteps : takes takes current steps and incoming step information and merges them, updating old logs and retaining previous state.
--}
-mergeSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
-mergeSteps logFocus refresh autoExpand currentSteps incomingSteps =
-    let
-        updatedSteps =
-            currentSteps
-                |> RemoteData.unwrap incomingSteps
-                    (\steps ->
-                        incomingSteps
-                            |> List.map
-                                (\incomingStep ->
-                                    let
-                                        ( viewing, focus ) =
-                                            getStepInfo steps incomingStep.number
-
-                                        shouldView =
-                                            (autoExpand && incomingStep.status /= Vela.Pending) || viewing
-                                    in
-                                    Util.overwriteById
-                                        { incomingStep
-                                            | viewing = shouldView
-                                            , logFocus = focus
-                                        }
-                                        steps
-                                )
-                            |> List.filterMap identity
-                    )
-    in
-    if not refresh then
-        focusStep logFocus updatedSteps
-
-    else
-        updatedSteps
-
-
 {-| getCurrentStep : takes steps and returns the newest running or pending step
 -}
 getCurrentStep : Steps -> Int
@@ -230,17 +192,6 @@ getCurrentStep steps =
                 |> Maybe.withDefault 0
     in
     step
-
-
-{-| getStepInfo : takes steps and step number and returns the step update information
--}
-getStepInfo : Steps -> Int -> ( Bool, ( Maybe Int, Maybe Int ) )
-getStepInfo steps stepNumber =
-    steps
-        |> List.filter (\step -> step.number == stepNumber)
-        |> List.map (\step -> ( step.viewing, step.logFocus ))
-        |> List.head
-        |> Maybe.withDefault ( False, ( Nothing, Nothing ) )
 
 
 {-| focusLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.

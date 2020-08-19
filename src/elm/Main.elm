@@ -722,7 +722,7 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Logs.mergeSteps logFocus refresh model.autoExpandSteps model.steps
+                                |> Pages.Build.Update.mergeSteps logFocus refresh model.autoExpandSteps model.steps
 
                         updatedModel =
                             { model | steps = RemoteData.succeed mergedSteps }

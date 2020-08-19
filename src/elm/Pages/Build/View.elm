@@ -343,8 +343,11 @@ viewLines org repo buildNumber stepNumber stepName logFocus log following shiftD
         long =
             List.length lines > 25
 
+        filename =
+            stepLogsFilename org repo buildNumber stepNumber stepName
+
         logs =
-            topLogActions org repo buildNumber stepNumber stepName following long (decodeLog log)
+            topLogActions stepNumber following long filename (decodeLog log)
                 :: lines
                 ++ [ bottomLogActions stepNumber following long ]
                 |> List.filterMap identity
@@ -402,23 +405,7 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
                     ]
 
             Nothing ->
-                noLogs stepNumber
-        ]
-
-
-{-| noLogs : takes step number and renders log line with no data
--}
-noLogs : StepNumber -> Html Msg
-noLogs stepNumber =
-    div
-        [ class "wrapper"
-        , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, "no-logs" ]
-        ]
-        [ td [] []
-        , td [ class "break-all", class "overflow-auto" ]
-            [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, "no-logs" ] ]
-                [ text "No data" ]
-            ]
+                text ""
         ]
 
 
@@ -442,31 +429,18 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
 
 {-| topLogActions : renders action buttons for the top of a step log
 -}
-topLogActions : Org -> Repo -> BuildNumber -> StepNumber -> String -> Int -> Bool -> String -> Maybe (Html Msg)
-topLogActions org repo buildNumber stepNumber stepName following long logs =
-    tr
-        [ class "line" ]
-        [ div [ class "wrapper", class "buttons", class "justify-flex-end" ]
-            [ button
-                [ class "button"
-                , class "-icon"
-                , attribute "data-tooltip" "download logs"
-                , class "tooltip-left"
-                , onClick <| DownloadLogs (stepLogsFilename org repo buildNumber stepNumber stepName) <| logs
-                ]
-                [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-            , if long then
-                button
-                    [ attribute "data-tooltip" "jump to bottom"
-                    , class "tooltip-left"
-                    , class "button"
-                    , class "-icon"
-                    , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
-                    ]
-                    [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+topLogActions : StepNumber -> Int -> Bool -> String -> String -> Maybe (Html Msg)
+topLogActions stepNumber following long filename logs =
+    div
+        [ class "line", class "-align-center" ]
+        [ if String.isEmpty logs then
+            code [ class "no-data" ] [ text "No data" ]
 
-              else
-                text ""
+          else
+            text ""
+        , div [ class "wrapper", class "buttons", class "justify-flex-end" ]
+            [ downloadButton filename logs
+            , jumpToBottomButton stepNumber long
             , stepFollowButton stepNumber following
             ]
         ]
@@ -477,25 +451,72 @@ topLogActions org repo buildNumber stepNumber stepName following long logs =
 -}
 bottomLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
 bottomLogActions stepNumber following long =
-    tr
+    div
         [ class "line" ]
-        [ div [ class "wrapper", class "buttons", class "justify-flex-end" ] <|
-            if long then
-                [ button
-                    [ attribute "data-tooltip" "jump to top"
-                    , class "tooltip-left"
-                    , class "button"
-                    , class "-icon"
-                    , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
-                    ]
-                    [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-                , stepFollowButton stepNumber following
-                ]
+        [ div [ class "wrapper", class "buttons", class "justify-flex-end" ]
+            [ jumpToTopButton stepNumber long
+            , if long then
+                stepFollowButton stepNumber following
 
-            else
-                [ text "" ]
+              else
+                text ""
+            ]
         ]
         |> Just
+
+
+{-| jumpToBottomButton : renders action button for jumping to the bottom of a step log
+-}
+jumpToBottomButton : StepNumber -> Bool -> Html Msg
+jumpToBottomButton stepNumber long =
+    if long then
+        button
+            [ attribute "data-tooltip" "jump to bottom"
+            , class "tooltip-left"
+            , class "button"
+            , class "-icon"
+            , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
+            ]
+            [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+    else
+        text ""
+
+
+{-| jumpToTopButton : renders action button for jumping to the top of a step log
+-}
+jumpToTopButton : StepNumber -> Bool -> Html Msg
+jumpToTopButton stepNumber long =
+    if long then
+        button
+            [ attribute "data-tooltip" "jump to top"
+            , class "tooltip-left"
+            , class "button"
+            , class "-icon"
+            , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
+            ]
+            [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+    else
+        text ""
+
+
+{-| downloadButton : renders action button for downloading a step log
+-}
+downloadButton : String -> String -> Html Msg
+downloadButton filename logs =
+    if not <| String.isEmpty logs then
+        button
+            [ class "button"
+            , class "-icon"
+            , attribute "data-tooltip" "download logs"
+            , class "tooltip-left"
+            , onClick <| DownloadLogs filename logs
+            ]
+            [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+    else
+        text ""
 
 
 {-| stepFollowButton : renders button for following step logs

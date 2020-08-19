@@ -4,13 +4,13 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandActiveStep, update)
+module Pages.Build.Update exposing (expandActiveStep, mergeSteps, update)
 
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import File.Download as Download
 import List.Extra
-import Pages.Build.Logs exposing (logFocusFragment)
+import Pages.Build.Logs exposing (focusStep, logFocusFragment)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -19,6 +19,7 @@ import Pages.Build.Model
         )
 import RemoteData exposing (RemoteData(..), WebData)
 import Task
+import Util exposing (overwriteById)
 import Vela
     exposing
         ( StepNumber
@@ -136,6 +137,42 @@ clickStep steps stepNumber =
     )
 
 
+{-| mergeSteps : takes takes current steps and incoming step information and merges them, updating old logs and retaining previous state.
+-}
+mergeSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
+mergeSteps logFocus refresh autoExpand currentSteps incomingSteps =
+    let
+        updatedSteps =
+            currentSteps
+                |> RemoteData.unwrap incomingSteps
+                    (\steps ->
+                        incomingSteps
+                            |> List.map
+                                (\incomingStep ->
+                                    let
+                                        ( viewing, focus ) =
+                                            getStepInfo steps incomingStep.number
+
+                                        shouldView =
+                                            (autoExpand && incomingStep.status /= Vela.Pending) || viewing
+                                    in
+                                    overwriteById
+                                        { incomingStep
+                                            | viewing = shouldView
+                                            , logFocus = focus
+                                        }
+                                        steps
+                                )
+                            |> List.filterMap identity
+                    )
+    in
+    if not refresh then
+        focusStep logFocus updatedSteps
+
+    else
+        updatedSteps
+
+
 {-| isViewingStep : takes steps and step number and returns the step viewing state
 -}
 isViewingStep : WebData Steps -> StepNumber -> Bool
@@ -182,3 +219,14 @@ expandActiveStep stepNumber steps =
         (\step -> (String.fromInt step.number == stepNumber) && (step.status /= Vela.Pending))
         (\step -> { step | viewing = True })
         steps
+
+
+{-| getStepInfo : takes steps and step number and returns the step update information
+-}
+getStepInfo : Steps -> Int -> ( Bool, ( Maybe Int, Maybe Int ) )
+getStepInfo steps stepNumber =
+    steps
+        |> List.filter (\step -> step.number == stepNumber)
+        |> List.map (\step -> ( step.viewing, step.logFocus ))
+        |> List.head
+        |> Maybe.withDefault ( False, ( Nothing, Nothing ) )
