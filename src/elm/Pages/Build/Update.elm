@@ -48,8 +48,18 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
 
                 stepOpened =
                     isViewingStep steps stepNumber
+
+                onFollowedStep =
+                    model.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+
+                follow =
+                    if onFollowedStep && not stepOpened then
+                        0
+
+                    else
+                        model.followingStep
             in
-            ( { model | steps = steps }
+            ( { model | steps = steps, followingStep = follow }
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
@@ -78,9 +88,13 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
         FollowSteps org repo buildNumber expanding ->
             let
                 steps =
-                    model.steps
-                        |> RemoteData.unwrap model.steps
-                            (\steps_ -> steps_ |> expandActiveSteps |> RemoteData.succeed)
+                    if not expanding then
+                        model.steps
+                            |> RemoteData.unwrap model.steps
+                                (\steps_ -> steps_ |> expandActiveSteps |> RemoteData.succeed)
+
+                    else
+                        model.steps
 
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
@@ -96,7 +110,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         |> RemoteData.unwrap model.steps
                             (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
             in
-            ( { model | steps = steps }
+            ( { model | steps = steps, followingStep = 0 }
             , Cmd.none
             )
 
