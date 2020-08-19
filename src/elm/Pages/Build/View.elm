@@ -287,18 +287,18 @@ viewLogs org repo buildNumber step logs follow shiftDown =
             stepSkipped step
 
         _ ->
-            viewLogLines org repo buildNumber (String.fromInt step.number) step.name step.logFocus (getStepLog step logs) follow shiftDown
+            viewLogLines org repo buildNumber (String.fromInt step.number) step.logFocus (getStepLog step logs) follow shiftDown
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
 -}
-viewLogLines : Org -> Repo -> BuildNumber -> StepNumber -> String -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLogLines org repo buildNumber stepNumber stepName logFocus log following shiftDown =
+viewLogLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
+viewLogLines org repo buildNumber stepNumber logFocus log following shiftDown =
     let
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
-                    viewLines org repo buildNumber stepNumber stepName logFocus log following shiftDown
+                    viewLines org repo buildNumber stepNumber logFocus log following shiftDown
 
                 RemoteData.Failure _ ->
                     code [ Util.testAttribute "logs-error" ] [ text "error" ]
@@ -311,8 +311,8 @@ viewLogLines org repo buildNumber stepNumber stepName logFocus log following shi
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : Org -> Repo -> BuildNumber -> StepNumber -> String -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLines org repo buildNumber stepNumber stepName logFocus log following shiftDown =
+viewLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
+viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
     let
         lines =
             if not <| logEmpty log then
@@ -344,7 +344,7 @@ viewLines org repo buildNumber stepNumber stepName logFocus log following shiftD
             List.length lines > 25
 
         filename =
-            stepLogsFilename org repo buildNumber stepNumber stepName
+            stepLogsFilename org repo buildNumber stepNumber
 
         logs =
             topLogActions stepNumber following long filename (decodeLog log)
