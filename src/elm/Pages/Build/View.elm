@@ -207,7 +207,7 @@ viewPreview now org repo expanding build =
                     , div
                         [ class "buttons"
                         , class "log-actions"
-                        , Util.testAttribute <| buildNumber ++ "-log-actions"
+                        , Util.testAttribute <| "log-actions-" ++ buildNumber
                         ]
                         logActions
                     ]
@@ -449,7 +449,7 @@ topLogActions stepNumber following long filename logs =
             [ class "wrapper"
             , class "buttons"
             , class "justify-flex-end"
-            , Util.testAttribute <| stepNumber ++ "-top-log-actions"
+            , Util.testAttribute <| "top-log-actions-" ++ stepNumber
             ]
             [ downloadButton stepNumber filename logs
             , jumpToBottomButton stepNumber long
@@ -469,7 +469,7 @@ bottomLogActions stepNumber following long =
             [ class "wrapper"
             , class "buttons"
             , class "justify-flex-end"
-            , Util.testAttribute <| stepNumber ++ "-bottom-log-actions"
+            , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
             ]
             [ jumpToTopButton stepNumber long
             , if long then
@@ -492,7 +492,7 @@ jumpToBottomButton stepNumber long =
             , class "tooltip-left"
             , class "button"
             , class "-icon"
-            , Util.testAttribute <| stepNumber ++ "-jump-to-bottom"
+            , Util.testAttribute <| "jump-to-bottom-" ++ stepNumber
             , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
             ]
             [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -511,7 +511,7 @@ jumpToTopButton stepNumber long =
             , class "tooltip-left"
             , class "button"
             , class "-icon"
-            , Util.testAttribute <| stepNumber ++ "-jump-to-top"
+            , Util.testAttribute <| "jump-to-top-" ++ stepNumber
             , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
             ]
             [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -530,7 +530,7 @@ downloadButton stepNumber filename logs =
             , class "-icon"
             , attribute "data-tooltip" "download logs"
             , class "tooltip-left"
-            , Util.testAttribute <| stepNumber ++ "-download-logs"
+            , Util.testAttribute <| "download-logs-" ++ stepNumber
             , onClick <| DownloadLogs filename logs
             ]
             [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -562,7 +562,7 @@ stepFollowButton stepNumber following =
         , attribute "data-tooltip" tooltip
         , class "button"
         , class "-icon"
-        , Util.testAttribute <| stepNumber ++ "-follow-logs"
+        , Util.testAttribute <| "follow-logs-" ++ stepNumber
         , onClick <| FollowStep toFollow
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -619,7 +619,7 @@ autoExpandStepsButton org repo buildNumber expanding =
         , attribute "data-tooltip" tooltip
         , class "button"
         , class "-icon"
-        , Util.testAttribute <| buildNumber ++ "-auto-expand"
+        , Util.testAttribute <| "auto-expand-" ++ buildNumber
         , onClick <| FollowSteps org repo buildNumber expanding
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
