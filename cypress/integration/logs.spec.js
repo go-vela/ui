@@ -46,4 +46,7 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
       cy.get('.ansi-bold').should('exist');
     });
   });
+  it('build preview should have log actions', () => {
+    cy.get('[data-test=1-log-actions]').should('exist');
+  });
 });

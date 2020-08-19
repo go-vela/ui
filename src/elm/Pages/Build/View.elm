@@ -203,7 +203,14 @@ viewPreview now org repo expanding build =
                         ]
                     ]
                 , div [ class "row", class "" ]
-                    [ viewError build, div [ class "buttons", class "log-actions" ] logActions ]
+                    [ viewError build
+                    , div
+                        [ class "buttons"
+                        , class "log-actions"
+                        , Util.testAttribute <| buildNumber ++ "-log-actions"
+                        ]
+                        logActions
+                    ]
                 ]
             ]
     in
@@ -438,8 +445,13 @@ topLogActions stepNumber following long filename logs =
 
           else
             text ""
-        , div [ class "wrapper", class "buttons", class "justify-flex-end" ]
-            [ downloadButton filename logs
+        , div
+            [ class "wrapper"
+            , class "buttons"
+            , class "justify-flex-end"
+            , Util.testAttribute <| stepNumber ++ "-top-log-actions"
+            ]
+            [ downloadButton stepNumber filename logs
             , jumpToBottomButton stepNumber long
             , stepFollowButton stepNumber following
             ]
@@ -453,7 +465,12 @@ bottomLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
 bottomLogActions stepNumber following long =
     div
         [ class "line" ]
-        [ div [ class "wrapper", class "buttons", class "justify-flex-end" ]
+        [ div
+            [ class "wrapper"
+            , class "buttons"
+            , class "justify-flex-end"
+            , Util.testAttribute <| stepNumber ++ "-bottom-log-actions"
+            ]
             [ jumpToTopButton stepNumber long
             , if long then
                 stepFollowButton stepNumber following
@@ -475,6 +492,7 @@ jumpToBottomButton stepNumber long =
             , class "tooltip-left"
             , class "button"
             , class "-icon"
+            , Util.testAttribute <| stepNumber ++ "-jump-to-bottom"
             , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
             ]
             [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -493,6 +511,7 @@ jumpToTopButton stepNumber long =
             , class "tooltip-left"
             , class "button"
             , class "-icon"
+            , Util.testAttribute <| stepNumber ++ "-jump-to-top"
             , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
             ]
             [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -503,14 +522,15 @@ jumpToTopButton stepNumber long =
 
 {-| downloadButton : renders action button for downloading a step log
 -}
-downloadButton : String -> String -> Html Msg
-downloadButton filename logs =
+downloadButton : String -> String -> String -> Html Msg
+downloadButton stepNumber filename logs =
     if not <| String.isEmpty logs then
         button
             [ class "button"
             , class "-icon"
             , attribute "data-tooltip" "download logs"
             , class "tooltip-left"
+            , Util.testAttribute <| stepNumber ++ "-download-logs"
             , onClick <| DownloadLogs filename logs
             ]
             [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -542,6 +562,7 @@ stepFollowButton stepNumber following =
         , attribute "data-tooltip" tooltip
         , class "button"
         , class "-icon"
+        , Util.testAttribute <| stepNumber ++ "-follow-logs"
         , onClick <| FollowStep toFollow
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -598,6 +619,7 @@ autoExpandStepsButton org repo buildNumber expanding =
         , attribute "data-tooltip" tooltip
         , class "button"
         , class "-icon"
+        , Util.testAttribute <| buildNumber ++ "-auto-expand"
         , onClick <| FollowSteps org repo buildNumber expanding
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
