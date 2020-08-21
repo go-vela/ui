@@ -372,9 +372,9 @@ stepBottomTrackerFocusId stepNumber =
 
 {-| stepLogsFilename : takes step information and produces a filename for downloading logs
 -}
-stepLogsFilename : Org -> Repo -> BuildNumber -> StepNumber -> String
-stepLogsFilename org repo buildNumber stepNumber =
-    String.join "-" [ org, repo, buildNumber, stepNumber ]
+stepLogsFilename : Org -> Repo -> BuildNumber -> String -> String -> String
+stepLogsFilename org repo buildNumber resourceType resourceNumber =
+    String.join "-" [ org, repo, buildNumber, resourceType, resourceNumber ]
 
 
 

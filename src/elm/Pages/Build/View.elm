@@ -26,6 +26,7 @@ import Html
         , div
         , em
         , li
+        , small
         , span
         , strong
         , summary
@@ -91,18 +92,23 @@ import Vela
 {-| viewBuild : renders entire build based on current application time
 -}
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
-viewBuild { time, build, steps, logs, followingStep, autoExpandSteps, shift } org repo =
+viewBuild { time, build, steps, logs, followingStep, shift } org repo =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview time org repo (Just autoExpandSteps) bld, String.fromInt bld.number )
+                    ( viewPreview time org repo bld, String.fromInt bld.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, "" )
 
                 _ ->
                     ( text "", "" )
+
+        logActions =
+            [ collapseAllStepsButton
+            , expandAllStepsButton org repo buildNumber
+            ]
 
         buildSteps =
             case steps of
@@ -121,15 +127,23 @@ viewBuild { time, build, steps, logs, followingStep, autoExpandSteps, shift } or
                         Util.smallLoader
 
         markdown =
-            [ buildPreview, buildSteps ]
+            [ buildPreview
+            , div
+                [ class "buttons"
+                , class "log-actions"
+                , Util.testAttribute "log-actions"
+                ]
+                logActions
+            , buildSteps
+            ]
     in
     div [ Util.testAttribute "full-build" ] markdown
 
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Org -> Repo -> Maybe Bool -> Build -> Html Msg
-viewPreview now org repo expanding build =
+viewPreview : Posix -> Org -> Repo -> Build -> Html Msg
+viewPreview now org repo build =
     let
         buildNumber =
             String.fromInt build.number
@@ -170,17 +184,6 @@ viewPreview now org repo expanding build =
         statusClass =
             statusToClass build.status
 
-        logActions =
-            case expanding of
-                Just e ->
-                    [ collapseAllStepsButton
-                    , expandAllStepsButton org repo buildNumber
-                    , autoExpandStepsButton org repo buildNumber e
-                    ]
-
-                Nothing ->
-                    [ text "" ]
-
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
@@ -202,14 +205,8 @@ viewPreview now org repo expanding build =
                         , div [ class "duration" ] duration
                         ]
                     ]
-                , div [ class "row", class "" ]
+                , div [ class "row" ]
                     [ viewError build
-                    , div
-                        [ class "buttons"
-                        , class "log-actions"
-                        , Util.testAttribute <| "log-actions-" ++ buildNumber
-                        ]
-                        logActions
                     ]
                 ]
             ]
@@ -350,8 +347,9 @@ viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
         long =
             List.length lines > 25
 
+        -- update resource filename when adding stages/services
         filename =
-            stepLogsFilename org repo buildNumber stepNumber
+            stepLogsFilename org repo buildNumber "step" stepNumber
 
         logs =
             topLogActions stepNumber following long filename (decodeLog log)
@@ -361,22 +359,22 @@ viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
 
         topTracker =
             tr [ class "line", class "opacity-0" ]
-                [ button
-                    -- auto page focus requires button role
+                [ a
                     [ id <|
                         stepTopTrackerFocusId stepNumber
                     , Util.testAttribute <| "top-log-tracker-" ++ stepNumber
+                    , Html.Attributes.tabindex -1
                     ]
                     []
                 ]
 
         bottomTracker =
             tr [ class "line", class "opacity-0" ]
-                [ button
-                    -- auto page focus requires button role
+                [ a
                     [ id <|
                         stepBottomTrackerFocusId stepNumber
                     , Util.testAttribute <| "bottom-log-tracker-" ++ stepNumber
+                    , Html.Attributes.tabindex -1
                     ]
                     []
                 ]
@@ -459,6 +457,32 @@ topLogActions stepNumber following long filename logs =
         |> Just
 
 
+{-| collapseAllStepsButton : renders a button for collapsing all steps
+-}
+collapseAllStepsButton : Html Msg
+collapseAllStepsButton =
+    Html.button
+        [ class "button"
+        , class "-link"
+        , onClick CollapseAllSteps
+        , Util.testAttribute "collapse-all"
+        ]
+        [ small [] [ text "collapse all" ] ]
+
+
+{-| expandAllStepsButton : renders a button for expanding all steps
+-}
+expandAllStepsButton : Org -> Repo -> BuildNumber -> Html Msg
+expandAllStepsButton org repo buildNumber =
+    Html.button
+        [ class "button"
+        , class "-link"
+        , onClick <| ExpandAllSteps org repo buildNumber
+        , Util.testAttribute "expand-all"
+        ]
+        [ small [] [ text "expand all" ] ]
+
+
 {-| bottomLogActions : renders action buttons for the bottom of a step log
 -}
 bottomLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
@@ -488,14 +512,12 @@ jumpToBottomButton : StepNumber -> Bool -> Html Msg
 jumpToBottomButton stepNumber long =
     if long then
         button
-            [ attribute "data-tooltip" "jump to bottom"
-            , class "tooltip-left"
-            , class "button"
-            , class "-icon"
+            [ class "button"
+            , class "-link"
             , Util.testAttribute <| "jump-to-bottom-" ++ stepNumber
             , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
             ]
-            [ FeatherIcons.arrowDownCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+            [ text "jump to bottom" ]
 
     else
         text ""
@@ -507,14 +529,12 @@ jumpToTopButton : StepNumber -> Bool -> Html Msg
 jumpToTopButton stepNumber long =
     if long then
         button
-            [ attribute "data-tooltip" "jump to top"
-            , class "tooltip-left"
-            , class "button"
-            , class "-icon"
+            [ class "button"
+            , class "-link"
             , Util.testAttribute <| "jump-to-top-" ++ stepNumber
             , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
             ]
-            [ FeatherIcons.arrowUpCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+            [ text "jump to top" ]
 
     else
         text ""
@@ -527,13 +547,11 @@ downloadButton stepNumber filename logs =
     if not <| String.isEmpty logs then
         button
             [ class "button"
-            , class "-icon"
-            , attribute "data-tooltip" "download logs"
-            , class "tooltip-left"
+            , class "-link"
             , Util.testAttribute <| "download-logs-" ++ stepNumber
             , onClick <| DownloadLogs filename logs
             ]
-            [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+            [ text "download step logs" ]
 
     else
         text ""
@@ -558,10 +576,10 @@ stepFollowButton stepNumber following =
                 ( "start following step logs", FeatherIcons.playCircle, stepNum )
     in
     button
-        [ class "tooltip-left"
-        , attribute "data-tooltip" tooltip
-        , class "button"
+        [ class "button"
         , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" tooltip
         , Util.testAttribute <| "follow-logs-" ++ stepNumber
         , onClick <| FollowStep toFollow
         ]
@@ -602,55 +620,6 @@ stepSkipped : Step -> Html msg
 stepSkipped _ =
     div [ class "step-skipped", Util.testAttribute "step-skipped" ]
         [ span [ class "label" ] [ text "step was skipped" ] ]
-
-
-autoExpandStepsButton : Org -> Repo -> BuildNumber -> Bool -> Html Msg
-autoExpandStepsButton org repo buildNumber expanding =
-    let
-        ( tooltip, icon ) =
-            if expanding then
-                ( "stop auto expanding steps", FeatherIcons.pauseCircle )
-
-            else
-                ( "start auto expanding steps", FeatherIcons.playCircle )
-    in
-    Html.button
-        [ class "tooltip-left"
-        , attribute "data-tooltip" tooltip
-        , class "button"
-        , class "-icon"
-        , Util.testAttribute <| "auto-expand-" ++ buildNumber
-        , onClick <| FollowSteps org repo buildNumber expanding
-        ]
-        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-
-{-| collapseAllStepsButton : renders a button for collapsing all steps
--}
-collapseAllStepsButton : Html Msg
-collapseAllStepsButton =
-    Html.button
-        [ class "tooltip-left"
-        , attribute "data-tooltip" "collapse all steps"
-        , class "button"
-        , class "-icon"
-        , onClick CollapseAllSteps
-        ]
-        [ FeatherIcons.minusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-
-{-| expandAllStepsButton : renders a button for expanding all steps
--}
-expandAllStepsButton : Org -> Repo -> BuildNumber -> Html Msg
-expandAllStepsButton org repo buildNumber =
-    Html.button
-        [ class "tooltip-left"
-        , attribute "data-tooltip" "expand all steps"
-        , class "button"
-        , class "-icon"
-        , onClick <| ExpandAllSteps org repo buildNumber
-        ]
-        [ FeatherIcons.plusCircle |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| viewStepIcon : renders a build step status icon

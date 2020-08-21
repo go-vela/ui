@@ -37,7 +37,6 @@ type alias PartialModel a =
         , logs : Logs
         , shift : Bool
         , followingStep : Int
-        , autoExpandSteps : Bool
     }
 
 
@@ -50,7 +49,6 @@ type Msg
     | FocusLogs String
     | DownloadLogs String String
     | FollowStep Int
-    | FollowSteps Org Repo BuildNumber Bool
     | ExpandAllSteps Org Repo BuildNumber
     | CollapseAllSteps
     | FocusOn String

@@ -196,7 +196,6 @@ type alias Model =
     , steps : WebData Steps
     , logs : Logs
     , followingStep : Int
-    , autoExpandSteps : Bool
     , velaAPI : String
     , velaFeedbackURL : String
     , velaDocsURL : String
@@ -249,7 +248,6 @@ init flags url navKey =
             , steps = NotAsked
             , logs = []
             , followingStep = 0
-            , autoExpandSteps = False
             , velaFeedbackURL = flags.velaFeedbackURL
             , velaDocsURL = flags.velaDocsURL
             , navigationKey = navKey
@@ -722,7 +720,7 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.mergeSteps logFocus refresh model.autoExpandSteps model.steps
+                                |> Pages.Build.Update.mergeSteps logFocus refresh model.steps
 
                         updatedModel =
                             { model | steps = RemoteData.succeed mergedSteps }
@@ -1663,7 +1661,6 @@ viewContent model =
                     , steps = model.steps
                     , logs = model.logs
                     , followingStep = model.followingStep
-                    , autoExpandSteps = model.autoExpandSteps
                     , shift = model.shift
                     }
                     org
@@ -2377,7 +2374,6 @@ loadBuildPage model org repo buildNumber focusFragment =
         , build = Loading
         , steps = NotAsked
         , followingStep = 0
-        , autoExpandSteps = False
         , logs = []
       }
     , Cmd.batch
@@ -2635,7 +2631,7 @@ getBuildStepsLogs model org repo buildNumber steps logFocus refresh =
     Cmd.batch <|
         List.map
             (\step ->
-                if step.viewing || model.autoExpandSteps then
+                if step.viewing then
                     getBuildStepLogs model org repo buildNumber (String.fromInt step.number) logFocus refresh
 
                 else

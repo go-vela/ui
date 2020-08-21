@@ -47,8 +47,17 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
     });
   });
 
-  it('build preview should have log actions', () => {
-    cy.get('[data-test=log-actions-1]').should('exist');
+  it('build should have collapse/expand actions', () => {
+    cy.get('[data-test=log-actions]').should('exist').within(() => {
+      cy.get('[data-test=collapse-all]').should('exist');
+      cy.get('[data-test=expand-all]').should('exist');
+    });
+  });
+
+  it('click expand all should expand all steps', () => {
+    cy.get('[data-test=log-line-1-1]').should('not.exist');
+    cy.get('[data-test=expand-all]').click({ force: true });
+    cy.get('[data-test=log-line-1-1]').should('exist');
   });
 
   it('log should have top and bottom log actions', () => {

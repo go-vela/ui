@@ -85,24 +85,6 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             , Cmd.none
             )
 
-        FollowSteps org repo buildNumber expanding ->
-            let
-                steps =
-                    if not expanding then
-                        model.steps
-                            |> RemoteData.unwrap model.steps
-                                (\steps_ -> steps_ |> expandActiveSteps |> RemoteData.succeed)
-
-                    else
-                        model.steps
-
-                action =
-                    getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
-            in
-            ( { model | autoExpandSteps = not expanding, steps = steps }
-            , action
-            )
-
         CollapseAllSteps ->
             let
                 steps =
@@ -153,8 +135,8 @@ clickStep steps stepNumber =
 
 {-| mergeSteps : takes takes current steps and incoming step information and merges them, updating old logs and retaining previous state.
 -}
-mergeSteps : Maybe String -> Bool -> Bool -> WebData Steps -> Steps -> Steps
-mergeSteps logFocus refresh autoExpand currentSteps incomingSteps =
+mergeSteps : Maybe String -> Bool -> WebData Steps -> Steps -> Steps
+mergeSteps logFocus refresh currentSteps incomingSteps =
     let
         updatedSteps =
             currentSteps
@@ -166,13 +148,10 @@ mergeSteps logFocus refresh autoExpand currentSteps incomingSteps =
                                     let
                                         ( viewing, focus ) =
                                             getStepInfo steps incomingStep.number
-
-                                        shouldView =
-                                            (autoExpand && incomingStep.status /= Vela.Pending) || viewing
                                     in
                                     overwriteById
                                         { incomingStep
-                                            | viewing = shouldView
+                                            | viewing = viewing
                                             , logFocus = focus
                                         }
                                         steps
@@ -213,16 +192,6 @@ toggleStepView stepNumber =
 setAllStepViews : Bool -> Steps -> Steps
 setAllStepViews value =
     List.map (\step -> { step | viewing = value })
-
-
-{-| expandActiveSteps : takes steps and sets steps viewing state if the step is active
--}
-expandActiveSteps : Steps -> Steps
-expandActiveSteps steps =
-    List.Extra.updateIf
-        (\step -> step.status /= Vela.Pending)
-        (\step -> { step | viewing = True })
-        steps
 
 
 {-| expandActiveStep : takes steps and sets step viewing state if the step is active
