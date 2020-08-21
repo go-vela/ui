@@ -106,9 +106,18 @@ viewBuild { time, build, steps, logs, followingStep, shift } org repo =
                     ( text "", "" )
 
         logActions =
-            [ collapseAllStepsButton
-            , expandAllStepsButton org repo buildNumber
-            ]
+            steps
+                |> RemoteData.unwrap (text "")
+                    (\_ ->
+                        div
+                            [ class "buttons"
+                            , class "log-actions"
+                            , Util.testAttribute "log-actions"
+                            ]
+                            [ collapseAllStepsButton
+                            , expandAllStepsButton org repo buildNumber
+                            ]
+                    )
 
         buildSteps =
             case steps of
@@ -128,12 +137,7 @@ viewBuild { time, build, steps, logs, followingStep, shift } org repo =
 
         markdown =
             [ buildPreview
-            , div
-                [ class "buttons"
-                , class "log-actions"
-                , Util.testAttribute "log-actions"
-                ]
-                logActions
+            , logActions
             , buildSteps
             ]
     in
