@@ -49,11 +49,13 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                 stepOpened =
                     isViewingStep steps stepNumber
 
+                -- step clicked is step being followed
                 onFollowedStep =
                     model.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                 follow =
                     if onFollowedStep && not stepOpened then
+                        -- stop following a step when collapsed
                         0
 
                     else
@@ -103,6 +105,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
                         model.steps
 
+                -- refresh logs for expanded steps
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
             in
@@ -159,6 +162,8 @@ mergeSteps logFocus refresh currentSteps incomingSteps =
                             |> List.filterMap identity
                     )
     in
+
+    -- when not an automatic refresh, respect the url focus
     if not refresh then
         focusStep logFocus updatedSteps
 
