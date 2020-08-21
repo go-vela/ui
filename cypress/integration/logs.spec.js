@@ -55,43 +55,45 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
   });
 
   it('click collapse all should collapse all steps', () => {
-    // expand all steps manually
-    cy.get('[data-test=step-header-2]').click({ force: true });
-    cy.get('[data-test=step-header-3]').click({ force: true });
-    cy.get('[data-test=step-header-4]').click({ force: true });
-    cy.get('[data-test=step-header-5]').click({ force: true });
+    // expand unopened steps
+    cy.clickStep();
 
-    // verify logs exist 
-    cy.get('[data-test=log-line-2-1]').should('exist');
-    cy.get('[data-test=log-line-3-1]').should('exist');
-    cy.get('[data-test=log-line-4-1]').should('exist');
-    cy.get('[data-test=log-line-5-1]').should('exist');
+    // verify the steps are open
+    cy.get('[data-test=step-header-1]').parent().should('have.attr', 'open');
+    cy.get('[data-test=step-header-2]').parent().should('have.attr', 'open');
+    cy.get('[data-test=step-header-3]').parent().should('have.attr', 'open');
 
-    // collapse
+    // collapse all
     cy.get('[data-test=collapse-all]').click({ force: true });
 
     // verify logs are hidden
-    cy.get('[data-test=log-line-2-1]').should('not.exist');
-    cy.get('[data-test=log-line-3-1]').should('not.exist');
-    cy.get('[data-test=log-line-4-1]').should('not.exist');
-    cy.get('[data-test=log-line-5-1]').should('not.exist');
+    cy.get('[data-test=step-header-1]').parent().should('not.have.attr', 'open');
+    cy.get('[data-test=step-header-2]').parent().should('not.have.attr', 'open');
+    cy.get('[data-test=step-header-3]').parent().should('not.have.attr', 'open');
+    cy.get('[data-test=step-header-4]').parent().should('not.have.attr', 'open');
+    cy.get('[data-test=step-header-5]').parent().should('not.have.attr', 'open');
   });
 
   it('click expand all should expand all steps', () => {
-    // verify they do not exist before expanding
-    cy.get('[data-test=log-line-2-1]').should('not.exist');
-    cy.get('[data-test=log-line-3-1]').should('not.exist');
-    cy.get('[data-test=log-line-4-1]').should('not.exist');
-    cy.get('[data-test=log-line-5-1]').should('not.exist');
+    // close opened step
+    cy.get('[data-test=step-header-2]').click({ force: true });
 
-    // expand
+    // verify the steps are closed
+    cy.get('[data-test=step-header-1]').parent().should('not.have.attr', 'open');
+    cy.get('[data-test=step-header-2]').parent().should('not.have.attr', 'open');
+    cy.get('[data-test=step-header-3]').parent().should('not.have.attr', 'open');
+    cy.get('[data-test=step-header-4]').parent().should('not.have.attr', 'open');
+    cy.get('[data-test=step-header-5]').parent().should('not.have.attr', 'open');
+
+    // collapse all
     cy.get('[data-test=expand-all]').click({ force: true });
 
-    // verify logs loaded
-    cy.get('[data-test=log-line-2-1]').should('exist');
-    cy.get('[data-test=log-line-3-1]').should('exist');
-    cy.get('[data-test=log-line-4-1]').should('exist');
-    cy.get('[data-test=log-line-5-1]').should('exist');
+    // verify logs are hidden
+    cy.get('[data-test=step-header-1]').parent().should('have.attr', 'open');
+    cy.get('[data-test=step-header-2]').parent().should('have.attr', 'open');
+    cy.get('[data-test=step-header-3]').parent().should('have.attr', 'open');
+    cy.get('[data-test=step-header-4]').parent().should('have.attr', 'open');
+    cy.get('[data-test=step-header-5]').parent().should('have.attr', 'open');
   });
 
 
