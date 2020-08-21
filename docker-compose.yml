@@ -18,7 +18,7 @@ services:
 
   server:
     container_name: server
-    image: localhost:5000/vela-server
+    image: target/vela-server
     networks:
       - vela
     environment:
@@ -33,7 +33,7 @@ services:
       VELA_PORT: ':8080'
       VELA_SECRET: zB7mrKDTZqNeNTD8z47yG4DHywspAh
       VELA_SOURCE_DRIVER: github
-      VELA_SOURCE_URL: https://git.target.com/
+      VELA_SOURCE_URL: https://github.com/
       VELA_SECRET_VAULT: 'true'
       VELA_SECRET_VAULT_ADDR: http://vault:8200
       VELA_SECRET_VAULT_TOKEN: vela
@@ -47,28 +47,28 @@ services:
       - redis
       - vault
 
-  worker:
-    container_name: worker
-    image: localhost:5000/vela-worker
-    networks:
-      - vela
-    environment:
-      VELA_BUILD_LIMIT: 1
-      VELA_BUILD_TIMEOUT: 30m
-      VELA_LOG_LEVEL: debug
-      VELA_QUEUE_DRIVER: redis
-      VELA_QUEUE_CONFIG: redis://redis:6379
-      VELA_QUEUE_WORKER_ROUTES: larger,docker,large:docker
-      VELA_RUNTIME_DRIVER: docker
-      VELA_SERVER_ADDR: http://server:8080
-      VELA_SERVER_SECRET: zB7mrKDTZqNeNTD8z47yG4DHywspAh
-    restart: always
-    ports:
-      - '8081:8080'
-    volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock'
-    depends_on:
-      - server
+  # worker:
+  #   container_name: worker
+  #   image: target/vela-worker
+  #   networks:
+  #     - vela
+  #   environment:
+  #     VELA_BUILD_LIMIT: 1
+  #     VELA_BUILD_TIMEOUT: 30m
+  #     VELA_LOG_LEVEL: debug
+  #     VELA_QUEUE_DRIVER: redis
+  #     VELA_QUEUE_CONFIG: redis://redis:6379
+  #     VELA_QUEUE_WORKER_ROUTES: larger,docker,large:docker
+  #     VELA_RUNTIME_DRIVER: docker
+  #     VELA_SERVER_ADDR: http://server:8080
+  #     VELA_SERVER_SECRET: zB7mrKDTZqNeNTD8z47yG4DHywspAh
+  #   restart: always
+  #   ports:
+  #     - '8081:8080'
+  #   volumes:
+  #     - '/var/run/docker.sock:/var/run/docker.sock'
+  #   depends_on:
+  #     - server
 
   redis:
     container_name: redis
@@ -85,7 +85,7 @@ services:
       - vela
     environment:
       POSTGRES_DB: vela
-      POSTGRES_PASSWORD: zB7mrKDTZqNedbeaverNTD8z47yG4DHywspAh
+      POSTGRES_PASSWORD: zB7mrKDTZqNeNTD8z47yG4DHywspAh
       POSTGRES_USER: vela
     ports:
       - '5432:5432'
