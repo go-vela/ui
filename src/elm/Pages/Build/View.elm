@@ -450,7 +450,11 @@ topLogActions stepNumber following long filename logs =
             , Util.testAttribute <| "top-log-actions-" ++ stepNumber
             ]
             [ downloadButton stepNumber filename logs
-            , jumpToBottomButton stepNumber long
+            , if long then
+                jumpToBottomButton stepNumber
+
+              else
+                text ""
             , stepFollowButton stepNumber following
             ]
         ]
@@ -487,57 +491,49 @@ expandAllStepsButton org repo buildNumber =
 -}
 bottomLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
 bottomLogActions stepNumber following long =
-    div
-        [ class "line" ]
-        [ div
-            [ class "wrapper"
-            , class "buttons"
-            , class "justify-flex-end"
-            , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
-            ]
-            [ jumpToTopButton stepNumber long
-            , if long then
-                stepFollowButton stepNumber following
+    if long then
+        Just <|
+            div
+                [ class "line" ]
+                [ div
+                    [ class "wrapper"
+                    , class "buttons"
+                    , class "justify-flex-end"
+                    , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
+                    ]
+                    [ jumpToTopButton stepNumber
+                    , stepFollowButton stepNumber following
+                    ]
+                ]
 
-              else
-                text ""
-            ]
-        ]
-        |> Just
+    else
+        Just <| text ""
 
 
 {-| jumpToBottomButton : renders action button for jumping to the bottom of a step log
 -}
-jumpToBottomButton : StepNumber -> Bool -> Html Msg
-jumpToBottomButton stepNumber long =
-    if long then
-        button
-            [ class "button"
-            , class "-link"
-            , Util.testAttribute <| "jump-to-bottom-" ++ stepNumber
-            , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
-            ]
-            [ text "jump to bottom" ]
-
-    else
-        text ""
+jumpToBottomButton : StepNumber -> Html Msg
+jumpToBottomButton stepNumber =
+    button
+        [ class "button"
+        , class "-link"
+        , Util.testAttribute <| "jump-to-bottom-" ++ stepNumber
+        , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
+        ]
+        [ text "jump to bottom" ]
 
 
 {-| jumpToTopButton : renders action button for jumping to the top of a step log
 -}
-jumpToTopButton : StepNumber -> Bool -> Html Msg
-jumpToTopButton stepNumber long =
-    if long then
-        button
-            [ class "button"
-            , class "-link"
-            , Util.testAttribute <| "jump-to-top-" ++ stepNumber
-            , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
-            ]
-            [ text "jump to top" ]
-
-    else
-        text ""
+jumpToTopButton : StepNumber -> Html Msg
+jumpToTopButton stepNumber =
+    button
+        [ class "button"
+        , class "-link"
+        , Util.testAttribute <| "jump-to-top-" ++ stepNumber
+        , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
+        ]
+        [ text "jump to top" ]
 
 
 {-| downloadButton : renders action button for downloading a step log

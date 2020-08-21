@@ -54,11 +54,46 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
     });
   });
 
-  it('click expand all should expand all steps', () => {
-    cy.get('[data-test=log-line-1-1]').should('not.exist');
-    cy.get('[data-test=expand-all]').click({ force: true });
-    cy.get('[data-test=log-line-1-1]').should('exist');
+  it('click collapse all should collapse all steps', () => {
+    // expand all steps manually
+    cy.get('[data-test=step-header-2]').click({ force: true });
+    cy.get('[data-test=step-header-3]').click({ force: true });
+    cy.get('[data-test=step-header-4]').click({ force: true });
+    cy.get('[data-test=step-header-5]').click({ force: true });
+
+    // verify logs exist 
+    cy.get('[data-test=log-line-2-1]').should('exist');
+    cy.get('[data-test=log-line-3-1]').should('exist');
+    cy.get('[data-test=log-line-4-1]').should('exist');
+    cy.get('[data-test=log-line-5-1]').should('exist');
+
+    // collapse
+    cy.get('[data-test=collapse-all]').click({ force: true });
+
+    // verify logs are hidden
+    cy.get('[data-test=log-line-2-1]').should('not.exist');
+    cy.get('[data-test=log-line-3-1]').should('not.exist');
+    cy.get('[data-test=log-line-4-1]').should('not.exist');
+    cy.get('[data-test=log-line-5-1]').should('not.exist');
   });
+
+  it('click expand all should expand all steps', () => {
+    // verify they do not exist before expanding
+    cy.get('[data-test=log-line-2-1]').should('not.exist');
+    cy.get('[data-test=log-line-3-1]').should('not.exist');
+    cy.get('[data-test=log-line-4-1]').should('not.exist');
+    cy.get('[data-test=log-line-5-1]').should('not.exist');
+
+    // expand
+    cy.get('[data-test=expand-all]').click({ force: true });
+
+    // verify logs loaded
+    cy.get('[data-test=log-line-2-1]').should('exist');
+    cy.get('[data-test=log-line-3-1]').should('exist');
+    cy.get('[data-test=log-line-4-1]').should('exist');
+    cy.get('[data-test=log-line-5-1]').should('exist');
+  });
+
 
   it('log should have top and bottom log actions', () => {
     cy.get('[data-test=logs-2]').within(() => {
