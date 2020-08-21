@@ -56,7 +56,7 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
 
   it('click collapse all should collapse all steps', () => {
     // expand unopened steps
-    cy.clickStep();
+    cy.clickSteps();
 
     // verify the steps are open
     cy.get('[data-test=step-header-1]').parent().should('have.attr', 'open');
