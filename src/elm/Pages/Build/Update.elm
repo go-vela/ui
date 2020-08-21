@@ -162,7 +162,6 @@ mergeSteps logFocus refresh currentSteps incomingSteps =
                             |> List.filterMap identity
                     )
     in
-
     -- when not an automatic refresh, respect the url focus
     if not refresh then
         focusStep logFocus updatedSteps
