@@ -41,7 +41,11 @@ header {
 
   padding: 1em var(--horizontal-pad);
 
-  background: radial-gradient(circle at 50% -200%, var(--color-bg-light) -7%, transparent 50%);
+  background: radial-gradient(
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
+  );
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
@@ -517,11 +521,13 @@ nav {
 }
 
 .build-animation.-bottom.-running {
-  animation: build-status-parallax-running 26s linear 26s infinite, build-status-parallax-start 26s linear none;
+  animation: build-status-parallax-running 26s linear 26s infinite,
+    build-status-parallax-start 26s linear none;
 }
 
 .build-animation.-top.-running {
-  animation: build-status-parallax-running 22s linear 22s infinite, build-status-parallax-start 22s linear none;
+  animation: build-status-parallax-running 22s linear 22s infinite,
+    build-status-parallax-start 22s linear none;
 }
 
 .build-animation.-bottom.-start {
