@@ -113,6 +113,7 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
 
     // collapse all
     cy.get('[data-test=expand-all]').click({ force: true });
+    cy.wait('@getLogs-2');
 
     // verify logs are hidden
     cy.get('[data-test=step-header-1]').parent().should('have.attr', 'open');
