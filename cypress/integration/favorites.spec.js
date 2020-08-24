@@ -186,7 +186,7 @@ context('Favorites', () => {
               cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
               cy.get('[data-test=star-toggle-cat-purr]').as('togglePurr');
               cy.get('@togglePurr').click();
-              cy.get('[data-test=star-toggle-cat-purr]').should(
+              cy.get('a > [data-test=star-toggle-cat-purr]').should(
                 'not.be.visible',
               );
             });
