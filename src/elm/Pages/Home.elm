@@ -190,7 +190,6 @@ viewFavorite favorites toggleFavorite filtered favorite =
     a
         [ class "item"
         , Util.testAttribute "repo-item"
-        , Util.testAttribute "repo-view"
         , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
         ]
         [ div [] [ text name ]

@@ -39,11 +39,11 @@ context('Overview/Repositories Page', () => {
     });
 
     it('View button should exist for all repos', () => {
-      cy.get('[data-test=repo-view]').should('have.length', 3);
+      cy.get('[data-test=repo-item]').should('have.length', 3);
     });
 
     it('it should take you to the repo build page when utilizing the View button', () => {
-      cy.get('[data-test=repo-view]').first().click();
+      cy.get('[data-test=repo-item]').first().click();
       cy.location('pathname').should('eq', '/github/octocat');
     });
     it('org should show', () => {
