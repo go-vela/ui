@@ -187,12 +187,16 @@ viewFavorite favorites toggleFavorite filtered favorite =
             else
                 repo
     in
-    a
+    div
         [ class "item"
         , Util.testAttribute "repo-item"
-        , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
         ]
-        [ div [] [ text name ]
+        [ a
+            [ class "view-favorite"
+            , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
+            ]
+            [ text name
+            ]
         , div [ class "buttons" ]
             [ starToggle org repo toggleFavorite <| List.member favorite favorites
             , a

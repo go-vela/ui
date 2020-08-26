@@ -211,10 +211,18 @@ nav {
   align-items: center;
   justify-content: space-between;
   margin: 0.5rem 0 0 0;
-  padding: 1rem;
   text-decoration: none;
   color: var(--color-text);
   background-color: var(--color-bg-dark);
+}
+
+.view-favorite {
+  padding: 1rem;
+  flex: 1;
+}
+
+.item .buttons {
+  padding: 1rem;
 }
 
 .actions-divider {
