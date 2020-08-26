@@ -314,7 +314,11 @@ viewLogLines org repo buildNumber stepNumber logFocus log following shiftDown =
                 _ ->
                     div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
     in
-    div [ class "logs", Util.testAttribute <| "logs-" ++ stepNumber ] [ content ]
+    div [ 
+        class "logs", Util.testAttribute <| "logs-" ++ stepNumber ] 
+        [ div[][div[class "buttons", class "log-buttons"][ Maybe.withDefault (text "") <| topLogActions stepNumber following True "filename" (decodeLog log)]]
+        ,
+        content ]
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
@@ -356,8 +360,7 @@ viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
             stepLogsFilename org repo buildNumber "step" stepNumber
 
         logs =
-            topLogActions stepNumber following long filename (decodeLog log)
-                :: lines
+            lines
                 ++ [ bottomLogActions stepNumber following long ]
                 |> List.filterMap identity
 
@@ -506,7 +509,7 @@ bottomLogActions stepNumber following long =
                     , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
                     ]
                     [ jumpToTopButton stepNumber
-                    , stepFollowButton stepNumber following
+                    -- , stepFollowButton stepNumber following
                     ]
                 ]
 
