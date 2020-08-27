@@ -386,7 +386,7 @@ viewLines stepNumber logFocus log shiftDown =
                     []
                 ]
     in
-    table [ class "log-table" ] <| topTracker :: logs ++ [ bottomTracker ]
+    table [ class "log-table", class "padding-top-1", class "padding-bottom-1" ] <| topTracker :: logs ++ [ bottomTracker ]
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -507,7 +507,6 @@ bottomLogActions stepNumber long =
                     , class "buttons"
                     , class "justify-flex-end"
                     , class "padding-right-1"
-                    , class "padding-bottom-1"
                     , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
                     ]
                     [ jumpToTopButton stepNumber
