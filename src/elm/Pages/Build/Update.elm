@@ -177,7 +177,7 @@ isViewingStep steps stepNumber =
     steps
         |> RemoteData.withDefault []
         |> List.filter (\step -> String.fromInt step.number == stepNumber)
-        |> List.map (\step -> step.viewing)
+        |> List.map .viewing
         |> List.head
         |> Maybe.withDefault False
 
