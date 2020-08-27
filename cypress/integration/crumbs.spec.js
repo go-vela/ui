@@ -73,7 +73,6 @@ context('Crumbs', () => {
     });
     it('should show appropriate secrets crumbs', () => {
       cy.get('[data-test=crumb-secrets]').should('exist');
-      cy.get('[data-test=crumb-native]').should('exist');
       cy.get('[data-test=crumb-org]').should('exist');
       cy.get('[data-test=crumb-github]').should('exist');
     });
@@ -90,7 +89,6 @@ context('Crumbs', () => {
     });
     it('should show appropriate secrets crumbs', () => {
       cy.get('[data-test=crumb-secrets]').should('exist');
-      cy.get('[data-test=crumb-native]').should('exist');
       cy.get('[data-test=crumb-repo]').should('exist');
       cy.get('[data-test=crumb-github]').should('exist');
       cy.get('[data-test=crumb-octocat]').should('exist');
@@ -113,7 +111,6 @@ context('Crumbs', () => {
       });
       it('should show appropriate secrets crumbs', () => {
         cy.get('[data-test=crumb-secrets]').should('exist');
-        cy.get('[data-test=crumb-native]').should('exist');
         cy.get('[data-test=crumb-shared]').should('exist');
         cy.get('[data-test=crumb-github]').should('exist');
         cy.get('[data-test="crumb-octo/cat"]').should('exist');
@@ -128,7 +125,6 @@ context('Crumbs', () => {
     });
     it('should show appropriate secrets crumbs', () => {
       cy.get('[data-test=crumb-secrets]').should('exist');
-      cy.get('[data-test=crumb-native]').should('exist');
       cy.get('[data-test=crumb-repo]').should('exist');
       cy.get('[data-test=crumb-github]').should('exist');
       cy.get('[data-test=crumb-octocat]').should('exist');
