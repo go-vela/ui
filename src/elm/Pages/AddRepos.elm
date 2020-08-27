@@ -201,7 +201,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
         favorited =
             isFavorited user <| repo.org ++ "/" ++ repo.name
     in
-    div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
+    div [ class "item", class "padding-1", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div [] [ text repo.name ]
         , enableRepoButton repo enableRepo toggleFavorite favorited
         ]
@@ -211,7 +211,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
 -}
 viewSearchedSourceRepo : EnableRepo msg -> ToggleFavorite msg -> Repository -> Bool -> Html msg
 viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
-    div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
+    div [ class "item", class "padding-1", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
             [ text <| repo.org ++ "/" ++ repo.name ]
         , enableRepoButton repo enableRepo toggleFavorite favorited
@@ -326,7 +326,7 @@ searchReposGlobal model repos enableRepo toggleFavorite =
 
         else
             -- No repos matched the search
-            [ div [ class "item" ] [ text "No results" ] ]
+            [ div [ class "item", class "padding-1" ] [ text "No results" ] ]
 
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
@@ -344,5 +344,5 @@ searchReposLocal user org filters repos enableRepo toggleFavorite =
         List.map (viewSourceRepo user enableRepo toggleFavorite) filteredRepos
 
       else
-        [ div [ class "item" ] [ text "No results" ] ]
+        [ div [ class "item", class "padding-1" ] [ text "No results" ] ]
     )

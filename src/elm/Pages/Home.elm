@@ -193,31 +193,12 @@ viewFavorite favorites toggleFavorite filtered favorite =
         ]
         [ a
             [ class "view-favorite"
+            , class "padding-1"
             , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
             ]
             [ text name
             ]
-        , div [ class "buttons" ]
+        , div [ class "buttons", class "padding-1" ]
             [ starToggle org repo toggleFavorite <| List.member favorite favorites
-            , a
-                [ class "button"
-                , class "-outline"
-                , Routes.href <| Routes.RepoSettings org repo
-                ]
-                [ text "Settings" ]
-            , a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks org repo Nothing Nothing
-                ]
-                [ text "Hooks" ]
-            , a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-secrets"
-                , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-                ]
-                [ text "Secrets" ]
             ]
         ]

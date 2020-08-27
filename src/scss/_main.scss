@@ -217,12 +217,9 @@ nav {
 }
 
 .view-favorite {
-  padding: 1rem;
   flex: 1;
-}
-
-.item .buttons {
-  padding: 1rem;
+  text-decoration: none;
+  color: var(--color-text);
 }
 
 .actions-divider {
@@ -1341,4 +1338,8 @@ nav {
 
 .overflow-auto {
   overflow: auto;
+}
+
+.padding-1 {
+  padding: 1rem;
 }
