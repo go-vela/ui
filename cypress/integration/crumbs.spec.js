@@ -38,26 +38,26 @@ context('Crumbs', () => {
       cy.location('pathname').should('eq', '/');
     });
 
-    it('visit /org/repo should show org and repo crumbs', () => {
-      cy.visit('/org/repo');
-      cy.get('[data-test=crumb-org]').should('exist');
-      cy.get('[data-test=crumb-repo]').should('exist');
+    it('visit /someorg/somerepo should show org and repo crumbs', () => {
+      cy.visit('/someorg/somerepo');
+      cy.get('[data-test=crumb-someorg]').should('exist');
+      cy.get('[data-test=crumb-somerepo]').should('exist');
     });
 
-    it('visit /org/repo Overview crumb should redirect to Overview page', () => {
-      cy.visit('/org/repo');
+    it('visit /someorg/somerepo Overview crumb should redirect to Overview page', () => {
+      cy.visit('/someorg/somerepo');
       cy.get('[data-test=crumb-overview]').click();
       cy.location('pathname').should('eq', '/');
     });
 
-    it('visit /org/repo/build Overview crumb should redirect to Overview page', () => {
-      cy.visit('/org/repo/1');
+    it('visit /someorg/somerepo/build Overview crumb should redirect to Overview page', () => {
+      cy.visit('/someorg/somerepo/1');
       cy.get('[data-test=crumb-overview]').click();
       cy.location('pathname').should('eq', '/');
     });
 
-    it('visit bad build /org/repo/build should not show not-found crumb', () => {
-      cy.visit('/org/repo/1');
+    it('visit bad build /someorg/somerepo/build should not show not-found crumb', () => {
+      cy.visit('/someorg/somerepo/1');
       cy.get('[data-test=crumb-not-found]').should('not', 'exist');
     });
   });
@@ -66,15 +66,14 @@ context('Crumbs', () => {
       cy.server();
       cy.route(
         'GET',
-        '*api/v1/secrets/native/repo/github/**',
+        '*api/v1/secrets/native/repo/someorg/**',
         'fixture:secrets_org_5.json',
       ).as('secret');
-      cy.login('/-/secrets/native/org/github');
+      cy.login('/-/secrets/native/org/someorg');
     });
     it('should show appropriate secrets crumbs', () => {
+      cy.get('[data-test=crumb-someorg]').should('exist');
       cy.get('[data-test=crumb-secrets]').should('exist');
-      cy.get('[data-test=crumb-org]').should('exist');
-      cy.get('[data-test=crumb-github]').should('exist');
     });
   });
   context('visit repo secret', () => {
@@ -82,16 +81,15 @@ context('Crumbs', () => {
       cy.server();
       cy.route(
         'GET',
-        '*api/v1/secrets/native/repo/github/**',
+        '*api/v1/secrets/native/repo/someorg/**',
         'fixture:secret_repo.json',
       ).as('secret');
-      cy.login('/-/secrets/native/repo/github/octocat/password');
+      cy.login('/-/secrets/native/repo/someorg/somerepo/password');
     });
     it('should show appropriate secrets crumbs', () => {
+      cy.get('[data-test=crumb-someorg]').should('exist');
+      cy.get('[data-test=crumb-somerepo]').should('exist');
       cy.get('[data-test=crumb-secrets]').should('exist');
-      cy.get('[data-test=crumb-repo]').should('exist');
-      cy.get('[data-test=crumb-github]').should('exist');
-      cy.get('[data-test=crumb-octocat]').should('exist');
       cy.get('[data-test=crumb-password]').should('exist');
     });
   });
@@ -102,18 +100,17 @@ context('Crumbs', () => {
         cy.server();
         cy.route(
           'GET',
-          '*api/v1/secrets/native/shared/github/**',
+          '*api/v1/secrets/native/shared/someorg/**',
           'fixture:secret_shared.json',
         ).as('secret');
         cy.login(
-          '/-/secrets/native/shared/github/octo%2Fcat/docker%2Fpassword',
+          '/-/secrets/native/shared/someorg/some%2Fteam/docker%2Fpassword',
         );
       });
       it('should show appropriate secrets crumbs', () => {
+        cy.get('[data-test=crumb-someorg]').should('exist');
+        cy.get('[data-test="crumb-some/team"]').should('exist');
         cy.get('[data-test=crumb-secrets]').should('exist');
-        cy.get('[data-test=crumb-shared]').should('exist');
-        cy.get('[data-test=crumb-github]').should('exist');
-        cy.get('[data-test="crumb-octo/cat"]').should('exist');
         cy.get('[data-test="crumb-docker/password"]').should('exist');
       });
     },
@@ -121,13 +118,12 @@ context('Crumbs', () => {
   context('visit add repo secret', () => {
     beforeEach(() => {
       cy.server();
-      cy.login('/-/secrets/native/repo/github/octocat/add');
+      cy.login('/-/secrets/native/repo/someorg/somerepo/add');
     });
     it('should show appropriate secrets crumbs', () => {
+      cy.get('[data-test=crumb-someorg]').should('exist');
+      cy.get('[data-test=crumb-somerepo]').should('exist');
       cy.get('[data-test=crumb-secrets]').should('exist');
-      cy.get('[data-test=crumb-repo]').should('exist');
-      cy.get('[data-test=crumb-github]').should('exist');
-      cy.get('[data-test=crumb-octocat]').should('exist');
       cy.get('[data-test=crumb-add]').should('exist');
     });
   });

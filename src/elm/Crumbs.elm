@@ -49,19 +49,24 @@ item crumb currentPage =
         link =
             first crumb
 
+        decodedLink =
+            link
+                |> percentDecode
+                |> Maybe.withDefault link
+
         testAttribute =
-            Util.testAttribute <| Util.formatTestTag <| "crumb-" ++ link
+            Util.testAttribute <| Util.formatTestTag <| "crumb-" ++ decodedLink
     in
     case second crumb of
         Nothing ->
-            li [ testAttribute ] [ text link ]
+            li [ testAttribute ] [ text decodedLink ]
 
         Just page ->
             if page == currentPage then
-                li [ testAttribute, attribute "aria-current" "page" ] [ text link ]
+                li [ testAttribute, attribute "aria-current" "page" ] [ text decodedLink ]
 
             else
-                li [ testAttribute ] [ a [ Routes.href <| toRoute page ] [ text link ] ]
+                li [ testAttribute ] [ a [ Routes.href <| toRoute page ] [ text decodedLink ] ]
 
 
 
@@ -209,7 +214,7 @@ toPath page =
                             ( "Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         nameCrumb =
-                            ( Maybe.withDefault name <| percentDecode name, Nothing )
+                            ( name, Nothing )
                     in
                     [ overviewPage, orgPage, orgSecrets, nameCrumb ]
 
@@ -225,7 +230,7 @@ toPath page =
                             ( "Secrets", Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
 
                         nameCrumb =
-                            ( Maybe.withDefault name <| percentDecode name, Nothing )
+                            ( name, Nothing )
                     in
                     [ overviewPage, orgPage, repoBuilds, repoSecrets, nameCrumb ]
 
@@ -241,7 +246,7 @@ toPath page =
                             ( "Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
 
                         nameCrumb =
-                            ( Maybe.withDefault name <| percentDecode name, Nothing )
+                            ( name, Nothing )
                     in
                     [ overviewPage, orgPage, teamPage, sharedSecrets, nameCrumb ]
 
