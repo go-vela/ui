@@ -441,12 +441,6 @@ nav {
   display: flex;
   justify-content: flex-end;
   margin-right: 1rem;
-  background: linear-gradient(
-    90deg,
-    hsla(0, 0, 0, 0) calc(3.25em - 1px),
-    hsla(0, 0%, 75%, 1) calc(3.25em),
-    hsla(0, 0, 0, 0) calc(3.25em + 1px)
-  );
 }
 
 .git-info {
@@ -730,7 +724,7 @@ nav {
   display: flex;
 }
 
-.step.-line {
+.flowline-left {
   background: linear-gradient(
     90deg,
     hsla(0, 0, 0, 0) calc(3.25em - 1px),
