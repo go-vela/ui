@@ -306,25 +306,28 @@ viewLogLines org repo buildNumber stepNumber logFocus log following shiftDown =
         content =
             case Maybe.withDefault RemoteData.NotAsked log of
                 RemoteData.Success _ ->
-                    viewLines org repo buildNumber stepNumber logFocus log following shiftDown
+                    viewLines stepNumber logFocus log shiftDown
 
                 RemoteData.Failure _ ->
                     code [ Util.testAttribute "logs-error" ] [ text "error" ]
 
                 _ ->
                     div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
+        filename =
+            stepLogsFilename org repo buildNumber "step" stepNumber
+
     in
     div [ 
         class "logs", Util.testAttribute <| "logs-" ++ stepNumber ] 
-        [ div[][div[class "buttons", class "log-buttons"][ Maybe.withDefault (text "") <| topLogActions stepNumber following True "filename" (decodeLog log)]]
+        [ div[][div[class "buttons", class "log-buttons"][ Maybe.withDefault (text "") <| topLogActions stepNumber following True filename (decodeLog log)]]
         ,
         content ]
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
+viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> Bool -> Html Msg
+viewLines stepNumber logFocus log shiftDown =
     let
         lines =
             if not <| logEmpty log then
@@ -356,12 +359,9 @@ viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
             List.length lines > 25
 
         -- update resource filename when adding stages/services
-        filename =
-            stepLogsFilename org repo buildNumber "step" stepNumber
-
         logs =
             lines
-                ++ [ bottomLogActions stepNumber following long ]
+                ++ [ bottomLogActions stepNumber long ]
                 |> List.filterMap identity
 
         topTracker =
@@ -496,8 +496,8 @@ expandAllStepsButton org repo buildNumber =
 
 {-| bottomLogActions : renders action buttons for the bottom of a step log
 -}
-bottomLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
-bottomLogActions stepNumber following long =
+bottomLogActions : StepNumber -> Bool -> Maybe (Html Msg)
+bottomLogActions stepNumber long =
     if long then
         Just <|
             div
@@ -506,10 +506,11 @@ bottomLogActions stepNumber following long =
                     [ class "wrapper"
                     , class "buttons"
                     , class "justify-flex-end"
+                    , class "padding-right-1"
+                    , class "padding-bottom-1"
                     , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
                     ]
                     [ jumpToTopButton stepNumber
-                    -- , stepFollowButton stepNumber following
                     ]
                 ]
 
