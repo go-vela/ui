@@ -186,7 +186,7 @@ getCurrentStep steps =
         step =
             steps
                 |> List.filter (\s -> s.status == Vela.Pending || s.status == Vela.Running)
-                |> List.map (\s -> s.number)
+                |> List.map .number
                 |> List.sort
                 |> List.head
                 |> Maybe.withDefault 0
