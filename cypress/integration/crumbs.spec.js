@@ -92,6 +92,14 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-secrets]').should('exist');
       cy.get('[data-test=crumb-password]').should('exist');
     });
+    it('repo crumb should redirect to repo builds', () => {
+      cy.get('[data-test=crumb-somerepo]').click();
+      cy.location('pathname').should('eq', '/someorg/somerepo');
+    });
+    it('Secrets crumb should redirect to repo secrets', () => {
+      cy.get('[data-test=crumb-secrets]').click();
+      cy.location('pathname').should('eq', '/-/secrets/native/repo/someorg/somerepo');
+    });
   });
   context(
     'visit shared secret with special characters in team and name',
