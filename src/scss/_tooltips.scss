@@ -1,0 +1,99 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+[data-tooltip] {
+  position: relative;
+
+  cursor: pointer;
+}
+
+[data-tooltip]::before,
+[data-tooltip]::after {
+  position: absolute;
+
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  visibility: hidden;
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+[data-tooltip]::before {
+  z-index: 9999;
+
+  background: transparent;
+  border: 0.1rem solid transparent;
+
+  content: '';
+}
+
+[data-tooltip]::after {
+  z-index: 9998;
+
+  margin: 0.75rem 0;
+  padding: 0.2rem 0.4rem;
+
+  font-size: 0.8rem;
+  line-height: 1.2;
+
+  content: attr(data-tooltip);
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:hover::after {
+  visibility: visible;
+  opacity: 1;
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:focus::before {
+  background-color: var(--color-bg-lavender);
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus::after {
+  color: var(--color-text);
+
+  font-weight: lighter;
+
+  text-align: center;
+
+  background-color: var(--color-bg-dark);
+  border: solid 0.05rem var(--color-bg-light);
+  border-radius: 0.1rem;
+}
+
+.tooltip-left::before,
+.tooltip-left::after {
+  right: 100%;
+  bottom: 65%;
+  left: auto;
+}
+
+.tooltip-left::before {
+  top: 0.5rem;
+
+  margin-right: -0.5rem;
+  margin-bottom: 0;
+  margin-left: 0;
+
+  border-top-color: transparent;
+  border-left-color: var(--color-bg-light);
+}
+
+.tooltip-left:hover::before,
+.tooltip-left:hover::after,
+.tooltip-left:focus::before,
+.tooltip-left:focus::after {
+  -webkit-transform: translateX(-0.8rem);
+  -moz-transform: translateX(-0.8rem);
+  transform: translateX(-0.8rem);
+}
+
+.tooltip-left::after {
+  margin-bottom: -1rem;
+  margin-left: 0;
+}

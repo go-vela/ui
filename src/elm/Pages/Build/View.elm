@@ -12,20 +12,28 @@ module Pages.Build.View exposing
     , viewPreview
     )
 
+import Ansi.Log
+import Array
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Html
     exposing
         ( Html
         , a
+        , button
+        , code
         , details
         , div
         , em
         , li
+        , small
         , span
         , strong
         , summary
+        , table
+        , td
         , text
+        , tr
         , ul
         )
 import Html.Attributes
@@ -38,11 +46,25 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
-import Logs exposing (stepToFocusId)
 import Pages exposing (Page(..))
+import Pages.Build.Logs
+    exposing
+        ( decodeAnsi
+        , decodeLog
+        , getStepLog
+        , logEmpty
+        , logFocusStyles
+        , logRangeId
+        , stepAndLineToFocusId
+        , stepBottomTrackerFocusId
+        , stepLogsFilename
+        , stepToFocusId
+        , stepTopTrackerFocusId
+        )
 import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
+import String
 import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone, millisToPosix)
 import Util
@@ -51,11 +73,14 @@ import Vela
         ( Build
         , BuildNumber
         , Builds
+        , Log
+        , LogFocus
         , Logs
         , Org
         , Repo
         , Status
         , Step
+        , StepNumber
         , Steps
         )
 
@@ -67,23 +92,38 @@ import Vela
 {-| viewBuild : renders entire build based on current application time
 -}
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
-viewBuild { time, build, steps, logs, shift } org repo =
+viewBuild { time, build, steps, logs, followingStep, shift } org repo =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview time org repo bld, Just <| String.fromInt bld.number )
+                    ( viewPreview time org repo bld, String.fromInt bld.number )
 
                 RemoteData.Loading ->
-                    ( Util.largeLoader, Nothing )
+                    ( Util.largeLoader, "" )
 
                 _ ->
-                    ( text "", Nothing )
+                    ( text "", "" )
+
+        logActions =
+            steps
+                |> RemoteData.unwrap (text "")
+                    (\_ ->
+                        div
+                            [ class "buttons"
+                            , class "log-actions"
+                            , class "flowline-left"
+                            , Util.testAttribute "log-actions"
+                            ]
+                            [ collapseAllStepsButton
+                            , expandAllStepsButton org repo buildNumber
+                            ]
+                    )
 
         buildSteps =
             case steps of
                 RemoteData.Success steps_ ->
-                    viewSteps time org repo buildNumber steps_ logs shift
+                    viewSteps time org repo buildNumber steps_ logs followingStep shift
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
@@ -97,7 +137,10 @@ viewBuild { time, build, steps, logs, shift } org repo =
                         Util.smallLoader
 
         markdown =
-            [ buildPreview, buildSteps ]
+            [ buildPreview
+            , logActions
+            , buildSteps
+            ]
     in
     div [ Util.testAttribute "full-build" ] markdown
 
@@ -107,6 +150,9 @@ viewBuild { time, build, steps, logs, shift } org repo =
 viewPreview : Posix -> Org -> Repo -> Build -> Html Msg
 viewPreview now org repo build =
     let
+        buildNumber =
+            String.fromInt build.number
+
         status =
             [ buildStatusToIcon build.status ]
 
@@ -129,9 +175,9 @@ viewPreview now org repo build =
         id =
             [ a
                 [ Util.testAttribute "build-number"
-                , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
+                , Routes.href <| Routes.Build org repo buildNumber Nothing
                 ]
-                [ text <| "#" ++ String.fromInt build.number ]
+                [ text <| "#" ++ buildNumber ]
             ]
 
         age =
@@ -164,7 +210,9 @@ viewPreview now org repo build =
                         , div [ class "duration" ] duration
                         ]
                     ]
-                , viewError build
+                , div [ class "row" ]
+                    [ viewError build
+                    ]
                 ]
             ]
     in
@@ -176,13 +224,13 @@ viewPreview now org repo build =
 
 {-| viewSteps : sorts and renders build steps
 -}
-viewSteps : Posix -> Org -> Repo -> Maybe BuildNumber -> Steps -> Logs -> Bool -> Html Msg
-viewSteps now org repo buildNumber steps logs shift =
+viewSteps : Posix -> Org -> Repo -> BuildNumber -> Steps -> Logs -> Int -> Bool -> Html Msg
+viewSteps now org repo buildNumber steps logs follow shift =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
                 (\step ->
-                    viewStep now org repo buildNumber step steps logs shift
+                    viewStep now org repo buildNumber step steps logs follow shift
                 )
             <|
                 steps
@@ -191,23 +239,20 @@ viewSteps now org repo buildNumber steps logs shift =
 
 {-| viewStep : renders single build step
 -}
-viewStep : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Steps -> Logs -> Bool -> Html Msg
-viewStep now org repo buildNumber step steps logs shift =
+viewStep : Posix -> Org -> Repo -> BuildNumber -> Step -> Steps -> Logs -> Int -> Bool -> Html Msg
+viewStep now org repo buildNumber step steps logs follow shift =
     div [ stepClasses step steps, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
-        , viewStepDetails now org repo buildNumber step logs shift
+        , viewStepDetails now org repo buildNumber step logs follow shift
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : Posix -> Org -> Repo -> Maybe BuildNumber -> Step -> Logs -> Bool -> Html Msg
-viewStepDetails now org repo buildNumber step logs shift =
+viewStepDetails : Posix -> Org -> Repo -> BuildNumber -> Step -> Logs -> Int -> Bool -> Html Msg
+viewStepDetails now org repo buildNumber step logs follow shift =
     let
-        buildNum =
-            Maybe.withDefault "" buildNumber
-
         stepNumber =
             String.fromInt step.number
 
@@ -215,8 +260,8 @@ viewStepDetails now org repo buildNumber step logs shift =
             [ summary
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
-                , onClick <| ExpandStep org repo buildNum stepNumber ("#step:" ++ stepNumber)
-                , id <| stepToFocusId <| String.fromInt step.number
+                , onClick <| ExpandStep org repo buildNumber stepNumber
+                , id <| stepToFocusId stepNumber
                 ]
                 [ div
                     [ class "-info" ]
@@ -225,7 +270,7 @@ viewStepDetails now org repo buildNumber step logs shift =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ Logs.view step logs FocusLogs shift ]
+            , div [ class "logs-container" ] [ viewLogs org repo buildNumber step logs follow shift ]
             ]
     in
     details
@@ -237,6 +282,345 @@ viewStepDetails now org repo buildNumber step logs shift =
             :: Util.open step.viewing
         )
         stepSummary
+
+
+{-| viewLogs : takes step and logs and renders step logs or step error
+-}
+viewLogs : Org -> Repo -> BuildNumber -> Step -> Logs -> Int -> Bool -> Html Msg
+viewLogs org repo buildNumber step logs follow shiftDown =
+    case step.status of
+        Vela.Error ->
+            stepError step
+
+        Vela.Killed ->
+            stepSkipped step
+
+        _ ->
+            viewLogLines org repo buildNumber (String.fromInt step.number) step.logFocus (getStepLog step logs) follow shiftDown
+
+
+{-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
+-}
+viewLogLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
+viewLogLines org repo buildNumber stepNumber logFocus log following shiftDown =
+    let
+        content =
+            case Maybe.withDefault RemoteData.NotAsked log of
+                RemoteData.Success _ ->
+                    viewLines org repo buildNumber stepNumber logFocus log following shiftDown
+
+                RemoteData.Failure _ ->
+                    code [ Util.testAttribute "logs-error" ] [ text "error" ]
+
+                _ ->
+                    div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
+    in
+    div [ class "logs", Util.testAttribute <| "logs-" ++ stepNumber ] [ content ]
+
+
+{-| viewLines : takes step number, line focus information and click action and renders logs
+-}
+viewLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
+viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
+    let
+        lines =
+            if not <| logEmpty log then
+                log
+                    |> decodeAnsi
+                    |> Array.indexedMap
+                        (\idx line ->
+                            Just <|
+                                viewLine stepNumber
+                                    (idx + 1)
+                                    (Just line)
+                                    stepNumber
+                                    logFocus
+                                    shiftDown
+                        )
+                    |> Array.toList
+
+            else
+                [ Just <|
+                    viewLine stepNumber
+                        1
+                        Nothing
+                        stepNumber
+                        logFocus
+                        shiftDown
+                ]
+
+        long =
+            List.length lines > 25
+
+        -- update resource filename when adding stages/services
+        filename =
+            stepLogsFilename org repo buildNumber "step" stepNumber
+
+        logs =
+            topLogActions stepNumber following long filename (decodeLog log)
+                :: lines
+                ++ [ bottomLogActions stepNumber following long ]
+                |> List.filterMap identity
+
+        topTracker =
+            tr [ class "line", class "opacity-0" ]
+                [ a
+                    [ id <|
+                        stepTopTrackerFocusId stepNumber
+                    , Util.testAttribute <| "top-log-tracker-" ++ stepNumber
+                    , Html.Attributes.tabindex -1
+                    ]
+                    []
+                ]
+
+        bottomTracker =
+            tr [ class "line", class "opacity-0" ]
+                [ a
+                    [ id <|
+                        stepBottomTrackerFocusId stepNumber
+                    , Util.testAttribute <| "bottom-log-tracker-" ++ stepNumber
+                    , Html.Attributes.tabindex -1
+                    ]
+                    []
+                ]
+    in
+    table [ class "log-table" ] <| topTracker :: logs ++ [ bottomTracker ]
+
+
+{-| viewLine : takes log line and focus information and renders line number button and log
+-}
+viewLine : String -> Int -> Maybe Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
+viewLine id lineNumber line stepNumber logFocus shiftDown =
+    tr
+        [ Html.Attributes.id <|
+            id
+                ++ ":"
+                ++ String.fromInt lineNumber
+        , class "line"
+        ]
+        [ case line of
+            Just l ->
+                div
+                    [ class "wrapper"
+                    , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
+                    , class <| logFocusStyles logFocus lineNumber
+                    ]
+                    [ td []
+                        [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
+                    , td [ class "break-all", class "overflow-auto" ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
+                            [ Ansi.Log.viewLine l
+                            ]
+                        ]
+                    ]
+
+            Nothing ->
+                text ""
+        ]
+
+
+{-| lineFocusButton : renders button for focusing log line ranges
+-}
+lineFocusButton : StepNumber -> LogFocus -> Int -> Bool -> Html Msg
+lineFocusButton stepNumber logFocus lineNumber shiftDown =
+    button
+        [ Util.onClickPreventDefault <|
+            FocusLogs <|
+                logRangeId stepNumber lineNumber logFocus shiftDown
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
+        , id <| stepAndLineToFocusId stepNumber lineNumber
+        , class "line-number"
+        , class "button"
+        , class "-link"
+        , attribute "aria-label" <| "focus step " ++ stepNumber
+        ]
+        [ span [] [ text <| String.fromInt lineNumber ] ]
+
+
+{-| topLogActions : renders action buttons for the top of a step log
+-}
+topLogActions : StepNumber -> Int -> Bool -> String -> String -> Maybe (Html Msg)
+topLogActions stepNumber following long filename logs =
+    div
+        [ class "line", class "-align-center" ]
+        [ if String.isEmpty logs then
+            code [ class "no-data" ] [ text "No data" ]
+
+          else
+            text ""
+        , div
+            [ class "wrapper"
+            , class "buttons"
+            , class "justify-flex-end"
+            , Util.testAttribute <| "top-log-actions-" ++ stepNumber
+            ]
+            [ downloadButton stepNumber filename logs
+            , if long then
+                jumpToBottomButton stepNumber
+
+              else
+                text ""
+            , stepFollowButton stepNumber following
+            ]
+        ]
+        |> Just
+
+
+{-| collapseAllStepsButton : renders a button for collapsing all steps
+-}
+collapseAllStepsButton : Html Msg
+collapseAllStepsButton =
+    Html.button
+        [ class "button"
+        , class "-link"
+        , onClick CollapseAllSteps
+        , Util.testAttribute "collapse-all"
+        ]
+        [ small [] [ text "collapse all" ] ]
+
+
+{-| expandAllStepsButton : renders a button for expanding all steps
+-}
+expandAllStepsButton : Org -> Repo -> BuildNumber -> Html Msg
+expandAllStepsButton org repo buildNumber =
+    Html.button
+        [ class "button"
+        , class "-link"
+        , onClick <| ExpandAllSteps org repo buildNumber
+        , Util.testAttribute "expand-all"
+        ]
+        [ small [] [ text "expand all" ] ]
+
+
+{-| bottomLogActions : renders action buttons for the bottom of a step log
+-}
+bottomLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
+bottomLogActions stepNumber following long =
+    if long then
+        Just <|
+            div
+                [ class "line" ]
+                [ div
+                    [ class "wrapper"
+                    , class "buttons"
+                    , class "justify-flex-end"
+                    , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
+                    ]
+                    [ jumpToTopButton stepNumber
+                    , stepFollowButton stepNumber following
+                    ]
+                ]
+
+    else
+        Just <| text ""
+
+
+{-| jumpToBottomButton : renders action button for jumping to the bottom of a step log
+-}
+jumpToBottomButton : StepNumber -> Html Msg
+jumpToBottomButton stepNumber =
+    button
+        [ class "button"
+        , class "-link"
+        , Util.testAttribute <| "jump-to-bottom-" ++ stepNumber
+        , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
+        ]
+        [ text "jump to bottom" ]
+
+
+{-| jumpToTopButton : renders action button for jumping to the top of a step log
+-}
+jumpToTopButton : StepNumber -> Html Msg
+jumpToTopButton stepNumber =
+    button
+        [ class "button"
+        , class "-link"
+        , Util.testAttribute <| "jump-to-top-" ++ stepNumber
+        , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
+        ]
+        [ text "jump to top" ]
+
+
+{-| downloadButton : renders action button for downloading a step log
+-}
+downloadButton : String -> String -> String -> Html Msg
+downloadButton stepNumber filename logs =
+    if not <| String.isEmpty logs then
+        button
+            [ class "button"
+            , class "-link"
+            , Util.testAttribute <| "download-logs-" ++ stepNumber
+            , onClick <| DownloadLogs filename logs
+            ]
+            [ text "download step logs" ]
+
+    else
+        text ""
+
+
+{-| stepFollowButton : renders button for following step logs
+-}
+stepFollowButton : StepNumber -> Int -> Html Msg
+stepFollowButton stepNumber following =
+    let
+        stepNum =
+            Maybe.withDefault 0 <| String.toInt stepNumber
+
+        ( tooltip, icon, toFollow ) =
+            if following == 0 then
+                ( "start following step logs", FeatherIcons.playCircle, stepNum )
+
+            else if following == (Maybe.withDefault 0 <| String.toInt stepNumber) then
+                ( "stop following step logs", FeatherIcons.pauseCircle, 0 )
+
+            else
+                ( "start following step logs", FeatherIcons.playCircle, stepNum )
+    in
+    button
+        [ class "button"
+        , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" tooltip
+        , Util.testAttribute <| "follow-logs-" ++ stepNumber
+        , onClick <| FollowStep toFollow
+        ]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+
+{-| stepError : checks for build error and renders message
+-}
+stepError : Step -> Html msg
+stepError step =
+    div [ class "step-error", Util.testAttribute "step-error" ]
+        [ span [ class "label" ] [ text "error:" ]
+        , span [ class "message" ]
+            [ text <|
+                if String.isEmpty step.error then
+                    "no error msg"
+
+                else
+                    step.error
+            ]
+        ]
+
+
+{-| stepKilled : renders message for a killed step
+
+    NOTE: not used, but keeping around for future
+
+-}
+stepKilled : Step -> Html msg
+stepKilled _ =
+    div [ class "step-error", Util.testAttribute "step-error" ]
+        [ span [ class "label" ] [ text "step was killed" ] ]
+
+
+{-| stepSkipped : renders message for a skipped step
+-}
+stepSkipped : Step -> Html msg
+stepSkipped _ =
+    div [ class "step-skipped", Util.testAttribute "step-skipped" ]
+        [ span [ class "label" ] [ text "step was skipped" ] ]
 
 
 {-| viewStepIcon : renders a build step status icon
@@ -252,22 +636,20 @@ viewError : Build -> Html msg
 viewError build =
     case build.status of
         Vela.Error ->
-            div [ class "row" ]
-                [ div [ class "error", Util.testAttribute "build-error" ]
-                    [ span [ class "label" ] [ text "error:" ]
-                    , span [ class "message" ]
-                        [ text <|
-                            if String.isEmpty build.error then
-                                "no error msg"
+            div [ class "error", Util.testAttribute "build-error" ]
+                [ span [ class "label" ] [ text "error:" ]
+                , span [ class "message" ]
+                    [ text <|
+                        if String.isEmpty build.error then
+                            "no error msg"
 
-                            else
-                                build.error
-                        ]
+                        else
+                            build.error
                     ]
                 ]
 
         _ ->
-            text ""
+            div [] []
 
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
@@ -437,7 +819,7 @@ stepClasses step steps =
                 Nothing ->
                     -1
     in
-    classList [ ( "step", True ), ( "-line", True ), ( "-last", last == step.number ) ]
+    classList [ ( "step", True ), ( "flowline-left", True ), ( "-last", last == step.number ) ]
 
 
 {-| buildStatusStyles : takes build markdown and adds styled flair based on running status

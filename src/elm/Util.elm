@@ -29,6 +29,7 @@ module Util exposing
     , onClickStopPropogation
     , oneSecondMillis
     , open
+    , overwriteById
     , pluralize
     , relativeTimeNoSeconds
     , secondsToMillis
