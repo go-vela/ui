@@ -130,7 +130,7 @@ toPath page =
                             ( org, Nothing )
 
                         orgSecrets =
-                            ( "Secrets" ++ pageToString maybePage, Nothing )
+                            ( "Org Secrets" ++ pageToString maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, orgSecrets ]
 
@@ -143,7 +143,7 @@ toPath page =
                             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
 
                         repoSecrets =
-                            ( "Secrets" ++ pageToString maybePage, Nothing )
+                            ( "Repo Secrets" ++ pageToString maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, repoBuilds, repoSecrets ]
 
@@ -156,7 +156,7 @@ toPath page =
                             ( team, Nothing )
 
                         sharedSecrets =
-                            ( "Secrets" ++ pageToString maybePage, Nothing )
+                            ( "Shared Secrets" ++ pageToString maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, teamPage, sharedSecrets ]
 
@@ -166,7 +166,7 @@ toPath page =
                             ( org, Nothing )
 
                         orgSecrets =
-                            ( "Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
+                            ( "Org Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         add =
                             ( "Add", Nothing )
@@ -182,7 +182,7 @@ toPath page =
                             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
 
                         repoSecrets =
-                            ( "Secrets", Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
+                            ( "Repo Secrets", Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
 
                         add =
                             ( "Add", Nothing )
@@ -198,7 +198,7 @@ toPath page =
                             ( team, Nothing )
 
                         sharedSecrets =
-                            ( "Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
+                            ( "Shared Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
 
                         add =
                             ( "Add", Nothing )
@@ -211,7 +211,7 @@ toPath page =
                             ( org, Nothing )
 
                         orgSecrets =
-                            ( "Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
+                            ( "Org Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )
@@ -227,7 +227,7 @@ toPath page =
                             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
 
                         repoSecrets =
-                            ( "Secrets", Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
+                            ( "Repo Secrets", Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )
@@ -243,7 +243,7 @@ toPath page =
                             ( team, Nothing )
 
                         sharedSecrets =
-                            ( "Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
+                            ( "Shared Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )
