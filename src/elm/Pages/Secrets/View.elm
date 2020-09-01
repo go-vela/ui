@@ -27,6 +27,7 @@ import Html.Attributes
         , scope
         )
 import Html.Events exposing (onClick)
+import Pages
 import Pages.Secrets.Form
     exposing
         ( viewEventsSelect
@@ -70,36 +71,66 @@ secrets model =
         secretsModel =
             model.secretsModel
 
-        ( label, noSecrets, addSecretRoute ) =
+        args =
             case secretsModel.type_ of
                 Vela.OrgSecret ->
-                    ( "Org Secrets"
-                    , "No secrets found for this organization"
-                    , Routes.AddOrgSecret "native" secretsModel.org
-                    )
+                    { label = "Org Secrets"
+                    , noSecrets = "No secrets found for this organization"
+                    , addRoute = Routes.AddOrgSecret "native" secretsModel.org
+                    , navAction = Nothing
+                    }
 
                 Vela.RepoSecret ->
-                    ( "Repo Secrets"
-                    , "No secrets found for this repository"
-                    , Routes.AddRepoSecret "native" secretsModel.org secretsModel.repo
-                    )
+                    { label = "Repo Secrets"
+                    , noSecrets = "No secrets found for this repository"
+                    , addRoute = Routes.AddRepoSecret "native" secretsModel.org secretsModel.repo
+                    , navAction =
+                        Just
+                            { page = Pages.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
+                            , label = secretsModel.org ++ " Org Secrets"
+                            }
+                    }
 
                 Vela.SharedSecret ->
-                    ( "Shared Secrets"
-                    , "No secrets found for this organization/team"
-                    , Routes.AddSharedSecret "native" secretsModel.org secretsModel.team
-                    )
+                    { label = "Shared Secrets"
+                    , noSecrets = "No secrets found for this organization/team"
+                    , addRoute = Routes.AddSharedSecret "native" secretsModel.org secretsModel.team
+                    , navAction =
+                        Just
+                            { page = Pages.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
+                            , label = secretsModel.org ++ " Org Secrets"
+                            }
+                    }
 
-        add =
+        navAction =
+            case args.navAction of
+                Just n ->
+                    a
+                        [ class "add-secret"
+                        , class "button"
+                        , class "-link"
+                        , Routes.href <|
+                            Pages.toRoute <|
+                                n.page
+                        ]
+                        [   text n.label ]
+
+                Nothing ->
+                    text ""
+
+        actions =
             Just <|
-                a
-                    [ class "add-secret"
-                    , class "button"
-                    , class "-outline"
-                    , Routes.href <|
-                        addSecretRoute
+                div [ class "buttons" ]
+                    [ navAction
+                    , a
+                        [ class "add-secret"
+                        , class "button"
+                        , class "-outline"
+                        , Routes.href <|
+                            args.addRoute
+                        ]
+                        [ addLabel secretsModel.type_ ]
                     ]
-                    [ addLabel secretsModel.type_ ]
 
         testLabel =
             "secrets"
@@ -109,12 +140,12 @@ secrets model =
             div []
                 [ Table.view
                     (Table.Config
-                        label
+                        args.label
                         testLabel
-                        noSecrets
+                        args.noSecrets
                         tableHeaders
                         (secretsToRows model.secretsModel.type_ s)
-                        add
+                        actions
                     )
                 ]
 
