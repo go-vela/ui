@@ -106,8 +106,7 @@ secrets model =
             case args.navAction of
                 Just n ->
                     a
-                        [ class "add-secret"
-                        , class "button"
+                        [ class "button"
                         , class "-outline"
                         , Routes.href <|
                             Pages.toRoute <|
@@ -123,8 +122,7 @@ secrets model =
                 div [ class "buttons" ]
                     [ navAction
                     , a
-                        [ class "add-secret"
-                        , class "button"
+                        [ class "button"
                         , class "-outline"
                         , Routes.href <|
                             args.addRoute
