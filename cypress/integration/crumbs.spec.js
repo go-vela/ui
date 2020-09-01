@@ -73,7 +73,7 @@ context('Crumbs', () => {
     });
     it('should show appropriate secrets crumbs', () => {
       cy.get('[data-test=crumb-someorg]').should('exist');
-      cy.get('[data-test=crumb-secrets]').should('exist');
+      cy.get('[data-test=crumb-org-secrets]').should('exist');
     });
   });
   context('visit repo secret', () => {
@@ -89,7 +89,7 @@ context('Crumbs', () => {
     it('should show appropriate secrets crumbs', () => {
       cy.get('[data-test=crumb-someorg]').should('exist');
       cy.get('[data-test=crumb-somerepo]').should('exist');
-      cy.get('[data-test=crumb-secrets]').should('exist');
+      cy.get('[data-test=crumb-repo-secrets]').should('exist');
       cy.get('[data-test=crumb-password]').should('exist');
     });
     it('repo crumb should redirect to repo builds', () => {
@@ -97,7 +97,7 @@ context('Crumbs', () => {
       cy.location('pathname').should('eq', '/someorg/somerepo');
     });
     it('Secrets crumb should redirect to repo secrets', () => {
-      cy.get('[data-test=crumb-secrets]').click();
+      cy.get('[data-test=crumb-repo-secrets]').click();
       cy.location('pathname').should(
         'eq',
         '/-/secrets/native/repo/someorg/somerepo',
@@ -121,7 +121,7 @@ context('Crumbs', () => {
       it('should show appropriate secrets crumbs', () => {
         cy.get('[data-test=crumb-someorg]').should('exist');
         cy.get('[data-test="crumb-some/team"]').should('exist');
-        cy.get('[data-test=crumb-secrets]').should('exist');
+        cy.get('[data-test=crumb-shared-secrets]').should('exist');
         cy.get('[data-test="crumb-docker/password"]').should('exist');
       });
     },
@@ -134,7 +134,7 @@ context('Crumbs', () => {
     it('should show appropriate secrets crumbs', () => {
       cy.get('[data-test=crumb-someorg]').should('exist');
       cy.get('[data-test=crumb-somerepo]').should('exist');
-      cy.get('[data-test=crumb-secrets]').should('exist');
+      cy.get('[data-test=crumb-repo-secrets]').should('exist');
       cy.get('[data-test=crumb-add]').should('exist');
     });
   });

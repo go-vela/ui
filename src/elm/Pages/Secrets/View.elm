@@ -112,7 +112,7 @@ secrets model =
                             Pages.toRoute <|
                                 n.page
                         ]
-                        [   text n.label ]
+                        [ text n.label ]
 
                 Nothing ->
                     text ""
