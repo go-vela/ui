@@ -87,7 +87,7 @@ secrets model =
                     , navAction =
                         Just
                             { page = Pages.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
-                            , label = secretsModel.org ++ " Org Secrets"
+                            , label = "View Org Secrets"
                             }
                     }
 
@@ -98,7 +98,7 @@ secrets model =
                     , navAction =
                         Just
                             { page = Pages.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
-                            , label = secretsModel.org ++ " Org Secrets"
+                            , label = "View Org Secrets"
                             }
                     }
 
@@ -108,7 +108,7 @@ secrets model =
                     a
                         [ class "add-secret"
                         , class "button"
-                        , class "-link"
+                        , class "-outline"
                         , Routes.href <|
                             Pages.toRoute <|
                                 n.page
