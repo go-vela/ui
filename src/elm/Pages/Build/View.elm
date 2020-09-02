@@ -312,11 +312,11 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
         content =
             case Maybe.withDefault RemoteData.NotAsked maybeLog of
                 RemoteData.Failure _ ->
-                     code [ Util.testAttribute "logs-error" ] [ text "error" ] 
+                    code [ Util.testAttribute "logs-error" ] [ text "error" ]
 
                 _ ->
                     if logEmpty log then
-                         div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ] 
+                        div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
 
                     else
                         lazy8 viewLines org repo buildNumber stepNumber logFocus log shiftDown following
@@ -325,12 +325,12 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ stepNumber
         ]
-        [content]
+        [ content ]
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> String -> Bool -> Int ->   (Html Msg)
+viewLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> String -> Bool -> Int -> Html Msg
 viewLines org repo buildNumber stepNumber logFocus l shiftDown following =
     let
         decodedLog =
@@ -392,26 +392,30 @@ viewLines org repo buildNumber stepNumber logFocus l shiftDown following =
         filename =
             stepLogsFilename org repo buildNumber "step" stepNumber
     in
-    div [] [ div []
-        [ if logEmpty decodedLog then
-            code [] [ text "" ]
+    div []
+        [ div []
+            [ if logEmpty decodedLog then
+                code [] [ text "" ]
 
-          else
-            div [ class "buttons", class "log-buttons" ]
-                [ topLogActions stepNumber filename decodedLog
-                ]
-        ]
-    , div [ class "side-actions", class "outer" ]
-        [ div [ class "inner" ]
-            [ div [ class "actions" ]
-                [ jumpToTopButton stepNumber
-                , jumpToBottomButton stepNumber
-                , stepFollowButton stepNumber following
+              else
+                div [ class "buttons", class "log-buttons" ]
+                    [ topLogActions stepNumber filename decodedLog
+                    ]
+            ]
+        , div [ class "side-actions" ]
+            [ div [ class "inner" ]
+                [ div [ class "actions" ]
+                    [ jumpToTopButton stepNumber
+                    , jumpToBottomButton stepNumber
+                    , stepFollowButton stepNumber following
+                    ]
                 ]
             ]
+        , table [ class "logs-table" ] <|
+            topTracker
+                :: logs
+                ++ [ bottomTracker ]
         ]
-    , table [ class "log-table", class "padding-top-1", class "padding-bottom-1" ] <| topTracker :: logs ++ [ bottomTracker ]
-    ]
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -469,11 +473,10 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
 topLogActions : StepNumber -> String -> String -> Html Msg
 topLogActions stepNumber filename log =
     div
-        [ class "line", class "-align-center", class "top-log-actions" ]
+        [ class "line", class "top-log-actions" ]
         [ div
             [ class "wrapper"
             , class "buttons"
-            , class "justify-flex-end"
             , Util.testAttribute <| "top-log-actions-" ++ stepNumber
             ]
             [ downloadStepLogsButton stepNumber filename log ]
