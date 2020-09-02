@@ -322,8 +322,21 @@ viewLogLines org repo buildNumber stepNumber logFocus log following shiftDown =
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ stepNumber
         ]
-        [ div [] [ div [ class "buttons", class "log-buttons" ] [ Maybe.withDefault (text "") <| topLogActions stepNumber following True filename (decodeLog log) ] ]
-        , content
+        [ 
+            div [] [ div [ class "buttons", class "log-buttons" ] [ Maybe.withDefault (text "") <| topLogActions stepNumber following True filename (decodeLog log) ] ]
+        , 
+            div [ class "side-actions-outer" ]
+                [ div [ class "side-actions-inner" ]
+                    [ div [ class "side-actions" ]
+                        [ button [class "button", class "-icon"] [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ]  ]
+                        , button [class "button", class "-icon"] [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ]  ]
+                        , button [class "button", class "-icon"] [ FeatherIcons.play |> FeatherIcons.toHtml [ attribute "role" "img" ]  ]
+                        ]
+                    ]
+                ],
+
+
+        content
         ]
 
 
@@ -388,8 +401,10 @@ viewLines stepNumber logFocus log shiftDown =
                     ]
                     []
                 ]
+
+
     in
-    table [ class "log-table", class "padding-top-1", class "padding-bottom-1" ] <| topTracker :: logs ++ [ bottomTracker ]
+    table [ class "log-table", class "padding-top-1", class "padding-bottom-1" ] <|  topTracker :: logs ++ [ bottomTracker ]
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -447,26 +462,18 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
 topLogActions : StepNumber -> Int -> Bool -> String -> String -> Maybe (Html Msg)
 topLogActions stepNumber following long filename logs =
     div
-        [ class "line", class "-align-center" ]
+        [ class "line", class "-align-center", class "top-log-actions" ]
         [ if String.isEmpty logs then
-            code [ class "no-data" ] [ text "No data" ]
+            text ""
 
           else
-            text ""
-        , div
+            div
             [ class "wrapper"
             , class "buttons"
             , class "justify-flex-end"
             , Util.testAttribute <| "top-log-actions-" ++ stepNumber
             ]
-            [ downloadButton stepNumber filename logs
-            , if long then
-                jumpToBottomButton stepNumber
-
-              else
-                text ""
-            , stepFollowButton stepNumber following
-            ]
+            [ downloadButton stepNumber filename logs ]
         ]
         |> Just
 
