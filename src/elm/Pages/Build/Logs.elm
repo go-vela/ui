@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Build.Logs exposing
     ( SetLogFocus
     , decodeAnsi
-    , decodeLog
+    , base64Decode
     , focusFragmentToFocusId
     , focusLogs
     , focusStep
@@ -23,6 +23,7 @@ module Pages.Build.Logs exposing
     , stepLogsFilename
     , stepToFocusId
     , stepTopTrackerFocusId
+    , toString
     )
 
 import Ansi.Log
@@ -320,11 +321,11 @@ logFocusExists steps =
         /= ( Nothing, Nothing )
 
 
-{-| decodeLog : returns a string from a Maybe Log and decodes it from base64
+{-| base64Decode : returns a string from a Maybe Log and decodes it from base64
 -}
-decodeLog : Maybe (WebData Log) -> String
-decodeLog log =
-    case decode <| toString log of
+base64Decode : String -> String
+base64Decode log =
+    case decode log of
         Ok str ->
             str
 
@@ -334,9 +335,9 @@ decodeLog log =
 
 {-| logEmpty : takes log string and returns True if content does not exist
 -}
-logEmpty : Maybe (WebData Log) -> Bool
+logEmpty : String -> Bool
 logEmpty log =
-    String.isEmpty <| String.replace " " "" <| decodeLog log
+    String.isEmpty <| String.replace " " "" log
 
 
 {-| toString : returns a string from a Maybe Log
@@ -423,6 +424,6 @@ defaultPosition =
 {-| decodeAnsi : takes maybe log parses into ansi decoded log line array
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 -}
-decodeAnsi : Maybe (WebData Log) -> Array.Array Ansi.Log.Line
+decodeAnsi : String -> Array.Array Ansi.Log.Line
 decodeAnsi log =
-    .lines <| Ansi.Log.update (decodeLog log) defaultLogModel
+    .lines <| Ansi.Log.update log defaultLogModel

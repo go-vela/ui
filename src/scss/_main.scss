@@ -902,7 +902,7 @@ nav {
 
 .step-error,
 .step-skipped {
-  margin-left: 1.5em;
+  padding: 1.5em;
 
   color: var(--color-red-light);
   font-size: 14px;
@@ -1410,9 +1410,9 @@ nav {
 }
 
 .log-table::-webkit-resizer {
-  border: 2px solid var(--color-bg-dark);
-
   background: var(--color-bg-dark);
+
+  border: 2px solid var(--color-bg-dark);
   border-bottom: 3px solid var(--color-bg-light);
   border-right: 3px solid var(--color-bg-light);
 }
@@ -1421,38 +1421,37 @@ nav {
   width: 0.7rem;
 }
 
-.log-table::-webkit-scrollbar-track {
-  background: var(--color-bg-dark);
-}
-
 .log-table::-webkit-scrollbar-thumb {
   background-color: var(--color-bg-light);
   border-radius: 1rem;
   border: 2px solid var(--color-bg-dark);
 }
-.side-actions {
+
+.side-actions .actions {
   display: flex;
   flex-direction: column;
 }
-.side-actions-inner {
+
+.side-actions.outer {
+  position: relative;
+}
+
+.side-actions .inner {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
   position: absolute;
   top: 0;
   right: 1rem;
-  background: var(--color-bg-light);
   margin-top: 0.5rem;
   
   & button {
-    border: 1px solid var(--color-bg-dark);
-    margin-bottom: 1rem;
+    background: var(--color-bg-light);
+
+    margin-bottom: 0.4rem;
     svg {
       padding: 0.2rem;
     }
   }
 }
 
-.side-actions-outer {
-  position: relative;
-}
