@@ -36,6 +36,7 @@ type alias PartialModel a =
         , steps : WebData Steps
         , logs : Logs
         , shift : Bool
+        , followingStep : Int
     }
 
 
@@ -44,9 +45,22 @@ type alias PartialModel a =
 
 
 type Msg
-    = ExpandStep Org Repo BuildNumber StepNumber String
+    = ExpandStep Org Repo BuildNumber StepNumber
     | FocusLogs String
+    | DownloadLogs String String
+    | FollowStep Int
+    | ExpandAllSteps Org Repo BuildNumber
+    | CollapseAllSteps
+    | FocusOn String
+
+
+type alias GetStepLogs a msg =
+    PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd msg
+
+
+type alias GetStepsLogs a msg =
+    PartialModel a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
 
 
 type alias GetLogs a msg =
-    PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Cmd msg
+    ( GetStepLogs a msg, GetStepsLogs a msg )

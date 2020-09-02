@@ -4,40 +4,34 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Logs exposing
+module Pages.Build.Logs exposing
     ( SetLogFocus
+    , decodeAnsi
+    , decodeLog
     , focusFragmentToFocusId
     , focusLogs
     , focusStep
+    , getCurrentStep
+    , getStepLog
+    , logEmpty
     , logFocusExists
     , logFocusFragment
+    , logFocusStyles
+    , logRangeId
     , stepAndLineToFocusId
+    , stepBottomTrackerFocusId
+    , stepLogsFilename
     , stepToFocusId
-    , view
+    , stepTopTrackerFocusId
     )
 
 import Ansi.Log
 import Array
 import Base64 exposing (decode)
-import Html
-    exposing
-        ( Html
-        , button
-        , code
-        , div
-        , span
-        , text
-        )
-import Html.Attributes
-    exposing
-        ( attribute
-        , class
-        , id
-        )
 import List.Extra exposing (updateIf)
 import Pages exposing (Page)
+import Pages.Build.Model exposing (Msg(..))
 import RemoteData exposing (WebData)
-import Util
 import Vela
     exposing
         ( BuildNumber
@@ -64,149 +58,7 @@ type alias SetLogFocus msg =
 
 
 type alias GetLogsFromSteps a msg =
-    a -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Cmd msg
-
-
-
--- VIEW
-
-
-{-| view : takes step and logs and renders step logs or step error
--}
-view : Step -> Logs -> SetLogFocus msg -> Bool -> Html msg
-view step logs clickAction shiftDown =
-    case step.status of
-        Vela.Error ->
-            stepError step
-
-        Vela.Killed ->
-            stepSkipped step
-
-        _ ->
-            viewLogs (String.fromInt step.number) step.logFocus (getStepLog step logs) clickAction shiftDown
-
-
-{-| viewLogs : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
--}
-viewLogs : StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
-viewLogs stepNumber logFocus log clickAction shiftDown =
-    let
-        content =
-            case Maybe.withDefault RemoteData.NotAsked log of
-                RemoteData.Success _ ->
-                    if logNotEmpty <| decodeLog log then
-                        viewLines stepNumber logFocus log clickAction shiftDown
-
-                    else
-                        code [] [ span [ class "no-logs" ] [ text "No logs for this step." ] ]
-
-                RemoteData.Failure _ ->
-                    code [ Util.testAttribute "logs-error" ] [ text "error" ]
-
-                _ ->
-                    div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
-    in
-    div [ class "logs", Util.testAttribute <| "logs-" ++ stepNumber ] [ content ]
-
-
-{-| viewLines : takes step number, line focus information and click action and renders logs
--}
-viewLines : StepNumber -> LogFocus -> Maybe (WebData Log) -> SetLogFocus msg -> Bool -> Html msg
-viewLines stepNumber logFocus log clickAction shiftDown =
-    Html.table [ class "log-table" ] <|
-        Array.toList <|
-            Array.indexedMap
-                (\idx line ->
-                    viewLine stepNumber
-                        (idx + 1)
-                        line
-                        stepNumber
-                        logFocus
-                        clickAction
-                        shiftDown
-                )
-            <|
-                decodeAnsi log
-
-
-{-| viewLine : takes log line and focus information and renders line number button and log
--}
-viewLine : String -> Int -> Ansi.Log.Line -> StepNumber -> LogFocus -> SetLogFocus msg -> Bool -> Html msg
-viewLine id lineNumber line stepNumber logFocus setLogFocus shiftDown =
-    Html.tr
-        [ Html.Attributes.id <|
-            id
-                ++ ":"
-                ++ String.fromInt lineNumber
-        , class "line"
-        ]
-        [ div
-            [ class "wrapper"
-            , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
-            , logFocusStyles logFocus lineNumber
-            ]
-            [ Html.td []
-                [ lineFocusButton stepNumber logFocus lineNumber setLogFocus shiftDown ]
-            , Html.td [ class "break-all", class "overflow-auto" ]
-                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
-                    [ Ansi.Log.viewLine line ]
-                ]
-            ]
-        ]
-
-
-{-| lineFocusButton : renders button for focusing log line ranges
--}
-lineFocusButton : StepNumber -> LogFocus -> Int -> SetLogFocus msg -> Bool -> Html msg
-lineFocusButton stepNumber logFocus lineNumber clickAction shiftDown =
-    button
-        [ Util.onClickPreventDefault <|
-            clickAction <|
-                logRangeId stepNumber lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
-        , id <| stepAndLineToFocusId stepNumber lineNumber
-        , class "line-number"
-        , class "button"
-        , class "-link"
-        , attribute "aria-label" <| "focus step " ++ stepNumber
-        ]
-        [ span [] [ text <| String.fromInt lineNumber ] ]
-
-
-{-| stepError : checks for build error and renders message
--}
-stepError : Step -> Html msg
-stepError step =
-    div [ class "step-error", Util.testAttribute "step-error" ]
-        [ span [ class "label" ] [ text "error:" ]
-        , span [ class "message" ]
-            [ text <|
-                if String.isEmpty step.error then
-                    "no error msg"
-
-                else
-                    step.error
-            ]
-        ]
-
-
-{-| stepKilled : renders message for a killed step
-
-    NOTE: not used, but keeping around for future
-
--}
-stepKilled : Step -> Html msg
-stepKilled _ =
-    div [ class "step-error", Util.testAttribute "step-error" ]
-        [ span [ class "label" ] [ text "step was killed" ] ]
-
-
-{-| stepSkipped : renders message for a skipped step
--}
-stepSkipped : Step -> Html msg
-stepSkipped _ =
-    div [ class "step-skipped", Util.testAttribute "step-skipped" ]
-        [ span [ class "label" ] [ text "step was skipped" ] ]
+    a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
 
 
 
@@ -326,28 +178,37 @@ focusStep focusFragment steps =
             steps
 
 
+{-| getCurrentStep : takes steps and returns the newest running or pending step
+-}
+getCurrentStep : Steps -> Int
+getCurrentStep steps =
+    let
+        step =
+            steps
+                |> List.filter (\s -> s.status == Vela.Pending || s.status == Vela.Running)
+                |> List.map .number
+                |> List.sort
+                |> List.head
+                |> Maybe.withDefault 0
+    in
+    step
+
+
 {-| focusLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
 -}
-focusLogs : a -> WebData Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Page, WebData Steps, Cmd msg )
+focusLogs : a -> Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Page, Steps, Cmd msg )
 focusLogs model steps org repo buildNumber focusFragment getLogs =
     let
         ( stepsOut, action ) =
-            case steps of
-                RemoteData.Success steps_ ->
-                    let
-                        focusedSteps =
-                            RemoteData.succeed <| updateStepLogFocus steps_ focusFragment
-                    in
-                    ( focusedSteps
-                    , Cmd.batch
-                        [ getLogs model org repo buildNumber focusedSteps focusFragment
-                        ]
-                    )
-
-                _ ->
-                    ( steps
-                    , Cmd.none
-                    )
+            let
+                focusedSteps =
+                    updateStepLogFocus steps focusFragment
+            in
+            ( focusedSteps
+            , Cmd.batch
+                [ getLogs model org repo buildNumber focusedSteps focusFragment False
+                ]
+            )
     in
     ( Pages.Build org repo buildNumber focusFragment
     , stepsOut
@@ -415,7 +276,7 @@ clearStepLogFocus step =
 
 {-| logFocusStyles : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
 -}
-logFocusStyles : LogFocus -> Int -> Html.Attribute msg
+logFocusStyles : LogFocus -> Int -> String
 logFocusStyles logFocus lineNumber =
     case logFocus of
         ( Just lineA, Just lineB ) ->
@@ -428,20 +289,20 @@ logFocusStyles logFocus lineNumber =
                         ( lineB, lineA )
             in
             if lineNumber >= a && lineNumber <= b then
-                class "-focus"
+                "-focus"
 
             else
-                class ""
+                ""
 
         ( Just lineA, Nothing ) ->
             if lineA == lineNumber then
-                class "-focus"
+                "-focus"
 
             else
-                class ""
+                ""
 
         _ ->
-            class ""
+            ""
 
 
 {-| logFocusExists : takes steps and returns if a line or range has already been focused
@@ -471,11 +332,11 @@ decodeLog log =
             ""
 
 
-{-| logNotEmpty : takes log string and returns True if content exists
+{-| logEmpty : takes log string and returns True if content does not exist
 -}
-logNotEmpty : String -> Bool
-logNotEmpty log =
-    not << String.isEmpty <| String.replace " " "" log
+logEmpty : Maybe (WebData Log) -> Bool
+logEmpty log =
+    String.isEmpty <| String.replace " " "" <| decodeLog log
 
 
 {-| toString : returns a string from a Maybe Log
@@ -493,6 +354,27 @@ toString log =
 
         Nothing ->
             ""
+
+
+{-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+-}
+stepTopTrackerFocusId : StepNumber -> String
+stepTopTrackerFocusId stepNumber =
+    "step-" ++ stepNumber ++ "-line-tracker-top"
+
+
+{-| stepBottomTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+-}
+stepBottomTrackerFocusId : StepNumber -> String
+stepBottomTrackerFocusId stepNumber =
+    "step-" ++ stepNumber ++ "-line-tracker-bottom"
+
+
+{-| stepLogsFilename : takes step information and produces a filename for downloading logs
+-}
+stepLogsFilename : Org -> Repo -> BuildNumber -> String -> String -> String
+stepLogsFilename org repo buildNumber resourceType resourceNumber =
+    String.join "-" [ org, repo, buildNumber, resourceType, resourceNumber ]
 
 
 
