@@ -112,6 +112,7 @@ viewBuild { time, build, steps, logs, followingStep, shift } org repo =
                         div
                             [ class "buttons"
                             , class "log-actions"
+                            , class "flowline-left"
                             , Util.testAttribute "log-actions"
                             ]
                             [ collapseAllStepsButton
@@ -823,7 +824,7 @@ stepClasses step steps =
                 Nothing ->
                     -1
     in
-    classList [ ( "step", True ), ( "-line", True ), ( "-last", last == step.number ) ]
+    classList [ ( "step", True ), ( "flowline-left", True ), ( "-last", last == step.number ) ]
 
 
 {-| buildStatusStyles : takes build markdown and adds styled flair based on running status
