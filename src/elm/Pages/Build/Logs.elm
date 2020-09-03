@@ -20,7 +20,7 @@ module Pages.Build.Logs exposing
     , logRangeId
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
-    , stepLogsFilename
+    , getDownloadLogsFileName
     , stepToFocusId
     , stepTopTrackerFocusId
     , toString
@@ -371,10 +371,10 @@ stepBottomTrackerFocusId stepNumber =
     "step-" ++ stepNumber ++ "-line-tracker-bottom"
 
 
-{-| stepLogsFilename : takes step information and produces a filename for downloading logs
+{-| getDownloadLogsFileName : takes step information and produces a filename for downloading logs
 -}
-stepLogsFilename : Org -> Repo -> BuildNumber -> String -> String -> String
-stepLogsFilename org repo buildNumber resourceType resourceNumber =
+getDownloadLogsFileName : Org -> Repo -> BuildNumber -> String -> String -> String
+getDownloadLogsFileName org repo buildNumber resourceType resourceNumber =
     String.join "-" [ org, repo, buildNumber, resourceType, resourceNumber ]
 
 

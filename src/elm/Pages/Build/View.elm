@@ -45,7 +45,6 @@ import Html.Attributes
         , id
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy8)
 import Http exposing (Error(..))
 import Pages exposing (Page(..))
 import Pages.Build.Logs
@@ -58,7 +57,7 @@ import Pages.Build.Logs
         , logRangeId
         , stepAndLineToFocusId
         , stepBottomTrackerFocusId
-        , stepLogsFilename
+        , getDownloadLogsFileName
         , stepToFocusId
         , stepTopTrackerFocusId
         , toString
@@ -319,7 +318,7 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
                         div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
 
                     else
-                        lazy8 viewLines org repo buildNumber stepNumber logFocus log shiftDown following
+                        viewLines org repo buildNumber stepNumber logFocus log shiftDown following
     in
     div
         [ class "logs"
@@ -389,8 +388,8 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
                     []
                 ]
 
-        filename =
-            stepLogsFilename org repo buildNumber "step" stepNumber
+        fileName =
+            getDownloadLogsFileName org repo buildNumber "step" stepNumber
     in
     div []
         [ div []
@@ -399,7 +398,7 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
 
               else
                 div [ class "buttons", class "log-buttons" ]
-                    [ topLogActions stepNumber filename decodedLog
+                    [ topLogActions stepNumber fileName decodedLog
                     ]
             ]
         , div [ class "side-actions" ]
@@ -471,7 +470,7 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
 {-| topLogActions : renders action buttons for the top of a step log
 -}
 topLogActions : StepNumber -> String -> String -> Html Msg
-topLogActions stepNumber filename log =
+topLogActions stepNumber fileName log =
     div
         [ class "line", class "top-log-actions" ]
         [ div
@@ -479,7 +478,7 @@ topLogActions stepNumber filename log =
             , class "buttons"
             , Util.testAttribute <| "top-log-actions-" ++ stepNumber
             ]
-            [ downloadStepLogsButton stepNumber filename log ]
+            [ downloadStepLogsButton stepNumber fileName log ]
         ]
 
 
@@ -538,12 +537,12 @@ jumpToTopButton stepNumber =
 {-| downloadStepLogsButton : renders action button for downloading a step log
 -}
 downloadStepLogsButton : String -> String -> String -> Html Msg
-downloadStepLogsButton stepNumber filename logs =
+downloadStepLogsButton stepNumber fileName logs =
     button
         [ class "button"
         , class "-link"
         , Util.testAttribute <| "download-logs-" ++ stepNumber
-        , onClick <| DownloadLogs filename logs
+        , onClick <| DownloadLogs fileName logs
         ]
         [ text "download step logs" ]
 

@@ -77,9 +77,9 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             , Navigation.pushUrl model.navigationKey url
             )
 
-        DownloadLogs filename logs ->
+        DownloadLogs fileName logs ->
             ( model
-            , Download.string filename "text" logs
+            , Download.string fileName "text" logs
             )
 
         FollowStep step ->
