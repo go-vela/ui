@@ -51,13 +51,13 @@ import Pages.Build.Logs
     exposing
         ( base64Decode
         , decodeAnsi
+        , getDownloadLogsFileName
         , getStepLog
         , logEmpty
         , logFocusStyles
         , logRangeId
         , stepAndLineToFocusId
         , stepBottomTrackerFocusId
-        , getDownloadLogsFileName
         , stepToFocusId
         , stepTopTrackerFocusId
         , toString
@@ -515,6 +515,8 @@ jumpToBottomButton stepNumber =
     button
         [ class "button"
         , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ stepNumber
         , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
         ]
@@ -528,6 +530,8 @@ jumpToTopButton stepNumber =
     button
         [ class "button"
         , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ stepNumber
         , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
         ]
