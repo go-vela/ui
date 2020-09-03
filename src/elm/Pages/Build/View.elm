@@ -331,10 +331,10 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
 viewLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> String -> Bool -> Int -> Html Msg
-viewLines org repo buildNumber stepNumber logFocus l shiftDown following =
+viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
     let
         decodedLog =
-            base64Decode l
+            base64Decode log
 
         lines =
             if not <| logEmpty decodedLog then
