@@ -15,7 +15,7 @@ const production = {
   plugins: [
     purgecss({
       content: ['./src/**/*.elm', './src/static/index.js'],
-      whitelist: ['html', 'body', 'svg', 'ansi-*'],
+      whitelist: ['html', 'body', 'svg', 'ansi'],
     }),
     autoprefixer,
   ],
