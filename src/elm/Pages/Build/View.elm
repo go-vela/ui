@@ -410,12 +410,18 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
                     ]
                 ]
             ]
-        , table [ class "logs-table" ] <|
+        , table [ class "logs-table", logsTableStyle <| List.length lines ] <|
             topTracker
                 :: logs
                 ++ [ bottomTracker ]
         ]
 
+logsTableStyle : Int -> Html.Attribute Msg
+logsTableStyle num =
+    if num > 10 then 
+        class  "-long"
+    else
+        class "-short"
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}

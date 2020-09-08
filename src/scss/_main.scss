@@ -819,6 +819,10 @@ nav {
 
   resize: vertical;
 
+  &.-short {
+    height: 0;
+  }
+
   &::-webkit-resizer {
     background: var(--color-bg-dark);
 
