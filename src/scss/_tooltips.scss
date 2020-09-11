@@ -25,7 +25,7 @@
   z-index: 9999;
 
   background: transparent;
-  border: 0.3rem solid transparent;
+  border: 0.1rem solid transparent;
 
   content: '';
 }
@@ -37,6 +37,7 @@
   padding: 0.2rem 0.4rem;
 
   font-size: 0.8rem;
+  line-height: 1.2;
 
   content: attr(data-tooltip);
 }
@@ -75,7 +76,7 @@
 .tooltip-left::before {
   top: 0.5rem;
 
-  margin-right: -0.55rem;
+  margin-right: -0.5rem;
   margin-bottom: 0;
   margin-left: 0;
 
@@ -87,9 +88,9 @@
 .tooltip-left:hover::after,
 .tooltip-left:focus::before,
 .tooltip-left:focus::after {
-  -webkit-transform: translateX(-0.6rem);
-  -moz-transform: translateX(-0.6rem);
-  transform: translateX(-0.6rem);
+  -webkit-transform: translateX(-0.8rem);
+  -moz-transform: translateX(-0.8rem);
+  transform: translateX(-0.8rem);
 }
 
 .tooltip-left::after {
