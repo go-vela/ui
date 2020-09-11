@@ -12,6 +12,7 @@ module Pages.Build.Logs exposing
     , focusLogs
     , focusStep
     , getCurrentStep
+    , getDownloadLogsFileName
     , getStepLog
     , logEmpty
     , logFocusExists
@@ -20,7 +21,6 @@ module Pages.Build.Logs exposing
     , logRangeId
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
-    , getDownloadLogsFileName
     , stepToFocusId
     , stepTopTrackerFocusId
     , toString
