@@ -1390,10 +1390,6 @@ nav {
   overflow: auto;
 }
 
-.opacity-0 {
-  opacity: 0;
-}
-
 .line.top-log-actions {
   padding: 0.2rem;
   padding-right: 0.6rem;
@@ -1403,11 +1399,15 @@ nav {
   }
 }
 
-.side-actions {
+.tracker {
+  opacity: 0;
+}
+
+.side-log-actions {
   position: relative;
 }
 
-.side-actions .inner {
+.side-log-actions .inner {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
@@ -1423,11 +1423,11 @@ nav {
   }
 }
 
-.side-actions .inner svg {
+.side-log-actions .inner svg {
   padding: 0.2rem;
 }
 
-.side-actions .actions {
+.side-log-actions .actions {
   display: flex;
   flex-direction: column;
 }

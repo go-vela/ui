@@ -367,7 +367,7 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
                 |> List.filterMap identity
 
         topTracker =
-            tr [ class "line", class "opacity-0" ]
+            tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
                         stepTopTrackerFocusId stepNumber
@@ -378,7 +378,7 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
                 ]
 
         bottomTracker =
-            tr [ class "line", class "opacity-0" ]
+            tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
                         stepBottomTrackerFocusId stepNumber
@@ -401,7 +401,7 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
                     [ topLogActions stepNumber fileName decodedLog
                     ]
             ]
-        , div [ class "side-actions" ]
+        , div [ class "side-log-actions" ]
             [ div [ class "inner" ]
                 [ div [ class "actions" ]
                     [ jumpToTopButton stepNumber
