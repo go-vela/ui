@@ -325,8 +325,9 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
 
             _ ->
                 if logEmpty log then
-                    [logsHeader stepNumber fileName decodedLog
-                    ,  div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ] ]
+                    [ logsHeader stepNumber fileName decodedLog
+                    , div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
+                    ]
 
                 else
                     let
@@ -524,7 +525,8 @@ logsHeader stepNumber fileName decodedLog =
 logsSidebar : StepNumber -> Int -> Int -> Html Msg
 logsSidebar stepNumber following numSteps =
     let
-        long = numSteps > 25
+        long =
+            numSteps > 25
     in
     div [ class "logs-sidebar" ]
         [ div [ class "inner-container" ]
