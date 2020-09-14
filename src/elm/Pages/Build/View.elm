@@ -624,7 +624,7 @@ stepError step =
 stepKilled : Step -> Html msg
 stepKilled _ =
     div [ class "step-error", Util.testAttribute "step-error" ]
-        [ span [ class "label" ] [ text "step was killed" ] ]
+        [ span [ class "message" ] [ text "step was killed" ] ]
 
 
 {-| stepSkipped : renders message for a skipped step
@@ -632,7 +632,7 @@ stepKilled _ =
 stepSkipped : Step -> Html msg
 stepSkipped _ =
     div [ class "step-skipped", Util.testAttribute "step-skipped" ]
-        [ span [ class "label" ] [ text "step was skipped" ] ]
+        [ span [ class "message" ] [ text "step was skipped" ] ]
 
 
 {-| viewStepIcon : renders a build step status icon
