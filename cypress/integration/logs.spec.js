@@ -190,7 +190,7 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
       cy.get('[data-test=step-header-5]').click({ force: true });
     });
 
-    it('top log actions should only contain action', () => {
+    it('logs header should contain limited actions', () => {
       cy.get('[data-test=logs-header-actions-5]').within(() => {
         cy.get('[data-test=jump-to-bottom-5]').should('not.exist');
         cy.get('[data-test=jump-to-top-5]').should('not.exist');
@@ -204,7 +204,7 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
       cy.get('[data-test=step-header-1]').click({ force: true });
     });
 
-    it('top log actions should only contain download', () => {
+    it('logs header actions should only contain download', () => {
       cy.get('[data-test=logs-header-actions-1]').within(() => {
         cy.get('[data-test=jump-to-bottom-1]').should('not.exist');
         cy.get('[data-test=follow-logs-1]').should('not.exist');
@@ -212,7 +212,7 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
       });
     });
 
-    it('bottom log actions should not exist', () => {
+    it('logs sidebar actions should not exist', () => {
       cy.get('[data-test=logs-sidebar-actions-1]').should('not.exist');
     });
   });
