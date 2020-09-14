@@ -830,20 +830,26 @@ nav {
   }
 }
 
+.logs .-focus {
+  background: var(--color-focus);
+}
+
+.line a {
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: underline;
+  }
+}
+
+
 .logs-table {
   display: block;
   table-layout: fixed;
   width: 100%;
   height: 22rem;
   overflow-y: auto;
-
-  &.-short {
-    height: 0;
-  }
-
-  &.-long {
-    height: 35rem;
-  }
 
   min-height: 10rem;
   max-height: 75rem;
@@ -853,24 +859,14 @@ nav {
 
   scrollbar-color: var(--color-coal-light) var(--color-bg-dark);
   scrollbar-width: thin;
+}
 
-  &::-webkit-resizer {
-    background: var(--color-bg-dark);
+.logs-table.-short {
+  height: 0;
+}
 
-    border: 2px solid var(--color-bg-dark);
-    border-bottom: 3px solid var(--color-bg-light);
-    border-right: 3px solid var(--color-bg-light);
-  }
-
-  &::-webkit-scrollbar {
-    width: 0.7rem;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--color-bg-light);
-    border-radius: 1rem;
-    border: 2px solid var(--color-bg-dark);
-  }
+.logs-table.-long {
+  height: 35rem;
 }
 
 .logs-table tr td:nth-child(2) {
@@ -904,17 +900,22 @@ nav {
   }
 }
 
-.logs .-focus {
-  background: var(--color-focus);
+.logs-table::-webkit-resizer {
+  background: var(--color-bg-dark);
+
+  border: 2px solid var(--color-bg-dark);
+  border-bottom: 3px solid var(--color-bg-light);
+  border-right: 3px solid var(--color-bg-light);
 }
 
-.line a {
-  text-decoration: none;
+.logs-table::-webkit-scrollbar {
+  width: 0.7rem;
+}
 
-  &:hover,
-  &:focus {
-    text-decoration: underline;
-  }
+.logs-table::-webkit-scrollbar-thumb {
+  background-color: var(--color-bg-light);
+  border-radius: 1rem;
+  border: 2px solid var(--color-bg-dark);
 }
 
 .logs-header {

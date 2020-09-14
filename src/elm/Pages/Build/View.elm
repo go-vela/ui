@@ -313,27 +313,25 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
 
         decodedLog =
             base64Decode log
-
-        content =
-            case Maybe.withDefault RemoteData.NotAsked maybeLog of
-                RemoteData.Failure _ ->
-                    [ code [ Util.testAttribute "logs-error" ] [ text "error" ] ]
-
-                _ ->
-                    if logEmpty log then
-                        [ div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ] ]
-
-                    else
-                        [ logsHeader stepNumber fileName decodedLog
-                        , logsSidebar stepNumber following
-                        , viewLines stepNumber logFocus decodedLog shiftDown
-                        ]
     in
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ stepNumber
         ]
-        content
+    <|
+        case Maybe.withDefault RemoteData.NotAsked maybeLog of
+            RemoteData.Failure _ ->
+                [ code [ Util.testAttribute "logs-error" ] [ text "error" ] ]
+
+            _ ->
+                if logEmpty log then
+                    [ div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ] ]
+
+                else
+                    [ logsHeader stepNumber fileName decodedLog
+                    , logsSidebar stepNumber following
+                    , viewLines stepNumber logFocus decodedLog shiftDown
+                    ]
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
