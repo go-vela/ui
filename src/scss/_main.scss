@@ -919,11 +919,14 @@ nav {
 }
 
 .logs-header .actions {
-  padding: 0.2rem;
-  padding-right: 0.6rem;
+  padding: 0.3rem;
 
   div {
     justify-content: flex-end;
+  }
+
+  .button {
+    margin-right: 0.3rem;
   }
 }
 
