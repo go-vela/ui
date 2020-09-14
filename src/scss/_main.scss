@@ -879,15 +879,10 @@ nav {
 
 .step-error,
 .step-skipped {
-  margin-left: 1.5em;
+  padding: 0.5rem 1em;
 
   color: var(--color-red-light);
   font-size: 14px;
-}
-
-.step-error .message,
-.step-skipped .message {
-  padding: 1rem 0.2em;
 }
 
 .animated {
