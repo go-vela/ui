@@ -363,6 +363,7 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
 
         -- update resource filename when adding stages/services
         logs =
+            lines ++
             lines
                 |> List.filterMap identity
 
@@ -392,28 +393,39 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
             getDownloadLogsFileName org repo buildNumber "step" stepNumber
     in
     div []
-            [ if logEmpty decodedLog then
+            [ 
+                
+                if logEmpty decodedLog then
                 code [] [ text "" ]
 
               else
                 div [ class "buttons", class "log-buttons" ]
                     [ topLogActions stepNumber fileName decodedLog
                     ]
-            ]
-        , div [ class "side-log-actions" ]
+        ,
+                  div [class "side-outer"] [  div [ class "side-log-actions" ]
             [ div [ class "actions" ]
                     [ jumpToTopButton stepNumber
                     , jumpToBottomButton stepNumber
-                    , stepFollowButton stepNumber following
+                    ,  stepFollowButton stepNumber following
                     ]
-                ]
-            
-        , table [ class "logs-table", logsTableStyle <| List.length lines ] <|
+                ]]
+        , 
+            table [ class "logs-table", logsTableStyle <| List.length lines ] <|
             topTracker
                 :: logs
                 ++ [ bottomTracker ]
-            ]
-        ]
+            -- ,
+            --         div [ class "side-log-actions" ]
+            -- [ div [ class "actions" ]
+            --         [ jumpToTopButton stepNumber
+            --         , jumpToBottomButton stepNumber
+            --         ,  stepFollowButton stepNumber following
+            --         ]
+            --     ]
+                
+                ]
+        
         
 
 
@@ -558,7 +570,13 @@ downloadStepLogsButton stepNumber fileName logs =
         , onClick <| DownloadLogs fileName logs
         ]
         [ text "download step logs" ]
-
+    -- button
+    --     [ class "button"
+    --     , class "-icon"
+    --     , Util.testAttribute <| "download-logs-" ++ stepNumber
+    --     , onClick <| DownloadLogs fileName logs
+    --     ]
+    --     [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 {-| stepFollowButton : renders button for following step logs
 -}

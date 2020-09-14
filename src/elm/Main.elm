@@ -735,9 +735,8 @@ update msg model =
 
         StepLogResponse stepNumber logFocus refresh response ->
             case response of
-                Ok ( x, log ) ->
+                Ok ( _, log ) ->
                     let
-                        _ = Debug.log "log... header?" x
                         following =
                             model.followingStep /= 0
 
