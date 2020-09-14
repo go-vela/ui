@@ -311,20 +311,22 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
         content =
             case Maybe.withDefault RemoteData.NotAsked maybeLog of
                 RemoteData.Failure _ ->
-                    code [ Util.testAttribute "logs-error" ] [ text "error" ]
+                    [code [ Util.testAttribute "logs-error" ] [ text "error" ]]
 
                 _ ->
                     if logEmpty log then
-                        div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
+                        [div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]]
 
                     else
-                        viewLines org repo buildNumber stepNumber logFocus log shiftDown following
+                        [                div [ class "buttons", class "log-buttons" ]
+                    [ topLogActions stepNumber "fileName" "decodedLog"
+                    ], viewLines org repo buildNumber stepNumber logFocus log shiftDown following]
     in
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ stepNumber
         ]
-        [ content ]
+         content 
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
@@ -363,7 +365,6 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
 
         -- update resource filename when adding stages/services
         logs =
-            lines ++
             lines
                 |> List.filterMap identity
 
@@ -394,15 +395,6 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
     in
     div []
             [ 
-                
-                if logEmpty decodedLog then
-                code [] [ text "" ]
-
-              else
-                div [ class "buttons", class "log-buttons" ]
-                    [ topLogActions stepNumber fileName decodedLog
-                    ]
-        ,
                   div [class "side-outer"] [  div [ class "side-log-actions" ]
             [ div [ class "actions" ]
                     [ jumpToTopButton stepNumber
