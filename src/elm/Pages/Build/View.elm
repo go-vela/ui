@@ -538,6 +538,7 @@ jumpToBottomButton stepNumber =
         , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ stepNumber
         , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
+        , attribute "aria-label" <| "jump to bottom of logs for step " ++ stepNumber
         ]
         [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
@@ -553,6 +554,7 @@ jumpToTopButton stepNumber =
         , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ stepNumber
         , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
+        , attribute "aria-label" <| "jump to top of logs for step " ++ stepNumber
         ]
         [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
@@ -566,6 +568,7 @@ downloadStepLogsButton stepNumber fileName logs =
         , class "-link"
         , Util.testAttribute <| "download-logs-" ++ stepNumber
         , onClick <| DownloadLogs fileName logs
+        , attribute "aria-label" <| "download logs for step " ++ stepNumber
         ]
         [ text "download step logs" ]
 
@@ -595,6 +598,7 @@ stepFollowButton stepNumber following =
         , attribute "data-tooltip" tooltip
         , Util.testAttribute <| "follow-logs-" ++ stepNumber
         , onClick <| FollowStep toFollow
+        , attribute "aria-label" <| tooltip ++ " for step " ++ stepNumber
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 

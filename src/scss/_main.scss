@@ -845,7 +845,7 @@ nav {
 
   min-height: 10rem;
   max-height: 75rem;
-  padding-bottom: 1rem;
+  padding-bottom: 2rem;
   padding-top: 1rem;
   resize: vertical;
 
@@ -967,15 +967,10 @@ nav {
 
 .step-error,
 .step-skipped {
-  margin-left: 1.5em;
+  padding: 0.5em 1rem;
 
   color: var(--color-red-light);
   font-size: 14px;
-}
-
-.step-error .message,
-.step-skipped .message {
-  margin-left: 0.2em;
 }
 
 .animated {
