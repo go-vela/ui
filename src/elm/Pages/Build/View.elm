@@ -398,42 +398,6 @@ viewLines stepNumber logFocus decodedLog shiftDown =
             ++ [ bottomTracker ]
 
 
-{-| logsSidebar : takes step number/following and renders the logs sidebar
--}
-logsSidebar : StepNumber -> Int -> Html Msg
-logsSidebar stepNumber following =
-    div [ class "logs-sidebar" ]
-        [ div [ class "inner-container" ]
-            [ div [ class "actions" ]
-                [ jumpToTopButton stepNumber
-                , jumpToBottomButton stepNumber
-                , stepFollowButton stepNumber following
-                ]
-            ]
-        ]
-
-
-{-| logsTableStyle : takes number of log lines and returns table class attribute
--}
-logsTableStyle : Int -> Html.Attribute Msg
-logsTableStyle num =
-    let
-        short =
-            10
-
-        medium =
-            20
-    in
-    if num < short then
-        class "-short"
-
-    else if num < medium then
-        class ""
-
-    else
-        class "-long"
-
-
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
 viewLine : String -> Int -> Maybe Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
@@ -466,6 +430,27 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
         ]
 
 
+{-| logsTableStyle : takes number of log lines and returns table class attribute
+-}
+logsTableStyle : Int -> Html.Attribute Msg
+logsTableStyle num =
+    let
+        short =
+            10
+
+        medium =
+            20
+    in
+    if num < short then
+        class "-short"
+
+    else if num < medium then
+        class ""
+
+    else
+        class "-long"
+
+
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
 lineFocusButton : StepNumber -> LogFocus -> Int -> Bool -> Html Msg
@@ -482,23 +467,6 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
         , attribute "aria-label" <| "focus step " ++ stepNumber
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
-
-
-{-| logsHeader : takes step number, filename and decoded log and renders logs header
--}
-logsHeader : StepNumber -> String -> String -> Html Msg
-logsHeader stepNumber fileName decodedLog =
-    div [ class "buttons", class "logs-header" ]
-        [ div
-            [ class "line", class "actions" ]
-            [ div
-                [ class "wrapper"
-                , class "buttons"
-                , Util.testAttribute <| "top-log-actions-" ++ stepNumber
-                ]
-                [ downloadStepLogsButton stepNumber fileName decodedLog ]
-            ]
-        ]
 
 
 {-| collapseAllStepsButton : renders a button for collapsing all steps
@@ -525,6 +493,41 @@ expandAllStepsButton org repo buildNumber =
         , Util.testAttribute "expand-all"
         ]
         [ small [] [ text "expand all" ] ]
+
+
+{-| logsHeader : takes step number, filename and decoded log and renders logs header
+-}
+logsHeader : StepNumber -> String -> String -> Html Msg
+logsHeader stepNumber fileName decodedLog =
+    div [ class "buttons", class "logs-header" ]
+        [ div
+            [ class "line", class "actions" ]
+            [ div
+                [ class "wrapper"
+                , class "buttons"
+                , Util.testAttribute <| "top-log-actions-" ++ stepNumber
+                ]
+                [ downloadStepLogsButton stepNumber fileName decodedLog ]
+            ]
+        ]
+
+
+{-| logsSidebar : takes step number/following and renders the logs sidebar
+-}
+logsSidebar : StepNumber -> Int -> Html Msg
+logsSidebar stepNumber following =
+    div [ class "logs-sidebar" ]
+        [ div [ class "inner-container" ]
+            [ div
+                [ class "actions"
+                , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
+                ]
+                [ jumpToTopButton stepNumber
+                , jumpToBottomButton stepNumber
+                , stepFollowButton stepNumber following
+                ]
+            ]
+        ]
 
 
 {-| jumpToBottomButton : renders action button for jumping to the bottom of a step log
