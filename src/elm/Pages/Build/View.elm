@@ -325,18 +325,23 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
 
             _ ->
                 if logEmpty log then
-                    [ div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ] ]
+                    [logsHeader stepNumber fileName decodedLog
+                    ,  div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ] ]
 
                 else
+                    let
+                        ( logs, numLines ) =
+                            viewLines stepNumber logFocus decodedLog shiftDown
+                    in
                     [ logsHeader stepNumber fileName decodedLog
-                    , logsSidebar stepNumber following
-                    , viewLines stepNumber logFocus decodedLog shiftDown
+                    , logsSidebar stepNumber following numLines
+                    , logs
                     ]
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : StepNumber -> LogFocus -> String -> Bool -> Html Msg
+viewLines : StepNumber -> LogFocus -> String -> Bool -> ( Html Msg, Int )
 viewLines stepNumber logFocus decodedLog shiftDown =
     let
         lines =
@@ -392,10 +397,12 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                     []
                 ]
     in
-    table [ class "logs-table", logsTableStyle <| List.length lines ] <|
+    ( table [ class "logs-table", logsTableStyle <| List.length lines ] <|
         topTracker
             :: logs
             ++ [ bottomTracker ]
+    , List.length lines
+    )
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -514,18 +521,27 @@ logsHeader stepNumber fileName decodedLog =
 
 {-| logsSidebar : takes step number/following and renders the logs sidebar
 -}
-logsSidebar : StepNumber -> Int -> Html Msg
-logsSidebar stepNumber following =
+logsSidebar : StepNumber -> Int -> Int -> Html Msg
+logsSidebar stepNumber following numSteps =
+    let
+        long = numSteps > 25
+    in
     div [ class "logs-sidebar" ]
         [ div [ class "inner-container" ]
             [ div
                 [ class "actions"
                 , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
                 ]
-                [ jumpToTopButton stepNumber
-                , jumpToBottomButton stepNumber
-                , stepFollowButton stepNumber following
-                ]
+              <|
+                (if long then
+                    [ jumpToTopButton stepNumber
+                    , jumpToBottomButton stepNumber
+                    ]
+
+                 else
+                    []
+                )
+                    ++ [ stepFollowButton stepNumber following ]
             ]
         ]
 

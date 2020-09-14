@@ -131,19 +131,17 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
   });
 
   context('log with > 25 lines (long)', () => {
-    it('top log actions should contain all log actions', () => {
+    it('top log actions should contain appropriate log actions', () => {
       cy.get('[data-test=top-log-actions-2]').within(() => {
-        cy.get('[data-test=jump-to-bottom-2]').should('exist');
         cy.get('[data-test=download-logs-2]').should('exist');
-        cy.get('[data-test=follow-logs-2]').should('exist');
       });
     });
 
     it('bottom log actions should not contain download action', () => {
       cy.get('[data-test=bottom-log-actions-2]').within(() => {
         cy.get('[data-test=jump-to-top-2]').should('exist');
+        cy.get('[data-test=jump-to-bottom-2]').should('exist');
         cy.get('[data-test=follow-logs-2]').should('exist');
-        cy.get('[data-test=download-logs-2]').should('not.exist');
       });
     });
 
@@ -190,16 +188,12 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
       cy.get('[data-test=step-header-5]').click({ force: true });
     });
 
-    it('top log actions should not contain jump action', () => {
+    it('top log actions should only contain action', () => {
       cy.get('[data-test=top-log-actions-5]').within(() => {
         cy.get('[data-test=jump-to-bottom-5]').should('not.exist');
+        cy.get('[data-test=jump-to-top-5]').should('not.exist');
         cy.get('[data-test=download-logs-5]').should('exist');
-        cy.get('[data-test=follow-logs-5]').should('exist');
       });
-    });
-
-    it('bottom log actions should not exist', () => {
-      cy.get('[data-test=bottom-log-actions-5]').should('not.exist');
     });
   });
 
@@ -208,11 +202,11 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
       cy.get('[data-test=step-header-1]').click({ force: true });
     });
 
-    it('top log actions should only contain follow', () => {
+    it('top log actions should only contain download', () => {
       cy.get('[data-test=top-log-actions-1]').within(() => {
         cy.get('[data-test=jump-to-bottom-1]').should('not.exist');
-        cy.get('[data-test=download-logs-1]').should('not.exist');
-        cy.get('[data-test=follow-logs-1]').should('exist');
+        cy.get('[data-test=follow-logs-1]').should('not.exist');
+        cy.get('[data-test=download-logs-1]').should('exist');
       });
     });
 
