@@ -12,8 +12,6 @@
 [data-tooltip]::after {
   position: absolute;
 
-  -webkit-transform: translate3d(0, 0, 0);
-  -moz-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
   visibility: hidden;
   opacity: 0;
@@ -87,8 +85,6 @@
 .tooltip-left:hover::after,
 .tooltip-left:focus::before,
 .tooltip-left:focus::after {
-  -webkit-transform: translateX(-0.6rem);
-  -moz-transform: translateX(-0.6rem);
   transform: translateX(-0.6rem);
 }
 
