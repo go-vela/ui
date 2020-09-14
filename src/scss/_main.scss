@@ -831,7 +831,6 @@ nav {
 }
 
 .logs-table {
-  overflow-y: hidden;
   display: block;
   table-layout: fixed;
   width: 100%;
@@ -840,7 +839,8 @@ nav {
 
   &.-short {
     height: 0;
-  }  
+  }
+
   &.-long {
     height: 35rem;
   }
@@ -864,7 +864,6 @@ nav {
 
   &::-webkit-scrollbar {
     width: 0.7rem;
-
   }
 
   &::-webkit-scrollbar-thumb {
@@ -959,14 +958,14 @@ nav {
   }
 }
 
-.logs-sidebar .inner-container .actions {
+.logs-sidebar .actions {
   display: flex;
   flex-direction: column;
 
   button {
     background: var(--color-coal-light);
     margin-bottom: 0.4rem;
-    color: white;
+    color: var(--color-offwhite);
   }
 }
 
