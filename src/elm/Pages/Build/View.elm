@@ -513,7 +513,7 @@ logsHeader stepNumber fileName decodedLog =
             [ div
                 [ class "wrapper"
                 , class "buttons"
-                , Util.testAttribute <| "top-log-actions-" ++ stepNumber
+                , Util.testAttribute <| "logs-header-actions-" ++ stepNumber
                 ]
                 [ downloadStepLogsButton stepNumber fileName decodedLog ]
             ]
@@ -532,7 +532,7 @@ logsSidebar stepNumber following numSteps =
         [ div [ class "inner-container" ]
             [ div
                 [ class "actions"
-                , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
+                , Util.testAttribute <| "logs-sidebar-actions-" ++ stepNumber
                 ]
               <|
                 (if long then
