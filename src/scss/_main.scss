@@ -803,19 +803,6 @@ nav {
 .logs {
   font-weight: 300;
   font-size: 14px;
-  // height: 22rem;
-  // overflow-y: auto;
-
-  // min-height: 10rem;
-  // max-height: 75rem;
-  // padding-bottom: 1rem;
-
-  // resize: vertical;
-
-  &.-short {
-    height: 0;
-  }
-
 }
 
 .logs .line {
@@ -851,12 +838,21 @@ nav {
   height: 22rem;
   overflow-y: auto;
 
+  &.-short {
+    height: 0;
+  }  
+  &.-long {
+    height: 35rem;
+  }
+
   min-height: 10rem;
   max-height: 75rem;
   padding-bottom: 1rem;
   padding-top: 1rem;
   resize: vertical;
 
+  scrollbar-color: var(--color-coal-light) var(--color-bg-dark);
+  scrollbar-width: thin;
 
   &::-webkit-resizer {
     background: var(--color-bg-dark);
@@ -922,7 +918,7 @@ nav {
   }
 }
 
-.log-buttons {
+.logs-header {
   padding: 0.25rem 0;
   border-bottom: 1px solid var(--color-slate);
   background: var(--color-bg-dark);
@@ -930,7 +926,7 @@ nav {
   z-index: 1;
 }
 
-.line.top-log-actions {
+.logs-header .actions {
   padding: 0.2rem;
   padding-right: 0.6rem;
 
@@ -942,36 +938,35 @@ nav {
 .tracker {
   opacity: 0;
 }
-.side-outer {
+
+.logs-sidebar {
   height: 100%;
   position: absolute;
   right: 1rem;
   padding-bottom: 2rem;
 }
 
-.side-log-actions {
-  margin: 0.5rem 0 0.5rem 0;
-  position: sticky;
-  top: 1rem;
-}
-
-.side-log-actions {
+.logs-sidebar .inner-container {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  margin: 0.5rem 0 0.5rem 0;
+  position: sticky;
+  top: 1rem;
+
+  svg {
+    padding: 0.2rem;
+  }
 }
 
-.side-log-actions svg {
-  padding: 0.2rem;
-}
-
-.side-log-actions .actions {
+.logs-sidebar .inner-container .actions {
   display: flex;
   flex-direction: column;
 
   button {
-    background: var(--color-bg-light);
+    background: var(--color-coal-light);
     margin-bottom: 0.4rem;
+    color: white;
   }
 }
 

@@ -308,35 +308,39 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
         log =
             toString maybeLog
 
+        fileName =
+            getDownloadLogsFileName org repo buildNumber "step" stepNumber
+
+        decodedLog =
+            base64Decode log
+
         content =
             case Maybe.withDefault RemoteData.NotAsked maybeLog of
                 RemoteData.Failure _ ->
-                    [code [ Util.testAttribute "logs-error" ] [ text "error" ]]
+                    [ code [ Util.testAttribute "logs-error" ] [ text "error" ] ]
 
                 _ ->
                     if logEmpty log then
-                        [div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]]
+                        [ div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ] ]
 
                     else
-                        [                div [ class "buttons", class "log-buttons" ]
-                    [ topLogActions stepNumber "fileName" "decodedLog"
-                    ], viewLines org repo buildNumber stepNumber logFocus log shiftDown following]
+                        [ logsHeader stepNumber fileName decodedLog
+                        , logsSidebar stepNumber following
+                        , viewLines stepNumber logFocus decodedLog shiftDown
+                        ]
     in
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ stepNumber
         ]
-         content 
+        content
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> String -> Bool -> Int -> Html Msg
-viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
+viewLines : StepNumber -> LogFocus -> String -> Bool -> Html Msg
+viewLines stepNumber logFocus decodedLog shiftDown =
     let
-        decodedLog =
-            base64Decode log
-
         lines =
             if not <| logEmpty decodedLog then
                 decodedLog
@@ -389,45 +393,47 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
                     ]
                     []
                 ]
-
-        fileName =
-            getDownloadLogsFileName org repo buildNumber "step" stepNumber
     in
-    div []
-            [ 
-                  div [class "side-outer"] [  div [ class "side-log-actions" ]
+    table [ class "logs-table", logsTableStyle <| List.length lines ] <|
+        topTracker
+            :: logs
+            ++ [ bottomTracker ]
+
+
+{-| logsSidebar : takes step number/following and renders the logs sidebar
+-}
+logsSidebar : StepNumber -> Int -> Html Msg
+logsSidebar stepNumber following =
+    div [ class "logs-sidebar" ]
+        [ div [ class "inner-container" ]
             [ div [ class "actions" ]
-                    [ jumpToTopButton stepNumber
-                    , jumpToBottomButton stepNumber
-                    ,  stepFollowButton stepNumber following
-                    ]
-                ]]
-        , 
-            table [ class "logs-table", logsTableStyle <| List.length lines ] <|
-            topTracker
-                :: logs
-                ++ [ bottomTracker ]
-            -- ,
-            --         div [ class "side-log-actions" ]
-            -- [ div [ class "actions" ]
-            --         [ jumpToTopButton stepNumber
-            --         , jumpToBottomButton stepNumber
-            --         ,  stepFollowButton stepNumber following
-            --         ]
-            --     ]
-                
+                [ jumpToTopButton stepNumber
+                , jumpToBottomButton stepNumber
+                , stepFollowButton stepNumber following
                 ]
-        
-        
+            ]
+        ]
 
 
+{-| logsTableStyle : takes number of log lines and returns table class attribute
+-}
 logsTableStyle : Int -> Html.Attribute Msg
 logsTableStyle num =
-    if num > 10 then
-        class "-long"
+    let
+        short =
+            10
+
+        medium =
+            20
+    in
+    if num < short then
+        class "-short"
+
+    else if num < medium then
+        class ""
 
     else
-        class "-short"
+        class "-long"
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -480,18 +486,20 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
 
-{-| topLogActions : renders action buttons for the top of a step log
+{-| logsHeader : takes step number, filename and decoded log and renders logs header
 -}
-topLogActions : StepNumber -> String -> String -> Html Msg
-topLogActions stepNumber fileName log =
-    div
-        [ class "line", class "top-log-actions" ]
+logsHeader : StepNumber -> String -> String -> Html Msg
+logsHeader stepNumber fileName decodedLog =
+    div [ class "buttons", class "logs-header" ]
         [ div
-            [ class "wrapper"
-            , class "buttons"
-            , Util.testAttribute <| "top-log-actions-" ++ stepNumber
+            [ class "line", class "actions" ]
+            [ div
+                [ class "wrapper"
+                , class "buttons"
+                , Util.testAttribute <| "top-log-actions-" ++ stepNumber
+                ]
+                [ downloadStepLogsButton stepNumber fileName decodedLog ]
             ]
-            [ downloadStepLogsButton stepNumber fileName log ]
         ]
 
 
@@ -562,13 +570,17 @@ downloadStepLogsButton stepNumber fileName logs =
         , onClick <| DownloadLogs fileName logs
         ]
         [ text "download step logs" ]
-    -- button
-    --     [ class "button"
-    --     , class "-icon"
-    --     , Util.testAttribute <| "download-logs-" ++ stepNumber
-    --     , onClick <| DownloadLogs fileName logs
-    --     ]
-    --     [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+
+
+-- button
+--     [ class "button"
+--     , class "-icon"
+--     , Util.testAttribute <| "download-logs-" ++ stepNumber
+--     , onClick <| DownloadLogs fileName logs
+--     ]
+--     [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
 
 {-| stepFollowButton : renders button for following step logs
 -}
