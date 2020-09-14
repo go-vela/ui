@@ -570,16 +570,6 @@ downloadStepLogsButton stepNumber fileName logs =
         [ text "download step logs" ]
 
 
-
--- button
---     [ class "button"
---     , class "-icon"
---     , Util.testAttribute <| "download-logs-" ++ stepNumber
---     , onClick <| DownloadLogs fileName logs
---     ]
---     [ FeatherIcons.download |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
-
-
 {-| stepFollowButton : renders button for following step logs
 -}
 stepFollowButton : StepNumber -> Int -> Html Msg
