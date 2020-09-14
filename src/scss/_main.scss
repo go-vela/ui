@@ -802,15 +802,8 @@ nav {
 .logs {
   font-weight: 300;
   font-size: 14px;
-}
-
-.logs-table {
-  overflow-y: auto;
-  display: block;
-  table-layout: fixed;
-  width: 100%;
-
   height: 22rem;
+  overflow-y: auto;
 
   min-height: 10rem;
   max-height: 50rem;
@@ -840,6 +833,16 @@ nav {
     border-radius: 1rem;
     border: 2px solid var(--color-bg-dark);
   }
+}
+
+.logs-table {
+  overflow-y: hidden;
+  display: block;
+  table-layout: fixed;
+  width: 100%;
+  position: relative;
+  top: -7rem;
+
 }
 
 .log-buttons {
@@ -914,6 +917,45 @@ nav {
   &:hover,
   &:focus {
     text-decoration: underline;
+  }
+}
+.line.top-log-actions {
+  padding: 0.2rem;
+  padding-right: 0.6rem;
+
+  div {
+    justify-content: flex-end;
+  }
+}
+
+.tracker {
+  opacity: 0;
+}
+
+.side-log-actions {
+  position: sticky;
+  top: 1rem;
+  margin: 1rem 1rem 0.5rem 0;
+}
+
+.side-log-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.side-log-actions svg {
+  padding: 0.2rem;
+}
+
+.side-log-actions .actions {
+  display: flex;
+  flex-direction: column;
+
+  button {
+    background: var(--color-bg-light);
+
+    margin-bottom: 0.4rem;
   }
 }
 
@@ -1388,46 +1430,4 @@ nav {
 
 .overflow-auto {
   overflow: auto;
-}
-
-.line.top-log-actions {
-  padding: 0.2rem;
-  padding-right: 0.6rem;
-
-  div {
-    justify-content: flex-end;
-  }
-}
-
-.tracker {
-  opacity: 0;
-}
-
-.side-log-actions {
-  position: relative;
-}
-
-.side-log-actions .inner {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  position: absolute;
-  top: 0;
-  right: 1rem;
-  margin-top: 0.5rem;
-
-  button {
-    background: var(--color-bg-light);
-
-    margin-bottom: 0.4rem;
-  }
-}
-
-.side-log-actions .inner svg {
-  padding: 0.2rem;
-}
-
-.side-log-actions .actions {
-  display: flex;
-  flex-direction: column;
 }

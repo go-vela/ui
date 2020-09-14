@@ -392,7 +392,6 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
             getDownloadLogsFileName org repo buildNumber "step" stepNumber
     in
     div []
-        [ div []
             [ if logEmpty decodedLog then
                 code [] [ text "" ]
 
@@ -402,19 +401,20 @@ viewLines org repo buildNumber stepNumber logFocus log shiftDown following =
                     ]
             ]
         , div [ class "side-log-actions" ]
-            [ div [ class "inner" ]
-                [ div [ class "actions" ]
+            [ div [ class "actions" ]
                     [ jumpToTopButton stepNumber
                     , jumpToBottomButton stepNumber
                     , stepFollowButton stepNumber following
                     ]
                 ]
-            ]
+            
         , table [ class "logs-table", logsTableStyle <| List.length lines ] <|
             topTracker
                 :: logs
                 ++ [ bottomTracker ]
+            ]
         ]
+        
 
 
 logsTableStyle : Int -> Html.Attribute Msg
