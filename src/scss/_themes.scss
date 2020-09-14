@@ -106,9 +106,9 @@ body.theme-light {
   }
 
   .logs-table::-webkit-resizer {
-    background: var(--color-white);
+    background: var(--color-bg);
 
-    border: 2px solid var(--color-white);
+    border: 2px solid var(--color-bg);
 
     border-bottom: 3px solid var(--color-bg-light);
     border-right: 3px solid var(--color-bg-light);
@@ -117,7 +117,7 @@ body.theme-light {
   .logs-table::-webkit-scrollbar-thumb {
     background-color: var(--color-bg-light);
     border-radius: 1rem;
-    border: 2px solid var(--color-white);
+    border: 2px solid var(--color-bg);
   }
 
   .step-error,
