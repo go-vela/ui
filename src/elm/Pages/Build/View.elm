@@ -398,7 +398,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                     []
                 ]
     in
-    ( table [ class "logs-table", logsTableStyle <| List.length lines ] <|
+    ( table [ class "logs-table" ] <|
         topTracker
             :: logs
             ++ [ bottomTracker ]
@@ -436,27 +436,6 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
             Nothing ->
                 text ""
         ]
-
-
-{-| logsTableStyle : takes number of log lines and returns table class attribute
--}
-logsTableStyle : Int -> Html.Attribute Msg
-logsTableStyle num =
-    let
-        short =
-            10
-
-        medium =
-            20
-    in
-    if num < short then
-        class "-short"
-
-    else if num < medium then
-        class ""
-
-    else
-        class "-long"
 
 
 {-| lineFocusButton : renders button for focusing log line ranges

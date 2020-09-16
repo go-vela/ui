@@ -840,7 +840,6 @@ nav {
   display: block;
   table-layout: fixed;
   width: 100%;
-  height: 22rem;
   overflow-y: auto;
 
   min-height: 10rem;
@@ -851,14 +850,6 @@ nav {
 
   scrollbar-color: var(--color-coal-light) var(--color-bg-dark);
   scrollbar-width: thin;
-}
-
-.logs-table.-short {
-  height: 0;
-}
-
-.logs-table.-long {
-  height: 35rem;
 }
 
 .logs-table tr td:nth-child(2) {
@@ -920,13 +911,10 @@ nav {
 
 .logs-header .actions {
   padding: 0.3rem;
-
-  div {
-    justify-content: flex-end;
-  }
-
-  .button {
-    margin-right: 0.3rem;
+  
+  .buttons {
+      justify-content: flex-end;
+      margin-right: 0.3rem;
   }
 }
 
@@ -942,9 +930,6 @@ nav {
 }
 
 .logs-sidebar .inner-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
   margin: 0.5rem 0 0.5rem 0;
   position: sticky;
   top: 1rem;
