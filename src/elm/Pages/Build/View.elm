@@ -49,17 +49,18 @@ import Http exposing (Error(..))
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( decodeAnsi
-        , decodeLog
+        ( base64Decode
+        , decodeAnsi
+        , getDownloadLogsFileName
         , getStepLog
         , logEmpty
         , logFocusStyles
         , logRangeId
         , stepAndLineToFocusId
         , stepBottomTrackerFocusId
-        , stepLogsFilename
         , stepToFocusId
         , stepTopTrackerFocusId
+        , toString
         )
 import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
@@ -302,30 +303,51 @@ viewLogs org repo buildNumber step logs follow shiftDown =
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
 -}
 viewLogLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLogLines org repo buildNumber stepNumber logFocus log following shiftDown =
+viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDown =
     let
-        content =
-            case Maybe.withDefault RemoteData.NotAsked log of
-                RemoteData.Success _ ->
-                    viewLines org repo buildNumber stepNumber logFocus log following shiftDown
+        log =
+            toString maybeLog
 
-                RemoteData.Failure _ ->
-                    code [ Util.testAttribute "logs-error" ] [ text "error" ]
+        fileName =
+            getDownloadLogsFileName org repo buildNumber "step" stepNumber
 
-                _ ->
-                    div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
+        decodedLog =
+            base64Decode log
     in
-    div [ class "logs", Util.testAttribute <| "logs-" ++ stepNumber ] [ content ]
+    div
+        [ class "logs"
+        , Util.testAttribute <| "logs-" ++ stepNumber
+        ]
+    <|
+        case Maybe.withDefault RemoteData.NotAsked maybeLog of
+            RemoteData.Failure _ ->
+                [ code [ Util.testAttribute "logs-error" ] [ text "error" ] ]
+
+            _ ->
+                if logEmpty log then
+                    [ logsHeader stepNumber fileName decodedLog
+                    , div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
+                    ]
+
+                else
+                    let
+                        ( logs, numLines ) =
+                            viewLines stepNumber logFocus decodedLog shiftDown
+                    in
+                    [ logsHeader stepNumber fileName decodedLog
+                    , logsSidebar stepNumber following numLines
+                    , logs
+                    ]
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
+viewLines : StepNumber -> LogFocus -> String -> Bool -> ( Html Msg, Int )
+viewLines stepNumber logFocus decodedLog shiftDown =
     let
         lines =
-            if not <| logEmpty log then
-                log
+            if not <| logEmpty decodedLog then
+                decodedLog
                     |> decodeAnsi
                     |> Array.indexedMap
                         (\idx line ->
@@ -349,21 +371,13 @@ viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
                         shiftDown
                 ]
 
-        long =
-            List.length lines > 25
-
         -- update resource filename when adding stages/services
-        filename =
-            stepLogsFilename org repo buildNumber "step" stepNumber
-
         logs =
-            topLogActions stepNumber following long filename (decodeLog log)
-                :: lines
-                ++ [ bottomLogActions stepNumber following long ]
+            lines
                 |> List.filterMap identity
 
         topTracker =
-            tr [ class "line", class "opacity-0" ]
+            tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
                         stepTopTrackerFocusId stepNumber
@@ -374,7 +388,7 @@ viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
                 ]
 
         bottomTracker =
-            tr [ class "line", class "opacity-0" ]
+            tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
                         stepBottomTrackerFocusId stepNumber
@@ -384,7 +398,12 @@ viewLines org repo buildNumber stepNumber logFocus log following shiftDown =
                     []
                 ]
     in
-    table [ class "log-table" ] <| topTracker :: logs ++ [ bottomTracker ]
+    ( table [ class "logs-table" ] <|
+        topTracker
+            :: logs
+            ++ [ bottomTracker ]
+    , List.length lines
+    )
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -437,35 +456,6 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
 
-{-| topLogActions : renders action buttons for the top of a step log
--}
-topLogActions : StepNumber -> Int -> Bool -> String -> String -> Maybe (Html Msg)
-topLogActions stepNumber following long filename logs =
-    div
-        [ class "line", class "-align-center" ]
-        [ if String.isEmpty logs then
-            code [ class "no-data" ] [ text "No data" ]
-
-          else
-            text ""
-        , div
-            [ class "wrapper"
-            , class "buttons"
-            , class "justify-flex-end"
-            , Util.testAttribute <| "top-log-actions-" ++ stepNumber
-            ]
-            [ downloadButton stepNumber filename logs
-            , if long then
-                jumpToBottomButton stepNumber
-
-              else
-                text ""
-            , stepFollowButton stepNumber following
-            ]
-        ]
-        |> Just
-
-
 {-| collapseAllStepsButton : renders a button for collapsing all steps
 -}
 collapseAllStepsButton : Html Msg
@@ -492,27 +482,49 @@ expandAllStepsButton org repo buildNumber =
         [ small [] [ text "expand all" ] ]
 
 
-{-| bottomLogActions : renders action buttons for the bottom of a step log
+{-| logsHeader : takes step number, filename and decoded log and renders logs header
 -}
-bottomLogActions : StepNumber -> Int -> Bool -> Maybe (Html Msg)
-bottomLogActions stepNumber following long =
-    if long then
-        Just <|
-            div
-                [ class "line" ]
-                [ div
-                    [ class "wrapper"
-                    , class "buttons"
-                    , class "justify-flex-end"
-                    , Util.testAttribute <| "bottom-log-actions-" ++ stepNumber
-                    ]
-                    [ jumpToTopButton stepNumber
-                    , stepFollowButton stepNumber following
-                    ]
+logsHeader : StepNumber -> String -> String -> Html Msg
+logsHeader stepNumber fileName decodedLog =
+    div [ class "buttons", class "logs-header" ]
+        [ div
+            [ class "line", class "actions" ]
+            [ div
+                [ class "wrapper"
+                , class "buttons"
+                , Util.testAttribute <| "logs-header-actions-" ++ stepNumber
                 ]
+                [ downloadStepLogsButton stepNumber fileName decodedLog ]
+            ]
+        ]
 
-    else
-        Just <| text ""
+
+{-| logsSidebar : takes step number/following and renders the logs sidebar
+-}
+logsSidebar : StepNumber -> Int -> Int -> Html Msg
+logsSidebar stepNumber following numSteps =
+    let
+        long =
+            numSteps > 25
+    in
+    div [ class "logs-sidebar" ]
+        [ div [ class "inner-container" ]
+            [ div
+                [ class "actions"
+                , Util.testAttribute <| "logs-sidebar-actions-" ++ stepNumber
+                ]
+              <|
+                (if long then
+                    [ jumpToTopButton stepNumber
+                    , jumpToBottomButton stepNumber
+                    ]
+
+                 else
+                    []
+                )
+                    ++ [ stepFollowButton stepNumber following ]
+            ]
+        ]
 
 
 {-| jumpToBottomButton : renders action button for jumping to the bottom of a step log
@@ -521,11 +533,14 @@ jumpToBottomButton : StepNumber -> Html Msg
 jumpToBottomButton stepNumber =
     button
         [ class "button"
-        , class "-link"
+        , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ stepNumber
         , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
+        , attribute "aria-label" <| "jump to bottom of logs for step " ++ stepNumber
         ]
-        [ text "jump to bottom" ]
+        [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| jumpToTopButton : renders action button for jumping to the top of a step log
@@ -534,28 +549,28 @@ jumpToTopButton : StepNumber -> Html Msg
 jumpToTopButton stepNumber =
     button
         [ class "button"
-        , class "-link"
+        , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ stepNumber
         , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
+        , attribute "aria-label" <| "jump to top of logs for step " ++ stepNumber
         ]
-        [ text "jump to top" ]
+        [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
-{-| downloadButton : renders action button for downloading a step log
+{-| downloadStepLogsButton : renders action button for downloading a step log
 -}
-downloadButton : String -> String -> String -> Html Msg
-downloadButton stepNumber filename logs =
-    if not <| String.isEmpty logs then
-        button
-            [ class "button"
-            , class "-link"
-            , Util.testAttribute <| "download-logs-" ++ stepNumber
-            , onClick <| DownloadLogs filename logs
-            ]
-            [ text "download step logs" ]
-
-    else
-        text ""
+downloadStepLogsButton : String -> String -> String -> Html Msg
+downloadStepLogsButton stepNumber fileName logs =
+    button
+        [ class "button"
+        , class "-link"
+        , Util.testAttribute <| "download-logs-" ++ stepNumber
+        , onClick <| DownloadLogs fileName logs
+        , attribute "aria-label" <| "download logs for step " ++ stepNumber
+        ]
+        [ text "download step logs" ]
 
 
 {-| stepFollowButton : renders button for following step logs
@@ -568,13 +583,13 @@ stepFollowButton stepNumber following =
 
         ( tooltip, icon, toFollow ) =
             if following == 0 then
-                ( "start following step logs", FeatherIcons.playCircle, stepNum )
+                ( "start following step logs", FeatherIcons.play, stepNum )
 
             else if following == (Maybe.withDefault 0 <| String.toInt stepNumber) then
-                ( "stop following step logs", FeatherIcons.pauseCircle, 0 )
+                ( "stop following step logs", FeatherIcons.pause, 0 )
 
             else
-                ( "start following step logs", FeatherIcons.playCircle, stepNum )
+                ( "start following step logs", FeatherIcons.play, stepNum )
     in
     button
         [ class "button"
@@ -583,6 +598,7 @@ stepFollowButton stepNumber following =
         , attribute "data-tooltip" tooltip
         , Util.testAttribute <| "follow-logs-" ++ stepNumber
         , onClick <| FollowStep toFollow
+        , attribute "aria-label" <| tooltip ++ " for step " ++ stepNumber
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
@@ -612,7 +628,7 @@ stepError step =
 stepKilled : Step -> Html msg
 stepKilled _ =
     div [ class "step-error", Util.testAttribute "step-error" ]
-        [ span [ class "label" ] [ text "step was killed" ] ]
+        [ span [ class "message" ] [ text "step was killed" ] ]
 
 
 {-| stepSkipped : renders message for a skipped step
@@ -620,7 +636,7 @@ stepKilled _ =
 stepSkipped : Step -> Html msg
 stepSkipped _ =
     div [ class "step-skipped", Util.testAttribute "step-skipped" ]
-        [ span [ class "label" ] [ text "step was skipped" ] ]
+        [ span [ class "message" ] [ text "step was skipped" ] ]
 
 
 {-| viewStepIcon : renders a build step status icon
