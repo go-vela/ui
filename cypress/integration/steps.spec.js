@@ -174,7 +174,7 @@ context('Steps', () => {
           cy.get('[data-test=log-line-2-5]').as('line2:5');
           cy.get('[data-test=log-line-num-2-5]').as('lineNumber2:5');
           cy.get('[data-test=log-line-num-2-2]').click({ force: true });
-          cy.get('body')
+          cy.get('@lineNumber2:5')
             .type('{shift}', { release: false })
             .get('@lineNumber2:5')
             .click();
