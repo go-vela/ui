@@ -868,6 +868,7 @@ type alias Log =
     , build_id : Int
     , repository_id : Int
     , data : String
+    , decoded : Bool
     }
 
 
@@ -881,6 +882,7 @@ decodeLog =
         |> optional "build_id" int -1
         |> optional "repository_id" int -1
         |> optional "data" string ""
+        |> hardcoded False
 
 
 type alias Logs =

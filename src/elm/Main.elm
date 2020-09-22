@@ -348,6 +348,7 @@ type Msg
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
+    | OnBase64Decode (List String)
     | FilterBuildEventBy (Maybe Event) Org Repo
     | FocusOn String
     | FocusResult (Result Dom.Error ())
@@ -374,6 +375,11 @@ update msg model =
 
         SessionChanged newSession ->
             ( { model | session = newSession }, Cmd.none )
+
+        OnBase64Decode out ->
+            ( { model | logs = decodeLog out model.logs }
+            , Cmd.none
+            )
 
         FetchSourceRepositories ->
             ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
@@ -763,12 +769,12 @@ update msg model =
 
                             else
                                 Cmd.none
-
-                        decodedLog =
-                            { incomingLog | data = Util.base64Decode incomingLog.data }
                     in
-                    ( updateLogs { model | steps = steps } decodedLog
-                    , cmd
+                    ( updateLogs { model | steps = steps } incomingLog
+                    , Cmd.batch
+                        [ cmd
+                        , Interop.base64Decode <| Encode.list Encode.string [ incomingLog.data, String.fromInt incomingLog.id ]
+                        ]
                     )
 
                 Err error ->
@@ -1204,6 +1210,7 @@ subscriptions model =
     Sub.batch <|
         [ Interop.onSessionChange decodeOnSessionChange
         , Interop.onThemeChange decodeOnThemeChange
+        , Interop.onBase64Decode decodeOnBase64Decode
         , onMouseDown "contextual-help" model ShowHideHelp
         , onMouseDown "identity" model ShowHideIdentity
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
@@ -1236,6 +1243,16 @@ decodeOnThemeChange inTheme =
 
         Err _ ->
             SetTheme Dark
+
+
+decodeOnBase64Decode : Decode.Value -> Msg
+decodeOnBase64Decode out =
+    case Decode.decodeValue (Decode.list Decode.string) out of
+        Ok decodedData ->
+            OnBase64Decode decodedData
+
+        Err _ ->
+            NoOp
 
 
 {-| refreshSubscriptions : takes model and returns the subscriptions for automatically refreshing page data
@@ -2543,6 +2560,36 @@ updateLog incomingLog logs =
         )
         (RemoteData.succeed incomingLog)
         logs
+
+
+{-| decodeLog : takes decoded log data and updates the appropriate log decoded field
+-}
+decodeLog : List String -> Logs -> Logs
+decodeLog out =
+    let
+        decodedData =
+            out |> List.head |> Maybe.withDefault ""
+
+        id =
+            out |> List.reverse |> List.head |> Maybe.withDefault ""
+    in
+    updateIf
+        (\log ->
+            case log of
+                Success log_ ->
+                    id == String.fromInt log_.id
+
+                _ ->
+                    False
+        )
+        (\log ->
+            case log of
+                Success log_ ->
+                    RemoteData.succeed { log_ | decoded = True, data = decodedData }
+
+                _ ->
+                    log
+        )
 
 
 {-| addLog : takes incoming log and logs and adds log when not present
