@@ -2585,7 +2585,7 @@ decodeLog out =
         (\log ->
             case log of
                 Success log_ ->
-                    RemoteData.succeed { log_ | decoded = True, data = decodedData, size = String.length decodedData }
+                    RemoteData.succeed { log_ | decoded = True, view = decodedData, size = String.length decodedData }
 
                 _ ->
                     log

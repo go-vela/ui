@@ -60,7 +60,6 @@ import Pages.Build.Logs
         , stepBottomTrackerFocusId
         , stepToFocusId
         , stepTopTrackerFocusId
-        , toString
         )
 import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
@@ -323,14 +322,18 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
                         if sizeLimitExceeded l then
                             [ logsHeader stepNumber fileName l ]
 
-                        else
+                        else if l.decoded then
                             let
                                 ( logs, numLines ) =
-                                    viewLines stepNumber logFocus l.data shiftDown
+                                    viewLines stepNumber logFocus l.view shiftDown
                             in
                             [ logsHeader stepNumber fileName l
                             , logsSidebar stepNumber following numLines
                             , logs
+                            ]
+
+                        else
+                            [ div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
                             ]
 
                     _ ->
@@ -493,7 +496,7 @@ logsHeader stepNumber fileName log =
                 , Util.testAttribute <| "logs-header-actions-" ++ stepNumber
                 ]
                 [ viewSizeLimitExceeded log
-                , downloadStepLogsButton stepNumber fileName log.data
+                , downloadStepLogsButton stepNumber fileName log.view
                 ]
             ]
         ]

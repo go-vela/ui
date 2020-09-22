@@ -27,7 +27,6 @@ module Pages.Build.Logs exposing
 
 import Ansi.Log
 import Array
-import Base64 exposing (decode)
 import List.Extra exposing (updateIf)
 import Pages exposing (Page)
 import Pages.Build.Model exposing (Msg(..))
