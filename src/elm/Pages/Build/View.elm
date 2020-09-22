@@ -16,6 +16,7 @@ import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
+import Filesize exposing (format)
 import Html
     exposing
         ( Html
@@ -303,13 +304,6 @@ viewLogs org repo buildNumber step logs follow shiftDown =
 -}
 viewLogLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
 viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDown =
-    let
-        decodedLog =
-            toString maybeLog
-
-        fileName =
-            getDownloadLogsFileName org repo buildNumber "step" stepNumber
-    in
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ stepNumber
@@ -320,20 +314,28 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
                 [ code [ Util.testAttribute "logs-error" ] [ text "error" ] ]
 
             _ ->
-                if logEmpty decodedLog then
-                    [ logsHeader stepNumber fileName decodedLog
-                    , div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
-                    ]
+                case extractLog maybeLog of
+                    Just l ->
+                        let
+                            fileName =
+                                getDownloadLogsFileName org repo buildNumber "step" stepNumber
+                        in
+                        if sizeLimitExceeded l then
+                            [ logsHeader stepNumber fileName l ]
 
-                else
-                    let
-                        ( logs, numLines ) =
-                            viewLines stepNumber logFocus decodedLog shiftDown
-                    in
-                    [ logsHeader stepNumber fileName decodedLog
-                    , logsSidebar stepNumber following numLines
-                    , logs
-                    ]
+                        else
+                            let
+                                ( logs, numLines ) =
+                                    viewLines stepNumber logFocus l.data shiftDown
+                            in
+                            [ logsHeader stepNumber fileName l
+                            , logsSidebar stepNumber following numLines
+                            , logs
+                            ]
+
+                    _ ->
+                        [ div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
+                        ]
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
@@ -480,8 +482,8 @@ expandAllStepsButton org repo buildNumber =
 
 {-| logsHeader : takes step number, filename and decoded log and renders logs header
 -}
-logsHeader : StepNumber -> String -> String -> Html Msg
-logsHeader stepNumber fileName decodedLog =
+logsHeader : StepNumber -> String -> Log -> Html Msg
+logsHeader stepNumber fileName log =
     div [ class "buttons", class "logs-header" ]
         [ div
             [ class "line", class "actions" ]
@@ -490,7 +492,9 @@ logsHeader stepNumber fileName decodedLog =
                 , class "buttons"
                 , Util.testAttribute <| "logs-header-actions-" ++ stepNumber
                 ]
-                [ downloadStepLogsButton stepNumber fileName decodedLog ]
+                [ viewSizeLimitExceeded log
+                , downloadStepLogsButton stepNumber fileName log.data
+                ]
             ]
         ]
 
@@ -597,6 +601,59 @@ stepFollowButton stepNumber following =
         , attribute "aria-label" <| tooltip ++ " for step " ++ stepNumber
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+
+{-| fileSizeLimit : represents the upper limit on log file size for rendering optimizations
+-}
+fileSizeLimit =
+    1000000
+
+
+{-| extractLog : takes maybe webdata log and returns maybe log
+-}
+extractLog : Maybe (WebData Log) -> Maybe Log
+extractLog =
+    Maybe.andThen
+        (\log_ ->
+            case log_ of
+                RemoteData.Success l ->
+                    if l.decoded then
+                        Just l
+
+                    else
+                        Nothing
+
+                _ ->
+                    Nothing
+        )
+
+
+{-| sizeLimitExceeded : takes log and returns if size has exceeded the limit
+-}
+sizeLimitExceeded : Log -> Bool
+sizeLimitExceeded log =
+    log.size > fileSizeLimit
+
+
+{-| viewSizeLimitExceeded : takes log and renders message if log size has exceeded the limit
+-}
+viewSizeLimitExceeded : Log -> Html Msg
+viewSizeLimitExceeded log =
+    if sizeLimitExceeded log then
+        let
+            readableFileSizeLimit =
+                format fileSizeLimit
+
+            readableFilesize =
+                format log.size
+
+            unableToRender =
+                "Unable to render logs, file size exceeded (" ++ readableFilesize ++ "/" ++ readableFileSizeLimit ++ ")."
+        in
+        code [ class "logs-exceeded-limit" ] [ text unableToRender ]
+
+    else
+        text ""
 
 
 {-| stepError : checks for build error and renders message
