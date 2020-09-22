@@ -4,6 +4,7 @@
 
 // utility for adding pseudo content slashes as separators
 // used mostly for separating links and breadcrumbs
+
 @mixin slashes {
   position: absolute;
   right: -1.1ch;

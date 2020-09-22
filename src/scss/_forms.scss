@@ -34,10 +34,11 @@
 
     // if this has a label associated with it,
     // make it back off a bit
-    // stylelint-disable-next-line
+    /* stylelint-disable */
     + .form-label {
       margin-left: 0.5rem;
     }
+    /* stylelint-enable */
   }
 
   // for controls with embedded icon

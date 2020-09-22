@@ -950,6 +950,10 @@ nav {
   }
 }
 
+.logs-exceeded-limit {
+  padding: 0.2rem 1rem;
+}
+
 .step-error,
 .step-skipped {
   padding: 0.5rem 1rem;
@@ -964,17 +968,17 @@ nav {
   animation-fill-mode: both;
 }
 
+/* stylelint-disable */
 // used by pablen/toasty Elm package
-// stylelint-disable-next-line
 .bounceInRight {
   animation-name: bounceInRight;
 }
 
 // used by pablen/toasty Elm package
-// stylelint-disable-next-line
 .fadeOutRightBig {
   animation-name: fadeOutRightBig;
 }
+/* stylelint-enable */
 
 .alerts {
   ol {
