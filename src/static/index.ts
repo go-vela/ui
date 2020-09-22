@@ -85,15 +85,14 @@ app.ports.setFavicon.subscribe(function (url) {
   document.head.appendChild(newIcon);
 });
 
-app.ports.base64Decode.subscribe(function (args) {  
+app.ports.base64Decode.subscribe(function (args) {
   try {
     let msg = args[0];
     let decoded = atob(msg);
     args[0] = decoded;
     setTimeout(() => app.ports.onBase64Decode.send(args), 0);
-  }
-  catch(err) {
-    console.log("could not base64 decode string: ", err);
+  } catch (err) {
+    console.log('could not base64 decode string: ', err);
   }
 });
 
