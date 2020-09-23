@@ -270,7 +270,11 @@ viewStepDetails now org repo buildNumber step logs follow shift =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ viewLogs org repo buildNumber step logs follow shift ]
+            , if step.viewing then
+                div [ class "logs-container" ] [ viewLogs org repo buildNumber step logs follow shift ]
+
+              else
+                text ""
             ]
     in
     details
