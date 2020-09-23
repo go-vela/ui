@@ -15,6 +15,8 @@ module Pages.Build.View exposing
 import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
+import Dict exposing (Dict, keys)
+import Dict.Extra
 import FeatherIcons
 import Html
     exposing
@@ -65,6 +67,7 @@ import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
+import Svg.Attributes exposing (k)
 import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone, millisToPosix)
 import Util
@@ -226,15 +229,32 @@ viewPreview now org repo build =
 -}
 viewSteps : Posix -> Org -> Repo -> BuildNumber -> Steps -> Logs -> Int -> Bool -> Html Msg
 viewSteps now org repo buildNumber steps logs follow shift =
+    let
+        groupedSteps =
+            groupByStages steps
+    in
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
-                (\step ->
-                    viewStep now org repo buildNumber step steps logs follow shift
+                (\stage ->
+                    div [ class "stage" ] <|
+                        text stage :: (List.map
+                                (\step ->
+                                    viewStep now org repo buildNumber step steps logs follow shift
+                                )
+                        <|
+                            Maybe.withDefault [] <|
+                                Dict.get stage groupedSteps)
                 )
             <|
-                steps
+                Dict.keys <|
+                    groupedSteps
         ]
+
+
+groupByStages : Steps -> Dict String Steps
+groupByStages steps =
+    Dict.Extra.groupBy .stage steps
 
 
 {-| viewStep : renders single build step
