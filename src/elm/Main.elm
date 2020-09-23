@@ -770,8 +770,6 @@ update msg model =
                             else
                                 Cmd.none
 
-                        decodedLog =
-                            { incomingLog | data = Util.base64Decode incomingLog.data }
                     in
                     ( updateLogs { model | steps = steps } incomingLog
                     , Cmd.batch
@@ -2580,7 +2578,7 @@ decodeLog out =
         (\log ->
             case log of
                 Success log_ ->
-                    id == String.fromInt log_.id
+                    id == String.fromInt log_.id && (decodedData /= log_.view || log_.decoded == False)
 
                 _ ->
                     False
@@ -2588,7 +2586,7 @@ decodeLog out =
         (\log ->
             case log of
                 Success log_ ->
-                    RemoteData.succeed { log_ | decoded = True, data = decodedData }
+                    RemoteData.succeed { log_ | decoded = True, view = decodedData }
 
                 _ ->
                     log
