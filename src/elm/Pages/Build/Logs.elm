@@ -6,7 +6,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Logs exposing
     ( SetLogFocus
-    , base64Decode
     , decodeAnsi
     , focusFragmentToFocusId
     , focusLogs
@@ -319,18 +318,6 @@ logFocusExists steps =
                     RemoteData.withDefault [] steps
     )
         /= ( Nothing, Nothing )
-
-
-{-| base64Decode : returns a string from a Maybe Log and decodes it from base64
--}
-base64Decode : String -> String
-base64Decode log =
-    case decode log of
-        Ok str ->
-            str
-
-        Err _ ->
-            ""
 
 
 {-| logEmpty : takes log string and returns True if content does not exist
