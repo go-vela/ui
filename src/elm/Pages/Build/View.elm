@@ -59,7 +59,7 @@ import Pages.Build.Logs
         , stepBottomTrackerFocusId
         , stepToFocusId
         , stepTopTrackerFocusId
-        , toString
+        , toView
         )
 import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
@@ -304,8 +304,8 @@ viewLogs org repo buildNumber step logs follow shiftDown =
 viewLogLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
 viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDown =
     let
-        decodedLog =
-            toString maybeLog
+        logView =
+            toView maybeLog
 
         fileName =
             getDownloadLogsFileName org repo buildNumber "step" stepNumber
@@ -320,17 +320,17 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
                 [ code [ Util.testAttribute "logs-error" ] [ text "error" ] ]
 
             _ ->
-                if logEmpty decodedLog then
-                    [ logsHeader stepNumber fileName decodedLog
+                if logEmpty logView then
+                    [ logsHeader stepNumber fileName logView
                     , div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
                     ]
 
                 else
                     let
                         ( logs, numLines ) =
-                            viewLines stepNumber logFocus decodedLog shiftDown
+                            viewLines stepNumber logFocus logView shiftDown
                     in
-                    [ logsHeader stepNumber fileName decodedLog
+                    [ logsHeader stepNumber fileName logView
                     , logsSidebar stepNumber following numLines
                     , logs
                     ]
