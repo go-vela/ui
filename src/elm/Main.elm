@@ -70,8 +70,8 @@ import Pages.Build.Logs
         ( focusFragmentToFocusId
         , focusLogs
         , getCurrentStep
-        , stepBottomTrackerFocusId
         , getLog
+        , stepBottomTrackerFocusId
         , toData
         )
 import Pages.Build.Model
@@ -771,15 +771,16 @@ update msg model =
 
                             else
                                 Cmd.none
-                        currentLogData = 
+
+                        currentLogData =
                             toData <| getLog incomingLog.id model.logs
 
-                        decodeCmd = 
+                        decodeCmd =
                             if incomingLog.data /= currentLogData then
                                 Interop.base64Decode <| Encode.list Encode.string [ incomingLog.data, String.fromInt incomingLog.id ]
+
                             else
                                 Cmd.none
-
                     in
                     ( updateLogs { model | steps = steps } incomingLog
                     , Cmd.batch

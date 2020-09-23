@@ -14,7 +14,6 @@ module Pages.Build.Logs exposing
     , getDownloadLogsFileName
     , getLog
     , getStepLog
-    ,toData
     , logEmpty
     , logFocusExists
     , logFocusFragment
@@ -24,6 +23,7 @@ module Pages.Build.Logs exposing
     , stepBottomTrackerFocusId
     , stepToFocusId
     , stepTopTrackerFocusId
+    , toData
     , toView
     )
 
