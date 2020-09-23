@@ -735,7 +735,7 @@ update msg model =
 
         StepLogResponse stepNumber logFocus refresh response ->
             case response of
-                Ok ( _, log ) ->
+                Ok ( _, incomingLog ) ->
                     let
                         following =
                             model.followingStep /= 0
@@ -763,8 +763,11 @@ update msg model =
 
                             else
                                 Cmd.none
+
+                        decodedLog =
+                            { incomingLog | data = Util.base64Decode incomingLog.data }
                     in
-                    ( updateLogs { model | steps = steps } log
+                    ( updateLogs { model | steps = steps } decodedLog
                     , cmd
                     )
 
