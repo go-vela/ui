@@ -769,6 +769,9 @@ update msg model =
 
                             else
                                 Cmd.none
+
+                        decodedLog =
+                            { incomingLog | data = Util.base64Decode incomingLog.data }
                     in
                     ( updateLogs { model | steps = steps } incomingLog
                     , Cmd.batch
