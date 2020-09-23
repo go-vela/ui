@@ -105,6 +105,21 @@ body.theme-light {
     border-bottom: 1px solid var(--color-bg-dark);
   }
 
+  .logs-table::-webkit-resizer {
+    background: var(--color-bg);
+
+    border: 2px solid var(--color-bg);
+
+    border-bottom: 3px solid var(--color-bg-light);
+    border-right: 3px solid var(--color-bg-light);
+  }
+
+  .logs-table::-webkit-scrollbar-thumb {
+    background-color: var(--color-bg-light);
+    border-radius: 1rem;
+    border: 2px solid var(--color-bg);
+  }
+
   .step-error,
   .step-skipped {
     color: var(--color-red);

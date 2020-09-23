@@ -7,11 +7,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Build.Logs exposing
     ( SetLogFocus
     , decodeAnsi
-    , decodeLog
     , focusFragmentToFocusId
     , focusLogs
     , focusStep
     , getCurrentStep
+    , getDownloadLogsFileName
     , getStepLog
     , logEmpty
     , logFocusExists
@@ -20,9 +20,9 @@ module Pages.Build.Logs exposing
     , logRangeId
     , stepAndLineToFocusId
     , stepBottomTrackerFocusId
-    , stepLogsFilename
     , stepToFocusId
     , stepTopTrackerFocusId
+    , toString
     )
 
 import Ansi.Log
@@ -320,23 +320,11 @@ logFocusExists steps =
         /= ( Nothing, Nothing )
 
 
-{-| decodeLog : returns a string from a Maybe Log and decodes it from base64
--}
-decodeLog : Maybe (WebData Log) -> String
-decodeLog log =
-    case decode <| toString log of
-        Ok str ->
-            str
-
-        Err _ ->
-            ""
-
-
 {-| logEmpty : takes log string and returns True if content does not exist
 -}
-logEmpty : Maybe (WebData Log) -> Bool
+logEmpty : String -> Bool
 logEmpty log =
-    String.isEmpty <| String.replace " " "" <| decodeLog log
+    String.isEmpty <| String.replace " " "" log
 
 
 {-| toString : returns a string from a Maybe Log
@@ -370,10 +358,10 @@ stepBottomTrackerFocusId stepNumber =
     "step-" ++ stepNumber ++ "-line-tracker-bottom"
 
 
-{-| stepLogsFilename : takes step information and produces a filename for downloading logs
+{-| getDownloadLogsFileName : takes step information and produces a filename for downloading logs
 -}
-stepLogsFilename : Org -> Repo -> BuildNumber -> String -> String -> String
-stepLogsFilename org repo buildNumber resourceType resourceNumber =
+getDownloadLogsFileName : Org -> Repo -> BuildNumber -> String -> String -> String
+getDownloadLogsFileName org repo buildNumber resourceType resourceNumber =
     String.join "-" [ org, repo, buildNumber, resourceType, resourceNumber ]
 
 
@@ -423,6 +411,6 @@ defaultPosition =
 {-| decodeAnsi : takes maybe log parses into ansi decoded log line array
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 -}
-decodeAnsi : Maybe (WebData Log) -> Array.Array Ansi.Log.Line
+decodeAnsi : String -> Array.Array Ansi.Log.Line
 decodeAnsi log =
-    .lines <| Ansi.Log.update (decodeLog log) defaultLogModel
+    .lines <| Ansi.Log.update log defaultLogModel
