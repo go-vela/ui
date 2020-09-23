@@ -433,6 +433,10 @@ nav {
   max-width: 80%;
 }
 
+.build .error .message {
+  margin-left: 0.2em;
+}
+
 .log-actions {
   display: flex;
   justify-content: flex-end;
