@@ -651,14 +651,12 @@ viewError build =
         Vela.Error ->
             div [ class "error", Util.testAttribute "build-error" ]
                 [ span [] [ text "error:" ]
-                , span [ class "message" ]
-                    [ text <|
-                        if String.isEmpty build.error then
-                            "no error msg"
+                , text <|
+                    if String.isEmpty build.error then
+                        "no error msg"
 
-                        else
-                            build.error
-                    ]
+                    else
+                        build.error
                 ]
 
         _ ->
