@@ -70,7 +70,9 @@ import Pages.Build.Logs
         ( focusFragmentToFocusId
         , focusLogs
         , getCurrentStep
+        , getLog
         , stepBottomTrackerFocusId
+        , toData
         )
 import Pages.Build.Model
 import Pages.Build.Update exposing (expandActiveStep)
@@ -763,20 +765,27 @@ update msg model =
                             else
                                 ( model.steps, "" )
 
-                        cmd =
+                        focusCmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
 
                             else
                                 Cmd.none
 
-                        decodedLog =
-                            { incomingLog | data = Util.base64Decode incomingLog.data }
+                        currentLogData =
+                            toData <| getLog incomingLog.id model.logs
+
+                        decodeCmd =
+                            if incomingLog.data /= currentLogData then
+                                Interop.base64Decode <| Encode.list Encode.string [ incomingLog.data, String.fromInt incomingLog.id ]
+
+                            else
+                                Cmd.none
                     in
                     ( updateLogs { model | steps = steps } incomingLog
                     , Cmd.batch
-                        [ cmd
-                        , Interop.base64Decode <| Encode.list Encode.string [ incomingLog.data, String.fromInt incomingLog.id ]
+                        [ focusCmd
+                        , decodeCmd
                         ]
                     )
 
@@ -2580,7 +2589,7 @@ decodeLog out =
         (\log ->
             case log of
                 Success log_ ->
-                    id == String.fromInt log_.id
+                    id == String.fromInt log_.id && (decodedData /= log_.view || log_.decoded == False)
 
                 _ ->
                     False

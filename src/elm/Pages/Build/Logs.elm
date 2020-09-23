@@ -12,6 +12,7 @@ module Pages.Build.Logs exposing
     , focusStep
     , getCurrentStep
     , getDownloadLogsFileName
+    , getLog
     , getStepLog
     , logEmpty
     , logFocusExists
@@ -22,7 +23,8 @@ module Pages.Build.Logs exposing
     , stepBottomTrackerFocusId
     , stepToFocusId
     , stepTopTrackerFocusId
-    , toString
+    , toData
+    , toView
     )
 
 import Ansi.Log
@@ -74,6 +76,24 @@ getStepLog step logs =
                 case log of
                     RemoteData.Success log_ ->
                         log_.step_id == step.id
+
+                    _ ->
+                        False
+            )
+            logs
+        )
+
+
+{-| getLog : takes log id and logs and returns the log corresponding to that id
+-}
+getLog : Int -> Logs -> Maybe (WebData Log)
+getLog id logs =
+    List.head
+        (List.filter
+            (\log ->
+                case log of
+                    RemoteData.Success log_ ->
+                        log_.id == id
 
                     _ ->
                         False
@@ -326,10 +346,27 @@ logEmpty log =
     String.isEmpty <| String.replace " " "" log
 
 
-{-| toString : returns a string from a Maybe Log
+{-| toView : returns .view string from a Maybe Log
 -}
-toString : Maybe (WebData Log) -> String
-toString log =
+toView : Maybe (WebData Log) -> String
+toView log =
+    case log of
+        Just log_ ->
+            case log_ of
+                RemoteData.Success l ->
+                    l.view
+
+                _ ->
+                    ""
+
+        Nothing ->
+            ""
+
+
+{-| toData : returns .data string from a Maybe Log
+-}
+toData : Maybe (WebData Log) -> String
+toData log =
     case log of
         Just log_ ->
             case log_ of

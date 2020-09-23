@@ -60,6 +60,7 @@ import Pages.Build.Logs
         , stepBottomTrackerFocusId
         , stepToFocusId
         , stepTopTrackerFocusId
+        , toView
         )
 import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
@@ -314,20 +315,20 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
 
             _ ->
                 case extractLog maybeLog of
-                    Just l ->
+                    Just log ->
                         let
                             fileName =
                                 getDownloadLogsFileName org repo buildNumber "step" stepNumber
                         in
-                        if sizeLimitExceeded l then
-                            [ logsHeader stepNumber fileName l ]
+                        if sizeLimitExceeded log then
+                            [ logsHeader stepNumber fileName log ]
 
-                        else if l.decoded then
+                        else if log.decoded then
                             let
                                 ( logs, numLines ) =
-                                    viewLines stepNumber logFocus l.view shiftDown
+                                    viewLines stepNumber logFocus log.view shiftDown
                             in
-                            [ logsHeader stepNumber fileName l
+                            [ logsHeader stepNumber fileName log
                             , logsSidebar stepNumber following numLines
                             , logs
                             ]
