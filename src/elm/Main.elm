@@ -763,7 +763,7 @@ update msg model =
 
                             else
                                 Cmd.none
-                        
+
                         decodedLog =
                             { incomingLog | data = Util.base64Decode incomingLog.data }
                     in

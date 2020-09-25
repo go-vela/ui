@@ -309,7 +309,6 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
 
         fileName =
             getDownloadLogsFileName org repo buildNumber "step" stepNumber
-
     in
     div
         [ class "logs"
