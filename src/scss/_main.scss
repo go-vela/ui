@@ -964,17 +964,17 @@ nav {
   animation-fill-mode: both;
 }
 
+/* stylelint-disable */
 // used by pablen/toasty Elm package
-// stylelint-disable-next-line
 .bounceInRight {
   animation-name: bounceInRight;
 }
 
 // used by pablen/toasty Elm package
-// stylelint-disable-next-line
 .fadeOutRightBig {
   animation-name: fadeOutRightBig;
 }
+/* stylelint-enable */
 
 .alerts {
   ol {
