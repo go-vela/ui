@@ -58,7 +58,7 @@ context('Crumbs', () => {
 
     it('visit bad build /someorg/somerepo/build should not show not-found crumb', () => {
       cy.visit('/someorg/somerepo/1');
-      cy.get('[data-test=crumb-not-found]').should('not', 'exist');
+      cy.get('[data-test=crumb-not-found]').should('not.be.visible');
     });
   });
   context('visit org secrets', () => {

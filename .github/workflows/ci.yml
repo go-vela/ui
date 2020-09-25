@@ -53,7 +53,7 @@ jobs:
       - name: install dependencies
         run: npm i --prefer-offline --no-audit
       - name: install elm-format
-        run: npm i elm-format
+        run: npm i elm-format@0.8.3
       - name: run elm-format
         run: npm run lint:elm
 
