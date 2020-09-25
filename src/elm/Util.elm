@@ -8,6 +8,7 @@ module Util exposing
     ( addIfUniqueId
     , anyBlank
     , ariaHidden
+    , base64Decode
     , boolToYesNo
     , dateToHumanReadable
     , dispatch
@@ -42,6 +43,7 @@ module Util exposing
     , yesNoToBool
     )
 
+import Base64 exposing (decode)
 import DateFormat exposing (monthNameFull)
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
 import Html exposing (Attribute, Html, div, text)
@@ -443,3 +445,15 @@ extractFocusIdFromRange focusId =
 
     else
         focusId
+
+
+{-| base64Decode : takes string and decodes it from base64
+-}
+base64Decode : String -> String
+base64Decode inStr =
+    case decode inStr of
+        Ok str ->
+            str
+
+        Err _ ->
+            ""

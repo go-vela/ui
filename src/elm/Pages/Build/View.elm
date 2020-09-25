@@ -49,8 +49,7 @@ import Http exposing (Error(..))
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( base64Decode
-        , decodeAnsi
+        ( decodeAnsi
         , getDownloadLogsFileName
         , getStepLog
         , logEmpty
@@ -305,14 +304,12 @@ viewLogs org repo buildNumber step logs follow shiftDown =
 viewLogLines : Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
 viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDown =
     let
-        log =
+        decodedLog =
             toString maybeLog
 
         fileName =
             getDownloadLogsFileName org repo buildNumber "step" stepNumber
 
-        decodedLog =
-            base64Decode log
     in
     div
         [ class "logs"
@@ -324,7 +321,7 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
                 [ code [ Util.testAttribute "logs-error" ] [ text "error" ] ]
 
             _ ->
-                if logEmpty log then
+                if logEmpty decodedLog then
                     [ logsHeader stepNumber fileName decodedLog
                     , div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
                     ]
