@@ -965,7 +965,7 @@ nav {
 }
 
 // used by pablen/toasty Elm package
-// stylelint-disable-next-line
+/* stylelint-disable */
 .bounceInRight {
   animation-name: bounceInRight;
 }
@@ -975,6 +975,7 @@ nav {
 .fadeOutRightBig {
   animation-name: fadeOutRightBig;
 }
+/* stylelint-enable */
 
 .alerts {
   ol {
