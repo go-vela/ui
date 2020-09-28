@@ -450,7 +450,7 @@ update msg model =
                 | sourceRepos = enableUpdate repo Loading model.sourceRepos
                 , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
               }
-            , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
+            , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
             )
 
         UserResponse response ->
@@ -1521,7 +1521,7 @@ viewContent model =
                 , sourceRepos = model.sourceRepos
                 , filters = model.filters
                 }
-                addReposMsgs
+                sourceReposMsgs
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1910,7 +1910,7 @@ setNewPage route model =
             loadOverviewPage model
 
         ( Routes.SourceRepositories, True ) ->
-            loadAddReposPage model
+            loadSourceReposPage model
 
         ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
             loadHooksPage model org repo maybePage maybePerPage
@@ -1995,8 +1995,8 @@ setNewPage route model =
             )
 
 
-loadAddReposPage : Model -> ( Model, Cmd Msg )
-loadAddReposPage model =
+loadSourceReposPage : Model -> ( Model, Cmd Msg )
+loadSourceReposPage model =
     case model.sourceRepos of
         NotAsked ->
             ( { model | page = Pages.SourceRepositories, sourceRepos = Loading }
@@ -2566,10 +2566,10 @@ navMsgs =
     Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets RestartBuild
 
 
-{-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
+{-| sourceReposMsgs : prepares the input record required for the SourceRepos page to route Msgs back to Main.elm
 -}
-addReposMsgs : Pages.SourceRepos.Msgs Msg
-addReposMsgs =
+sourceReposMsgs : Pages.SourceRepos.Msgs Msg
+sourceReposMsgs =
     Pages.SourceRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
 
 

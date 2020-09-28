@@ -87,7 +87,7 @@ type alias Msgs msg =
 -- VIEW
 
 
-{-| view : takes model and renders account page for adding repos to overview
+{-| view : takes model and renders account page for enabling repos/adding them to overview
 -}
 view : PartialModel -> Msgs msg -> Html msg
 view model actions =
