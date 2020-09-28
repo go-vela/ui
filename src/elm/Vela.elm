@@ -812,6 +812,7 @@ type alias Step =
     , host : String
     , runtime : String
     , distribution : String
+    , image : String
     , viewing : Bool
     , logFocus : ( Maybe Int, Maybe Int )
     }
@@ -837,6 +838,7 @@ decodeStep =
         |> optional "host" string ""
         |> optional "runtime" string ""
         |> optional "distribution" string ""
+        |> optional "image" string ""
         -- "viewing"
         |> hardcoded False
         -- "logFocus"
