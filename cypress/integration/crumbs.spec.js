@@ -25,11 +25,11 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-account]').should('exist').contains('Account');
     });
 
-    it('visit /account/source-repos should have Add Repositories without link', () => {
+    it('visit /account/source-repos should have Source Repositories without link', () => {
       cy.visit('/account/source-repos');
       cy.get('[data-test=crumb-source-repositories]')
         .should('exist')
-        .contains('Add Repositories');
+        .contains('Source Repositories');
     });
 
     it('visit /account/source-repos Overview crumb should redirect to Overview page', () => {
