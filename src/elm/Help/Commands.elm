@@ -80,7 +80,7 @@ commands page =
         Pages.Overview ->
             [ listFavorites ]
 
-        Pages.AddRepositories ->
+        Pages.SourceRepositories ->
             [ listFavorites ]
 
         Pages.Hooks org repo _ _ ->
@@ -592,7 +592,7 @@ resourceLoaded args =
         Pages.Overview ->
             args.user.success
 
-        Pages.AddRepositories ->
+        Pages.SourceRepositories ->
             args.sourceRepos.success
 
         Pages.RepositoryBuilds _ _ _ _ _ ->
@@ -658,7 +658,7 @@ resourceLoading args =
         Pages.Overview ->
             args.user.loading
 
-        Pages.AddRepositories ->
+        Pages.SourceRepositories ->
             args.sourceRepos.loading
 
         Pages.RepositoryBuilds _ _ _ _ _ ->

@@ -17,7 +17,7 @@ context('Searching', () => {
           });
         })
         .as('sourceRepos');
-      cy.login('/account/add-repos');
+      cy.login('/account/source-repos');
     });
 
     it('global search bar should show', () => {

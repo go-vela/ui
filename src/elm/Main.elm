@@ -64,7 +64,7 @@ import Maybe
 import Nav
 import Pager
 import Pages exposing (Page(..))
-import Pages.AddRepos
+import Pages.SourceRepos
 import Pages.Build.Logs
     exposing
         ( focusFragmentToFocusId
@@ -1514,9 +1514,9 @@ viewContent model =
             , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
             )
 
-        Pages.AddRepositories ->
-            ( "Add Repositories"
-            , lazy2 Pages.AddRepos.view
+        Pages.SourceRepositories ->
+            ( "Source Repositories"
+            , lazy2 Pages.SourceRepos.view
                 { user = model.user
                 , sourceRepos = model.sourceRepos
                 , filters = model.filters
@@ -1909,7 +1909,7 @@ setNewPage route model =
         ( Routes.Overview, True ) ->
             loadOverviewPage model
 
-        ( Routes.AddRepositories, True ) ->
+        ( Routes.SourceRepositories, True ) ->
             loadAddReposPage model
 
         ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
@@ -1999,7 +1999,7 @@ loadAddReposPage : Model -> ( Model, Cmd Msg )
 loadAddReposPage model =
     case model.sourceRepos of
         NotAsked ->
-            ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
+            ( { model | page = Pages.SourceRepositories, sourceRepos = Loading }
             , Cmd.batch
                 [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
                 , getCurrentUser model
@@ -2007,7 +2007,7 @@ loadAddReposPage model =
             )
 
         Failure _ ->
-            ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
+            ( { model | page = Pages.SourceRepositories, sourceRepos = Loading }
             , Cmd.batch
                 [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
                 , getCurrentUser model
@@ -2015,7 +2015,7 @@ loadAddReposPage model =
             )
 
         _ ->
-            ( { model | page = Pages.AddRepositories }, getCurrentUser model )
+            ( { model | page = Pages.SourceRepositories }, getCurrentUser model )
 
 
 loadOverviewPage : Model -> ( Model, Cmd Msg )
@@ -2568,9 +2568,9 @@ navMsgs =
 
 {-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
 -}
-addReposMsgs : Pages.AddRepos.Msgs Msg
+addReposMsgs : Pages.SourceRepos.Msgs Msg
 addReposMsgs =
-    Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
+    Pages.SourceRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
 
 
 {-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm

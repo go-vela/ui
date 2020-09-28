@@ -61,7 +61,7 @@ context('Favorites', () => {
       });
       context('Add Repos page', () => {
         beforeEach(() => {
-          cy.visit('/account/add-repos');
+          cy.visit('/account/source-repos');
         });
         context('enable cat/purr', () => {
           beforeEach(() => {

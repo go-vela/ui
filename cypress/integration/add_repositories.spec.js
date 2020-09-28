@@ -13,7 +13,7 @@ context('Add Repositories', () => {
         'fixture:add_repositories.json',
       ).as('sourceRepos');
       cy.route('POST', '*api/v1/repos*', 'fixture:add_repo_response.json');
-      cy.login('/account/add-repos');
+      cy.login('/account/source-repos');
     });
 
     it('should show the orgs', () => {
@@ -99,7 +99,7 @@ context('Add Repositories', () => {
         status: 500,
         response: 'server error',
       }).as('error');
-      cy.login('/account/add-repos');
+      cy.login('/account/source-repos');
     });
 
     it('show a message and an alert when there is a server error', () => {
@@ -118,7 +118,7 @@ context('Add Repositories', () => {
         '*api/v1/user/source/repos*',
         'fixture:add_repositories_bad.json',
       ).as('badSourceRepos');
-      cy.login('/account/add-repos');
+      cy.login('/account/source-repos');
     });
 
     it('show a message and an alert when the response is malformed', () => {

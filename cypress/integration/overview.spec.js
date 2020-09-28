@@ -35,7 +35,7 @@ context('Overview/Repositories Page', () => {
 
     it('Add Repositories should take you to the respective page', () => {
       cy.get('[data-test=repo-enable]').click();
-      cy.location('pathname').should('eq', '/account/add-repos');
+      cy.location('pathname').should('eq', '/account/source-repos');
     });
 
     it('View button should exist for all repos', () => {

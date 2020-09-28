@@ -63,7 +63,7 @@ context('Accessibility (a11y)', () => {
     });
 
     it.skip('add repos', () => {
-      cy.checkA11yForPage('/account/add-repos', A11Y_OPTS);
+      cy.checkA11yForPage('/account/source-repos', A11Y_OPTS);
     });
 
     it.skip('settings', () => {

@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.AddRepos exposing (Msgs, PartialModel, view)
+module Pages.SourceRepos exposing (Msgs, PartialModel, view)
 
 import Dict
 import Errors exposing (viewResourceError)
