@@ -82,7 +82,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
             a
                 [ class "button"
                 , class "-outline"
-                , Util.testAttribute "repo-enable"
+                , Util.testAttribute "source-repos"
                 , Routes.href <| Routes.SourceRepositories
                 ]
                 [ text "Source Repositories" ]
