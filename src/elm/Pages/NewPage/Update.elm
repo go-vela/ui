@@ -4,11 +4,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.NewPage.Update exposing (  update)
+module Pages.NewPage.Update exposing (update)
 
 import Pages.NewPage.Model
     exposing
-        (   Msg(..)
+        ( Msg(..)
         , PartialModel
         )
 import RemoteData exposing (RemoteData(..))
@@ -22,4 +22,4 @@ update : PartialModel a -> Msg -> ( PartialModel a, Cmd msg )
 update model msg =
     case msg of
         NoOp ->
-            (model, Cmd.none)
+            ( model, Cmd.none )

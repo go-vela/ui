@@ -75,12 +75,12 @@ import Pages.Build.Logs
 import Pages.Build.Model
 import Pages.Build.Update exposing (expandActiveStep)
 import Pages.Build.View
-import Pages.NewPage.Model
-import Pages.NewPage.Update
-import Pages.NewPage.View
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
+import Pages.NewPage.Model
+import Pages.NewPage.Update
+import Pages.NewPage.View
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.Model
 import Pages.Secrets.Update
@@ -171,7 +171,6 @@ import Vela
         , statusToFavicon
         , stringToTheme
         )
-import Pages.NewPage.View
 
 
 
@@ -1068,7 +1067,7 @@ update msg model =
         NewPageUpdate m ->
             let
                 ( newModel, action ) =
-                    Pages.NewPage.Update.update model m 
+                    Pages.NewPage.Update.update model m
             in
             ( newModel
             , action
@@ -1683,7 +1682,8 @@ viewContent model =
                     org
                     repo
             )
-        Pages.NewPage org repo buildNumber   ->
+
+        Pages.NewPage org repo buildNumber ->
             ( "NewPage #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
             , Html.map (\m -> NewPageUpdate m) <|
                 lazy3 Pages.NewPage.View.viewAnalysis
@@ -1995,8 +1995,9 @@ setNewPage route model =
 
                 _ ->
                     loadBuildPage model org repo buildNumber logFocus
-        ( Routes.NewPage org repo buildNumber  , True ) ->
-            loadNewPagePage model org repo buildNumber  
+
+        ( Routes.NewPage org repo buildNumber, True ) ->
+            loadNewPagePage model org repo buildNumber
 
         ( Routes.Settings, True ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -2418,8 +2419,8 @@ loadBuildPage model org repo buildNumber focusFragment =
 
 {-| loadNewPagePage : takes model org, repo, and build number and loads the appropriate build analysis.
 -}
-loadNewPagePage : Model -> Org -> Repo -> BuildNumber  -> ( Model, Cmd Msg )
-loadNewPagePage model org repo buildNumber   =
+loadNewPagePage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
+loadNewPagePage model org repo buildNumber =
     let
         modelBuilds =
             model.builds
@@ -2433,7 +2434,7 @@ loadNewPagePage model org repo buildNumber   =
     in
     -- Fetch build from Api
     ( { model
-        | page = Pages.NewPage org repo buildNumber  
+        | page = Pages.NewPage org repo buildNumber
         , builds = builds
         , build = Loading
         , steps = NotAsked

@@ -266,12 +266,13 @@ toPath page =
                             ( org, Nothing )
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
-                Pages.NewPage org repo buildNumber   ->
+
+                Pages.NewPage org repo buildNumber ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.NewPage  org repo buildNumber   ) , ( "NewPage", Nothing ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.NewPage org repo buildNumber ), ( "NewPage", Nothing ) ]
 
                 Pages.Login ->
                     []

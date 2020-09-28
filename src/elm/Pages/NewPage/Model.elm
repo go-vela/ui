@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.NewPage.Model exposing ( Msg(..), PartialModel)
+module Pages.NewPage.Model exposing (Msg(..), PartialModel)
 
 import Browser.Navigation as Navigation
 import RemoteData exposing (WebData)
@@ -38,6 +38,3 @@ type alias PartialModel a =
 
 type Msg
     = NoOp
-
-
-

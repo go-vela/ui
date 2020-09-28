@@ -36,7 +36,7 @@ type Route
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
-    | NewPage Org Repo BuildNumber  
+    | NewPage Org Repo BuildNumber
     | Settings
     | Login
     | Logout
@@ -145,7 +145,7 @@ routeToUrl route =
         Build org repo buildNumber logFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" logFocus
 
-        NewPage org repo buildNumber   ->
+        NewPage org repo buildNumber ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/analyze"
 
         Authenticate { code, state } ->

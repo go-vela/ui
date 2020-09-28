@@ -27,7 +27,7 @@ type Page
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
-    | NewPage Org Repo BuildNumber  
+    | NewPage Org Repo BuildNumber
     | Settings
     | Login
     | Logout
