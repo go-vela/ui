@@ -50,9 +50,11 @@ context('Favorites', () => {
         '*api/v1/user/source/repos*',
         'fixture:source_repositories.json',
       ).as('sourceRepos');
-      cy.route('POST', '*api/v1/repos*', 'fixture:enable_repo_response.json').as(
-        'enableRepo',
-      );
+      cy.route(
+        'POST',
+        '*api/v1/repos*',
+        'fixture:enable_repo_response.json',
+      ).as('enableRepo');
     });
 
     context('logged in', () => {
