@@ -64,7 +64,6 @@ import Maybe
 import Nav
 import Pager
 import Pages exposing (Page(..))
-import Pages.SourceRepos
 import Pages.Build.Logs
     exposing
         ( focusFragmentToFocusId
@@ -83,6 +82,7 @@ import Pages.Secrets.Model
 import Pages.Secrets.Update
 import Pages.Secrets.View
 import Pages.Settings
+import Pages.SourceRepos
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import String.Extra

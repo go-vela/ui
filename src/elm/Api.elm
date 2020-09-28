@@ -6,10 +6,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Api exposing
     ( Request(..)
-    , enableRepository
     , addSecret
     , chownRepo
     , deleteRepo
+    , enableRepository
     , getAllBuilds
     , getAllHooks
     , getAllRepositories
