@@ -75,6 +75,9 @@ import Pages.Build.Logs
 import Pages.Build.Model
 import Pages.Build.Update exposing (expandActiveStep)
 import Pages.Build.View
+import Pages.NewPage.Model
+import Pages.NewPage.Update
+import Pages.NewPage.View
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
@@ -168,6 +171,7 @@ import Vela
         , statusToFavicon
         , stringToTheme
         )
+import Pages.NewPage.View
 
 
 
@@ -356,6 +360,7 @@ type Msg
     | VisibilityChanged Visibility
       -- Components
     | BuildUpdate Pages.Build.Model.Msg
+    | NewPageUpdate Pages.NewPage.Model.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
@@ -1060,6 +1065,15 @@ update msg model =
             , action
             )
 
+        NewPageUpdate m ->
+            let
+                ( newModel, action ) =
+                    Pages.NewPage.Update.update model m 
+            in
+            ( newModel
+            , action
+            )
+
         AddSecretUpdate engine m ->
             let
                 ( newModel, action ) =
@@ -1669,6 +1683,19 @@ viewContent model =
                     org
                     repo
             )
+        Pages.NewPage org repo buildNumber   ->
+            ( "NewPage #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+            , Html.map (\m -> NewPageUpdate m) <|
+                lazy3 Pages.NewPage.View.viewAnalysis
+                    { navigationKey = model.navigationKey
+                    , time = model.time
+                    , build = model.build
+                    , steps = model.steps
+                    , shift = model.shift
+                    }
+                    org
+                    repo
+            )
 
         Pages.Settings ->
             ( "Settings"
@@ -1968,6 +1995,8 @@ setNewPage route model =
 
                 _ ->
                     loadBuildPage model org repo buildNumber logFocus
+        ( Routes.NewPage org repo buildNumber  , True ) ->
+            loadNewPagePage model org repo buildNumber  
 
         ( Routes.Settings, True ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -2383,6 +2412,38 @@ loadBuildPage model org repo buildNumber focusFragment =
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
         , getAllBuildSteps model org repo buildNumber focusFragment False
+        ]
+    )
+
+
+{-| loadNewPagePage : takes model org, repo, and build number and loads the appropriate build analysis.
+-}
+loadNewPagePage : Model -> Org -> Repo -> BuildNumber  -> ( Model, Cmd Msg )
+loadNewPagePage model org repo buildNumber   =
+    let
+        modelBuilds =
+            model.builds
+
+        builds =
+            if not <| Util.isSuccess model.builds.builds then
+                { modelBuilds | builds = Loading }
+
+            else
+                model.builds
+    in
+    -- Fetch build from Api
+    ( { model
+        | page = Pages.NewPage org repo buildNumber  
+        , builds = builds
+        , build = Loading
+        , steps = NotAsked
+        , followingStep = 0
+        , logs = []
+      }
+    , Cmd.batch
+        [ getBuilds model org repo Nothing Nothing Nothing
+        , getBuild model org repo buildNumber
+        , getAllBuildSteps model org repo buildNumber Nothing False
         ]
     )
 
