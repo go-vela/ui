@@ -36,7 +36,7 @@ type Route
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
-    | NewPage Org Repo BuildNumber
+    | Analyze Org Repo BuildNumber
     | Settings
     | Login
     | Logout
@@ -70,7 +70,7 @@ routes =
         , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Build (string </> string </> string </> fragment identity)
-        , map NewPage (string </> string </> string </> s "analyze")
+        , map Analyze (string </> string </> string </> s "analyze")
         , map NotFound (s "404")
         ]
 
@@ -145,7 +145,7 @@ routeToUrl route =
         Build org repo buildNumber logFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" logFocus
 
-        NewPage org repo buildNumber ->
+        Analyze org repo buildNumber ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/analyze"
 
         Authenticate { code, state } ->

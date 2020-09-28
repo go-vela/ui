@@ -27,7 +27,7 @@ type Page
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
-    | NewPage Org Repo BuildNumber
+    | Analyze Org Repo BuildNumber
     | Settings
     | Login
     | Logout
@@ -89,8 +89,8 @@ toRoute page =
         Build org repo buildNumber logFocus ->
             Routes.Build org repo buildNumber logFocus
 
-        NewPage org repo buildNumber ->
-            Routes.NewPage org repo buildNumber
+        Analyze org repo buildNumber ->
+            Routes.Analyze org repo buildNumber
 
         Settings ->
             Routes.Settings

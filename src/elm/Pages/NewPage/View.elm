@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.NewPage.View exposing (viewAnalysis)
+module Pages.Analyze.View exposing (viewAnalysis)
 
 import Html
     exposing
@@ -14,7 +14,7 @@ import Html
         )
 import Http exposing (Error(..))
 import Pages exposing (Page(..))
-import Pages.NewPage.Model exposing (Msg(..), PartialModel)
+import Pages.Analyze.Model exposing (Msg(..), PartialModel)
 import Routes exposing (Route(..))
 import Vela
     exposing
