@@ -1417,3 +1417,12 @@ nav {
 .overflow-auto {
   overflow: auto;
 }
+
+
+.analysis {
+ .stage {
+   display: flex;
+   flex-direction: row;
+   justify-content: space-around;
+ } 
+}

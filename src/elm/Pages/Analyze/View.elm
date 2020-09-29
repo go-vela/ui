@@ -11,21 +11,24 @@ import Dict.Extra
 import Html
     exposing
         ( Html
+        , a
         , div
         , span
         , text
         )
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (attribute, class)
 import Http exposing (Error(..))
 import Pages exposing (Page(..))
 import Pages.Analyze.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
+import SvgBuilder
 import Vela
     exposing
         ( Build
         , Org
         , Repo
+        , Step
         , Steps
         )
 
@@ -36,11 +39,10 @@ import Vela
 
 event : Build -> Html Msg
 event build =
-    div [ class "analyze-event" ]
+    div [ class "trigger" ]
         [ div [] [ span [] [ text "event" ], span [] [ text build.event ] ]
         , div [] [ span [] [ text "branch" ], span [] [ text build.branch ] ]
         ]
-
 
 
 pipeline : Build -> Steps -> Html Msg
@@ -52,25 +54,39 @@ pipeline build steps =
                 |> Dict.toList
                 |> List.map
                     (\( stage, steps_ ) ->
-                        steps_ 
-                            |> List.map (\step -> div [class "step"] [text stage])
-                            |> div [ class "stage" ]
+                        div [ class "stage" ] <|
+                            List.map viewStep steps_
                     )
-
-        -- |> List.map (\step -> (step.stage, step))
-        -- |> Dict.fromList
-        -- |> Dict.toList
-        -- |> List.map (\(org, steps_) -> List.map (\s -> text "s") steps_)
     in
     stages
         |> div [ class "pipline" ]
+
+
+{-| viewStep :
+-}
+viewStep : Step -> Html msg
+viewStep step =
+    let
+        icon =
+            SvgBuilder.recentBuildStatusToIcon step.status 0
+    in
+    div [ class "step" ]
+        [ a
+            [ class "recent-build-link"
+
+            -- , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
+            -- , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
+            ]
+            [ icon
+            ]
+        ]
 
 
 viewAnalysis : PartialModel a -> Org -> Repo -> Html Msg
 viewAnalysis model org repo =
     case ( model.build, model.steps ) of
         ( RemoteData.Success build, RemoteData.Success steps ) ->
-            div []
+            div [ class "analysis" ]
                 [ event build
                 , pipeline build steps
                 ]
