@@ -22,7 +22,7 @@ import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Nam
 
 type Route
     = Overview
-    | AddRepositories
+    | SourceRepositories
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | RepoSecrets Engine Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -51,7 +51,7 @@ routes : Parser (Route -> a) a
 routes =
     oneOf
         [ map Overview top
-        , map AddRepositories (s "account" </> s "add-repos")
+        , map SourceRepositories (s "account" </> s "source-repos")
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , map Settings (s "account" </> s "settings")
@@ -101,8 +101,8 @@ routeToUrl route =
         Overview ->
             "/"
 
-        AddRepositories ->
-            "/account/add-repos"
+        SourceRepositories ->
+            "/account/source-repos"
 
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"

@@ -29,11 +29,11 @@ context('Accessibility (a11y)', () => {
       cy.server();
       // overview page
       cy.route('GET', '*api/v1/repos*', 'fixture:favorites.json');
-      // add repos page
+      // source repos page
       cy.route(
         'GET',
         '*api/v1/user/source/repos*',
-        'fixture:add_repositories.json',
+        'fixture:source_repositories.json',
       );
       // settings page
       cy.route('GET', '*api/v1/repos/*/octocat', 'fixture:repository.json');
@@ -68,8 +68,8 @@ context('Accessibility (a11y)', () => {
       cy.checkA11yForPage('/', A11Y_OPTS);
     });
 
-    it.skip('add repos', () => {
-      cy.checkA11yForPage('/account/add-repos', A11Y_OPTS);
+    it.skip('source repos', () => {
+      cy.checkA11yForPage('/account/source-repos', A11Y_OPTS);
     });
 
     it.skip('settings', () => {

@@ -141,9 +141,11 @@ context('Repo Settings', () => {
         url: '*api/v1/repos/github/**',
         response: `"Repo github/octocat deleted"`,
       }).as('disable');
-      cy.route('POST', '*api/v1/repos*', 'fixture:add_repo_response.json').as(
-        'enable',
-      );
+      cy.route(
+        'POST',
+        '*api/v1/repos*',
+        'fixture:enable_repo_response.json',
+      ).as('enable');
       cy.get('[data-test=repo-disable]')
         .first()
         .click({ force: true })

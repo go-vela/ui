@@ -37,7 +37,7 @@ context('Errors', () => {
         },
       }).as('sourceRepos');
 
-      cy.visit('/account/add-repos');
+      cy.visit('/account/source-repos');
       for (var i = 0; i < 10; i++) {
         cy.wait('@sourceRepos');
         cy.get('[data-test=refresh-source-repos]').click();
