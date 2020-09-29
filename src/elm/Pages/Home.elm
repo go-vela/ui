@@ -68,8 +68,8 @@ view user filter { toggleFavorite, search } =
                     [ text "To display a repository here, click the "
                     , SvgBuilder.star False
                     ]
-                , p [] [ text "Add repositories from your GitHub account to Vela now!" ]
-                , a [ class "button", Routes.href Routes.AddRepositories ] [ text "Add Repositories" ]
+                , p [] [ text "Enable repositories from your GitHub account on Vela now!" ]
+                , a [ class "button", Routes.href Routes.SourceRepositories ] [ text "Source Repositories" ]
                 ]
     in
     div [ Util.testAttribute "overview" ] <|

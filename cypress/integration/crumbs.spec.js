@@ -13,27 +13,27 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-overview]').should('exist').contains('Overview');
     });
 
-    it('visit /account/add-repos should have Overview with link', () => {
-      cy.visit('/account/add-repos');
+    it('visit /account/source-repos should have Overview with link', () => {
+      cy.visit('/account/source-repos');
       cy.get('[data-test=crumb-overview]')
         .should('exist')
         .contains('a', 'Overview');
     });
 
-    it('visit /account/add-repos should have Account without link', () => {
-      cy.visit('/account/add-repos');
+    it('visit /account/source-repos should have Account without link', () => {
+      cy.visit('/account/source-repos');
       cy.get('[data-test=crumb-account]').should('exist').contains('Account');
     });
 
-    it('visit /account/add-repos should have Add Repositories without link', () => {
-      cy.visit('/account/add-repos');
-      cy.get('[data-test=crumb-add-repositories]')
+    it('visit /account/source-repos should have Source Repositories without link', () => {
+      cy.visit('/account/source-repos');
+      cy.get('[data-test=crumb-source-repositories]')
         .should('exist')
-        .contains('Add Repositories');
+        .contains('Source Repositories');
     });
 
-    it('visit /account/add-repos Overview crumb should redirect to Overview page', () => {
-      cy.visit('/account/add-repos');
+    it('visit /account/source-repos Overview crumb should redirect to Overview page', () => {
+      cy.visit('/account/source-repos');
       cy.get('[data-test=crumb-overview]').click();
       cy.location('pathname').should('eq', '/');
     });
@@ -58,7 +58,7 @@ context('Crumbs', () => {
 
     it('visit bad build /someorg/somerepo/build should not show not-found crumb', () => {
       cy.visit('/someorg/somerepo/1');
-      cy.get('[data-test=crumb-not-found]').should('not', 'exist');
+      cy.get('[data-test=crumb-not-found]').should('not.be.visible');
     });
   });
   context('visit org secrets', () => {

@@ -6,10 +6,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Api exposing
     ( Request(..)
-    , addRepository
     , addSecret
     , chownRepo
     , deleteRepo
+    , enableRepository
     , getAllBuilds
     , getAllHooks
     , getAllRepositories
@@ -443,10 +443,10 @@ repairRepo model repository =
         |> withAuth model.session
 
 
-{-| addRepository : adds a repository
+{-| enableRepository : enables a repository
 -}
-addRepository : PartialModel a -> Http.Body -> Request Repository
-addRepository model body =
+enableRepository : PartialModel a -> Http.Body -> Request Repository
+enableRepository model body =
     post model.velaAPI (Endpoint.Repositories Nothing Nothing) body decodeRepository
         |> withAuth model.session
 

@@ -17,7 +17,7 @@ context('Searching', () => {
           });
         })
         .as('sourceRepos');
-      cy.login('/account/add-repos');
+      cy.login('/account/source-repos');
     });
 
     it('global search bar should show', () => {
@@ -95,8 +95,8 @@ context('Searching', () => {
         it('octocat should show', () => {
           cy.get('[data-test=source-repo-octocat]').should('be.visible');
         });
-        it('add all button should contain Enable Results', () => {
-          cy.get('[data-test=add-org-github]').contains('Enable Results');
+        it('enable all button should contain Enable Results', () => {
+          cy.get('[data-test=enable-org-github]').contains('Enable Results');
         });
         context(
           'click Enable All button, then clear github local search input',
@@ -105,14 +105,14 @@ context('Searching', () => {
               cy.route(
                 'POST',
                 '*api/v1/repos*',
-                'fixture:add_repo_response.json',
+                'fixture:enable_repo_response.json',
               );
-              cy.get('[data-test=add-org-github]').click({ force: true });
+              cy.get('[data-test=enable-org-github]').click({ force: true });
               cy.get('[data-test=local-search-input-github]')
                 .should('be.visible')
                 .clear();
             });
-            it('filtered repos should show and display adding', () => {
+            it('filtered repos should show and display enabling', () => {
               cy.get('[data-test=source-repo-octocat]')
                 .should('be.visible')
                 .and('contain', 'Enabling');
@@ -129,7 +129,7 @@ context('Searching', () => {
                 .should('be.visible')
                 .and('not.contain', 'Enabling');
             });
-            it('non-filtered repos should show but not display adding', () => {
+            it('non-filtered repos should show but not display enabling', () => {
               cy.get('[data-test=source-repo-server]')
                 .should('be.visible')
                 .and('not.contain', 'Enabling');
@@ -137,8 +137,8 @@ context('Searching', () => {
                 .should('be.visible')
                 .and('contain', 'Enabling');
             });
-            it('without search input, add all button should contain Enable All', () => {
-              cy.get('[data-test=add-org-github]').contains('Enable All');
+            it('without search input, enable all button should contain Enable All', () => {
+              cy.get('[data-test=enable-org-github]').contains('Enable All');
             });
           },
         );

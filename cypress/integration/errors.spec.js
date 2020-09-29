@@ -37,7 +37,7 @@ context('Errors', () => {
         },
       }).as('sourceRepos');
 
-      cy.visit('/account/add-repos');
+      cy.visit('/account/source-repos');
       for (var i = 0; i < 10; i++) {
         cy.wait('@sourceRepos');
         cy.get('[data-test=refresh-source-repos]').click();
@@ -54,7 +54,7 @@ context('Errors', () => {
     it('clicking alert should clear it', () => {
       cy.get('[data-test=alert]').first().as('alert');
       cy.get('@alert').should('exist').click({ force: true });
-      cy.get('@alert').first().should('not', 'exist');
+      cy.get('@alert').first().should('not.be.visible');
     });
   });
 });
