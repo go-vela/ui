@@ -48,6 +48,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
+import List.Extra
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
@@ -230,31 +231,22 @@ viewPreview now org repo build =
 viewSteps : Posix -> Org -> Repo -> BuildNumber -> Steps -> Logs -> Int -> Bool -> Html Msg
 viewSteps now org repo buildNumber steps logs follow shift =
     let
-        groupedSteps =
-            groupByStages steps
+        stages =
+            List.Extra.unique <| List.map .stage steps
+
     in
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             List.map
                 (\stage ->
-                    div [ class "stage" ] <|
-                        text stage :: (List.map
-                                (\step ->
-                                    viewStep now org repo buildNumber step steps logs follow shift
-                                )
-                        <|
-                            Maybe.withDefault [] <|
-                                Dict.get stage groupedSteps)
+                    let
+                        steps_ = (List.filter (\step -> step.stage == stage) steps)
+                    in
+                    div [ class "stage",  if List.length steps_ > 1 then class "stagedd" else class "" ] <|
+                         ( List.map (\step -> viewStep now org repo buildNumber step steps_ logs follow shift)) <| steps_
                 )
-            <|
-                Dict.keys <|
-                    groupedSteps
+                stages
         ]
-
-
-groupByStages : Steps -> Dict String Steps
-groupByStages steps =
-    Dict.Extra.groupBy .stage steps
 
 
 {-| viewStep : renders single build step

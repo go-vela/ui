@@ -722,8 +722,48 @@ nav {
 
 .step {
   display: flex;
+  // margin-left: 2rem;
 }
 
+.stage {
+  // border-bottom: 1px solid red;
+  // border-radius: 25px;
+  // padding-left: 5rem;
+  // padding-top: 5rem;
+  // background: linear-gradient(
+  //   90deg,
+  //   hsla(0, 0, 0, 0) calc(3.25em - 1px),
+  //   rgb(0, 208, 255) calc(3.25em),
+  //   hsla(0, 0, 0, 0) calc(3.25em + 1px)
+  // );
+  // .label {
+  //   position: relative;
+  //   left: 5rem;
+  // }
+  // background-color: red;
+  // color: Red;
+  // border-left: 1px solid red;
+  // padding-left: 1rem;
+}
+
+.stagedd:first-child {
+      background-repeat: no-repeat;
+  background-size: 100% 0em;
+}
+.stagedd {
+  .step {
+    background: linear-gradient(
+    90deg,
+    hsla(0, 0, 0, 0) calc(3.25em - 1px),
+    rgb(0, 208, 255) calc(3.25em),
+    hsla(0, 0, 0, 0) calc(3.25em + 1px)
+    );
+  }
+  .step:first-child {
+    // background-repeat: no-repeat;
+    background-size: 100% 0.1rem;
+  }
+}
 .flowline-left {
   background: linear-gradient(
     90deg,
@@ -733,10 +773,15 @@ nav {
   );
 }
 
-.step.flowline-left.-last {
+.step.flowline-left:last-child {
   background-repeat: no-repeat;
   background-size: 100% 2em;
 }
+
+// .step.flowline-left:first-child {
+//   background-repeat: no-repeat;
+//   background-size: 100% 0em;
+// }
 
 .step .-status {
   margin-top: 2rem;
