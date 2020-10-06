@@ -612,7 +612,7 @@ stepError step =
         ]
 
 
-{-| loadingLogs : renders message for empty logs
+{-| loadingLogs : renders message for loading logs
 -}
 loadingLogs : Html msg
 loadingLogs =
