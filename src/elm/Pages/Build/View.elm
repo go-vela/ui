@@ -319,6 +319,7 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
             RemoteData.Success _ ->
                 if logEmpty decodedLog then
                     [ emptyLogs ]
+
                 else
                     let
                         ( logs, numLines ) =
@@ -328,8 +329,10 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
                     , logsSidebar stepNumber following numLines
                     , logs
                     ]
+
             RemoteData.Failure err ->
                 [ code [ Util.testAttribute "logs-error" ] [ text "error fetching logs" ] ]
+
             _ ->
                 [ loadingLogs ]
 
