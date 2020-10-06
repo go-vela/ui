@@ -780,7 +780,6 @@ nav {
   font-family: var(--font-code);
 }
 
-
 .logs-container {
   margin-right: -1rem;
   margin-left: -1rem;
@@ -793,10 +792,10 @@ nav {
     padding: 0.5rem 1rem;
 
     span {
-     margin-right: 0.6rem;
+      margin-right: 0.6rem;
     }
   }
-  
+
   .error span {
     color: var(--color-red-light);
   }
