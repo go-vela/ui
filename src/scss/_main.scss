@@ -780,22 +780,26 @@ nav {
   font-family: var(--font-code);
 }
 
-.loading-logs {
-  margin-top: 0.3em;
-  margin-left: 0.3em;
-  padding: 0.5em 0;
-}
 
 .logs-container {
   margin-right: -1rem;
   margin-left: -1rem;
   background-color: var(--color-bg-dark);
   position: relative;
-}
-
-.logs {
   font-weight: 300;
   font-size: 14px;
+
+  .message {
+    padding: 0.5rem 1rem;
+
+    span {
+     margin-right: 0.6rem;
+    }
+  }
+  
+  .error span {
+    color: var(--color-red-light);
+  }
 }
 
 .logs .line {
@@ -948,14 +952,6 @@ nav {
     margin-bottom: 0.4rem;
     color: var(--color-offwhite);
   }
-}
-
-.step-error,
-.step-skipped {
-  padding: 0.5rem 1rem;
-
-  color: var(--color-red-light);
-  font-size: 14px;
 }
 
 .animated {
