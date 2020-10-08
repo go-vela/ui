@@ -43,9 +43,9 @@ module Util exposing
     , yesNoToBool
     )
 
-import Bytes.Decode
 import Base64
 import Bytes
+import Bytes.Decode
 import DateFormat exposing (monthNameFull)
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
 import Html exposing (Attribute, Html, div, text)
@@ -447,7 +447,6 @@ extractFocusIdFromRange focusId =
 
     else
         focusId
-
 
 
 {-| base64Decode : takes string and decodes it from base64

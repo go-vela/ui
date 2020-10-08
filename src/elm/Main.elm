@@ -59,7 +59,7 @@ import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
-import List.Extra exposing (setIf, updateIf)
+import List.Extra exposing (updateIf)
 import Maybe
 import Nav
 import Pager
@@ -763,11 +763,8 @@ update msg model =
 
                             else
                                 Cmd.none
-
-                        decodedLog =
-                            { incomingLog | data = Util.base64Decode incomingLog.data }
                     in
-                    ( updateLogs { model | steps = steps } decodedLog
+                    ( updateLogs { model | steps = steps } incomingLog
                     , cmd
                     )
 
@@ -2532,16 +2529,16 @@ updateLogs model incomingLog =
 -}
 updateLog : Log -> Logs -> Logs
 updateLog incomingLog logs =
-    setIf
+    updateIf
         (\log ->
             case log of
                 Success log_ ->
-                    incomingLog.id == log_.id && incomingLog.data /= log_.data
+                    incomingLog.id == log_.id && incomingLog.rawData /= log_.rawData
 
                 _ ->
                     True
         )
-        (RemoteData.succeed incomingLog)
+        (\log -> RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData })
         logs
 
 
@@ -2549,7 +2546,7 @@ updateLog incomingLog logs =
 -}
 addLog : Log -> Logs -> Logs
 addLog incomingLog logs =
-    RemoteData.succeed incomingLog :: logs
+    RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData } :: logs
 
 
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
