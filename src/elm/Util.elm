@@ -43,7 +43,9 @@ module Util exposing
     , yesNoToBool
     )
 
-import Base64 exposing (decode)
+import Bytes.Decode
+import Base64
+import Bytes
 import DateFormat exposing (monthNameFull)
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
 import Html exposing (Attribute, Html, div, text)
@@ -447,13 +449,16 @@ extractFocusIdFromRange focusId =
         focusId
 
 
+
 {-| base64Decode : takes string and decodes it from base64
 -}
 base64Decode : String -> String
 base64Decode inStr =
-    case decode inStr of
-        Ok str ->
-            str
-
-        Err _ ->
-            ""
+    Base64.toBytes inStr
+        |> Maybe.andThen
+            (\bytes ->
+                Bytes.Decode.decode
+                    (Bytes.Decode.string (Bytes.width bytes))
+                    bytes
+            )
+        |> Maybe.withDefault ""
