@@ -38,13 +38,9 @@ import Svg.Attributes
         , cx
         , cy
         , d
-        , fill
-        , fillRule
         , height
         , r
-        , stroke
         , strokeLinecap
-        , strokeLinejoin
         , strokeWidth
         , viewBox
         , width

@@ -815,7 +815,6 @@ type alias Step =
     , distribution : String
     , viewing : Bool
     , logFocus : ( Maybe Int, Maybe Int )
-    , stage_id : Maybe Int
     }
 
 
@@ -823,7 +822,7 @@ type alias Step =
 -}
 defaultStep : Step
 defaultStep =
-    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" False ( Nothing, Nothing ) Nothing
+    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" False ( Nothing, Nothing )
 
 
 {-| decodeStep : decodes json from vela into step
@@ -850,8 +849,6 @@ decodeStep =
         |> hardcoded False
         -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
-        -- "stage_id"
-        |> hardcoded Nothing
 
 
 {-| decodeSteps : decodes json from vela into list of steps
