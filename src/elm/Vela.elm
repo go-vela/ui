@@ -85,6 +85,7 @@ module Vela exposing
     , defaultHooks
     , defaultRepository
     , defaultSession
+    , defaultStep
     , defaultUpdateRepositoryPayload
     , defaultUser
     , encodeEnableRepository
@@ -816,6 +817,13 @@ type alias Step =
     , logFocus : ( Maybe Int, Maybe Int )
     , stage_id : Maybe Int
     }
+
+
+{-| defaultStep : returns default, empty step
+-}
+defaultStep : Step
+defaultStep =
+    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" False ( Nothing, Nothing ) Nothing
 
 
 {-| decodeStep : decodes json from vela into step
