@@ -336,14 +336,7 @@ hasStages steps =
         |> List.filter (\s -> s.stage /= "")
         |> List.head
         |> Maybe.withDefault defaultStep
-        |> hasStage
-
-
-{-| hasStage : takes step and returns true if it belongs to a stage
--}
-hasStage : Step -> Bool
-hasStage step =
-    step.stage /= ""
+        |> (\step -> step.stage /= "")
 
 
 {-| viewLogs : takes step and logs and renders step logs or step error
