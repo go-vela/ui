@@ -69,7 +69,7 @@ import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
 import Svg.Attributes exposing (k)
-import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon,  stepStatusToIcon)
+import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone, millisToPosix)
 import Util
 import Vela
@@ -293,7 +293,7 @@ viewStageDivider : PartialModel a -> BuildModel -> String -> Html Msg
 viewStageDivider model buildModel stage =
     if stage /= "init" && stage /= "clone" then
         div [ class "divider", Util.testAttribute <| "stage-divider-" ++ stage ]
-            [ div [] [text stage] ]
+            [ div [] [ text stage ] ]
 
     else
         text ""

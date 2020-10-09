@@ -745,25 +745,23 @@ nav {
   // border-left: 1px solid red;
   // padding-left: 1rem;
 
-
-    .step {
-      // margin-left: 1rem;
-    }
-
+  .step {
+    // margin-left: 1rem;
+  }
 }
-
 
 .stage .divider {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  
+
   padding-right: 1rem;
   padding-left: 2.6rem;
   padding-top: 0.6rem;
 
   margin-top: 0.6rem;
+
   div {
     background: var(--color-coal-light);
     padding: 0.2rem 1.2rem;

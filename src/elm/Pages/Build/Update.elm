@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandActiveStep,   mergeSteps, update)
+module Pages.Build.Update exposing (expandActiveStep, mergeSteps, update)
 
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
@@ -25,6 +25,8 @@ import Vela
         ( StepNumber
         , Steps
         )
+
+
 
 -- UPDATE
 
@@ -167,6 +169,7 @@ mergeSteps logFocus refresh currentSteps incomingSteps =
     else
         updatedSteps
 
+
 {-| isViewingStep : takes steps and step number and returns the step viewing state
 -}
 isViewingStep : WebData Steps -> StepNumber -> Bool
@@ -214,4 +217,3 @@ getStepInfo steps stepNumber =
         |> List.map (\step -> ( step.viewing, step.logFocus ))
         |> List.head
         |> Maybe.withDefault ( False, ( Nothing, Nothing ) )
-

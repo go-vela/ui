@@ -40,7 +40,6 @@ type alias PartialModel a =
     }
 
 
-
 {-| BuildModel : model to contain build information that is crucial for rendering a pipeline
 -}
 type alias BuildModel =
