@@ -15,7 +15,6 @@ module Pages.Build.View exposing
 import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
-import Dict exposing (Dict, keys)
 import FeatherIcons
 import Html
     exposing
