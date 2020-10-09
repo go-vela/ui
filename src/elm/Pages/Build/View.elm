@@ -886,7 +886,7 @@ stepClasses step steps =
                 Nothing ->
                     -1
     in
-    classList [ ( "step", True ), ( "flowline-left", True ), ( "-last", last == step.number ) ]
+    classList [ ( "step", True ), ( "flowline-left", True ) ]
 
 
 {-| buildStatusStyles : takes build markdown and adds styled flair based on running status

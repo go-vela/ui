@@ -297,20 +297,12 @@ context('Steps', () => {
       cy.get('@cloneStep').contains('problem starting container');
     });
 
-    it("first step should not have 'last' styles", () => {
-      cy.get('[data-test=step]').first().should('not.have.class', '-last');
-    });
-
     it('last step should not contain killed/skipped', () => {
       cy.get('[data-test=step]').last().as('echoStep');
       cy.get('@echoStep').should('be.visible').click({ force: true });
       cy.get('@echoStep').should('not.contain', 'error:');
       cy.get('@echoStep').should('not.contain', 'step was killed');
       cy.get('@echoStep').contains('$');
-    });
-
-    it("last step should have 'last' styles", () => {
-      cy.get('[data-test=step]').last().should('have.class', '-last');
     });
   });
 });
