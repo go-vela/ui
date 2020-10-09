@@ -100,5 +100,22 @@
     "host": "",
     "runtime": "docker",
     "distribution": "linux"
+  },
+  {
+    "id": 7,
+    "build_id": 1,
+    "repo_id": 1,
+    "number": 7,
+    "name": "docker-tag",
+    "stage": "deploy",
+    "status": "failure",
+    "error": "",
+    "exit_code": 2,
+    "created": 1572029883,
+    "started": 1572029928,
+    "finished": 0,
+    "host": "",
+    "runtime": "docker",
+    "distribution": "linux"
   }
 ]

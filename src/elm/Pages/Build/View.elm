@@ -312,11 +312,11 @@ viewStages model buildModel =
 viewStage : PartialModel a -> BuildModel -> String -> Steps -> Html Msg
 viewStage model buildModel stage steps =
     div
-        [ class "stage" ]
+        [ class "stage", Util.testAttribute <| "stage" ]
         [ viewStageDivider model { buildModel | steps = steps } stage
         , steps 
             |> List.map (\step -> viewStep model { buildModel | steps = steps } step)
-            |> div []  
+            |> div [ Util.testAttribute <| "stage-" ++ stage ]  
         ]
 
 
