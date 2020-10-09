@@ -302,8 +302,8 @@ viewStages model buildModel =
         |> List.map
             (\stage ->
                 buildModel.steps
-                |> List.filter (\step -> step.stage == stage) 
-                |> viewStage model buildModel stage 
+                    |> List.filter (\step -> step.stage == stage)
+                    |> viewStage model buildModel stage
             )
 
 
@@ -314,9 +314,9 @@ viewStage model buildModel stage steps =
     div
         [ class "stage", Util.testAttribute <| "stage" ]
         [ viewStageDivider model { buildModel | steps = steps } stage
-        , steps 
+        , steps
             |> List.map (\step -> viewStep model { buildModel | steps = steps } step)
-            |> div [ Util.testAttribute <| "stage-" ++ stage ]  
+            |> div [ Util.testAttribute <| "stage-" ++ stage ]
         ]
 
 

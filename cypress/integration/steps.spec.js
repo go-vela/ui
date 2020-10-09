@@ -13,7 +13,7 @@ context('Steps', () => {
         url: 'api/v1/repos/*/*/builds/*/steps*',
         status: 200,
         response: '@steps',
-      });    
+      });
       cy.login('/someorg/somerepo/5');
     });
 
@@ -40,8 +40,14 @@ context('Steps', () => {
       cy.get('[data-test=stage-go] .step').should('contain', 'test');
 
       cy.get('[data-test=stage-deploy] .step').should('have.length', 3);
-      cy.get('[data-test=stage-deploy] .step').should('contain', 'docker-build');
-      cy.get('[data-test=stage-deploy] .step').should('contain', 'docker-publish');
+      cy.get('[data-test=stage-deploy] .step').should(
+        'contain',
+        'docker-build',
+      );
+      cy.get('[data-test=stage-deploy] .step').should(
+        'contain',
+        'docker-publish',
+      );
       cy.get('[data-test=stage-deploy] .step').should('contain', 'docker-tag');
     });
   });
