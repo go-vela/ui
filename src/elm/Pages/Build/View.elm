@@ -66,7 +66,6 @@ import Pages.Build.Model exposing (BuildModel, Msg(..), PartialModel)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
-import Svg.Attributes exposing (k)
 import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone, millisToPosix)
 import Util
