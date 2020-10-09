@@ -64,12 +64,12 @@ import Pages.Build.Logs
         , stepTopTrackerFocusId
         , toString
         )
-import Pages.Build.Model exposing (Msg(..), PartialModel, BuildModel )
+import Pages.Build.Model exposing (BuildModel, Msg(..), PartialModel)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
 import Svg.Attributes exposing (k)
-import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
+import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon,  stepStatusToIcon)
 import Time exposing (Posix, Zone, millisToPosix)
 import Util
 import Vela
@@ -243,29 +243,28 @@ viewPipeline model buildModel =
 
 {-| viewSteps : takes build/steps and renders steps
 -}
-viewSteps : PartialModel a -> BuildModel ->List (Html Msg)
+viewSteps : PartialModel a -> BuildModel -> List (Html Msg)
 viewSteps model buildModel =
     List.map (\step -> viewStep model buildModel step) <| buildModel.steps
 
 
-viewStages : PartialModel a -> BuildModel ->List (Html Msg)
+viewStages : PartialModel a -> BuildModel -> List (Html Msg)
 viewStages model buildModel =
     let
         stages =
-            List.Extra.unique <| List.map .stage buildModel.steps 
+            List.Extra.unique <| List.map .stage buildModel.steps
     in
     List.map
         (\stage ->
             let
                 steps_ =
-                    List.filter (\step -> step.stage == stage) buildModel.steps 
+                    List.filter (\step -> step.stage == stage) buildModel.steps
             in
             div
-                [ class "stage"
+                [ class "stage" ]
+                [ viewStageDivider model { buildModel | steps = steps_ } stage
+                , div [] <| List.map (\step -> viewStep model { buildModel | steps = steps_ } step) <| steps_
                 ]
-            <|
-                List.map (\step -> viewStep model { buildModel | steps  = steps_ } step) <|
-                    steps_
         )
         stages
 
@@ -288,6 +287,18 @@ hasStage step =
     step.stage /= ""
 
 
+{-| viewStageDivider : renders divider between stage
+-}
+viewStageDivider : PartialModel a -> BuildModel -> String -> Html Msg
+viewStageDivider model buildModel stage =
+    if stage /= "init" && stage /= "clone" then
+        div [ class "divider", Util.testAttribute <| "stage-divider-" ++ stage ]
+            [ div [] [text stage] ]
+
+    else
+        text ""
+
+
 {-| viewStep : renders single build step
 -}
 viewStep : PartialModel a -> BuildModel -> Step -> Html Msg
@@ -301,7 +312,7 @@ viewStep model buildModel step =
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : PartialModel a -> BuildModel ->Step -> Html Msg
+viewStepDetails : PartialModel a -> BuildModel -> Step -> Html Msg
 viewStepDetails model buildModel step =
     let
         stepNumber =
@@ -337,7 +348,7 @@ viewStepDetails model buildModel step =
 
 {-| viewLogs : takes step and logs and renders step logs or step error
 -}
-viewLogs : PartialModel a -> BuildModel ->Step -> Html Msg
+viewLogs : PartialModel a -> BuildModel -> Step -> Html Msg
 viewLogs model buildModel step =
     case step.status of
         Vela.Error ->
