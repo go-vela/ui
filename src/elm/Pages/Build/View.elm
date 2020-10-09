@@ -16,7 +16,6 @@ import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
 import Dict exposing (Dict, keys)
-import Dict.Extra
 import FeatherIcons
 import Html
     exposing
@@ -48,7 +47,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
-import List.Extra
+import List.Extra exposing (unique)
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
@@ -248,57 +247,6 @@ viewSteps model buildModel =
     List.map (\step -> viewStep model buildModel step) <| buildModel.steps
 
 
-viewStages : PartialModel a -> BuildModel -> List (Html Msg)
-viewStages model buildModel =
-    let
-        stages =
-            List.Extra.unique <| List.map .stage buildModel.steps
-    in
-    List.map
-        (\stage ->
-            let
-                steps_ =
-                    List.filter (\step -> step.stage == stage) buildModel.steps
-            in
-            div
-                [ class "stage" ]
-                [ viewStageDivider model { buildModel | steps = steps_ } stage
-                , div [] <| List.map (\step -> viewStep model { buildModel | steps = steps_ } step) <| steps_
-                ]
-        )
-        stages
-
-
-{-| hasStages : takes steps and returns true if the pipeline contain stages
--}
-hasStages : Steps -> Bool
-hasStages steps =
-    steps
-        |> List.filter (\s -> s.stage /= "")
-        |> List.head
-        |> Maybe.withDefault defaultStep
-        |> hasStage
-
-
-{-| hasStage : takes step and returns true if it belongs to a stage
--}
-hasStage : Step -> Bool
-hasStage step =
-    step.stage /= ""
-
-
-{-| viewStageDivider : renders divider between stage
--}
-viewStageDivider : PartialModel a -> BuildModel -> String -> Html Msg
-viewStageDivider model buildModel stage =
-    if stage /= "init" && stage /= "clone" then
-        div [ class "divider", Util.testAttribute <| "stage-divider-" ++ stage ]
-            [ div [] [ text stage ] ]
-
-    else
-        text ""
-
-
 {-| viewStep : renders single build step
 -}
 viewStep : PartialModel a -> BuildModel -> Step -> Html Msg
@@ -344,6 +292,60 @@ viewStepDetails model buildModel step =
             :: Util.open step.viewing
         )
         stepSummary
+
+
+{-| viewStages : takes model and build model and renders steps grouped by stages
+-}
+viewStages : PartialModel a -> BuildModel -> List (Html Msg)
+viewStages model buildModel =
+    buildModel.steps
+        |> List.map .stage
+        |> unique
+        |> List.map
+            (\stage ->
+                viewStage model buildModel stage <| List.filter (\step -> step.stage == stage) buildModel.steps
+            )
+
+
+{-| viewStage : takes model and build model and renders a stage
+-}
+viewStage : PartialModel a -> BuildModel -> String -> Steps -> Html Msg
+viewStage model buildModel stage steps =
+    div
+        [ class "stage" ]
+        [ viewStageDivider model { buildModel | steps = steps } stage
+        , div [] <| List.map (\step -> viewStep model { buildModel | steps = steps } step) <| steps
+        ]
+
+
+{-| viewStageDivider : renders divider between stage
+-}
+viewStageDivider : PartialModel a -> BuildModel -> String -> Html Msg
+viewStageDivider model buildModel stage =
+    if stage /= "init" && stage /= "clone" then
+        div [ class "divider", Util.testAttribute <| "stage-divider-" ++ stage ]
+            [ div [] [ text stage ] ]
+
+    else
+        text ""
+
+
+{-| hasStages : takes steps and returns true if the pipeline contain stages
+-}
+hasStages : Steps -> Bool
+hasStages steps =
+    steps
+        |> List.filter (\s -> s.stage /= "")
+        |> List.head
+        |> Maybe.withDefault defaultStep
+        |> hasStage
+
+
+{-| hasStage : takes step and returns true if it belongs to a stage
+-}
+hasStage : Step -> Bool
+hasStage step =
+    step.stage /= ""
 
 
 {-| viewLogs : takes step and logs and renders step logs or step error

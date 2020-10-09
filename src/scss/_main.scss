@@ -763,9 +763,9 @@ nav {
   margin-top: 0.6rem;
 
   div {
-    background: var(--color-coal-light);
+    background: var(--color-bg-light);
     padding: 0.2rem 1.2rem;
-    border: 1px solid var(--color-coal-light);
+    border: 1px solid var(--color-bg-light);
     font-weight: lighter;
   }
 }
@@ -774,7 +774,7 @@ nav {
   background: linear-gradient(
     90deg,
     hsla(0, 0, 0, 0) calc(3.25em - 1px),
-    var(--color-coal-light) calc(3.25em),
+    var(--color-bg-light) calc(3.25em),
     hsla(0, 0, 0, 0) calc(3.25em + 1px)
   );
 }
