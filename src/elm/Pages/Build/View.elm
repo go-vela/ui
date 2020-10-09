@@ -301,18 +301,22 @@ viewStages model buildModel =
         |> unique
         |> List.map
             (\stage ->
-                viewStage model buildModel stage <| List.filter (\step -> step.stage == stage) buildModel.steps
+                buildModel.steps
+                |> List.filter (\step -> step.stage == stage) 
+                |> viewStage model buildModel stage 
             )
 
 
-{-| viewStage : takes model and build model and renders a stage
+{-| viewStage : takes model, build model and stage and renders the stage steps
 -}
 viewStage : PartialModel a -> BuildModel -> String -> Steps -> Html Msg
 viewStage model buildModel stage steps =
     div
         [ class "stage" ]
         [ viewStageDivider model { buildModel | steps = steps } stage
-        , div [] <| List.map (\step -> viewStep model { buildModel | steps = steps } step) <| steps
+        , steps 
+            |> List.map (\step -> viewStep model { buildModel | steps = steps } step)
+            |> div []  
         ]
 
 
