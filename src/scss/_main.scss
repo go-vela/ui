@@ -725,16 +725,36 @@ nav {
   display: flex;
 }
 
+.stage .divider {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+
+  padding-right: 1rem;
+  padding-left: 2.6rem;
+  padding-top: 0.6rem;
+
+  margin-top: 0.6rem;
+
+  div {
+    background: var(--color-bg-light);
+    padding: 0.2rem 1.2rem;
+    border: 1px solid var(--color-bg-light);
+    font-weight: lighter;
+  }
+}
+
 .flowline-left {
   background: linear-gradient(
     90deg,
     hsla(0, 0, 0, 0) calc(3.25em - 1px),
-    hsla(0, 0%, 75%, 1) calc(3.25em),
+    var(--color-bg-light) calc(3.25em),
     hsla(0, 0, 0, 0) calc(3.25em + 1px)
   );
 }
 
-.step.flowline-left.-last {
+.step.flowline-left:last-child {
   background-repeat: no-repeat;
   background-size: 100% 2em;
 }
