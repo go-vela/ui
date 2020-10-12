@@ -297,10 +297,6 @@ context('Steps', () => {
       cy.get('@cloneStep').contains('problem starting container');
     });
 
-    it("first step should not have 'last' styles", () => {
-      cy.get('[data-test=step]').first().should('not.have.class', '-last');
-    });
-
     it('last step should not contain killed/skipped', () => {
       cy.get('[data-test=step]').last().as('echoStep');
       cy.get('@echoStep').should('be.visible').click({ force: true });
@@ -308,9 +304,53 @@ context('Steps', () => {
       cy.get('@echoStep').should('not.contain', 'step was killed');
       cy.get('@echoStep').contains('$');
     });
+  });
 
-    it("last step should have 'last' styles", () => {
-      cy.get('[data-test=step]').last().should('have.class', '-last');
+  context('visit build/steps with stages', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.fixture('steps_stages.json').as('steps');
+      cy.route({
+        method: 'GET',
+        url: 'api/v1/repos/*/*/builds/*/steps*',
+        status: 200,
+        response: '@steps',
+      });
+      cy.login('/someorg/somerepo/5');
+    });
+
+    it('build should contain stages', () => {
+      cy.get('[data-test=stage]').should('have.length', 4);
+    });
+
+    it('stages should contain stage names go and deploy', () => {
+      cy.get('[data-test=stage]').should('contain', 'go');
+      cy.get('[data-test=stage-divider-go]').should('contain', 'go');
+
+      cy.get('[data-test=stage]').should('contain', 'deploy');
+      cy.get('[data-test=stage-divider-deploy]').should('contain', 'deploy');
+    });
+
+    it('init/clone stages should not contain stage dividers', () => {
+      cy.get('[data-test=stage-divider-init]').should('not.contain', 'init');
+      cy.get('[data-test=stage-divider-clone]').should('not.contain', 'clone');
+    });
+
+    it('stages should contain grouped steps', () => {
+      cy.get('[data-test=stage-go] .step').should('have.length', 2);
+      cy.get('[data-test=stage-go] .step').should('contain', 'build');
+      cy.get('[data-test=stage-go] .step').should('contain', 'test');
+
+      cy.get('[data-test=stage-deploy] .step').should('have.length', 3);
+      cy.get('[data-test=stage-deploy] .step').should(
+        'contain',
+        'docker-build',
+      );
+      cy.get('[data-test=stage-deploy] .step').should(
+        'contain',
+        'docker-publish',
+      );
+      cy.get('[data-test=stage-deploy] .step').should('contain', 'docker-tag');
     });
   });
 });
