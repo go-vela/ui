@@ -840,6 +840,7 @@ nav {
   display: flex;
   flex: 1;
   flex-direction: row;
+  padding-right: 3rem;
 
   > code {
     flex: 1;
@@ -870,7 +871,6 @@ nav {
   max-height: 75rem;
   padding-bottom: 2rem;
   padding-top: 1rem;
-  padding-right: 3rem;
   resize: vertical;
 
   scrollbar-color: var(--color-coal-light) var(--color-bg-dark);
