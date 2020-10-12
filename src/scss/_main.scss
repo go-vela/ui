@@ -562,7 +562,8 @@ nav {
   border-bottom: 2px solid var(--color-green);
 }
 
-.build.-failure {
+.build.-failure,
+.build.-error {
   border-top: 2px solid var(--color-red);
   border-bottom: 2px solid var(--color-red);
 }
