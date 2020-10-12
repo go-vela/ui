@@ -204,12 +204,8 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
       cy.get('[data-test=step-header-1]').click({ force: true });
     });
 
-    it('logs header actions should only contain download', () => {
-      cy.get('[data-test=logs-header-actions-1]').within(() => {
-        cy.get('[data-test=jump-to-bottom-1]').should('not.exist');
-        cy.get('[data-test=follow-logs-1]').should('not.exist');
-        cy.get('[data-test=download-logs-1]').should('exist');
-      });
+    it('logs header actions should not exist', () => {
+      cy.get('[data-test=logs-header-actions-1]').should('not.exist');
     });
 
     it('logs sidebar actions should not exist', () => {
