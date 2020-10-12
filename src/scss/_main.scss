@@ -1418,13 +1418,13 @@ nav {
   @include visually-hidden();
 }
 
-.break-all {
+.log-line-word-break {
   word-break: break-all;
+  word-wrap: break-word;
 }
 
 .break-word {
   word-break: break-word;
-  word-wrap: break-word;
 }
 
 .no-wrap {
