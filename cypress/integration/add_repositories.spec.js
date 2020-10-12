@@ -3,17 +3,17 @@
  * Use of this source code is governed by the LICENSE file in this repository.
  */
 
-context('Add Repositories', () => {
+context('Source Repositories', () => {
   context('logged in', () => {
     beforeEach(() => {
       cy.server();
       cy.route(
         'GET',
         '*api/v1/user/source/repos*',
-        'fixture:add_repositories.json',
+        'fixture:source_repositories.json',
       ).as('sourceRepos');
-      cy.route('POST', '*api/v1/repos*', 'fixture:add_repo_response.json');
-      cy.login('/account/add-repos');
+      cy.route('POST', '*api/v1/repos*', 'fixture:enable_repo_response.json');
+      cy.login('/account/source-repos');
     });
 
     it('should show the orgs', () => {
@@ -45,7 +45,7 @@ context('Add Repositories', () => {
         .and('contain', 'Enabled');
     });
 
-    it('shows the failed button and alert when the add is unsuccessful', () => {
+    it('shows the failed button and alert when the enable is unsuccessful', () => {
       cy.route({
         method: 'POST',
         url: '*api/v1/repos*',
@@ -74,7 +74,7 @@ context('Add Repositories', () => {
 
     it('shows the loading labels when all repos for org are enabled', () => {
       cy.get('[data-test=source-org-github]').click();
-      cy.get('[data-test=add-org-github]').click({ force: true });
+      cy.get('[data-test=enable-org-github]').click({ force: true });
 
       cy.get('[data-test=source-repo-octocat]')
         .should('be.visible')
@@ -99,7 +99,7 @@ context('Add Repositories', () => {
         status: 500,
         response: 'server error',
       }).as('error');
-      cy.login('/account/add-repos');
+      cy.login('/account/source-repos');
     });
 
     it('show a message and an alert when there is a server error', () => {
@@ -116,9 +116,9 @@ context('Add Repositories', () => {
       cy.route(
         'GET',
         '*api/v1/user/source/repos*',
-        'fixture:add_repositories_bad.json',
+        'fixture:source_repositories_bad.json',
       ).as('badSourceRepos');
-      cy.login('/account/add-repos');
+      cy.login('/account/source-repos');
     });
 
     it('show a message and an alert when the response is malformed', () => {

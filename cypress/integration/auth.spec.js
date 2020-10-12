@@ -22,9 +22,9 @@ context('Authentication', () => {
       cy.location('pathname').should('eq', '/');
     });
 
-    it('add-repos page does not redirect', () => {
-      cy.visit('/account/add-repos');
-      cy.location('pathname').should('eq', '/account/add-repos');
+    it('source-repos page does not redirect', () => {
+      cy.visit('/account/source-repos');
+      cy.location('pathname').should('eq', '/account/source-repos');
     });
 
     it('provides a logout link', () => {

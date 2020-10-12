@@ -27,15 +27,15 @@ context('Overview/Repositories Page', () => {
       );
     });
 
-    it('should show the Add Repositories button', () => {
-      cy.get('[data-test=repo-enable]')
+    it('should show the Source Repositories button', () => {
+      cy.get('[data-test=source-repos]')
         .should('exist')
-        .and('contain', 'Add Repositories');
+        .and('contain', 'Source Repositories');
     });
 
-    it('Add Repositories should take you to the respective page', () => {
-      cy.get('[data-test=repo-enable]').click();
-      cy.location('pathname').should('eq', '/account/add-repos');
+    it('Source Repositories should take you to the respective page', () => {
+      cy.get('[data-test=source-repos]').click();
+      cy.location('pathname').should('eq', '/account/source-repos');
     });
 
     it('View button should exist for all repos', () => {

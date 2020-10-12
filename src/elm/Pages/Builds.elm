@@ -44,7 +44,7 @@ view buildsModel now org repo maybeEvent =
             case maybeEvent of
                 Nothing ->
                     div []
-                        [ h1 [] [ text "Your repository has been added!" ]
+                        [ h1 [] [ text "Your repository has been enabled!" ]
                         , p [] [ text "Builds will show up here once you have:" ]
                         , ol [ class "list" ]
                             [ li []

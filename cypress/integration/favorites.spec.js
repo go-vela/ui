@@ -48,20 +48,22 @@ context('Favorites', () => {
       cy.route(
         'GET',
         '*api/v1/user/source/repos*',
-        'fixture:add_repositories.json',
+        'fixture:source_repositories.json',
       ).as('sourceRepos');
-      cy.route('POST', '*api/v1/repos*', 'fixture:add_repo_response.json').as(
-        'addRepo',
-      );
+      cy.route(
+        'POST',
+        '*api/v1/repos*',
+        'fixture:enable_repo_response.json',
+      ).as('enableRepo');
     });
 
     context('logged in', () => {
       beforeEach(() => {
         cy.login();
       });
-      context('Add Repos page', () => {
+      context('Source Repos page', () => {
         beforeEach(() => {
-          cy.visit('/account/add-repos');
+          cy.visit('/account/source-repos');
         });
         context('enable cat/purr', () => {
           beforeEach(() => {
@@ -72,7 +74,7 @@ context('Favorites', () => {
 
             cy.get('@catOrg').click();
             cy.get('[data-test=enable-cat-purr]').click();
-            cy.wait('@addRepo');
+            cy.wait('@enableRepo');
             cy.get('[data-test=star-toggle-cat-purr]').as('togglePurr');
           });
           it('should show favorites star toggle', () => {

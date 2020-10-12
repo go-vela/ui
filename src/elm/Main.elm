@@ -59,12 +59,11 @@ import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
-import List.Extra exposing (setIf, updateIf)
+import List.Extra exposing (updateIf)
 import Maybe
 import Nav
 import Pager
 import Pages exposing (Page(..))
-import Pages.AddRepos
 import Pages.Build.Logs
     exposing
         ( focusFragmentToFocusId
@@ -86,6 +85,7 @@ import Pages.Secrets.Model
 import Pages.Secrets.Update
 import Pages.Secrets.View
 import Pages.Settings
+import Pages.SourceRepos
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import String.Extra
@@ -454,7 +454,7 @@ update msg model =
                 | sourceRepos = enableUpdate repo Loading model.sourceRepos
                 , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
               }
-            , Api.try (RepoEnabledResponse repo) <| Api.addRepository model body
+            , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
             )
 
         UserResponse response ->
@@ -767,11 +767,8 @@ update msg model =
 
                             else
                                 Cmd.none
-
-                        decodedLog =
-                            { incomingLog | data = Util.base64Decode incomingLog.data }
                     in
-                    ( updateLogs { model | steps = steps } decodedLog
+                    ( updateLogs { model | steps = steps } incomingLog
                     , cmd
                     )
 
@@ -1527,14 +1524,14 @@ viewContent model =
             , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
             )
 
-        Pages.AddRepositories ->
-            ( "Add Repositories"
-            , lazy2 Pages.AddRepos.view
+        Pages.SourceRepositories ->
+            ( "Source Repositories"
+            , lazy2 Pages.SourceRepos.view
                 { user = model.user
                 , sourceRepos = model.sourceRepos
                 , filters = model.filters
                 }
-                addReposMsgs
+                sourceReposMsgs
             )
 
         Pages.Hooks org repo maybePage _ ->
@@ -1936,8 +1933,8 @@ setAnalyze route model =
         ( Routes.Overview, True ) ->
             loadOverviewPage model
 
-        ( Routes.AddRepositories, True ) ->
-            loadAddReposPage model
+        ( Routes.SourceRepositories, True ) ->
+            loadSourceReposPage model
 
         ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
             loadHooksPage model org repo maybePage maybePerPage
@@ -2025,11 +2022,11 @@ setAnalyze route model =
             )
 
 
-loadAddReposPage : Model -> ( Model, Cmd Msg )
-loadAddReposPage model =
+loadSourceReposPage : Model -> ( Model, Cmd Msg )
+loadSourceReposPage model =
     case model.sourceRepos of
         NotAsked ->
-            ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
+            ( { model | page = Pages.SourceRepositories, sourceRepos = Loading }
             , Cmd.batch
                 [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
                 , getCurrentUser model
@@ -2037,7 +2034,7 @@ loadAddReposPage model =
             )
 
         Failure _ ->
-            ( { model | page = Pages.AddRepositories, sourceRepos = Loading }
+            ( { model | page = Pages.SourceRepositories, sourceRepos = Loading }
             , Cmd.batch
                 [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
                 , getCurrentUser model
@@ -2045,7 +2042,7 @@ loadAddReposPage model =
             )
 
         _ ->
-            ( { model | page = Pages.AddRepositories }, getCurrentUser model )
+            ( { model | page = Pages.SourceRepositories }, getCurrentUser model )
 
 
 loadOverviewPage : Model -> ( Model, Cmd Msg )
@@ -2594,16 +2591,16 @@ updateLogs model incomingLog =
 -}
 updateLog : Log -> Logs -> Logs
 updateLog incomingLog logs =
-    setIf
+    updateIf
         (\log ->
             case log of
                 Success log_ ->
-                    incomingLog.id == log_.id && incomingLog.data /= log_.data
+                    incomingLog.id == log_.id && incomingLog.rawData /= log_.rawData
 
                 _ ->
                     True
         )
-        (RemoteData.succeed incomingLog)
+        (\log -> RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData })
         logs
 
 
@@ -2611,7 +2608,7 @@ updateLog incomingLog logs =
 -}
 addLog : Log -> Logs -> Logs
 addLog incomingLog logs =
-    RemoteData.succeed incomingLog :: logs
+    RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData } :: logs
 
 
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
@@ -2628,11 +2625,11 @@ navMsgs =
     Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets RestartBuild
 
 
-{-| addReposMsgs : prepares the input record required for the AddRepos page to route Msgs back to Main.elm
+{-| sourceReposMsgs : prepares the input record required for the SourceRepos page to route Msgs back to Main.elm
 -}
-addReposMsgs : Pages.AddRepos.Msgs Msg
-addReposMsgs =
-    Pages.AddRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
+sourceReposMsgs : Pages.SourceRepos.Msgs Msg
+sourceReposMsgs =
+    Pages.SourceRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
 
 
 {-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm

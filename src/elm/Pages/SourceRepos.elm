@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.AddRepos exposing (Msgs, PartialModel, view)
+module Pages.SourceRepos exposing (Msgs, PartialModel, view)
 
 import Dict
 import Errors exposing (viewResourceError)
@@ -87,7 +87,7 @@ type alias Msgs msg =
 -- VIEW
 
 
-{-| view : takes model and renders account page for adding repos to overview
+{-| view : takes model and renders account page for enabling repos/adding them to overview
 -}
 view : PartialModel -> Msgs msg -> Html msg
 view model actions =
@@ -192,7 +192,7 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
 
 {-| viewSourceRepo : renders single repo within a list of org repos
 
-    viewSourceRepo uses model.SourceRepositories and buildAddRepoElement to determine the state of each specific 'Enable' button
+    viewSourceRepo uses model.sourceRepos and enableRepoButton to determine the state of each specific 'Enable' button
 
 -}
 viewSourceRepo : WebData CurrentUser -> EnableRepo msg -> ToggleFavorite msg -> Repository -> Html msg
@@ -229,7 +229,7 @@ viewRepoCount repos =
 -}
 enableReposButton : Org -> Repositories -> Bool -> EnableRepos msg -> Html msg
 enableReposButton org repos filtered enableRepos =
-    button [ class "button", class "-outline", Util.testAttribute <| "add-org-" ++ org, onClick (enableRepos repos) ]
+    button [ class "button", class "-outline", Util.testAttribute <| "enable-org-" ++ org, onClick (enableRepos repos) ]
         [ text <|
             if filtered then
                 "Enable Results"
@@ -239,7 +239,7 @@ enableReposButton org repos filtered enableRepos =
         ]
 
 
-{-| enableRepoButton : builds action button for adding single repos
+{-| enableRepoButton : builds action button for enabling single repos
 -}
 enableRepoButton : Repository -> EnableRepo msg -> ToggleFavorite msg -> Bool -> Html msg
 enableRepoButton repo enableRepo toggleFavorite favorited =
