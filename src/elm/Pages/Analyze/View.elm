@@ -58,8 +58,7 @@ pipeline build steps =
                             List.map viewStep steps_
                     )
     in
-    stages
-        |> div [ class "pipline" ]
+    div [ class "analysis" ] []
 
 
 {-| viewStep :

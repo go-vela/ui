@@ -726,13 +726,15 @@ update msg model =
                                 |> List.sortBy .number
                                 |> Pages.Build.Update.mergeSteps logFocus refresh model.steps
 
-                        updatedModel =
+                        setSteps =
                             { model | steps = RemoteData.succeed mergedSteps }
 
                         cmd =
-                            getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
+                            getBuildStepsLogs setSteps org repo buildNumber mergedSteps logFocus refresh
+                        updatedModel = { setSteps | steps = RemoteData.succeed mergedSteps }
+
                     in
-                    ( { updatedModel | steps = RemoteData.succeed mergedSteps }, cmd )
+                    ( updatedModel, Cmd.batch [drawAnalysis updatedModel, cmd])
 
                 Err error ->
                     ( model, addError error )
@@ -1203,6 +1205,9 @@ updateSecretResponseAlert secret =
 
 -- SUBSCRIPTIONS
 
+drawAnalysis : Model -> Cmd Msg
+drawAnalysis model = 
+    Interop.drawAnalysis (Encode.list Encode.string ["build"], Encode.list Encode.string ["steps"])
 
 keyDecoder : Decode.Decoder String
 keyDecoder =
@@ -2676,11 +2681,6 @@ getBuild model org repo buildNumber =
 getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
 getAllBuildSteps model org repo buildNumber logFocus refresh =
     Api.tryAll (StepsResponse org repo buildNumber logFocus refresh) <| Api.getAllSteps model org repo buildNumber
-
-
-getBuildStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg
-getBuildStep model org repo buildNumber stepNumber =
-    Api.try (StepResponse org repo buildNumber stepNumber) <| Api.getStep model org repo buildNumber stepNumber
 
 
 getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg

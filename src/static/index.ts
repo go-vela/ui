@@ -2,9 +2,9 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-import { Elm, Flags, App, Config, Session, Theme } from '../elm/Main';
-import '../scss/style.scss';
 import ClipboardJS from 'clipboard';
+import { App, Config, Elm, Flags, Session, Theme } from '../elm/Main';
+import '../scss/style.scss';
 
 // Vela consts
 const feedbackURL: string =
@@ -83,6 +83,10 @@ app.ports.setFavicon.subscribe(function (url) {
     document.head.removeChild(oldIcon);
   }
   document.head.appendChild(newIcon);
+});
+
+app.ports.drawAnalysis.subscribe(function(args) {
+  console.log('drawAnalysis::', args);
 });
 
 // initialize clipboard.js

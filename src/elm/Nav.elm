@@ -218,7 +218,8 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 ]
 
         Pages.Build org repo buildNumber _ ->
-            button
+            div [class "buttons"] [
+                            button
                 [ classList
                     [ ( "button", True )
                     , ( "-outline", True )
@@ -228,6 +229,14 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 ]
                 [ text "Restart Build"
                 ]
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute <| "goto-build-analysis-" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber
+                    , Routes.href <| Routes.Analyze org repo buildNumber
+                    ]
+                    [ text "Analyze" ]
+            ]
 
         Pages.Hooks org repo _ _ ->
             div [ class "buttons" ]
