@@ -567,6 +567,11 @@ nav {
   border-bottom: 2px solid var(--color-red);
 }
 
+.build.-error {
+  border-top: 2px solid var(--color-red);
+  border-bottom: 2px solid var(--color-red);
+}
+
 .-animation-dashes-1 {
   stroke-dasharray: 20 220 5 360;
 }
