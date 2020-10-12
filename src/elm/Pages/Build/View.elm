@@ -628,7 +628,7 @@ loadingLogs =
 emptyLogs : Html msg
 emptyLogs =
     div [ class "message" ]
-        [ text "The build has not written logs to this step yet." ]
+        [ text "the build has not written logs to this step yet" ]
 
 
 {-| stepKilled : renders message for a killed step
