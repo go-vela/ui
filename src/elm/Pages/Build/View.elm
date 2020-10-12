@@ -375,14 +375,9 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
         ]
     <|
         case Maybe.withDefault RemoteData.NotAsked maybeLog of
-            RemoteData.Failure _ ->
-                [ code [ Util.testAttribute "logs-error" ] [ text "error" ] ]
-
-            _ ->
+            RemoteData.Success _ ->
                 if logEmpty decodedLog then
-                    [ logsHeader stepNumber fileName decodedLog
-                    , div [ class "loading-logs" ] [ Util.smallLoaderWithText "loading logs..." ]
-                    ]
+                    [ emptyLogs ]
 
                 else
                     let
@@ -393,6 +388,12 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
                     , logsSidebar stepNumber following numLines
                     , logs
                     ]
+
+            RemoteData.Failure err ->
+                [ code [ Util.testAttribute "logs-error" ] [ text "error fetching logs" ] ]
+
+            _ ->
+                [ loadingLogs ]
 
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
@@ -662,17 +663,31 @@ stepFollowButton stepNumber following =
 -}
 stepError : Step -> Html msg
 stepError step =
-    div [ class "step-error", Util.testAttribute "step-error" ]
-        [ span [ class "label" ] [ text "error:" ]
-        , span [ class "message" ]
-            [ text <|
-                if String.isEmpty step.error then
-                    "no error msg"
+    div [ class "message", class "error", Util.testAttribute "step-error" ]
+        [ span [] [ text "error:" ]
+        , text <|
+            if String.isEmpty step.error then
+                "null"
 
-                else
-                    step.error
-            ]
+            else
+                step.error
         ]
+
+
+{-| loadingLogs : renders message for loading logs
+-}
+loadingLogs : Html msg
+loadingLogs =
+    div [ class "message" ]
+        [ Util.smallLoaderWithText "loading..." ]
+
+
+{-| emptyLogs : renders message for empty logs
+-}
+emptyLogs : Html msg
+emptyLogs =
+    div [ class "message" ]
+        [ text "the build has not written logs to this step yet" ]
 
 
 {-| stepKilled : renders message for a killed step
@@ -682,16 +697,16 @@ stepError step =
 -}
 stepKilled : Step -> Html msg
 stepKilled _ =
-    div [ class "step-error", Util.testAttribute "step-error" ]
-        [ span [ class "message" ] [ text "step was killed" ] ]
+    div [ class "message", class "error", Util.testAttribute "step-error" ]
+        [ text "step was killed" ]
 
 
 {-| stepSkipped : renders message for a skipped step
 -}
 stepSkipped : Step -> Html msg
 stepSkipped _ =
-    div [ class "step-skipped", Util.testAttribute "step-skipped" ]
-        [ span [ class "message" ] [ text "step was skipped" ] ]
+    div [ class "message", class "error", Util.testAttribute "step-skipped" ]
+        [ text "step was skipped" ]
 
 
 {-| viewStepIcon : renders a build step status icon
