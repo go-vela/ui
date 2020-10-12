@@ -836,6 +836,7 @@ recentBuildTooltip now timezone build =
             , li [ class "line" ] [ span [] [ text "started:" ], text <| Util.dateToHumanReadable timezone build.started ]
             , li [ class "line" ] [ span [] [ text "finished:" ], text <| Util.dateToHumanReadable timezone build.finished ]
             , li [ class "line" ] [ span [] [ text "duration:" ], text <| Util.formatRunTime now build.started build.finished ]
+            , li [ class "line" ] [ text "message:", span [ class "message" ] [ text build.message ] ]
             ]
         ]
 

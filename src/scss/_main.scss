@@ -697,6 +697,10 @@ nav {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+
+  .message {
+    text-align: right;
+  }
 }
 
 .recent-build-tooltip .number {
