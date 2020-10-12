@@ -5,7 +5,9 @@
   "dependencies": {
     "direct": {
       "NoRedInk/elm-json-decode-pipeline": "1.0.0",
+      "danfishgold/base64-bytes": "1.0.3",
       "elm/browser": "1.0.2",
+      "elm/bytes": "1.0.8",
       "elm/core": "1.0.5",
       "elm/file": "1.0.5",
       "elm/html": "1.0.0",
@@ -22,11 +24,9 @@
       "krisajenkins/remotedata": "6.0.1",
       "pablen/toasty": "1.2.0",
       "ryannhg/date-format": "2.3.0",
-      "truqu/elm-base64": "2.0.4",
       "vito/elm-ansi": "9.0.1"
     },
     "indirect": {
-      "elm/bytes": "1.0.8",
       "elm/parser": "1.1.0",
       "elm/random": "1.0.0",
       "elm/regex": "1.0.0",

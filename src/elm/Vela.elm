@@ -875,7 +875,8 @@ type alias Log =
     , step_id : Int
     , build_id : Int
     , repository_id : Int
-    , data : String
+    , rawData : String
+    , decodedLogs : String
     }
 
 
@@ -889,6 +890,8 @@ decodeLog =
         |> optional "build_id" int -1
         |> optional "repository_id" int -1
         |> optional "data" string ""
+        -- "decodedLogs"
+        |> hardcoded ""
 
 
 type alias Logs =
