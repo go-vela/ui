@@ -482,7 +482,7 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
                     ]
                     [ td []
                         [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
-                    , td [ class "break-all", class "overflow-auto" ]
+                    , td [ class "break-text", class "overflow-auto" ]
                         [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
