@@ -23,6 +23,8 @@ body.theme-dark {
   --color-secondary-light: var(--color-lavender-light);
 
   --color-focus: var(--color-slate);
+
+  --color-flowline: var(--color-gray);
 }
 
 // light theme
@@ -43,6 +45,8 @@ body.theme-light {
   --color-secondary-light: var(--color-cyan-light);
 
   --color-focus: var(--color-bg-dark);
+
+  --color-flowline: var(--color-gray);
 }
 
 .theme-light {
