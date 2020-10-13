@@ -1418,8 +1418,9 @@ nav {
   @include visually-hidden();
 }
 
-.break-all {
+.break-text {
   word-break: break-all;
+  word-wrap: break-word;
 }
 
 .break-word {
