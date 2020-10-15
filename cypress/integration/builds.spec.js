@@ -193,7 +193,7 @@ context('Builds', () => {
     it('shows all results by default', () => {
       cy.get('[data-test=build]')
         .should('be.visible')
-        .should('have.length', 10);
+        .should('have.length', 11);
     });
 
     it('should only show 7 push events', () => {
@@ -219,6 +219,12 @@ context('Builds', () => {
       cy.get('[data-test=build]').should('not.be.visible');
       cy.get('h1').should('contain', 'No builds for "deployment" event found.');
       cy.url().should('contain', '?event=deployment');
+    });
+
+    it('should only show one comment event', () => {
+      cy.get('[data-test=build-filter-comment]').click({ force: true });
+      cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
+      cy.url().should('contain', '?event=comment');
     });
   });
 });
