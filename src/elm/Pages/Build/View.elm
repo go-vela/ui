@@ -43,6 +43,7 @@ import Html.Attributes
         , classList
         , href
         , id
+        , title
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
@@ -183,6 +184,12 @@ viewPreview now org repo build =
         age =
             [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
 
+        buildCreatedPosix =
+            Time.millisToPosix <| Util.secondsToMillis build.created
+
+        timestamp =
+            Util.humanReadableDateTimeFormatter Time.utc buildCreatedPosix
+
         duration =
             [ text <| Util.formatRunTime now build.started build.finished ]
 
@@ -205,7 +212,11 @@ viewPreview now org repo build =
                         , div [ class "sender" ] sender
                         ]
                     , div [ class "time-info" ]
-                        [ div [ class "age" ] age
+                        [ div
+                            [ class "age"
+                            , title timestamp
+                            ]
+                            age
                         , span [ class "delimiter" ] [ text "/" ]
                         , div [ class "duration" ] duration
                         ]
