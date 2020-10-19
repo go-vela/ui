@@ -466,6 +466,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
 -}
 viewLine : String -> Int -> Maybe Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
 viewLine id lineNumber line stepNumber logFocus shiftDown =
+    -- reduce complexity here
     tr
         [ Html.Attributes.id <|
             id
