@@ -26,6 +26,7 @@ import Html
         , div
         , em
         , li
+        , p
         , small
         , span
         , strong
@@ -755,10 +756,9 @@ viewBuildHistory now timezone page org repo builds limit =
         case builds of
             RemoteData.Success blds ->
                 if List.length blds > 0 then
-                    ul [ class "build-history", class "-no-pad", Util.testAttribute "build-history" ] <|
+                    div [ class "build-history" ] [ p [ class "build-history-title" ] [ text "Recent Builds" ], ul [ class "-no-pad", Util.testAttribute "build-history" ] <|
                         List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
-                            List.take limit blds
-
+                            List.take limit blds ]
                 else
                     text ""
 
