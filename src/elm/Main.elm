@@ -77,9 +77,9 @@ import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
-import Pages.Analyze.Model
-import Pages.Analyze.Update
-import Pages.Analyze.View
+import Pages.Pipeline.Model
+import Pages.Pipeline.Update
+import Pages.Pipeline.View
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.Model
 import Pages.Secrets.Update
@@ -114,7 +114,7 @@ import Vela
         , BuildsModel
         , ChownRepo
         , CurrentUser
-        , EnableRepo
+        , EnableRepo,PipelineConfig
         , EnableRepos
         , EnableRepositoryPayload
         , Enabling(..)
@@ -130,6 +130,7 @@ import Vela
         , Logs
         , Name
         , Org
+        , Pipeline
         , RepairRepo
         , Repo
         , RepoSearchFilters
@@ -144,6 +145,8 @@ import Vela
         , StepNumber
         , Steps
         , Team
+        , Template
+        , Templates
         , Theme(..)
         , Type
         , UpdateRepositoryPayload
@@ -217,6 +220,7 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
+    , pipeline : Pipeline
     }
 
 
@@ -269,6 +273,7 @@ init flags url navKey =
             , showIdentity = False
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
+            , pipeline = Vela.Pipeline "" Dict.empty
             }
 
         ( newModel, newPage ) =
@@ -340,6 +345,8 @@ type Msg
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
+    | PipelineConfigResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | PipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | StepsResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
@@ -359,7 +366,7 @@ type Msg
     | VisibilityChanged Visibility
       -- Components
     | BuildUpdate Pages.Build.Model.Msg
-    | AnalyzeUpdate Pages.Analyze.Model.Msg
+    | AnalyzeUpdate Pages.Pipeline.Model.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
@@ -708,6 +715,37 @@ update msg model =
 
                 Err error ->
                     ( { model | builds = { currentBuilds | builds = toFailure error } }, addError error )
+        PipelineConfigResponse org repo response ->
+            let
+                p =
+                    model.pipeline
+            in
+            case response of
+                Ok ( meta, config ) ->
+                    ( { model
+                        | pipeline = { p | config = config }
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | pipeline = Vela.Pipeline "" Dict.empty }, addError error )
+
+        PipelineTemplatesResponse org repo response ->
+            let
+                p =
+                    model.pipeline
+            in
+            case response of
+                Ok ( meta, templates ) ->
+                    ( { model
+                        | pipeline = { p | templates = templates }
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | pipeline = Vela.Pipeline "" Dict.empty }, addError error )
 
         StepResponse _ _ _ _ response ->
             case response of
@@ -731,10 +769,11 @@ update msg model =
 
                         cmd =
                             getBuildStepsLogs setSteps org repo buildNumber mergedSteps logFocus refresh
-                        updatedModel = { setSteps | steps = RemoteData.succeed mergedSteps }
 
+                        updatedModel =
+                            { setSteps | steps = RemoteData.succeed mergedSteps }
                     in
-                    ( updatedModel, Cmd.batch [drawAnalysis updatedModel, cmd])
+                    ( updatedModel, Cmd.batch [ drawAnalysis updatedModel, cmd ] )
 
                 Err error ->
                     ( model, addError error )
@@ -1066,7 +1105,7 @@ update msg model =
         AnalyzeUpdate m ->
             let
                 ( newModel, action ) =
-                    Pages.Analyze.Update.update model m
+                    Pages.Pipeline.Update.update model m
             in
             ( newModel
             , action
@@ -1205,9 +1244,11 @@ updateSecretResponseAlert secret =
 
 -- SUBSCRIPTIONS
 
+
 drawAnalysis : Model -> Cmd Msg
-drawAnalysis model = 
-    Interop.drawAnalysis (Encode.list Encode.string ["build"], Encode.list Encode.string ["steps"])
+drawAnalysis model =
+    Interop.drawAnalysis ( Encode.list Encode.string [ "build" ], Encode.list Encode.string [ "steps" ] )
+
 
 keyDecoder : Decode.Decoder String
 keyDecoder =
@@ -1511,7 +1552,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
-        , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos } navMsgs
+        , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos, build = model.build } navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
             , content
@@ -1685,15 +1726,17 @@ viewContent model =
                     repo
             )
 
-        Pages.Analyze org repo buildNumber ->
-            ( "Analyze #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+        Pages.Pipeline org repo ref ->
+            ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Html.map (\m -> AnalyzeUpdate m) <|
-                lazy3 Pages.Analyze.View.viewAnalysis
+                lazy3 Pages.Pipeline.View.viewAnalysis
                     { navigationKey = model.navigationKey
                     , time = model.time
                     , build = model.build
                     , steps = model.steps
                     , shift = model.shift
+                    , pipeline = model.pipeline
+                    , page = model.page
                     }
                     org
                     repo
@@ -1998,8 +2041,8 @@ setAnalyze route model =
                 _ ->
                     loadBuildPage model org repo buildNumber logFocus
 
-        ( Routes.Analyze org repo buildNumber, True ) ->
-            loadAnalyzePage model org repo buildNumber
+        ( Routes.Pipeline org repo ref, True ) ->
+            loadAnalyzePage model org repo ref
 
         ( Routes.Settings, True ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -2421,8 +2464,8 @@ loadBuildPage model org repo buildNumber focusFragment =
 
 {-| loadAnalyzePage : takes model org, repo, and build number and loads the appropriate build analysis.
 -}
-loadAnalyzePage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
-loadAnalyzePage model org repo buildNumber =
+loadAnalyzePage : Model -> Org -> Repo -> Maybe String -> ( Model, Cmd Msg )
+loadAnalyzePage model org repo ref =
     let
         modelBuilds =
             model.builds
@@ -2436,17 +2479,11 @@ loadAnalyzePage model org repo buildNumber =
     in
     -- Fetch build from Api
     ( { model
-        | page = Pages.Analyze org repo buildNumber
-        , builds = builds
-        , build = Loading
-        , steps = NotAsked
-        , followingStep = 0
-        , logs = []
+        | page = Pages.Pipeline org repo ref
       }
     , Cmd.batch
-        [ getBuilds model org repo Nothing Nothing Nothing
-        , getBuild model org repo buildNumber
-        , getAllBuildSteps model org repo buildNumber Nothing False
+        [ getPipelineConfig model org repo  ref
+        , getPipelineTemplates model org repo   ref
         ]
     )
 
@@ -2666,6 +2703,16 @@ getHooks model org repo maybePage maybePerPage =
 getRepo : Model -> Org -> Repo -> Cmd Msg
 getRepo model org repo =
     Api.try RepoResponse <| Api.getRepo model org repo
+
+
+getPipelineConfig : Model -> Org -> Repo  -> Maybe String-> Cmd Msg
+getPipelineConfig model org repo ref =
+    Api.tryString (PipelineConfigResponse org repo) <| Api.getPipelineConfig model org repo ref
+
+
+getPipelineTemplates : Model -> Org -> Repo ->  Maybe String->Cmd Msg
+getPipelineTemplates model org repo ref =
+    Api.try (PipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref
 
 
 getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg

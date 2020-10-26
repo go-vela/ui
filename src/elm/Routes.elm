@@ -36,12 +36,13 @@ type Route
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
-    | Analyze Org Repo BuildNumber
+    | Pipeline Org Repo  (Maybe String)
     | Settings
     | Login
     | Logout
     | Authenticate AuthParams
     | NotFound
+
 
 
 
@@ -69,8 +70,8 @@ routes =
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
+        , map Pipeline (string </> string  </> s "pipeline" <?> Query.string "ref")
         , map Build (string </> string </> string </> fragment identity)
-        , map Analyze (string </> string </> string </> s "analyze")
         , map NotFound (s "404")
         ]
 
@@ -145,8 +146,8 @@ routeToUrl route =
         Build org repo buildNumber logFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" logFocus
 
-        Analyze org repo buildNumber ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/analyze"
+        Pipeline org repo ref ->
+            "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| refToQueryParam ref)
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }
@@ -184,6 +185,14 @@ eventToQueryParam : Maybe Event -> List UB.QueryParameter
 eventToQueryParam maybeEvent =
     if maybeEvent /= Nothing then
         [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
+
+    else
+        []
+
+refToQueryParam : Maybe String -> List UB.QueryParameter
+refToQueryParam maybeRef =
+    if maybeRef /= Nothing then
+        [ UB.string "ref" <| Maybe.withDefault "" maybeRef ]
 
     else
         []

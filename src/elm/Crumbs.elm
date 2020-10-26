@@ -267,12 +267,12 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
 
-                Pages.Analyze org repo buildNumber ->
+                Pages.Pipeline org repo ref  ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Analyze org repo buildNumber ), ( "Analyze", Nothing ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "Pipeline" ++ refToString ref, Nothing ) ]
 
                 Pages.Login ->
                     []
@@ -303,6 +303,22 @@ pageToString maybePage =
         Just num ->
             if num > 1 then
                 " (page " ++ String.fromInt num ++ ")"
+
+            else
+                ""
+
+
+{-| refToString : small helper to turn ref to a string to display in crumbs
+-}
+refToString : Maybe String -> String
+refToString maybeRef =
+    case maybeRef of
+        Nothing ->
+            ""
+
+        Just ref ->
+            if String.length ref > 0 then
+                " (" ++  ref ++ ")"
 
             else
                 ""

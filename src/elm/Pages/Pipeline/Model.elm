@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Analyze.Model exposing (Msg(..), PartialModel)
+module Pages.Pipeline.Model exposing (Msg(..), PartialModel)
 
 import Browser.Navigation as Navigation
 import RemoteData exposing (WebData)
@@ -12,9 +12,9 @@ import Time exposing (Posix)
 import Vela
     exposing
         ( Build
-        , Steps
+        , Steps,Pipeline
         )
-
+import Pages exposing (Page(..))
 
 
 -- MODEL
@@ -29,6 +29,8 @@ type alias PartialModel a =
         , build : WebData Build
         , steps : WebData Steps
         , shift : Bool
+        , pipeline :Pipeline
+        , page : Page
     }
 
 

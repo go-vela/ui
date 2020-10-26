@@ -6,8 +6,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Vela exposing
     ( AuthParams
-    , Build
-    , BuildIdentifier
+    , Build,decodePipelineConfig
+    , BuildIdentifier,PipelineConfig
     , BuildNumber
     , Builds
     , BuildsModel
@@ -35,6 +35,7 @@ module Vela exposing
     , Logs
     , Name
     , Org
+    , Pipeline
     , RepairRepo
     , Repo
     , RepoSearchFilters
@@ -51,6 +52,8 @@ module Vela exposing
     , StepNumber
     , Steps
     , Team
+    , Templates
+    ,Template
     , Theme(..)
     , Type
     , UpdateRepositoryPayload
@@ -69,6 +72,7 @@ module Vela exposing
     , decodeHook
     , decodeHooks
     , decodeLog
+    , decodePipelineTemplates
     , decodeRepositories
     , decodeRepository
     , decodeSecret
@@ -592,6 +596,55 @@ buildUpdateRepoIntPayload field value =
 
         _ ->
             defaultUpdateRepositoryPayload
+
+
+
+-- PIPELINE
+
+
+type alias Pipeline =
+    { config : String
+    , templates : Templates
+    }
+
+type alias PipelineConfig =
+    { data : String
+    }
+
+
+type alias Template =
+    { name : String
+    , source : String
+    , type_ : String
+    }
+
+
+type alias Templates =
+    Dict String Template
+
+
+decodePipelineConfig : Decode.Decoder String
+decodePipelineConfig =
+    Decode.string
+
+decodePipeline : Decode.Decoder Pipeline
+decodePipeline =
+    Decode.succeed Pipeline
+        |> optional "config" string ""
+        |> hardcoded Dict.empty
+
+
+decodePipelineTemplates : Decode.Decoder Templates
+decodePipelineTemplates =
+    Decode.dict decodeTemplate
+
+
+decodeTemplate : Decode.Decoder Template
+decodeTemplate =
+    Decode.succeed Template
+        |> optional "name" string ""
+        |> optional "source" string ""
+        |> optional "type" string ""
 
 
 

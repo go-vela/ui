@@ -11,7 +11,7 @@ on:
 
 jobs:
   analyze:
-    name: Analyze
+    name: Pipeline
     runs-on: ubuntu-latest
 
     strategy:

@@ -4,9 +4,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Analyze.Update exposing (update)
+module Pages.Pipeline.Update exposing (update)
 
-import Pages.Analyze.Model
+import Pages.Pipeline.Model
     exposing
         ( Msg(..)
         , PartialModel

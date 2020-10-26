@@ -36,7 +36,7 @@ import Util
 import Vela
     exposing
         ( BuildNumber
-        , CurrentUser
+        , CurrentUser,Build
         , Engine
         , Org
         , Repo
@@ -50,6 +50,7 @@ type alias PartialModel a =
         | page : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
+        , build : WebData Build
     }
 
 
@@ -115,6 +116,13 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
                     ]
                     [ text "Secrets" ]
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute <| "goto-repo-pipeline-" ++ org ++ "/" ++ repo
+                    , Routes.href <| Routes.Pipeline  org repo Nothing
+                    ]
+                    [ text "Pipeline" ]
                 , a
                     [ class "button"
                     , class "-outline"
@@ -229,13 +237,17 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 ]
                 [ text "Restart Build"
                 ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-build-analysis-" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber
-                    , Routes.href <| Routes.Analyze org repo buildNumber
-                    ]
-                    [ text "Analyze" ]
+                , case model.build of 
+                    RemoteData.Success build ->
+                        a
+                        [ class "button"
+                        , class "-outline"
+                        , Util.testAttribute <| "goto-build-analysis-" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber
+                        , Routes.href <| Routes.Pipeline org repo (Just build.branch)
+                        ]
+                        [ text <| "Pipeline" ]
+                    _ ->
+                        text ""
             ]
 
         Pages.Hooks org repo _ _ ->
