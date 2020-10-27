@@ -276,3 +276,6 @@ cypress/screenshots
 
 # elm add on
 .elm
+
+# Secrets environment file
+secrets.env
