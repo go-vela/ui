@@ -101,7 +101,7 @@ cd $HOME/go-vela/ui
 
 This method of running the application enables hot-reloading of the code.
 
-* Comment out [the `ui` service](https://github.com/go-vela/ui/blob/master/docker-compose.yml#L9-L25) in the `.docker.compose.yml`:
+* Comment out [the `ui` service](/docker-compose.yml#L9-L25) in the `.docker.compose.yml`:
 
 ```yaml
   # ui:
