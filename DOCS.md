@@ -97,6 +97,57 @@ This section covers the commands required to get the Vela application running lo
 cd $HOME/go-vela/ui
 ```
 
+#### NPM
+
+This method of running the application enables hot-reloading of the code.
+
+* Comment out [the `ui` service](https://github.com/go-vela/ui/blob/master/docker-compose.yml#L9-L25) in the `.docker.compose.yml`:
+
+```yaml
+  # ui:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.local
+  #   container_name: ui
+  #   image: ui:local
+  #   networks:
+  #     - vela
+  #   environment:
+  #     VELA_API: 'http://localhost:8080'
+  #   env_file:
+  #     - secrets.env
+  #   restart: always
+  #   ports:
+  #     - '8888:80'
+  #   depends_on:
+  #     - server
+```
+
+* Run the rest of the compose stack:
+
+```bash
+# execute the `up` target with `make`
+make up
+```
+
+* Run the repository code:
+
+```bash
+# allows you to make code changes and have the content auto-refresh in the browser
+npm run dev
+```
+
+* Navigate to the web UI:
+
+```bash
+# opens a browser window to the page http://localhost:8888
+open http://localhost:8888
+```
+
+#### Docker
+
+This method of running the application uses Docker containers via the `.docker.compose.yml`.
+
 * Run the repository code:
 
 ```bash
@@ -104,7 +155,12 @@ cd $HOME/go-vela/ui
 make up
 ```
 
-* Navigate to the Web UI @ http://localhost:8888
+* Navigate to the web UI:
+
+```bash
+# opens a browser window to the page http://localhost:8888
+open http://localhost:8888
+```
 
 ## Repo
 
