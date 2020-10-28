@@ -10,6 +10,7 @@ module Pages.Secrets.Form exposing
     , viewHelp
     , viewImagesInput
     , viewNameInput
+    , viewSubmitButtons
     , viewValueInput
     )
 
@@ -46,63 +47,9 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick, onInput)
 import Pages.RepoSettings exposing (checkbox)
-import Pages.Secrets.Model exposing (Msg(..), SecretForm)
+import Pages.Secrets.Model exposing (Model, Msg(..), SecretForm)
 import Util
 import Vela exposing (Field)
-
-
-{-| viewAddedImages : renders added images
--}
-viewAddedImages : List String -> List (Html Msg)
-viewAddedImages images =
-    if List.length images > 0 then
-        List.map addedImage <| List.reverse images
-
-    else
-        noImages
-
-
-{-| noImages : renders when no images have been added
--}
-noImages : List (Html Msg)
-noImages =
-    [ div [ class "added-image" ]
-        [ div [ class "name" ] [ code [] [ text "enabled for all images" ] ]
-
-        -- add button to match style
-        , button
-            [ class "button"
-            , class "-outline"
-            , class "visually-hidden"
-            , disabled True
-            ]
-            [ text "remove"
-            ]
-        ]
-    ]
-
-
-{-| addedImage : renders added image
--}
-addedImage : String -> Html Msg
-addedImage image =
-    div [ class "added-image", class "chevron" ]
-        [ div [ class "name" ] [ text image ]
-        , button
-            [ class "button"
-            , class "-outline"
-            , onClick <| RemoveImage image
-            ]
-            [ text "remove"
-            ]
-        ]
-
-
-{-| viewHelp : renders help msg pointing to Vela docs
--}
-viewHelp : Html Msg
-viewHelp =
-    div [ class "help" ] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
 
 
 {-| viewNameInput : renders name input box
@@ -223,19 +170,50 @@ viewImagesInput secret imageInput =
         ]
 
 
-{-| radio : takes current value, field id, title for label, and click action and renders an input radio.
+{-| viewAddedImages : renders added images
 -}
-radio : String -> String -> Field -> msg -> Html msg
-radio value field title msg =
-    div [ class "form-control", Util.testAttribute <| "secret-radio-" ++ field ]
-        [ input
-            [ type_ "radio"
-            , id <| "radio-" ++ field
-            , checked (value == field)
-            , onClick msg
+viewAddedImages : List String -> List (Html Msg)
+viewAddedImages images =
+    if List.length images > 0 then
+        List.map addedImage <| List.reverse images
+
+    else
+        noImages
+
+
+{-| noImages : renders when no images have been added
+-}
+noImages : List (Html Msg)
+noImages =
+    [ div [ class "added-image" ]
+        [ div [ class "name" ] [ code [] [ text "enabled for all images" ] ]
+
+        -- add button to match style
+        , button
+            [ class "button"
+            , class "-outline"
+            , class "visually-hidden"
+            , disabled True
             ]
-            []
-        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], text "tip" ]
+            [ text "remove"
+            ]
+        ]
+    ]
+
+
+{-| addedImage : renders added image
+-}
+addedImage : String -> Html Msg
+addedImage image =
+    div [ class "added-image", class "chevron" ]
+        [ div [ class "name" ] [ text image ]
+        , button
+            [ class "button"
+            , class "-outline"
+            , onClick <| RemoveImage image
+            ]
+            [ text "remove"
+            ]
         ]
 
 
@@ -259,6 +237,47 @@ allowCommandCheckbox secretUpdate =
             , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
             ]
         ]
+
+
+{-| radio : takes current value, field id, title for label, and click action and renders an input radio.
+-}
+radio : String -> String -> Field -> msg -> Html msg
+radio value field title msg =
+    div [ class "form-control", Util.testAttribute <| "secret-radio-" ++ field ]
+        [ input
+            [ type_ "radio"
+            , id <| "radio-" ++ field
+            , checked (value == field)
+            , onClick msg
+            ]
+            []
+        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], text "tip" ]
+        ]
+
+
+{-| viewHelp : renders help msg pointing to Vela docs
+-}
+viewHelp : Html Msg
+viewHelp =
+    div [ class "help" ] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
+
+
+viewSubmitButtons : Model msg -> Html Msg
+viewSubmitButtons secretsModel =
+    div [ class "buttons" ]
+        [ viewUpdateButton secretsModel
+        , viewDeleteButton
+        ]
+
+
+viewUpdateButton : Model msg -> Html Msg
+viewUpdateButton secretsModel =
+    button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.UpdateSecret secretsModel.engine ] [ text "Update" ]
+
+
+viewDeleteButton : Html Msg
+viewDeleteButton =
+    button [ class "button", class "-outline" ] [ text "Delete" ]
 
 
 
