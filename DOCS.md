@@ -10,7 +10,7 @@ This section covers the dependencies required to get the Vela application runnin
 
 * [Docker](https://docs.docker.com/install/) - building block for local development
 * [Docker Compose](https://docs.docker.com/compose/install/) - start up local development
-* [Github OAuth Client](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/) - building block for local Development
+* [Github OAuth Client](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/) - building block for local development
 * [Node/NPM](https://nodejs.org/en/download/) - for source code and [dependency management](https://nodejs.org/en/knowledge/getting-started/npm/what-is-npm/)
 * [NVM](https://github.com/nvm-sh/nvm/blob/master/README.md#installing-and-updating) - for managing NodeJS versions
 * [Make](https://www.gnu.org/software/make/) - start up local development
@@ -139,7 +139,7 @@ In order to run a build in Vela, you'll need to add a pipeline to the repo that 
 <p>
 
 1. Create a Vela [pipeline](https://go-vela.github.io/docs/concepts/pipeline/) to define a workflow for Vela to run.
-  * For conveinence, you can reference our documentation to use [one of our sample pipelines](https://go-vela.github.io/docs/usage/samples/).
+  * For convenience, you can reference our documentation to use [one of our sample pipelines](https://go-vela.github.io/docs/usage/samples/).
 
 2. Add the pipeline to the repo that was enabled above.
 
