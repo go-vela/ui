@@ -26,9 +26,6 @@ services:
       VELA_WEBUI_ADDR: 'http://ui:80'
       VELA_DATABASE_DRIVER: postgres
       VELA_DATABASE_CONFIG: postgres://vela:zB7mrKDTZqNeNTD8z47yG4DHywspAh@postgres:5432/vela?sslmode=disable
-      VELA_COMPILER_GITHUB: "true"
-      VELA_COMPILER_GITHUB_URL: https://git.target.com
-      VELA_COMPILER_GITHUB_TOKEN: ***REMOVED***
       VELA_LOG_LEVEL: trace
       VELA_QUEUE_DRIVER: redis
       VELA_QUEUE_CONFIG: redis://redis:6379
@@ -36,7 +33,7 @@ services:
       VELA_PORT: ':8080'
       VELA_SECRET: zB7mrKDTZqNeNTD8z47yG4DHywspAh
       VELA_SOURCE_DRIVER: github
-      VELA_SOURCE_URL: https://git.target.com/
+      VELA_SOURCE_URL: https://github.com/
       VELA_SECRET_VAULT: 'true'
       VELA_SECRET_VAULT_ADDR: http://vault:8200
       VELA_SECRET_VAULT_TOKEN: vela
