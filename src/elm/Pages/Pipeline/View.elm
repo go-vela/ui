@@ -8,6 +8,7 @@ module Pages.Pipeline.View exposing (viewAnalysis)
 
 import Dict
 import Dict.Extra
+import FeatherIcons
 import Html
     exposing
         ( Html
@@ -19,6 +20,7 @@ import Html
         , text
         )
 import Html.Attributes exposing (attribute, class)
+import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import List.Extra
 import Pages exposing (Page(..))
@@ -33,6 +35,7 @@ import Vela
         , Repo
         , Step
         , Steps
+        , Template
         , Templates
         )
 
@@ -41,11 +44,19 @@ import Vela
 -- VIEW
 
 
-viewPipeline : PartialModel a -> Html Msg
-viewPipeline model =
+viewPipeline : PartialModel a -> Org -> Repo -> Maybe String -> Html Msg
+viewPipeline model org repo  ref =
     let
         header =
-            div [ class "header" ] [ text "Expanded Pipeline" ]
+            div [ class "header" ]
+                [ span [] [ text "Pipeline Configuration" ]
+                , button
+                    [ class "button"
+                    , class "-link"
+                    , onClick <| ExpandPipelineConfig org repo ref
+                    ]
+                    [ text "expand templates" ]
+                ]
     in
     div [ class "analysis" ] <|
         [ header
@@ -73,25 +84,6 @@ lineFocusButton lineNumber =
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
 
-viewMetadata : PartialModel a -> Html Msg
-viewMetadata model =
-    let
-        ( org, repo, ref ) =
-            case model.page of
-                Pages.Pipeline o r ref_ ->
-                    ( o, r, Maybe.withDefault "(default branch)" ref_ )
-
-                _ ->
-                    ( "", "", "" )
-    in
-    div [ class "metadata" ]
-        [ div [ class "header" ] [ text "Pipeline Info" ]
-        , div [ class "info" ]
-            [ div [] [ span [] [ text "Org:" ], text org ]
-            , div [] [ span [] [ text "Repo:" ], text repo ]
-            , div [] [ span [] [ text "Ref:" ], text ref ]
-            ]
-        ]
 
 
 viewTemplates : Templates -> Html Msg
@@ -103,27 +95,32 @@ viewTemplates templates =
     div [ class "templates" ]
         [ div [ class "header" ] [ text "Templates" ]
         , if List.length templatesList > 0 then
-            div [] <|
-                List.map
-                    (\( k, t ) ->
-                        div [ class "template" ]
-                            [ div [] [ span [] [ text "Name:" ], span [] [ text t.name ] ]
-                            , div [] [ span [] [ text "Type:" ], span [] [ text t.type_ ] ]
-                            , div []
-                                [ span [] [ text "Source:" ]
-                                , a
-                                    [ Html.Attributes.target "_blank"
-                                    , Html.Attributes.href  t.source
-                                    ]
-                                    [ text t.source ]
-                                ]
-                            ]
-                    )
-                <|
-                    templatesList
+            div [] <| List.map viewTemplate templatesList
 
           else
             div [ class "no-templates" ] [ code [] [ text "pipeline does not contain templates" ] ]
+        ]
+
+
+viewTemplate : ( String, Template ) -> Html msg
+viewTemplate ( _, t ) =
+    Html.details [ class "details", class "template" ]
+        [ Html.summary [ class "summary" ]
+            [ text t.name
+            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+            ]
+        , div [ class "template" ]
+            [ div [] [ span [] [ text "Name:" ], span [] [ text t.name ] ]
+            , div [] [ span [] [ text "Type:" ], span [] [ text t.type_ ] ]
+            , div []
+                [ span [] [ text "Source:" ]
+                , a
+                    [ Html.Attributes.target "_blank"
+                    , Html.Attributes.href t.link
+                    ]
+                    [ text t.source ]
+                ]
+            ]
         ]
 
 
@@ -158,10 +155,9 @@ templateSourceToLink source =
     String.join "/" [ "https://", vcs, org, repo, "blob", ref, file ]
 
 
-viewAnalysis : PartialModel a -> Org -> Repo -> Html Msg
-viewAnalysis model org repo =
+viewAnalysis : PartialModel a -> Org -> Repo -> Maybe String -> Html Msg
+viewAnalysis model org repo ref  =
     div [ class "analysis-container" ]
-        [ viewMetadata model
-        , viewTemplates model.pipeline.templates
-        , viewPipeline model
+        [  viewTemplates model.pipeline.templates
+        , viewPipeline model org repo  ref
         ]

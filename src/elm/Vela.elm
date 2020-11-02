@@ -613,7 +613,8 @@ type alias PipelineConfig =
 
 
 type alias Template =
-    { name : String
+    { link : String
+    , name : String
     , source : String
     , type_ : String
     }
@@ -642,6 +643,7 @@ decodePipelineTemplates =
 decodeTemplate : Decode.Decoder Template
 decodeTemplate =
     Decode.succeed Template
+        |> optional "link" string ""
         |> optional "name" string ""
         |> optional "source" string ""
         |> optional "type" string ""

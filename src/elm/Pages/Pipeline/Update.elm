@@ -10,16 +10,21 @@ import Pages.Pipeline.Model
     exposing
         ( Msg(..)
         , PartialModel
+        ,ExpandPipelineConfigResponse
         )
 import RemoteData exposing (RemoteData(..))
-
-
-
+import Api
+import Http.Detailed
+import Vela exposing (Org, Repo)
 -- UPDATE
 
 
-update : PartialModel a -> Msg -> ( PartialModel a, Cmd msg )
-update model msg =
+update : PartialModel a -> Msg -> ExpandPipelineConfigResponse msg -> ( PartialModel a, Cmd msg )
+update model msg expandPipelineConfigResponse =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
+        ExpandPipelineConfig org repo ref ->
+            ( model, expandPipelineConfig model org repo ref expandPipelineConfigResponse )
+
+expandPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> ExpandPipelineConfigResponse msg ->  Cmd msg
+expandPipelineConfig model org repo ref expandPipelineConfigResponse =
+    Api.tryString (expandPipelineConfigResponse org repo) <| Api.expandPipelineConfig model org repo ref

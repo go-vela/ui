@@ -439,8 +439,11 @@ nav {
 
 .log-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-right: 1rem;
+  div:first-child {
+    padding-left: 6rem;
+  }
 }
 
 .git-info {
@@ -1418,12 +1421,27 @@ nav {
   overflow: auto;
 }
 
+.templates {
+  background-color: var(--color-bg-dark);
+  padding-bottom: 0.5rem;
+}
+
+.details.template {
+  margin: 0.5rem;
+  background-color: var(--color-bg);
+}
+
 .analysis-container {
   font-size: 1rem;
 
   .header {
-    font-size: 1.4rem;
-    font-weight: bold;
+    span { 
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
     border-bottom: 1px solid var(--color-lavender);
     padding: 0.6rem 0.8rem;
   }
@@ -1433,25 +1451,6 @@ nav {
     border-bottom: 1px solid var(--color-lavender);
     padding-bottom: 1rem;
    }
-  .templates-container {
-
-    // display: inline-block;
-  }
-  .templates {
-    background-color: var(--color-bg-dark);
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--color-lavender);
-    padding-bottom: 1rem;
-  }
-  .template, .info {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: flex-start;
-    flex-direction: column;
-    span {
-      margin: 0.6rem;
-    }
-  }
   .no-templates {
     color: red;
     padding: 1rem 2rem;

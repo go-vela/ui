@@ -53,7 +53,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
@@ -114,7 +114,7 @@ import Vela
         , BuildsModel
         , ChownRepo
         , CurrentUser
-        , EnableRepo,PipelineConfig
+        , EnableRepo
         , EnableRepos
         , EnableRepositoryPayload
         , Enabling(..)
@@ -131,6 +131,7 @@ import Vela
         , Name
         , Org
         , Pipeline
+        , PipelineConfig
         , RepairRepo
         , Repo
         , RepoSearchFilters
@@ -329,7 +330,6 @@ type Msg
     | DisableRepo Repository
     | ChownRepo Repository
     | RepairRepo Repository
-    | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
@@ -715,6 +715,7 @@ update msg model =
 
                 Err error ->
                     ( { model | builds = { currentBuilds | builds = toFailure error } }, addError error )
+
         PipelineConfigResponse org repo response ->
             let
                 p =
@@ -1016,11 +1017,6 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        RestartBuild org repo buildNumber ->
-            ( model
-            , restartBuild model org repo buildNumber
-            )
-
         Error error ->
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
@@ -1096,7 +1092,7 @@ update msg model =
         BuildUpdate m ->
             let
                 ( newModel, action ) =
-                    Pages.Build.Update.update model m ( getBuildStepLogs, getBuildStepsLogs ) FocusResult
+                    Pages.Build.Update.update model m ( getBuildStepLogs, getBuildStepsLogs ) FocusResult RestartedBuildResponse
             in
             ( newModel
             , action
@@ -1105,7 +1101,7 @@ update msg model =
         AnalyzeUpdate m ->
             let
                 ( newModel, action ) =
-                    Pages.Pipeline.Update.update model m
+                    Pages.Pipeline.Update.update model m PipelineConfigResponse
             in
             ( newModel
             , action
@@ -1715,6 +1711,8 @@ viewContent model =
             , Html.map (\m -> BuildUpdate m) <|
                 lazy3 Pages.Build.View.viewBuild
                     { navigationKey = model.navigationKey
+                    , velaAPI = model.velaAPI
+                    , session = model.session
                     , time = model.time
                     , build = model.build
                     , steps = model.steps
@@ -1724,13 +1722,15 @@ viewContent model =
                     }
                     org
                     repo
-            )
+             )
 
         Pages.Pipeline org repo ref ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Html.map (\m -> AnalyzeUpdate m) <|
-                lazy3 Pages.Pipeline.View.viewAnalysis
-                    { navigationKey = model.navigationKey
+                lazy4 Pages.Pipeline.View.viewAnalysis
+                    { navigationKey = model.navigationKey,
+                    velaAPI = model.velaAPI
+                    , session = model.session
                     , time = model.time
                     , build = model.build
                     , steps = model.steps
@@ -1740,6 +1740,7 @@ viewContent model =
                     }
                     org
                     repo
+                    ref
             )
 
         Pages.Settings ->
@@ -2482,8 +2483,8 @@ loadAnalyzePage model org repo ref =
         | page = Pages.Pipeline org repo ref
       }
     , Cmd.batch
-        [ getPipelineConfig model org repo  ref
-        , getPipelineTemplates model org repo   ref
+        [ getPipelineConfig model org repo ref
+        , getPipelineTemplates model org repo ref
         ]
     )
 
@@ -2664,7 +2665,7 @@ homeMsgs =
 -}
 navMsgs : Nav.Msgs Msg
 navMsgs =
-    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets RestartBuild
+    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets
 
 
 {-| sourceReposMsgs : prepares the input record required for the SourceRepos page to route Msgs back to Main.elm
@@ -2705,12 +2706,15 @@ getRepo model org repo =
     Api.try RepoResponse <| Api.getRepo model org repo
 
 
-getPipelineConfig : Model -> Org -> Repo  -> Maybe String-> Cmd Msg
+getPipelineConfig : Model -> Org -> Repo -> Maybe String -> Cmd Msg
 getPipelineConfig model org repo ref =
     Api.tryString (PipelineConfigResponse org repo) <| Api.getPipelineConfig model org repo ref
 
 
-getPipelineTemplates : Model -> Org -> Repo ->  Maybe String->Cmd Msg
+
+
+
+getPipelineTemplates : Model -> Org -> Repo -> Maybe String -> Cmd Msg
 getPipelineTemplates model org repo ref =
     Api.try (PipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref
 
@@ -2747,11 +2751,6 @@ getBuildStepsLogs model org repo buildNumber steps logFocus refresh =
                     Cmd.none
             )
             steps
-
-
-restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-restartBuild model org repo buildNumber =
-    Api.try (RestartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
 
 
 getSecrets :

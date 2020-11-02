@@ -60,7 +60,6 @@ type alias Msgs msg =
     , refreshSettings : Org -> Repo -> msg
     , refreshHooks : Org -> Repo -> msg
     , refreshSecrets : Engine -> Type -> Org -> Repo -> msg
-    , restartBuild : Org -> Repo -> BuildNumber -> msg
     }
 
 
@@ -77,7 +76,7 @@ view model msgs =
 {-| navButton : uses current page to build the commonly used button on the right side of the nav
 -}
 navButton : PartialModel a -> Msgs msg -> Html msg
-navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets, restartBuild } =
+navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets } =
     case model.page of
         Pages.Overview ->
             a
@@ -116,13 +115,6 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
                     ]
                     [ text "Secrets" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-pipeline-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Pipeline  org repo Nothing
-                    ]
-                    [ text "Pipeline" ]
                 , a
                     [ class "button"
                     , class "-outline"
@@ -226,29 +218,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 ]
 
         Pages.Build org repo buildNumber _ ->
-            div [class "buttons"] [
-                            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick <| restartBuild org repo buildNumber
-                , Util.testAttribute "restart-build"
-                ]
-                [ text "Restart Build"
-                ]
-                , case model.build of 
-                    RemoteData.Success build ->
-                        a
-                        [ class "button"
-                        , class "-outline"
-                        , Util.testAttribute <| "goto-build-analysis-" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber
-                        , Routes.href <| Routes.Pipeline org repo (Just build.branch)
-                        ]
-                        [ text <| "Pipeline" ]
-                    _ ->
-                        text ""
-            ]
+            text ""
 
         Pages.Hooks org repo _ _ ->
             div [ class "buttons" ]

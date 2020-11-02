@@ -61,7 +61,8 @@ import Pages.Build.Logs
         , stepTopTrackerFocusId
         , toString
         )
-import Pages.Build.Model exposing (Msg(..), PartialModel)
+import Pages.Build.Model exposing (Msg(..), PartialModel, RestartedBuildResponse)
+import Pages.Build.Update exposing (restartBuild)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
@@ -85,15 +86,15 @@ import Vela
         )
 
 
-
 -- VIEW
 
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel a -> Org -> Repo -> Html Msg
-viewBuild { time, build, steps, logs, followingStep, shift } org repo =
+viewBuild : PartialModel a -> Org -> Repo  -> Html Msg
+viewBuild model org repo   =
     let
+        { time, build, steps, logs, followingStep, shift }= model
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
@@ -115,8 +116,29 @@ viewBuild { time, build, steps, logs, followingStep, shift } org repo =
                             , class "flowline-left"
                             , Util.testAttribute "log-actions"
                             ]
-                            [ collapseAllStepsButton
-                            , expandAllStepsButton org repo buildNumber
+                            [ div [] [button
+                                [ class "button"
+                                , class "-link"
+
+                                , onClick <| RestartBuild   org repo buildNumber  
+                                , Util.testAttribute "restart-build"
+                                ]
+                                [ small [] [text "restart build"]
+                                ]
+
+                            , case  build of
+                                RemoteData.Success b ->
+                                    a
+                                    [ class "button"
+                                    , class "-link"
+                                    , Util.testAttribute <| "goto-build-analysis-" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber
+                                    , Routes.href <| Routes.Pipeline org repo (Just b.branch)
+                                    ]
+                                    [ small [] [text <| "view yaml (" ++ b.branch ++ ")"] ]
+                                _ ->
+                                    text ""]
+                            , div [] [collapseAllStepsButton
+                            , expandAllStepsButton org repo buildNumber]
                             ]
                     )
 

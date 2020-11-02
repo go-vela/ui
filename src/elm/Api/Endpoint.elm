@@ -38,6 +38,7 @@ type Endpoint
     | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
     | Secret Engine Type Org String Name
     | PipelineConfig Org Repo (Maybe String)
+    | ExpandPipelineConfig Org Repo (Maybe String)
     | PipelineTemplates Org Repo (Maybe String)
 
 
@@ -95,6 +96,8 @@ toUrl api endpoint =
             url api [ "secrets", engine, type_, org, key, name ] []
 
         PipelineConfig org repo ref ->
+            url api [ "pipelines", org, repo  ] [UB.string "ref" <| Maybe.withDefault "" ref]
+        ExpandPipelineConfig org repo ref ->
             url api [ "pipelines", org, repo, "expand" ] [UB.string "ref" <| Maybe.withDefault "" ref]
 
         PipelineTemplates org repo ref ->

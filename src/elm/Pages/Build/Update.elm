@@ -4,8 +4,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandActiveStep, mergeSteps, update)
+module Pages.Build.Update exposing (expandActiveStep, mergeSteps, restartBuild,  update)
 
+import Api
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import File.Download as Download
@@ -15,24 +16,27 @@ import Pages.Build.Model
     exposing
         ( GetLogs
         , Msg(..)
-        , PartialModel
+        , PartialModel,
+        RestartedBuildResponse
         )
 import RemoteData exposing (RemoteData(..), WebData)
 import Task
 import Util exposing (overwriteById)
 import Vela
     exposing
-        ( StepNumber
+        ( BuildNumber
+        , Org
+        , Repo
+        , StepNumber
         , Steps
         )
-
-
+import Task exposing (perform, succeed)
 
 -- UPDATE
 
 
-update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> ( PartialModel a, Cmd msg )
-update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
+update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> RestartedBuildResponse msg -> ( PartialModel a, Cmd msg )
+update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult restartedBuildResponse =
     case msg of
         ExpandStep org repo buildNumber stepNumber ->
             let
@@ -115,6 +119,15 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
 
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt focusResult )
+
+        RestartBuild org repo buildNumber ->
+            ( model
+              , restartBuild model org repo buildNumber restartedBuildResponse
+            )
+
+restartBuild : PartialModel a -> Org -> Repo -> BuildNumber -> RestartedBuildResponse msg -> Cmd msg
+restartBuild model org repo buildNumber restartedBuildResponse =
+    Api.try (restartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
 
 
 {-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs

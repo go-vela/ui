@@ -4,17 +4,24 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Msg(..), PartialModel)
+module Pages.Pipeline.Model exposing (Msg(..), PartialModel, ExpandPipelineConfigResponse)
 
 import Browser.Navigation as Navigation
+import Http
+import Http.Detailed
+import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Time exposing (Posix)
 import Vela
     exposing
         ( Build
-        , Steps,Pipeline
+        , Org
+        , Pipeline
+        , Repo
+        , Session
+        , Steps
         )
-import Pages exposing (Page(..))
+
 
 
 -- MODEL
@@ -24,12 +31,14 @@ import Pages exposing (Page(..))
 -}
 type alias PartialModel a =
     { a
-        | navigationKey : Navigation.Key
+        | velaAPI : String
+        , session : Maybe Session
+        , navigationKey : Navigation.Key
         , time : Posix
         , build : WebData Build
         , steps : WebData Steps
         , shift : Bool
-        , pipeline :Pipeline
+        , pipeline : Pipeline
         , page : Page
     }
 
@@ -39,4 +48,8 @@ type alias PartialModel a =
 
 
 type Msg
-    = NoOp
+    = ExpandPipelineConfig Org Repo (Maybe String)
+
+
+type alias ExpandPipelineConfigResponse msg =
+    Org -> Repo -> Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
