@@ -267,12 +267,13 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
 
-                Pages.Pipeline org repo ref  ->
+                Pages.Pipeline org repo ref expand _  ->
                     let
                         organizationPage =
                             ( org, Nothing )
+                        repoBuildsPage = ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "Pipeline" ++ refToString ref, Nothing ) ]
+                    [ overviewPage, organizationPage, repoBuildsPage, ( refToString ref, Nothing ) ]
 
                 Pages.Login ->
                     []
@@ -314,11 +315,11 @@ refToString : Maybe String -> String
 refToString maybeRef =
     case maybeRef of
         Nothing ->
-            ""
+            "(default branch)"
 
         Just ref ->
             if String.length ref > 0 then
-                " (" ++  ref ++ ")"
+                ref
 
             else
-                ""
+                "(default branch)"

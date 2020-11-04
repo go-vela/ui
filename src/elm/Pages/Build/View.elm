@@ -16,6 +16,13 @@ import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
+import Focus
+    exposing
+        ( lineRangeId
+        , lineFocusStyles
+        , resourceAndLineToFocusId
+        , resourceToFocusId
+        )
 import Html
     exposing
         ( Html
@@ -53,16 +60,11 @@ import Pages.Build.Logs
         , getDownloadLogsFileName
         , getStepLog
         , logEmpty
-        , logFocusStyles
-        , logRangeId
-        , stepAndLineToFocusId
         , stepBottomTrackerFocusId
-        , stepToFocusId
         , stepTopTrackerFocusId
         , toString
         )
 import Pages.Build.Model exposing (Msg(..), PartialModel, RestartedBuildResponse)
-import Pages.Build.Update exposing (restartBuild)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
@@ -86,15 +88,18 @@ import Vela
         )
 
 
+
 -- VIEW
 
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel a -> Org -> Repo  -> Html Msg
-viewBuild model org repo   =
+viewBuild : PartialModel a -> Org -> Repo -> Html Msg
+viewBuild model org repo =
     let
-        { time, build, steps, logs, followingStep, shift }= model
+        { time, build, steps, logs, followingStep, shift } =
+            model
+
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
@@ -116,29 +121,8 @@ viewBuild model org repo   =
                             , class "flowline-left"
                             , Util.testAttribute "log-actions"
                             ]
-                            [ div [] [button
-                                [ class "button"
-                                , class "-link"
-
-                                , onClick <| RestartBuild   org repo buildNumber  
-                                , Util.testAttribute "restart-build"
-                                ]
-                                [ small [] [text "restart build"]
-                                ]
-
-                            , case  build of
-                                RemoteData.Success b ->
-                                    a
-                                    [ class "button"
-                                    , class "-link"
-                                    , Util.testAttribute <| "goto-build-analysis-" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber
-                                    , Routes.href <| Routes.Pipeline org repo (Just b.branch)
-                                    ]
-                                    [ small [] [text <| "view yaml (" ++ b.branch ++ ")"] ]
-                                _ ->
-                                    text ""]
-                            , div [] [collapseAllStepsButton
-                            , expandAllStepsButton org repo buildNumber]
+                            [  collapseAllStepsButton
+                                , expandAllStepsButton org repo buildNumber
                             ]
                     )
 
@@ -283,7 +267,7 @@ viewStepDetails now org repo buildNumber step logs follow shift =
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
                 , onClick <| ExpandStep org repo buildNumber stepNumber
-                , id <| stepToFocusId stepNumber
+                , id <| resourceToFocusId "step" stepNumber
                 ]
                 [ div
                     [ class "-info" ]
@@ -440,7 +424,7 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
                 div
                     [ class "wrapper"
                     , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
-                    , class <| logFocusStyles logFocus lineNumber
+                    , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
                         [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
@@ -463,9 +447,9 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             FocusLogs <|
-                logRangeId stepNumber lineNumber logFocus shiftDown
+                lineRangeId "step" stepNumber lineNumber logFocus shiftDown
         , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
-        , id <| stepAndLineToFocusId stepNumber lineNumber
+        , id <| resourceAndLineToFocusId "step" stepNumber lineNumber
         , class "line-number"
         , class "button"
         , class "-link"

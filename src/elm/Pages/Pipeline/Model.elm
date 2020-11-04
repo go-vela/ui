@@ -4,11 +4,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Msg(..), PartialModel, ExpandPipelineConfigResponse)
+module Pages.Pipeline.Model exposing (PartialModel)
 
 import Browser.Navigation as Navigation
-import Http
-import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Time exposing (Posix)
@@ -20,7 +18,10 @@ import Vela
         , Repo
         , Session
         , Steps
+        , Templates
         )
+import Toasty as Alerting exposing (Stack)
+import Alerts exposing (Alert)
 
 
 
@@ -38,18 +39,9 @@ type alias PartialModel a =
         , build : WebData Build
         , steps : WebData Steps
         , shift : Bool
+        , templates : WebData Templates
         , pipeline : Pipeline
         , page : Page
+        , toasties : Stack Alert
     }
 
-
-
--- TYPES
-
-
-type Msg
-    = ExpandPipelineConfig Org Repo (Maybe String)
-
-
-type alias ExpandPipelineConfigResponse msg =
-    Org -> Repo -> Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg

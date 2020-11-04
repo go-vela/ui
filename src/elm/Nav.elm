@@ -43,6 +43,7 @@ import Vela
         , SourceRepositories
         , Type
         )
+import Api exposing (restartBuild)
 
 
 type alias PartialModel a =
@@ -60,6 +61,7 @@ type alias Msgs msg =
     , refreshSettings : Org -> Repo -> msg
     , refreshHooks : Org -> Repo -> msg
     , refreshSecrets : Engine -> Type -> Org -> Repo -> msg
+    , restartBuild : Org -> Repo -> BuildNumber -> msg
     }
 
 
@@ -76,7 +78,7 @@ view model msgs =
 {-| navButton : uses current page to build the commonly used button on the right side of the nav
 -}
 navButton : PartialModel a -> Msgs msg -> Html msg
-navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets } =
+navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets, restartBuild } =
     case model.page of
         Pages.Overview ->
             a
@@ -218,7 +220,29 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 ]
 
         Pages.Build org repo buildNumber _ ->
-            text ""
+            div [ class "buttons"]
+                [ button
+                    [ class "button"
+                                        , class "-outline"
+                    , onClick <| restartBuild org repo buildNumber
+                    , Util.testAttribute "restart-build"
+                    ]
+                    [ text "Restart Build" 
+                    ]
+                , case model.build of
+                    RemoteData.Success b ->
+                        a
+                            [ class "button"
+                                                , class "-outline"
+                            , Util.testAttribute <| "goto-build-pipeline-" ++ org ++ "-" ++ repo ++ "-" ++ buildNumber
+                            , Routes.href <| Routes.Pipeline org repo (Just b.commit) Nothing Nothing
+                            ]
+                            [  text <| "View yaml" ] 
+
+                    _ ->
+                        text ""
+                ]
+            
 
         Pages.Hooks org repo _ _ ->
             div [ class "buttons" ]

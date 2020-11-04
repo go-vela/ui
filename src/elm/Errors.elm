@@ -4,12 +4,14 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Errors exposing (detailedErrorToError, detailedErrorToString, viewResourceError)
+module Errors exposing (addError,errorToString, addErrorString, detailedErrorToError, detailedErrorToString, toFailure, viewResourceError)
 
 import Html exposing (Html, div, p, text)
 import Http exposing (Error(..))
 import Http.Detailed
 import Json.Decode as Decode
+import RemoteData exposing (RemoteData(..),   WebData)
+import Task exposing (perform, succeed)
 import Util
 
 
@@ -63,6 +65,27 @@ detailedErrorToError error =
             Http.BadBody body
 
 
+{-| errorToString : convert a Http.Error to a string
+-}
+errorToString : Http.Error -> String
+errorToString error =
+    case error of
+        Http.BadUrl url ->
+            "bad URL: " ++ url
+
+        Http.Timeout ->
+            "timeout"
+
+        Http.NetworkError ->
+            "network error"
+
+        Http.BadStatus metadata  ->
+            String.fromInt metadata 
+
+        Http.BadBody body ->
+            errorBodyToString body
+
+
 {-| errorBodyToString : extracts/converts the "error" field from an api json error message to string
 -}
 errorBodyToString : String -> String
@@ -105,3 +128,28 @@ viewResourceError { resourceLabel, testLabel } =
                     ++ ", please refresh or try again later!"
             ]
         ]
+
+
+{-| toFailure : maps a detailed error into a WebData Failure value
+-}
+toFailure : Http.Detailed.Error String -> WebData a
+toFailure error =
+    Failure <| detailedErrorToError error
+
+
+{-| addError : takes a detailed http error and produces a Cmd Msg that invokes an action in the Errors module
+-}
+addError : Http.Detailed.Error String -> (String -> msg) -> Cmd msg
+addError error m =
+    succeed
+        (m <| detailedErrorToString error)
+        |> perform identity
+
+
+{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module
+-}
+addErrorString : String -> (String -> msg) -> Cmd msg
+addErrorString error m =
+    succeed
+        (m <| error)
+        |> perform identity

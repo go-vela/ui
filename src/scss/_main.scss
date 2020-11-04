@@ -439,7 +439,7 @@ nav {
 
 .log-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-right: 1rem;
   div:first-child {
     padding-left: 6rem;
@@ -1421,28 +1421,14 @@ nav {
   overflow: auto;
 }
 
-.templates {
-  background-color: var(--color-bg-dark);
-  padding-bottom: 0.5rem;
-}
-
-.details.template {
-  margin: 0.5rem;
-  background-color: var(--color-bg);
-}
-
-.analysis-container {
+.pipeline {
   font-size: 1rem;
 
   .header {
-    span { 
-      font-size: 1.4rem;
-      font-weight: bold;
-    }
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    border-bottom: 1px solid var(--color-lavender);
+    // border-bottom: 1px solid var(--color-lavender);
     padding: 0.6rem 0.8rem;
   }
   .metadata {
@@ -1452,18 +1438,75 @@ nav {
     padding-bottom: 1rem;
    }
   .no-templates {
-    color: red;
     padding: 1rem 2rem;
-    padding-bottom: 0;
+  }
+  .small-loader {
+    padding: 0.8rem 1rem;
+  }
+  .content {
+    border-top: 1px solid var(--color-secondary);
+
+    font-weight: lighter;
+    &.-error {
+      border-left: 1px solid var(--color-red);
+    }
+    &.-empty {
+      border-left: 1px solid var(--color-yellow);
+    }
+    &.-success {
+      border-left: 1px solid var(--color-green);
+    }
+  }
+  .content.-error
+  ,.content.-empty {
+    padding: 0.8rem 1rem;
   }
 }
-.analysis {
+
+
+.templates {
+  summary {
+    padding-left: 1rem;
+    margin-left: 1rem;
+  }
+  background-color: var(--color-bg-dark);
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0.8rem;
+  padding-top: 0.8rem;
+  margin-bottom: 1rem;
+  .content.-success {
+    margin-top: 0.8rem!important;
+  }
+}
+
+.template {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-bottom: 0.6rem;
+  font-weight: lighter;
+  display: flex;
+  flex-direction: row;
+
+  border-bottom: 1px solid var(--color-bg-light);
+
+
+  div {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0.4rem;
+    margin-left: 1rem;
+  }
+}
+
+
+.config {
   white-space: pre;
   background-color: var(--color-bg-dark);
   // padding: 1rem;
   font-weight: lighter;
   .lines {
-    padding: 1rem 1rem;
+    padding: 1rem 0rem;
   }
   .line {
     padding: 0 0.4rem;
@@ -1471,11 +1514,39 @@ nav {
   .line:focus, .line:hover {
     background-color: var(--color-bg);
   }
+  .expansion {
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid var(--color-bg-light);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    .button {
+      margin-left: 0.4rem;
+    }
+  }
+  .toggle-expansion {
+    margin-left: 1rem;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    // padding-left: 1.8rem;
+    .small-loader {
+      padding: 0;
+    }
 
-
+  }
+  .expansion-icon {
+    // margin-left: 0.8rem;
+    margin-right: 0.7rem;
+    color: var(--color-green);
+    &.-expanded {
+    }
+  }
 }
-
-.analysis .line-number {
+.config .line.-focus {
+  background: var(--color-focus);
+}
+.config .line-number {
   margin-right: 1rem;
   position: relative;
   font-family: var(--font-code);

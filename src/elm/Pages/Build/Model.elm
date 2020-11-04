@@ -57,7 +57,6 @@ type Msg
     | ExpandAllSteps Org Repo BuildNumber
     | CollapseAllSteps
     | FocusOn String
-    | RestartBuild Org Repo BuildNumber
 
 
 type alias GetStepLogs a msg =

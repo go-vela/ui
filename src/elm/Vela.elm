@@ -6,8 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Vela exposing
     ( AuthParams
-    , Build,decodePipelineConfig
-    , BuildIdentifier,PipelineConfig
+    , Build
     , BuildNumber
     , Builds
     , BuildsModel
@@ -35,9 +34,11 @@ module Vela exposing
     , Logs
     , Name
     , Org
-    , Pipeline
+    , Pipeline,Commit
+    , PipelineConfig
     , RepairRepo
     , Repo
+    , RepoResouceIdentifier
     , RepoSearchFilters
     , Repositories
     , Repository
@@ -52,8 +53,8 @@ module Vela exposing
     , StepNumber
     , Steps
     , Team
+    , Template
     , Templates
-    ,Template
     , Theme(..)
     , Type
     , UpdateRepositoryPayload
@@ -72,6 +73,7 @@ module Vela exposing
     , decodeHook
     , decodeHooks
     , decodeLog
+    , decodePipelineConfig
     , decodePipelineTemplates
     , decodeRepositories
     , decodeRepository
@@ -87,6 +89,7 @@ module Vela exposing
     , defaultEnableRepositoryPayload
     , defaultFavicon
     , defaultHooks
+    , defaultPipeline
     , defaultRepository
     , defaultSession
     , defaultUpdateRepositoryPayload
@@ -151,6 +154,9 @@ type alias Event =
 
 
 type alias BuildNumber =
+    String
+
+type alias Commit =
     String
 
 
@@ -603,9 +609,21 @@ buildUpdateRepoIntPayload field value =
 
 
 type alias Pipeline =
-    { config : String
-    , templates : Templates
+    { config : WebData PipelineConfig
+    , expanded : Bool
+    , configLoading : Bool
+    , org : Org
+    , repo : Org
+    , ref : Maybe String
+    , expand : Maybe String
+    , lineFocus : ( Maybe Int, Maybe Int )
     }
+
+
+defaultPipeline : Pipeline
+defaultPipeline =
+    Pipeline NotAsked False False "" "" Nothing Nothing ( Nothing, Nothing )
+
 
 type alias PipelineConfig =
     { data : String
@@ -628,11 +646,11 @@ decodePipelineConfig : Decode.Decoder String
 decodePipelineConfig =
     Decode.string
 
-decodePipeline : Decode.Decoder Pipeline
+
+decodePipeline : Decode.Decoder PipelineConfig
 decodePipeline =
-    Decode.succeed Pipeline
+    Decode.succeed PipelineConfig
         |> optional "config" string ""
-        |> hardcoded Dict.empty
 
 
 decodePipelineTemplates : Decode.Decoder Templates
@@ -1014,8 +1032,8 @@ type alias Viewing =
     Bool
 
 
-type alias BuildIdentifier =
-    ( Org, Repo, BuildNumber )
+type alias RepoResouceIdentifier =
+    ( Org, Repo, String )
 
 
 

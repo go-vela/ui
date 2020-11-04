@@ -4,11 +4,13 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.View exposing (viewAnalysis)
+module Pages.Pipeline.View exposing (viewPipeline)
 
 import Dict
 import Dict.Extra
+import Errors exposing (detailedErrorToString)
 import FeatherIcons
+import Focus exposing (ExpandTemplatesQuery,lineRangeId, lineFocusStyles, Fragment, RefQuery)
 import Html
     exposing
         ( Html
@@ -16,7 +18,9 @@ import Html
         , button
         , code
         , div
+        , small
         , span
+        , strong
         , text
         )
 import Html.Attributes exposing (attribute, class)
@@ -24,10 +28,12 @@ import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import List.Extra
 import Pages exposing (Page(..))
-import Pages.Pipeline.Model exposing (Msg(..), PartialModel)
-import RemoteData exposing (RemoteData(..))
+import Pages.Pipeline.Model exposing (PartialModel)
+import Pages.Pipeline.Update exposing (Msg(..))
+import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder
+import Util
 import Vela
     exposing
         ( Build
@@ -44,34 +50,73 @@ import Vela
 -- VIEW
 
 
-viewPipeline : PartialModel a -> Org -> Repo -> Maybe String -> Html Msg
-viewPipeline model org repo  ref =
-    let
-        header =
-            div [ class "header" ]
-                [ span [] [ text "Pipeline Configuration" ]
-                , button
-                    [ class "button"
-                    , class "-link"
-                    , onClick <| ExpandPipelineConfig org repo ref
-                    ]
-                    [ text "expand templates" ]
-                ]
-    in
-    div [ class "analysis" ] <|
-        [ header
-        , if String.length model.pipeline.config > 0 then
-            div [ class "lines" ] <|
-                List.indexedMap (\idx -> \l -> div [ class "line" ] [ lineFocusButton (idx + 1), code [] [ text l ] ]) <|
-                    String.lines model.pipeline.config
-
-          else
-            code [] [ text "no pipeline config found" ]
+viewPipeline : PartialModel a -> Html Msg
+viewPipeline model =
+    div [ class "pipeline" ]
+        [ viewTemplates model.templates
+        , viewConfig model
         ]
 
 
+viewTemplates : WebData Templates -> Html Msg
+viewTemplates templates =
+    let
+        ( content, c ) =
+            case templates of
+                NotAsked ->
+                    ( text ""
+                    , ""
+                    )
 
--- div [ class "analysis" ] [ code [] [text  model.pipeline.config]]
+                Loading ->
+                    ( Util.smallLoaderWithText "loading pipeline templates"
+                    , "-loading"
+                    )
+
+                Success t ->
+                    let
+                        templatesList =
+                            Dict.toList t
+                    in
+                    if List.length templatesList > 0 then
+                        ( div [] <| List.map viewTemplate templatesList
+                        , "-success"
+                        )
+
+                    else
+                        ( div [ class "empty" ] [ text "no templates found" ]
+                        , "-empty"
+                        )
+
+                Failure err ->
+                    ( small [ class "error" ] [ text <| "There was a problem fetching templates: " ++ Errors.errorToString err ]
+                    , "-error"
+                    )
+    in
+    Html.details [ class "details", class "templates", Html.Attributes.attribute "open" "" ]
+        [ Html.summary [ class "summary" ]
+            [ div [] [ text "Templates" ]
+            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+            ]
+        , div [ class "content", class c ]
+            [ content ]
+        ]
+
+
+viewTemplate : ( String, Template ) -> Html msg
+viewTemplate ( _, t ) =
+    div [ class "template" ]
+        [ div [] [ strong [] [ text "Name:" ], strong [] [ text "Source:" ], strong [] [ text "Link:" ] ]
+        , div []
+            [ span [] [ text t.name ]
+            , span [] [ text t.source ]
+            , a
+                [ Html.Attributes.target "_blank"
+                , Html.Attributes.href t.link
+                ]
+                [ text t.link ]
+            ]
+        ]
 
 
 lineFocusButton : Int -> Html Msg
@@ -80,84 +125,119 @@ lineFocusButton lineNumber =
         [ class "line-number"
         , class "button"
         , class "-link"
+        , onClick <| FocusLine lineNumber
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
 
+templatesExpansion : PartialModel a -> Org -> Repo -> Maybe String -> Html Msg
+templatesExpansion model org repo ref =
+    case model.templates of
+        Success templates ->
+            if Dict.size templates > 0 then
+                let
+                    action =
+                        if model.pipeline.expanded then
+                            GetPipelineConfig org repo ref
 
+                        else
+                            ExpandPipelineConfig org repo ref
+                in
+                div [ class "expansion" ]
+                    [ div [ class "toggle-expansion" ]
+                        [ if model.pipeline.configLoading then
+                            Util.smallLoader
 
-viewTemplates : Templates -> Html Msg
-viewTemplates templates =
-    let
-        templatesList =
-            Dict.toList <| templates
-    in
-    div [ class "templates" ]
-        [ div [ class "header" ] [ text "Templates" ]
-        , if List.length templatesList > 0 then
-            div [] <| List.map viewTemplate templatesList
+                          else if model.pipeline.expanded then
+                            FeatherIcons.checkCircle |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "expansion-icon -expanded" |> FeatherIcons.toHtml []
 
-          else
-            div [ class "no-templates" ] [ code [] [ text "pipeline does not contain templates" ] ]
-        ]
+                          else
+                            FeatherIcons.circle |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "expansion-icon" |> FeatherIcons.toHtml []
+                        ]
+                    , button
+                        [ class "button"
+                        , class "-link"
+                        , Util.onClickPreventDefault <| action
+                        ]
+                        [ if model.pipeline.expanded then
+                            text "revert template expansion"
 
-
-viewTemplate : ( String, Template ) -> Html msg
-viewTemplate ( _, t ) =
-    Html.details [ class "details", class "template" ]
-        [ Html.summary [ class "summary" ]
-            [ text t.name
-            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-            ]
-        , div [ class "template" ]
-            [ div [] [ span [] [ text "Name:" ], span [] [ text t.name ] ]
-            , div [] [ span [] [ text "Type:" ], span [] [ text t.type_ ] ]
-            , div []
-                [ span [] [ text "Source:" ]
-                , a
-                    [ Html.Attributes.target "_blank"
-                    , Html.Attributes.href t.link
+                          else
+                            text "expand templates"
+                        ]
                     ]
-                    [ text t.source ]
-                ]
-            ]
-        ]
-
-
-templateSourceToLink : String -> String
-templateSourceToLink source =
-    let
-        chunks =
-            String.split "/" source
-
-        vcs =
-            Maybe.withDefault "" <| List.Extra.getAt 0 chunks
-
-        org =
-            Maybe.withDefault "" <| List.Extra.getAt 1 chunks
-
-        repo =
-            Maybe.withDefault "" <| List.Extra.getAt 2 chunks
-
-        end =
-            Maybe.withDefault "" <| List.Extra.getAt 3 chunks
-
-        refChunks =
-            String.split "@" end
-
-        ( file, ref ) =
-            if List.length refChunks > 1 then
-                ( Maybe.withDefault "" <| List.Extra.getAt 0 refChunks, Maybe.withDefault "" <| List.Extra.getAt 1 refChunks )
 
             else
-                ( Maybe.withDefault "" <| List.Extra.getAt 4 chunks, Maybe.withDefault "" <| List.Extra.getAt 3 chunks )
+                text ""
+
+        Loading ->
+            Util.smallLoader
+
+        _ ->
+            text ""
+
+
+viewConfig : PartialModel a -> Html Msg
+viewConfig model =
+    let
+        { org, repo, ref, expand, lineFocus } =
+            model.pipeline
+
+        header =
+            div [ class "header" ]
+                [ span [] [ text "Pipeline Configuration" ]
+                ]
+                
+        content =
+            case model.pipeline.config of
+                Success config ->
+                    if String.length config.data > 0 then
+                        div [ class "lines" ] <|
+                            templatesExpansion model org repo ref
+                                :: (List.indexedMap
+                                        (\idx ->
+                                            \l ->
+                                                div [ class "line",class <| lineFocusStyles lineFocus (idx + 1)]
+                                                    [ lineFocusButton (idx + 1), code [] [ text l ] ]
+                                        )
+                                    <|
+                                        String.lines config.data
+                                   )
+
+                    else
+                        code [] [ text "no pipeline config found" ]
+
+                Loading ->
+                    Util.smallLoaderWithText "loading pipeline configuration"
+
+                Failure err ->
+                    small [ class "error" ] [ text <| "There was a problem fetching the pipeline configuration: " ++ Errors.errorToString err ]
+
+                _ ->
+                    text ""
     in
-    String.join "/" [ "https://", vcs, org, repo, "blob", ref, file ]
-
-
-viewAnalysis : PartialModel a -> Org -> Repo -> Maybe String -> Html Msg
-viewAnalysis model org repo ref  =
-    div [ class "analysis-container" ]
-        [  viewTemplates model.pipeline.templates
-        , viewPipeline model org repo  ref
+    div [ class "config" ] <|
+        [ header
+        , div [ class "content", class <| webDataToClass model.pipeline.config ]
+            [ content
+            ]
         ]
+
+focusStyle : Int -> Int -> Html.Attribute Msg
+focusStyle lineNum idx = 
+    class <| if lineNum == idx then "-focus" else ""
+
+webDataToClass : WebData a -> String
+webDataToClass w =
+    case w of
+        Success _ ->
+            "-success"
+
+        Loading ->
+            "-loading"
+
+        Failure err ->
+            "-error"
+
+        _ ->
+            ""

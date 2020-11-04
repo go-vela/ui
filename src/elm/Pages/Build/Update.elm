@@ -4,14 +4,15 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandActiveStep, mergeSteps, restartBuild,  update)
+module Pages.Build.Update exposing (expandActiveStep, mergeSteps,   update)
 
 import Api
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import File.Download as Download
 import List.Extra
-import Pages.Build.Logs exposing (focusStep, logFocusFragment)
+import Pages.Build.Logs exposing (focusStep)
+import Focus exposing (resourceFocusFragment)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -69,7 +70,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult restartedBu
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
-                    Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
+                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
 
                   else
                     Cmd.none
@@ -120,14 +121,6 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult restartedBu
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt focusResult )
 
-        RestartBuild org repo buildNumber ->
-            ( model
-              , restartBuild model org repo buildNumber restartedBuildResponse
-            )
-
-restartBuild : PartialModel a -> Org -> Repo -> BuildNumber -> RestartedBuildResponse msg -> Cmd msg
-restartBuild model org repo buildNumber restartedBuildResponse =
-    Api.try (restartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
 
 
 {-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs
