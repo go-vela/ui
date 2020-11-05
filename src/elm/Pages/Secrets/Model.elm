@@ -66,6 +66,7 @@ type alias Model msg =
     , addSecretResponse : AddSecretResponse msg
     , updateSecretResponse : AddSecretResponse msg
     , pager : List WebLink
+    , deleteButton : Bool
     }
 
 
@@ -131,6 +132,7 @@ type Msg
     | OnChangeAllowCommand String
     | AddSecret Engine
     | UpdateSecret Engine
+    | DeleteSecret Engine
 
 
 type ManageSecretState

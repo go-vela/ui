@@ -40,6 +40,10 @@ import Vela
         )
 
 
+
+-- INIT
+
+
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
 init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> Model msg
@@ -57,6 +61,107 @@ init secretResponse secretsResponse addSecretResponse updateSecretResponse =
         addSecretResponse
         updateSecretResponse
         []
+        False
+
+
+
+-- UPDATE
+
+
+update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
+update model msg =
+    let
+        secretsModel =
+            model.secretsModel
+
+        ( sm, action ) =
+            case msg of
+                OnChangeStringField field value ->
+                    ( onChangeStringField field value secretsModel, Cmd.none )
+
+                OnChangeEvent event _ ->
+                    ( onChangeEvent event secretsModel, Cmd.none )
+
+                AddImage image ->
+                    ( onAddImage image secretsModel, Cmd.none )
+
+                RemoveImage image ->
+                    ( onRemoveImage image secretsModel, Cmd.none )
+
+                OnChangeAllowCommand allow ->
+                    ( onChangeAllowCommand allow secretsModel, Cmd.none )
+
+                Pages.Secrets.Model.AddSecret engine ->
+                    let
+                        secret =
+                            secretsModel.form
+
+                        payload : UpdateSecretPayload
+                        payload =
+                            toAddSecretPayload secretsModel secret
+
+                        body : Http.Body
+                        body =
+                            Http.jsonBody <| encodeUpdateSecret payload
+                    in
+                    ( secretsModel
+                    , Api.try secretsModel.addSecretResponse <|
+                        Api.addSecret model
+                            engine
+                            (secretTypeToString secretsModel.type_)
+                            secretsModel.org
+                            (getKey secretsModel)
+                            body
+                    )
+
+                Pages.Secrets.Model.UpdateSecret engine ->
+                    let
+                        secret =
+                            secretsModel.form
+
+                        payload : UpdateSecretPayload
+                        payload =
+                            toUpdateSecretPayload secretsModel secret
+
+                        body : Http.Body
+                        body =
+                            Http.jsonBody <| encodeUpdateSecret payload
+                    in
+                    ( secretsModel
+                    , Api.try secretsModel.updateSecretResponse <|
+                        Api.updateSecret model
+                            engine
+                            (secretTypeToString secretsModel.type_)
+                            secretsModel.org
+                            (getKey secretsModel)
+                            secret.name
+                            body
+                    )
+
+                Pages.Secrets.Model.DeleteSecret _ ->
+                    let
+                        _ =
+                            Debug.log "message" "hello!!!!"
+
+                        updatedModel =
+                            if not secretsModel.deleteButton then
+                                { secretsModel | deleteButton = True }
+
+                            else
+                                { secretsModel | deleteButton = False }
+
+                        doAction =
+                            Cmd.none
+                    in
+                    ( updatedModel, doAction )
+
+        -- if false, set it to true, if already true, hit api
+    in
+    ( { model | secretsModel = sm }, action )
+
+
+
+-- HELPERS
 
 
 {-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments
@@ -276,80 +381,3 @@ toUpdateSecretPayload secretsModel secret =
             }
     in
     buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowCommand
-
-
-
--- UPDATE
-
-
-update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
-update model msg =
-    let
-        secretsModel =
-            model.secretsModel
-
-        ( sm, action ) =
-            case msg of
-                OnChangeStringField field value ->
-                    ( onChangeStringField field value secretsModel, Cmd.none )
-
-                OnChangeEvent event _ ->
-                    ( onChangeEvent event secretsModel, Cmd.none )
-
-                AddImage image ->
-                    ( onAddImage image secretsModel, Cmd.none )
-
-                RemoveImage image ->
-                    ( onRemoveImage image secretsModel, Cmd.none )
-
-                OnChangeAllowCommand allow ->
-                    ( onChangeAllowCommand allow secretsModel, Cmd.none )
-
-                Pages.Secrets.Model.AddSecret engine ->
-                    let
-                        secret =
-                            secretsModel.form
-
-                        payload : UpdateSecretPayload
-                        payload =
-                            toAddSecretPayload secretsModel secret
-
-                        body : Http.Body
-                        body =
-                            Http.jsonBody <| encodeUpdateSecret payload
-                    in
-                    ( secretsModel
-                    , Api.try secretsModel.addSecretResponse <|
-                        Api.addSecret model
-                            engine
-                            (secretTypeToString secretsModel.type_)
-                            secretsModel.org
-                            (getKey secretsModel)
-                            body
-                    )
-
-                Pages.Secrets.Model.UpdateSecret engine ->
-                    let
-                        secret =
-                            secretsModel.form
-
-                        payload : UpdateSecretPayload
-                        payload =
-                            toUpdateSecretPayload secretsModel secret
-
-                        body : Http.Body
-                        body =
-                            Http.jsonBody <| encodeUpdateSecret payload
-                    in
-                    ( secretsModel
-                    , Api.try secretsModel.updateSecretResponse <|
-                        Api.updateSecret model
-                            engine
-                            (secretTypeToString secretsModel.type_)
-                            secretsModel.org
-                            (getKey secretsModel)
-                            secret.name
-                            body
-                    )
-    in
-    ( { model | secretsModel = sm }, action )
