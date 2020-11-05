@@ -88,6 +88,11 @@ import Vela
         )
 
 
+stringLength : String -> Bool -> Int
+stringLength str b =
+    String.length str
+
+
 
 -- VIEW
 
@@ -756,12 +761,9 @@ viewBuildHistory now timezone page org repo builds limit =
         case builds of
             RemoteData.Success blds ->
                 if List.length blds > 0 then
-                    div [ class "build-history" ]
-                        [ p [ class "build-history-title" ] [ text "Recent Builds" ]
-                        , ul [ Util.testAttribute "build-history" ] <|
-                            List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
-                                List.take limit blds
-                        ]
+                    ul [ class "build-history", class "-no-pad", Util.testAttribute "build-history" ] <|
+                        List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
+                            List.take limit blds
 
                 else
                     text ""
@@ -780,9 +782,7 @@ viewBuildHistory now timezone page org repo builds limit =
 
 
 {-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget
-
-    focusing or hovering the recent build icon will display a build info tooltip
-
+focusing or hovering the recent build icon will display a build info tooltip
 -}
 viewRecentBuild : Posix -> Zone -> Org -> Repo -> Int -> Int -> Build -> Html msg
 viewRecentBuild now timezone org repo buildNumber idx build =
@@ -793,9 +793,7 @@ viewRecentBuild now timezone org repo buildNumber idx build =
 
 
 {-| recentBuildLink : takes time info and build and renders line for redirecting to recent build
-
-    focusing and hovering this element will display the tooltip
-
+focusing and hovering this element will display the tooltip
 -}
 recentBuildLink : Org -> Repo -> Int -> Build -> Int -> Html msg
 recentBuildLink org repo buildNumber build idx =
@@ -825,9 +823,7 @@ recentBuildLink org repo buildNumber build idx =
 
 
 {-| recentBuildTooltip : takes time info and build and renders tooltip for viewing recent build info
-
-    tooltip is visible when the recent build link is focused or hovered
-
+tooltip is visible when the recent build link is focused or hovered
 -}
 recentBuildTooltip : Posix -> Zone -> Build -> Html msg
 recentBuildTooltip now timezone build =
@@ -837,11 +833,21 @@ recentBuildTooltip now timezone build =
                 [ span [ class "number" ] [ text <| String.fromInt build.number ]
                 , em [] [ text build.event ]
                 ]
-            , li [ class "line" ] [ span [] [ text "started:" ], text <| Util.dateToHumanReadable timezone build.started ]
-            , li [ class "line" ] [ span [] [ text "finished:" ], text <| Util.dateToHumanReadable timezone build.finished ]
-            , li [ class "line" ] [ span [] [ text "duration:" ], text <| Util.formatRunTime now build.started build.finished ]
+            , viewTooltipField "started:" <| Util.dateToHumanReadable timezone build.started
+            , viewTooltipField "finished:" <| Util.dateToHumanReadable timezone build.finished
+            , viewTooltipField "duration:" <| Util.formatRunTime now build.started build.finished
+            , viewTooltipField "host:" build.host
+            , viewTooltipField "commit:" <| trimCommitHash build.commit
+            , viewTooltipField "branch:" build.branch
             ]
         ]
+
+
+{-| viewTooltipField : takes build field key and value, renders field in the tooltip
+-}
+viewTooltipField : String -> String -> Html msg
+viewTooltipField key value =
+    li [ class "line" ] [ span [] [ text key ], text value ]
 
 
 
