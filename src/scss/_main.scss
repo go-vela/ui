@@ -703,6 +703,7 @@ nav {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  width: 100%;
 }
 
 .recent-build-tooltip .number {
@@ -717,6 +718,9 @@ nav {
   padding: 0.2em 0.6em;
 
   font-size: 0.9rem;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .steps {
