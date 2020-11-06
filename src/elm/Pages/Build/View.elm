@@ -758,7 +758,7 @@ viewBuildHistory now timezone page org repo builds limit =
                 if List.length blds > 0 then
                     div [ class "build-history" ]
                         [ p [ class "build-history-title" ] [ text "Recent Builds" ]
-                        , ul [ Util.testAttribute "build-history" ] <|
+                        , ul [ Util.testAttribute "build-history", class "previews" ] <|
                             List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
                                 List.take limit blds
                         ]
