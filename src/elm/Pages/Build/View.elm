@@ -88,11 +88,6 @@ import Vela
         )
 
 
-stringLength : String -> Bool -> Int
-stringLength str b =
-    String.length str
-
-
 
 -- VIEW
 
