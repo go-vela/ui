@@ -831,7 +831,7 @@ recentBuildTooltip now timezone build =
             , viewTooltipField "started:" <| Util.dateToHumanReadable timezone build.started
             , viewTooltipField "finished:" <| Util.dateToHumanReadable timezone build.finished
             , viewTooltipField "duration:" <| Util.formatRunTime now build.started build.finished
-            , viewTooltipField "host:" build.host
+            , viewTooltipField "worker:" build.host
             , viewTooltipField "commit:" <| trimCommitHash build.commit
             , viewTooltipField "branch:" build.branch
             ]
