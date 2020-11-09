@@ -267,6 +267,7 @@ viewSubmitButtons secretsModel =
     div [ class "buttons" ]
         [ viewUpdateButton secretsModel
         , viewDeleteButton secretsModel
+        , viewCancelButton secretsModel
         ]
 
 
@@ -286,11 +287,11 @@ viewDeleteButton secretsModel =
             "-secret-delete-confirm"
 
         ( deleteButtonText, deleteButtonClass ) =
-            if secretsModel.deleteButton then
-                ( "Really Delete?", secretDeleteConfirm )
+            if secretsModel.deleteButton == False then
+                ( "Delete", "" )
 
             else
-                ( "Delete", "" )
+                ( "Really Delete?", secretDeleteConfirm )
     in
     button
         [ class "button"
@@ -299,6 +300,20 @@ viewDeleteButton secretsModel =
         , onClick <| Pages.Secrets.Model.DeleteSecret secretsModel.engine
         ]
         [ text deleteButtonText ]
+
+
+viewCancelButton : Model msg -> Html Msg
+viewCancelButton secretsModel =
+    if secretsModel.deleteButton == False then
+        text ""
+
+    else
+        button
+            [ class "button"
+            , class "-outline"
+            , onClick <| Pages.Secrets.Model.CancelDeleteSecret
+            ]
+            [ text "Cancel" ]
 
 
 

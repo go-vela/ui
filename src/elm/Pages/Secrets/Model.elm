@@ -133,6 +133,7 @@ type Msg
     | AddSecret Engine
     | UpdateSecret Engine
     | DeleteSecret Engine
+    | CancelDeleteSecret
 
 
 type ManageSecretState

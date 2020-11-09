@@ -138,24 +138,33 @@ update model msg =
                             body
                     )
 
-                Pages.Secrets.Model.DeleteSecret _ ->
+                Pages.Secrets.Model.DeleteSecret engine ->
                     let
                         _ =
                             Debug.log "message" "hello!!!!"
 
                         updatedModel =
                             if not secretsModel.deleteButton then
-                                { secretsModel | deleteButton = True }
+                                { secretsModel
+                                    | deleteButton = True
+                                }
 
                             else
-                                { secretsModel | deleteButton = False }
+                                { secretsModel
+                                    | deleteButton = False
+                                }
 
                         doAction =
                             Cmd.none
                     in
                     ( updatedModel, doAction )
 
-        -- if false, set it to true, if already true, hit api
+                Pages.Secrets.Model.CancelDeleteSecret ->
+                    ( { secretsModel
+                        | deleteButton = False
+                      }
+                    , Cmd.none
+                    )
     in
     ( { model | secretsModel = sm }, action )
 
