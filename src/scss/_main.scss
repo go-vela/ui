@@ -241,7 +241,8 @@ nav {
 .util {
   display: flex;
 
-  height: 3em;
+  min-height: 3rem;
+  padding-bottom: 0.3rem;
 }
 
 .filtered-repos {
@@ -581,14 +582,19 @@ nav {
 }
 
 .build-history {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  &.-no-pad {
+  .previews {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     margin: 0;
     padding: 0;
   }
+}
+
+.build-history-title {
+  font-size: 0.8em;
+  margin: 0 0.4rem;
+  padding: 0.4rem 0 0;
 }
 
 .recent-build {

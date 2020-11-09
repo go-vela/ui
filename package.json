@@ -56,7 +56,7 @@
     "cypress": "cypress run",
     "cypress:open": "cypress open",
     "clean": "rimraf ./.cache ./dist",
-    "lint:prettier": "prettier --check '**/*.{js,json,ts,yml,scss,html,md}'",
+    "lint:prettier": "prettier --check '**/*.{js,json,ts,yml,scss,html}'",
     "lint:prettier-fix": "npm run lint:prettier -- --write",
     "lint:css": "stylelint --cache --cache-location 'node_modules/' 'src/scss/**/*.scss'",
     "lint:css-fix": "npm run lint:css -- --fix",
