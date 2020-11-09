@@ -756,9 +756,18 @@ viewBuildHistory now timezone page org repo builds limit =
         case builds of
             RemoteData.Success blds ->
                 if List.length blds > 0 then
+<<<<<<< HEAD
                     ul [ class "build-history", class "-no-pad", Util.testAttribute "build-history" ] <|
                         List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
                             List.take limit blds
+=======
+                    div [ class "build-history" ]
+                        [ p [ class "build-history-title" ] [ text "Recent Builds" ]
+                        , ul [ Util.testAttribute "build-history", class "previews" ] <|
+                            List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
+                                List.take limit blds
+                        ]
+>>>>>>> master
 
                 else
                     text ""

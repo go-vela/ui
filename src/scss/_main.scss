@@ -582,11 +582,10 @@ nav {
 }
 
 .build-history {
-  align-items: center;
-  display: flex;
-  flex-direction: row;
-
-  &.-no-pad {
+  .previews {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     margin: 0;
     padding: 0;
   }
