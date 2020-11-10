@@ -110,7 +110,7 @@ context('Build', () => {
           cy.get('@tooltip').should('contain', 'terra');
         });
 
-        it('should show host', () => {
+        it('should show worker', () => {
           cy.get('@tooltip').should('contain', 'worker');
           cy.get('@tooltip').should('contain', 'https://vela-worker-6.com');
         });
