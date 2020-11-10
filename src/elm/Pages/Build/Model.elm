@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Model exposing (GetLogs, Msg(..), RestartedBuildResponse, PartialModel)
+module Pages.Build.Model exposing (BuildModel, GetLogs, Msg(..),RestartedBuildResponse, PartialModel)
 
 import Browser.Navigation as Navigation
 import Http
@@ -42,6 +42,16 @@ type alias PartialModel a =
         , logs : Logs
         , shift : Bool
         , followingStep : Int
+    }
+
+
+{-| BuildModel : model to contain build information that is crucial for rendering a pipeline
+-}
+type alias BuildModel =
+    { org : Org
+    , repo : Repo
+    , buildNumber : BuildNumber
+    , steps : Steps
     }
 
 
