@@ -793,7 +793,7 @@ viewRecentBuild now timezone org repo buildNumber idx build =
 
 
 {-| recentBuildLink : takes time info and build and renders line for redirecting to recent build
-    
+
     focusing and hovering this element will display the tooltip
 
 -}
