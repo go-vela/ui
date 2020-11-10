@@ -780,7 +780,9 @@ viewBuildHistory now timezone page org repo builds limit =
 
 
 {-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget
-focusing or hovering the recent build icon will display a build info tooltip
+
+    focusing or hovering the recent build icon will display a build info tooltip
+
 -}
 viewRecentBuild : Posix -> Zone -> Org -> Repo -> Int -> Int -> Build -> Html msg
 viewRecentBuild now timezone org repo buildNumber idx build =
@@ -791,7 +793,9 @@ viewRecentBuild now timezone org repo buildNumber idx build =
 
 
 {-| recentBuildLink : takes time info and build and renders line for redirecting to recent build
-focusing and hovering this element will display the tooltip
+    
+    focusing and hovering this element will display the tooltip
+
 -}
 recentBuildLink : Org -> Repo -> Int -> Build -> Int -> Html msg
 recentBuildLink org repo buildNumber build idx =
@@ -821,7 +825,9 @@ recentBuildLink org repo buildNumber build idx =
 
 
 {-| recentBuildTooltip : takes time info and build and renders tooltip for viewing recent build info
-tooltip is visible when the recent build link is focused or hovered
+
+    tooltip is visible when the recent build link is focused or hovered
+
 -}
 recentBuildTooltip : Posix -> Zone -> Build -> Html msg
 recentBuildTooltip now timezone build =

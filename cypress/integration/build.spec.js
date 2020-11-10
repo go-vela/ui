@@ -112,7 +112,7 @@ context('Build', () => {
 
         it('should show host', () => {
           cy.get('@tooltip').should('contain', 'worker');
-          cy.get('@tooltip').should('contain', 'vela-worker-6.com');
+          cy.get('@tooltip').should('contain', 'https://vela-worker-6.com');
         });
       });
     });
