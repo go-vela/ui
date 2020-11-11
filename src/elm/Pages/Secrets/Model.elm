@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Secrets.Model exposing
     ( AddSecretResponse
+    , DeleteSecretResponse
     , ManageSecretState(..)
     , Model
     , Msg(..)
@@ -64,6 +65,7 @@ type alias Model msg =
     , secretResponse : SecretResponse msg
     , secretsResponse : SecretsResponse msg
     , addSecretResponse : AddSecretResponse msg
+    , deleteSecretResponse : DeleteSecretResponse msg
     , updateSecretResponse : AddSecretResponse msg
     , pager : List WebLink
     , deleteButton : Bool
@@ -122,6 +124,10 @@ type alias AddSecretResponse msg =
 
 type alias UpdateSecretResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
+
+
+type alias DeleteSecretResponse msg =
+    Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
 
 
 type Msg

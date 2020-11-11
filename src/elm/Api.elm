@@ -9,6 +9,7 @@ module Api exposing
     , addSecret
     , chownRepo
     , deleteRepo
+    , deleteSecret
     , enableRepository
     , getAllBuilds
     , getAllHooks
@@ -580,4 +581,12 @@ updateSecret model engine type_ org key name body =
 addSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Http.Body -> Request Secret
 addSecret model engine type_ org key body =
     post model.velaAPI (Endpoint.Secrets Nothing Nothing engine type_ org key) body decodeSecret
+        |> withAuth model.session
+
+
+{-| deleteSecret : deletes a secret
+-}
+deleteSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Request String
+deleteSecret model engine type_ org key name =
+    delete model.velaAPI (Endpoint.Secret engine type_ org key name)
         |> withAuth model.session

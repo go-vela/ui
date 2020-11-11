@@ -18,6 +18,7 @@ import List.Extra
 import Pages.Secrets.Model
     exposing
         ( AddSecretResponse
+        , DeleteSecretResponse
         , Model
         , Msg(..)
         , PartialModel
@@ -46,8 +47,8 @@ import Vela
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
-init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> Model msg
-init secretResponse secretsResponse addSecretResponse updateSecretResponse =
+init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> DeleteSecretResponse msg -> Model msg
+init secretResponse secretsResponse addSecretResponse updateSecretResponse deleteSecretResponse =
     Model "native"
         ""
         ""
@@ -59,6 +60,7 @@ init secretResponse secretsResponse addSecretResponse updateSecretResponse =
         secretResponse
         secretsResponse
         addSecretResponse
+        deleteSecretResponse
         updateSecretResponse
         []
         False
@@ -143,6 +145,9 @@ update model msg =
                         _ =
                             Debug.log "message" "hello!!!!"
 
+                        secret =
+                            secretsModel.form
+
                         updatedModel =
                             if not secretsModel.deleteButton then
                                 { secretsModel
@@ -155,7 +160,17 @@ update model msg =
                                 }
 
                         doAction =
-                            Cmd.none
+                            if not secretsModel.deleteButton then
+                                Cmd.none
+
+                            else
+                                Api.try secretsModel.deleteSecretResponse <|
+                                    Api.deleteSecret model
+                                        engine
+                                        (secretTypeToString secretsModel.type_)
+                                        secretsModel.org
+                                        (getKey secretsModel)
+                                        secret.name
                     in
                     ( updatedModel, doAction )
 

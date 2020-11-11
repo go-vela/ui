@@ -343,6 +343,7 @@ type Msg
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
+    | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
     | Error String
@@ -573,7 +574,9 @@ update msg model =
                             ( Vela.ConfirmDisable, Cmd.none )
 
                         Vela.ConfirmDisable ->
-                            ( Vela.Disabling, Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo )
+                            ( Vela.Disabling
+                            , Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo
+                            )
 
                         _ ->
                             ( repo.enabling, Cmd.none )
@@ -820,6 +823,15 @@ update msg model =
                     , Cmd.none
                     )
                         |> updateSecretResponseAlert secret
+
+                Err error ->
+                    ( model, addError error )
+
+        DeleteSecretResponse response ->
+            case response of
+                Ok ( _, r_string ) ->
+                    -- should redirect to secrets table view
+                    ( model, Cmd.none )
 
                 Err error ->
                     ( model, addError error )
@@ -2579,7 +2591,7 @@ repoSettingsMsgs =
 
 initSecretsModel : Pages.Secrets.Model.Model Msg
 initSecretsModel =
-    Pages.Secrets.Update.init SecretResponse SecretsResponse AddSecretResponse UpdateSecretResponse
+    Pages.Secrets.Update.init SecretResponse SecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
 
 
 
