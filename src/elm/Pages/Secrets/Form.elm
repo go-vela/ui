@@ -217,6 +217,22 @@ viewImagesInput secret imageInput =
         ]
 
 
+{-| radio : takes current value, field id, title for label, and click action and renders an input radio.
+-}
+radio : String -> String -> Field -> msg -> Html msg
+radio value field title msg =
+    div [ class "form-control", Util.testAttribute <| "secret-radio-" ++ field ]
+        [ input
+            [ type_ "radio"
+            , id <| "radio-" ++ field
+            , checked (value == field)
+            , onClick msg
+            ]
+            []
+        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], text "tip" ]
+        ]
+
+
 {-| allowCommandCheckbox : renders checkbox inputs for selecting allowcommand
 -}
 allowCommandCheckbox : SecretForm -> Html Msg
@@ -236,22 +252,6 @@ allowCommandCheckbox secretUpdate =
             [ radio (Util.boolToYesNo secretUpdate.allowCommand) "yes" "Yes" <| OnChangeAllowCommand "yes"
             , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
             ]
-        ]
-
-
-{-| radio : takes current value, field id, title for label, and click action and renders an input radio.
--}
-radio : String -> String -> Field -> msg -> Html msg
-radio value field title msg =
-    div [ class "form-control", Util.testAttribute <| "secret-radio-" ++ field ]
-        [ input
-            [ type_ "radio"
-            , id <| "radio-" ++ field
-            , checked (value == field)
-            , onClick msg
-            ]
-            []
-        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], text "tip" ]
         ]
 
 
