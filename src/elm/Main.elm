@@ -6,6 +6,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Main exposing (main)
 
+-- kelly
+
 import Alerts exposing (Alert)
 import Api
 import Api.Endpoint
@@ -454,6 +456,7 @@ update msg model =
             , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
             )
 
+        -- kelly
         UserResponse response ->
             case response of
                 Ok ( _, user ) ->
@@ -574,9 +577,7 @@ update msg model =
                             ( Vela.ConfirmDisable, Cmd.none )
 
                         Vela.ConfirmDisable ->
-                            ( Vela.Disabling
-                            , Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo
-                            )
+                            ( Vela.Disabling, Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo )
 
                         _ ->
                             ( repo.enabling, Cmd.none )
