@@ -99,6 +99,13 @@ addedImage image =
         ]
 
 
+{-| viewHelp : renders help msg pointing to Vela docs
+-}
+viewHelp : Html Msg
+viewHelp =
+    div [ class "help" ] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
+
+
 {-| viewNameInput : renders name input box
 -}
 viewNameInput : String -> Bool -> Html Msg
@@ -253,13 +260,6 @@ allowCommandCheckbox secretUpdate =
             , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
             ]
         ]
-
-
-{-| viewHelp : renders help msg pointing to Vela docs
--}
-viewHelp : Html Msg
-viewHelp =
-    div [ class "help" ] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
 
 
 viewSubmitButtons : Model msg -> Html Msg
