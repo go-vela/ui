@@ -288,10 +288,10 @@ viewDeleteButton secretsModel =
 
         ( deleteButtonText, deleteButtonClass ) =
             if secretsModel.deleteButton == False then
-                ( "Delete", "" )
+                ( "Remove", "" )
 
             else
-                ( "Really Delete?", secretDeleteConfirm )
+                ( "Really Remove?", secretDeleteConfirm )
     in
     button
         [ class "button"
