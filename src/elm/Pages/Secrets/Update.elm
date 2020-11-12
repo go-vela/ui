@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Secrets.Update exposing
     ( init
+    , onChangeStringField
     , reinitializeSecretAdd
     , reinitializeSecretUpdate
     , update
@@ -64,124 +65,6 @@ init secretResponse secretsResponse addSecretResponse updateSecretResponse delet
         updateSecretResponse
         []
         False
-
-
-
--- UPDATE
-
-
-update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
-update model msg =
-    let
-        secretsModel =
-            model.secretsModel
-
-        ( sm, action ) =
-            case msg of
-                OnChangeStringField field value ->
-                    ( onChangeStringField field value secretsModel, Cmd.none )
-
-                OnChangeEvent event _ ->
-                    ( onChangeEvent event secretsModel, Cmd.none )
-
-                AddImage image ->
-                    ( onAddImage image secretsModel, Cmd.none )
-
-                RemoveImage image ->
-                    ( onRemoveImage image secretsModel, Cmd.none )
-
-                OnChangeAllowCommand allow ->
-                    ( onChangeAllowCommand allow secretsModel, Cmd.none )
-
-                Pages.Secrets.Model.AddSecret engine ->
-                    let
-                        secret =
-                            secretsModel.form
-
-                        payload : UpdateSecretPayload
-                        payload =
-                            toAddSecretPayload secretsModel secret
-
-                        body : Http.Body
-                        body =
-                            Http.jsonBody <| encodeUpdateSecret payload
-                    in
-                    ( secretsModel
-                    , Api.try secretsModel.addSecretResponse <|
-                        Api.addSecret model
-                            engine
-                            (secretTypeToString secretsModel.type_)
-                            secretsModel.org
-                            (getKey secretsModel)
-                            body
-                    )
-
-                Pages.Secrets.Model.UpdateSecret engine ->
-                    let
-                        secret =
-                            secretsModel.form
-
-                        payload : UpdateSecretPayload
-                        payload =
-                            toUpdateSecretPayload secretsModel secret
-
-                        body : Http.Body
-                        body =
-                            Http.jsonBody <| encodeUpdateSecret payload
-                    in
-                    ( secretsModel
-                    , Api.try secretsModel.updateSecretResponse <|
-                        Api.updateSecret model
-                            engine
-                            (secretTypeToString secretsModel.type_)
-                            secretsModel.org
-                            (getKey secretsModel)
-                            secret.name
-                            body
-                    )
-
-                Pages.Secrets.Model.DeleteSecret engine ->
-                    let
-                        _ =
-                            Debug.log "message" "hello!!!!"
-
-                        secret =
-                            secretsModel.form
-
-                        updatedModel =
-                            if not secretsModel.deleteButton then
-                                { secretsModel
-                                    | deleteButton = True
-                                }
-
-                            else
-                                { secretsModel
-                                    | deleteButton = False
-                                }
-
-                        doAction =
-                            if not secretsModel.deleteButton then
-                                Cmd.none
-
-                            else
-                                Api.try secretsModel.deleteSecretResponse <|
-                                    Api.deleteSecret model
-                                        engine
-                                        (secretTypeToString secretsModel.type_)
-                                        secretsModel.org
-                                        (getKey secretsModel)
-                                        secret.name
-                    in
-                    ( updatedModel, doAction )
-
-                Pages.Secrets.Model.CancelDeleteSecret ->
-                    ( { secretsModel
-                        | deleteButton = False
-                      }
-                    , Cmd.none
-                    )
-    in
-    ( { model | secretsModel = sm }, action )
 
 
 
@@ -405,3 +288,121 @@ toUpdateSecretPayload secretsModel secret =
             }
     in
     buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowCommand
+
+
+
+-- UPDATE
+
+
+update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
+update model msg =
+    let
+        secretsModel =
+            model.secretsModel
+
+        ( sm, action ) =
+            case msg of
+                OnChangeStringField field value ->
+                    ( onChangeStringField field value secretsModel, Cmd.none )
+
+                OnChangeEvent event _ ->
+                    ( onChangeEvent event secretsModel, Cmd.none )
+
+                AddImage image ->
+                    ( onAddImage image secretsModel, Cmd.none )
+
+                RemoveImage image ->
+                    ( onRemoveImage image secretsModel, Cmd.none )
+
+                OnChangeAllowCommand allow ->
+                    ( onChangeAllowCommand allow secretsModel, Cmd.none )
+
+                Pages.Secrets.Model.AddSecret engine ->
+                    let
+                        secret =
+                            secretsModel.form
+
+                        payload : UpdateSecretPayload
+                        payload =
+                            toAddSecretPayload secretsModel secret
+
+                        body : Http.Body
+                        body =
+                            Http.jsonBody <| encodeUpdateSecret payload
+                    in
+                    ( secretsModel
+                    , Api.try secretsModel.addSecretResponse <|
+                        Api.addSecret model
+                            engine
+                            (secretTypeToString secretsModel.type_)
+                            secretsModel.org
+                            (getKey secretsModel)
+                            body
+                    )
+
+                Pages.Secrets.Model.UpdateSecret engine ->
+                    let
+                        secret =
+                            secretsModel.form
+
+                        payload : UpdateSecretPayload
+                        payload =
+                            toUpdateSecretPayload secretsModel secret
+
+                        body : Http.Body
+                        body =
+                            Http.jsonBody <| encodeUpdateSecret payload
+                    in
+                    ( secretsModel
+                    , Api.try secretsModel.updateSecretResponse <|
+                        Api.updateSecret model
+                            engine
+                            (secretTypeToString secretsModel.type_)
+                            secretsModel.org
+                            (getKey secretsModel)
+                            secret.name
+                            body
+                    )
+
+                Pages.Secrets.Model.DeleteSecret engine ->
+                    let
+                        _ =
+                            Debug.log "message" "hello!!!!"
+
+                        secret =
+                            secretsModel.form
+
+                        updatedModel =
+                            if not secretsModel.deleteButton then
+                                { secretsModel
+                                    | deleteButton = True
+                                }
+
+                            else
+                                { secretsModel
+                                    | deleteButton = False
+                                }
+
+                        doAction =
+                            if not secretsModel.deleteButton then
+                                Cmd.none
+
+                            else
+                                Api.try secretsModel.deleteSecretResponse <|
+                                    Api.deleteSecret model
+                                        engine
+                                        (secretTypeToString secretsModel.type_)
+                                        secretsModel.org
+                                        (getKey secretsModel)
+                                        secret.name
+                    in
+                    ( updatedModel, doAction )
+
+                Pages.Secrets.Model.CancelDeleteSecret ->
+                    ( { secretsModel
+                        | deleteButton = False
+                      }
+                    , Cmd.none
+                    )
+    in
+    ( { model | secretsModel = sm }, action )

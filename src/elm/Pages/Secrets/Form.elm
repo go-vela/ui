@@ -52,6 +52,53 @@ import Util
 import Vela exposing (Field)
 
 
+{-| viewAddedImages : renders added images
+-}
+viewAddedImages : List String -> List (Html Msg)
+viewAddedImages images =
+    if List.length images > 0 then
+        List.map addedImage <| List.reverse images
+
+    else
+        noImages
+
+
+{-| noImages : renders when no images have been added
+-}
+noImages : List (Html Msg)
+noImages =
+    [ div [ class "added-image" ]
+        [ div [ class "name" ] [ code [] [ text "enabled for all images" ] ]
+
+        -- add button to match style
+        , button
+            [ class "button"
+            , class "-outline"
+            , class "visually-hidden"
+            , disabled True
+            ]
+            [ text "remove"
+            ]
+        ]
+    ]
+
+
+{-| addedImage : renders added image
+-}
+addedImage : String -> Html Msg
+addedImage image =
+    div [ class "added-image", class "chevron" ]
+        [ div [ class "name" ] [ text image ]
+        , button
+            [ class "button"
+            , class "-outline"
+            , onClick <| RemoveImage image
+            ]
+            [ text "remove"
+            ]
+        ]
+
+
 {-| viewNameInput : renders name input box
 -}
 viewNameInput : String -> Bool -> Html Msg
@@ -167,53 +214,6 @@ viewImagesInput secret imageInput =
                 ]
             ]
         , div [ class "images" ] <| viewAddedImages secret.images
-        ]
-
-
-{-| viewAddedImages : renders added images
--}
-viewAddedImages : List String -> List (Html Msg)
-viewAddedImages images =
-    if List.length images > 0 then
-        List.map addedImage <| List.reverse images
-
-    else
-        noImages
-
-
-{-| noImages : renders when no images have been added
--}
-noImages : List (Html Msg)
-noImages =
-    [ div [ class "added-image" ]
-        [ div [ class "name" ] [ code [] [ text "enabled for all images" ] ]
-
-        -- add button to match style
-        , button
-            [ class "button"
-            , class "-outline"
-            , class "visually-hidden"
-            , disabled True
-            ]
-            [ text "remove"
-            ]
-        ]
-    ]
-
-
-{-| addedImage : renders added image
--}
-addedImage : String -> Html Msg
-addedImage image =
-    div [ class "added-image", class "chevron" ]
-        [ div [ class "name" ] [ text image ]
-        , button
-            [ class "button"
-            , class "-outline"
-            , onClick <| RemoveImage image
-            ]
-            [ text "remove"
-            ]
         ]
 
 
