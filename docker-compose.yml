@@ -15,7 +15,7 @@ services:
     networks:
       - vela
     env_file:
-      - secrets.env
+      - .env
     restart: always
     ports:
       - '8888:80'
@@ -51,7 +51,7 @@ services:
       VELA_SECRET_VAULT_TOKEN: vela
       VELA_DISABLE_WEBHOOK_VALIDATION: 'true'
     env_file:
-      - secrets.env
+      - .env
     restart: always
     ports:
       - '8080:8080'
