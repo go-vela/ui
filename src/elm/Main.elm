@@ -6,8 +6,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Main exposing (main)
 
--- kelly
-
 import Alerts exposing (Alert)
 import Api
 import Api.Endpoint
@@ -456,7 +454,6 @@ update msg model =
             , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
             )
 
-        -- kelly
         UserResponse response ->
             case response of
                 Ok ( _, user ) ->
@@ -831,8 +828,15 @@ update msg model =
         DeleteSecretResponse response ->
             case response of
                 Ok ( _, r_string ) ->
-                    -- should redirect to secrets table view
-                    ( model, Cmd.none )
+                    let
+                        secretsModel =
+                            model.secretsModel
+
+                        redirectTo =
+                            Pages.Secrets.Update.deleteSecretRedirect secretsModel
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" "Secret removed." Nothing)
 
                 Err error ->
                     ( model, addError error )

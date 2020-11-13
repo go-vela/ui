@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Secrets.Update exposing
-    ( init
+    ( deleteSecretRedirect
+    , init
     , onChangeStringField
     , reinitializeSecretAdd
     , reinitializeSecretUpdate
@@ -30,6 +31,7 @@ import Pages.Secrets.Model
         , defaultSecretUpdate
         )
 import RemoteData exposing (RemoteData(..))
+import Routes
 import Util exposing (stringToMaybe)
 import Vela
     exposing
@@ -406,3 +408,21 @@ update model msg =
                     )
     in
     ( { model | secretsModel = sm }, action )
+
+
+
+-- takes secretsModel and returns the URL to redirect to
+
+
+deleteSecretRedirect : Model msg -> String
+deleteSecretRedirect { engine, org, repo, team, type_ } =
+    Routes.routeToUrl <|
+        case type_ of
+            Vela.OrgSecret ->
+                Routes.OrgSecrets engine org Nothing Nothing
+
+            Vela.RepoSecret ->
+                Routes.RepoSecrets engine org repo Nothing Nothing
+
+            Vela.SharedSecret ->
+                Routes.SharedSecrets engine org team Nothing Nothing
