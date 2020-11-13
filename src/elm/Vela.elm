@@ -617,7 +617,7 @@ type alias Pipeline =
     , repo : Org
     , ref : Maybe String
     , expand : Maybe String
-    , lineFocus : ( Maybe Int, Maybe Int )
+    , lineFocus : LogFocus
     }
 
 
@@ -896,7 +896,7 @@ type alias Step =
 -}
 defaultStep : Step
 defaultStep =
-    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" False ( Nothing, Nothing )
+    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" "" False ( Nothing, Nothing )
 
 
 {-| decodeStep : decodes json from vela into step

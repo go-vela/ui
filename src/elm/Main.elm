@@ -221,7 +221,7 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
-    , templates : WebData Templates
+    , templates :   (WebData Templates, String)
     , pipeline : Pipeline
     }
 
@@ -275,7 +275,7 @@ init flags url navKey =
             , showIdentity = False
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
-            , templates = NotAsked
+            , templates = (NotAsked, "")
             , pipeline = defaultPipeline
             }
 
@@ -485,6 +485,7 @@ update msg model =
 
                                 _ ->
                                     session.entrypoint
+                        _ = Debug.log "redirect" redirectTo
                     in
                     ( { model | session = Just session }
                     , Cmd.batch
@@ -1700,7 +1701,7 @@ viewContent model =
         Pages.Pipeline org repo ref expand lineFocus ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Html.map (\m -> AnalyzeUpdate m) <|
-                lazy Pages.Pipeline.View.viewPipeline
+                Pages.Pipeline.View.viewPipeline
                     { navigationKey = model.navigationKey
                     , velaAPI = model.velaAPI
                     , session = model.session
@@ -2020,6 +2021,7 @@ setAnalyze route model =
                     case model.page of
                         Pages.Pipeline o r ref_ _ _ ->
                             let
+                                _ = Debug.log "RELOADING PIPELINE" "!"
                                 p =
                                     model.pipeline
 
@@ -2038,6 +2040,9 @@ setAnalyze route model =
 
                         _ ->
                             let
+                                _ = Debug.log "OTHER SOURCE -- LOAD" "!"
+
+                            
                                 ( l, ll ) =
                                     Pages.Pipeline.Update.load model org repo ref expand lineFocus
                             in

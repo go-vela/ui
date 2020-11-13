@@ -102,7 +102,7 @@ body.theme-light {
     color: var(--color-red);
   }
 
-  .logs-container {
+  .logs-container, .pipeline .config {
     background-color: var(--color-white);
     border-top: 1px solid var(--color-bg-dark);
     border-right: 1px solid var(--color-bg-dark);

@@ -9,7 +9,7 @@ module Pages.Pipeline.Update exposing (Msg(..), load, update)
 import Alerts exposing (Alert)
 import Api
 import Browser.Navigation as Navigation
-import Errors exposing (addError, toFailure)
+import Errors exposing (addError, detailedErrorToString, toFailure)
 import Focus exposing (..)
 import Http
 import Http.Detailed
@@ -66,7 +66,7 @@ load model org repo ref expand lineFocus =
     in
     -- Fetch build from Api
     ( { model
-        | page = Pages.Pipeline org repo ref expand Nothing
+        | page = Pages.Pipeline org repo ref expand lineFocus
         , pipeline =
             { config = Loading
             , expanded = False
@@ -77,11 +77,9 @@ load model org repo ref expand lineFocus =
             , expand = expand
             , lineFocus = ( parsed.lineA, parsed.lineB )
             }
-        , templates = Loading
       }
     , Cmd.batch
         [ getPipelineConfigAction
-        , getPipelineTemplates model org repo ref
         ]
     )
 
@@ -135,7 +133,7 @@ update model msg =
                                 , configLoading = False
                             }
                       }
-                    , Cmd.none
+                    , Cmd.batch [ getPipelineTemplates model org repo ref ]
                     )
 
                 Err error ->
@@ -144,6 +142,15 @@ update model msg =
         ExpandPipelineConfigResponse org repo ref response ->
             case response of
                 Ok ( meta, config ) ->
+                    let
+                        ( t, a ) =
+                            case model.templates of
+                                ( Success _, _ ) ->
+                                    ( Tuple.first model.templates, Cmd.none )
+
+                                _ ->
+                                    ( Loading, Cmd.batch [ getPipelineTemplates model org repo ref ] )
+                    in
                     ( { model
                         | pipeline =
                             { p
@@ -151,8 +158,9 @@ update model msg =
                                 , expanded = True
                                 , configLoading = False
                             }
+                        , templates = ( t, "" )
                       }
-                    , Cmd.none
+                    , a
                     )
 
                 Err error ->
@@ -162,13 +170,13 @@ update model msg =
             case response of
                 Ok ( meta, templates ) ->
                     ( { model
-                        | templates = RemoteData.succeed templates
+                        | templates = ( RemoteData.succeed templates, "" )
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | templates = toFailure error }, addError error Error )
+                    ( { model | templates = ( toFailure error, detailedErrorToString error ) }, addError error Error )
 
         FocusLine line ->
             let

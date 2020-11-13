@@ -1523,52 +1523,68 @@ nav {
   }
 }
 
-
-.config {
-  white-space: pre;
-  background-color: var(--color-bg-dark);
-  // padding: 1rem;
-  font-weight: lighter;
-  .lines {
-    padding: 1rem 0rem;
-  }
-  .line {
-    padding: 0 0.4rem;
-  }
-  .line:focus, .line:hover {
-    background-color: var(--color-bg);
-  }
-  .expansion {
+.logs-container .header {
     display: flex;
     flex-direction: row;
-    border-bottom: 1px solid var(--color-bg-light);
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-    .button {
-      margin-left: 0.4rem;
-    }
-  }
-  .toggle-expansion {
-    margin-left: 1rem;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    // padding-left: 1.8rem;
-    .small-loader {
-      padding: 0;
-    }
+    justify-content: space-between;
+    border-bottom: 1px solid var(--color-lavender);
+    padding: 1rem 0.8rem;
+}
 
+.logs-container.-EDIT {
+  margin: 0;
+  .logs-table {
+    padding-top: 0;
   }
-  .expansion-icon {
-    // margin-left: 0.8rem;
-    margin-right: 0.7rem;
-    color: var(--color-green);
-    &.-expanded {
-    }
+
+  .logs-table  > .line {
+    margin-top: 1rem;
+  }
+  .logs-table > .line ~ .line {
+    margin-top: 0;
   }
 }
+
+
+.expansion {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid var(--color-bg-light);
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  .button {
+    margin-left: 0.4rem;
+  }
+  small {
+    background-color: var(--color-bg-light);
+    padding: 0.2rem 0.4rem;
+    margin-left: 1rem;
+  }
+}
+.logs-container { 
+  .toggle-expansion {
+  margin-left: 1rem;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  // padding-left: 1.8rem;
+  .small-loader {
+    padding: 0;
+  }
+
+}
+.expansion-icon {
+  // margin-left: 0.8rem;
+  margin-right: 0.7rem;
+  color: var(--color-green);
+  &.-expanded {
+  }
+}
+}
+
 .config .line.-focus {
-  background: var(--color-focus);
+  background-color: var(--color-slate);
 }
 .config .line-number {
   margin-right: 1rem;

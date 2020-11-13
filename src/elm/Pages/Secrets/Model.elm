@@ -123,6 +123,7 @@ type alias UpdateSecretResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
 
 
+
 type Msg
     = OnChangeStringField String String
     | OnChangeEvent String Bool

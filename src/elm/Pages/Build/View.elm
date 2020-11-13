@@ -8,6 +8,7 @@ module Pages.Build.View exposing
     ( statusToClass
     , statusToString
     , viewBuild
+    , viewLine
     , viewBuildHistory
     , viewPreview
     )
@@ -275,7 +276,7 @@ viewStepDetails model buildModel step =
             [ summary
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
-                , onClick <| ExpandStep org repo buildNumber stepNumber
+                , onClick <| ExpandStep buildModel.org buildModel.repo buildModel.buildNumber stepNumber
                 , id <| resourceToFocusId "step" stepNumber
                 ]
                 [ div
@@ -471,8 +472,8 @@ viewLines stepNumber logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : String -> Int -> Maybe Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
-viewLine id lineNumber line stepNumber logFocus shiftDown =
+viewLine : String -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> Html Msg
+viewLine id lineNumber line resource logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             id
@@ -484,13 +485,13 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
             Just l ->
                 div
                     [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
+                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, String.fromInt lineNumber ]
                     , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
+                        [ lineFocusButton resource logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
                         ]

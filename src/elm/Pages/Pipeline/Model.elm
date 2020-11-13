@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (PartialModel)
+module Pages.Pipeline.Model exposing (PartialModel, Error)
 
 import Browser.Navigation as Navigation
 import Pages exposing (Page(..))
@@ -39,9 +39,10 @@ type alias PartialModel a =
         , build : WebData Build
         , steps : WebData Steps
         , shift : Bool
-        , templates : WebData Templates
+        , templates :  (WebData Templates, Error)
         , pipeline : Pipeline
         , page : Page
         , toasties : Stack Alert
     }
 
+type alias Error = String
