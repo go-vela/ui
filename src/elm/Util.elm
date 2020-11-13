@@ -20,6 +20,7 @@ module Util exposing
     , formatRunTime
     , formatTestTag
     , getById
+    , humanReadableDateTimeFormatter
     , isLoading
     , isSuccess
     , largeLoader
@@ -46,7 +47,7 @@ module Util exposing
 import Base64
 import Bytes
 import Bytes.Decode
-import DateFormat exposing (monthNameFull)
+import DateFormat exposing (monthNameAbbreviated, monthNameFull)
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
@@ -87,7 +88,7 @@ dateToHumanReadable timezone time =
     humanReadableDateFormatter timezone <| Time.millisToPosix <| secondsToMillis time
 
 
-{-| humanReadableDateFormatter : formats a zone and time into human readable chunks
+{-| humanReadableDateFormatter : formats a zone and date into human readable chunks
 -}
 humanReadableDateFormatter : Zone -> Posix -> String
 humanReadableDateFormatter =
@@ -97,6 +98,27 @@ humanReadableDateFormatter =
         , DateFormat.dayOfMonthSuffix
         , DateFormat.text ", "
         , DateFormat.yearNumber
+        ]
+
+
+{-| humanReadableDateTimeFormatter : formats a zone and date/time into human readable chunks
+-}
+humanReadableDateTimeFormatter : Zone -> Posix -> String
+humanReadableDateTimeFormatter =
+    DateFormat.format
+        [ DateFormat.monthNameAbbreviated
+        , DateFormat.text " "
+        , DateFormat.dayOfMonthSuffix
+        , DateFormat.text ", "
+        , DateFormat.yearNumber
+        , DateFormat.text " at "
+        , DateFormat.hourFixed
+        , DateFormat.text ":"
+        , DateFormat.minuteFixed
+        , DateFormat.text ":"
+        , DateFormat.secondFixed
+        , DateFormat.text " "
+        , DateFormat.amPmUppercase
         ]
 
 

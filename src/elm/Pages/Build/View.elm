@@ -44,6 +44,7 @@ import Html.Attributes
         , classList
         , href
         , id
+        , title
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
@@ -100,7 +101,7 @@ viewBuild model org repo =
         ( buildPreview, buildNumber ) =
             case model.build of
                 RemoteData.Success bld ->
-                    ( viewPreview model.time org repo bld, String.fromInt bld.number )
+                    ( viewPreview model.time model.zone org repo bld, String.fromInt bld.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, "" )
@@ -150,8 +151,8 @@ viewBuild model org repo =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Org -> Repo -> Build -> Html Msg
-viewPreview now org repo build =
+viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html Msg
+viewPreview now zone org repo build =
     let
         buildNumber =
             String.fromInt build.number
@@ -186,6 +187,12 @@ viewPreview now org repo build =
         age =
             [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
 
+        buildCreatedPosix =
+            Time.millisToPosix <| Util.secondsToMillis build.created
+
+        timestamp =
+            Util.humanReadableDateTimeFormatter zone buildCreatedPosix
+
         duration =
             [ text <| Util.formatRunTime now build.started build.finished ]
 
@@ -208,7 +215,11 @@ viewPreview now org repo build =
                         , div [ class "sender" ] sender
                         ]
                     , div [ class "time-info" ]
-                        [ div [ class "age" ] age
+                        [ div
+                            [ class "age"
+                            , title timestamp
+                            ]
+                            age
                         , span [ class "delimiter" ] [ text "/" ]
                         , div [ class "duration" ] duration
                         ]
