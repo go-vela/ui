@@ -112,8 +112,6 @@ This method of running the application enables hot-reloading of the code.
   #   image: ui:local
   #   networks:
   #     - vela
-  #   environment:
-  #     VELA_API: 'http://localhost:8080'
   #   env_file:
   #     - secrets.env
   #   restart: always
