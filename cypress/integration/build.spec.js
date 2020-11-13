@@ -99,6 +99,21 @@ context('Build', () => {
           cy.get('@tooltip').should('contain', 'started');
           cy.get('@tooltip').should('contain', 'finished');
         });
+
+        it('should show commit', () => {
+          cy.get('@tooltip').should('contain', 'commit');
+          cy.get('@tooltip').should('contain', '7bd468e');
+        });
+
+        it('should show branch', () => {
+          cy.get('@tooltip').should('contain', 'branch');
+          cy.get('@tooltip').should('contain', 'terra');
+        });
+
+        it('should show worker', () => {
+          cy.get('@tooltip').should('contain', 'worker');
+          cy.get('@tooltip').should('contain', 'https://vela-worker-6.com');
+        });
       });
     });
 
