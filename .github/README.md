@@ -11,13 +11,21 @@ vela ui
 
 ## Documentation
 
-For local development, please [visit this repo's docs](DOCS.md).
+For installation and usage, please [visit our user docs](https://go-vela.github.io/docs).
+
+For local development, please [visit our repo docs](../DOCS.md).
 
 ## Contributing
 
 We are always welcome to new pull requests!
 
 Please see our [contributing](CONTRIBUTING.md) documentation for further instructions.
+
+## Support
+
+We are always here to help!
+
+Please see our [support](SUPPORT.md) documentation for further instructions.
 
 ## Copyright and License
 
