@@ -180,7 +180,7 @@ viewConfig model =
 
         content =
             case model.pipeline.config of
-                Success config ->
+                (Success config, _) ->
                     if String.length config.data > 0 then
                         let
                             header =
@@ -214,11 +214,11 @@ viewConfig model =
                     else
                         code [] [ text "no pipeline config found" ]
 
-                Loading ->
+                (Loading, _) ->
                     Util.smallLoaderWithText "loading pipeline configuration"
 
-                Failure err ->
-                    small [ class "error" ] [ text <| "There was a problem fetching the pipeline configuration: " ++ Errors.errorToString err ]
+                (Failure _, err) ->
+                    small [ class "error" ] [ text <| "There was a problem fetching the pipeline configuration: " ++ err ]
 
                 _ ->
                     text ""

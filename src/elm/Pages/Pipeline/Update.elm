@@ -68,7 +68,7 @@ load model org repo ref expand lineFocus =
     ( { model
         | page = Pages.Pipeline org repo ref expand lineFocus
         , pipeline =
-            { config = Loading
+            { config = (Loading, "")
             , expanded = False
             , configLoading = True
             , org = org
@@ -128,7 +128,7 @@ update model msg =
                     ( { model
                         | pipeline =
                             { p
-                                | config = RemoteData.succeed { data = config }
+                                | config = (RemoteData.succeed { data = config }, "")
                                 , expanded = False
                                 , configLoading = False
                             }
@@ -137,7 +137,7 @@ update model msg =
                     )
 
                 Err error ->
-                    ( { model | pipeline = { p | config = Errors.toFailure error } }, Errors.addError error Error )
+                    ( { model | pipeline = { p | config = ( toFailure error,  detailedErrorToString error) } }, Errors.addError error Error )
 
         ExpandPipelineConfigResponse org repo ref response ->
             case response of
@@ -154,7 +154,7 @@ update model msg =
                     ( { model
                         | pipeline =
                             { p
-                                | config = RemoteData.succeed { data = config }
+                                | config = (RemoteData.succeed { data = config }, "")
                                 , expanded = True
                                 , configLoading = False
                             }
@@ -164,7 +164,7 @@ update model msg =
                     )
 
                 Err error ->
-                    ( { model | pipeline = { p | config = toFailure error, configLoading = False, expanded = False } }, addError error Error )
+                    ( { model | pipeline = { p | config = (Errors.toFailure error,  detailedErrorToString error), configLoading = False, expanded = False } }, addError error Error )
 
         PipelineTemplatesResponse org repo response ->
             case response of

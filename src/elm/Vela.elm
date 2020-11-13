@@ -610,7 +610,7 @@ buildUpdateRepoIntPayload field value =
 
 
 type alias Pipeline =
-    { config : WebData PipelineConfig
+    { config : (WebData PipelineConfig, String)
     , expanded : Bool
     , configLoading : Bool
     , org : Org
@@ -623,7 +623,7 @@ type alias Pipeline =
 
 defaultPipeline : Pipeline
 defaultPipeline =
-    Pipeline NotAsked False False "" "" Nothing Nothing ( Nothing, Nothing )
+    Pipeline (NotAsked, "") False False "" "" Nothing Nothing ( Nothing, Nothing )
 
 
 type alias PipelineConfig =
