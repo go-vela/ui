@@ -181,10 +181,8 @@ context('Build', () => {
           .should('have.css', 'text-overflow', 'ellipsis');
       });
       it('build should annotate the age with the full timestamp', () => {
-        cy.get('@build')
-          .find('.time-info .age')
-          .should('have.attr', 'title')
-      })
+        cy.get('@build').find('.time-info .age').should('have.attr', 'title');
+      });
     });
 
     context('visit pending build', () => {
