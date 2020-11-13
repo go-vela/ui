@@ -93,12 +93,12 @@ import Vela
 {-| viewBuild : renders entire build based on current application time
 -}
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
-viewBuild { time, build, steps, logs, followingStep, shift } org repo =
+viewBuild { time, zone, build, steps, logs, followingStep, shift } org repo =
     let
         ( buildPreview, buildNumber ) =
             case build of
                 RemoteData.Success bld ->
-                    ( viewPreview time org repo bld, String.fromInt bld.number )
+                    ( viewPreview time zone org repo bld, String.fromInt bld.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, "" )
@@ -148,8 +148,8 @@ viewBuild { time, build, steps, logs, followingStep, shift } org repo =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Org -> Repo -> Build -> Html Msg
-viewPreview now org repo build =
+viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html Msg
+viewPreview now zone org repo build =
     let
         buildNumber =
             String.fromInt build.number
@@ -188,7 +188,7 @@ viewPreview now org repo build =
             Time.millisToPosix <| Util.secondsToMillis build.created
 
         timestamp =
-            Util.humanReadableDateTimeFormatter Time.utc buildCreatedPosix
+            Util.humanReadableDateTimeFormatter zone buildCreatedPosix
 
         duration =
             [ text <| Util.formatRunTime now build.started build.finished ]

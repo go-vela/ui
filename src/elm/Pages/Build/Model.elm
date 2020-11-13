@@ -8,7 +8,7 @@ module Pages.Build.Model exposing (GetLogs, Msg(..), PartialModel)
 
 import Browser.Navigation as Navigation
 import RemoteData exposing (WebData)
-import Time exposing (Posix)
+import Time exposing (Posix, Zone)
 import Vela
     exposing
         ( Build
@@ -32,6 +32,7 @@ type alias PartialModel a =
     { a
         | navigationKey : Navigation.Key
         , time : Posix
+        , zone : Zone
         , build : WebData Build
         , steps : WebData Steps
         , logs : Logs
