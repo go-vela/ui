@@ -115,7 +115,12 @@ viewTemplatesError err =
 -}
 viewTemplatesDetails : Html.Attribute Msg -> List (Html Msg) -> Html Msg
 viewTemplatesDetails cls content =
-    Html.details [ class "details", class "templates", Html.Attributes.attribute "open" "" ]
+    Html.details
+        [ class "details"
+        , class "templates"
+        , Html.Attributes.attribute "open" ""
+        , Util.testAttribute "pipeline-templates"
+        ]
         ([ Html.summary [ class "summary" ]
             [ div [] [ text "Templates" ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
@@ -129,7 +134,7 @@ viewTemplatesDetails cls content =
 -}
 viewTemplate : ( String, Template ) -> Html msg
 viewTemplate ( _, t ) =
-    div [ class "template" ]
+    div [ class "template", Util.testAttribute <| "pipeline-template-" ++ t.name ]
         [ div [] [ strong [] [ text "Name:" ], strong [] [ text "Source:" ], strong [] [ text "Link:" ] ]
         , div []
             [ span [] [ text t.name ]
@@ -181,7 +186,7 @@ viewPipelineConfigurationResponse model =
 viewPipelineConfigurationData : PartialModel a -> PipelineConfig -> Html Msg
 viewPipelineConfigurationData model config =
     wrapPipelineConfigurationContent model (class "") <|
-        div [ class "logs" ] <|
+        div [ class "logs", Util.testAttribute "pipeline-config-data" ] <|
             viewLines config model.pipeline.lineFocus model.shift
 
 
@@ -190,7 +195,7 @@ viewPipelineConfigurationData model config =
 viewPipelineConfigurationError : PartialModel a -> Error -> Html Msg
 viewPipelineConfigurationError model err =
     wrapPipelineConfigurationContent model (class "-error") <|
-        div [ class "content" ]
+        div [ class "content", Util.testAttribute "pipeline-config-error" ]
             [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
 
 
@@ -221,7 +226,7 @@ viewTemplatesExpansion model =
     case model.templates of
         ( Success templates, _ ) ->
             if Dict.size templates > 0 then
-                div [ class "expand-templates" ]
+                div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand"  ]
                     [ expandTemplatesToggleIcon model.pipeline
                     , expandTemplatesToggleButton model.pipeline
                     , expandTemplatesTip
@@ -275,6 +280,7 @@ expandTemplatesToggleButton pipeline =
         [ class "button"
         , class "-link"
         , Util.onClickPreventDefault <| action
+        , Util.testAttribute "pipeline-templates-expand-toggle"
         ]
         [ if pipeline.expanded then
             text "revert template expansion"

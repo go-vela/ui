@@ -8,6 +8,17 @@ context('Pipeline', () => {
     beforeEach(() => {
       cy.server();
       cy.stubPipelineErrors();
+      cy.stubPipelineTemplatesErrors();
+      cy.login('/someorg/somerepo/pipeline');
+    });
+    it('error alert should show', () => {
+      cy.get('[data-test=alerts]').should('exist').contains('Error');
+    });
+  });
+  context('logged in and server returning empty pipeline templates', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.stubPipelineTemplatesEmpty();
       cy.login('/someorg/somerepo/pipeline');
     });
     it('error alert should show', () => {

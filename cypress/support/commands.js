@@ -318,11 +318,57 @@ Cypress.Commands.add('stubStepsErrors', () => {
 Cypress.Commands.add('stubPipelineErrors', () => {
   cy.route({
     method: 'GET',
-    url: '*api/v1/repos/*/*/pipelines/*',
+    url: '*api/v1/pipelines/*/*',
     status: 500,
     response: 'server error',
   });
 });
+
+Cypress.Commands.add('stubPipelineTemplatesErrors', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*/templates*',
+    status: 500,
+    response: {},
+  });
+});
+
+Cypress.Commands.add('stubPipelineTemplatesEmpty', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*/templates*',
+    status: 200,
+    response: {},
+  });
+});
+
+Cypress.Commands.add('stubPipelineConfiguration', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*',
+    status: 200,
+    response: '',
+  });
+});
+
+Cypress.Commands.add('stubPipelineConfigurationExpand', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*/expand*',
+    status: 200,
+    response: '',
+  });
+});
+
+Cypress.Commands.add('stubPipelineTemplates', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*',
+    status: 200,
+    response: {},
+  });
+});
+
 
 Cypress.Commands.add('hookPages', () => {
   cy.server();
