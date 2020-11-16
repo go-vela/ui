@@ -107,7 +107,9 @@ viewTemplates templates =
 -}
 viewTemplatesError : Error -> Html Msg
 viewTemplatesError err =
-    [ text <| "There was a problem fetching templates for this pipeline configuration", div [] [ text err ] ]
+    [ text <| "There was a problem fetching templates for this pipeline configuration"
+    , div [ Util.testAttribute "pipeline-templates-error" ] [ text err ]
+    ]
         |> viewTemplatesDetails (class "-error")
 
 
@@ -186,7 +188,7 @@ viewPipelineConfigurationResponse model =
 viewPipelineConfigurationData : PartialModel a -> PipelineConfig -> Html Msg
 viewPipelineConfigurationData model config =
     wrapPipelineConfigurationContent model (class "") <|
-        div [ class "logs", Util.testAttribute "pipeline-config-data" ] <|
+        div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
             viewLines config model.pipeline.lineFocus model.shift
 
 
@@ -195,7 +197,7 @@ viewPipelineConfigurationData model config =
 viewPipelineConfigurationError : PartialModel a -> Error -> Html Msg
 viewPipelineConfigurationError model err =
     wrapPipelineConfigurationContent model (class "-error") <|
-        div [ class "content", Util.testAttribute "pipeline-config-error" ]
+        div [ class "content", Util.testAttribute "pipeline-configuration-error" ]
             [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
 
 
@@ -226,7 +228,7 @@ viewTemplatesExpansion model =
     case model.templates of
         ( Success templates, _ ) ->
             if Dict.size templates > 0 then
-                div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand"  ]
+                div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
                     [ expandTemplatesToggleIcon model.pipeline
                     , expandTemplatesToggleButton model.pipeline
                     , expandTemplatesTip

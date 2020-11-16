@@ -1,0 +1,34 @@
+version: "1"
+steps:
+- commands:
+  - echo $BUILD_EVENT
+  - echo $VELA_TASK
+  image: golang
+  name: invoke base_template_first-step
+  pull: not_present
+  environment:
+    VELA_TASK: default value
+- commands:
+  - echo $BUILD_EVENT
+  - echo $VELA_TASK
+  image: golang
+  name: invoke base_template_second-step
+  pull: not_present
+  environment:
+    VELA_TASK: default value
+templates:
+- name: custom_template
+  source: git.target.com/DavidVader/heyvela/template.yml@templates-custom
+  type: github
+- name: base_template
+  source: git.target.com/DavidVader/vela-templates/template.yml
+  type: github
+- name: simple_template
+  source: git.target.com/DavidVader/vela-templates/simple/template.yml
+  type: github
+- name: complex_template
+  source: git.target.com/DavidVader/vela-templates/complex/template.yml
+  type: github
+- name: branched_template
+  source: git.target.com/DavidVader/vela-templates/branched-template.yml@branched-template
+  type: github
