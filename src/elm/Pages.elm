@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages exposing (Page(..), toRoute)
 
 import Api.Pagination as Pagination
-import Focus exposing (..)
+import Focus exposing (RefQuery, ExpandTemplatesQuery, Fragment)
 import Routes exposing (Route(..))
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
