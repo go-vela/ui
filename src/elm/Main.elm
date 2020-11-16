@@ -134,7 +134,7 @@ import Vela
         , PipelineTemplates
         , RepairRepo
         , Repo
-        , RepoResouceIdentifier
+        , RepoResourceIdentifier
         , RepoSearchFilters
         , Repositories
         , Repository
@@ -2097,7 +2097,7 @@ loadOverviewPage model =
 
 {-| resourceChanged : takes two repo resource identifiers and returns if the build has changed
 -}
-resourceChanged : RepoResouceIdentifier -> RepoResouceIdentifier -> Bool
+resourceChanged : RepoResourceIdentifier -> RepoResourceIdentifier -> Bool
 resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
     not <| orgA == orgB && repoA == repoB && idA == idB
 

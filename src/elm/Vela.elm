@@ -41,7 +41,7 @@ module Vela exposing
     , Ref
     , RepairRepo
     , Repo
-    , RepoResouceIdentifier
+    , RepoResourceIdentifier
     , RepoSearchFilters
     , Repositories
     , Repository
@@ -1059,7 +1059,7 @@ type alias Viewing =
     Bool
 
 
-type alias RepoResouceIdentifier =
+type alias RepoResourceIdentifier =
     ( Org, Repo, String )
 
 
