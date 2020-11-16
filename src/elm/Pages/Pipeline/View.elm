@@ -10,7 +10,7 @@ import Ansi.Log
 import Array
 import Dict
 import Dict.Extra
-import Errors exposing (detailedErrorToString)
+import Errors exposing (Error, detailedErrorToString)
 import FeatherIcons exposing (Icon)
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
 import Html
@@ -30,12 +30,11 @@ import Html
         )
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
-import Http exposing (Error(..))
 import List.Extra
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Build.View exposing (viewLine)
-import Pages.Pipeline.Model exposing (Error, Msg(..), PartialModel)
+import Pages.Pipeline.Model exposing ( Msg(..), PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder

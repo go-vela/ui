@@ -13,7 +13,7 @@ import Routes exposing (Route(..))
 import Tuple exposing (first, second)
 import Url exposing (percentDecode)
 import Util
-
+import Vela exposing (Ref)
 
 
 -- TYPES
@@ -313,7 +313,7 @@ pageToString maybePage =
 
 {-| refToString : small helper to turn ref to a string to display in crumbs
 -}
-refToString : Maybe String -> String
+refToString : Maybe Ref -> String
 refToString maybeRef =
     case maybeRef of
         Nothing ->

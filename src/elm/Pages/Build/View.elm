@@ -103,8 +103,6 @@ import Vela
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
 viewBuild model org repo =
     let
-        { time, build, steps, logs, followingStep, shift } =
-            model
 
         ( buildPreview, buildNumber ) =
             case model.build of

@@ -113,7 +113,7 @@ module Vela exposing
     , toMaybeSecretType
     , toSecretType
     )
-
+import Errors exposing (Error)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
@@ -617,7 +617,7 @@ buildUpdateRepoIntPayload field value =
 
 
 type alias Pipeline =
-    { config : ( WebData PipelineConfig, String )
+    { config : ( WebData PipelineConfig, Error )
     , expanded : Bool
     , expanding : Bool
     , org : Org

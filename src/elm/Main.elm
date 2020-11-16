@@ -15,7 +15,7 @@ import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Dict
-import Errors exposing (addError, addErrorString, detailedErrorToString, toFailure)
+import Errors exposing (addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
 import Focus exposing (focusFragmentToFocusId, parseFocusFragment)
@@ -280,7 +280,7 @@ init flags url navKey =
             }
 
         ( newModel, newPage ) =
-            setAnalyze (Routes.match url) model
+            setPage (Routes.match url) model
 
         setTimeZone =
             Task.perform AdjustTimeZone here
@@ -356,7 +356,7 @@ type Msg
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
-    | Error String
+    | HandleError String
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
     | FilterBuildEventBy (Maybe Event) Org Repo
@@ -379,7 +379,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewRoute route ->
-            setAnalyze route model
+            setPage route model
 
         SignInRequested ->
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
@@ -499,7 +499,7 @@ update msg model =
                 Err error ->
                     ( { model | session = Nothing }
                     , Cmd.batch
-                        [ addError error Error
+                        [ addError error
                         , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
                         ]
                     )
@@ -512,7 +512,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | user = toFailure error }, addError error Error )
+                    ( { model | user = toFailure error }, addError error )
 
         RepoResponse response ->
             case response of
@@ -520,7 +520,7 @@ update msg model =
                     ( { model | repo = RemoteData.succeed repoResponse }, Cmd.none )
 
                 Err error ->
-                    ( { model | repo = toFailure error }, addError error Error )
+                    ( { model | repo = toFailure error }, addError error )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -528,7 +528,7 @@ update msg model =
                     ( { model | sourceRepos = RemoteData.succeed repositories }, Cmd.none )
 
                 Err error ->
-                    ( { model | sourceRepos = toFailure error }, addError error Error )
+                    ( { model | sourceRepos = toFailure error }, addError error )
 
         RepoEnabledResponse repo response ->
             let
@@ -566,7 +566,7 @@ update msg model =
                            )
 
                 Err error ->
-                    ( { model | user = toFailure error }, addError error Error )
+                    ( { model | user = toFailure error }, addError error )
 
         RepoUpdatedResponse field response ->
             case response of
@@ -575,7 +575,7 @@ update msg model =
                         |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
 
                 Err error ->
-                    ( { model | repo = toFailure error }, addError error Error )
+                    ( { model | repo = toFailure error }, addError error )
 
         DisableRepo repo ->
             let
@@ -615,7 +615,7 @@ update msg model =
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " disabled.") Nothing)
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         ChownRepo repo ->
             ( model, Api.try (RepoChownedResponse repo) <| Api.chownRepo model repo )
@@ -627,7 +627,7 @@ update msg model =
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("You are now the owner of " ++ repo.full_name) Nothing)
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         RepairRepo repo ->
             ( model, Api.try (RepoRepairedResponse repo) <| Api.repairRepo model repo )
@@ -649,7 +649,7 @@ update msg model =
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " has been repaired.") Nothing)
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         RestartBuild org repo buildNumber ->
             ( model
@@ -675,7 +675,7 @@ update msg model =
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         BuildResponse org repo _ response ->
             case response of
@@ -697,7 +697,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | repo = toFailure error }, addError error Error )
+                    ( { model | repo = toFailure error }, addError error )
 
         BuildsResponse org repo response ->
             let
@@ -723,7 +723,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | builds = { currentBuilds | builds = toFailure error } }, addError error Error )
+                    ( { model | builds = { currentBuilds | builds = toFailure error } }, addError error )
 
         StepResponse _ _ _ _ response ->
             case response of
@@ -731,7 +731,7 @@ update msg model =
                     ( updateStep model step, Cmd.none )
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         StepsResponse org repo buildNumber logFocus refresh response ->
             case response of
@@ -742,19 +742,16 @@ update msg model =
                                 |> List.sortBy .number
                                 |> Pages.Build.Update.mergeSteps logFocus refresh model.steps
 
-                        setSteps =
+                        updatedModel =
                             { model | steps = RemoteData.succeed mergedSteps }
 
                         cmd =
-                            getBuildStepsLogs setSteps org repo buildNumber mergedSteps logFocus refresh
-
-                        updatedModel =
-                            { setSteps | steps = RemoteData.succeed mergedSteps }
+                            getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
                     in
-                    ( updatedModel, cmd )
+                    ( { updatedModel | steps = RemoteData.succeed mergedSteps }, cmd )
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         StepLogResponse stepNumber logFocus refresh response ->
             case response of
@@ -792,7 +789,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         SecretResponse response ->
             case response of
@@ -809,7 +806,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         AddSecretResponse response ->
             case response of
@@ -827,7 +824,7 @@ update msg model =
                         |> addSecretResponseAlert secret
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         UpdateSecretResponse response ->
             case response of
@@ -845,7 +842,7 @@ update msg model =
                         |> updateSecretResponseAlert secret
 
                 Err error ->
-                    ( model, addError error Error )
+                    ( model, addError error )
 
         SecretsResponse response ->
             let
@@ -869,7 +866,7 @@ update msg model =
                     ( { model | secretsModel = { secretsModel | secrets = mergedSecrets, pager = pager } }, Cmd.none )
 
                 Err error ->
-                    ( { model | secretsModel = { secretsModel | secrets = toFailure error } }, addError error Error )
+                    ( { model | secretsModel = { secretsModel | secrets = toFailure error } }, addError error )
 
         UpdateRepoEvent org repo field value ->
             let
@@ -886,7 +883,7 @@ update msg model =
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
-                        addErrorString "Could not disable webhook event. At least one event must be active." Error
+                        addErrorString "Could not disable webhook event. At least one event must be active." HandleError
             in
             ( model
             , cmd
@@ -994,7 +991,7 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        Error error ->
+        HandleError error ->
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
 
@@ -1012,7 +1009,7 @@ update msg model =
                     ( { model | hooks = { currentHooks | hooks = RemoteData.succeed hooks, pager = pager } }, Cmd.none )
 
                 Err error ->
-                    ( { model | hooks = { currentHooks | hooks = toFailure error } }, addError error Error )
+                    ( { model | hooks = { currentHooks | hooks = toFailure error } }, addError error )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.successConfig AlertsUpdate subMsg model
@@ -1919,8 +1916,8 @@ buildUrl base paths params =
     UB.crossOrigin base paths params
 
 
-setAnalyze : Routes.Route -> Model -> ( Model, Cmd Msg )
-setAnalyze route model =
+setPage : Routes.Route -> Model -> ( Model, Cmd Msg )
+setPage route model =
     let
         sessionHasToken : Bool
         sessionHasToken =
@@ -2015,32 +2012,31 @@ setAnalyze route model =
 
         ( Routes.Pipeline org repo ref expand lineFocus, True ) ->
             let
+                loadPipeline =
+                    let
+                        ( loadedModel, loadAction ) =
+                            Pages.Pipeline.Update.load model org repo ref expand lineFocus
+                    in
+                    ( loadedModel, Cmd.map (\m -> PipelineUpdate m) <| loadAction )
+
                 ( newModel, action ) =
                     case model.page of
                         Pages.Pipeline o r ref_ _ _ ->
                             let
-                                p =
+                                pipeline =
                                     model.pipeline
 
                                 parsed =
                                     parseFocusFragment lineFocus
                             in
                             if not <| resourceChanged ( org, repo, Maybe.withDefault "" ref ) ( o, r, Maybe.withDefault "" ref_ ) then
-                                ( { model | pipeline = { p | lineFocus = ( parsed.lineA, parsed.lineB ) } }, Cmd.none )
+                                ( { model | pipeline = { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) } }, Cmd.none )
 
                             else
-                                let
-                                    ( l, ll ) =
-                                        Pages.Pipeline.Update.load model org repo ref expand lineFocus
-                                in
-                                ( l, Cmd.map (\m -> PipelineUpdate m) <| ll )
+                                loadPipeline
 
                         _ ->
-                            let
-                                ( l, ll ) =
-                                    Pages.Pipeline.Update.load model org repo ref expand lineFocus
-                            in
-                            ( l, Cmd.map (\m -> PipelineUpdate m) <| ll )
+                            loadPipeline
             in
             ( newModel, action )
 
@@ -2478,10 +2474,10 @@ repoEnabledError sourceRepos repo error =
                             ( RemoteData.succeed True, Cmd.none )
 
                         _ ->
-                            ( toFailure error, addError error Error )
+                            ( toFailure error, addError error )
 
                 _ ->
-                    ( toFailure error, addError error Error )
+                    ( toFailure error, addError error )
     in
     ( enableUpdate repo enabled sourceRepos
     , action
@@ -2499,6 +2495,13 @@ buildEnableRepositoryPayload repo =
         , link = repo.link
         , clone = repo.clone
     }
+
+
+{-| addError : takes a detailed http error and produces a Cmd Msg that invokes an action in the Errors module
+-}
+addError : Http.Detailed.Error String -> Cmd Msg
+addError error =
+    Errors.addError error HandleError
 
 
 {-| stepsIds : extracts Ids from list of steps and returns List Int

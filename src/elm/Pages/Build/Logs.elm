@@ -195,6 +195,13 @@ logFocusExists steps =
         /= ( Nothing, Nothing )
 
 
+{-| logEmpty : takes log string and returns True if content does not exist
+-}
+logEmpty : String -> Bool
+logEmpty log =
+    String.isEmpty <| String.replace " " "" log
+
+
 {-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
 -}
 stepTopTrackerFocusId : StepNumber -> String
@@ -207,13 +214,6 @@ stepTopTrackerFocusId stepNumber =
 stepBottomTrackerFocusId : StepNumber -> String
 stepBottomTrackerFocusId stepNumber =
     "step-" ++ stepNumber ++ "-line-tracker-bottom"
-
-
-{-| logEmpty : takes log string and returns True if content does not exist
--}
-logEmpty : String -> Bool
-logEmpty log =
-    String.isEmpty <| String.replace " " "" log
 
 
 {-| toString : returns a string from a Maybe Log

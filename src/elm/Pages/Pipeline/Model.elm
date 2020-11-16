@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Error, Msg(..), PartialModel)
+module Pages.Pipeline.Model exposing (  Msg(..), PartialModel)
 
 import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
@@ -24,8 +24,7 @@ import Vela
         , Steps
         , Templates
         )
-
-
+import Errors exposing (Error)
 
 -- MODEL
 
@@ -64,8 +63,3 @@ type Msg
 
 
 
--- TYPES
-
-
-type alias Error =
-    String
