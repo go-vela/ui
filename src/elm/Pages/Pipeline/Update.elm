@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Update exposing (Msg(..), load, update)
+module Pages.Pipeline.Update exposing (load, update)
 
 import Alerts exposing (Alert)
 import Api
@@ -14,10 +14,8 @@ import Focus exposing (..)
 import Http
 import Http.Detailed
 import Pages
-import Pages.Pipeline.Model
-    exposing
-        ( PartialModel
-        )
+import Pages.Pipeline.Api exposing (expandPipelineConfig, getPipelineConfig, getPipelineTemplates)
+import Pages.Pipeline.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg exposing (line)
@@ -26,22 +24,7 @@ import Vela exposing (LogFocus, Org, Repo, Templates)
 
 
 
--- MSG
-
-
-type Msg
-    = GetPipelineConfig Org Repo (Maybe String)
-    | ExpandPipelineConfig Org Repo (Maybe String)
-    | GetPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | ExpandPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | PipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
-    | FocusLine Int
-    | Error String
-    | AlertsUpdate (Alerting.Msg Alert)
-
-
-
--- UPDATE
+-- LOAD
 
 
 {-| load : takes model org, repo, and build number and loads the appropriate pipeline configuration resources.
@@ -81,6 +64,10 @@ load model org repo ref expand lineFocus =
         [ getPipelineConfigAction
         ]
     )
+
+
+
+-- UPDATE
 
 
 {-| update : takes model and msg, returns a new model and potential action.
@@ -200,24 +187,3 @@ update model msg =
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.successConfig AlertsUpdate subMsg model
-
-
-{-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
--}
-getPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Cmd Msg
-getPipelineConfig model org repo ref =
-    Api.tryString (GetPipelineConfigResponse org repo ref) <| Api.getPipelineConfig model org repo ref
-
-
-{-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
--}
-expandPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Cmd Msg
-expandPipelineConfig model org repo ref =
-    Api.tryString (ExpandPipelineConfigResponse org repo ref) <| Api.expandPipelineConfig model org repo ref
-
-
-{-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
--}
-getPipelineTemplates : PartialModel a -> Org -> Repo -> Maybe String -> Cmd Msg
-getPipelineTemplates model org repo ref =
-    Api.try (PipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref

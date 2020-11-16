@@ -367,7 +367,7 @@ type Msg
     | VisibilityChanged Visibility
       -- Components
     | BuildUpdate Pages.Build.Model.Msg
-    | PipelineUpdate Pages.Pipeline.Update.Msg
+    | PipelineUpdate Pages.Pipeline.Model.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone

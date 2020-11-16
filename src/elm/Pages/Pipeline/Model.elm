@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Error, PartialModel)
+module Pages.Pipeline.Model exposing (Error, PartialModel, Msg(..))
 
 import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
@@ -22,7 +22,8 @@ import Vela
         , Steps
         , Templates
         )
-
+import Http
+import Http.Detailed
 
 
 -- MODEL
@@ -46,5 +47,19 @@ type alias PartialModel a =
     }
 
 
+-- MSG
+
+
+type Msg
+    = GetPipelineConfig Org Repo (Maybe String)
+    | ExpandPipelineConfig Org Repo (Maybe String)
+    | GetPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ExpandPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | PipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
+    | FocusLine Int
+    | Error Error
+    | AlertsUpdate (Alerting.Msg Alert)
+
+-- TYPES 
 type alias Error =
     String

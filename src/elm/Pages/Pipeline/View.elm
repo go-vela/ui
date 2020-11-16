@@ -35,8 +35,7 @@ import List.Extra
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Build.View exposing (viewLine)
-import Pages.Pipeline.Model exposing (Error, PartialModel)
-import Pages.Pipeline.Update exposing (Msg(..))
+import Pages.Pipeline.Model exposing (Error, Msg(..), PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder
@@ -144,13 +143,13 @@ viewPipelineConfiguration model =
             text ""
 
         _ ->
-            viewConfigResponse model
+            viewPipelineConfigurationResponse model
 
 
-{-| viewConfigResponse : takes model and renders view for a pipeline configuration Success of Failure.
+{-| viewPipelineConfiguration : takes model and renders view for a pipeline configuration Success of Failure.
 -}
-viewConfigResponse : PartialModel a -> Html Msg
-viewConfigResponse model =
+viewPipelineConfigurationResponse : PartialModel a -> Html Msg
+viewPipelineConfigurationResponse model =
     let
         { config, lineFocus } =
             model.pipeline
@@ -160,7 +159,7 @@ viewConfigResponse model =
         [ case config of
             ( Success c, _ ) ->
                 if String.length c.data > 0 then
-                    wrapConfigContent model config <|
+                    wrapPipelineConfigurationContent model config <|
                         div [ class "logs" ] <|
                             viewLines c lineFocus model.shift
 
@@ -168,7 +167,7 @@ viewConfigResponse model =
                     code [] [ text "no pipeline config found" ]
 
             ( Failure _, err ) ->
-                wrapConfigContent model config <|
+                wrapPipelineConfigurationContent model config <|
                     div [ class "content" ]
                         [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
 
@@ -177,10 +176,10 @@ viewConfigResponse model =
         ]
 
 
-{-| wrapConfigContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
+{-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
 -}
-wrapConfigContent : PartialModel a -> ( WebData PipelineConfig, String ) -> Html Msg -> Html Msg
-wrapConfigContent model config content =
+wrapPipelineConfigurationContent : PartialModel a -> ( WebData PipelineConfig, String ) -> Html Msg -> Html Msg
+wrapPipelineConfigurationContent model config content =
     let
         contentClass =
             case config of
@@ -194,7 +193,7 @@ wrapConfigContent model config content =
             [ div [ class "header" ]
                 [ span [] [ text "Pipeline Configuration" ]
                 ]
-            , templatesExpansion model
+            , viewTemplatesExpansion model
             ]
                 ++ [ content ]
     in
@@ -205,10 +204,10 @@ wrapConfigContent model config content =
         body
 
 
-{-| templatesExpansion : takes model and renders the config header button for expanding pipeline templates.
+{-| viewTemplatesExpansion : takes model and renders the config header button for expanding pipeline templates.
 -}
-templatesExpansion : PartialModel a -> Html Msg
-templatesExpansion model =
+viewTemplatesExpansion : PartialModel a -> Html Msg
+viewTemplatesExpansion model =
     case model.templates of
         ( Success templates, _ ) ->
             if Dict.size templates > 0 then

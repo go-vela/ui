@@ -37,6 +37,7 @@ module Vela exposing
     , Org
     , Pipeline
     , PipelineConfig
+    , Ref
     , RepairRepo
     , Repo
     , RepoResouceIdentifier
@@ -172,6 +173,10 @@ type alias Type =
 
 
 type alias Key =
+    String
+
+
+type alias Ref =
     String
 
 
@@ -617,7 +622,7 @@ type alias Pipeline =
     , configLoading : Bool
     , org : Org
     , repo : Org
-    , ref : Maybe String
+    , ref : Maybe Ref
     , expand : Maybe String
     , lineFocus : LogFocus
     }
@@ -705,8 +710,8 @@ type alias Build =
     , sender : String
     , author : String
     , branch : String
-    , ref : String
-    , base_ref : String
+    , ref : Ref
+    , base_ref : Ref
     , host : String
     , runtime : String
     , distribution : String
