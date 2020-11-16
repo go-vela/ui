@@ -4,10 +4,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Error, PartialModel, Msg(..))
+module Pages.Pipeline.Model exposing (Error, Msg(..), PartialModel)
 
 import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
+import Http
+import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Time exposing (Posix)
@@ -22,8 +24,7 @@ import Vela
         , Steps
         , Templates
         )
-import Http
-import Http.Detailed
+
 
 
 -- MODEL
@@ -47,6 +48,7 @@ type alias PartialModel a =
     }
 
 
+
 -- MSG
 
 
@@ -60,6 +62,10 @@ type Msg
     | Error Error
     | AlertsUpdate (Alerting.Msg Alert)
 
--- TYPES 
+
+
+-- TYPES
+
+
 type alias Error =
     String

@@ -64,6 +64,7 @@ detailedErrorToError error =
         Http.Detailed.BadBody _ _ body ->
             Http.BadBody body
 
+
 {-| errorBodyToString : extracts/converts the "error" field from an api json error message to string
 -}
 errorBodyToString : String -> String
