@@ -147,4 +147,9 @@ body.theme-light {
   .button.-outline.-failure {
     color: var(--color-red-dark);
   }
+
+  .small-loader .-spinner {
+    border-color: var(--color-bg-light);
+    border-top-color: var(--color-bg);
+  }
 }
