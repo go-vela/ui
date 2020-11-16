@@ -202,19 +202,6 @@ logEmpty log =
     String.isEmpty <| String.replace " " "" log
 
 
-{-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
--}
-stepTopTrackerFocusId : StepNumber -> String
-stepTopTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker-top"
-
-
-{-| stepBottomTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
--}
-stepBottomTrackerFocusId : StepNumber -> String
-stepBottomTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker-bottom"
-
 
 {-| toString : returns a string from a Maybe Log
 -}
@@ -231,6 +218,19 @@ toString log =
 
         Nothing ->
             ""
+
+{-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+-}
+stepTopTrackerFocusId : StepNumber -> String
+stepTopTrackerFocusId stepNumber =
+    "step-" ++ stepNumber ++ "-line-tracker-top"
+
+
+{-| stepBottomTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+-}
+stepBottomTrackerFocusId : StepNumber -> String
+stepBottomTrackerFocusId stepNumber =
+    "step-" ++ stepNumber ++ "-line-tracker-bottom"
 
 
 {-| getDownloadLogsFileName : takes step information and produces a filename for downloading logs
