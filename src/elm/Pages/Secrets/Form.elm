@@ -291,7 +291,7 @@ viewDeleteButton secretsModel =
                 ( "Remove", "" )
 
             else
-                ( "Really Remove?", secretDeleteConfirm )
+                ( "Confirm", secretDeleteConfirm )
     in
     button
         [ class "button"
