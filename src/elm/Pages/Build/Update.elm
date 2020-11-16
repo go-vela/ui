@@ -20,7 +20,7 @@ import Pages.Build.Model
         , PartialModel
         )
 import RemoteData exposing (RemoteData(..), WebData)
-import Task exposing (perform, succeed)
+import Task
 import Util exposing (overwriteById)
 import Vela
     exposing
