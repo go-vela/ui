@@ -92,9 +92,9 @@ viewPipelineTemplates templates =
 
 -}
 viewTemplates : Templates -> Html Msg
-viewTemplates t =
-    if not <| Dict.isEmpty t then
-        t
+viewTemplates templates =
+    if not <| Dict.isEmpty templates then
+        templates
             |> Dict.toList
             |> List.map viewTemplate
             |> viewTemplatesDetails (class "-success")
