@@ -12,7 +12,7 @@ import Dict
 import Dict.Extra
 import Errors exposing (detailedErrorToString)
 import FeatherIcons exposing (Icon)
-import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
+import Focus exposing (ExpandTemplatesQuery, Fragment,Resource, RefQuery, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html
@@ -307,10 +307,10 @@ viewLines c lineFocus shift =
         |> List.filterMap identity
 
 
-{-| viewLine : takes log line and focus information and renders line number button and log
+{-| viewLine : takes line and focus information and renders line number button and data
 -}
-viewLine : String -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> Html Msg
-viewLine id lineNumber line resource logFocus shiftDown =
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> Html Msg
+viewLine id lineNumber line resource lineFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             id
@@ -322,13 +322,13 @@ viewLine id lineNumber line resource logFocus shiftDown =
             Just l ->
                 div
                     [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, String.fromInt lineNumber ]
-                    , class <| lineFocusStyles logFocus lineNumber
+                    , Util.testAttribute <| String.join "-" [ "config", "line", resource, String.fromInt lineNumber ]
+                    , class <| lineFocusStyles lineFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton resource logFocus lineNumber shiftDown ]
+                        [ lineFocusButton resource lineFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, String.fromInt lineNumber ] ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "config", "data", resource, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
                         ]
@@ -341,13 +341,13 @@ viewLine id lineNumber line resource logFocus shiftDown =
 
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
-lineFocusButton : String -> LogFocus -> Int -> Bool -> Html Msg
+lineFocusButton : Resource -> LogFocus -> Int -> Bool -> Html Msg
 lineFocusButton resource logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             FocusLine <|
                 lineNumber
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, String.fromInt lineNumber ]
+        , Util.testAttribute <| String.join "-" [ "config", "line", "num", resource, String.fromInt lineNumber ]
         , Html.Attributes.id <| resourceAndLineToFocusId "config" resource lineNumber
         , class "line-number"
         , class "button"
