@@ -43,7 +43,7 @@
     "predev": "npm run clean",
     "dev": "npm run start",
     "prestart": "npm run clean",
-    "start": "DOTENV_CONFIG_PATH=secrets.env parcel src/static/index.html --port 8888",
+    "start": "parcel src/static/index.html --port 8888",
     "build-img": "parcel build src/static/img/*",
     "prebuild": "npm run clean",
     "build": "parcel build src/static/index.html --no-minify",
