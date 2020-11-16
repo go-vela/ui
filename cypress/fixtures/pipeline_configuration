@@ -4,33 +4,27 @@ steps:
     name: custom_template
     vars:
       build_event: ${BUILD_EVENT}
-  name: invoke base_template
+  name: invoke template1_name
   pull: not_present
 - template:
     name: simple_template
     vars:
       build_event: ${BUILD_EVENT}
-  name: invoke simple_template
+  name: invoke template2_name
   pull: not_present
 - template:
     name: branched_template
     vars:
       build_event: ${BUILD_EVENT}
-  name: invoke branched_template
+  name: invoke template3_name
   pull: not_present
 templates:
-- name: custom_template
-  source: git.target.com/DavidVader/heyvela/template.yml@templates-custom
+- name: template1_name
+  source: github.com/someorg/somerepo/template1.yml
   type: github
-- name: base_template
-  source: git.target.com/DavidVader/vela-templates/template.yml
+- name: template2_name
+  source: github.com/someorg/somerepo/template2.yml
   type: github
-- name: simple_template
-  source: git.target.com/DavidVader/vela-templates/simple/template.yml
-  type: github
-- name: complex_template
-  source: git.target.com/DavidVader/vela-templates/complex/template.yml
-  type: github
-- name: branched_template
-  source: git.target.com/DavidVader/vela-templates/branched-template.yml@branched-template
+- name: template3_name
+  source: github.com/someorg/somerepo/template3.yml
   type: github
