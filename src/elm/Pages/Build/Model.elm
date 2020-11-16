@@ -4,11 +4,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Model exposing (BuildModel, GetLogs, Msg(..), PartialModel, RestartedBuildResponse)
+module Pages.Build.Model exposing (BuildModel, GetLogs, Msg(..), PartialModel)
 
 import Browser.Navigation as Navigation
-import Http
-import Http.Detailed
 import RemoteData exposing (WebData)
 import Time exposing (Posix)
 import Vela
@@ -19,7 +17,6 @@ import Vela
         , Logs
         , Org
         , Repo
-        , Session
         , StepNumber
         , Steps
         )
@@ -33,9 +30,7 @@ import Vela
 -}
 type alias PartialModel a =
     { a
-        | velaAPI : String
-        , session : Maybe Session
-        , navigationKey : Navigation.Key
+        | navigationKey : Navigation.Key
         , time : Posix
         , build : WebData Build
         , steps : WebData Steps
@@ -75,10 +70,6 @@ type alias GetStepLogs a msg =
 
 type alias GetStepsLogs a msg =
     PartialModel a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
-
-
-type alias RestartedBuildResponse msg =
-    Org -> Repo -> BuildNumber -> Result (Http.Detailed.Error String) ( Http.Metadata, Build ) -> msg
 
 
 type alias GetLogs a msg =

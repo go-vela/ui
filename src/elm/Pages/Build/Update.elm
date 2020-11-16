@@ -18,7 +18,6 @@ import Pages.Build.Model
         ( GetLogs
         , Msg(..)
         , PartialModel
-        , RestartedBuildResponse
         )
 import RemoteData exposing (RemoteData(..), WebData)
 import Task exposing (perform, succeed)
@@ -37,8 +36,8 @@ import Vela
 -- UPDATE
 
 
-update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> RestartedBuildResponse msg -> ( PartialModel a, Cmd msg )
-update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult restartedBuildResponse =
+update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> ( PartialModel a, Cmd msg )
+update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
     case msg of
         ExpandStep org repo buildNumber stepNumber ->
             let

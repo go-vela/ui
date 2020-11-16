@@ -67,7 +67,7 @@ import Pages.Build.Logs
         , stepTopTrackerFocusId
         , toString
         )
-import Pages.Build.Model exposing (BuildModel, Msg(..), PartialModel, RestartedBuildResponse)
+import Pages.Build.Model exposing (BuildModel, Msg(..), PartialModel)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String

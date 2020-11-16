@@ -1069,7 +1069,7 @@ update msg model =
         BuildUpdate m ->
             let
                 ( newModel, action ) =
-                    Pages.Build.Update.update model m ( getBuildStepLogs, getBuildStepsLogs ) FocusResult RestartedBuildResponse
+                    Pages.Build.Update.update model m ( getBuildStepLogs, getBuildStepsLogs ) FocusResult
             in
             ( newModel
             , action
