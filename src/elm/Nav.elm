@@ -221,15 +221,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
 
         Pages.Build org repo buildNumber _ ->
             div [ class "buttons" ]
-                [ button
-                    [ class "button"
-                    , class "-outline"
-                    , onClick <| restartBuild org repo buildNumber
-                    , Util.testAttribute "restart-build"
-                    ]
-                    [ text "Restart Build"
-                    ]
-                , case model.build of
+                [ case model.build of
                     RemoteData.Success b ->
                         a
                             [ class "button"
@@ -237,10 +229,18 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                             , Util.testAttribute <| "goto-build-pipeline-" ++ org ++ "-" ++ repo ++ "-" ++ buildNumber
                             , Routes.href <| Routes.Pipeline org repo (Just b.commit) Nothing Nothing
                             ]
-                            [ text <| "View yaml" ]
+                            [ text "View Config" ]
 
                     _ ->
                         text ""
+                , button
+                    [ class "button"
+                    , class "-outline"
+                    , onClick <| restartBuild org repo buildNumber
+                    , Util.testAttribute "restart-build"
+                    ]
+                    [ text "Restart Build"
+                    ]
                 ]
 
         Pages.Hooks org repo _ _ ->

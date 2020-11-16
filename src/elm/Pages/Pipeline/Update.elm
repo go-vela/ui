@@ -36,7 +36,7 @@ load model org repo ref expand lineFocus =
             case expand of
                 Just e ->
                     if e == "true" then
-                        Cmd.batch [ expandPipelineConfig model org repo ref, getPipelineTemplates model org repo ref ]
+                        expandPipelineConfig model org repo ref
 
                     else
                         getPipelineConfig model org repo ref
@@ -59,9 +59,11 @@ load model org repo ref expand lineFocus =
             , expand = expand
             , lineFocus = ( parsed.lineA, parsed.lineB )
             }
+        , templates = (Loading, "")
       }
     , Cmd.batch
         [ getPipelineConfigAction
+        , getPipelineTemplates model org repo ref
         ]
     )
 
@@ -116,7 +118,7 @@ update model msg =
                                 , expanding = False
                             }
                       }
-                    , Cmd.batch [ getPipelineTemplates model org repo ref ]
+                    , Cmd.none
                     )
 
                 Err error ->
@@ -131,16 +133,7 @@ update model msg =
 
         ExpandPipelineConfigResponse org repo ref response ->
             case response of
-                Ok ( meta, config ) ->
-                    let
-                        ( t, a ) =
-                            case model.templates of
-                                ( Success _, _ ) ->
-                                    ( Tuple.first model.templates, Cmd.none )
-
-                                _ ->
-                                    ( Loading, Cmd.batch [ getPipelineTemplates model org repo ref ] )
-                    in
+                Ok ( _, config ) ->
                     ( { model
                         | pipeline =
                             { pipeline
@@ -148,9 +141,8 @@ update model msg =
                                 , expanded = True
                                 , expanding = False
                             }
-                        , templates = ( t, "" )
                       }
-                    , a
+                    , Cmd.none
                     )
 
                 Err error ->
