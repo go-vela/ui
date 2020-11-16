@@ -4,15 +4,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
+module Pages.Pipeline.Api exposing (expandPipelineConfig, getPipelineConfig, getPipelineTemplates)
 
-
-module Pages.Pipeline.Api exposing (getPipelineConfig, expandPipelineConfig, getPipelineTemplates)
-
-
-
-import Pages.Pipeline.Model exposing (PartialModel, Msg(..))
-import Vela exposing (Org, Repo, Ref)
 import Api
+import Pages.Pipeline.Model exposing (Msg(..), PartialModel)
+import Vela exposing (Org, Ref, Repo)
+
 
 {-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
 -}

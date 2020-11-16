@@ -25,16 +25,28 @@
 }
 
 .templates {
+    &.details[open] .summary + *:first-of-type {
+        margin-top: 0.8rem;
+    }
     summary {
         padding-left: 1rem;
+        padding-right: 1rem;
         margin-left: 1rem;
+        margin-right: 1rem;
     }
+
     background-color: var(--color-bg-dark);
     padding: 0.8rem 0 0.8rem 0;
     margin-bottom: 1rem;
 
     .content {
+        margin-top:1rem;
+        font-weight: lighter;
         border-top: 1px solid var(--color-lavender);
+        .-error {
+            padding: 0.8rem 1rem;
+            border-left: 1px solid var(--color-red);
+        }
     }
 }
 
@@ -42,7 +54,6 @@
     padding-bottom: 0.6rem;
     display: flex;
     flex-direction: row;
-
     border-bottom: 1px solid var(--color-bg-light);
 
     div {
@@ -61,16 +72,16 @@
     padding-bottom: 1rem;
     align-items: center;
 
-    .toggle {
+    .icon {
         margin-left: 1rem;
         display: flex;
         justify-content: center;
         flex-direction: column;
-        .small-loader {
-            padding: 0;
-        }
     }
-    .icon {
+    .small-loader {
+        padding: 0 0 0 1rem;
+    }
+    svg {
         margin-right: 0.7rem;
         color: var(--color-green);
     }
@@ -88,6 +99,9 @@
     }
 }
 
+
+// modifying styles for build logs components
+// TODO: modularize logs rendering
 .logs-container.-pipeline {
     margin: 0;
 
@@ -97,11 +111,12 @@
         justify-content: space-between;
         border-bottom: 1px solid var(--color-secondary);
         padding: 0.6rem 0.8rem;
-        font-size: 16px; // repo settings headers?
+        font-size: 16px;
     }
 
     .logs-table {
         padding-top: 0;
+        padding-bottom: 1rem;
     }
 
     .logs-table.-error {

@@ -51,8 +51,8 @@ type alias PartialModel a =
 
 
 type Msg
-    = GetPipelineConfig Org Repo (Maybe String)
-    | ExpandPipelineConfig Org Repo (Maybe String)
+    = GetPipelineConfig Org Repo (Maybe String) Bool
+    | ExpandPipelineConfig Org Repo (Maybe String) Bool
     | GetPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ExpandPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | PipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))

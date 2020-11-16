@@ -52,7 +52,7 @@ load model org repo ref expand lineFocus =
         , pipeline =
             { config = ( Loading, "" )
             , expanded = False
-            , configLoading = True
+            , expanding = True
             , org = org
             , repo = repo
             , ref = ref
@@ -79,19 +79,29 @@ update model msg =
             model.pipeline
     in
     case msg of
-        GetPipelineConfig org repo ref ->
-            ( { model | pipeline = { pipeline | configLoading = True } }
+        GetPipelineConfig org repo ref expansionToggle ->
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | expanding = True
+                    }
+              }
             , Cmd.batch
                 [ getPipelineConfig model org repo ref
-                , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing Nothing
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing Nothing
                 ]
             )
 
-        ExpandPipelineConfig org repo ref ->
-            ( { model | pipeline = { pipeline | configLoading = True } }
+        ExpandPipelineConfig org repo ref expansionToggle ->
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | expanding = True
+                    }
+              }
             , Cmd.batch
                 [ expandPipelineConfig model org repo ref
-                , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") Nothing
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") Nothing
                 ]
             )
 
@@ -103,7 +113,7 @@ update model msg =
                             { pipeline
                                 | config = ( RemoteData.succeed { data = config }, "" )
                                 , expanded = False
-                                , configLoading = False
+                                , expanding = False
                             }
                       }
                     , Cmd.batch [ getPipelineTemplates model org repo ref ]
@@ -136,7 +146,7 @@ update model msg =
                             { pipeline
                                 | config = ( RemoteData.succeed { data = config }, "" )
                                 , expanded = True
-                                , configLoading = False
+                                , expanding = False
                             }
                         , templates = ( t, "" )
                       }
@@ -148,7 +158,7 @@ update model msg =
                         | pipeline =
                             { pipeline
                                 | config = ( Errors.toFailure error, detailedErrorToString error )
-                                , configLoading = False
+                                , expanding = False
                                 , expanded = True
                             }
                       }

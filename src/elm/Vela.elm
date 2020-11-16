@@ -619,7 +619,7 @@ buildUpdateRepoIntPayload field value =
 type alias Pipeline =
     { config : ( WebData PipelineConfig, String )
     , expanded : Bool
-    , configLoading : Bool
+    , expanding : Bool
     , org : Org
     , repo : Org
     , ref : Maybe Ref

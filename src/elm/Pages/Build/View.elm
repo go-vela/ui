@@ -19,7 +19,9 @@ import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
     exposing
-        ( lineFocusStyles
+        ( Resource
+        , ResourceID
+        , lineFocusStyles
         , lineRangeId
         , resourceAndLineToFocusId
         , resourceToFocusId
@@ -472,7 +474,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : String -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> Html Msg
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> Resource -> LogFocus -> Bool -> Html Msg
 viewLine id lineNumber line resource logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
