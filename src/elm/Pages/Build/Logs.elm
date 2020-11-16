@@ -202,7 +202,6 @@ logEmpty log =
     String.isEmpty <| String.replace " " "" log
 
 
-
 {-| toString : returns a string from a Maybe Log
 -}
 toString : Maybe (WebData Log) -> String
@@ -218,6 +217,7 @@ toString log =
 
         Nothing ->
             ""
+
 
 {-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
 -}
