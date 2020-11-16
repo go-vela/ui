@@ -37,6 +37,7 @@ module Vela exposing
     , Org
     , Pipeline
     , PipelineConfig
+    , PipelineTemplates
     , Ref
     , RepairRepo
     , Repo
@@ -92,6 +93,7 @@ module Vela exposing
     , defaultFavicon
     , defaultHooks
     , defaultPipeline
+    , defaultPipelineTemplates
     , defaultRepository
     , defaultSession
     , defaultStep
@@ -113,8 +115,9 @@ module Vela exposing
     , toMaybeSecretType
     , toSecretType
     )
-import Errors exposing (Error)
+
 import Dict exposing (Dict)
+import Errors exposing (Error)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
@@ -638,6 +641,10 @@ type alias PipelineConfig =
     }
 
 
+type alias PipelineTemplates =
+    ( WebData Templates, Error )
+
+
 type alias Template =
     { link : String
     , name : String
@@ -648,6 +655,11 @@ type alias Template =
 
 type alias Templates =
     Dict String Template
+
+
+defaultPipelineTemplates : PipelineTemplates
+defaultPipelineTemplates =
+    ( NotAsked, "" )
 
 
 decodePipelineConfig : Decode.Decoder String

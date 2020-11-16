@@ -15,7 +15,7 @@ import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Dict
-import Errors exposing (addErrorString, detailedErrorToString, toFailure)
+import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
 import Focus exposing (focusFragmentToFocusId, parseFocusFragment)
@@ -55,7 +55,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy6, lazy7)
-import Http exposing (Error(..))
+import Http
 import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
@@ -131,6 +131,7 @@ import Vela
         , Org
         , Pipeline
         , PipelineConfig
+        , PipelineTemplates
         , RepairRepo
         , Repo
         , RepoResouceIdentifier
@@ -163,6 +164,7 @@ import Vela
         , defaultFavicon
         , defaultHooks
         , defaultPipeline
+        , defaultPipelineTemplates
         , defaultRepository
         , defaultSession
         , encodeEnableRepository
@@ -221,8 +223,8 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
-    , templates : ( WebData Templates, String )
     , pipeline : Pipeline
+    , templates : PipelineTemplates
     }
 
 
@@ -275,8 +277,8 @@ init flags url navKey =
             , showIdentity = False
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
-            , templates = ( NotAsked, "" )
             , pipeline = defaultPipeline
+            , templates = defaultPipelineTemplates
             }
 
         ( newModel, newPage ) =
@@ -356,7 +358,7 @@ type Msg
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
-    | HandleError String
+    | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
     | FilterBuildEventBy (Maybe Event) Org Repo
@@ -485,9 +487,6 @@ update msg model =
 
                                 _ ->
                                     session.entrypoint
-
-                        _ =
-                            Debug.log "redirect" redirectTo
                     in
                     ( { model | session = Just session }
                     , Cmd.batch
@@ -650,11 +649,6 @@ update msg model =
 
                 Err error ->
                     ( model, addError error )
-
-        RestartBuild org repo buildNumber ->
-            ( model
-            , restartBuild model org repo buildNumber
-            )
 
         RestartedBuildResponse org repo buildNumber response ->
             case response of
@@ -990,6 +984,11 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        RestartBuild org repo buildNumber ->
+            ( model
+            , restartBuild model org repo buildNumber
+            )
 
         HandleError error ->
             ( model, Cmd.none )
