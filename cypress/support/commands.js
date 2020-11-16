@@ -315,6 +315,15 @@ Cypress.Commands.add('stubStepsErrors', () => {
   });
 });
 
+Cypress.Commands.add('stubPipelineErrors', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/pipelines/*',
+    status: 500,
+    response: 'server error',
+  });
+});
+
 Cypress.Commands.add('hookPages', () => {
   cy.server();
   cy.fixture('hooks_10a.json').as('hooksPage1');

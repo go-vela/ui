@@ -9,144 +9,169 @@
 // styles for the pipelines pages
 
 .pipeline {
-    .small-loader {
-        padding: 0.8rem 1rem;
+  .small-loader {
+    padding: 0.8rem 1rem;
+  }
+
+  .content {
+    font-size: 16px;
+
+    &.-error {
+      padding: 0.8rem 1rem;
+
+      border-left: 1px solid var(--color-red);
     }
-    .content {
-        font-size: 16px;
-        &.-error {
-            padding: 0.8rem 1rem;
-            border-left: 1px solid var(--color-red);
-        }
-        &.-success {
-            border-left: 1px solid var(--color-green);
-        }
+
+    &.-success {
+      border-left: 1px solid var(--color-green);
     }
+  }
 }
 
 .templates {
-    &.details[open] .summary + *:first-of-type {
-        margin-top: 0.8rem;
-    }
-    summary {
-        padding-left: 1rem;
-        padding-right: 1rem;
-        margin-left: 1rem;
-        margin-right: 1rem;
-    }
+  // stylelint-disable selector-max-specificity
+  &.details[open] .summary + *:first-of-type {
+    margin-top: 0.8rem;
+  }
 
-    padding: 0.8rem 0 0.8rem 0;
-    margin-bottom: 1rem;
+  summary {
+    margin-right: 1rem;
+    margin-left: 1rem;
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+  margin-bottom: 1rem;
 
-    border: 1px solid transparent;
-    background-color: var(--color-bg-dark);
+  padding: 0.8rem 0 0.8rem 0;
 
-    .content {
-        margin-top: 1rem;
-        font-weight: lighter;
-        border-top: 1px solid var(--color-secondary);
-        .-error {
-            padding: 0.8rem 1rem;
-            border-left: 1px solid var(--color-red);
-        }
+  background-color: var(--color-bg-dark);
+
+  border: 1px solid transparent;
+
+  .content {
+    margin-top: 1rem;
+
+    font-weight: lighter;
+
+    border-top: 1px solid var(--color-secondary);
+
+    .-error {
+      padding: 0.8rem 1rem;
+
+      border-left: 1px solid var(--color-red);
     }
+  }
 }
 
 .theme-light .templates {
-    border-color: var(--color-bg-light);
-    background-color: var(--color-bg);
+  background-color: var(--color-bg);
+  border-color: var(--color-bg-light);
 }
 
 .template {
-    padding-bottom: 0.6rem;
-    display: flex;
-    flex-direction: row;
-    border-bottom: 1px solid var(--color-bg-light);
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 0.6rem;
 
-    div {
-        display: flex;
-        flex-direction: column;
-        margin-top: 0.4rem;
-        margin-left: 1rem;
-    }
+  border-bottom: 1px solid var(--color-bg-light);
+
+  div {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0.4rem;
+    margin-left: 1rem;
+  }
 }
 
 .expand-templates {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+
+  border-bottom: 1px solid var(--color-bg-light);
+
+  .icon {
     display: flex;
-    flex-direction: row;
-    border-bottom: 1px solid var(--color-bg-light);
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 1rem;
+  }
 
-    .icon {
-        margin-left: 1rem;
-        display: flex;
-        justify-content: center;
-        flex-direction: column;
-    }
-    .small-loader {
-        padding: 0 0 0 1rem;
-    }
-    svg {
-        margin-right: 0.7rem;
-        color: var(--color-green);
-    }
+  .small-loader {
+    padding: 0 0 0 1rem;
+  }
 
-    .button {
-        margin-left: 0.4rem;
-    }
-    small {
-        background-color: var(--color-bg-light);
-        padding: 0.2rem 0.4rem;
-        margin-left: 1rem;
-    }
-    .tip {
-        margin-right: 0.6rem;
-    }
+  svg {
+    margin-right: 0.7rem;
+
+    color: var(--color-green);
+  }
+
+  .button {
+    margin-left: 0.4rem;
+  }
+
+  small {
+    margin-left: 1rem;
+    padding: 0.2rem 0.4rem;
+
+    background-color: var(--color-bg-light);
+  }
+
+  .tip {
+    margin-right: 0.6rem;
+  }
 }
 
 // modifying styles for build logs components
 // TODO: modularize logs rendering
 .theme-light .pipeline .logs-container {
-    border: 1px solid var(--color-bg-light);
+  border: 1px solid var(--color-bg-light);
 }
 
 .pipeline .logs-container {
-    border: 1px solid var(--color-bg);
+  border: 1px solid var(--color-bg);
 }
 
 .logs-container.-pipeline {
-    margin: 0;
+  margin: 0;
 
-    .header {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--color-secondary);
-        padding: 0.6rem 0.8rem;
-        font-size: 18px;
-        font-weight: normal;
-    }
+  .header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0.6rem 0.8rem;
 
-    .logs-table {
-        padding-top: 0;
-        padding-bottom: 1rem;
-    }
+    font-weight: normal;
+    font-size: 18px;
 
-    .logs-table.-error {
-        padding-bottom: 0;
-        .content {
-            border-left: 1px solid var(--color-red);
-            padding-bottom: 1rem;
-            padding: 1rem;
-        }
-    }
+    border-bottom: 1px solid var(--color-secondary);
+  }
 
-    .logs-table .line {
-        margin-top: 1rem;
+  .logs-table {
+    padding-top: 0;
+    padding-bottom: 1rem;
+  }
+
+  .logs-table.-error {
+    padding-bottom: 0;
+
+    .content {
+      padding: 1rem;
+      padding-bottom: 1rem;
+
+      border-left: 1px solid var(--color-red);
     }
-    .logs-table .line ~ .line {
-        margin-top: 0;
-    }
+  }
+
+  .logs-table .line {
+    margin-top: 1rem;
+  }
+
+  // stylelint-disable selector-max-compound-selectors
+  .logs-table .line ~ .line {
+    margin-top: 0;
+  }
 }

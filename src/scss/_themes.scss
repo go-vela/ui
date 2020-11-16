@@ -136,7 +136,7 @@ body.theme-light {
   }
 
   // stylelint-disable-next-line
-  .form-control input:invalid:not([type="checkbox"]):not([type="radio"]) {
+  .form-control input:invalid:not([type='checkbox']):not([type='radio']) {
     color: var(--color-red-dark);
   }
 
