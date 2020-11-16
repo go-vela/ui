@@ -4,12 +4,14 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (PartialModel, Error)
+module Pages.Pipeline.Model exposing (Error, PartialModel)
 
+import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Time exposing (Posix)
+import Toasty as Alerting exposing (Stack)
 import Vela
     exposing
         ( Build
@@ -20,8 +22,6 @@ import Vela
         , Steps
         , Templates
         )
-import Toasty as Alerting exposing (Stack)
-import Alerts exposing (Alert)
 
 
 
@@ -39,10 +39,12 @@ type alias PartialModel a =
         , build : WebData Build
         , steps : WebData Steps
         , shift : Bool
-        , templates :  (WebData Templates, Error)
+        , templates : ( WebData Templates, Error )
         , pipeline : Pipeline
         , page : Page
         , toasties : Stack Alert
     }
 
-type alias Error = String
+
+type alias Error =
+    String

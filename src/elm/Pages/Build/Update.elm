@@ -4,24 +4,24 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandActiveStep, mergeSteps,   update)
+module Pages.Build.Update exposing (expandActiveStep, mergeSteps, update)
 
 import Api
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import File.Download as Download
+import Focus exposing (resourceFocusFragment)
 import List.Extra
 import Pages.Build.Logs exposing (focusStep)
-import Focus exposing (resourceFocusFragment)
 import Pages.Build.Model
     exposing
         ( GetLogs
         , Msg(..)
-        , PartialModel,
-        RestartedBuildResponse
+        , PartialModel
+        , RestartedBuildResponse
         )
 import RemoteData exposing (RemoteData(..), WebData)
-import Task
+import Task exposing (perform, succeed)
 import Util exposing (overwriteById)
 import Vela
     exposing
@@ -31,7 +31,8 @@ import Vela
         , StepNumber
         , Steps
         )
-import Task exposing (perform, succeed)
+
+
 
 -- UPDATE
 
@@ -120,7 +121,6 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult restartedBu
 
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt focusResult )
-
 
 
 {-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs

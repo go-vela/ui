@@ -28,6 +28,7 @@ import Pages.Secrets.Model
         , defaultSecretUpdate
         )
 import RemoteData exposing (RemoteData(..))
+import Routes
 import Util exposing (stringToMaybe)
 import Vela
     exposing
@@ -38,7 +39,6 @@ import Vela
         , encodeUpdateSecret
         , secretTypeToString
         )
-import Routes
 
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
@@ -278,15 +278,7 @@ toUpdateSecretPayload secretsModel secret =
     in
     buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowCommand
 
-deleteSecretRedirect : Model msg -> String
-deleteSecretRedirect {engine, org, repo, team, type_ } =
-    Routes.routeToUrl <| case type_ of 
-        Vela.OrgSecret ->
-            Routes.OrgSecrets engine org  Nothing Nothing
-        Vela.RepoSecret ->
-            Routes.RepoSecrets engine org repo Nothing Nothing
-        Vela.SharedSecret ->
-            Routes.SharedSecrets engine org team Nothing Nothing
+
 
 -- UPDATE
 

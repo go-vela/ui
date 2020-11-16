@@ -11,7 +11,7 @@ import Array
 import Dict
 import Dict.Extra
 import Errors exposing (detailedErrorToString)
-import FeatherIcons
+import FeatherIcons exposing (Icon)
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
 import Html
     exposing
@@ -46,6 +46,8 @@ import Vela
         ( Build
         , LogFocus
         , Org
+        , Pipeline
+        , PipelineConfig
         , Repo
         , Step
         , Steps
@@ -58,56 +60,62 @@ import Vela
 -- VIEW
 
 
+{-| viewPipeline : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.
+-}
 viewPipeline : PartialModel a -> Html Msg
 viewPipeline model =
     div [ class "pipeline" ]
         [ viewTemplates model.templates
-        , viewConfig model
+        , viewPipelineConfiguration model
         ]
 
 
+{-| viewTemplates : takes templates and renders a list above the pipeline configuration.
+
+    Does not show if no templates are used in the pipeline.
+
+-}
 viewTemplates : ( WebData Templates, Error ) -> Html Msg
 viewTemplates templates =
-    let
-        content =
-            case templates of
-                ( NotAsked, _ ) ->
-                    text ""
+    case templates of
+        ( NotAsked, _ ) ->
+            text ""
 
-                ( Loading, _ ) ->
-                    Util.smallLoaderWithText "loading pipeline templates"
+        ( Loading, _ ) ->
+            Util.smallLoaderWithText "loading pipeline templates"
 
-                ( Success t, _ ) ->
-                    let
-                        templatesList =
-                            Dict.toList t
-                    in
-                    if List.length templatesList > 0 then
-                        Html.details [ class "details", class "templates", Html.Attributes.attribute "open" "" ]
-                            [ Html.summary [ class "summary" ]
-                                [ div [] [ text "Templates" ]
-                                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-                                ]
-                            , div [ class "content", class "-success" ] <|
-                                List.map viewTemplate templatesList
-                            ]
+        ( Success t, _ ) ->
+            if Dict.isEmpty t then
+                viewTemplatesContent
+                    (class "-success")
+                <|
+                    List.map viewTemplate <|
+                        Dict.toList t
 
-                    else
-                        text ""
+            else
+                text ""
 
-                ( Failure _, err ) ->
-                    Html.details [ class "details", class "templates", Html.Attributes.attribute "open" "" ]
-                        [ Html.summary [ class "summary" ]
-                            [ div [] [ text "Templates" ]
-                            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-                            ]
-                        , div [ class "content", class "-error" ]
-                            [ span [] [ text <| "There was a problem fetching templates for this pipeline configuration: " ++ err ] ]
-                        ]
-    in
-    content
+        ( Failure _, err ) ->
+            viewTemplatesContent
+                (class "-error")
+                [ text <| "There was a problem fetching templates for this pipeline configuration:", div [] [ text err ] ]
 
 
+{-| viewTemplatesContent : takes templates content and wraps it in a details/summary.
+-}
+viewTemplatesContent : Html.Attribute Msg -> List (Html Msg) -> Html Msg
+viewTemplatesContent cls content =
+    Html.details [ class "details", class "templates", Html.Attributes.attribute "open" "" ]
+        [ Html.summary [ class "summary" ]
+            [ div [] [ text "Templates" ]
+            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+            ]
+        , div [ class "content", cls ] content
+        ]
+
+
+{-| viewTemplate : takes template and renders view with name, source and HTML url.
+-}
 viewTemplate : ( String, Template ) -> Html msg
 viewTemplate ( _, t ) =
     div [ class "template" ]
@@ -124,42 +132,108 @@ viewTemplate ( _, t ) =
         ]
 
 
-templatesExpansion : PartialModel a -> Org -> Repo -> Maybe String -> Html Msg
-templatesExpansion model org repo ref =
+{-| viewPipelineConfiguration : takes model and renders a wrapper view for a pipeline configuration.
+-}
+viewPipelineConfiguration : PartialModel a -> Html Msg
+viewPipelineConfiguration model =
+    case model.pipeline.config of
+        ( Loading, _ ) ->
+            Util.smallLoaderWithText "loading pipeline configuration"
+
+        ( NotAsked, _ ) ->
+            text ""
+
+        _ ->
+            -- Success or Failure
+            viewConfigResponse model
+
+
+{-| viewConfigResponse : takes model and renders view for a pipeline configuration Success of Failure.
+-}
+viewConfigResponse : PartialModel a -> Html Msg
+viewConfigResponse model =
+    let
+        { config, lineFocus } =
+            model.pipeline
+    in
+    -- TODO: modularize logs rendering
+    div [ class "logs-container", class "-pipeline" ]
+        [ case config of
+            ( Success c, _ ) ->
+                if String.length c.data > 0 then
+                    wrapConfigContent model config <|
+                        div [ class "logs" ] <|
+                            viewLines c lineFocus model.shift
+
+                else
+                    code [] [ text "no pipeline config found" ]
+
+            ( Failure _, err ) ->
+                wrapConfigContent model config <|
+                    div [ class "content" ]
+                        [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
+
+            _ ->
+                text ""
+        ]
+
+
+{-| wrapConfigContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
+-}
+wrapConfigContent : PartialModel a -> ( WebData PipelineConfig, String ) -> Html Msg -> Html Msg
+wrapConfigContent model config content =
+    let
+        contentClass =
+            case config of
+                ( Failure _, _ ) ->
+                    class "-error"
+
+                _ ->
+                    class ""
+
+        body =
+            [ div [ class "header" ]
+                [ span [] [ text "Pipeline Configuration" ]
+                ]
+            , templatesExpansion model
+            ]
+                ++ [ content ]
+    in
+    Html.table
+        [ class "logs-table"
+        , contentClass
+        ]
+        body
+
+
+{-| templatesExpansion : takes model and renders the config header button for expanding pipeline templates.
+-}
+templatesExpansion : PartialModel a -> Html Msg
+templatesExpansion model =
     case model.templates of
         ( Success templates, _ ) ->
             if Dict.size templates > 0 then
                 let
-                    action =
-                        if model.pipeline.expanded then
-                            GetPipelineConfig org repo ref
+                    { org, repo, ref } =
+                        model.pipeline
 
-                        else
-                            ExpandPipelineConfig org repo ref
+                    wrapExpandTemplatesIcon : Icon -> Html Msg
+                    wrapExpandTemplatesIcon i =
+                        i |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "icon" |> FeatherIcons.toHtml []
                 in
-                div [ class "expansion" ]
-                    [ div [ class "toggle-expansion" ]
+                div [ class "expand-templates" ]
+                    [ div [ class "toggle" ]
                         [ if model.pipeline.configLoading then
                             Util.smallLoader
 
                           else if model.pipeline.expanded then
-                            FeatherIcons.checkCircle |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "expansion-icon -expanded" |> FeatherIcons.toHtml []
+                            wrapExpandTemplatesIcon FeatherIcons.checkCircle
 
                           else
-                            FeatherIcons.circle |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "expansion-icon" |> FeatherIcons.toHtml []
+                            wrapExpandTemplatesIcon FeatherIcons.circle
                         ]
-                    , button
-                        [ class "button"
-                        , class "-link"
-                        , Util.onClickPreventDefault <| action
-                        ]
-                        [ if model.pipeline.expanded then
-                            text "revert template expansion"
-
-                          else
-                            text "expand templates"
-                        ]
-                    , small [ class "expand-tip" ] [ text "note: expanding a pipeline configuration will order yaml fields alphabetically." ]
+                    , expandTemplatesToggleButton model.pipeline
+                    , expandTemplatesTip
                     ]
 
             else
@@ -172,58 +246,67 @@ templatesExpansion model org repo ref =
             text ""
 
 
-viewConfig : PartialModel a -> Html Msg
-viewConfig model =
+{-| expandTemplatesToggleButton : takes pipeline and renders button to toggle templates expansion.
+-}
+expandTemplatesToggleButton : Pipeline -> Html Msg
+expandTemplatesToggleButton pipeline =
     let
-        { org, repo, ref, expand, lineFocus } =
-            model.pipeline
+        { org, repo, ref } =
+            pipeline
 
-        content =
-            case model.pipeline.config of
-                (Success config, _) ->
-                    if String.length config.data > 0 then
-                        let
-                            header =
-                                div [ class "header" ]
-                                    [ span [] [ text "Pipeline Configuration" ]
-                                    ]
+        action =
+            if pipeline.expanded then
+                GetPipelineConfig org repo ref
 
-                            lines =
-                                config.data
-                                    |> decodeAnsi
-                                    |> Array.indexedMap
-                                        (\idx line ->
-                                            Just <|
-                                                viewLine "0"
-                                                    (idx + 1)
-                                                    (Just line)
-                                                    "0"
-                                                    lineFocus
-                                                    model.shift
-                                        )
-                                    |> Array.toList
-
-                            logs =
-                                [ header, templatesExpansion model org repo ref ]
-                                    ++ (lines
-                                            |> List.filterMap identity
-                                       )
-                        in
-                        div [ class "logs-container", class "-EDIT" ] [ div [ class "logs" ] [ Html.table [ class "logs-table" ] logs ] ]
-
-                    else
-                        code [] [ text "no pipeline config found" ]
-
-                (Loading, _) ->
-                    Util.smallLoaderWithText "loading pipeline configuration"
-
-                (Failure _, err) ->
-                    small [ class "error" ] [ text <| "There was a problem fetching the pipeline configuration: " ++ err ]
-
-                _ ->
-                    text ""
+            else
+                ExpandPipelineConfig org repo ref
     in
-    content
+    button
+        [ class "button"
+        , class "-link"
+        , Util.onClickPreventDefault <| action
+        ]
+        [ if pipeline.expanded then
+            text "revert template expansion"
+
+          else
+            text "expand templates"
+        ]
+
+
+{-| expandTemplatesTip : renders help tip that is displayed next to the expand templates button.
+-}
+expandTemplatesTip : Html Msg
+expandTemplatesTip =
+    small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
+
+
+
+-- LINE FOCUS
+-- TODO: modularize logs rendering
+
+
+viewLines : PipelineConfig -> LogFocus -> Bool -> List (Html Msg)
+viewLines c lineFocus shift =
+    let
+        lines =
+            c.data
+                |> decodeAnsi
+                |> Array.indexedMap
+                    (\idx line ->
+                        Just <|
+                            viewLine "0"
+                                (idx + 1)
+                                (Just line)
+                                "0"
+                                lineFocus
+                                shift
+                    )
+                |> Array.toList
+                |> Just
+    in
+    Maybe.withDefault [] lines
+        |> List.filterMap identity
 
 
 {-| viewLine : takes log line and focus information and renders line number button and log
@@ -274,29 +357,3 @@ lineFocusButton resource logFocus lineNumber shiftDown =
         , attribute "aria-label" <| "focus resource " ++ resource
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
-
-
-focusStyle : Int -> Int -> Html.Attribute Msg
-focusStyle lineNum idx =
-    class <|
-        if lineNum == idx then
-            "-focus"
-
-        else
-            ""
-
-
-webDataToClass : WebData a -> String
-webDataToClass w =
-    case w of
-        Success _ ->
-            "-success"
-
-        Loading ->
-            "-loading"
-
-        Failure err ->
-            "-error"
-
-        _ ->
-            ""

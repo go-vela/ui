@@ -44,7 +44,7 @@ type Msg
 -- UPDATE
 
 
-{-| load : takes model org, repo, and build number and loads the appropriate build analysis.
+{-| load : takes model org, repo, and build number and loads the appropriate pipeline configuration resources.
 -}
 load : PartialModel a -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( PartialModel a, Cmd Msg )
 load model org repo ref expand lineFocus =
@@ -53,7 +53,7 @@ load model org repo ref expand lineFocus =
             case expand of
                 Just e ->
                     if e == "true" then
-                        expandPipelineConfig model org repo ref
+                        Cmd.batch [ expandPipelineConfig model org repo ref, getPipelineTemplates model org repo ref ]
 
                     else
                         getPipelineConfig model org repo ref
@@ -64,11 +64,10 @@ load model org repo ref expand lineFocus =
         parsed =
             parseFocusFragment lineFocus
     in
-    -- Fetch build from Api
     ( { model
         | page = Pages.Pipeline org repo ref expand lineFocus
         , pipeline =
-            { config = (Loading, "")
+            { config = ( Loading, "" )
             , expanded = False
             , configLoading = True
             , org = org
@@ -84,30 +83,17 @@ load model org repo ref expand lineFocus =
     )
 
 
-getPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Cmd Msg
-getPipelineConfig model org repo ref =
-    Api.tryString (GetPipelineConfigResponse org repo ref) <| Api.getPipelineConfig model org repo ref
-
-
-expandPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Cmd Msg
-expandPipelineConfig model org repo ref =
-    Api.tryString (ExpandPipelineConfigResponse org repo ref) <| Api.expandPipelineConfig model org repo ref
-
-
-getPipelineTemplates : PartialModel a -> Org -> Repo -> Maybe String -> Cmd Msg
-getPipelineTemplates model org repo ref =
-    Api.try (PipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref
-
-
+{-| update : takes model and msg, returns a new model and potential action.
+-}
 update : PartialModel a -> Msg -> ( PartialModel a, Cmd Msg )
 update model msg =
     let
-        p =
+        pipeline =
             model.pipeline
     in
     case msg of
         GetPipelineConfig org repo ref ->
-            ( { model | pipeline = { p | configLoading = True } }
+            ( { model | pipeline = { pipeline | configLoading = True } }
             , Cmd.batch
                 [ getPipelineConfig model org repo ref
                 , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing Nothing
@@ -115,7 +101,7 @@ update model msg =
             )
 
         ExpandPipelineConfig org repo ref ->
-            ( { model | pipeline = { p | configLoading = True } }
+            ( { model | pipeline = { pipeline | configLoading = True } }
             , Cmd.batch
                 [ expandPipelineConfig model org repo ref
                 , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") Nothing
@@ -127,8 +113,8 @@ update model msg =
                 Ok ( meta, config ) ->
                     ( { model
                         | pipeline =
-                            { p
-                                | config = (RemoteData.succeed { data = config }, "")
+                            { pipeline
+                                | config = ( RemoteData.succeed { data = config }, "" )
                                 , expanded = False
                                 , configLoading = False
                             }
@@ -137,7 +123,14 @@ update model msg =
                     )
 
                 Err error ->
-                    ( { model | pipeline = { p | config = ( toFailure error,  detailedErrorToString error) } }, Errors.addError error Error )
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( toFailure error, detailedErrorToString error )
+                            }
+                      }
+                    , Errors.addError error Error
+                    )
 
         ExpandPipelineConfigResponse org repo ref response ->
             case response of
@@ -153,8 +146,8 @@ update model msg =
                     in
                     ( { model
                         | pipeline =
-                            { p
-                                | config = (RemoteData.succeed { data = config }, "")
+                            { pipeline
+                                | config = ( RemoteData.succeed { data = config }, "" )
                                 , expanded = True
                                 , configLoading = False
                             }
@@ -164,7 +157,16 @@ update model msg =
                     )
 
                 Err error ->
-                    ( { model | pipeline = { p | config = (Errors.toFailure error,  detailedErrorToString error), configLoading = False, expanded = False } }, addError error Error )
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( Errors.toFailure error, detailedErrorToString error )
+                                , configLoading = False
+                                , expanded = True
+                            }
+                      }
+                    , addError error Error
+                    )
 
         PipelineTemplatesResponse org repo response ->
             case response of
@@ -181,9 +183,14 @@ update model msg =
         FocusLine line ->
             let
                 url =
-                    lineRangeId "config" "0" line p.lineFocus model.shift
+                    lineRangeId "config" "0" line pipeline.lineFocus model.shift
             in
-            ( { model | pipeline = { p | lineFocus = p.lineFocus } }
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | lineFocus = pipeline.lineFocus
+                    }
+              }
             , Navigation.pushUrl model.navigationKey <| url
             )
 
@@ -193,3 +200,24 @@ update model msg =
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.successConfig AlertsUpdate subMsg model
+
+
+{-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
+-}
+getPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Cmd Msg
+getPipelineConfig model org repo ref =
+    Api.tryString (GetPipelineConfigResponse org repo ref) <| Api.getPipelineConfig model org repo ref
+
+
+{-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
+-}
+expandPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Cmd Msg
+expandPipelineConfig model org repo ref =
+    Api.tryString (ExpandPipelineConfigResponse org repo ref) <| Api.expandPipelineConfig model org repo ref
+
+
+{-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
+-}
+getPipelineTemplates : PartialModel a -> Org -> Repo -> Maybe String -> Cmd Msg
+getPipelineTemplates model org repo ref =
+    Api.try (PipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref

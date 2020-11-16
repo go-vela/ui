@@ -221,7 +221,7 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
-    , templates :   (WebData Templates, String)
+    , templates : ( WebData Templates, String )
     , pipeline : Pipeline
     }
 
@@ -275,7 +275,7 @@ init flags url navKey =
             , showIdentity = False
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
-            , templates = (NotAsked, "")
+            , templates = ( NotAsked, "" )
             , pipeline = defaultPipeline
             }
 
@@ -485,7 +485,9 @@ update msg model =
 
                                 _ ->
                                     session.entrypoint
-                        _ = Debug.log "redirect" redirectTo
+
+                        _ =
+                            Debug.log "redirect" redirectTo
                     in
                     ( { model | session = Just session }
                     , Cmd.batch
@@ -648,9 +650,10 @@ update msg model =
 
                 Err error ->
                     ( model, addError error Error )
+
         RestartBuild org repo buildNumber ->
             ( model
-              , restartBuild model org repo buildNumber
+            , restartBuild model org repo buildNumber
             )
 
         RestartedBuildResponse org repo buildNumber response ->
@@ -2021,7 +2024,9 @@ setAnalyze route model =
                     case model.page of
                         Pages.Pipeline o r ref_ _ _ ->
                             let
-                                _ = Debug.log "RELOADING PIPELINE" "!"
+                                _ =
+                                    Debug.log "RELOADING PIPELINE" "!"
+
                                 p =
                                     model.pipeline
 
@@ -2040,9 +2045,9 @@ setAnalyze route model =
 
                         _ ->
                             let
-                                _ = Debug.log "OTHER SOURCE -- LOAD" "!"
+                                _ =
+                                    Debug.log "OTHER SOURCE -- LOAD" "!"
 
-                            
                                 ( l, ll ) =
                                     Pages.Pipeline.Update.load model org repo ref expand lineFocus
                             in
@@ -2693,8 +2698,9 @@ getBuildStepsLogs model org repo buildNumber steps logFocus refresh =
             )
             steps
 
-restartBuild : Model -> Org -> Repo -> BuildNumber ->  Cmd Msg
-restartBuild model org repo buildNumber   =
+
+restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+restartBuild model org repo buildNumber =
     Api.try (RestartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
 
 

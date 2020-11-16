@@ -11,6 +11,7 @@ module Vela exposing
     , Builds
     , BuildsModel
     , ChownRepo
+    , Commit
     , Copy
     , CurrentUser
     , DisableRepo
@@ -34,7 +35,7 @@ module Vela exposing
     , Logs
     , Name
     , Org
-    , Pipeline,Commit
+    , Pipeline
     , PipelineConfig
     , RepairRepo
     , Repo
@@ -156,6 +157,7 @@ type alias Event =
 
 type alias BuildNumber =
     String
+
 
 type alias Commit =
     String
@@ -610,7 +612,7 @@ buildUpdateRepoIntPayload field value =
 
 
 type alias Pipeline =
-    { config : (WebData PipelineConfig, String)
+    { config : ( WebData PipelineConfig, String )
     , expanded : Bool
     , configLoading : Bool
     , org : Org
@@ -623,7 +625,7 @@ type alias Pipeline =
 
 defaultPipeline : Pipeline
 defaultPipeline =
-    Pipeline (NotAsked, "") False False "" "" Nothing Nothing ( Nothing, Nothing )
+    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing ( Nothing, Nothing )
 
 
 type alias PipelineConfig =

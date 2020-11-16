@@ -8,8 +8,8 @@ module Pages.Build.View exposing
     ( statusToClass
     , statusToString
     , viewBuild
-    , viewLine
     , viewBuildHistory
+    , viewLine
     , viewPreview
     )
 
@@ -19,8 +19,8 @@ import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
     exposing
-        ( lineRangeId
-        , lineFocusStyles
+        ( lineFocusStyles
+        , lineRangeId
         , resourceAndLineToFocusId
         , resourceToFocusId
         )
@@ -67,7 +67,7 @@ import Pages.Build.Logs
         , stepTopTrackerFocusId
         , toString
         )
-import Pages.Build.Model exposing (BuildModel, Msg(..),RestartedBuildResponse, PartialModel)
+import Pages.Build.Model exposing (BuildModel, Msg(..), PartialModel, RestartedBuildResponse)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
@@ -125,8 +125,8 @@ viewBuild model org repo =
                             , class "flowline-left"
                             , Util.testAttribute "log-actions"
                             ]
-                            [  collapseAllStepsButton
-                                , expandAllStepsButton org repo buildNumber
+                            [ collapseAllStepsButton
+                            , expandAllStepsButton org repo buildNumber
                             ]
                     )
 
@@ -462,7 +462,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                     []
                 ]
     in
-    ( table [ class "logs-table" ] <|
+    ( table [ class "logs-table", class "scrollable" ] <|
         topTracker
             :: logs
             ++ [ bottomTracker ]

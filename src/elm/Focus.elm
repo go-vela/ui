@@ -14,8 +14,14 @@ type alias ExpandTemplatesQuery =
 type alias Fragment =
     String
 
-type alias Resource = String
-type alias ResourceID = String
+
+type alias Resource =
+    String
+
+
+type alias ResourceID =
+    String
+
 
 {-| resourceFocusFragment : takes resource tag and maybe line numbers and produces URL fragment for focusing line ranges
 -}
@@ -26,16 +32,16 @@ resourceFocusFragment resource resourceId args =
 
 {-| resourceToFocusId : takes resource and id and returns the resource focus id for auto focusing on page load
 -}
-resourceToFocusId :  Resource -> ResourceID -> String
+resourceToFocusId : Resource -> ResourceID -> String
 resourceToFocusId resource resourceID =
-    String.join "-" [resource, resourceID ] 
+    String.join "-" [ resource, resourceID ]
 
 
-{-| resourceAndLineToFocusId : takes resource, id  and line number and returns the line focus id for auto focusing on page load
+{-| resourceAndLineToFocusId : takes resource, id and line number and returns the line focus id for auto focusing on page load
 -}
 resourceAndLineToFocusId : Resource -> ResourceID -> Int -> String
 resourceAndLineToFocusId resource resourceID lineNumber =
-    String.join "-" [resource, resourceID, "line", String.fromInt lineNumber] 
+    String.join "-" [ resource, resourceID, "line", String.fromInt lineNumber ]
 
 
 {-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus id for auto focusing on page load

@@ -7,18 +7,20 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api exposing
     ( Request(..)
     , addSecret
-    , chownRepo,expandPipelineConfig
+    , chownRepo
     , deleteRepo
     , enableRepository
+    , expandPipelineConfig
     , getAllBuilds
     , getAllHooks
-    , getAllRepositories,getPipelineConfig
+    , getAllRepositories
     , getAllSteps
     , getBuild
     , getBuilds
     , getCurrentUser
     , getHooks
-    , getPipelineTemplates,tryString
+    , getPipelineConfig
+    , getPipelineTemplates
     , getRepo
     , getRepositories
     , getSecret
@@ -32,6 +34,7 @@ module Api exposing
     , restartBuild
     , try
     , tryAll
+    , tryString
     , updateCurrentUser
     , updateRepository
     , updateSecret
@@ -167,7 +170,7 @@ toStringTask (Request config) =
         { body = config.body
         , headers = config.headers
         , method = config.method
-        , resolver = Http.stringResolver <| Http.Detailed.responseToString 
+        , resolver = Http.stringResolver <| Http.Detailed.responseToString
         , timeout = Nothing
         , url = config.url
         }
@@ -375,6 +378,7 @@ tryAll msg request_ =
         |> listResponseToList
         |> Task.attempt msg
 
+
 {-| tryString : default way to request information from and endpoint
 
     example usage:
@@ -385,6 +389,7 @@ tryString : (Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> ms
 tryString msg request_ =
     toStringTask request_
         |> Task.attempt msg
+
 
 
 -- OPERATIONS
@@ -493,22 +498,21 @@ updateRepository model org repo body =
 -}
 getPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Request String
 getPipelineConfig model org repository ref =
-    get model.velaAPI (Endpoint.PipelineConfig org repository ref )  decodePipelineConfig
+    get model.velaAPI (Endpoint.PipelineConfig org repository ref) decodePipelineConfig
         |> withAuth model.session
-
 
 
 {-| expandPipelineConfig : expands vela pipeline by repository
 -}
 expandPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Request String
 expandPipelineConfig model org repository ref =
-    post model.velaAPI (Endpoint.ExpandPipelineConfig org repository ref )  Http.emptyBody decodePipelineConfig
+    post model.velaAPI (Endpoint.ExpandPipelineConfig org repository ref) Http.emptyBody decodePipelineConfig
         |> withAuth model.session
 
 
 {-| getPipelineTemplates : fetches vela pipeline templates by repository
 -}
-getPipelineTemplates : PartialModel a -> Org -> Repo-> Maybe String  -> Request Templates
+getPipelineTemplates : PartialModel a -> Org -> Repo -> Maybe String -> Request Templates
 getPipelineTemplates model org repository ref =
     get model.velaAPI (Endpoint.PipelineTemplates org repository ref) decodePipelineTemplates
         |> withAuth model.session

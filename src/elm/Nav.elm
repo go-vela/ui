@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Nav exposing (Msgs, view)
 
+import Api exposing (restartBuild)
 import Browser.Events exposing (Visibility(..))
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
@@ -35,15 +36,15 @@ import Routes exposing (Route(..))
 import Util
 import Vela
     exposing
-        ( BuildNumber
-        , CurrentUser,Build
+        ( Build
+        , BuildNumber
+        , CurrentUser
         , Engine
         , Org
         , Repo
         , SourceRepositories
         , Type
         )
-import Api exposing (restartBuild)
 
 
 type alias PartialModel a =
@@ -220,29 +221,28 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 ]
 
         Pages.Build org repo buildNumber _ ->
-            div [ class "buttons"]
+            div [ class "buttons" ]
                 [ button
                     [ class "button"
-                                        , class "-outline"
+                    , class "-outline"
                     , onClick <| restartBuild org repo buildNumber
                     , Util.testAttribute "restart-build"
                     ]
-                    [ text "Restart Build" 
+                    [ text "Restart Build"
                     ]
                 , case model.build of
                     RemoteData.Success b ->
                         a
                             [ class "button"
-                                                , class "-outline"
+                            , class "-outline"
                             , Util.testAttribute <| "goto-build-pipeline-" ++ org ++ "-" ++ repo ++ "-" ++ buildNumber
                             , Routes.href <| Routes.Pipeline org repo (Just b.commit) Nothing Nothing
                             ]
-                            [  text <| "View yaml" ] 
+                            [ text <| "View yaml" ]
 
                     _ ->
                         text ""
                 ]
-            
 
         Pages.Hooks org repo _ _ ->
             div [ class "buttons" ]

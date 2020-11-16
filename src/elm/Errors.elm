@@ -4,13 +4,13 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Errors exposing (addError,errorToString, addErrorString, detailedErrorToError, detailedErrorToString, toFailure, viewResourceError)
+module Errors exposing (addError, addErrorString, detailedErrorToError, detailedErrorToString, errorToString, toFailure, viewResourceError)
 
 import Html exposing (Html, div, p, text)
 import Http exposing (Error(..))
 import Http.Detailed
 import Json.Decode as Decode
-import RemoteData exposing (RemoteData(..),   WebData)
+import RemoteData exposing (RemoteData(..), WebData)
 import Task exposing (perform, succeed)
 import Util
 
@@ -79,8 +79,8 @@ errorToString error =
         Http.NetworkError ->
             "network error"
 
-        Http.BadStatus metadata  ->
-            String.fromInt metadata 
+        Http.BadStatus metadata ->
+            String.fromInt metadata
 
         Http.BadBody body ->
             errorBodyToString body

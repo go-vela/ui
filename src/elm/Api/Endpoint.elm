@@ -96,12 +96,13 @@ toUrl api endpoint =
             url api [ "secrets", engine, type_, org, key, name ] []
 
         PipelineConfig org repo ref ->
-            url api [ "pipelines", org, repo  ] [UB.string "ref" <| Maybe.withDefault "" ref]
+            url api [ "pipelines", org, repo ] [ UB.string "ref" <| Maybe.withDefault "" ref ]
+
         ExpandPipelineConfig org repo ref ->
-            url api [ "pipelines", org, repo, "expand" ] [UB.string "ref" <| Maybe.withDefault "" ref]
+            url api [ "pipelines", org, repo, "expand" ] [ UB.string "ref" <| Maybe.withDefault "" ref ]
 
         PipelineTemplates org repo ref ->
-            url api [ "pipelines", org, repo, "templates" ] [UB.string "output" "json", UB.string "ref" <| Maybe.withDefault "" ref]
+            url api [ "pipelines", org, repo, "templates" ] [ UB.string "output" "json", UB.string "ref" <| Maybe.withDefault "" ref ]
 
 
 {-| url : creates a URL string with the given path segments and query parameters

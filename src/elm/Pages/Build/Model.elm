@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Model exposing (BuildModel, GetLogs, Msg(..),RestartedBuildResponse, PartialModel)
+module Pages.Build.Model exposing (BuildModel, GetLogs, Msg(..), PartialModel, RestartedBuildResponse)
 
 import Browser.Navigation as Navigation
 import Http
@@ -78,7 +78,8 @@ type alias GetStepsLogs a msg =
 
 
 type alias RestartedBuildResponse msg =
-    Org -> Repo -> BuildNumber -> (Result (Http.Detailed.Error String) ( Http.Metadata, Build )) -> msg
+    Org -> Repo -> BuildNumber -> Result (Http.Detailed.Error String) ( Http.Metadata, Build ) -> msg
+
 
 type alias GetLogs a msg =
     ( GetStepLogs a msg, GetStepsLogs a msg )

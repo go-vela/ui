@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Routes exposing (Route(..), href, match, routeToUrl)
 
 import Api.Pagination as Pagination
+import Focus exposing (..)
 import Html
 import Html.Attributes as Attr
 import Url exposing (Url)
@@ -14,7 +15,7 @@ import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
-import Focus exposing (..)
+
 
 
 -- TYPES
@@ -36,12 +37,14 @@ type Route
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
-    | Pipeline Org Repo  (Maybe RefQuery)  (Maybe ExpandTemplatesQuery) (Maybe Fragment)
+    | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
     | Login
     | Logout
     | Authenticate AuthParams
     | NotFound
+
+
 
 -- ROUTES
 
@@ -67,7 +70,7 @@ routes =
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
-        , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref"<?> Query.string "expand" </> fragment identity)
+        , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
         , map Build (string </> string </> string </> fragment identity)
         , map NotFound (s "404")
         ]
@@ -144,8 +147,8 @@ routeToUrl route =
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" lineFocus
 
         Pipeline org repo ref expand lineFocus ->
-            "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap  identity<|  [maybeToQueryParam ref "ref", maybeToQueryParam expand "expand"])++ Maybe.withDefault "" lineFocus
-        
+            "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
+
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }
 
@@ -186,7 +189,8 @@ eventToQueryParam maybeEvent =
     else
         []
 
-maybeToQueryParam : Maybe String -> String ->  Maybe UB.QueryParameter
+
+maybeToQueryParam : Maybe String -> String -> Maybe UB.QueryParameter
 maybeToQueryParam maybeStr key =
     if maybeStr /= Nothing then
         Just <| UB.string key <| Maybe.withDefault "" maybeStr

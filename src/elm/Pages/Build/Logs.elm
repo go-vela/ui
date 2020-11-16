@@ -7,20 +7,21 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Build.Logs exposing
     ( SetLogFocus
     , decodeAnsi
-     , focusLogs
+    , focusLogs
     , focusStep
     , getCurrentStep
     , getDownloadLogsFileName
     , getStepLog
     , logEmpty
     , logFocusExists
-      , stepBottomTrackerFocusId
-     , stepTopTrackerFocusId
+    , stepBottomTrackerFocusId
+    , stepTopTrackerFocusId
     , toString
     )
 
 import Ansi.Log
 import Array
+import Focus exposing (parseFocusFragment, resourceFocusFragment)
 import List.Extra exposing (updateIf)
 import Pages exposing (Page)
 import Pages.Build.Model exposing (Msg(..))
@@ -38,7 +39,7 @@ import Vela
         , StepNumber
         , Steps
         )
-import Focus exposing (parseFocusFragment, resourceFocusFragment )
+
 
 
 -- TYPES
@@ -74,11 +75,6 @@ getStepLog step logs =
             )
             logs
         )
-
-
-
-
-
 
 
 {-| focusStep : takes FocusFragment URL fragment and expands the appropriate step to automatically view
@@ -184,7 +180,6 @@ clearStepLogFocus step =
     { step | logFocus = ( Nothing, Nothing ) }
 
 
-
 {-| logFocusExists : takes steps and returns if a line or range has already been focused
 -}
 logFocusExists : WebData Steps -> Bool
@@ -198,6 +193,7 @@ logFocusExists steps =
                     RemoteData.withDefault [] steps
     )
         /= ( Nothing, Nothing )
+
 
 {-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
 -}
@@ -235,7 +231,6 @@ toString log =
 
         Nothing ->
             ""
-
 
 
 {-| getDownloadLogsFileName : takes step information and produces a filename for downloading logs
