@@ -282,7 +282,7 @@ init flags url navKey =
             }
 
         ( newModel, newPage ) =
-            setPage (Routes.match url) model
+            setNewPage (Routes.match url) model
 
         setTimeZone =
             Task.perform AdjustTimeZone here
@@ -381,7 +381,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewRoute route ->
-            setPage route model
+            setNewPage route model
 
         SignInRequested ->
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
@@ -1915,8 +1915,8 @@ buildUrl base paths params =
     UB.crossOrigin base paths params
 
 
-setPage : Routes.Route -> Model -> ( Model, Cmd Msg )
-setPage route model =
+setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
+setNewPage route model =
     let
         sessionHasToken : Bool
         sessionHasToken =
