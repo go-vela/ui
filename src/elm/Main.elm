@@ -2025,9 +2025,20 @@ setNewPage route model =
 
                                 parsed =
                                     parseFocusFragment lineFocus
+
+                                current =
+                                    ( org, repo, Maybe.withDefault "" ref )
+
+                                incoming =
+                                    ( o, r, Maybe.withDefault "" ref_ )
                             in
-                            if not <| resourceChanged ( org, repo, Maybe.withDefault "" ref ) ( o, r, Maybe.withDefault "" ref_ ) then
-                                ( { model | pipeline = { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) } }, Cmd.none )
+                            if not <| resourceChanged current incoming then
+                                ( { model
+                                    | pipeline =
+                                        { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
+                                  }
+                                , Cmd.none
+                                )
 
                             else
                                 loadPipeline
