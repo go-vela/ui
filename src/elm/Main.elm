@@ -1669,7 +1669,7 @@ viewContent model =
                 [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
                 , Html.map (\m -> BuildUpdate m) <|
-                    lazy5 Pages.Builds.view model.builds model.time org repo maybeEvent
+                    lazy6 Pages.Builds.view model.builds model.time model.zone org repo maybeEvent
                 , Pager.view model.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -1680,6 +1680,7 @@ viewContent model =
                 lazy3 Pages.Build.View.viewBuild
                     { navigationKey = model.navigationKey
                     , time = model.time
+                    , zone = model.zone
                     , build = model.build
                     , steps = model.steps
                     , logs = model.logs
