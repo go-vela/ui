@@ -4,10 +4,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (  Msg(..), PartialModel)
+module Pages.Pipeline.Model exposing (Msg(..), PartialModel)
 
 import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
+import Errors exposing (Error)
 import Http
 import Http.Detailed
 import Pages exposing (Page(..))
@@ -24,7 +25,8 @@ import Vela
         , Steps
         , Templates
         )
-import Errors exposing (Error)
+
+
 
 -- MODEL
 
@@ -60,6 +62,3 @@ type Msg
     | FocusLine Int
     | Error Error
     | AlertsUpdate (Alerting.Msg Alert)
-
-
-

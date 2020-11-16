@@ -34,7 +34,7 @@ import List.Extra
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Build.View exposing (viewLine)
-import Pages.Pipeline.Model exposing ( Msg(..), PartialModel)
+import Pages.Pipeline.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder

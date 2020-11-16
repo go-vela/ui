@@ -103,7 +103,6 @@ import Vela
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
 viewBuild model org repo =
     let
-
         ( buildPreview, buildNumber ) =
             case model.build of
                 RemoteData.Success bld ->

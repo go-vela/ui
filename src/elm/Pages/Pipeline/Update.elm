@@ -59,7 +59,7 @@ load model org repo ref expand lineFocus =
             , expand = expand
             , lineFocus = ( parsed.lineA, parsed.lineB )
             }
-        , templates = (Loading, "")
+        , templates = ( Loading, "" )
       }
     , Cmd.batch
         [ getPipelineConfigAction
