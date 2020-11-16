@@ -1679,8 +1679,6 @@ viewContent model =
             , Html.map (\m -> BuildUpdate m) <|
                 lazy3 Pages.Build.View.viewBuild
                     { navigationKey = model.navigationKey
-                    , velaAPI = model.velaAPI
-                    , session = model.session
                     , time = model.time
                     , build = model.build
                     , steps = model.steps
