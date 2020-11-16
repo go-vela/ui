@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Errors exposing (addError, addErrorString, detailedErrorToError, detailedErrorToString, errorToString, toFailure, viewResourceError)
+module Errors exposing (addError, addErrorString, detailedErrorToError, detailedErrorToString, toFailure, viewResourceError)
 
 import Html exposing (Html, div, p, text)
 import Http exposing (Error(..))
@@ -63,28 +63,6 @@ detailedErrorToError error =
 
         Http.Detailed.BadBody _ _ body ->
             Http.BadBody body
-
-
-{-| errorToString : convert a Http.Error to a string
--}
-errorToString : Http.Error -> String
-errorToString error =
-    case error of
-        Http.BadUrl url ->
-            "bad URL: " ++ url
-
-        Http.Timeout ->
-            "timeout"
-
-        Http.NetworkError ->
-            "network error"
-
-        Http.BadStatus metadata ->
-            String.fromInt metadata
-
-        Http.BadBody body ->
-            errorBodyToString body
-
 
 {-| errorBodyToString : extracts/converts the "error" field from an api json error message to string
 -}

@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-port module Interop exposing (drawAnalysis, onSessionChange, onThemeChange, setFavicon, setTheme, storeSession)
+port module Interop exposing (onSessionChange, onThemeChange, setFavicon, setTheme, storeSession)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -41,8 +41,3 @@ port setTheme : Encode.Value -> Cmd msg
 {-| outbound
 -}
 port setFavicon : Encode.Value -> Cmd msg
-
-
-{-| outbound
--}
-port drawAnalysis : ( Encode.Value, Encode.Value ) -> Cmd msg
