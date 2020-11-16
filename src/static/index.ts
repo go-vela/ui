@@ -85,10 +85,6 @@ app.ports.setFavicon.subscribe(function (url) {
   document.head.appendChild(newIcon);
 });
 
-app.ports.drawAnalysis.subscribe(function(args) {
-  console.log('drawAnalysis::', args);
-});
-
 // initialize clipboard.js
 new ClipboardJS('.copy-button');
 
