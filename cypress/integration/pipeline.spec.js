@@ -41,11 +41,15 @@ context('Pipeline', () => {
     });
 
     it('expand templates should not be visible', () => {
-      cy.get('[data-test=pipeline-templates-expand]').should('not.exist');
+      cy.get('[data-test=pipeline-templates-expand]').should('not.be.visible');
     });
 
     it('pipeline configuration data should show', () => {
       cy.get('[data-test=pipeline-configuration-data]').should('be.visible');
+      cy.get('[data-test=pipeline-configuration-data]').should(
+        'contain',
+        'version',
+      );
     });
   });
   context(
@@ -106,6 +110,10 @@ context('Pipeline', () => {
         it('pipeline configuration data should show', () => {
           cy.get('[data-test=pipeline-configuration-data]').should(
             'be.visible',
+          );
+          cy.get('[data-test=pipeline-configuration-data]').should(
+            'contain',
+            'version',
           );
         });
 
@@ -178,6 +186,10 @@ context('Pipeline', () => {
 
       it('pipeline configuration data should show', () => {
         cy.get('[data-test=pipeline-configuration-data]').should('be.visible');
+        cy.get('[data-test=pipeline-configuration-data]').should(
+          'contain',
+          'version',
+        );
       });
 
       it('pipeline configuration data should respect yaml spacing', () => {
