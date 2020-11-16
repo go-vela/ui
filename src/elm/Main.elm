@@ -751,7 +751,7 @@ update msg model =
                         updatedModel =
                             { setSteps | steps = RemoteData.succeed mergedSteps }
                     in
-                    ( updatedModel, Cmd.batch [ drawAnalysis updatedModel, cmd ] )
+                    ( updatedModel, cmd )
 
                 Err error ->
                     ( model, addError error Error )
@@ -1216,11 +1216,6 @@ updateSecretResponseAlert secret =
 
 
 -- SUBSCRIPTIONS
-
-
-drawAnalysis : Model -> Cmd Msg
-drawAnalysis model =
-    Interop.drawAnalysis ( Encode.list Encode.string [ "build" ], Encode.list Encode.string [ "steps" ] )
 
 
 keyDecoder : Decode.Decoder String

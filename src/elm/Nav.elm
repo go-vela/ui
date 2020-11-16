@@ -6,7 +6,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Nav exposing (Msgs, view)
 
-import Api exposing (restartBuild)
 import Browser.Events exposing (Visibility(..))
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
