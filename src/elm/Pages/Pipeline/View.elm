@@ -144,7 +144,6 @@ viewPipelineConfiguration model =
             text ""
 
         _ ->
-            -- Success or Failure
             viewConfigResponse model
 
 

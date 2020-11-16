@@ -367,7 +367,7 @@ type Msg
     | VisibilityChanged Visibility
       -- Components
     | BuildUpdate Pages.Build.Model.Msg
-    | AnalyzeUpdate Pages.Pipeline.Update.Msg
+    | PipelineUpdate Pages.Pipeline.Update.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
@@ -1075,13 +1075,13 @@ update msg model =
             , action
             )
 
-        AnalyzeUpdate m ->
+        PipelineUpdate m ->
             let
                 ( newModel, action ) =
                     Pages.Pipeline.Update.update model m
             in
             ( newModel
-            , Cmd.map (\ms -> AnalyzeUpdate ms) action
+            , Cmd.map (\ms -> PipelineUpdate ms) action
             )
 
         AddSecretUpdate engine m ->
@@ -1703,7 +1703,7 @@ viewContent model =
 
         Pages.Pipeline org repo ref expand lineFocus ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Html.map (\m -> AnalyzeUpdate m) <|
+            , Html.map (\m -> PipelineUpdate m) <|
                 Pages.Pipeline.View.viewPipeline
                     { navigationKey = model.navigationKey
                     , velaAPI = model.velaAPI
@@ -2024,9 +2024,6 @@ setAnalyze route model =
                     case model.page of
                         Pages.Pipeline o r ref_ _ _ ->
                             let
-                                _ =
-                                    Debug.log "RELOADING PIPELINE" "!"
-
                                 p =
                                     model.pipeline
 
@@ -2041,17 +2038,14 @@ setAnalyze route model =
                                     ( l, ll ) =
                                         Pages.Pipeline.Update.load model org repo ref expand lineFocus
                                 in
-                                ( l, Cmd.map (\m -> AnalyzeUpdate m) <| ll )
+                                ( l, Cmd.map (\m -> PipelineUpdate m) <| ll )
 
                         _ ->
                             let
-                                _ =
-                                    Debug.log "OTHER SOURCE -- LOAD" "!"
-
                                 ( l, ll ) =
                                     Pages.Pipeline.Update.load model org repo ref expand lineFocus
                             in
-                            ( l, Cmd.map (\m -> AnalyzeUpdate m) <| ll )
+                            ( l, Cmd.map (\m -> PipelineUpdate m) <| ll )
             in
             ( newModel, action )
 
