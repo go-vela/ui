@@ -23,6 +23,7 @@ import Html exposing (Html, div, input)
 import Html.Attributes
     exposing
         ( attribute
+        , autofocus
         , class
         , id
         , placeholder
@@ -50,6 +51,7 @@ homeSearchBar filter search =
     div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "home-search-bar" ]
         [ input
             [ Util.testAttribute "home-search-input"
+            , autofocus True
             , placeholder "Type to filter all favorites..."
             , value <| filter
             , onInput search
