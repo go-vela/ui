@@ -23,7 +23,9 @@ import Html exposing (Html, div, input)
 import Html.Attributes
     exposing
         ( attribute
+        , autofocus
         , class
+        , id
         , placeholder
         , value
         )
@@ -49,6 +51,7 @@ homeSearchBar filter search =
     div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "home-search-bar" ]
         [ input
             [ Util.testAttribute "home-search-input"
+            , autofocus True
             , placeholder "Type to filter all favorites..."
             , value <| filter
             , onInput search
@@ -68,6 +71,7 @@ repoSearchBarGlobal searchFilters search =
             , placeholder "Type to filter all repositories..."
             , value <| searchFilterGlobal searchFilters
             , onInput <| search ""
+            , id "global-search-input"
             ]
             []
         , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
