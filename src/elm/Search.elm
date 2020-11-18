@@ -25,6 +25,7 @@ import Html.Attributes
         ( attribute
         , autofocus
         , class
+        , id
         , placeholder
         , value
         )
@@ -70,6 +71,7 @@ repoSearchBarGlobal searchFilters search =
             , placeholder "Type to filter all repositories..."
             , value <| searchFilterGlobal searchFilters
             , onInput <| search ""
+            , id "global-search-input"
             ]
             []
         , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]

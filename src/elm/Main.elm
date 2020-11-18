@@ -524,7 +524,7 @@ update msg model =
         SourceRepositoriesResponse response ->
             case response of
                 Ok ( _, repositories ) ->
-                    ( { model | sourceRepos = RemoteData.succeed repositories }, Cmd.none )
+                    ( { model | sourceRepos = RemoteData.succeed repositories }, Util.dispatch <| FocusOn "global-search-input" )
 
                 Err error ->
                     ( { model | sourceRepos = toFailure error }, addError error )
