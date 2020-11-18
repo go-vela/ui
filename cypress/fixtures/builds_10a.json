@@ -265,7 +265,7 @@
     "branch": "terra",
     "ref": "refs/heads/terra",
     "base_ref": "",
-    "host": "",
+    "host": "https://vela-worker-6.com",
     "runtime": "docker",
     "distribution": "linux"
   }

@@ -99,6 +99,21 @@ context('Build', () => {
           cy.get('@tooltip').should('contain', 'started');
           cy.get('@tooltip').should('contain', 'finished');
         });
+
+        it('should show commit', () => {
+          cy.get('@tooltip').should('contain', 'commit');
+          cy.get('@tooltip').should('contain', '7bd468e');
+        });
+
+        it('should show branch', () => {
+          cy.get('@tooltip').should('contain', 'branch');
+          cy.get('@tooltip').should('contain', 'terra');
+        });
+
+        it('should show worker', () => {
+          cy.get('@tooltip').should('contain', 'worker');
+          cy.get('@tooltip').should('contain', 'https://vela-worker-6.com');
+        });
       });
     });
 
@@ -179,6 +194,9 @@ context('Build', () => {
         cy.get('@build')
           .find('.commit-msg')
           .should('have.css', 'text-overflow', 'ellipsis');
+      });
+      it('build should annotate the age with the full timestamp', () => {
+        cy.get('@build').find('.time-info .age').should('have.attr', 'title');
       });
     });
 

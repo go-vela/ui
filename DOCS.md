@@ -35,11 +35,11 @@ git clone git@github.com:go-vela/ui.git $HOME/go-vela/ui
 cd $HOME/go-vela/ui
 ```
 
-* If using GitHub Enterprise (default: `https://github.com/`), add the Web URL to a local `secrets.env` file:
+* If using GitHub Enterprise (default: `https://github.com/`), add the Web URL to a local `.env` file:
 
 ```bash
 # add Github Enterprise Web URL to local secrets file for `docker-compose`
-echo "VELA_SOURCE_URL=<GitHub Enterprise Web URL>" >> secrets.env
+echo "VELA_SOURCE_URL=<GitHub Enterprise Web URL>" >> .env
 ```
 
 * Create an [OAuth App](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/) and obtain secrets for local development:
@@ -47,14 +47,14 @@ echo "VELA_SOURCE_URL=<GitHub Enterprise Web URL>" >> secrets.env
   * `Homepage URL` = `http://localhost:8080` (base URL of the server)
   * `Authorization callback URL` = `http://localhost:8888/account/authenticate` (authenticate endpoint of the base URL of the UI)
 
-* Add OAuth client secrets to a local `secrets.env` file:
+* Add OAuth client secrets to a local `.env` file:
 
 ```bash
 # add Github Client ID to local secrets file for `docker-compose`
-echo "VELA_SOURCE_CLIENT=<Github OAuth Client ID>" >> secrets.env
+echo "VELA_SOURCE_CLIENT=<Github OAuth Client ID>" >> .env
 
 # add Github Client Secret to local secrets file for `docker-compose`
-echo "VELA_SOURCE_SECRET=<Github OAuth Client Secret>" >> secrets.env
+echo "VELA_SOURCE_SECRET=<Github OAuth Client Secret>" >> .env
 ```
 
 * Switch to the correct version of NodeJS
@@ -112,10 +112,8 @@ This method of running the application enables hot-reloading of the code.
   #   image: ui:local
   #   networks:
   #     - vela
-  #   environment:
-  #     VELA_API: 'http://localhost:8080'
   #   env_file:
-  #     - secrets.env
+  #     - .env
   #   restart: always
   #   ports:
   #     - '8888:80'
