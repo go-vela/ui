@@ -13,6 +13,11 @@ context('Secrets', () => {
         'fixture:secret_repo.json',
       );
       cy.route(
+        'GET',
+        '*api/v1/secrets/native/org/github/*/password*',
+        'fixture:secret_org.json',
+      );
+      cy.route(
         'DELETE',
         '*api/v1/secrets/native/repo/github/octocat/password*',
         'Secret repo/github/octocat/password deleted from native service',
@@ -31,16 +36,22 @@ context('Secrets', () => {
         cy.get('[data-test=secret-delete-button]')
         .click()
       });
-  
-      it('Confirm button should show', () => {
+
+      it('Remove button should show when going to another secrets page', () => {
+        cy.visit('/-/secrets/native/org/github/password')
         cy.get('[data-test=secret-delete-button]')
           .should('exist')
-          .contains('Confirm');
+          .contains('Remove');
       });
       it('Cancel button should show', () => {
         cy.get('[data-test=secret-cancel-button]')
           .should('exist')
           .contains('Cancel');
+      });
+      it('Confirm button should show', () => {
+        cy.get('[data-test=secret-delete-button]')
+          .should('exist')
+          .contains('Confirm');
       });
       context('click Cancel', () => {
         beforeEach(() => {

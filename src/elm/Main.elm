@@ -2279,6 +2279,7 @@ loadUpdateOrgSecretPage model engine org name =
                 , org = org
                 , engine = engine
                 , type_ = Vela.OrgSecret
+                , deleteButton = False
             }
       }
     , Cmd.batch
@@ -2306,6 +2307,7 @@ loadUpdateRepoSecretPage model engine org repo name =
                 , repo = repo
                 , engine = engine
                 , type_ = Vela.RepoSecret
+                , deleteButton = False
             }
       }
     , Cmd.batch
@@ -2333,6 +2335,7 @@ loadUpdateSharedSecretPage model engine org team name =
                 , team = team
                 , engine = engine
                 , type_ = Vela.SharedSecret
+                , deleteButton = False
             }
       }
     , Cmd.batch
