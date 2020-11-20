@@ -33,12 +33,11 @@ context('Secrets', () => {
 
     context('click Remove', () => {
       beforeEach(() => {
-        cy.get('[data-test=secret-delete-button]')
-        .click()
+        cy.get('[data-test=secret-delete-button]').click();
       });
 
       it('Remove button should show when going to another secrets page', () => {
-        cy.visit('/-/secrets/native/org/github/password')
+        cy.visit('/-/secrets/native/org/github/password');
         cy.get('[data-test=secret-delete-button]')
           .should('exist')
           .contains('Remove');
@@ -55,26 +54,23 @@ context('Secrets', () => {
       });
       context('click Cancel', () => {
         beforeEach(() => {
-          cy.get('[data-test=secret-cancel-button]')
-          .click()
+          cy.get('[data-test=secret-cancel-button]').click();
         });
-    
+
         it('Cancel should revert Confirm to Remove', () => {
           cy.get('[data-test=secret-delete-button]')
-          .should('exist')
-          .contains('Remove');
+            .should('exist')
+            .contains('Remove');
         });
         it('Cancel should not show', () => {
-          cy.get('[data-test=secret-cancel-button]')
-          .should('not.exist');
+          cy.get('[data-test=secret-cancel-button]').should('not.exist');
         });
       });
       context('click Confirm', () => {
         beforeEach(() => {
-          cy.get('[data-test=secret-delete-button]')
-          .click()
+          cy.get('[data-test=secret-delete-button]').click();
         });
-    
+
         it('Confirm should redirect to repo secrets page', () => {
           cy.location('pathname').should(
             'eq',
@@ -84,7 +80,6 @@ context('Secrets', () => {
       });
     });
   });
-
 
   context('server returning secrets error', () => {
     beforeEach(() => {
