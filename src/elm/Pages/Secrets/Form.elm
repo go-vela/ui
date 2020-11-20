@@ -297,6 +297,7 @@ viewDeleteButton secretsModel =
         [ class "button"
         , class "-outline"
         , class deleteButtonClass
+        , Util.testAttribute "secret-delete-button"
         , onClick <| Pages.Secrets.Model.DeleteSecret secretsModel.engine
         ]
         [ text deleteButtonText ]
@@ -311,6 +312,7 @@ viewCancelButton secretsModel =
         button
             [ class "button"
             , class "-outline"
+            , Util.testAttribute "secret-cancel-button"
             , onClick <| Pages.Secrets.Model.CancelDeleteSecret
             ]
             [ text "Cancel" ]

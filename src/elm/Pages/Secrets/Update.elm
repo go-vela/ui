@@ -368,9 +368,6 @@ update model msg =
 
                 Pages.Secrets.Model.DeleteSecret engine ->
                     let
-                        _ =
-                            Debug.log "message" "hello!!!!"
-
                         secret =
                             secretsModel.form
 
