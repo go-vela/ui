@@ -387,7 +387,7 @@ update model msg =
                                 Cmd.none
 
                             else
-                                Api.try secretsModel.deleteSecretResponse <|
+                                Api.tryString secretsModel.deleteSecretResponse <|
                                     Api.deleteSecret model
                                         engine
                                         (secretTypeToString secretsModel.type_)

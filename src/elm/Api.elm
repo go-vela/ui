@@ -32,6 +32,7 @@ module Api exposing
     , restartBuild
     , try
     , tryAll
+    , tryString
     , updateCurrentUser
     , updateRepository
     , updateSecret
@@ -163,6 +164,20 @@ toAllTask (Request config) =
         , headers = config.headers
         , method = config.method
         , resolver = Http.stringResolver (listResponseResolver config)
+        , timeout = Nothing
+        , url = config.url
+        }
+
+
+{-| toStringTask : turn a request config into an HTTP task
+-}
+toStringTask : Request String -> Task (Http.Detailed.Error String) ( Http.Metadata, String )
+toStringTask (Request config) =
+    Http.task
+        { body = config.body
+        , headers = config.headers
+        , method = config.method
+        , resolver = Http.stringResolver <| Http.Detailed.responseToString
         , timeout = Nothing
         , url = config.url
         }
@@ -354,6 +369,16 @@ tryAll : (Result (Http.Detailed.Error String) ( Http.Metadata, List a ) -> msg) 
 tryAll msg request_ =
     toAllTask request_
         |> listResponseToList
+        |> Task.attempt msg
+
+
+{-| tryString : default way to request information from and endpoint
+example usage:
+Api.tryString UserResponse <| Api.getUser model authParams
+-}
+tryString : (Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg) -> Request String -> Cmd msg
+tryString msg request_ =
+    toStringTask request_
         |> Task.attempt msg
 
 
