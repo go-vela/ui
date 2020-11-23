@@ -1833,7 +1833,36 @@ helpArgs model =
 viewUtil : Model -> Html Msg
 viewUtil model =
     div [ class "util" ]
-        [ lazy7 Pages.Build.View.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10 ]
+        [ case model.page of
+            Pages.Build _ _ _ _ ->
+                viewBuildHistory model
+
+            Pages.RepositoryBuilds _ _ _ _ _ ->
+                repoNav
+
+            Pages.RepoSecrets _ _ _ _ _ ->
+                repoNav
+
+            Pages.RepoSettings _ _ ->
+                repoNav
+
+            _ ->
+                text ""
+        ]
+
+
+repoNav : Html Msg
+repoNav =
+    div [ class "jump-bar" ]
+        [ a [ class "jump" ]  [ text "Builds" ]
+        , a [ class "jump" ] [ text "Secrets" ]
+        , a [ class "jump" ] [ text "Settings" ]
+        , Html.span [class "jump", class "fill"] []
+        ]
+
+
+viewBuildHistory model =
+    lazy7 Pages.Build.View.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10
 
 
 viewAlerts : Stack Alert -> Html Msg
