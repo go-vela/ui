@@ -4,13 +4,27 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Errors exposing (detailedErrorToError, detailedErrorToString, viewResourceError)
+module Errors exposing (Error, addError, addErrorString, detailedErrorToError, detailedErrorToString, toFailure, viewResourceError)
 
 import Html exposing (Html, div, p, text)
 import Http exposing (Error(..))
 import Http.Detailed
 import Json.Decode as Decode
+import RemoteData exposing (RemoteData(..), WebData)
+import Task exposing (perform, succeed)
 import Util
+
+
+
+-- TYPES
+
+
+type alias Error =
+    String
+
+
+
+-- HELPERS
 
 
 {-| errorDecoder : decodes error field from json
@@ -105,3 +119,28 @@ viewResourceError { resourceLabel, testLabel } =
                     ++ ", please refresh or try again later!"
             ]
         ]
+
+
+{-| toFailure : maps a detailed error into a WebData Failure value
+-}
+toFailure : Http.Detailed.Error String -> WebData a
+toFailure error =
+    Failure <| detailedErrorToError error
+
+
+{-| addError : takes a detailed http error and produces a Cmd Msg that invokes an action in the Errors module
+-}
+addError : Http.Detailed.Error String -> (String -> msg) -> Cmd msg
+addError error m =
+    succeed
+        (m <| detailedErrorToString error)
+        |> perform identity
+
+
+{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module
+-}
+addErrorString : String -> (String -> msg) -> Cmd msg
+addErrorString error m =
+    succeed
+        (m <| error)
+        |> perform identity

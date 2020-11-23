@@ -9,6 +9,7 @@ module Pages.Build.View exposing
     , statusToString
     , viewBuild
     , viewBuildHistory
+    , viewLine
     , viewPreview
     )
 
@@ -16,6 +17,15 @@ import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
+import Focus
+    exposing
+        ( Resource
+        , ResourceID
+        , lineFocusStyles
+        , lineRangeId
+        , resourceAndLineToFocusId
+        , resourceToFocusId
+        )
 import Html
     exposing
         ( Html
@@ -56,11 +66,7 @@ import Pages.Build.Logs
         , getDownloadLogsFileName
         , getStepLog
         , logEmpty
-        , logFocusStyles
-        , logRangeId
-        , stepAndLineToFocusId
         , stepBottomTrackerFocusId
-        , stepToFocusId
         , stepTopTrackerFocusId
         , toString
         )
@@ -99,7 +105,7 @@ viewBuild : PartialModel a -> Org -> Repo -> Html Msg
 viewBuild model org repo =
     let
         ( buildPreview, buildNumber ) =
-            case model.build of
+            case model.repoModel.build of
                 RemoteData.Success bld ->
                     ( viewPreview model.time model.zone org repo bld, String.fromInt bld.number )
 
@@ -110,7 +116,7 @@ viewBuild model org repo =
                     ( text "", "" )
 
         logActions =
-            model.steps
+            model.repoModel.steps
                 |> RemoteData.unwrap (text "")
                     (\_ ->
                         div
@@ -125,7 +131,7 @@ viewBuild model org repo =
                     )
 
         buildSteps =
-            case model.steps of
+            case model.repoModel.steps of
                 RemoteData.Success steps_ ->
                     viewPipeline model <| BuildModel org repo buildNumber steps_
 
@@ -134,7 +140,7 @@ viewBuild model org repo =
 
                 _ ->
                     -- Don't show two loaders
-                    if Util.isLoading model.build then
+                    if Util.isLoading model.repoModel.build then
                         text ""
 
                     else
@@ -281,7 +287,7 @@ viewStepDetails model buildModel step =
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
                 , onClick <| ExpandStep buildModel.org buildModel.repo buildModel.buildNumber stepNumber
-                , id <| stepToFocusId stepNumber
+                , id <| resourceToFocusId "step" stepNumber
                 ]
                 [ div
                     [ class "-info" ]
@@ -367,7 +373,7 @@ viewLogs model buildModel step =
             stepSkipped step
 
         _ ->
-            viewLogLines buildModel.org buildModel.repo buildModel.buildNumber (String.fromInt step.number) step.logFocus (getStepLog step model.logs) model.followingStep model.shift
+            viewLogLines buildModel.org buildModel.repo buildModel.buildNumber (String.fromInt step.number) step.logFocus (getStepLog step model.repoModel.logs) model.repoModel.followingStep model.shift
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
@@ -466,7 +472,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                     []
                 ]
     in
-    ( table [ class "logs-table" ] <|
+    ( table [ class "logs-table", class "scrollable" ] <|
         topTracker
             :: logs
             ++ [ bottomTracker ]
@@ -476,8 +482,8 @@ viewLines stepNumber logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : String -> Int -> Maybe Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
-viewLine id lineNumber line stepNumber logFocus shiftDown =
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> Resource -> LogFocus -> Bool -> Html Msg
+viewLine id lineNumber line resource logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             id
@@ -489,13 +495,13 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
             Just l ->
                 div
                     [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
-                    , class <| logFocusStyles logFocus lineNumber
+                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, String.fromInt lineNumber ]
+                    , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
+                        [ lineFocusButton resource logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
                         ]
@@ -513,9 +519,9 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             FocusLogs <|
-                logRangeId stepNumber lineNumber logFocus shiftDown
+                lineRangeId "step" stepNumber lineNumber logFocus shiftDown
         , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
-        , id <| stepAndLineToFocusId stepNumber lineNumber
+        , id <| resourceAndLineToFocusId "step" stepNumber lineNumber
         , class "line-number"
         , class "button"
         , class "-link"

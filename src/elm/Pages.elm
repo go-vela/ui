@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages exposing (Page(..),strip, toRoute)
 
 import Api.Pagination as Pagination
+import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Routes exposing (Route(..))
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
@@ -27,6 +28,7 @@ type Page
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
+    | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
     | Login
     | Logout
@@ -87,6 +89,9 @@ toRoute page =
 
         Build org repo buildNumber logFocus ->
             Routes.Build org repo buildNumber logFocus
+
+        Pipeline org repo ref expanded lineFocus ->
+            Routes.Pipeline org repo ref expanded lineFocus
 
         Settings ->
             Routes.Settings
@@ -152,6 +157,9 @@ strip page =
 
         Build org repo buildNumber _ ->
             Build org repo buildNumber Nothing
+
+        Pipeline org repo _ _ _ ->
+            Pipeline org repo Nothing Nothing Nothing
 
         Settings ->
             Settings

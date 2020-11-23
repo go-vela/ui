@@ -315,6 +315,72 @@ Cypress.Commands.add('stubStepsErrors', () => {
   });
 });
 
+Cypress.Commands.add('stubPipelineErrors', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*',
+    status: 500,
+    response: 'server error',
+  });
+});
+
+Cypress.Commands.add('stubPipelineTemplatesErrors', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*/templates*',
+    status: 500,
+    response: {},
+  });
+});
+
+Cypress.Commands.add('stubPipelineConfigurationExpandErrors', () => {
+  cy.route({
+    method: 'POST',
+    url: '*api/v1/pipelines/*/*/expand*',
+    status: 500,
+    response: 'server error',
+  });
+});
+
+Cypress.Commands.add('stubPipelineTemplatesEmpty', () => {
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*/templates*',
+    status: 200,
+    response: {},
+  });
+});
+
+Cypress.Commands.add('stubPipelineConfiguration', () => {
+  cy.fixture('pipeline_configuration').as('config');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*',
+    status: 200,
+    response: '@config',
+  });
+});
+
+Cypress.Commands.add('stubPipelineConfigurationExpand', () => {
+  cy.fixture('pipeline_configuration_expanded').as('config_expanded');
+  cy.route({
+    method: 'POST',
+    url: '*api/v1/pipelines/*/*/expand*',
+    status: 200,
+    response: '@config_expanded',
+  });
+});
+
+Cypress.Commands.add('stubPipelineTemplates', () => {
+  cy.fixture('pipeline_templates').as('templates');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*/templates*',
+    status: 200,
+    response: '@templates',
+  });
+});
+
 Cypress.Commands.add('hookPages', () => {
   cy.server();
   cy.fixture('hooks_10a.json').as('hooksPage1');

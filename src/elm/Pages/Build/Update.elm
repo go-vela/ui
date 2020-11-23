@@ -6,11 +6,13 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Update exposing (expandActiveStep, mergeSteps, update)
 
+import Api
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import File.Download as Download
+import Focus exposing (resourceFocusFragment)
 import List.Extra
-import Pages.Build.Logs exposing (focusStep, logFocusFragment)
+import Pages.Build.Logs exposing (focusStep)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -22,7 +24,10 @@ import Task
 import Util exposing (overwriteById)
 import Vela
     exposing
-        ( StepNumber
+        ( BuildNumber
+        , Org
+        , Repo
+        , StepNumber
         , Steps
         )
 
@@ -33,11 +38,14 @@ import Vela
 
 update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> ( PartialModel a, Cmd msg )
 update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
+    let
+        rm = model.repoModel
+    in
     case msg of
         ExpandStep org repo buildNumber stepNumber ->
             let
                 ( steps, fetchStepLogs ) =
-                    clickStep model.steps stepNumber
+                    clickStep rm.steps stepNumber
 
                 action =
                     if fetchStepLogs then
@@ -51,7 +59,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
 
                 -- step clicked is step being followed
                 onFollowedStep =
-                    model.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+                    model.repoModel.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                 follow =
                     if onFollowedStep && not stepOpened then
@@ -59,13 +67,13 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         0
 
                     else
-                        model.followingStep
+                        model.repoModel.followingStep
             in
-            ( { model | steps = steps, followingStep = follow }
+            ( { model | repoModel = {rm | steps = steps, followingStep = follow} }
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
-                    Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
+                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
 
                   else
                     Cmd.none
@@ -83,33 +91,33 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             )
 
         FollowStep step ->
-            ( { model | followingStep = step }
+            ( { model | repoModel = {rm | followingStep = step} }
             , Cmd.none
             )
 
         CollapseAllSteps ->
             let
                 steps =
-                    model.steps
-                        |> RemoteData.unwrap model.steps
+                    rm.steps
+                        |> RemoteData.unwrap rm.steps
                             (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
             in
-            ( { model | steps = steps, followingStep = 0 }
+            ( { model | repoModel =  {rm | steps = steps, followingStep = 0 }  }
             , Cmd.none
             )
 
         ExpandAllSteps org repo buildNumber ->
             let
                 steps =
-                    RemoteData.unwrap model.steps
+                    RemoteData.unwrap rm.steps
                         (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
-                        model.steps
+                        rm.steps
 
                 -- refresh logs for expanded steps
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
             in
-            ( { model | steps = steps }
+            ( { model | repoModel = {rm | steps = steps }}
             , action
             )
 

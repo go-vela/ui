@@ -15,9 +15,10 @@ import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Dict
-import Errors exposing (detailedErrorToString)
+import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
+import Focus exposing (focusFragmentToFocusId, parseFocusFragment)
 import Help.Commands
 import Help.View
 import Html
@@ -53,8 +54,8 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy6, lazy7)
-import Http exposing (Error(..))
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy6, lazy7)
+import Http
 import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
@@ -66,8 +67,7 @@ import Pager
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( focusFragmentToFocusId
-        , focusLogs
+        ( focusLogs
         , getCurrentStep
         , stepBottomTrackerFocusId
         )
@@ -77,6 +77,9 @@ import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
+import Pages.Pipeline.Model
+import Pages.Pipeline.Update
+import Pages.Pipeline.View
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.Model
 import Pages.Secrets.Update
@@ -105,7 +108,6 @@ import Vela
     exposing
         ( AuthParams
         , Build
-        , BuildIdentifier
         , BuildNumber
         , Builds
         , BuildsModel
@@ -127,8 +129,13 @@ import Vela
         , Logs
         , Name
         , Org
+        , Pipeline
+        , PipelineConfig
+        , PipelineTemplates
         , RepairRepo
         , Repo
+        , RepoModel
+        , RepoResourceIdentifier
         , RepoSearchFilters
         , Repositories
         , Repository
@@ -141,6 +148,7 @@ import Vela
         , StepNumber
         , Steps
         , Team
+        , Templates
         , Theme(..)
         , Type
         , UpdateRepositoryPayload
@@ -156,6 +164,9 @@ import Vela
         , defaultEnableRepositoryPayload
         , defaultFavicon
         , defaultHooks
+        , defaultPipeline
+        , defaultPipelineTemplates
+        , defaultRepoModel
         , defaultRepository
         , defaultSession
         , encodeEnableRepository
@@ -167,6 +178,12 @@ import Vela
         , secretTypeToString
         , statusToFavicon
         , stringToTheme
+        , updateBuild
+        , updateBuilds
+        , updateHooks
+        , updateOrgRepo
+        , updateRepo
+        , updateSteps
         )
 
 
@@ -190,12 +207,7 @@ type alias Model =
     , user : WebData CurrentUser
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
-    , hooks : HooksModel
-    , builds : BuildsModel
-    , build : WebData Build
-    , steps : WebData Steps
-    , logs : Logs
-    , followingStep : Int
+    , repoModel : RepoModel
     , velaAPI : String
     , velaFeedbackURL : String
     , velaDocsURL : String
@@ -204,7 +216,6 @@ type alias Model =
     , time : Posix
     , filters : RepoSearchFilters
     , favoritesFilter : String
-    , repo : WebData Repository
     , inTimeout : Maybe Int
     , entryURL : Url
     , theme : Theme
@@ -214,6 +225,8 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
+    , pipeline : Pipeline
+    , templates : PipelineTemplates
     }
 
 
@@ -242,12 +255,6 @@ init flags url navKey =
             , user = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
-            , hooks = defaultHooks
-            , builds = defaultBuilds
-            , build = NotAsked
-            , steps = NotAsked
-            , logs = []
-            , followingStep = 0
             , velaFeedbackURL = flags.velaFeedbackURL
             , velaDocsURL = flags.velaDocsURL
             , navigationKey = navKey
@@ -256,7 +263,7 @@ init flags url navKey =
             , time = millisToPosix 0
             , filters = Dict.empty
             , favoritesFilter = ""
-            , repo = RemoteData.succeed defaultRepository
+            , repoModel = defaultRepoModel
             , inTimeout = Nothing
             , entryURL = url
             , theme = stringToTheme flags.velaTheme
@@ -266,6 +273,8 @@ init flags url navKey =
             , showIdentity = False
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
+            , pipeline = defaultPipeline
+            , templates = defaultPipelineTemplates
             }
 
         ( newModel, newPage ) =
@@ -345,7 +354,7 @@ type Msg
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
-    | Error String
+    | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
     | FilterBuildEventBy (Maybe Event) Org Repo
@@ -356,6 +365,7 @@ type Msg
     | VisibilityChanged Visibility
       -- Components
     | BuildUpdate Pages.Build.Model.Msg
+    | PipelineUpdate Pages.Pipeline.Model.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
@@ -365,6 +375,10 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        rm =
+            model.repoModel
+    in
     case msg of
         NewRoute route ->
             setNewPage route model
@@ -444,11 +458,11 @@ update msg model =
                     Http.jsonBody <| encodeEnableRepository payload
 
                 currentRepo =
-                    RemoteData.withDefault defaultRepository model.repo
+                    RemoteData.withDefault defaultRepository rm.repo
             in
             ( { model
                 | sourceRepos = enableUpdate repo Loading model.sourceRepos
-                , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
+                , repoModel = updateRepo rm <| RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
               }
             , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
             )
@@ -502,10 +516,10 @@ update msg model =
         RepoResponse response ->
             case response of
                 Ok ( _, repoResponse ) ->
-                    ( { model | repo = RemoteData.succeed repoResponse }, Cmd.none )
+                    ( { model | repoModel = updateRepo rm <| RemoteData.succeed repoResponse }, Cmd.none )
 
                 Err error ->
-                    ( { model | repo = toFailure error }, addError error )
+                    ( { model | repoModel = updateRepo rm <| toFailure error }, addError error )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -518,13 +532,13 @@ update msg model =
         RepoEnabledResponse repo response ->
             let
                 currentRepo =
-                    RemoteData.withDefault defaultRepository model.repo
+                    RemoteData.withDefault defaultRepository model.repoModel.repo
             in
             case response of
                 Ok ( _, enabledRepo ) ->
                     ( { model
                         | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
-                        , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled }
+                        , repoModel = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled } }
                       }
                     , Util.dispatch <| ToggleFavorite repo.org <| Just repo.name
                     )
@@ -556,16 +570,16 @@ update msg model =
         RepoUpdatedResponse field response ->
             case response of
                 Ok ( _, updatedRepo ) ->
-                    ( { model | repo = RemoteData.succeed updatedRepo }, Cmd.none )
+                    ( { model | repoModel = { rm | repo = RemoteData.succeed updatedRepo } }, Cmd.none )
                         |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
 
                 Err error ->
-                    ( { model | repo = toFailure error }, addError error )
+                    ( { model | repoModel = { rm | repo = toFailure error } }, addError error )
 
         DisableRepo repo ->
             let
                 currentRepo =
-                    RemoteData.withDefault defaultRepository model.repo
+                    RemoteData.withDefault defaultRepository rm.repo
 
                 ( status, action ) =
                     case repo.enabling of
@@ -579,7 +593,7 @@ update msg model =
                             ( repo.enabling, Cmd.none )
             in
             ( { model
-                | repo = RemoteData.succeed <| { currentRepo | enabling = status }
+                | repoModel = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = status } }
               }
             , action
             )
@@ -587,12 +601,12 @@ update msg model =
         RepoDisabledResponse repo response ->
             let
                 currentRepo =
-                    RemoteData.withDefault defaultRepository model.repo
+                    RemoteData.withDefault defaultRepository rm.repo
             in
             case response of
                 Ok _ ->
                     ( { model
-                        | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Disabled }
+                        | repoModel = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Disabled } }
                         , sourceRepos = enableUpdate repo NotAsked model.sourceRepos
                       }
                     , Cmd.none
@@ -620,14 +634,14 @@ update msg model =
         RepoRepairedResponse repo response ->
             let
                 currentRepo =
-                    RemoteData.withDefault defaultRepository model.repo
+                    RemoteData.withDefault defaultRepository model.repoModel.repo
             in
             case response of
                 Ok _ ->
                     -- TODO: could 'refresh' settings page instead
                     ( { model
                         | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
-                        , repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled }
+                        , repoModel = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled } }
                       }
                     , Cmd.none
                     )
@@ -662,27 +676,27 @@ update msg model =
                 Ok ( _, build ) ->
                     let
                         builds =
-                            model.builds
+                            rm.builds
                     in
                     ( { model
-                        | builds =
-                            { builds
-                                | org = org
-                                , repo = repo
+                        | repoModel =
+                            { rm
+                                | build = RemoteData.succeed build
+                                , org = org
+                                , name = repo
                             }
-                        , build = RemoteData.succeed build
                         , favicon = statusToFavicon build.status
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
 
                 Err error ->
-                    ( { model | repo = toFailure error }, addError error )
+                    ( { model | repoModel = { rm | repo = toFailure error } }, addError error )
 
         BuildsResponse org repo response ->
             let
                 currentBuilds =
-                    model.builds
+                    rm.builds
             in
             case response of
                 Ok ( meta, builds ) ->
@@ -691,19 +705,22 @@ update msg model =
                             Pagination.get meta.headers
                     in
                     ( { model
-                        | builds =
-                            { currentBuilds
-                                | org = org
-                                , repo = repo
-                                , builds = RemoteData.succeed builds
-                                , pager = pager
+                        | repoModel =
+                            { rm
+                                | builds =
+                                    { currentBuilds
+                                        | builds = RemoteData.succeed builds
+                                        , pager = pager
+                                    }
+                                , org = org
+                                , name = repo
                             }
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | builds = { currentBuilds | builds = toFailure error } }, addError error )
+                    ( { model | repoModel = updateBuilds rm { currentBuilds | builds = toFailure error } }, addError error )
 
         StepResponse _ _ _ _ response ->
             case response of
@@ -720,15 +737,15 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.mergeSteps logFocus refresh model.steps
+                                |> Pages.Build.Update.mergeSteps logFocus refresh model.repoModel.steps
 
                         updatedModel =
-                            { model | steps = RemoteData.succeed mergedSteps }
+                            { model | repoModel = { rm | steps = RemoteData.succeed mergedSteps } }
 
                         cmd =
                             getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
                     in
-                    ( { updatedModel | steps = RemoteData.succeed mergedSteps }, cmd )
+                    ( { updatedModel | repoModel = { rm | steps = RemoteData.succeed mergedSteps } }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -738,24 +755,24 @@ update msg model =
                 Ok ( _, incomingLog ) ->
                     let
                         following =
-                            model.followingStep /= 0
+                            rm.followingStep /= 0
 
                         onFollowedStep =
-                            model.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+                            rm.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                         ( steps, focusId ) =
                             if following && refresh && onFollowedStep then
-                                ( model.steps
-                                    |> RemoteData.unwrap model.steps
+                                ( rm.steps
+                                    |> RemoteData.unwrap rm.steps
                                         (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
-                                , stepBottomTrackerFocusId <| String.fromInt model.followingStep
+                                , stepBottomTrackerFocusId <| String.fromInt rm.followingStep
                                 )
 
                             else if not refresh then
-                                ( model.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId logFocus )
+                                ( rm.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
 
                             else
-                                ( model.steps, "" )
+                                ( rm.steps, "" )
 
                         cmd =
                             if not <| String.isEmpty focusId then
@@ -764,7 +781,7 @@ update msg model =
                             else
                                 Cmd.none
                     in
-                    ( updateLogs { model | steps = steps } incomingLog
+                    ( updateLogs { model | repoModel = { rm | steps = steps } } incomingLog
                     , cmd
                     )
 
@@ -859,11 +876,11 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 cmd =
-                    if Pages.RepoSettings.validEventsUpdate model.repo payload then
+                    if Pages.RepoSettings.validEventsUpdate model.repoModel.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
-                        addErrorString "Could not disable webhook event. At least one event must be active."
+                        addErrorString "Could not disable webhook event. At least one event must be active." HandleError
             in
             ( model
             , cmd
@@ -880,7 +897,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 cmd =
-                    if Pages.RepoSettings.validAccessUpdate model.repo payload then
+                    if Pages.RepoSettings.validAccessUpdate model.repoModel.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -921,22 +938,22 @@ update msg model =
                 Pages.RepositoryBuilds org repo _ maybePerPage maybeEvent ->
                     let
                         currentBuilds =
-                            model.builds
+                            rm.builds
 
                         loadingBuilds =
                             { currentBuilds | builds = Loading }
                     in
-                    ( { model | builds = loadingBuilds }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent )
+                    ( { model | repoModel = updateBuilds rm loadingBuilds }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent )
 
                 Pages.Hooks org repo _ maybePerPage ->
                     let
                         currentHooks =
-                            model.hooks
+                            rm.hooks
 
                         loadingHooks =
                             { currentHooks | hooks = Loading }
                     in
-                    ( { model | hooks = loadingHooks }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage )
+                    ( { model | repoModel = { rm | hooks = loadingHooks } }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage )
 
                 Pages.OrgSecrets engine org _ maybePerPage ->
                     let
@@ -976,14 +993,14 @@ update msg model =
             , restartBuild model org repo buildNumber
             )
 
-        Error error ->
+        HandleError error ->
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
 
         HooksResponse _ _ response ->
             let
                 currentHooks =
-                    model.hooks
+                    rm.hooks
             in
             case response of
                 Ok ( meta, hooks ) ->
@@ -991,10 +1008,10 @@ update msg model =
                         pager =
                             Pagination.get meta.headers
                     in
-                    ( { model | hooks = { currentHooks | hooks = RemoteData.succeed hooks, pager = pager } }, Cmd.none )
+                    ( { model | repoModel = { rm | hooks = { currentHooks | hooks = RemoteData.succeed hooks, pager = pager } } }, Cmd.none )
 
                 Err error ->
-                    ( { model | hooks = { currentHooks | hooks = toFailure error } }, addError error )
+                    ( { model | repoModel = { rm | hooks = { currentHooks | hooks = toFailure error } } }, addError error )
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.successConfig AlertsUpdate subMsg model
@@ -1030,14 +1047,14 @@ update msg model =
             ( { model | inTimeout = newTimeout }, Cmd.none )
 
         RefreshSettings org repo ->
-            ( { model | inTimeout = Nothing, repo = Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
+            ( { model | inTimeout = Nothing, repoModel = updateRepo rm Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
 
         RefreshHooks org repo ->
             let
                 hooks =
-                    model.hooks
+                    rm.hooks
             in
-            ( { model | hooks = { hooks | hooks = Loading } }, getHooks model org repo Nothing Nothing )
+            ( { model | repoModel = updateHooks rm { hooks | hooks = Loading } }, getHooks model org repo Nothing Nothing )
 
         RefreshSecrets engine type_ org key ->
             let
@@ -1055,6 +1072,15 @@ update msg model =
             in
             ( newModel
             , action
+            )
+
+        PipelineUpdate m ->
+            let
+                ( newModel, action ) =
+                    Pages.Pipeline.Update.update model m
+            in
+            ( newModel
+            , Cmd.map (\ms -> PipelineUpdate ms) action
             )
 
         AddSecretUpdate engine m ->
@@ -1081,7 +1107,7 @@ update msg model =
                 OneSecond ->
                     let
                         ( favicon, cmd ) =
-                            refreshFavicon model.page model.favicon model.build
+                            refreshFavicon model.page model.favicon model.repoModel.build
                     in
                     ( { model | time = time, favicon = favicon }, cmd )
 
@@ -1091,7 +1117,7 @@ update msg model =
                 OneSecondHidden ->
                     let
                         ( favicon, cmd ) =
-                            refreshFavicon model.page model.favicon model.build
+                            refreshFavicon model.page model.favicon model.repoModel.build
                     in
                     ( { model | time = time, favicon = favicon }, cmd )
 
@@ -1298,7 +1324,7 @@ refreshPage model =
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber focusFragment
-                , refreshLogs model org repo buildNumber model.steps Nothing
+                , refreshLogs model org repo buildNumber model.repoModel.steps Nothing
                 ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
@@ -1349,14 +1375,14 @@ refreshData : Model -> RefreshData
 refreshData model =
     let
         buildNumber =
-            case model.build of
+            case model.repoModel.build of
                 Success build ->
                     Just <| String.fromInt build.number
 
                 _ ->
                     Nothing
     in
-    { org = model.builds.org, repo = model.builds.repo, build_number = buildNumber, steps = Nothing }
+    { org = model.repoModel.org, repo = model.repoModel.name, build_number = buildNumber, steps = Nothing }
 
 
 {-| refreshBuild : takes model org repo and build number and refreshes the build status
@@ -1367,7 +1393,7 @@ refreshBuild model org repo buildNumber =
         refresh =
             getBuild model org repo buildNumber
     in
-    if shouldRefresh model.build then
+    if shouldRefresh model.repoModel.build then
         refresh
 
     else
@@ -1378,7 +1404,7 @@ refreshBuild model org repo buildNumber =
 -}
 refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefresh model.build then
+    if shouldRefresh model.repoModel.build then
         getAllBuildSteps model org repo buildNumber focusFragment True
 
     else
@@ -1421,7 +1447,7 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
         refresh =
             getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
     in
-    if shouldRefresh model.build then
+    if shouldRefresh model.repoModel.build then
         refresh
 
     else
@@ -1493,7 +1519,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
-        , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos } navMsgs
+        , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos, build = model.repoModel.build } navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
             , content
@@ -1534,18 +1560,18 @@ viewContent model =
             in
             ( String.join "/" [ org, repo ] ++ " hooks" ++ page
             , div []
-                [ Pager.view model.hooks.pager Pager.defaultLabels GotoPage
+                [ Pager.view model.repoModel.hooks.pager Pager.defaultLabels GotoPage
                 , lazy Pages.Hooks.view
-                    { hooks = model.hooks
+                    { hooks = model.repoModel.hooks
                     , time = model.time
                     }
-                , Pager.view model.hooks.pager Pager.defaultLabels GotoPage
+                , Pager.view model.repoModel.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy5 Pages.RepoSettings.view model.repo model.inTimeout repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
+            , lazy5 Pages.RepoSettings.view model.repoModel.repo model.inTimeout repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
             )
 
         Pages.OrgSecrets engine org maybePage _ ->
@@ -1628,7 +1654,7 @@ viewContent model =
 
                 shouldRenderFilter : Bool
                 shouldRenderFilter =
-                    case ( model.builds.builds, maybeEvent ) of
+                    case ( model.repoModel.builds.builds, maybeEvent ) of
                         ( Success result, Nothing ) ->
                             not <| List.length result == 0
 
@@ -1644,10 +1670,10 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " builds" ++ page
             , div []
                 [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                , Pager.view model.builds.pager Pager.defaultLabels GotoPage
+                , Pager.view model.repoModel.builds.pager Pager.defaultLabels GotoPage
                 , Html.map (\m -> BuildUpdate m) <|
-                    lazy6 Pages.Builds.view model.builds model.time model.zone org repo maybeEvent
-                , Pager.view model.builds.pager Pager.defaultLabels GotoPage
+                    lazy6 Pages.Builds.view model.repoModel.builds model.time model.zone org repo maybeEvent
+                , Pager.view model.repoModel.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -1658,14 +1684,29 @@ viewContent model =
                     { navigationKey = model.navigationKey
                     , time = model.time
                     , zone = model.zone
-                    , build = model.build
-                    , steps = model.steps
-                    , logs = model.logs
-                    , followingStep = model.followingStep
+                    , repoModel = model.repoModel
+                    , followingStep = model.repoModel.followingStep
                     , shift = model.shift
                     }
                     org
                     repo
+            )
+
+        Pages.Pipeline org repo ref expand lineFocus ->
+            ( "Pipeline " ++ String.join "/" [ org, repo ]
+            , Html.map (\m -> PipelineUpdate m) <|
+                Pages.Pipeline.View.viewPipeline
+                    { navigationKey = model.navigationKey
+                    , velaAPI = model.velaAPI
+                    , session = model.session
+                    , time = model.time
+                    , repoModel = model.repoModel
+                    , shift = model.shift
+                    , templates = model.templates
+                    , pipeline = model.pipeline
+                    , page = model.page
+                    , toasties = model.toasties
+                    }
             )
 
         Pages.Settings ->
@@ -1817,10 +1858,10 @@ helpArgs : Model -> Help.Commands.Model Msg
 helpArgs model =
     { user = helpArg model.user
     , sourceRepos = helpArg model.sourceRepos
-    , builds = helpArg model.builds.builds
-    , build = helpArg model.build
-    , repo = helpArg model.repo
-    , hooks = helpArg model.hooks.hooks
+    , builds = helpArg model.repoModel.builds.builds
+    , build = helpArg model.repoModel.build
+    , repo = helpArg model.repoModel.repo
+    , hooks = helpArg model.repoModel.hooks.hooks
     , secrets = helpArg model.secretsModel.secrets
     , show = model.showHelp
     , toggle = ShowHideHelp
@@ -1897,8 +1938,9 @@ onPage p1 p2 =
         class ""
 
 
+viewBuildHistory : Model -> Html Msg
 viewBuildHistory model =
-    lazy7 Pages.Build.View.viewBuildHistory model.time model.zone model.page model.builds.org model.builds.repo model.builds.builds 10
+    lazy7 Pages.Build.View.viewBuildHistory model.time model.zone model.page model.repoModel.org model.repoModel.name model.repoModel.builds.builds 10
 
 
 viewAlerts : Stack Alert -> Html Msg
@@ -1949,6 +1991,9 @@ setNewPage route model =
 
                 Nothing ->
                     False
+
+        rm =
+            model.repoModel
     in
     case ( route, sessionHasToken ) of
         -- Logged in and on auth flow pages - what are you doing here?
@@ -2019,18 +2064,59 @@ setNewPage route model =
         ( Routes.Build org repo buildNumber logFocus, True ) ->
             case model.page of
                 Pages.Build o r b _ ->
-                    if not <| buildChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                    if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
                             ( page, steps, action ) =
-                                focusLogs model (RemoteData.withDefault [] model.steps) org repo buildNumber logFocus getBuildStepsLogs
+                                focusLogs model (RemoteData.withDefault [] model.repoModel.steps) org repo buildNumber logFocus getBuildStepsLogs
                         in
-                        ( { model | page = page, steps = RemoteData.succeed steps }, action )
+                        ( { model | page = page, repoModel = updateSteps rm <| RemoteData.succeed steps }, action )
 
                     else
                         loadBuildPage model org repo buildNumber logFocus
 
                 _ ->
                     loadBuildPage model org repo buildNumber logFocus
+
+        ( Routes.Pipeline org repo ref expand lineFocus, True ) ->
+            let
+                loadPipeline =
+                    let
+                        ( loadedModel, loadAction ) =
+                            Pages.Pipeline.Update.load model org repo ref expand lineFocus
+                    in
+                    ( loadedModel, Cmd.map (\m -> PipelineUpdate m) <| loadAction )
+
+                ( newModel, action ) =
+                    case model.page of
+                        Pages.Pipeline o r ref_ _ _ ->
+                            let
+                                pipeline =
+                                    model.pipeline
+
+                                parsed =
+                                    parseFocusFragment lineFocus
+
+                                current =
+                                    ( org, repo, Maybe.withDefault "" ref )
+
+                                incoming =
+                                    ( o, r, Maybe.withDefault "" ref_ )
+                            in
+                            if not <| resourceChanged current incoming then
+                                ( { model
+                                    | pipeline =
+                                        { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
+                                  }
+                                , Cmd.none
+                                )
+
+                            else
+                                loadPipeline
+
+                        _ ->
+                            loadPipeline
+            in
+            ( newModel, action )
 
         ( Routes.Settings, True ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -2090,104 +2176,131 @@ loadOverviewPage model =
     )
 
 
-{-| buildChanged : takes two build identifiers and returns if the build has changed
+{-| resourceChanged : takes two repo resource identifiers and returns if the build has changed
 -}
-buildChanged : BuildIdentifier -> BuildIdentifier -> Bool
-buildChanged ( orgA, repoA, buildNumA ) ( orgB, repoB, buildNumB ) =
-    not <| orgA == orgB && repoA == repoB && buildNumA == buildNumB
+resourceChanged : RepoResourceIdentifier -> RepoResourceIdentifier -> Bool
+resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
+    not <| orgA == orgB && repoA == repoB && idA == idB
+
+
+loadRepoPage : Model -> Page -> Org -> Repo -> ( Model, Cmd Msg )
+loadRepoPage model toPage org repo =
+    let
+        rm =
+            model.repoModel
+
+        secretsModel =
+            model.secretsModel
+
+        ( loadModel, loadCmd ) =
+            if not rm.initialized || resourceChanged ( rm.org, rm.name, "" ) ( org, repo, "" ) then
+                ( { model
+                    | secretsModel =
+                        { secretsModel
+                            | secrets = Loading
+                            , org = org
+                            , repo = repo
+                            , engine = "native"
+                            , type_ = Vela.RepoSecret
+                        }
+                    , repoModel =
+                        { rm
+                            | org = org
+                            , name = repo
+                            , repo = Loading
+                            , builds = { builds = Loading, pager = [] }
+                            , hooks = { hooks = Loading, pager = [] }
+                            , steps = NotAsked
+                            , initialized = True
+                        }
+                  }
+                , Cmd.batch
+                    [ getCurrentUser model
+                    , getRepo model org repo
+                    , case toPage of
+                        Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
+                            getBuilds model o r maybePage maybePerPage maybeEvent
+
+                        _ ->
+                            getBuilds model org repo Nothing Nothing Nothing
+                    , case toPage of
+                        Pages.Hooks o r maybePage maybePerPage ->
+                            getHooks model o r maybePage maybePerPage
+
+                        _ ->
+                            getHooks model org repo Nothing Nothing
+                    , case toPage of
+                        Pages.RepoSecrets engine o r maybePage maybePerPage ->
+                            getSecrets model maybePage maybePerPage engine "repo" o r
+
+                        _ ->
+                            getSecrets model Nothing Nothing "native" "repo" org repo
+                    ]
+                )
+
+            else
+                ( model
+                , case toPage of
+                    Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
+                        getBuilds model o r maybePage maybePerPage maybeEvent
+
+                    Pages.RepoSecrets engine o r maybePage maybePerPage ->
+                        getSecrets model maybePage maybePerPage engine "repo" o r
+
+                    Pages.Hooks o r maybePage maybePerPage ->
+                        getHooks model o r maybePage maybePerPage
+
+                    Pages.RepoSettings o r ->
+                        getRepo model o r
+
+                    _ ->
+                        Cmd.none
+                )
+    in
+    ( { loadModel | page = toPage }, loadCmd )
+
+
+{-| loadRepoBuildsPage : takes model org and repo and loads the appropriate builds.
+
+    loadRepoBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
+
+-}
+loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
+loadRepoBuildsPage model org repo _ maybePage maybePerPage maybeEvent =
+    let
+        toPage =
+            Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
+    in
+    loadRepoPage model toPage org repo
+
+
+{-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
+-}
+loadRepoSecretsPage :
+    Model
+    -> Maybe Pagination.Page
+    -> Maybe Pagination.PerPage
+    -> Engine
+    -> Org
+    -> Repo
+    -> ( Model, Cmd Msg )
+loadRepoSecretsPage model maybePage maybePerPage engine org repo =
+    let
+        toPage =
+            Pages.RepoSecrets engine org repo maybePage maybePerPage
+    in
+    loadRepoPage model toPage org repo
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.
 -}
 loadHooksPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadHooksPage model org repo maybePage maybePerPage =
-    -- Fetch builds from Api
     let
-        loadedHooks =
-            model.hooks
-
-        loadingHooks =
-            { loadedHooks | hooks = Loading }
+        toPage =
+            Pages.Hooks org repo maybePage maybePerPage
     in
-    ( { model | page = Pages.Hooks org repo maybePage maybePerPage, hooks = loadingHooks }
-    , Cmd.batch
-        [ getHooks model org repo maybePage maybePerPage
-        , getCurrentUser model
-        ]
-    )
-
-startLoading : RemoteData e a -> RemoteData e  a
-startLoading v = 
-    if v == NotAsked then
-        Loading
-    else 
-        v
-
-loadRepoPage : Model -> Org -> Repo -> Maybe Engine -> Maybe Event -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
-loadRepoPage model org repo maybeEngine maybeEvent maybePage maybePerPage =
-    let
-        ( loadModel, loadCmd ) =
-            case model.page of
-                Pages.RepositoryBuilds _ _ _ _ _ ->
-                    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }
-                    , Cmd.none
-                    )
-
-                Pages.RepoSecrets engine _ _ _ _ ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-                    in
-                    ( { model
-                        | page = Pages.RepoSecrets engine org repo maybePage maybePerPage
-                        , secretsModel =
-                            { secretsModel
-                                | secrets = Loading
-                                , org = org
-                                , repo = repo
-                                , engine = engine
-                                , type_ = Vela.RepoSecret
-                            }
-                      }
-                    , Cmd.none
-                    )
-
-                Pages.Hooks _ _ _ _ ->
-                    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }, Cmd.none )
-
-                Pages.RepoSettings _ _ ->
-                    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        captureUser =
-            getCurrentUser model
-
-        builds =
-            [ getBuilds model org repo maybePage maybePerPage maybeEvent
-            ]
-
-        hooks =
-            [ getHooks model org repo
-            ]
-
-        settings =
-            [ getRepo model org repo
-            ]
-
-        secrets =
-            [ getSecrets model maybePage maybePerPage "native" "repo" org repo
-            ]
-
-        loadStuff =
-            Cmd.batch <|
-                captureUser
-                    :: builds
-                    ++ secrets
-                    ++ settings
-    in
-    ( model, loadStuff )
+    loadRepoPage model toPage org repo
 
 
 {-| loadSettingsPage : takes model org and repo and loads the page for updating repo configurations
@@ -2195,7 +2308,11 @@ loadRepoPage model org repo maybeEngine maybeEvent maybePage maybePerPage =
 loadRepoSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadRepoSettingsPage model org repo =
     -- Fetch repo from Api
-    loadRepoPage model org repo Nothing Nothing Nothing Nothing
+    let
+        toPage =
+            Pages.RepoSettings org repo
+    in
+    loadRepoPage model toPage org repo
 
 
 {-| loadOrgSecretsPage : takes model org and loads the page for managing org secrets
@@ -2227,40 +2344,6 @@ loadOrgSecretsPage model maybePage maybePerPage engine org =
     , Cmd.batch
         [ getCurrentUser model
         , getSecrets model maybePage maybePerPage engine "org" org "*"
-        ]
-    )
-
-
-{-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
--}
-loadRepoSecretsPage :
-    Model
-    -> Maybe Pagination.Page
-    -> Maybe Pagination.PerPage
-    -> Engine
-    -> Org
-    -> Repo
-    -> ( Model, Cmd Msg )
-loadRepoSecretsPage model maybePage maybePerPage engine org repo =
-    -- Fetch secrets from Api
-    let
-        secretsModel =
-            model.secretsModel
-    in
-    ( { model
-        | page = Pages.RepoSecrets engine org repo maybePage maybePerPage
-        , secretsModel =
-            { secretsModel
-                | secrets = Loading
-                , org = org
-                , repo = repo
-                , engine = engine
-                , type_ = Vela.RepoSecret
-            }
-      }
-    , Cmd.batch
-        [ getCurrentUser model
-        , getSecrets model maybePage maybePerPage engine "repo" org repo
         ]
     )
 
@@ -2458,31 +2541,6 @@ loadUpdateSharedSecretPage model engine org team name =
     )
 
 
-{-| loadRepoBuildsPage : takes model org and repo and loads the appropriate builds.
-
-    loadRepoBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
-
--}
-loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
-loadRepoBuildsPage model org repo _ maybePage maybePerPage maybeEvent =
-    let
-        -- Builds already loaded
-        loadedBuilds =
-            model.builds
-
-        -- Set builds to Loading
-        loadingBuilds =
-            { loadedBuilds | org = org, repo = repo, builds = Loading }
-    in
-    -- Fetch builds from Api
-    ( { model | page = Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, builds = loadingBuilds }
-    , Cmd.batch
-        [ getBuilds model org repo maybePage maybePerPage maybeEvent
-        , getCurrentUser model
-        ]
-    )
-
-
 {-| loadBuildPage : takes model org, repo, and build number and loads the appropriate build.
 
     loadBuildPage   Checks if the build has already been loaded from the repo view. If not, fetches the build from the Api.
@@ -2492,23 +2550,29 @@ loadBuildPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model,
 loadBuildPage model org repo buildNumber focusFragment =
     let
         modelBuilds =
-            model.builds
+            model.repoModel.builds
+
+        rm =
+            model.repoModel
 
         builds =
-            if not <| Util.isSuccess model.builds.builds then
+            if not <| Util.isSuccess rm.builds.builds then
                 { modelBuilds | builds = Loading }
 
             else
-                model.builds
+                rm.builds
     in
     -- Fetch build from Api
     ( { model
         | page = Pages.Build org repo buildNumber focusFragment
-        , builds = builds
-        , build = Loading
-        , steps = NotAsked
-        , followingStep = 0
-        , logs = []
+        , repoModel =
+            { rm
+                | build = Loading
+                , steps = NotAsked
+                , builds = builds
+                , followingStep = 0
+                , logs = []
+            }
       }
     , Cmd.batch
         [ getBuilds model org repo Nothing Nothing Nothing
@@ -2561,25 +2625,7 @@ buildEnableRepositoryPayload repo =
 -}
 addError : Http.Detailed.Error String -> Cmd Msg
 addError error =
-    succeed
-        (Error <| detailedErrorToString error)
-        |> perform identity
-
-
-{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module
--}
-addErrorString : String -> Cmd Msg
-addErrorString error =
-    succeed
-        (Error <| error)
-        |> perform identity
-
-
-{-| toFailure : maps a detailed error into a WebData Failure value
--}
-toFailure : Http.Detailed.Error String -> WebData a
-toFailure error =
-    Failure <| Errors.detailedErrorToError error
+    Errors.addError error HandleError
 
 
 {-| stepsIds : extracts Ids from list of steps and returns List Int
@@ -2602,7 +2648,7 @@ updateStep : Model -> Step -> Model
 updateStep model incomingStep =
     let
         steps =
-            case model.steps of
+            case model.repoModel.steps of
                 Success s ->
                     s
 
@@ -2612,30 +2658,35 @@ updateStep model incomingStep =
         stepExists =
             List.member incomingStep.number <| stepsIds steps
 
+        rm =
+            model.repoModel
+
         following =
-            model.followingStep /= 0
+            rm.followingStep /= 0
     in
     if stepExists then
         { model
-            | steps =
-                steps
-                    |> updateIf (\step -> incomingStep.number == step.number)
-                        (\step ->
-                            let
-                                shouldView =
-                                    following
-                                        && (step.status /= Vela.Pending)
-                                        && (step.number == getCurrentStep steps)
-                            in
-                            { incomingStep
-                                | viewing = step.viewing || shouldView
-                            }
-                        )
-                    |> RemoteData.succeed
+            | repoModel =
+                updateSteps rm
+                    (steps
+                        |> updateIf (\step -> incomingStep.number == step.number)
+                            (\step ->
+                                let
+                                    shouldView =
+                                        following
+                                            && (step.status /= Vela.Pending)
+                                            && (step.number == getCurrentStep steps)
+                                in
+                                { incomingStep
+                                    | viewing = step.viewing || shouldView
+                                }
+                            )
+                        |> RemoteData.succeed
+                    )
         }
 
     else
-        { model | steps = RemoteData.succeed <| incomingStep :: steps }
+        { model | repoModel = updateSteps rm <| RemoteData.succeed <| incomingStep :: steps }
 
 
 {-| updateLogs : takes model and incoming log and updates the list of logs if necessary
@@ -2643,17 +2694,20 @@ updateStep model incomingStep =
 updateLogs : Model -> Log -> Model
 updateLogs model incomingLog =
     let
+        rm =
+            model.repoModel
+
         logs =
-            model.logs
+            rm.logs
 
         logExists =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | logs = updateLog incomingLog logs }
+        { model | repoModel = { rm | logs = updateLog incomingLog logs } }
 
     else if incomingLog.id /= 0 then
-        { model | logs = addLog incomingLog logs }
+        { model | repoModel = { rm | logs = addLog incomingLog logs } }
 
     else
         model
@@ -2748,11 +2802,6 @@ getBuild model org repo buildNumber =
 getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
 getAllBuildSteps model org repo buildNumber logFocus refresh =
     Api.tryAll (StepsResponse org repo buildNumber logFocus refresh) <| Api.getAllSteps model org repo buildNumber
-
-
-getBuildStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg
-getBuildStep model org repo buildNumber stepNumber =
-    Api.try (StepResponse org repo buildNumber stepNumber) <| Api.getStep model org repo buildNumber stepNumber
 
 
 getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg

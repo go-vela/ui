@@ -35,7 +35,8 @@ import Routes exposing (Route(..))
 import Util
 import Vela
     exposing
-        ( BuildNumber
+        ( Build
+        , BuildNumber
         , CurrentUser
         , Engine
         , Org
@@ -50,6 +51,7 @@ type alias PartialModel a =
         | page : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
+        , build : WebData Build
     }
 
 
