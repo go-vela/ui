@@ -236,30 +236,30 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
         Pages.Hooks org repo _ _ ->
             div [ class "buttons" ]
                 [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-                    ]
-                    [ text "Secrets" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSettings org repo
-                    ]
-                    [ text "Settings" ]
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshHooks org repo
-                    , Util.testAttribute "refresh-repo-hooks"
-                    ]
-                    [ text "Refresh"
-                    ]
+                -- , a
+                --     [ class "button"
+                --     , class "-outline"
+                --     , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
+                --     , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
+                --     ]
+                --     [ text "Secrets" ]
+                -- , a
+                --     [ class "button"
+                --     , class "-outline"
+                --     , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
+                --     , Routes.href <| Routes.RepoSettings org repo
+                --     ]
+                --     [ text "Settings" ]
+                -- , button
+                --     [ classList
+                --         [ ( "button", True )
+                --         , ( "-outline", True )
+                --         ]
+                --     , onClick <| refreshHooks org repo
+                --     , Util.testAttribute "refresh-repo-hooks"
+                --     ]
+                --     [ text "Refresh"
+                --     ]
                 ]
 
         _ ->

@@ -1837,28 +1837,64 @@ viewUtil model =
             Pages.Build _ _ _ _ ->
                 viewBuildHistory model
 
-            Pages.RepositoryBuilds _ _ _ _ _ ->
-                repoNav
+            Pages.RepositoryBuilds org repo _ _ _ ->
+                repoNav model org repo
 
-            Pages.RepoSecrets _ _ _ _ _ ->
-                repoNav
+            Pages.RepoSecrets engine org repo _ _ ->
+                repoNav model org repo
 
-            Pages.RepoSettings _ _ ->
-                repoNav
+            Pages.Hooks org repo _ _ ->
+                repoNav model org repo
+
+            Pages.RepoSettings org repo ->
+                repoNav model org repo
 
             _ ->
                 text ""
         ]
 
 
-repoNav : Html Msg
-repoNav =
+repoNav : Model -> Org -> Repo -> Html Msg
+repoNav model org repo =
     div [ class "jump-bar" ]
-        [ a [ class "jump" ]  [ text "Builds" ]
-        , a [ class "jump" ] [ text "Secrets" ]
-        , a [ class "jump" ] [ text "Settings" ]
-        , Html.span [class "jump", class "fill"] []
+        [ a
+            [ class "jump"
+            , onPage model.page <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing
+            , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
+            ]
+            [ text "Builds" ]
+        , Html.span [ class "jump", class "spacer" ] []
+        , a
+            [ class "jump"
+            , onPage model.page <| Pages.RepoSecrets "native" org repo Nothing Nothing
+            , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
+            ]
+            [ text "Secrets" ]
+        , Html.span [ class "jump", class "spacer" ] []
+        , a
+            [ class "jump"
+            , onPage model.page <| Pages.Hooks org repo Nothing Nothing
+            , Routes.href <| Routes.Hooks org repo Nothing Nothing
+            ]
+            [ text "Hooks" ]
+        , Html.span [ class "jump", class "spacer" ] []
+        , a
+            [ class "jump"
+            , onPage model.page <| Pages.RepoSettings org repo
+            , Routes.href <| Routes.RepoSettings org repo
+            ]
+            [ text "Settings" ]
+        , Html.span [ class "jump", class "fill" ] []
         ]
+
+
+onPage : Page -> Page -> Html.Attribute Msg
+onPage p1 p2 =
+    if Pages.strip p1 == Pages.strip p2 then
+        class "current"
+
+    else
+        class ""
 
 
 viewBuildHistory model =
@@ -2080,18 +2116,86 @@ loadHooksPage model org repo maybePage maybePerPage =
         ]
     )
 
+startLoading : RemoteData e a -> RemoteData e  a
+startLoading v = 
+    if v == NotAsked then
+        Loading
+    else 
+        v
+
+loadRepoPage : Model -> Org -> Repo -> Maybe Engine -> Maybe Event -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadRepoPage model org repo maybeEngine maybeEvent maybePage maybePerPage =
+    let
+        ( loadModel, loadCmd ) =
+            case model.page of
+                Pages.RepositoryBuilds _ _ _ _ _ ->
+                    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }
+                    , Cmd.none
+                    )
+
+                Pages.RepoSecrets engine _ _ _ _ ->
+                    let
+                        secretsModel =
+                            model.secretsModel
+                    in
+                    ( { model
+                        | page = Pages.RepoSecrets engine org repo maybePage maybePerPage
+                        , secretsModel =
+                            { secretsModel
+                                | secrets = Loading
+                                , org = org
+                                , repo = repo
+                                , engine = engine
+                                , type_ = Vela.RepoSecret
+                            }
+                      }
+                    , Cmd.none
+                    )
+
+                Pages.Hooks _ _ _ _ ->
+                    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }, Cmd.none )
+
+                Pages.RepoSettings _ _ ->
+                    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        captureUser =
+            getCurrentUser model
+
+        builds =
+            [ getBuilds model org repo maybePage maybePerPage maybeEvent
+            ]
+
+        hooks =
+            [ getHooks model org repo
+            ]
+
+        settings =
+            [ getRepo model org repo
+            ]
+
+        secrets =
+            [ getSecrets model maybePage maybePerPage "native" "repo" org repo
+            ]
+
+        loadStuff =
+            Cmd.batch <|
+                captureUser
+                    :: builds
+                    ++ secrets
+                    ++ settings
+    in
+    ( model, loadStuff )
+
 
 {-| loadSettingsPage : takes model org and repo and loads the page for updating repo configurations
 -}
 loadRepoSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadRepoSettingsPage model org repo =
     -- Fetch repo from Api
-    ( { model | page = Pages.RepoSettings org repo, repo = Loading, inTimeout = Nothing }
-    , Cmd.batch
-        [ getRepo model org repo
-        , getCurrentUser model
-        ]
-    )
+    loadRepoPage model org repo Nothing Nothing Nothing Nothing
 
 
 {-| loadOrgSecretsPage : takes model org and loads the page for managing org secrets

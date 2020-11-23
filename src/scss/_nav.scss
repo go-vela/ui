@@ -5,18 +5,25 @@
     flex-direction: row;
     justify-content: flex-start;
     // background-color: red;
-    
+    padding: 1rem;
     width: 100%;
 }
 
 .jump-bar .jump {
 
-    padding-right: 1rem;
+    padding-bottom: 1rem;
+    // padding-right: 1rem;
     border-bottom: 3px solid var(--color-bg-light);
-
+    text-decoration: none;
+    font-weight: lighter;
+    color: var(--color-text);
+    outline:none;
     &.current {
         font-weight: bold;
         border-color: var(--color-primary);
+    }
+    &.spacer {
+        width: 2rem;
     }
     &.fill {
         flex: 1;
