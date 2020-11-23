@@ -1,0 +1,30 @@
+version: "1"
+steps:
+- template:
+    name: custom_template
+    vars:
+      build_event: ${BUILD_EVENT}
+  name: invoke template1_name
+  pull: not_present
+- template:
+    name: simple_template
+    vars:
+      build_event: ${BUILD_EVENT}
+  name: invoke template2_name
+  pull: not_present
+- template:
+    name: branched_template
+    vars:
+      build_event: ${BUILD_EVENT}
+  name: invoke template3_name
+  pull: not_present
+templates:
+- name: template1_name
+  source: github.com/someorg/somerepo/template1.yml
+  type: github
+- name: template2_name
+  source: github.com/someorg/somerepo/template2.yml
+  type: github
+- name: template3_name
+  source: github.com/someorg/somerepo/template3.yml
+  type: github

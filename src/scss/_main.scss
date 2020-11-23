@@ -442,6 +442,10 @@ nav {
   display: flex;
   justify-content: flex-end;
   margin-right: 1rem;
+
+  div:first-child {
+    padding-left: 6rem;
+  }
 }
 
 .git-info {
@@ -871,14 +875,15 @@ nav {
   display: block;
   table-layout: fixed;
   width: 100%;
-  overflow-y: auto;
-
-  min-height: 10rem;
-  max-height: 75rem;
   padding-bottom: 2rem;
   padding-top: 1rem;
-  resize: vertical;
+}
 
+.logs-table.scrollable {
+  resize: vertical;
+  overflow-y: auto;
+  min-height: 10rem;
+  max-height: 75rem;
   scrollbar-color: var(--color-coal-light) var(--color-bg-dark);
   scrollbar-width: thin;
 }

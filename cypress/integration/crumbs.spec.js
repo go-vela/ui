@@ -138,4 +138,15 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-add]').should('exist');
     });
   });
+  context('visit pipeline', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.login('/someorg/somerepo/pipeline?ref=somebranch');
+    });
+    it('should show appropriate pipeline crumbs', () => {
+      cy.get('[data-test=crumb-someorg]').should('exist');
+      cy.get('[data-test=crumb-somerepo]').should('exist');
+      cy.get('[data-test=crumb-somebranch]').should('exist');
+    });
+  });
 });

@@ -7,11 +7,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Vela exposing
     ( AuthParams
     , Build
-    , BuildIdentifier
     , BuildNumber
     , Builds
     , BuildsModel
     , ChownRepo
+    , Commit
     , Copy
     , CurrentUser
     , DisableRepo
@@ -35,8 +35,13 @@ module Vela exposing
     , Logs
     , Name
     , Org
+    , Pipeline
+    , PipelineConfig
+    , PipelineTemplates
+    , Ref
     , RepairRepo
     , Repo
+    , RepoResourceIdentifier
     , RepoSearchFilters
     , Repositories
     , Repository
@@ -51,6 +56,8 @@ module Vela exposing
     , StepNumber
     , Steps
     , Team
+    , Template
+    , Templates
     , Theme(..)
     , Type
     , UpdateRepositoryPayload
@@ -69,6 +76,8 @@ module Vela exposing
     , decodeHook
     , decodeHooks
     , decodeLog
+    , decodePipelineConfig
+    , decodePipelineTemplates
     , decodeRepositories
     , decodeRepository
     , decodeSecret
@@ -83,6 +92,8 @@ module Vela exposing
     , defaultEnableRepositoryPayload
     , defaultFavicon
     , defaultHooks
+    , defaultPipeline
+    , defaultPipelineTemplates
     , defaultRepository
     , defaultSession
     , defaultStep
@@ -106,6 +117,7 @@ module Vela exposing
     )
 
 import Dict exposing (Dict)
+import Errors exposing (Error)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
@@ -151,6 +163,10 @@ type alias BuildNumber =
     String
 
 
+type alias Commit =
+    String
+
+
 type alias StepNumber =
     String
 
@@ -160,6 +176,10 @@ type alias Type =
 
 
 type alias Key =
+    String
+
+
+type alias Ref =
     String
 
 
@@ -596,6 +616,78 @@ buildUpdateRepoIntPayload field value =
 
 
 
+-- PIPELINE
+
+
+type alias Pipeline =
+    { config : ( WebData PipelineConfig, Error )
+    , expanded : Bool
+    , expanding : Bool
+    , org : Org
+    , repo : Org
+    , ref : Maybe Ref
+    , expand : Maybe String
+    , lineFocus : LogFocus
+    }
+
+
+defaultPipeline : Pipeline
+defaultPipeline =
+    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing ( Nothing, Nothing )
+
+
+type alias PipelineConfig =
+    { data : String
+    }
+
+
+type alias PipelineTemplates =
+    ( WebData Templates, Error )
+
+
+type alias Template =
+    { link : String
+    , name : String
+    , source : String
+    , type_ : String
+    }
+
+
+type alias Templates =
+    Dict String Template
+
+
+defaultPipelineTemplates : PipelineTemplates
+defaultPipelineTemplates =
+    ( NotAsked, "" )
+
+
+decodePipelineConfig : Decode.Decoder String
+decodePipelineConfig =
+    Decode.string
+
+
+decodePipeline : Decode.Decoder PipelineConfig
+decodePipeline =
+    Decode.succeed PipelineConfig
+        |> optional "config" string ""
+
+
+decodePipelineTemplates : Decode.Decoder Templates
+decodePipelineTemplates =
+    Decode.dict decodeTemplate
+
+
+decodeTemplate : Decode.Decoder Template
+decodeTemplate =
+    Decode.succeed Template
+        |> optional "link" string ""
+        |> optional "name" string ""
+        |> optional "source" string ""
+        |> optional "type" string ""
+
+
+
 -- BUILDS
 
 
@@ -630,8 +722,8 @@ type alias Build =
     , sender : String
     , author : String
     , branch : String
-    , ref : String
-    , base_ref : String
+    , ref : Ref
+    , base_ref : Ref
     , host : String
     , runtime : String
     , distribution : String
@@ -813,6 +905,7 @@ type alias Step =
     , host : String
     , runtime : String
     , distribution : String
+    , image : String
     , viewing : Bool
     , logFocus : ( Maybe Int, Maybe Int )
     }
@@ -822,7 +915,7 @@ type alias Step =
 -}
 defaultStep : Step
 defaultStep =
-    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" False ( Nothing, Nothing )
+    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" "" False ( Nothing, Nothing )
 
 
 {-| decodeStep : decodes json from vela into step
@@ -845,6 +938,7 @@ decodeStep =
         |> optional "host" string ""
         |> optional "runtime" string ""
         |> optional "distribution" string ""
+        |> optional "image" string ""
         -- "viewing"
         |> hardcoded False
         -- "logFocus"
@@ -965,8 +1059,8 @@ type alias Viewing =
     Bool
 
 
-type alias BuildIdentifier =
-    ( Org, Repo, BuildNumber )
+type alias RepoResourceIdentifier =
+    ( Org, Repo, String )
 
 
 
