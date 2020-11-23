@@ -190,32 +190,34 @@ viewFavorite favorites toggleFavorite filtered favorite =
     div [ class "item", Util.testAttribute "repo-item" ]
         [ div [] [ text name ]
         , div [ class "buttons" ]
-            [ starToggle org repo toggleFavorite <| List.member favorite favorites
-            , a
-                [ class "button"
-                , class "-outline"
-                , Routes.href <| Routes.RepoSettings org repo
-                ]
-                [ text "Settings" ]
-            , a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks org repo Nothing Nothing
-                ]
-                [ text "Hooks" ]
-            , a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "repo-secrets"
-                , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-                ]
-                [ text "Secrets" ]
-            , a
+            [ 
+            -- , a
+            --     [ class "button"
+            --     , class "-outline"
+            --     , Routes.href <| Routes.RepoSettings org repo
+            --     ]
+            --     [ text "Settings" ]
+            -- , a
+            --     [ class "button"
+            --     , class "-outline"
+            --     , Util.testAttribute "repo-hooks"
+            --     , Routes.href <| Routes.Hooks org repo Nothing Nothing
+            --     ]
+            --     [ text "Hooks" ]
+            -- , a
+            --     [ class "button"
+            --     , class "-outline"
+            --     , Util.testAttribute "repo-secrets"
+            --     , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
+            --     ]
+            --     [ text "Secrets" ]
+             a
                 [ class "button"
                 , Util.testAttribute "repo-view"
                 , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
                 ]
                 [ text "View" ]
+                , starToggle org repo toggleFavorite <| List.member favorite favorites
             ]
+            
         ]

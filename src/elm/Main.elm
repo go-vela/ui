@@ -1897,11 +1897,15 @@ viewUtil model =
 
 repoNav : Model -> Org -> Repo -> Html Msg
 repoNav model org repo =
+    let
+        rm =
+            model.repoModel
+    in
     div [ class "jump-bar" ]
         [ a
             [ class "jump"
-            , onPage model.page <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing
-            , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
+            , onPage model.page <| Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
+            , Routes.href <| Routes.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
             ]
             [ text "Builds" ]
         , Html.span [ class "jump", class "spacer" ] []
@@ -1914,8 +1918,8 @@ repoNav model org repo =
         , Html.span [ class "jump", class "spacer" ] []
         , a
             [ class "jump"
-            , onPage model.page <| Pages.Hooks org repo Nothing Nothing
-            , Routes.href <| Routes.Hooks org repo Nothing Nothing
+            , onPage model.page <| Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
+            , Routes.href <| Routes.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
             ]
             [ text "Hooks" ]
         , Html.span [ class "jump", class "spacer" ] []
@@ -2189,6 +2193,12 @@ loadRepoPage model toPage org repo =
         rm =
             model.repoModel
 
+        builds =
+            rm.builds
+
+        hooks =
+            rm.hooks
+
         secretsModel =
             model.secretsModel
 
@@ -2208,8 +2218,14 @@ loadRepoPage model toPage org repo =
                             | org = org
                             , name = repo
                             , repo = Loading
-                            , builds = { builds = Loading, pager = [] }
-                            , hooks = { hooks = Loading, pager = [] }
+                            , builds =
+                                case toPage of
+                                    Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
+                                        { builds = Loading, pager = [], maybeEvent = maybeEvent, maybePage = maybePage, maybePerPage = maybePerPage }
+
+                                    _ ->
+                                        { builds = Loading, pager = [], maybePage = Nothing, maybePerPage = Nothing, maybeEvent = Nothing }
+                            , hooks = { hooks = Loading, pager = [], maybePage = Nothing, maybePerPage = Nothing }
                             , steps = NotAsked
                             , initialized = True
                         }
@@ -2239,23 +2255,37 @@ loadRepoPage model toPage org repo =
                 )
 
             else
-                ( model
-                , case toPage of
+                case toPage of
                     Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
-                        getBuilds model o r maybePage maybePerPage maybeEvent
+                        ( { model
+                            | repoModel =
+                                { rm
+                                    | builds =
+                                        { builds | maybePage = maybePage, maybePerPage = maybePerPage, maybeEvent = maybeEvent }
+                                }
+                          }
+                        , getBuilds model o r maybePage maybePerPage maybeEvent
+                        )
 
                     Pages.RepoSecrets engine o r maybePage maybePerPage ->
-                        getSecrets model maybePage maybePerPage engine "repo" o r
+                        ( model, getSecrets model maybePage maybePerPage engine "repo" o r )
 
                     Pages.Hooks o r maybePage maybePerPage ->
-                        getHooks model o r maybePage maybePerPage
+                        ( { model
+                            | repoModel =
+                                { rm
+                                    | hooks =
+                                        { hooks | maybePage = maybePage, maybePerPage = maybePerPage }
+                                }
+                          }
+                        , getHooks model o r maybePage maybePerPage
+                        )
 
                     Pages.RepoSettings o r ->
-                        getRepo model o r
+                        ( model, getRepo model o r )
 
                     _ ->
-                        Cmd.none
-                )
+                        ( model, Cmd.none )
     in
     ( { loadModel | page = toPage }, loadCmd )
 

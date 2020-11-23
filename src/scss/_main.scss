@@ -1147,7 +1147,11 @@ nav {
 
 .pager-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+}
+
+.pager-icon-next {
+  margin-left: 1rem;
 }
 
 .pager-icon-next svg {

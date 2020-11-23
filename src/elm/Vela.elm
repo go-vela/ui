@@ -23,7 +23,7 @@ module Vela exposing
     , Engine
     , Event
     , Favicon
-    , Favorites,updateBuilds
+    , Favorites
     , Field
     , FocusFragment
     , Hook
@@ -117,12 +117,13 @@ module Vela exposing
     , toMaybeSecretType
     , toSecretType
     , updateBuild
-     , updateHooks
+    , updateBuilds
+    , updateHooks
     , updateOrgRepo
     , updateRepo
     , updateSteps
     )
-
+import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Errors exposing (Error)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, list, string, succeed)
@@ -131,7 +132,8 @@ import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
- 
+
+
 type alias RepoModel =
     { org : Org
     , name : Repo
@@ -141,7 +143,7 @@ type alias RepoModel =
     , logs : Logs
     , followingStep : Int
     , hooks : HooksModel
-    , builds :  BuildsModel
+    , builds : BuildsModel
     , initialized : Bool
     }
 
@@ -169,7 +171,6 @@ updateBuild rm update =
 updateBuilds : RepoModel -> BuildsModel -> RepoModel
 updateBuilds rm update =
     { rm | builds = update }
-
 
 
 updateSteps : RepoModel -> WebData Steps -> RepoModel
@@ -745,8 +746,15 @@ decodeTemplate =
 
 
 -- BUILDS
-type alias BuildsModel = 
-    { builds: WebData Builds, pager : List WebLink}
+
+
+type alias BuildsModel =
+    { builds : WebData Builds
+    , pager : List WebLink
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
+    , maybeEvent: Maybe Event
+    }
 
 
 {-| Build : record type for vela build
@@ -826,7 +834,7 @@ buildStatusDecoder =
 
 defaultBuilds : BuildsModel
 defaultBuilds =
-    BuildsModel RemoteData.NotAsked []
+    BuildsModel RemoteData.NotAsked [] Nothing Nothing Nothing
 
 
 type alias Builds =
@@ -1053,12 +1061,14 @@ type alias FocusFragment =
 type alias HooksModel =
     { hooks : WebData Hooks
     , pager : List WebLink
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
     }
 
 
 defaultHooks : HooksModel
 defaultHooks =
-    HooksModel RemoteData.NotAsked []
+    HooksModel RemoteData.NotAsked [] Nothing Nothing
 
 
 {-| Hook : record type for vela repo hooks

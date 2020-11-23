@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module SvgBuilder exposing
     ( buildFailure
     , buildHistoryFailure
-    , buildHistoryPending
+    , buildHistoryPending,gotoArrow
     , buildHistoryRunning
     , buildHistorySuccess
     , buildPending
@@ -31,7 +31,7 @@ module SvgBuilder exposing
 
 import Html exposing (Html)
 import Html.Attributes exposing (attribute)
-import Svg exposing (circle, svg)
+import Svg exposing (circle, g,path,svg)
 import Svg.Attributes
     exposing
         ( class
@@ -42,7 +42,7 @@ import Svg.Attributes
         , r
         , strokeLinecap
         , strokeWidth
-        , viewBox
+        , viewBox,fill,fillRule
         , width
         , x1
         , x2
@@ -52,6 +52,21 @@ import Svg.Attributes
 import Util exposing (ariaHidden)
 import Vela exposing (Status)
 
+
+gotoArrow : Html msg
+gotoArrow =
+    svg [class "goto-arrow", width "30", height "50", viewBox "0 0 66 73" ] [
+        g[ fill "#1f1f1f" ,fillRule "evenodd"] [
+            path [d "M-1143 0H-11L7 37l-18 36.216h-1132z"] []
+            , path [d "M0 0l66 37L0 73l19-36z"] []
+        ]
+    ]
+--     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66 73">
+--   <g fill="#1F1F1F" fill-rule="evenodd">
+--     <path d="M-1143 0H-11L7 37l-18 36.216h-1132z"/>
+--     <path d="M0 0l66 37L0 73l19-36z"/>
+--   </g>
+-- </svg>
 
 {-| velaLogo: produces the svg for the Vela logo
 -}
@@ -155,9 +170,7 @@ buildStatusAnimation dashes y classNames =
             List.append classes
                 [ class "build-animation"
                 , strokeWidth "4"
-                , width ""
                 , height "4"
-                , viewBox ""
                 , ariaHidden
                 ]
     in
