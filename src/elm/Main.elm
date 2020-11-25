@@ -66,13 +66,9 @@ import Msg exposing (Interval(..), Msg(..), RefreshData)
 import Nav
 import Pager
 import Pages exposing (Page(..))
-import Pages.Build.Logs
-    exposing
-        ( focusLogs
-        , getCurrentStep
-        )
+import Pages.Build.Logs exposing (focusLogs)
 import Pages.Build.Model
-import Pages.Build.Update exposing (expandActiveStep)
+import Pages.Build.Update exposing (expandActiveStep, getAllBuildSteps, getBuild, refreshBuild, refreshBuildSteps, refreshLogs)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -582,28 +578,6 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        BuildResponse org repo _ response ->
-            case response of
-                Ok ( _, build ) ->
-                    let
-                        builds =
-                            model.builds
-                    in
-                    ( { model
-                        | builds =
-                            { builds
-                                | org = org
-                                , repo = repo
-                            }
-                        , build = RemoteData.succeed build
-                        , favicon = statusToFavicon build.status
-                      }
-                    , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
-                    )
-
-                Err error ->
-                    ( { model | repo = toFailure error }, addError error )
-
         BuildsResponse org repo response ->
             let
                 currentBuilds =
@@ -629,34 +603,6 @@ update msg model =
 
                 Err error ->
                     ( { model | builds = { currentBuilds | builds = toFailure error } }, addError error )
-
-        StepResponse _ _ _ _ response ->
-            case response of
-                Ok ( _, step ) ->
-                    ( updateStep model step, Cmd.none )
-
-                Err error ->
-                    ( model, addError error )
-
-        StepsResponse org repo buildNumber logFocus refresh response ->
-            case response of
-                Ok ( _, steps ) ->
-                    let
-                        mergedSteps =
-                            steps
-                                |> List.sortBy .number
-                                |> Pages.Build.Update.mergeSteps logFocus refresh model.steps
-
-                        updatedModel =
-                            { model | steps = RemoteData.succeed mergedSteps }
-
-                        cmd =
-                            Pages.Build.Update.getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
-                    in
-                    ( { updatedModel | steps = RemoteData.succeed mergedSteps }, Cmd.map (\m -> BuildUpdate m) cmd )
-
-                Err error ->
-                    ( model, addError error )
 
         SecretResponse response ->
             case response of
@@ -714,7 +660,7 @@ update msg model =
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
-                        addErrorString "Could not disable webhook event. At least one event must be active." HandleError
+                        addErrorString "Could not disable webhook event. At least one event must be active." Error
             in
             ( model
             , cmd
@@ -827,7 +773,7 @@ update msg model =
             , restartBuild model org repo buildNumber
             )
 
-        HandleError error ->
+        Error error ->
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
 
@@ -901,29 +847,29 @@ update msg model =
 
         BuildUpdate m ->
             let
-                ( newModel, action ) =
+                ( newModel, cmd ) =
                     Pages.Build.Update.update model m
             in
             ( newModel
-            , Cmd.map (\ms -> BuildUpdate ms) action
+            , Cmd.map BuildUpdate cmd
             )
 
         PipelineUpdate m ->
             let
-                ( newModel, action ) =
+                ( newModel, cmd ) =
                     Pages.Pipeline.Update.update model m
             in
             ( newModel
-            , Cmd.map (\ms -> PipelineUpdate ms) action
+            , Cmd.map PipelineUpdate cmd
             )
 
         SecretsUpdate engine m ->
             let
-                ( newModel, action ) =
+                ( newModel, cmd ) =
                     Pages.Secrets.Update.update model m
             in
             ( newModel
-            , Cmd.map (\ms -> SecretsUpdate engine ms) action
+            , Cmd.map (SecretsUpdate engine) cmd
             )
 
         AdjustTimeZone newZone ->
@@ -1122,9 +1068,9 @@ refreshPage model =
         Pages.Build org repo buildNumber focusFragment ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
-                , refreshBuild model org repo buildNumber
-                , refreshBuildSteps model org repo buildNumber focusFragment
-                , Cmd.map (\m -> BuildUpdate m) <| Pages.Build.Update.refreshLogs model org repo buildNumber model.steps Nothing
+                , Cmd.map BuildUpdate <| refreshBuild model org repo buildNumber
+                , Cmd.map BuildUpdate <| refreshBuildSteps model org repo buildNumber focusFragment
+                , Cmd.map BuildUpdate <| refreshLogs model org repo buildNumber model.steps Nothing
                 ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
@@ -1161,9 +1107,7 @@ refreshPageHidden model _ =
     in
     case page of
         Pages.Build org repo buildNumber _ ->
-            Cmd.batch
-                [ refreshBuild model org repo buildNumber
-                ]
+            Cmd.map BuildUpdate <| refreshBuild model org repo buildNumber
 
         _ ->
             Cmd.none
@@ -1183,32 +1127,6 @@ refreshData model =
                     Nothing
     in
     { org = model.builds.org, repo = model.builds.repo, build_number = buildNumber, steps = Nothing }
-
-
-{-| refreshBuild : takes model org repo and build number and refreshes the build status
--}
-refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-refreshBuild model org repo buildNumber =
-    let
-        refresh =
-            getBuild model org repo buildNumber
-    in
-    if shouldRefreshBuild model.build then
-        refresh
-
-    else
-        Cmd.none
-
-
-{-| refreshBuildSteps : takes model org repo and build number and refreshes the build steps based on step status
--}
-refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
-refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefreshBuild model.build then
-        getAllBuildSteps model org repo buildNumber focusFragment True
-
-    else
-        Cmd.none
 
 
 {-| onMouseDown : takes model and returns subscriptions for handling onMouseDown events at the browser level
@@ -1745,10 +1663,10 @@ setNewPage route model =
                 Pages.Build o r b _ ->
                     if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
-                            ( page, steps, action ) =
+                            ( page, steps, cmd ) =
                                 focusLogs model (RemoteData.withDefault [] model.steps) org repo buildNumber logFocus Pages.Build.Update.getBuildStepsLogs
                         in
-                        ( { model | page = page, steps = RemoteData.succeed steps }, Cmd.map (\m -> BuildUpdate m) action )
+                        ( { model | page = page, steps = RemoteData.succeed steps }, Cmd.map BuildUpdate cmd )
 
                     else
                         loadBuildPage model org repo buildNumber logFocus
@@ -1760,12 +1678,12 @@ setNewPage route model =
             let
                 loadPipeline =
                     let
-                        ( loadedModel, loadAction ) =
+                        ( loadedModel, loadCmd ) =
                             Pages.Pipeline.Update.load model org repo ref expand lineFocus
                     in
-                    ( loadedModel, Cmd.map (\m -> PipelineUpdate m) <| loadAction )
+                    ( loadedModel, Cmd.map PipelineUpdate loadCmd )
 
-                ( newModel, action ) =
+                ( newModel, cmd ) =
                     case model.page of
                         Pages.Pipeline o r ref_ _ _ ->
                             let
@@ -1795,7 +1713,7 @@ setNewPage route model =
                         _ ->
                             loadPipeline
             in
-            ( newModel, action )
+            ( newModel, cmd )
 
         ( Routes.Settings, True ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -2209,8 +2127,8 @@ loadBuildPage model org repo buildNumber focusFragment =
       }
     , Cmd.batch
         [ getBuilds model org repo Nothing Nothing Nothing
-        , getBuild model org repo buildNumber
-        , getAllBuildSteps model org repo buildNumber focusFragment False
+        , Cmd.map BuildUpdate <| getBuild model org repo buildNumber
+        , Cmd.map BuildUpdate <| getAllBuildSteps model org repo buildNumber focusFragment False
         ]
     )
 
@@ -2258,56 +2176,7 @@ buildEnableRepositoryPayload repo =
 -}
 addError : Http.Detailed.Error String -> Cmd Msg
 addError error =
-    Errors.addError error HandleError
-
-
-{-| stepsIds : extracts Ids from list of steps and returns List Int
--}
-stepsIds : Steps -> List Int
-stepsIds steps =
-    List.map (\step -> step.number) steps
-
-
-{-| updateStep : takes model and incoming step and updates the list of steps if necessary
--}
-updateStep : Model -> Step -> Model
-updateStep model incomingStep =
-    let
-        steps =
-            case model.steps of
-                Success s ->
-                    s
-
-                _ ->
-                    []
-
-        stepExists =
-            List.member incomingStep.number <| stepsIds steps
-
-        following =
-            model.followingStep /= 0
-    in
-    if stepExists then
-        { model
-            | steps =
-                steps
-                    |> updateIf (\step -> incomingStep.number == step.number)
-                        (\step ->
-                            let
-                                shouldView =
-                                    following
-                                        && (step.status /= Vela.Pending)
-                                        && (step.number == getCurrentStep steps)
-                            in
-                            { incomingStep
-                                | viewing = step.viewing || shouldView
-                            }
-                        )
-                    |> RemoteData.succeed
-        }
-
-    else
-        { model | steps = RemoteData.succeed <| incomingStep :: steps }
+    Errors.addError error Error
 
 
 
@@ -2332,16 +2201,6 @@ getRepo model org repo =
 getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
 getBuilds model org repo maybePage maybePerPage maybeEvent =
     Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
-
-
-getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-getBuild model org repo buildNumber =
-    Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
-
-
-getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
-getAllBuildSteps model org repo buildNumber logFocus refresh =
-    Api.tryAll (StepsResponse org repo buildNumber logFocus refresh) <| Api.getAllSteps model org repo buildNumber
 
 
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg

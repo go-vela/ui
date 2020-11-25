@@ -4,17 +4,19 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandActiveStep, getBuildStepLogs, getBuildStepsLogs, mergeSteps, refreshLogs, update)
+module Pages.Build.Update exposing (expandActiveStep, getAllBuildSteps, getBuild, getBuildStepLogs, getBuildStepsLogs, mergeSteps, refreshBuild, refreshBuildSteps, refreshLogs, update)
 
 import Alerts exposing (Alert)
 import Api
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
-import Errors exposing (addError)
+import Errors exposing (addError, toFailure)
 import File.Download as Download
 import Focus exposing (focusFragmentToFocusId, resourceFocusFragment)
+import Interop
+import Json.Encode as Encode
 import List.Extra exposing (updateIf)
-import Pages.Build.Logs exposing (focusStep, stepBottomTrackerFocusId)
+import Pages.Build.Logs exposing (focusStep, getCurrentStep, stepBottomTrackerFocusId)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -33,9 +35,11 @@ import Vela
         , Logs
         , Org
         , Repo
+        , Step
         , StepNumber
         , Steps
         , shouldRefreshBuild
+        , statusToFavicon
         )
 
 
@@ -83,6 +87,47 @@ update model msg =
                     Cmd.none
                 ]
             )
+
+        BuildResponse org repo _ response ->
+            case response of
+                Ok ( _, build ) ->
+                    ( { model
+                        | build = RemoteData.succeed build
+                        , favicon = statusToFavicon build.status
+                      }
+                    , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
+                    )
+
+                Err error ->
+                    ( { model | build = toFailure error }, addError error Error )
+
+        StepResponse _ _ _ _ response ->
+            case response of
+                Ok ( _, step ) ->
+                    ( updateStep model step, Cmd.none )
+
+                Err error ->
+                    ( model, addError error Error )
+
+        StepsResponse org repo buildNumber logFocus refresh response ->
+            case response of
+                Ok ( _, steps ) ->
+                    let
+                        mergedSteps =
+                            steps
+                                |> List.sortBy .number
+                                |> mergeSteps logFocus refresh model.steps
+
+                        updatedModel =
+                            { model | steps = RemoteData.succeed mergedSteps }
+
+                        action =
+                            getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
+                    in
+                    ( { updatedModel | steps = RemoteData.succeed mergedSteps }, action )
+
+                Err error ->
+                    ( model, addError error Error )
 
         StepLogResponse stepNumber logFocus refresh response ->
             case response of
@@ -287,6 +332,55 @@ getStepInfo steps stepNumber =
         |> Maybe.withDefault ( False, ( Nothing, Nothing ) )
 
 
+{-| stepsIds : extracts Ids from list of steps and returns List Int
+-}
+stepsIds : Steps -> List Int
+stepsIds steps =
+    List.map (\step -> step.number) steps
+
+
+{-| updateStep : takes model and incoming step and updates the list of steps if necessary
+-}
+updateStep : PartialModel a -> Step -> PartialModel a
+updateStep model incomingStep =
+    let
+        steps =
+            case model.steps of
+                Success s ->
+                    s
+
+                _ ->
+                    []
+
+        stepExists =
+            List.member incomingStep.number <| stepsIds steps
+
+        following =
+            model.followingStep /= 0
+    in
+    if stepExists then
+        { model
+            | steps =
+                steps
+                    |> updateIf (\step -> incomingStep.number == step.number)
+                        (\step ->
+                            let
+                                shouldView =
+                                    following
+                                        && (step.status /= Vela.Pending)
+                                        && (step.number == getCurrentStep steps)
+                            in
+                            { incomingStep
+                                | viewing = step.viewing || shouldView
+                            }
+                        )
+                    |> RemoteData.succeed
+        }
+
+    else
+        { model | steps = RemoteData.succeed <| incomingStep :: steps }
+
+
 {-| updateLogs : takes model and incoming log and updates the list of logs if necessary
 -}
 updateLogs : Logs -> Log -> Logs
@@ -336,6 +430,16 @@ addLog incomingLog logs =
     RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData } :: logs
 
 
+getBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Cmd Msg
+getBuild model org repo buildNumber =
+    Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
+
+
+getAllBuildSteps : PartialModel a -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
+getAllBuildSteps model org repo buildNumber logFocus refresh =
+    Api.tryAll (StepsResponse org repo buildNumber logFocus refresh) <| Api.getAllSteps model org repo buildNumber
+
+
 getBuildStepLogs : PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg
 getBuildStepLogs model org repo buildNumber stepNumber logFocus refresh =
     Api.try (StepLogResponse stepNumber logFocus refresh) <| Api.getStepLogs model org repo buildNumber stepNumber
@@ -353,6 +457,32 @@ getBuildStepsLogs model org repo buildNumber steps logFocus refresh =
                     Cmd.none
             )
             steps
+
+
+{-| refreshBuild : takes model org repo and build number and refreshes the build status
+-}
+refreshBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Cmd Msg
+refreshBuild model org repo buildNumber =
+    let
+        refresh =
+            getBuild model org repo buildNumber
+    in
+    if shouldRefreshBuild model.build then
+        refresh
+
+    else
+        Cmd.none
+
+
+{-| refreshBuildSteps : takes model org repo and build number and refreshes the build steps based on step status
+-}
+refreshBuildSteps : PartialModel a -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
+refreshBuildSteps model org repo buildNumber focusFragment =
+    if shouldRefreshBuild model.build then
+        getAllBuildSteps model org repo buildNumber focusFragment True
+
+    else
+        Cmd.none
 
 
 {-| refreshLogs : takes model org repo and build number and steps and refreshes the build step logs depending on their status
@@ -377,19 +507,3 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
 
     else
         Cmd.none
-
-
-
--- loadBuildPage =
--- case model.page of
---                 Pages.Build o r b _ ->
---                     if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
---                         let
---                             ( page, steps, action ) =
---                                 focusLogs model (RemoteData.withDefault [] model.steps) org repo buildNumber logFocus getBuildStepsLogs
---                         in
---                         ( { model | page = page, steps = RemoteData.succeed steps }, action )
---                     else
---                         loadBuildPage model org repo buildNumber logFocus
---                 _ ->
---                     loadBuildPage model org repo buildNumber logFocus

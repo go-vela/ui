@@ -19,12 +19,14 @@ import Vela
     exposing
         ( Build
         , BuildNumber
+        , Favicon
         , FocusFragment
         , Log
         , Logs
         , Org
         , Repo
         , Session
+        , Step
         , StepNumber
         , Steps
         )
@@ -41,6 +43,7 @@ type alias PartialModel a =
         | navigationKey : Navigation.Key
         , velaAPI : String
         , session : Maybe Session
+        , favicon : Favicon
         , time : Posix
         , zone : Zone
         , build : WebData Build
@@ -68,6 +71,9 @@ type alias BuildModel =
 
 type Msg
     = ExpandStep Org Repo BuildNumber StepNumber
+    | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
+    | StepsResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
+    | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | FocusLogs String
     | DownloadLogs String String
