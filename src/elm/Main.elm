@@ -453,10 +453,10 @@ update msg model =
 
                 Err error ->
                     let
-                        ( sourceRepos, action ) =
+                        ( sourceRepos, cmd ) =
                             repoEnabledError model.sourceRepos repo error
                     in
-                    ( { model | sourceRepos = sourceRepos }, action )
+                    ( { model | sourceRepos = sourceRepos }, cmd )
 
         RepoFavoritedResponse favorite favorited response ->
             case response of
@@ -488,7 +488,7 @@ update msg model =
                 currentRepo =
                     RemoteData.withDefault defaultRepository model.repo
 
-                ( status, action ) =
+                ( status, cmd ) =
                     case repo.enabling of
                         Vela.Enabled ->
                             ( Vela.ConfirmDisable, Cmd.none )
@@ -502,7 +502,7 @@ update msg model =
             ( { model
                 | repo = RemoteData.succeed <| { currentRepo | enabling = status }
               }
-            , action
+            , cmd
             )
 
         RepoDisabledResponse repo response ->
@@ -2141,7 +2141,7 @@ loadBuildPage model org repo buildNumber focusFragment =
 repoEnabledError : WebData SourceRepositories -> Repository -> Http.Detailed.Error String -> ( WebData SourceRepositories, Cmd Msg )
 repoEnabledError sourceRepos repo error =
     let
-        ( enabled, action ) =
+        ( enabled, cmd ) =
             case error of
                 Http.Detailed.BadStatus metadata _ ->
                     case metadata.statusCode of
@@ -2155,7 +2155,7 @@ repoEnabledError sourceRepos repo error =
                     ( toFailure error, addError error )
     in
     ( enableUpdate repo enabled sourceRepos
-    , action
+    , cmd
     )
 
 
