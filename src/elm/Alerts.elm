@@ -13,11 +13,14 @@ import Html.Events
 import Toasty as Alerting
 import Toasty.Defaults as Alerts
 import Util
-import Vela exposing (Copy)
 
 
 
 -- TYPES
+
+
+type alias Copy msg =
+    String -> msg
 
 
 type alias Link =

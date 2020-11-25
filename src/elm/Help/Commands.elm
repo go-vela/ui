@@ -23,7 +23,6 @@ import Util exposing (anyBlank, noBlanks)
 import Vela
     exposing
         ( BuildNumber
-        , Copy
         , Engine
         , Key
         , Name
@@ -36,7 +35,7 @@ import Vela
 
 {-| Model : wrapper for help args, meant to slim down the input required to render contextual help for each page
 -}
-type alias Model msg =
+type alias Model =
     { user : Arg
     , sourceRepos : Arg
     , builds : Arg
@@ -45,9 +44,6 @@ type alias Model msg =
     , hooks : Arg
     , secrets : Arg
     , show : Bool
-    , toggle : Maybe Bool -> msg
-    , copy : Copy msg
-    , noOp : msg
     , page : Page
     }
 
@@ -589,7 +585,7 @@ issuesBaseUrl =
 
 {-| resourceLoaded : takes help args and returns if the resource has been successfully loaded
 -}
-resourceLoaded : Model msg -> Bool
+resourceLoaded : Model -> Bool
 resourceLoaded args =
     case args.page of
         Pages.Overview ->
@@ -658,7 +654,7 @@ resourceLoaded args =
 
 {-| resourceLoading : takes help args and returns if the resource is loading
 -}
-resourceLoading : Model msg -> Bool
+resourceLoading : Model -> Bool
 resourceLoading args =
     case args.page of
         Pages.Overview ->

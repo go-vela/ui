@@ -4,10 +4,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Home exposing (Msgs, view)
+module Pages.Home exposing (view)
 
 import Dict exposing (Dict)
-import Favorites exposing (ToggleFavorite, starToggle)
+import Favorites exposing (starToggle)
 import FeatherIcons
 import Html
     exposing
@@ -28,6 +28,7 @@ import Html.Attributes
         )
 import List
 import List.Extra
+import Msg exposing (Msg(..))
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
@@ -46,18 +47,10 @@ import Vela
         )
 
 
-{-| Msgs : record for routing msg updates to Main.elm
--}
-type alias Msgs msg =
-    { toggleFavorite : ToggleFavorite msg
-    , search : SimpleSearch msg
-    }
-
-
 {-| view : takes current user, user input and action params and renders home page with favorited repos
 -}
-view : WebData CurrentUser -> String -> Msgs msg -> Html msg
-view user filter { toggleFavorite, search } =
+view : WebData CurrentUser -> String -> Html Msg
+view user filter =
     let
         blankMessage : Html msg
         blankMessage =
@@ -76,8 +69,8 @@ view user filter { toggleFavorite, search } =
         case user of
             Success u ->
                 if List.length u.favorites > 0 then
-                    [ homeSearchBar filter search
-                    , viewFavorites u.favorites filter toggleFavorite
+                    [ homeSearchBar filter SearchFavorites
+                    , viewFavorites u.favorites filter
                     ]
 
                 else
@@ -95,22 +88,22 @@ view user filter { toggleFavorite, search } =
 
 {-| viewFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFavorites : Favorites -> String -> ToggleFavorite msg -> Html msg
-viewFavorites favorites filter toggleFavorite =
+viewFavorites : Favorites -> String -> Html Msg
+viewFavorites favorites filter =
     -- no search input
     if String.isEmpty filter then
         favorites
             |> toOrgFavorites
-            |> viewFavoritesByOrg toggleFavorite
+            |> viewFavoritesByOrg
 
     else
-        viewFilteredFavorites favorites filter toggleFavorite
+        viewFilteredFavorites favorites filter
 
 
 {-| viewFilteredFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFilteredFavorites : Favorites -> String -> ToggleFavorite msg -> Html msg
-viewFilteredFavorites favorites filter toggleFavorite =
+viewFilteredFavorites : Favorites -> String -> Html Msg
+viewFilteredFavorites favorites filter =
     let
         filteredRepos =
             favorites
@@ -120,7 +113,7 @@ viewFilteredFavorites favorites filter toggleFavorite =
         -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
             filteredRepos
-                |> List.map (viewFavorite favorites toggleFavorite True)
+                |> List.map (viewFavorite favorites True)
 
         else
             -- No repos matched the search
@@ -129,12 +122,12 @@ viewFilteredFavorites favorites filter toggleFavorite =
 
 {-| viewFavoritesByOrg : takes favorites dictionary and favorite action and renders favorites by org
 -}
-viewFavoritesByOrg : ToggleFavorite msg -> Dict String Favorites -> Html msg
-viewFavoritesByOrg toggleFavorite orgFavorites =
+viewFavoritesByOrg : Dict String Favorites -> Html Msg
+viewFavoritesByOrg orgFavorites =
     orgFavorites
         |> Dict.toList
         |> Util.filterEmptyLists
-        |> List.map (\( org, favs ) -> viewOrg org toggleFavorite favs)
+        |> List.map (\( org, favs ) -> viewOrg org favs)
         |> div [ class "repo-list" ]
 
 
@@ -159,21 +152,21 @@ toOrgFavorites favorites =
 
 {-| viewOrg : takes org, favorites and favorite action and renders favorites by org
 -}
-viewOrg : String -> ToggleFavorite msg -> Favorites -> Html msg
-viewOrg org toggleFavorite favorites =
+viewOrg : String -> Favorites -> Html Msg
+viewOrg org favorites =
     details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
         (summary [ class "summary" ]
             [ text org
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
-            :: List.map (viewFavorite favorites toggleFavorite False) favorites
+            :: List.map (viewFavorite favorites False) favorites
         )
 
 
 {-| viewFavorite : takes favorites and favorite action and renders single favorite
 -}
-viewFavorite : Favorites -> ToggleFavorite msg -> Bool -> String -> Html msg
-viewFavorite favorites toggleFavorite filtered favorite =
+viewFavorite : Favorites -> Bool -> String -> Html Msg
+viewFavorite favorites filtered favorite =
     let
         ( org, repo ) =
             ( Maybe.withDefault "" <| List.Extra.getAt 0 <| String.split "/" favorite
@@ -190,7 +183,7 @@ viewFavorite favorites toggleFavorite filtered favorite =
     div [ class "item", Util.testAttribute "repo-item" ]
         [ div [] [ text name ]
         , div [ class "buttons" ]
-            [ starToggle org repo toggleFavorite <| List.member favorite favorites
+            [ starToggle org repo <| List.member favorite favorites
             , a
                 [ class "button"
                 , class "-outline"

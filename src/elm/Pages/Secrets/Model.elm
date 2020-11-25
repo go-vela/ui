@@ -5,24 +5,23 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Secrets.Model exposing
-    ( AddSecretResponse
-    , ManageSecretState(..)
+    ( ManageSecretState(..)
     , Model
     , Msg(..)
     , PartialModel
     , SecretForm
-    , SecretResponse
-    , SecretsResponse
-    , UpdateSecretResponse
     , defaultSecretUpdate
     , secretsResourceKey
     )
 
+import Alerts exposing (Alert)
+import Errors exposing (Error)
 import Http
 import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
+import Toasty as Alerting exposing (Stack)
 import Vela
     exposing
         ( Engine
@@ -42,17 +41,18 @@ import Vela
 
 {-| PartialModel : an abbreviated version of the main model
 -}
-type alias PartialModel a msg =
+type alias PartialModel a =
     { a
         | velaAPI : String
         , session : Maybe Session
-        , secretsModel : Model msg
+        , secretsModel : Model
+        , toasties : Stack Alert
     }
 
 
 {-| Model : record to hold page input arguments
 -}
-type alias Model msg =
+type alias Model =
     { org : Org
     , repo : Repo
     , team : Team
@@ -61,10 +61,6 @@ type alias Model msg =
     , secrets : WebData Secrets
     , secret : WebData Secret
     , form : SecretForm
-    , secretResponse : SecretResponse msg
-    , secretsResponse : SecretsResponse msg
-    , addSecretResponse : AddSecretResponse msg
-    , updateSecretResponse : AddSecretResponse msg
     , pager : List WebLink
     }
 
@@ -73,7 +69,7 @@ type alias Model msg =
 {- secretsResourceKey : takes Model returns maybe string for retrieving secrets based on type -}
 
 
-secretsResourceKey : Model msg -> Maybe String
+secretsResourceKey : Model -> Maybe String
 secretsResourceKey secretsModel =
     case secretsModel.type_ of
         Vela.OrgSecret ->
@@ -107,22 +103,6 @@ defaultSecretUpdate =
 -- MSG
 
 
-type alias SecretResponse msg =
-    Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
-
-
-type alias SecretsResponse msg =
-    Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> msg
-
-
-type alias AddSecretResponse msg =
-    Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
-
-
-type alias UpdateSecretResponse msg =
-    Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
-
-
 type Msg
     = OnChangeStringField String String
     | OnChangeEvent String Bool
@@ -131,6 +111,10 @@ type Msg
     | OnChangeAllowCommand String
     | AddSecret Engine
     | UpdateSecret Engine
+    | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
+    | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
+    | HandleError Error
+    | AlertsUpdate (Alerting.Msg Alert)
 
 
 type ManageSecretState

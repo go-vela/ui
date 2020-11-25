@@ -12,23 +12,25 @@ module Pages.Secrets.Update exposing
     , updateSecretModel
     )
 
+import Alerts exposing (Alert)
 import Api
+import Errors exposing (addError, detailedErrorToString, toFailure)
 import Http
+import Http.Detailed
 import List.Extra
+import Msg
 import Pages.Secrets.Model
     exposing
-        ( AddSecretResponse
-        , Model
+        ( Model
         , Msg(..)
         , PartialModel
         , SecretForm
-        , SecretResponse
-        , SecretsResponse
-        , UpdateSecretResponse
         , defaultSecretUpdate
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
+import String.Extra
+import Toasty as Alerting exposing (Stack)
 import Util exposing (stringToMaybe)
 import Vela
     exposing
@@ -43,8 +45,8 @@ import Vela
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
-init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> Model msg
-init secretResponse secretsResponse addSecretResponse updateSecretResponse =
+init : Model
+init =
     Model "native"
         ""
         ""
@@ -53,23 +55,19 @@ init secretResponse secretsResponse addSecretResponse updateSecretResponse =
         NotAsked
         NotAsked
         defaultSecretUpdate
-        secretResponse
-        secretsResponse
-        addSecretResponse
-        updateSecretResponse
         []
 
 
 {-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments
 -}
-reinitializeSecretAdd : Model msg -> Model msg
+reinitializeSecretAdd : Model -> Model
 reinitializeSecretAdd secretsModel =
     { secretsModel | form = defaultSecretUpdate, secret = RemoteData.NotAsked }
 
 
 {-| reinitializeSecretUpdate : takes an incoming secret and reinitializes the secrets page input arguments
 -}
-reinitializeSecretUpdate : Model msg -> Secret -> Model msg
+reinitializeSecretUpdate : Model -> Secret -> Model
 reinitializeSecretUpdate secretsModel secret =
     { secretsModel | form = initSecretUpdate secret, secret = RemoteData.succeed secret }
 
@@ -81,14 +79,14 @@ initSecretUpdate secret =
 
 {-| updateSecretModel : makes an update to the appropriate secret update
 -}
-updateSecretModel : SecretForm -> Model msg -> Model msg
+updateSecretModel : SecretForm -> Model -> Model
 updateSecretModel secret secretsModel =
     { secretsModel | form = secret }
 
 
 {-| onChangeStringField : takes field and value and updates the secrets model
 -}
-onChangeStringField : String -> String -> Model msg -> Model msg
+onChangeStringField : String -> String -> Model -> Model
 onChangeStringField field value secretsModel =
     let
         secretUpdate =
@@ -122,7 +120,7 @@ updateSecretField field value secret =
 
 {-| onChangeEvent : takes event and updates the secrets model based on the appropriate event
 -}
-onChangeEvent : String -> Model msg -> Model msg
+onChangeEvent : String -> Model -> Model
 onChangeEvent event secretsModel =
     let
         secretUpdate =
@@ -145,7 +143,7 @@ updateSecretEvents event secret =
 
 {-| onAddImage : takes image and updates secret update images
 -}
-onAddImage : String -> Model msg -> Model msg
+onAddImage : String -> Model -> Model
 onAddImage image secretsModel =
     let
         secretUpdate =
@@ -168,7 +166,7 @@ addImage image secret =
 
 {-| onRemoveImage : takes image and removes it to from secret update images
 -}
-onRemoveImage : String -> Model msg -> Model msg
+onRemoveImage : String -> Model -> Model
 onRemoveImage image secretsModel =
     let
         secretUpdate =
@@ -191,7 +189,7 @@ removeImage image secret =
 
 {-| onChangeAllowCommand : updates allow\_command field on secret update
 -}
-onChangeAllowCommand : String -> Model msg -> Model msg
+onChangeAllowCommand : String -> Model -> Model
 onChangeAllowCommand allow secretsModel =
     let
         secretUpdate =
@@ -218,7 +216,7 @@ toggleEvent event events =
 
 {-| getKey : gets the appropriate secret key based on type
 -}
-getKey : Model msg -> String
+getKey : Model -> String
 getKey secretsModel =
     case secretsModel.type_ of
         Vela.RepoSecret ->
@@ -233,7 +231,7 @@ getKey secretsModel =
 
 {-| toAddSecretPayload : builds payload for adding secret
 -}
-toAddSecretPayload : Model msg -> SecretForm -> UpdateSecretPayload
+toAddSecretPayload : Model -> SecretForm -> UpdateSecretPayload
 toAddSecretPayload secretsModel secret =
     let
         args =
@@ -261,7 +259,7 @@ toAddSecretPayload secretsModel secret =
 
 {-| toUpdateSecretPayload : builds payload for updating secret
 -}
-toUpdateSecretPayload : Model msg -> SecretForm -> UpdateSecretPayload
+toUpdateSecretPayload : Model -> SecretForm -> UpdateSecretPayload
 toUpdateSecretPayload secretsModel secret =
     let
         args =
@@ -279,34 +277,68 @@ toUpdateSecretPayload secretsModel secret =
     buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowCommand
 
 
+{-| addSecretResponseAlert : takes secret and produces Toasty alert for when adding a secret
+-}
+addSecretResponseAlert :
+    Secret
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+addSecretResponseAlert secret =
+    let
+        type_ =
+            secretTypeToString secret.type_
+
+        msg =
+            secret.name ++ " added to " ++ type_ ++ " secrets."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| updateSecretResponseAlert : takes secret and produces Toasty alert for when updating a secret
+-}
+updateSecretResponseAlert :
+    Secret
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+updateSecretResponseAlert secret =
+    let
+        type_ =
+            secretTypeToString secret.type_
+
+        msg =
+            String.Extra.toSentenceCase <| type_ ++ " secret " ++ secret.name ++ " updated."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
 
 -- UPDATE
 
 
-update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
+update : PartialModel a -> Msg -> ( PartialModel a, Cmd Msg )
 update model msg =
     let
         secretsModel =
             model.secretsModel
 
-        ( sm, action ) =
+        ( newModel, action ) =
             case msg of
                 OnChangeStringField field value ->
-                    ( onChangeStringField field value secretsModel, Cmd.none )
+                    ( { model | secretsModel = onChangeStringField field value secretsModel }, Cmd.none )
 
                 OnChangeEvent event _ ->
-                    ( onChangeEvent event secretsModel, Cmd.none )
+                    ( { model | secretsModel = onChangeEvent event secretsModel }, Cmd.none )
 
                 AddImage image ->
-                    ( onAddImage image secretsModel, Cmd.none )
+                    ( { model | secretsModel = onAddImage image secretsModel }, Cmd.none )
 
                 RemoveImage image ->
-                    ( onRemoveImage image secretsModel, Cmd.none )
+                    ( { model | secretsModel = onRemoveImage image secretsModel }, Cmd.none )
 
                 OnChangeAllowCommand allow ->
-                    ( onChangeAllowCommand allow secretsModel, Cmd.none )
+                    ( { model | secretsModel = onChangeAllowCommand allow secretsModel }, Cmd.none )
 
-                Pages.Secrets.Model.AddSecret engine ->
+                AddSecret engine ->
                     let
                         secret =
                             secretsModel.form
@@ -319,8 +351,8 @@ update model msg =
                         body =
                             Http.jsonBody <| encodeUpdateSecret payload
                     in
-                    ( secretsModel
-                    , Api.try secretsModel.addSecretResponse <|
+                    ( model
+                    , Api.try AddSecretResponse <|
                         Api.addSecret model
                             engine
                             (secretTypeToString secretsModel.type_)
@@ -329,7 +361,7 @@ update model msg =
                             body
                     )
 
-                Pages.Secrets.Model.UpdateSecret engine ->
+                UpdateSecret engine ->
                     let
                         secret =
                             secretsModel.form
@@ -342,8 +374,8 @@ update model msg =
                         body =
                             Http.jsonBody <| encodeUpdateSecret payload
                     in
-                    ( secretsModel
-                    , Api.try secretsModel.updateSecretResponse <|
+                    ( model
+                    , Api.try UpdateSecretResponse <|
                         Api.updateSecret model
                             engine
                             (secretTypeToString secretsModel.type_)
@@ -352,5 +384,42 @@ update model msg =
                             secret.name
                             body
                     )
+
+                AddSecretResponse response ->
+                    case response of
+                        Ok ( _, secret ) ->
+                            let
+                                updatedSecretsModel =
+                                    reinitializeSecretAdd secretsModel
+                            in
+                            ( { model | secretsModel = updatedSecretsModel }
+                            , Cmd.none
+                            )
+                                |> addSecretResponseAlert secret
+
+                        Err error ->
+                            ( model, addError error HandleError )
+
+                UpdateSecretResponse response ->
+                    case response of
+                        Ok ( _, secret ) ->
+                            let
+                                updatedSecretsModel =
+                                    reinitializeSecretUpdate secretsModel secret
+                            in
+                            ( { model | secretsModel = updatedSecretsModel }
+                            , Cmd.none
+                            )
+                                |> updateSecretResponseAlert secret
+
+                        Err error ->
+                            ( model, addError error HandleError )
+
+                HandleError error ->
+                    ( model, Cmd.none )
+                        |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
+
+                AlertsUpdate subMsg ->
+                    Alerting.update Alerts.successConfig AlertsUpdate subMsg model
     in
-    ( { model | secretsModel = sm }, action )
+    ( newModel, action )

@@ -4,15 +4,17 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandActiveStep, mergeSteps, update)
+module Pages.Build.Update exposing (expandActiveStep, getBuildStepLogs, getBuildStepsLogs, mergeSteps, refreshLogs, update)
 
+import Alerts exposing (Alert)
 import Api
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
+import Errors exposing (addError)
 import File.Download as Download
-import Focus exposing (resourceFocusFragment)
-import List.Extra
-import Pages.Build.Logs exposing (focusStep)
+import Focus exposing (focusFragmentToFocusId, resourceFocusFragment)
+import List.Extra exposing (updateIf)
+import Pages.Build.Logs exposing (focusStep, stepBottomTrackerFocusId)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -21,14 +23,19 @@ import Pages.Build.Model
         )
 import RemoteData exposing (RemoteData(..), WebData)
 import Task
+import Toasty as Alerting
 import Util exposing (overwriteById)
 import Vela
     exposing
         ( BuildNumber
+        , FocusFragment
+        , Log
+        , Logs
         , Org
         , Repo
         , StepNumber
         , Steps
+        , shouldRefreshBuild
         )
 
 
@@ -36,8 +43,8 @@ import Vela
 -- UPDATE
 
 
-update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> ( PartialModel a, Cmd msg )
-update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
+update : PartialModel a -> Msg -> ( PartialModel a, Cmd Msg )
+update model msg =
     case msg of
         ExpandStep org repo buildNumber stepNumber ->
             let
@@ -76,6 +83,44 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                     Cmd.none
                 ]
             )
+
+        StepLogResponse stepNumber logFocus refresh response ->
+            case response of
+                Ok ( _, incomingLog ) ->
+                    let
+                        following =
+                            model.followingStep /= 0
+
+                        onFollowedStep =
+                            model.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+
+                        ( steps, focusId ) =
+                            if following && refresh && onFollowedStep then
+                                ( model.steps
+                                    |> RemoteData.unwrap model.steps
+                                        (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
+                                , stepBottomTrackerFocusId <| String.fromInt model.followingStep
+                                )
+
+                            else if not refresh then
+                                ( model.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
+
+                            else
+                                ( model.steps, "" )
+
+                        cmd =
+                            if not <| String.isEmpty focusId then
+                                Util.dispatch <| FocusOn <| focusId
+
+                            else
+                                Cmd.none
+                    in
+                    ( { model | logs = updateLogs model.logs incomingLog }
+                    , cmd
+                    )
+
+                Err error ->
+                    ( model, addError error Error )
 
         FocusLogs url ->
             ( model
@@ -119,7 +164,25 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             )
 
         FocusOn id ->
-            ( model, Dom.focus id |> Task.attempt focusResult )
+            ( model, Dom.focus id |> Task.attempt FocusResult )
+
+        FocusResult result ->
+            -- handle success or failure here
+            case result of
+                Err (Dom.NotFound id) ->
+                    -- unable to find dom 'id'
+                    ( model, Cmd.none )
+
+                Ok ok ->
+                    -- successfully focus the dom
+                    ( model, Cmd.none )
+
+        Error error ->
+            ( model, Cmd.none )
+                |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
+
+        AlertsUpdate subMsg ->
+            Alerting.update Alerts.successConfig AlertsUpdate subMsg model
 
 
 {-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs
@@ -222,3 +285,111 @@ getStepInfo steps stepNumber =
         |> List.map (\step -> ( step.viewing, step.logFocus ))
         |> List.head
         |> Maybe.withDefault ( False, ( Nothing, Nothing ) )
+
+
+{-| updateLogs : takes model and incoming log and updates the list of logs if necessary
+-}
+updateLogs : Logs -> Log -> Logs
+updateLogs logs incomingLog =
+    let
+        logExists =
+            List.member incomingLog.id <| logIds logs
+    in
+    if logExists then
+        updateLog incomingLog logs
+
+    else if incomingLog.id /= 0 then
+        addLog incomingLog logs
+
+    else
+        logs
+
+
+{-| updateLogs : takes incoming log and logs and updates the appropriate log data
+-}
+updateLog : Log -> Logs -> Logs
+updateLog incomingLog logs =
+    updateIf
+        (\log ->
+            case log of
+                Success log_ ->
+                    incomingLog.id == log_.id && incomingLog.rawData /= log_.rawData
+
+                _ ->
+                    True
+        )
+        (\log -> RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData })
+        logs
+
+
+{-| logIds : extracts Ids from list of logs and returns List Int
+-}
+logIds : Logs -> List Int
+logIds logs =
+    List.map (\log -> log.id) <| Util.successful logs
+
+
+{-| addLog : takes incoming log and logs and adds log when not present
+-}
+addLog : Log -> Logs -> Logs
+addLog incomingLog logs =
+    RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData } :: logs
+
+
+getBuildStepLogs : PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg
+getBuildStepLogs model org repo buildNumber stepNumber logFocus refresh =
+    Api.try (StepLogResponse stepNumber logFocus refresh) <| Api.getStepLogs model org repo buildNumber stepNumber
+
+
+getBuildStepsLogs : PartialModel a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd Msg
+getBuildStepsLogs model org repo buildNumber steps logFocus refresh =
+    Cmd.batch <|
+        List.map
+            (\step ->
+                if step.viewing then
+                    getBuildStepLogs model org repo buildNumber (String.fromInt step.number) logFocus refresh
+
+                else
+                    Cmd.none
+            )
+            steps
+
+
+{-| refreshLogs : takes model org repo and build number and steps and refreshes the build step logs depending on their status
+-}
+refreshLogs : PartialModel a -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Cmd Msg
+refreshLogs model org repo buildNumber inSteps focusFragment =
+    let
+        stepsToRefresh =
+            case inSteps of
+                Success s ->
+                    -- Do not refresh logs for a step in success or failure state
+                    List.filter (\step -> step.status /= Vela.Success && step.status /= Vela.Failure) s
+
+                _ ->
+                    []
+
+        refresh =
+            getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
+    in
+    if shouldRefreshBuild model.build then
+        refresh
+
+    else
+        Cmd.none
+
+
+
+-- loadBuildPage =
+-- case model.page of
+--                 Pages.Build o r b _ ->
+--                     if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
+--                         let
+--                             ( page, steps, action ) =
+--                                 focusLogs model (RemoteData.withDefault [] model.steps) org repo buildNumber logFocus getBuildStepsLogs
+--                         in
+--                         ( { model | page = page, steps = RemoteData.succeed steps }, action )
+--                     else
+--                         loadBuildPage model org repo buildNumber logFocus
+--                 _ ->
+--                     loadBuildPage model org repo buildNumber logFocus

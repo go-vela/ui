@@ -4,11 +4,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, view)
+module Nav exposing (view)
 
 import Browser.Events exposing (Visibility(..))
 import Crumbs
-import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
+import Favorites exposing (isFavorited, starToggle)
 import Html
     exposing
         ( Html
@@ -28,6 +28,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
+import Msg exposing (Msg(..))
 import Pages exposing (Page(..))
 import Pages.Builds exposing (view)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -55,30 +56,20 @@ type alias PartialModel a =
     }
 
 
-type alias Msgs msg =
-    { fetchSourceRepos : msg
-    , toggleFavorite : ToggleFavorite msg
-    , refreshSettings : Org -> Repo -> msg
-    , refreshHooks : Org -> Repo -> msg
-    , refreshSecrets : Engine -> Type -> Org -> Repo -> msg
-    , restartBuild : Org -> Repo -> BuildNumber -> msg
-    }
-
-
 {-| view : uses current state to render navigation, such as breadcrumb
 -}
-view : PartialModel a -> Msgs msg -> Html msg
-view model msgs =
+view : PartialModel a -> Html Msg
+view model =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
         [ Crumbs.view model.page
-        , navButton model msgs
+        , navButton model
         ]
 
 
 {-| navButton : uses current page to build the commonly used button on the right side of the nav
 -}
-navButton : PartialModel a -> Msgs msg -> Html msg
-navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets, restartBuild } =
+navButton : PartialModel a -> Html Msg
+navButton model =
     case model.page of
         Pages.Overview ->
             a
@@ -95,7 +86,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     [ ( "button", True )
                     , ( "-outline", True )
                     ]
-                , onClick fetchSourceRepos
+                , onClick FetchSourceRepositories
                 , disabled (model.sourceRepos == Loading)
                 , Util.testAttribute "refresh-source-repos"
                 ]
@@ -109,7 +100,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
 
         Pages.RepositoryBuilds org repo _ _ _ ->
             div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
                     [ class "button"
                     , class "-outline"
@@ -135,7 +126,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
 
         Pages.RepoSettings org repo ->
             div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
                     [ class "button"
                     , class "-outline"
@@ -155,7 +146,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                         [ ( "button", True )
                         , ( "-outline", True )
                         ]
-                    , onClick <| refreshSettings org repo
+                    , onClick <| RefreshSettings org repo
                     , Util.testAttribute "refresh-repo-settings"
                     ]
                     [ text "Refresh"
@@ -169,7 +160,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                         [ ( "button", True )
                         , ( "-outline", True )
                         ]
-                    , onClick <| refreshSecrets engine "org" org "*"
+                    , onClick <| RefreshSecrets engine "org" org "*"
                     , Util.testAttribute "refresh-repo-settings"
                     ]
                     [ text "Refresh"
@@ -178,7 +169,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
 
         Pages.RepoSecrets engine org repo _ _ ->
             div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
                     [ class "button"
                     , class "-outline"
@@ -198,7 +189,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                         [ ( "button", True )
                         , ( "-outline", True )
                         ]
-                    , onClick <| refreshSecrets engine "repo" org repo
+                    , onClick <| RefreshSecrets engine "repo" org repo
                     , Util.testAttribute "refresh-repo-settings"
                     ]
                     [ text "Refresh"
@@ -212,7 +203,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                         [ ( "button", True )
                         , ( "-outline", True )
                         ]
-                    , onClick <| refreshSecrets engine "shared" org team
+                    , onClick <| RefreshSecrets engine "shared" org team
                     , Util.testAttribute "refresh-repo-settings"
                     ]
                     [ text "Refresh"
@@ -236,7 +227,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 , button
                     [ class "button"
                     , class "-outline"
-                    , onClick <| restartBuild org repo buildNumber
+                    , onClick <| RestartBuild org repo buildNumber
                     , Util.testAttribute "restart-build"
                     ]
                     [ text "Restart Build"
@@ -245,7 +236,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
 
         Pages.Hooks org repo _ _ ->
             div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                [ starToggle org repo <| isFavorited model.user <| org ++ "/" ++ repo
                 , a
                     [ class "button"
                     , class "-outline"
@@ -265,7 +256,7 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                         [ ( "button", True )
                         , ( "-outline", True )
                         ]
-                    , onClick <| refreshHooks org repo
+                    , onClick <| RefreshHooks org repo
                     , Util.testAttribute "refresh-repo-hooks"
                     ]
                     [ text "Refresh"

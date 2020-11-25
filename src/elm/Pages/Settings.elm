@@ -4,24 +4,19 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Settings exposing (Msgs, view)
+module Pages.Settings exposing (view)
 
 import FeatherIcons
 import Html exposing (Html, br, button, div, em, h2, label, p, section, text, textarea)
 import Html.Attributes exposing (attribute, class, for, id, readonly, rows, wrap)
 import Html.Events exposing (onClick)
+import Msg exposing (Msg(..))
 import Util
-import Vela exposing (Copy, Session)
+import Vela exposing (Session)
 
 
-{-| Msgs : record containing msgs routeable to Main.elm
--}
-type alias Msgs msg =
-    { copy : Copy msg }
-
-
-view : Maybe Session -> Msgs msg -> Html msg
-view user actions =
+view : Maybe Session -> Html Msg
+view user =
     div [ class "my-settings", Util.testAttribute "settings" ]
         [ section [ class "settings", Util.testAttribute "user-token" ]
             [ h2 [ class "settings-title" ] [ text "Auth Token" ]
@@ -48,7 +43,7 @@ view user actions =
                             , attribute "data-clipboard-text" u.token
                             , attribute "aria-label" "copy token"
                             , Util.testAttribute "copy-token"
-                            , onClick <| actions.copy u.token
+                            , onClick <| Copy u.token
                             ]
                             [ FeatherIcons.copy
                                 |> FeatherIcons.withSize 18

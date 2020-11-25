@@ -6,17 +6,25 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Model exposing (BuildModel, GetLogs, Msg(..), PartialModel)
 
+import Alerts exposing (Alert)
+import Browser.Dom as Dom
 import Browser.Navigation as Navigation
+import Errors exposing (Error)
+import Http
+import Http.Detailed
 import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
+import Toasty as Alerting exposing (Stack)
 import Vela
     exposing
         ( Build
         , BuildNumber
         , FocusFragment
+        , Log
         , Logs
         , Org
         , Repo
+        , Session
         , StepNumber
         , Steps
         )
@@ -31,6 +39,8 @@ import Vela
 type alias PartialModel a =
     { a
         | navigationKey : Navigation.Key
+        , velaAPI : String
+        , session : Maybe Session
         , time : Posix
         , zone : Zone
         , build : WebData Build
@@ -38,6 +48,7 @@ type alias PartialModel a =
         , logs : Logs
         , shift : Bool
         , followingStep : Int
+        , toasties : Stack Alert
     }
 
 
@@ -57,12 +68,16 @@ type alias BuildModel =
 
 type Msg
     = ExpandStep Org Repo BuildNumber StepNumber
+    | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | FocusLogs String
     | DownloadLogs String String
     | FollowStep Int
     | ExpandAllSteps Org Repo BuildNumber
     | CollapseAllSteps
     | FocusOn String
+    | FocusResult (Result Dom.Error ())
+    | Error Error
+    | AlertsUpdate (Alerting.Msg Alert)
 
 
 type alias GetStepLogs a msg =

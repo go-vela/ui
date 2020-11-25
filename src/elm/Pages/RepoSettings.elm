@@ -5,8 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.RepoSettings exposing
-    ( Msgs
-    , access
+    ( access
     , alert
     , checkbox
     , enableUpdate
@@ -63,18 +62,14 @@ import Html.Attributes
         , wrap
         )
 import Html.Events exposing (onCheck, onClick, onInput)
+import Msg exposing (Msg(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Util
 import Vela
     exposing
-        ( ChownRepo
-        , Copy
-        , DisableRepo
-        , EnableRepo
-        , Enabled
+        ( Enabled
         , Enabling
         , Field
-        , RepairRepo
         , Repositories
         , Repository
         , SourceRepositories
@@ -83,74 +78,21 @@ import Vela
 
 
 
--- TYPES
-
-
-{-| CheckboxUpdate : type that takes Msg for forwarding checkbox input callback to Main.elm
--}
-type alias CheckboxUpdate msg =
-    String -> String -> String -> (Bool -> msg)
-
-
-{-| RadioUpdate : type that takes Msg for forwarding radio input callback to Main.elm
--}
-type alias RadioUpdate msg =
-    String -> String -> String -> (String -> msg)
-
-
-{-| NumberInputChange : type that takes Msg for forwarding number input callback to Main.elm
--}
-type alias NumberInputChange msg =
-    String -> String -> String -> Int -> msg
-
-
-{-| StringInputChange : type that takes Msg for forwarding string input callback to Main.elm
--}
-type alias StringInputChange msg =
-    String -> msg
-
-
-{-| Msgs : record containing msgs routeable to Main.elm
--}
-type alias Msgs msg =
-    { eventsUpdate : CheckboxUpdate msg
-    , accessUpdate : RadioUpdate msg
-    , timeoutUpdate : NumberInputChange msg
-    , inTimeoutChange : StringInputChange msg
-    , disableRepo : DisableRepo msg
-    , enableRepo : EnableRepo msg
-    , copy : Copy msg
-    , chownRepo : ChownRepo msg
-    , repairRepo : RepairRepo msg
-    }
-
-
-
 -- VIEW
 
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Maybe Int -> Msgs msg -> String -> String -> Html msg
-view repo inTimeout actions velaAPI velaURL =
-    let
-        ( accessUpdate, timeoutUpdate, inTimeoutChange ) =
-            ( actions.accessUpdate, actions.timeoutUpdate, actions.inTimeoutChange )
-
-        ( eventsUpdate, disableRepo, enableRepo ) =
-            ( actions.eventsUpdate, actions.disableRepo, actions.enableRepo )
-
-        ( chownRepo, repairRepo ) =
-            ( actions.chownRepo, actions.repairRepo )
-    in
+view : WebData Repository -> Maybe Int -> String -> String -> Html Msg
+view repo inTimeout velaAPI velaURL =
     case repo of
         Success repo_ ->
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
-                [ events repo_ eventsUpdate
-                , access repo_ accessUpdate
-                , timeout inTimeout repo_ timeoutUpdate inTimeoutChange
-                , badge repo_ velaAPI velaURL actions.copy
-                , admin disableRepo enableRepo chownRepo repairRepo repo_
+                [ events repo_
+                , access repo_
+                , timeout inTimeout repo_
+                , badge repo_ velaAPI velaURL
+                , admin repo_
                 ]
 
         Loading ->
@@ -169,22 +111,22 @@ view repo inTimeout actions velaAPI velaURL =
 
 {-| access : takes model and repo and renders the settings category for updating repo access
 -}
-access : Repository -> RadioUpdate msg -> Html msg
-access repo msg =
+access : Repository -> Html Msg
+access repo =
     section [ class "settings", Util.testAttribute "repo-settings-access" ]
         [ h2 [ class "settings-title" ] [ text "Access" ]
         , p [ class "settings-description" ] [ text "Change who can access build information." ]
         , div [ class "form-controls", class "-stack" ]
-            [ radio repo.visibility "private" "Private" <| msg repo.org repo.name "visibility" "private"
-            , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
+            [ radio repo.visibility "private" "Private" <| UpdateRepoAccess repo.org repo.name "visibility" "private"
+            , radio repo.visibility "public" "Any" <| UpdateRepoAccess repo.org repo.name "visibility" "public"
             ]
         ]
 
 
 {-| badge : takes repo and renders a section for getting your build status badge
 -}
-badge : Repository -> String -> String -> Copy msg -> Html msg
-badge repo velaAPI velaURL copyMsg =
+badge : Repository -> String -> String -> Html Msg
+badge repo velaAPI velaURL =
     let
         badgeURL : String
         badgeURL =
@@ -234,7 +176,7 @@ badge repo velaAPI velaURL copyMsg =
                     , attribute "data-clipboard-text" mdCode
                     , attribute "aria-label" "copy status badge markdown code"
                     , Util.testAttribute "copy-md"
-                    , onClick <| copyMsg mdCode
+                    , onClick <| Copy mdCode
                     ]
                     [ FeatherIcons.copy
                         |> FeatherIcons.withSize 18
@@ -252,8 +194,8 @@ badge repo velaAPI velaURL copyMsg =
 
 {-| events : takes model and repo and renders the settings category for updating repo webhook events
 -}
-events : Repository -> CheckboxUpdate msg -> Html msg
-events repo msg =
+events : Repository -> Html Msg
+events repo =
     section [ class "settings", Util.testAttribute "repo-settings-events" ]
         [ h2 [ class "settings-title" ] [ text "Webhook Events" ]
         , p [ class "settings-description" ]
@@ -266,41 +208,41 @@ events repo msg =
                 "allow_push"
                 repo.allow_push
               <|
-                msg repo.org repo.name "allow_push"
+                UpdateRepoEvent repo.org repo.name "allow_push"
             , checkbox "Pull Request"
                 "allow_pull"
                 repo.allow_pull
               <|
-                msg repo.org repo.name "allow_pull"
+                UpdateRepoEvent repo.org repo.name "allow_pull"
             , checkbox "Tag"
                 "allow_tag"
                 repo.allow_tag
               <|
-                msg repo.org repo.name "allow_tag"
+                UpdateRepoEvent repo.org repo.name "allow_tag"
             , checkbox "Comment"
                 "allow_comment"
                 repo.allow_comment
               <|
-                msg repo.org repo.name "allow_comment"
+                UpdateRepoEvent repo.org repo.name "allow_comment"
             , checkbox "Deploy"
                 "allow_deploy"
                 repo.allow_deploy
               <|
-                msg repo.org repo.name "allow_deploy"
+                UpdateRepoEvent repo.org repo.name "allow_deploy"
             ]
         ]
 
 
 {-| timeout : takes model and repo and renders the settings category for updating repo build timeout
 -}
-timeout : Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) -> Html msg
-timeout inTimeout repo clickMsg inputMsg =
+timeout : Maybe Int -> Repository -> Html Msg
+timeout inTimeout repo =
     section [ class "settings", Util.testAttribute "repo-settings-timeout" ]
         [ h2 [ class "settings-title" ] [ text "Build Timeout" ]
         , p [ class "settings-description" ] [ text "Builds that reach this timeout setting will be stopped." ]
         , div [ class "form-controls" ]
-            [ timeoutInput repo inTimeout inputMsg
-            , updateTimeout inTimeout repo.timeout <| clickMsg repo.org repo.name "timeout" <| Maybe.withDefault 0 inTimeout
+            [ timeoutInput repo inTimeout
+            , updateTimeout inTimeout repo.timeout <| UpdateRepoTimeout repo.org repo.name "timeout" <| Maybe.withDefault 0 inTimeout
             ]
         , timeoutWarning inTimeout
         ]
@@ -340,12 +282,12 @@ radio value field title msg =
 
 {-| timeoutInput : takes repo, user input, and button action and renders the text input for updating build timeout.
 -}
-timeoutInput : Repository -> Maybe Int -> (String -> msg) -> Html msg
-timeoutInput repo inTimeout inputMsg =
+timeoutInput : Repository -> Maybe Int -> Html Msg
+timeoutInput repo inTimeout =
     div [ class "form-control", Util.testAttribute "repo-timeout" ]
         [ input
             [ id <| "repo-timeout"
-            , onInput inputMsg
+            , onInput ChangeRepoTimeout
             , type_ "number"
             , Html.Attributes.min "30"
             , Html.Attributes.max "90"
@@ -392,8 +334,8 @@ timeoutWarning inTimeout =
 
 {-| admin : takes admin actions and repo and returns view of the repo admin actions.
 -}
-admin : DisableRepo msg -> EnableRepo msg -> ChownRepo msg -> RepairRepo msg -> Repository -> Html msg
-admin disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg repo =
+admin : Repository -> Html Msg
+admin repo =
     let
         enabledDetails =
             if disableable repo.enabling then
@@ -416,7 +358,7 @@ admin disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg repo =
                 , class "-outline"
                 , attribute "aria-label" <| "become owner of the webhook for " ++ repo.full_name
                 , Util.testAttribute "repo-chown"
-                , onClick <| chownRepoMsg repo
+                , onClick <| ChownRepo repo
                 ]
                 [ text "Chown" ]
             ]
@@ -431,7 +373,7 @@ admin disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg repo =
                 , class "-outline"
                 , attribute "aria-label" <| "repair the webhook for " ++ repo.full_name
                 , Util.testAttribute "repo-repair"
-                , onClick <| repairRepoMsg repo
+                , onClick <| RepairRepo repo
                 ]
                 [ text "Repair" ]
             ]
@@ -440,15 +382,15 @@ admin disableRepoMsg enableRepoMsg chownRepoMsg repairRepoMsg repo =
                 [ text <| Tuple.first enabledDetails
                 , small [] [ em [] [ text <| Tuple.second enabledDetails ] ]
                 ]
-            , enabledButton disableRepoMsg enableRepoMsg repo
+            , enabledButton repo
             ]
         ]
 
 
 {-| enabledButton : takes enable actions and repo and returns view of the repo enable button.
 -}
-enabledButton : DisableRepo msg -> EnableRepo msg -> Repository -> Html msg
-enabledButton disableRepoMsg enableRepoMsg repo =
+enabledButton : Repository -> Html Msg
+enabledButton repo =
     let
         baseClasses =
             classList [ ( "button", True ), ( "-outline", True ) ]
@@ -465,7 +407,6 @@ enabledButton disableRepoMsg enableRepoMsg repo =
                 [ baseClasses
                 , baseTestAttribute
                 , disabled True
-                , onClick <| disableRepoMsg repo
                 ]
                 [ text "Error" ]
 
@@ -473,7 +414,7 @@ enabledButton disableRepoMsg enableRepoMsg repo =
             button
                 [ baseClasses
                 , baseTestAttribute
-                , onClick <| disableRepoMsg repo
+                , onClick <| DisableRepo repo
                 ]
                 [ text "Disable" ]
 
@@ -481,7 +422,7 @@ enabledButton disableRepoMsg enableRepoMsg repo =
             button
                 [ baseClasses
                 , Util.testAttribute "repo-enable"
-                , onClick <| enableRepoMsg repo
+                , onClick <| EnableRepo repo
                 ]
                 [ text "Enable" ]
 
@@ -490,7 +431,7 @@ enabledButton disableRepoMsg enableRepoMsg repo =
                 [ baseClasses
                 , baseTestAttribute
                 , class "repo-disable-confirm"
-                , onClick <| disableRepoMsg repo
+                , onClick <| DisableRepo repo
                 ]
                 [ text "Really Disable?" ]
 

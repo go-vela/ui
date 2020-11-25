@@ -21,15 +21,15 @@ import Help.Commands
 import Html exposing (Html, a, button, details, div, input, label, li, span, strong, summary, text)
 import Html.Attributes exposing (attribute, class, for, href, id, size, value)
 import Html.Events
+import Msg exposing (Msg(..))
 import Pages exposing (Page(..))
 import SvgBuilder
 import Util
-import Vela exposing (Copy)
 
 
 {-| help : takes help args and renders nav button for viewing contextual help for each page
 -}
-help : Model msg -> Html msg
+help : Model -> Html Msg
 help args =
     li
         [ id "contextual-help"
@@ -48,7 +48,7 @@ help args =
                 , class "-no-pad"
                 , Util.testAttribute "help-trigger"
                 , Html.Attributes.tabindex 0
-                , Util.onClickPreventDefault (args.toggle Nothing)
+                , Util.onClickPreventDefault (ShowHideHelp Nothing)
                 ]
                 [ SvgBuilder.terminal ]
             , tooltip args
@@ -58,7 +58,7 @@ help args =
 
 {-| tooltip : takes help args and renders contextual help dropdown if focused
 -}
-tooltip : Model msg -> Html msg
+tooltip : Model -> Html Msg
 tooltip args =
     div [ class "tooltip", Util.testAttribute "help-tooltip" ] <|
         [ strong [] [ text "Manage Vela resources using the CLI" ]
@@ -69,11 +69,11 @@ tooltip args =
 
 {-| body : takes args, (page, cli commands) and renders dropdown body
 -}
-body : Model msg -> List (Html msg)
+body : Model -> List (Html Msg)
 body args =
     let
-        ( copy, cmds ) =
-            ( args.copy, commands args.page )
+        cmds =
+            commands args.page
     in
     if resourceLoading args then
         [ Util.largeLoader ]
@@ -85,12 +85,12 @@ body args =
         [ row "resources on this page not yet supported via the CLI" "" Nothing ]
 
     else
-        List.map (contents copy) cmds
+        List.map contents cmds
 
 
 {-| footer : takes args, (page, cli commands) and renders dropdown footer
 -}
-footer : Model msg -> Html msg
+footer : Model -> Html msg
 footer args =
     if resourceLoading args then
         text ""
@@ -102,7 +102,7 @@ footer args =
         div [ class "help-footer", Util.testAttribute "help-footer" ] <| cliDocs args
 
 
-notLoadedDocs : Model msg -> List (Html msg)
+notLoadedDocs : Model -> List (Html msg)
 notLoadedDocs _ =
     [ a [ href <| usageDocsUrl "getting-started/start_build/" ] [ text "Getting Started Docs" ]
     ]
@@ -110,7 +110,7 @@ notLoadedDocs _ =
 
 {-| cliDocs : takes help args and renders footer docs links for commands
 -}
-cliDocs : Model msg -> List (Html msg)
+cliDocs : Model -> List (Html msg)
 cliDocs _ =
     [ a [ href <| cliDocsUrl "install" ] [ text "CLI Installation Docs" ]
     , a [ href <| cliDocsUrl "authentication" ] [ text "CLI Authentication Docs" ]
@@ -119,8 +119,8 @@ cliDocs _ =
 
 {-| contents : takes help args and renders body content for command
 -}
-contents : Copy msg -> Command -> Html msg
-contents copyMsg command =
+contents : Command -> Html Msg
+contents command =
     case ( command.content, command.issue ) of
         ( Just content, _ ) ->
             let
@@ -129,7 +129,7 @@ contents copyMsg command =
                     command.name |> String.toLower |> String.replace " " "-"
             in
             div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
-                [ span [] [ label [ class "form-label", for forName ] [ text <| command.name ++ " " ], docsLink command ], row content forName <| Just copyMsg ]
+                [ span [] [ label [ class "form-label", for forName ] [ text <| command.name ++ " " ], docsLink command ], row content forName <| Just Copy ]
 
         ( Nothing, Just issue ) ->
             div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
@@ -141,7 +141,7 @@ contents copyMsg command =
 
 {-| row : takes cmd content and maybe copy msg and renders cmd help row with code block and copy button
 -}
-row : String -> String -> Maybe (Copy msg) -> Html msg
+row : String -> String -> Maybe (String -> msg) -> Html msg
 row content forName copy =
     div
         [ class "cmd"

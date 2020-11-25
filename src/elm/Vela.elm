@@ -10,13 +10,8 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
-    , ChownRepo
     , Commit
-    , Copy
     , CurrentUser
-    , DisableRepo
-    , EnableRepo
-    , EnableRepos
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
@@ -39,7 +34,6 @@ module Vela exposing
     , PipelineConfig
     , PipelineTemplates
     , Ref
-    , RepairRepo
     , Repo
     , RepoResourceIdentifier
     , RepoSearchFilters
@@ -110,6 +104,7 @@ module Vela exposing
     , secretErrorLabel
     , secretTypeToString
     , secretsErrorLabel
+    , shouldRefreshBuild
     , statusToFavicon
     , stringToTheme
     , toMaybeSecretType
@@ -839,6 +834,25 @@ isComplete status =
             False
 
 
+{-| shouldRefreshBuild : takes build and returns true if a refresh is required
+-}
+shouldRefreshBuild : WebData Build -> Bool
+shouldRefreshBuild build =
+    case build of
+        RemoteData.Success bld ->
+            not <| isComplete bld.status
+
+        RemoteData.NotAsked ->
+            True
+
+        -- Do not refresh a Failed or Loading build
+        RemoteData.Failure _ ->
+            False
+
+        RemoteData.Loading ->
+            False
+
+
 
 -- STATUS FAVICONS
 
@@ -1308,43 +1322,3 @@ type alias RepoSearchFilters =
 -}
 type alias SearchFilter =
     String
-
-
-
--- UPDATES
-
-
-{-| Copy : takes a string and notifies the user of copy event
--}
-type alias Copy msg =
-    String -> msg
-
-
-{-| DisableRepo : takes repo and disables it on Vela
--}
-type alias DisableRepo msg =
-    Repository -> msg
-
-
-{-| EnableRepo : takes repo and enables it on Vela
--}
-type alias EnableRepo msg =
-    Repository -> msg
-
-
-{-| EnableRepos : takes repos and enables them on Vela
--}
-type alias EnableRepos msg =
-    Repositories -> msg
-
-
-{-| ChownRepo : takes repo and changes ownership on Vela
--}
-type alias ChownRepo msg =
-    Repository -> msg
-
-
-{-| RepairRepo : takes repo and re-enables the webhook on it
--}
-type alias RepairRepo msg =
-    Repository -> msg

@@ -104,10 +104,7 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | StepsResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
-    | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
-    | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
-    | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
     | HandleError Error
@@ -122,7 +119,7 @@ type Msg
       -- Components
     | BuildUpdate Pages.Build.Model.Msg
     | PipelineUpdate Pages.Pipeline.Model.Msg
-    | AddSecretUpdate Engine Pages.Secrets.Model.Msg
+    | SecretsUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix

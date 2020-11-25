@@ -4,22 +4,17 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Favorites exposing (ToggleFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
+module Favorites exposing (isFavorited, starToggle, toFavorite, updateFavorites)
 
 import Html exposing (Html, button)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import List.Extra
+import Msg exposing (Msg(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import SvgBuilder exposing (star)
 import Util
 import Vela exposing (CurrentUser, Org, Repo)
-
-
-{-| ToggleFavorite : takes org and maybe repo and toggles its favorite status them on Vela
--}
-type alias ToggleFavorite msg =
-    Org -> Maybe Repo -> msg
 
 
 
@@ -28,11 +23,11 @@ type alias ToggleFavorite msg =
 
 {-| starToggle : takes org repo msg and favorited status and renders the favorites toggle star
 -}
-starToggle : Org -> Repo -> ToggleFavorite msg -> Bool -> Html msg
-starToggle org repo toggleFavorite favorited =
+starToggle : Org -> Repo -> Bool -> Html Msg
+starToggle org repo favorited =
     button
         [ Util.testAttribute <| "star-toggle-" ++ org ++ "-" ++ repo
-        , onClick <| toggleFavorite org <| Just repo
+        , onClick <| ToggleFavorite org <| Just repo
         , starToggleAriaLabel org repo favorited
         , class "button"
         , class "-icon"

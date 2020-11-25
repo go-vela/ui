@@ -65,7 +65,7 @@ import Vela
 
 {-| secrets : takes model and renders page for managing secrets
 -}
-secrets : PartialModel a msg -> Html Msg
+secrets : PartialModel a -> Html Msg
 secrets model =
     let
         secretsModel =
@@ -276,7 +276,7 @@ updateSecretHref type_ secret =
 
 {-| addSecret : takes partial model and renders the Add Secret form
 -}
-addSecret : PartialModel a msg -> Html Msg
+addSecret : PartialModel a -> Html Msg
 addSecret model =
     div [ class "manage-secret", Util.testAttribute "manage-secret" ]
         [ div []
@@ -303,7 +303,7 @@ addLabel type_ =
 
 {-| addForm : renders secret update form for adding a new secret
 -}
-addForm : Model msg -> Html Msg
+addForm : Model -> Html Msg
 addForm secretsModel =
     let
         secretUpdate =
@@ -327,7 +327,7 @@ addForm secretsModel =
 
 {-| editSecret : takes partial model and renders secret update form for editing a secret
 -}
-editSecret : PartialModel a msg -> Html Msg
+editSecret : PartialModel a -> Html Msg
 editSecret model =
     case model.secretsModel.secret of
         Success _ ->
@@ -362,7 +362,7 @@ editHeader type_ =
 
 {-| editForm : renders secret update form for updating a preexisting secret
 -}
-editForm : Model msg -> Html Msg
+editForm : Model -> Html Msg
 editForm secretsModel =
     let
         secretUpdate =
