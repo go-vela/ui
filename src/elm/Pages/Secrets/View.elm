@@ -241,7 +241,7 @@ viewSharedSecrets model =
 -}
 secretsToRows : SecretType -> Secrets -> Table.Rows Secret Msg
 secretsToRows type_ secrets =
-    List.map (\secret -> Table.Row secret (renderSecret type_)) <| List.take 7 secrets
+    List.map (\secret -> Table.Row secret (renderSecret type_)) secrets
 
 
 {-| tableHeaders : returns table headers for secrets table

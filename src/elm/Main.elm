@@ -1124,7 +1124,11 @@ update msg model =
                     ( model, refreshPageHidden model data )
 
         FilterBuildEventBy maybeEvent org repo ->
-            ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
+            let
+                builds =
+                    rm.builds
+            in
+            ( { model | repoModel = { rm | builds = { builds | builds = Loading, pager = [] } } }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
 
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt FocusResult )

@@ -58,7 +58,7 @@ view buildsModel now zone org repo maybeEvent =
                                 , text "."
                                 ]
                             , li []
-                                [ text "Triggered one of the "
+                                [ text "Trigger one of the "
                                 , a [ href settingsLink ] [ text "configured webhook events" ]
                                 , text " by performing the respective action via "
                                 , em [] [ text "Git" ]
@@ -81,7 +81,7 @@ view buildsModel now zone org repo maybeEvent =
                 div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now zone org repo) builds
 
         RemoteData.Loading ->
-            largeLoader
+            div [][largeLoader]
 
         RemoteData.NotAsked ->
             largeLoader
