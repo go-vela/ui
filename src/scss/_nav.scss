@@ -15,7 +15,7 @@
 }
 
 .jump-bar .jump {
-  padding-bottom: 1rem;
+  padding: 1rem;
 
   color: var(--color-text);
   font-weight: lighter;
@@ -36,4 +36,16 @@
   &.fill {
     flex: 1;
   }
+}
+
+@media screen and (max-width: 600px) {
+    .jump-bar {
+        flex-direction: column;
+    }
+    .jump-bar .jump {
+        &.fill, &.spacer{
+            width: 0;
+            padding: 0;
+        }
+      }
 }

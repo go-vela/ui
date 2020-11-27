@@ -203,6 +203,7 @@ type alias Flags =
 
 type alias Model =
     { page : Page
+    , from : Page
     , session : Maybe Session
     , user : WebData CurrentUser
     , toasties : Stack Alert
@@ -251,6 +252,7 @@ init flags url navKey =
         model : Model
         model =
             { page = Pages.Overview
+            , from = Pages.NotFound
             , session = flags.velaSession
             , user = NotAsked
             , sourceRepos = NotAsked
@@ -383,7 +385,7 @@ update msg model =
     in
     case msg of
         NewRoute route ->
-            setNewPage route model
+            setNewPage route <| setFrom model
 
         SignInRequested ->
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
@@ -1525,7 +1527,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
-        , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos, build = model.repoModel.build } navMsgs
+        , lazy2 Nav.view model navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
             , content
@@ -1926,7 +1928,7 @@ repoNav model org repo =
             , onPage model.page <| Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
             , Routes.href <| Routes.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
             ]
-            [ text "Hooks" ]
+            [ text "Audit" ]
         , Html.span [ class "jump", class "spacer" ] []
         , a
             [ class "jump"
@@ -2003,6 +2005,7 @@ setNewPage route model =
 
         rm =
             model.repoModel
+        
     in
     case ( route, sessionHasToken ) of
         -- Logged in and on auth flow pages - what are you doing here?
@@ -2153,6 +2156,9 @@ setNewPage route model =
             )
 
 
+setFrom : Model -> Model
+setFrom model =
+    { model | from = model.page }
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
 loadSourceReposPage model =
     case model.sourceRepos of

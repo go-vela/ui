@@ -41,6 +41,7 @@ import Vela
         , Engine
         , Org
         , Repo
+        , RepoModel
         , SecretType
         , SourceRepositories
         )
@@ -49,9 +50,9 @@ import Vela
 type alias PartialModel a =
     { a
         | page : Page
+        , from : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
-        , build : WebData Build
     }
 
 
@@ -115,16 +116,17 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
 
         Pages.OrgSecrets engine org _ _ ->
             div [ class "buttons" ]
-                [ button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
+                [ case model.from of
+                    Pages.RepoSecrets _ _ _ _  _ ->
+                        a
+                        [ class "button"
+                        , class "-outline"
+                        , Routes.href <|
+                            Pages.toRoute model.from
                         ]
-                    , onClick <| refreshSecrets engine Vela.OrgSecret org "*"
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh"
-                    ]
+                        [ text "Back" ]
+                    _ ->
+                        text ""
                 , a
                     [ class "button"
                     , class "-outline"
