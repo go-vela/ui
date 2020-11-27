@@ -36,10 +36,6 @@ context('Repo Settings', () => {
       cy.login('/github/octocat/settings');
     });
 
-    it('should show the repo in the breadcrumb', () => {
-      cy.get('[data-test=crumb-settings]').should('be.visible');
-    });
-
     it('should show the Refresh Settings button', () => {
       cy.get('[data-test=refresh-repo-settings]').should('be.visible');
     });
