@@ -60,20 +60,25 @@ import Vela
 
 
 
+-- TYPES
+
+
+secretsTestLabel : String
+secretsTestLabel =
+    "secrets"
+
+
+
 -- VIEW
 
 
+{-| viewRepoSecrets : takes secrets model and renders table for viewing repo secrets
+-}
 viewRepoSecrets : PartialModel a msg -> Html Msg
 viewRepoSecrets model =
     let
         secretsModel =
             model.secretsModel
-
-        tableLabel =
-            "Repo Secrets"
-
-        noSecretsLabel =
-            "No secrets found for this repository"
 
         actions =
             Just <|
@@ -86,18 +91,15 @@ viewRepoSecrets model =
                         ]
                         [ addLabel Vela.RepoSecret ]
                     ]
-
-        testLabel =
-            "secrets"
     in
     case secretsModel.repoSecrets of
         Success s ->
             div []
                 [ Table.view
                     (Table.Config
-                        tableLabel
-                        testLabel
-                        noSecretsLabel
+                        "Repo Secrets"
+                        secretsTestLabel
+                        "No secrets found for this repository"
                         tableHeaders
                         (secretsToRows Vela.RepoSecret s)
                         actions
@@ -111,79 +113,20 @@ viewRepoSecrets model =
                         secretsModel.org
                     <|
                         Just secretsModel.repo
-                , testLabel = testLabel
+                , testLabel = secretsTestLabel
                 }
 
         _ ->
             div [] [ largeLoader ]
 
 
-viewSharedSecrets : PartialModel a msg -> Html Msg
-viewSharedSecrets model =
-    let
-        secretsModel =
-            model.secretsModel
-
-        tableLabel =
-            "Shared Secrets"
-
-        noSecretsLabel =
-            "No secrets found for this org/team"
-
-        actions =
-            Just <|
-                div [ class "buttons" ]
-                    [ a
-                        [ class "button"
-                        , class "-outline"
-                        , Routes.href <|
-                            Routes.AddSharedSecret "native" secretsModel.org secretsModel.team
-                        ]
-                        [ addLabel Vela.SharedSecret ]
-                    ]
-
-        testLabel =
-            "secrets"
-    in
-    case secretsModel.repoSecrets of
-        Success s ->
-            div []
-                [ Table.view
-                    (Table.Config
-                        tableLabel
-                        testLabel
-                        noSecretsLabel
-                        tableHeaders
-                        (secretsToRows Vela.RepoSecret s)
-                        actions
-                    )
-                ]
-
-        RemoteData.Failure _ ->
-            viewResourceError
-                { resourceLabel =
-                    secretsErrorLabel Vela.SharedSecret
-                        secretsModel.org
-                    <|
-                        Just secretsModel.team
-                , testLabel = testLabel
-                }
-
-        _ ->
-            div [] [ largeLoader ]
-
-
+{-| viewOrgSecrets : takes secrets model and renders table for viewing org secrets
+-}
 viewOrgSecrets : PartialModel a msg -> Bool -> Bool -> Html Msg
 viewOrgSecrets model showManage showAdd =
     let
         secretsModel =
             model.secretsModel
-
-        tableLabel =
-            "Org Secrets"
-
-        noSecretsLabel =
-            "No secrets found for this org"
 
         manageButton =
             if showManage then
@@ -217,18 +160,15 @@ viewOrgSecrets model showManage showAdd =
                     [ manageButton
                     , addButton
                     ]
-
-        testLabel =
-            "secrets"
     in
     case secretsModel.orgSecrets of
         Success s ->
             div []
                 [ Table.view
                     (Table.Config
-                        tableLabel
-                        testLabel
-                        noSecretsLabel
+                        "Org Secrets"
+                        secretsTestLabel
+                        "No secrets found for this org"
                         tableHeaders
                         (secretsToRows Vela.OrgSecret s)
                         actions
@@ -242,7 +182,55 @@ viewOrgSecrets model showManage showAdd =
                         secretsModel.org
                     <|
                         Nothing
-                , testLabel = testLabel
+                , testLabel = secretsTestLabel
+                }
+
+        _ ->
+            div [] [ largeLoader ]
+
+
+{-| viewSharedSecrets : takes secrets model and renders table for viewing shared secrets
+-}
+viewSharedSecrets : PartialModel a msg -> Html Msg
+viewSharedSecrets model =
+    let
+        secretsModel =
+            model.secretsModel
+
+        actions =
+            Just <|
+                div [ class "buttons" ]
+                    [ a
+                        [ class "button"
+                        , class "-outline"
+                        , Routes.href <|
+                            Routes.AddSharedSecret "native" secretsModel.org secretsModel.team
+                        ]
+                        [ addLabel Vela.SharedSecret ]
+                    ]
+    in
+    case secretsModel.sharedSecrets of
+        Success s ->
+            div []
+                [ Table.view
+                    (Table.Config
+                        "Shared Secrets"
+                        "secrets"
+                        "No secrets found for this org/team"
+                        tableHeaders
+                        (secretsToRows Vela.SharedSecret s)
+                        actions
+                    )
+                ]
+
+        RemoteData.Failure _ ->
+            viewResourceError
+                { resourceLabel =
+                    secretsErrorLabel Vela.SharedSecret
+                        secretsModel.org
+                    <|
+                        Just secretsModel.team
+                , testLabel = "secrets"
                 }
 
         _ ->

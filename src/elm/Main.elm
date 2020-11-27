@@ -1373,7 +1373,9 @@ refreshPageHidden model _ =
 refreshData : Model -> RefreshData
 refreshData model =
     let
-        rm = model.repoModel
+        rm =
+            model.repoModel
+
         buildNumber =
             case rm.build of
                 Success build ->
@@ -2580,12 +2582,11 @@ loadUpdateSharedSecretPage model engine org team name =
 loadBuildPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
 loadBuildPage model org repo buildNumber focusFragment =
     let
-
         rm =
             model.repoModel
+
         modelBuilds =
             rm.builds
-
 
         builds =
             if not <| Util.isSuccess rm.builds.builds then
@@ -2679,9 +2680,9 @@ logIds logs =
 updateStep : Model -> Step -> Model
 updateStep model incomingStep =
     let
-
         rm =
             model.repoModel
+
         steps =
             case rm.steps of
                 Success s ->
@@ -2692,7 +2693,6 @@ updateStep model incomingStep =
 
         stepExists =
             List.member incomingStep.number <| stepsIds steps
-
 
         following =
             rm.followingStep /= 0
