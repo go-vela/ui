@@ -2190,8 +2190,8 @@ resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
     not <| orgA == orgB && repoA == repoB && idA == idB
 
 
-loadRepoPage : Model -> Page -> Org -> Repo -> ( Model, Cmd Msg )
-loadRepoPage model toPage org repo =
+loadRepoSubPage : Model -> Org -> Repo -> Page -> ( Model, Cmd Msg )
+loadRepoSubPage model org repo toPage =
     let
         rm =
             model.repoModel
@@ -2209,7 +2209,9 @@ loadRepoPage model toPage org repo =
         fetchSecrets o r =
             Cmd.batch [ getAllRepoSecrets model "native" o r, getAllOrgSecrets model "native" o ]
 
+        -- update model and dispatch cmds depending on initialization state and destination
         ( loadModel, loadCmd ) =
+            -- repo data has not been initialized or org/repo has changed
             if not rm.initialized || resourceChanged ( rm.org, rm.name, "" ) ( org, repo, "" ) then
                 ( { model
                     | secretsModel =
@@ -2229,11 +2231,17 @@ loadRepoPage model toPage org repo =
                             , builds =
                                 case toPage of
                                     Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
-                                        { builds = Loading, pager = [], maybeEvent = maybeEvent, maybePage = maybePage, maybePerPage = maybePerPage }
+                                        { builds | builds = Loading, maybeEvent = maybeEvent, maybePage = maybePage, maybePerPage = maybePerPage }
 
                                     _ ->
-                                        { builds = Loading, pager = [], maybePage = Nothing, maybePerPage = Nothing, maybeEvent = Nothing }
-                            , hooks = { hooks = Loading, pager = [], maybePage = Nothing, maybePerPage = Nothing }
+                                        { builds | builds = Loading, maybePage = Nothing, maybePerPage = Nothing, maybeEvent = Nothing }
+                            , hooks =
+                                case toPage of
+                                    Pages.Hooks o r maybePage maybePerPage ->
+                                        { hooks | hooks = Loading, maybePage = maybePage, maybePerPage = maybePerPage }
+
+                                    _ ->
+                                        { hooks | hooks = Loading, maybePage = Nothing, maybePerPage = Nothing }
                             , steps = NotAsked
                             , initialized = True
                         }
@@ -2263,6 +2271,7 @@ loadRepoPage model toPage org repo =
                 )
 
             else
+                -- repo data has already been initialized and org/repo has not changed, aka tab switch
                 case toPage of
                     Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
                         ( { model
@@ -2292,6 +2301,7 @@ loadRepoPage model toPage org repo =
                     Pages.RepoSettings o r ->
                         ( model, getRepo model o r )
 
+                    -- page is not a repo subpage
                     _ ->
                         ( model, Cmd.none )
     in
@@ -2305,11 +2315,7 @@ loadRepoPage model toPage org repo =
 -}
 loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
 loadRepoBuildsPage model org repo _ maybePage maybePerPage maybeEvent =
-    let
-        toPage =
-            Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
-    in
-    loadRepoPage model toPage org repo
+    loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
 
 {-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
@@ -2323,34 +2329,21 @@ loadRepoSecretsPage :
     -> Repo
     -> ( Model, Cmd Msg )
 loadRepoSecretsPage model maybePage maybePerPage engine org repo =
-    let
-        toPage =
-            Pages.RepoSecrets engine org repo maybePage maybePerPage
-    in
-    loadRepoPage model toPage org repo
+    loadRepoSubPage model org repo <| Pages.RepoSecrets engine org repo maybePage maybePerPage
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.
 -}
 loadHooksPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadHooksPage model org repo maybePage maybePerPage =
-    let
-        toPage =
-            Pages.Hooks org repo maybePage maybePerPage
-    in
-    loadRepoPage model toPage org repo
+    loadRepoSubPage model org repo <| Pages.Hooks org repo maybePage maybePerPage
 
 
 {-| loadSettingsPage : takes model org and repo and loads the page for updating repo configurations
 -}
 loadRepoSettingsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadRepoSettingsPage model org repo =
-    -- Fetch repo from Api
-    let
-        toPage =
-            Pages.RepoSettings org repo
-    in
-    loadRepoPage model toPage org repo
+    loadRepoSubPage model org repo <| Pages.RepoSettings org repo
 
 
 {-| loadOrgSecretsPage : takes model org and loads the page for managing org secrets

@@ -135,55 +135,6 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
 
 
-type alias RepoModel =
-    { org : Org
-    , name : Repo
-    , repo : WebData Repository
-    , build : WebData Build
-    , steps : WebData Steps
-    , logs : Logs
-    , followingStep : Int
-    , hooks : HooksModel
-    , builds : BuildsModel
-    , initialized : Bool
-    }
-
-
-defaultRepoModel : RepoModel
-defaultRepoModel =
-    RepoModel "" "" NotAsked NotAsked NotAsked [] 0 defaultHooks defaultBuilds False
-
-
-updateOrgRepo : RepoModel -> Org -> Repo -> RepoModel
-updateOrgRepo rm org repo =
-    { rm | org = org, name = repo }
-
-
-updateRepo : RepoModel -> WebData Repository -> RepoModel
-updateRepo rm update =
-    { rm | repo = update }
-
-
-updateBuild : RepoModel -> WebData Build -> RepoModel
-updateBuild rm update =
-    { rm | build = update }
-
-
-updateBuilds : RepoModel -> BuildsModel -> RepoModel
-updateBuilds rm update =
-    { rm | builds = update }
-
-
-updateSteps : RepoModel -> WebData Steps -> RepoModel
-updateSteps rm update =
-    { rm | steps = update }
-
-
-updateHooks : RepoModel -> HooksModel -> RepoModel
-updateHooks rm update =
-    { rm | hooks = update }
-
-
 
 -- COMMON
 
@@ -393,6 +344,55 @@ type alias AuthParams =
 
 
 -- REPOSITORY
+
+
+type alias RepoModel =
+    { org : Org
+    , name : Repo
+    , repo : WebData Repository
+    , build : WebData Build
+    , steps : WebData Steps
+    , logs : Logs
+    , followingStep : Int
+    , hooks : HooksModel
+    , builds : BuildsModel
+    , initialized : Bool
+    }
+
+
+defaultRepoModel : RepoModel
+defaultRepoModel =
+    RepoModel "" "" NotAsked NotAsked NotAsked [] 0 defaultHooks defaultBuilds False
+
+
+updateOrgRepo : RepoModel -> Org -> Repo -> RepoModel
+updateOrgRepo rm org repo =
+    { rm | org = org, name = repo }
+
+
+updateRepo : RepoModel -> WebData Repository -> RepoModel
+updateRepo rm update =
+    { rm | repo = update }
+
+
+updateBuild : RepoModel -> WebData Build -> RepoModel
+updateBuild rm update =
+    { rm | build = update }
+
+
+updateBuilds : RepoModel -> BuildsModel -> RepoModel
+updateBuilds rm update =
+    { rm | builds = update }
+
+
+updateSteps : RepoModel -> WebData Steps -> RepoModel
+updateSteps rm update =
+    { rm | steps = update }
+
+
+updateHooks : RepoModel -> HooksModel -> RepoModel
+updateHooks rm update =
+    { rm | hooks = update }
 
 
 type alias Repository =
