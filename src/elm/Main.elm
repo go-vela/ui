@@ -534,7 +534,7 @@ update msg model =
         RepoEnabledResponse repo response ->
             let
                 currentRepo =
-                    RemoteData.withDefault defaultRepository model.repoModel.repo
+                    RemoteData.withDefault defaultRepository rm.repo
             in
             case response of
                 Ok ( _, enabledRepo ) ->
@@ -636,7 +636,7 @@ update msg model =
         RepoRepairedResponse repo response ->
             let
                 currentRepo =
-                    RemoteData.withDefault defaultRepository model.repoModel.repo
+                    RemoteData.withDefault defaultRepository rm.repo
             in
             case response of
                 Ok _ ->
@@ -739,7 +739,7 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.mergeSteps logFocus refresh model.repoModel.steps
+                                |> Pages.Build.Update.mergeSteps logFocus refresh rm.steps
 
                         updatedModel =
                             { model | repoModel = { rm | steps = RemoteData.succeed mergedSteps } }
@@ -863,7 +863,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 cmd =
-                    if Pages.RepoSettings.validEventsUpdate model.repoModel.repo payload then
+                    if Pages.RepoSettings.validEventsUpdate rm.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -884,7 +884,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
 
                 cmd =
-                    if Pages.RepoSettings.validAccessUpdate model.repoModel.repo payload then
+                    if Pages.RepoSettings.validAccessUpdate rm.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1106,7 +1106,7 @@ update msg model =
                 OneSecond ->
                     let
                         ( favicon, cmd ) =
-                            refreshFavicon model.page model.favicon model.repoModel.build
+                            refreshFavicon model.page model.favicon rm.build
                     in
                     ( { model | time = time, favicon = favicon }, cmd )
 
@@ -1116,7 +1116,7 @@ update msg model =
                 OneSecondHidden ->
                     let
                         ( favicon, cmd ) =
-                            refreshFavicon model.page model.favicon model.repoModel.build
+                            refreshFavicon model.page model.favicon rm.build
                     in
                     ( { model | time = time, favicon = favicon }, cmd )
 
@@ -1373,15 +1373,16 @@ refreshPageHidden model _ =
 refreshData : Model -> RefreshData
 refreshData model =
     let
+        rm = model.repoModel
         buildNumber =
-            case model.repoModel.build of
+            case rm.build of
                 Success build ->
                     Just <| String.fromInt build.number
 
                 _ ->
                     Nothing
     in
-    { org = model.repoModel.org, repo = model.repoModel.name, build_number = buildNumber, steps = Nothing }
+    { org = rm.org, repo = rm.name, build_number = buildNumber, steps = Nothing }
 
 
 {-| refreshBuild : takes model org repo and build number and refreshes the build status
@@ -2071,7 +2072,7 @@ setNewPage route model =
                     if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
                             ( page, steps, action ) =
-                                focusLogs model (RemoteData.withDefault [] model.repoModel.steps) org repo buildNumber logFocus getBuildStepsLogs
+                                focusLogs model (RemoteData.withDefault [] rm.steps) org repo buildNumber logFocus getBuildStepsLogs
                         in
                         ( { model | page = page, repoModel = updateSteps rm <| RemoteData.succeed steps }, action )
 
@@ -2579,11 +2580,12 @@ loadUpdateSharedSecretPage model engine org team name =
 loadBuildPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
 loadBuildPage model org repo buildNumber focusFragment =
     let
-        modelBuilds =
-            model.repoModel.builds
 
         rm =
             model.repoModel
+        modelBuilds =
+            rm.builds
+
 
         builds =
             if not <| Util.isSuccess rm.builds.builds then
@@ -2677,8 +2679,11 @@ logIds logs =
 updateStep : Model -> Step -> Model
 updateStep model incomingStep =
     let
+
+        rm =
+            model.repoModel
         steps =
-            case model.repoModel.steps of
+            case rm.steps of
                 Success s ->
                     s
 
@@ -2688,8 +2693,6 @@ updateStep model incomingStep =
         stepExists =
             List.member incomingStep.number <| stepsIds steps
 
-        rm =
-            model.repoModel
 
         following =
             rm.followingStep /= 0
