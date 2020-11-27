@@ -844,76 +844,13 @@ update msg model =
                     ( model, addError error )
 
         RepoSecretsResponse response ->
-            let
-                secretsModel =
-                    model.secretsModel
-            in
-            case response of
-                Ok ( meta, secrets ) ->
-                    let
-                        mergedSecrets =
-                            case secretsModel.repoSecrets of
-                                Success s ->
-                                    RemoteData.succeed <| Util.mergeListsById s secrets
-
-                                _ ->
-                                    RemoteData.succeed secrets
-
-                        pager =
-                            Pagination.get meta.headers
-                    in
-                    ( { model | secretsModel = { secretsModel | repoSecrets = mergedSecrets, repoSecretsPager = pager } }, Cmd.none )
-
-                Err error ->
-                    ( { model | secretsModel = { secretsModel | repoSecrets = toFailure error } }, addError error )
+            receiveSecrets model response Vela.RepoSecret
 
         OrgSecretsResponse response ->
-            let
-                secretsModel =
-                    model.secretsModel
-            in
-            case response of
-                Ok ( meta, secrets ) ->
-                    let
-                        mergedSecrets =
-                            case secretsModel.orgSecrets of
-                                Success s ->
-                                    RemoteData.succeed <| Util.mergeListsById s secrets
-
-                                _ ->
-                                    RemoteData.succeed secrets
-
-                        pager =
-                            Pagination.get meta.headers
-                    in
-                    ( { model | secretsModel = { secretsModel | orgSecrets = mergedSecrets, orgSecretsPager = pager } }, Cmd.none )
-
-                Err error ->
-                    ( { model | secretsModel = { secretsModel | orgSecrets = toFailure error } }, addError error )
+            receiveSecrets model response Vela.OrgSecret
 
         SharedSecretsResponse response ->
-            let
-                secretsModel =
-                    model.secretsModel
-            in
-            case response of
-                Ok ( meta, secrets ) ->
-                    let
-                        mergedSecrets =
-                            case secretsModel.sharedSecrets of
-                                Success s ->
-                                    RemoteData.succeed <| Util.mergeListsById s secrets
-
-                                _ ->
-                                    RemoteData.succeed secrets
-
-                        pager =
-                            Pagination.get meta.headers
-                    in
-                    ( { model | secretsModel = { secretsModel | sharedSecrets = mergedSecrets, sharedSecretsPager = pager } }, Cmd.none )
-
-                Err error ->
-                    ( { model | secretsModel = { secretsModel | sharedSecrets = toFailure error } }, addError error )
+            receiveSecrets model response Vela.SharedSecret
 
         UpdateRepoEvent org repo field value ->
             let
@@ -2821,6 +2758,81 @@ updateLog incomingLog logs =
         )
         (\log -> RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData })
         logs
+
+
+receiveSecrets : Model -> Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> SecretType -> ( Model, Cmd Msg )
+receiveSecrets model response type_ =
+    let
+        secretsModel =
+            model.secretsModel
+
+        currentSecrets =
+            case type_ of
+                Vela.RepoSecret ->
+                    secretsModel.repoSecrets
+
+                Vela.OrgSecret ->
+                    secretsModel.orgSecrets
+
+                Vela.SharedSecret ->
+                    secretsModel.sharedSecrets
+    in
+    case response of
+        Ok ( meta, secrets ) ->
+            let
+                mergedSecrets =
+                    case currentSecrets of
+                        Success s ->
+                            RemoteData.succeed <| List.sortBy .id <| Util.mergeListsById s secrets
+
+                        _ ->
+                            RemoteData.succeed secrets
+
+                pager =
+                    Pagination.get meta.headers
+
+                sm =
+                    case type_ of
+                        Vela.RepoSecret ->
+                            { secretsModel
+                                | repoSecrets = mergedSecrets
+                                , repoSecretsPager = pager
+                            }
+
+                        Vela.OrgSecret ->
+                            { secretsModel
+                                | orgSecrets = mergedSecrets
+                                , orgSecretsPager = pager
+                            }
+
+                        Vela.SharedSecret ->
+                            { secretsModel
+                                | sharedSecrets = mergedSecrets
+                                , sharedSecretsPager = pager
+                            }
+            in
+            ( { model
+                | secretsModel =
+                    sm
+              }
+            , Cmd.none
+            )
+
+        Err error ->
+            let
+                e = toFailure error
+                sm =
+                    case type_ of
+                        Vela.RepoSecret ->
+                            { secretsModel | repoSecrets = e }
+
+                        Vela.OrgSecret ->
+                            { secretsModel | orgSecrets = e }
+
+                        Vela.SharedSecret ->
+                            { secretsModel | sharedSecrets = e }
+            in
+            ( { model | secretsModel = sm }, addError error )
 
 
 {-| addLog : takes incoming log and logs and adds log when not present
