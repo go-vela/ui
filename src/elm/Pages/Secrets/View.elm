@@ -123,7 +123,7 @@ viewRepoSecrets model =
 {-| viewOrgSecrets : takes secrets model and renders table for viewing org secrets
 -}
 viewOrgSecrets : PartialModel a msg -> Bool -> Html Msg
-viewOrgSecrets model showManage  =
+viewOrgSecrets model showManage =
     let
         secretsModel =
             model.secretsModel
@@ -140,7 +140,6 @@ viewOrgSecrets model showManage  =
 
             else
                 text ""
-
 
         actions =
             Just <|
