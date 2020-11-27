@@ -12,7 +12,7 @@ module Api exposing
     , enableRepository
     , expandPipelineConfig
     , getAllBuilds
-    , getAllHooks
+    , getAllHooks,getAllSecrets
     , getAllRepositories
     , getAllSteps
     , getBuild
@@ -608,6 +608,15 @@ getAllHooks model org repository =
     -- we are using the max perPage setting of 100 to reduce the number of calls
     get model.velaAPI (Endpoint.Hooks (Just 1) (Just 100) org repository) decodeHook
         |> withAuth model.session
+
+
+{-| getAllSecrets : fetches secrets for the given type org and key
+-}
+getAllSecrets : PartialModel a ->   Engine -> Type -> Org -> Key -> Request Secret
+getAllSecrets model engine type_ org key =
+    get model.velaAPI (Endpoint.Secrets (Just 1) (Just 100) engine type_ org key) decodeSecret
+        |> withAuth model.session
+
 
 
 {-| getSecrets : fetches secrets for the given type org and key

@@ -853,7 +853,7 @@ update msg model =
                     let
                         mergedSecrets =
                             case secretsModel.repoSecrets of
-                                Success s  ->
+                                Success s ->
                                     RemoteData.succeed <| Util.mergeListsById s secrets
 
                                 _ ->
@@ -862,10 +862,10 @@ update msg model =
                         pager =
                             Pagination.get meta.headers
                     in
-                    ( { model | secretsModel = { secretsModel | repoSecrets = mergedSecrets, repoSecretsPager = pager  } }, Cmd.none )
+                    ( { model | secretsModel = { secretsModel | repoSecrets = mergedSecrets, repoSecretsPager = pager } }, Cmd.none )
 
                 Err error ->
-                    ( { model | secretsModel = { secretsModel | repoSecrets =  toFailure error  } }, addError error )
+                    ( { model | secretsModel = { secretsModel | repoSecrets = toFailure error } }, addError error )
 
         OrgSecretsResponse response ->
             let
@@ -877,7 +877,7 @@ update msg model =
                     let
                         mergedSecrets =
                             case secretsModel.orgSecrets of
-                                Success s  ->
+                                Success s ->
                                     RemoteData.succeed <| Util.mergeListsById s secrets
 
                                 _ ->
@@ -886,11 +886,10 @@ update msg model =
                         pager =
                             Pagination.get meta.headers
                     in
-                    ( { model | secretsModel = { secretsModel | orgSecrets =  mergedSecrets, orgSecretsPager = pager  } }, Cmd.none )
+                    ( { model | secretsModel = { secretsModel | orgSecrets = mergedSecrets, orgSecretsPager = pager } }, Cmd.none )
 
                 Err error ->
-                    ( { model | secretsModel = { secretsModel | orgSecrets =  toFailure error } }, addError error )
-
+                    ( { model | secretsModel = { secretsModel | orgSecrets = toFailure error } }, addError error )
 
         SharedSecretsResponse response ->
             let
@@ -902,7 +901,7 @@ update msg model =
                     let
                         mergedSecrets =
                             case secretsModel.sharedSecrets of
-                                Success s  ->
+                                Success s ->
                                     RemoteData.succeed <| Util.mergeListsById s secrets
 
                                 _ ->
@@ -911,10 +910,10 @@ update msg model =
                         pager =
                             Pagination.get meta.headers
                     in
-                    ( { model | secretsModel = { secretsModel | sharedSecrets =  mergedSecrets, sharedSecretsPager = pager  } }, Cmd.none )
+                    ( { model | secretsModel = { secretsModel | sharedSecrets = mergedSecrets, sharedSecretsPager = pager } }, Cmd.none )
 
                 Err error ->
-                    ( { model | secretsModel = { secretsModel | sharedSecrets =  toFailure error  } }, addError error )
+                    ( { model | secretsModel = { secretsModel | sharedSecrets = toFailure error } }, addError error )
 
         UpdateRepoEvent org repo field value ->
             let
@@ -1006,23 +1005,23 @@ update msg model =
                     in
                     ( { model | repoModel = { rm | hooks = loadingHooks } }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage )
 
-
                 Pages.RepoSecrets engine org repo _ maybePerPage ->
                     let
                         currentSecrets =
                             model.secretsModel
 
                         loadingSecrets =
-                            { currentSecrets | repoSecrets =  Loading  }
+                            { currentSecrets | repoSecrets = Loading }
                     in
                     ( { model | secretsModel = loadingSecrets }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepoSecrets engine org repo (Just pageNumber) maybePerPage )
+
                 Pages.OrgSecrets engine org _ maybePerPage ->
                     let
                         currentSecrets =
                             model.secretsModel
 
                         loadingSecrets =
-                            { currentSecrets | orgSecrets =  Loading  }
+                            { currentSecrets | orgSecrets = Loading }
                     in
                     ( { model | secretsModel = loadingSecrets }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgSecrets engine org (Just pageNumber) maybePerPage )
 
@@ -1032,7 +1031,7 @@ update msg model =
                             model.secretsModel
 
                         loadingSecrets =
-                            { currentSecrets | sharedSecrets =  Loading }
+                            { currentSecrets | sharedSecrets = Loading }
                     in
                     ( { model | secretsModel = loadingSecrets }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.SharedSecrets engine org team (Just pageNumber) maybePerPage )
 
@@ -1114,15 +1113,17 @@ update msg model =
             in
             case type_ of
                 Vela.RepoSecret ->
-                    ( { model | secretsModel = { secretsModel | repoSecrets =  Loading  } }
+                    ( { model | secretsModel = { secretsModel | repoSecrets = Loading } }
                     , getRepoSecrets model Nothing Nothing engine org key
                     )
+
                 Vela.OrgSecret ->
-                    ( { model | secretsModel = { secretsModel | orgSecrets =  Loading  } }
+                    ( { model | secretsModel = { secretsModel | orgSecrets = Loading } }
                     , getOrgSecrets model Nothing Nothing engine org
                     )
+
                 Vela.SharedSecret ->
-                    ( { model | secretsModel = { secretsModel | sharedSecrets =  Loading  } }
+                    ( { model | secretsModel = { secretsModel | sharedSecrets = Loading } }
                     , getSharedSecrets model Nothing Nothing engine org key
                     )
 
@@ -1400,12 +1401,12 @@ refreshPage model =
 
         Pages.RepoSecrets engine org repo maybePage maybePerPage ->
             Cmd.batch
-                [ getRepoSecrets model maybePage maybePerPage engine  org repo
+                [ getRepoSecrets model maybePage maybePerPage engine org repo
                 ]
 
         Pages.SharedSecrets engine org team maybePage maybePerPage ->
             Cmd.batch
-                [ getSharedSecrets model maybePage maybePerPage engine  org team
+                [ getSharedSecrets model maybePage maybePerPage engine org team
                 ]
 
         _ ->
@@ -1648,23 +1649,18 @@ viewContent model =
             in
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ page
             , div []
-                [ Pager.view  model.secretsModel.orgSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
+                [ Pager.view model.secretsModel.orgSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
-                , Pager.view model.secretsModel.orgSecretsPager  { previousLabel = "prev", nextLabel = "next" } GotoPage
+                , Pager.view model.secretsModel.orgSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 ]
             )
 
         Pages.RepoSecrets engine org repo _ _ ->
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
-            , div [] [div [Html.Attributes.style "margin-bottom" "2rem"]
+            , div []
                 [ Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.viewRepoSecrets model
-                , Pager.view model.secretsModel.repoSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
+                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
                 ]
-                , div [] [
-                    Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
-                    , Pager.view model.secretsModel.orgSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
-                ]
-            ]
             )
 
         Pages.SharedSecrets engine org team _ _ ->
@@ -1927,8 +1923,9 @@ helpArgs model =
     , build = helpArg model.repoModel.build
     , repo = helpArg model.repoModel.repo
     , hooks = helpArg model.repoModel.hooks.hooks
+
     -- TODO fix this secrets obscurity
-    , secrets = helpArg model.secretsModel.repoSecrets 
+    , secrets = helpArg model.secretsModel.repoSecrets
     , show = model.showHelp
     , toggle = ShowHideHelp
     , copy = Copy
@@ -2267,17 +2264,18 @@ loadRepoPage model toPage org repo =
 
         secretsModel =
             model.secretsModel
-        fetchSecrets : Org -> Repo -> Maybe(Pagination.Page) ->  Maybe(Pagination.PerPage) ->Cmd Msg
-        fetchSecrets o r  maybePage maybePerPage =
-            Cmd.batch [ getRepoSecrets model maybePage maybePerPage "native"  o r, getOrgSecrets model maybePage maybePerPage "native"  o ]
+
+        fetchSecrets : Org -> Repo -> Cmd Msg
+        fetchSecrets o r =
+            Cmd.batch [ getAllRepoSecrets model "native" o r, getAllOrgSecrets model "native" o ]
 
         ( loadModel, loadCmd ) =
             if not rm.initialized || resourceChanged ( rm.org, rm.name, "" ) ( org, repo, "" ) then
                 ( { model
                     | secretsModel =
                         { secretsModel
-                            | repoSecrets =  Loading 
-                            , orgSecrets =  Loading 
+                            | repoSecrets = Loading
+                            , orgSecrets = Loading
                             , org = org
                             , repo = repo
                             , engine = "native"
@@ -2317,10 +2315,10 @@ loadRepoPage model toPage org repo =
                             getHooks model org repo Nothing Nothing
                     , case toPage of
                         Pages.RepoSecrets engine o r maybePage maybePerPage ->
-                            fetchSecrets  o r maybePage maybePerPage
+                            fetchSecrets o r
 
                         _ ->
-                            fetchSecrets  org repo Nothing Nothing
+                            fetchSecrets org repo
                     ]
                 )
 
@@ -2338,7 +2336,7 @@ loadRepoPage model toPage org repo =
                         )
 
                     Pages.RepoSecrets engine o r maybePage maybePerPage ->
-                        ( model, fetchSecrets  o r maybePage maybePerPage)
+                        ( model, fetchSecrets o r )
 
                     Pages.Hooks o r maybePage maybePerPage ->
                         ( { model
@@ -2435,7 +2433,7 @@ loadOrgSecretsPage model maybePage maybePerPage engine org =
             Pages.OrgSecrets engine org maybePage maybePerPage
         , secretsModel =
             { secretsModel
-                | orgSecrets =  Loading 
+                | orgSecrets = Loading
                 , org = org
                 , engine = engine
                 , type_ = Vela.OrgSecret
@@ -2443,7 +2441,7 @@ loadOrgSecretsPage model maybePage maybePerPage engine org =
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getOrgSecrets model maybePage maybePerPage engine  org 
+        , getOrgSecrets model maybePage maybePerPage engine org
         ]
     )
 
@@ -2469,7 +2467,7 @@ loadSharedSecretsPage model maybePage maybePerPage engine org team =
             Pages.SharedSecrets engine org team maybePage maybePerPage
         , secretsModel =
             { secretsModel
-                | repoSecrets =  Loading 
+                | repoSecrets = Loading
                 , org = org
                 , team = team
                 , engine = engine
@@ -2496,7 +2494,7 @@ loadAddOrgSecretPage model engine org =
         | page = Pages.AddOrgSecret engine org
         , secretsModel =
             { secretsModel
-                | sharedSecrets = Loading 
+                | sharedSecrets = Loading
                 , org = org
                 , engine = engine
                 , type_ = Vela.OrgSecret
@@ -2597,7 +2595,7 @@ loadUpdateRepoSecretPage model engine org repo name =
         | page = Pages.RepoSecret engine org repo name
         , secretsModel =
             { secretsModel
-                |  org = org
+                | org = org
                 , repo = repo
                 , engine = engine
                 , type_ = Vela.RepoSecret
@@ -2935,6 +2933,16 @@ getRepoSecrets model maybePage maybePerPage engine org repo =
     Api.try RepoSecretsResponse <| Api.getSecrets model maybePage maybePerPage engine "repo" org repo
 
 
+getAllRepoSecrets :
+    Model
+    -> Engine
+    -> Org
+    -> Repo
+    -> Cmd Msg
+getAllRepoSecrets model engine org repo =
+    Api.tryAll RepoSecretsResponse <| Api.getAllSecrets model engine "repo" org repo
+
+
 getOrgSecrets :
     Model
     -> Maybe Pagination.Page
@@ -2944,6 +2952,15 @@ getOrgSecrets :
     -> Cmd Msg
 getOrgSecrets model maybePage maybePerPage engine org =
     Api.try OrgSecretsResponse <| Api.getSecrets model maybePage maybePerPage engine "org" org "*"
+
+
+getAllOrgSecrets :
+    Model
+    -> Engine
+    -> Org
+    -> Cmd Msg
+getAllOrgSecrets model engine org =
+    Api.tryAll OrgSecretsResponse <| Api.getAllSecrets model engine "org" org "*"
 
 
 getSharedSecrets :
