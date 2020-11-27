@@ -12,8 +12,9 @@ module Api exposing
     , enableRepository
     , expandPipelineConfig
     , getAllBuilds
-    , getAllHooks,getAllSecrets
+    , getAllHooks
     , getAllRepositories
+    , getAllSecrets
     , getAllSteps
     , getBuild
     , getBuilds
@@ -612,11 +613,10 @@ getAllHooks model org repository =
 
 {-| getAllSecrets : fetches secrets for the given type org and key
 -}
-getAllSecrets : PartialModel a ->   Engine -> Type -> Org -> Key -> Request Secret
+getAllSecrets : PartialModel a -> Engine -> Type -> Org -> Key -> Request Secret
 getAllSecrets model engine type_ org key =
     get model.velaAPI (Endpoint.Secrets (Just 1) (Just 100) engine type_ org key) decodeSecret
         |> withAuth model.session
-
 
 
 {-| getSecrets : fetches secrets for the given type org and key

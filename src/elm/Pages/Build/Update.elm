@@ -39,7 +39,8 @@ import Vela
 update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> ( PartialModel a, Cmd msg )
 update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
     let
-        rm = model.repoModel
+        rm =
+            model.repoModel
     in
     case msg of
         ExpandStep org repo buildNumber stepNumber ->
@@ -69,7 +70,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                     else
                         model.repoModel.followingStep
             in
-            ( { model | repoModel = {rm | steps = steps, followingStep = follow} }
+            ( { model | repoModel = { rm | steps = steps, followingStep = follow } }
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
@@ -91,7 +92,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             )
 
         FollowStep step ->
-            ( { model | repoModel = {rm | followingStep = step} }
+            ( { model | repoModel = { rm | followingStep = step } }
             , Cmd.none
             )
 
@@ -102,7 +103,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         |> RemoteData.unwrap rm.steps
                             (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
             in
-            ( { model | repoModel =  {rm | steps = steps, followingStep = 0 }  }
+            ( { model | repoModel = { rm | steps = steps, followingStep = 0 } }
             , Cmd.none
             )
 
@@ -117,7 +118,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
             in
-            ( { model | repoModel = {rm | steps = steps }}
+            ( { model | repoModel = { rm | steps = steps } }
             , action
             )
 

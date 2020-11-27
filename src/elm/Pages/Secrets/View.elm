@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Secrets.View exposing (addSecret, editSecret, viewRepoSecrets, viewOrgSecrets, viewSharedSecrets)
+module Pages.Secrets.View exposing (addSecret, editSecret, viewOrgSecrets, viewRepoSecrets, viewSharedSecrets)
 
 import Errors exposing (viewResourceError)
 import Html
@@ -91,7 +91,7 @@ viewRepoSecrets model =
             "secrets"
     in
     case secretsModel.repoSecrets of
-        Success s  ->
+        Success s ->
             div []
                 [ Table.view
                     (Table.Config
@@ -104,7 +104,7 @@ viewRepoSecrets model =
                     )
                 ]
 
-        RemoteData.Failure _  ->
+        RemoteData.Failure _ ->
             viewResourceError
                 { resourceLabel =
                     secretsErrorLabel Vela.RepoSecret
@@ -159,7 +159,7 @@ viewSharedSecrets model =
                     )
                 ]
 
-        RemoteData.Failure _  ->
+        RemoteData.Failure _ ->
             viewResourceError
                 { resourceLabel =
                     secretsErrorLabel Vela.SharedSecret
@@ -171,6 +171,7 @@ viewSharedSecrets model =
 
         _ ->
             div [] [ largeLoader ]
+
 
 viewOrgSecrets : PartialModel a msg -> Bool -> Bool -> Html Msg
 viewOrgSecrets model showManage showAdd =
@@ -196,15 +197,16 @@ viewOrgSecrets model showManage showAdd =
 
             else
                 text ""
-        addButton = 
+
+        addButton =
             if showAdd then
                 a
-                [ class "button"
-                , class "-outline"
-                , Routes.href <|
-                    Routes.AddOrgSecret "native" secretsModel.org 
-                ]
-                [ addLabel Vela.OrgSecret ]
+                    [ class "button"
+                    , class "-outline"
+                    , Routes.href <|
+                        Routes.AddOrgSecret "native" secretsModel.org
+                    ]
+                    [ addLabel Vela.OrgSecret ]
 
             else
                 text ""
@@ -220,7 +222,7 @@ viewOrgSecrets model showManage showAdd =
             "secrets"
     in
     case secretsModel.orgSecrets of
-        Success s  ->
+        Success s ->
             div []
                 [ Table.view
                     (Table.Config

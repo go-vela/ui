@@ -5,7 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Util exposing
-    ( addIfUniqueId,pageToString,refToString
+    ( addIfUniqueId
     , anyBlank
     , ariaHidden
     , base64Decode
@@ -32,7 +32,9 @@ module Util exposing
     , oneSecondMillis
     , open
     , overwriteById
+    , pageToString
     , pluralize
+    , refToString
     , relativeTimeNoSeconds
     , secondsToMillis
     , smallLoader
@@ -483,6 +485,7 @@ base64Decode inStr =
                     bytes
             )
         |> Maybe.withDefault ""
+
 
 {-| renderPageNumber : small helper to turn page number to a string to display in crumbs
 -}

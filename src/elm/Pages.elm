@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages exposing (Page(..),strip, toRoute)
+module Pages exposing (Page(..), strip, toRoute)
 
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
@@ -108,6 +108,7 @@ toRoute page =
         NotFound ->
             Routes.NotFound
 
+
 {-| strip : maps a Page to itself with optional parameters stripped
 -}
 strip : Page -> Page
@@ -171,7 +172,7 @@ strip page =
             Logout
 
         Authenticate _ ->
-            Authenticate { code =Nothing, state = Nothing }
+            Authenticate { code = Nothing, state = Nothing }
 
         NotFound ->
             NotFound

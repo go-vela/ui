@@ -2781,12 +2781,15 @@ receiveSecrets model response type_ =
         Ok ( meta, secrets ) ->
             let
                 mergedSecrets =
-                    case currentSecrets of
-                        Success s ->
-                            RemoteData.succeed <| List.sortBy .id <| Util.mergeListsById s secrets
+                    RemoteData.succeed <|
+                        List.reverse <|
+                            List.sortBy .id <|
+                                case currentSecrets of
+                                    Success s ->
+                                        Util.mergeListsById s secrets
 
-                        _ ->
-                            RemoteData.succeed secrets
+                                    _ ->
+                                        secrets
 
                 pager =
                     Pagination.get meta.headers
@@ -2820,7 +2823,9 @@ receiveSecrets model response type_ =
 
         Err error ->
             let
-                e = toFailure error
+                e =
+                    toFailure error
+
                 sm =
                     case type_ of
                         Vela.RepoSecret ->

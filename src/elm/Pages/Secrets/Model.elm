@@ -61,12 +61,10 @@ type alias Model msg =
     , type_ : SecretType
     , repoSecrets : WebData Secrets
     , repoSecretsPager : List WebLink
-    , orgSecrets :  WebData Secrets
-        , orgSecretsPager : List WebLink
-
-    , sharedSecrets :  WebData Secrets
-        , sharedSecretsPager : List WebLink
-
+    , orgSecrets : WebData Secrets
+    , orgSecretsPager : List WebLink
+    , sharedSecrets : WebData Secrets
+    , sharedSecretsPager : List WebLink
     , secret : WebData Secret
     , form : SecretForm
     , secretResponse : SecretResponse msg

@@ -123,6 +123,7 @@ module Vela exposing
     , updateRepo
     , updateSteps
     )
+
 import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Errors exposing (Error)
@@ -753,7 +754,7 @@ type alias BuildsModel =
     , pager : List WebLink
     , maybePage : Maybe Pagination.Page
     , maybePerPage : Maybe Pagination.PerPage
-    , maybeEvent: Maybe Event
+    , maybeEvent : Maybe Event
     }
 
 

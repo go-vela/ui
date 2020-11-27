@@ -111,7 +111,7 @@ toPath page =
                             ( repo, Nothing )
 
                         pageNumber =
-                             Util.pageToString  maybePage
+                            Util.pageToString maybePage
                     in
                     [ overviewPage
                     , organizationPage
@@ -137,7 +137,7 @@ toPath page =
                             ( org, Nothing )
 
                         orgSecrets =
-                            ( "Org Secrets" ++  Util.pageToString  maybePage, Nothing )
+                            ( "Org Secrets" ++ Util.pageToString maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, orgSecrets ]
 
@@ -150,7 +150,7 @@ toPath page =
                             ( repo, Nothing )
 
                         repoSecrets =
-                            ( "Repo Secrets" ++  Util.pageToString  maybePage, Nothing )
+                            ( "Repo Secrets" ++ Util.pageToString maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, repoBuilds ]
 
@@ -263,7 +263,7 @@ toPath page =
                             ( org, Nothing )
 
                         pageNumber =
-                             Util.pageToString  maybePage
+                            Util.pageToString maybePage
                     in
                     [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
 
@@ -304,4 +304,3 @@ toPath page =
                     []
     in
     pages
-

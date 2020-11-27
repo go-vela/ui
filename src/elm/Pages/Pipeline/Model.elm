@@ -21,9 +21,10 @@ import Vela
         , Org
         , Pipeline
         , Repo
+        , RepoModel
         , Session
         , Steps
-        , Templates, RepoModel
+        , Templates
         )
 
 
@@ -40,7 +41,7 @@ type alias PartialModel a =
         , navigationKey : Navigation.Key
         , time : Posix
         , repoModel : RepoModel
-         , shift : Bool
+        , shift : Bool
         , templates : ( WebData Templates, Error )
         , pipeline : Pipeline
         , page : Page

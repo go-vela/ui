@@ -41,8 +41,8 @@ import Vela
         , Engine
         , Org
         , Repo
-        , SourceRepositories
         , SecretType
+        , SourceRepositories
         )
 
 

@@ -17,8 +17,9 @@ import Vela
         , Logs
         , Org
         , Repo
+        , RepoModel
         , StepNumber
-        , Steps,RepoModel
+        , Steps
         )
 
 
