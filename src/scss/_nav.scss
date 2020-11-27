@@ -4,33 +4,36 @@
 
 // ┌┐┌┌─┐┬  ┬
 // │││├─┤└┐┌┘
-// ┘└┘┴ ┴ └┘ 
+// ┘└┘┴ ┴ └┘
 
 // style for application nav
 
 .jump-bar {
-    display: flex;
-    padding: 1rem 0;
-    width: 100%;
+  display: flex;
+  width: 100%;
+  padding: 1rem 0;
 }
 
 .jump-bar .jump {
-    padding-bottom: 1rem;
-    border-bottom: 3px solid var(--color-bg-light);
-    text-decoration: none;
-    font-weight: lighter;
-    color: var(--color-text);
+  padding-bottom: 1rem;
 
-    &.current {
-        font-weight: bold;
-        border-color: var(--color-primary);
-    }
-    
-    &.spacer {
-        width: 2rem;
-    }
+  color: var(--color-text);
+  font-weight: lighter;
+  text-decoration: none;
 
-    &.fill {
-        flex: 1;
-    }
+  border-bottom: 3px solid var(--color-bg-light);
+
+  &.current {
+    font-weight: bold;
+
+    border-color: var(--color-primary);
+  }
+
+  &.spacer {
+    width: 2rem;
+  }
+
+  &.fill {
+    flex: 1;
+  }
 }
