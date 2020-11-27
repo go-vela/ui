@@ -125,6 +125,13 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     ]
                     [ text "Refresh"
                     ]
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Routes.href <|
+                        Routes.AddOrgSecret engine org 
+                    ]
+                    [ text "Add Org Secret"]
                 ]
 
         Pages.RepoSecrets engine org repo _ _ ->
@@ -142,6 +149,13 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                     ]
                     [ text "Refresh"
                     ]
+                 ,   a
+                    [ class "button"
+                    , class "-outline"
+                    , Routes.href <|
+                        Routes.AddOrgSecret engine org 
+                    ]
+                    [ text "Add Org Secret"]
                 ]
 
         Pages.Build org repo buildNumber _ ->

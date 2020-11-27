@@ -122,8 +122,8 @@ viewRepoSecrets model =
 
 {-| viewOrgSecrets : takes secrets model and renders table for viewing org secrets
 -}
-viewOrgSecrets : PartialModel a msg -> Bool -> Bool -> Html Msg
-viewOrgSecrets model showManage showAdd =
+viewOrgSecrets : PartialModel a msg -> Bool -> Html Msg
+viewOrgSecrets model showManage  =
     let
         secretsModel =
             model.secretsModel
@@ -141,24 +141,11 @@ viewOrgSecrets model showManage showAdd =
             else
                 text ""
 
-        addButton =
-            if showAdd then
-                a
-                    [ class "button"
-                    , class "-outline"
-                    , Routes.href <|
-                        Routes.AddOrgSecret "native" secretsModel.org
-                    ]
-                    [ addLabel Vela.OrgSecret ]
-
-            else
-                text ""
 
         actions =
             Just <|
                 div [ class "buttons" ]
                     [ manageButton
-                    , addButton
                     ]
     in
     case secretsModel.orgSecrets of
@@ -198,16 +185,7 @@ viewSharedSecrets model =
             model.secretsModel
 
         actions =
-            Just <|
-                div [ class "buttons" ]
-                    [ a
-                        [ class "button"
-                        , class "-outline"
-                        , Routes.href <|
-                            Routes.AddSharedSecret "native" secretsModel.org secretsModel.team
-                        ]
-                        [ addLabel Vela.SharedSecret ]
-                    ]
+            Nothing
     in
     case secretsModel.sharedSecrets of
         Success s ->
