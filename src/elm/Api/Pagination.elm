@@ -28,7 +28,6 @@ type alias PerPage =
     Int
 
 
-
 defaultPage : Page
 defaultPage =
     1

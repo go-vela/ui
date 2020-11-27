@@ -43,21 +43,28 @@ import Vela
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
-init : SecretResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> Model msg
-init secretResponse secretsResponse addSecretResponse updateSecretResponse =
+init : SecretResponse msg -> SecretsResponse msg ->  SecretsResponse msg ->  SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> Model msg
+init secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse addSecretResponse updateSecretResponse =
     Model "native"
         ""
         ""
         ""
         Vela.RepoSecret
         NotAsked
+        []
+        NotAsked
+        []
+        NotAsked
+        []
         NotAsked
         defaultSecretUpdate
         secretResponse
-        secretsResponse
+        repoSecretsResponse
+        orgSecretsResponse
+        sharedSecretsResponse
         addSecretResponse
         updateSecretResponse
-        []
+
 
 
 {-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments

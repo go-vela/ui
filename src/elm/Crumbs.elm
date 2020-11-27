@@ -108,17 +108,14 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuilds =
-                            -- ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                             ( repo, Nothing )
 
                         pageNumber =
-                            pageToString maybePage
+                             Util.pageToString  maybePage
                     in
                     [ overviewPage
                     , organizationPage
                     , repoBuilds
-
-                    -- , ( "Hooks" ++ pageNumber, Nothing )
                     ]
 
                 Pages.RepoSettings org repo ->
@@ -127,14 +124,11 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuilds =
-                            -- ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                             ( repo, Nothing )
                     in
                     [ overviewPage
                     , organizationPage
                     , repoBuilds
-
-                    -- , repoSettings
                     ]
 
                 Pages.OrgSecrets _ org maybePage _ ->
@@ -143,7 +137,7 @@ toPath page =
                             ( org, Nothing )
 
                         orgSecrets =
-                            ( "Org Secrets" ++ pageToString maybePage, Nothing )
+                            ( "Org Secrets" ++  Util.pageToString  maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, orgSecrets ]
 
@@ -153,18 +147,12 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuilds =
-                            -- ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                             ( repo, Nothing )
 
                         repoSecrets =
-                            ( "Repo Secrets" ++ pageToString maybePage, Nothing )
+                            ( "Repo Secrets" ++  Util.pageToString  maybePage, Nothing )
                     in
-                    [ overviewPage
-                    , orgPage
-                    , repoBuilds
-
-                    -- , repoSecrets
-                    ]
+                    [ overviewPage, orgPage, repoBuilds ]
 
                 Pages.SharedSecrets _ org team maybePage _ ->
                     let
@@ -175,7 +163,7 @@ toPath page =
                             ( team, Nothing )
 
                         sharedSecrets =
-                            ( "Shared Secrets" ++ pageToString maybePage, Nothing )
+                            ( "Shared Secrets" ++ Util.pageToString maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, teamPage, sharedSecrets ]
 
@@ -275,7 +263,7 @@ toPath page =
                             ( org, Nothing )
 
                         pageNumber =
-                            pageToString maybePage
+                             Util.pageToString  maybePage
                     in
                     [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
 
@@ -298,7 +286,7 @@ toPath page =
                         repoBuildsPage =
                             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                     in
-                    [ overviewPage, organizationPage, repoBuildsPage, ( refToString ref, Nothing ) ]
+                    [ overviewPage, organizationPage, repoBuildsPage, ( Util.refToString ref, Nothing ) ]
 
                 Pages.Login ->
                     []
@@ -317,34 +305,3 @@ toPath page =
     in
     pages
 
-
-{-| renderPageNumber : small helper to turn page number to a string to display in crumbs
--}
-pageToString : Maybe Int -> String
-pageToString maybePage =
-    case maybePage of
-        Nothing ->
-            ""
-
-        Just num ->
-            if num > 1 then
-                " (page " ++ String.fromInt num ++ ")"
-
-            else
-                ""
-
-
-{-| refToString : small helper to turn ref to a string to display in crumbs
--}
-refToString : Maybe Ref -> String
-refToString maybeRef =
-    case maybeRef of
-        Nothing ->
-            "(default branch)"
-
-        Just ref ->
-            if String.length ref > 0 then
-                ref
-
-            else
-                "(default branch)"

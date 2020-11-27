@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Secrets.View exposing (addSecret, editSecret, secrets)
+module Pages.Secrets.View exposing (addSecret, editSecret, viewRepoSecrets, viewOrgSecrets, viewSharedSecrets)
 
 import Errors exposing (viewResourceError)
 import Html
@@ -60,89 +60,175 @@ import Vela
 
 
 
--- SECRETS
+-- VIEW
 
 
-{-| secrets : takes model and renders page for managing secrets
--}
-secrets : PartialModel a msg -> Html Msg
-secrets model =
+viewRepoSecrets : PartialModel a msg -> Html Msg
+viewRepoSecrets model =
     let
         secretsModel =
             model.secretsModel
 
-        args =
-            case secretsModel.type_ of
-                Vela.OrgSecret ->
-                    { label = "Org Secrets"
-                    , noSecrets = "No secrets found for this organization"
-                    , addRoute = Routes.AddOrgSecret "native" secretsModel.org
-                    , navAction = Nothing
-                    }
+        tableLabel =
+            "Repo Secrets"
 
-                Vela.RepoSecret ->
-                    { label = "Repo Secrets"
-                    , noSecrets = "No secrets found for this repository"
-                    , addRoute = Routes.AddRepoSecret "native" secretsModel.org secretsModel.repo
-                    , navAction =
-                        Just
-                            { page = Pages.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
-                            , label = "View Org Secrets"
-                            }
-                    }
-
-                Vela.SharedSecret ->
-                    { label = "Shared Secrets"
-                    , noSecrets = "No secrets found for this organization/team"
-                    , addRoute = Routes.AddSharedSecret "native" secretsModel.org secretsModel.team
-                    , navAction =
-                        Just
-                            { page = Pages.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
-                            , label = "View Org Secrets"
-                            }
-                    }
-
-        navAction =
-            case args.navAction of
-                Just n ->
-                    a
-                        [ class "button"
-                        , class "-outline"
-                        , Routes.href <|
-                            Pages.toRoute <|
-                                n.page
-                        ]
-                        [ text n.label ]
-
-                Nothing ->
-                    text ""
+        noSecretsLabel =
+            "No secrets found for this repository"
 
         actions =
             Just <|
                 div [ class "buttons" ]
-                    [ navAction
-                    , a
+                    [ a
                         [ class "button"
                         , class "-outline"
                         , Routes.href <|
-                            args.addRoute
+                            Routes.AddRepoSecret "native" secretsModel.org secretsModel.repo
                         ]
-                        [ addLabel secretsModel.type_ ]
+                        [ addLabel Vela.RepoSecret ]
                     ]
 
         testLabel =
             "secrets"
     in
-    case secretsModel.secrets of
+    case secretsModel.repoSecrets of
+        Success s  ->
+            div []
+                [ Table.view
+                    (Table.Config
+                        tableLabel
+                        testLabel
+                        noSecretsLabel
+                        tableHeaders
+                        (secretsToRows Vela.RepoSecret s)
+                        actions
+                    )
+                ]
+
+        RemoteData.Failure _  ->
+            viewResourceError
+                { resourceLabel =
+                    secretsErrorLabel Vela.RepoSecret
+                        secretsModel.org
+                    <|
+                        Just secretsModel.repo
+                , testLabel = testLabel
+                }
+
+        _ ->
+            div [] [ largeLoader ]
+
+
+viewSharedSecrets : PartialModel a msg -> Html Msg
+viewSharedSecrets model =
+    let
+        secretsModel =
+            model.secretsModel
+
+        tableLabel =
+            "Shared Secrets"
+
+        noSecretsLabel =
+            "No secrets found for this org/team"
+
+        actions =
+            Just <|
+                div [ class "buttons" ]
+                    [ a
+                        [ class "button"
+                        , class "-outline"
+                        , Routes.href <|
+                            Routes.AddSharedSecret "native" secretsModel.org secretsModel.team
+                        ]
+                        [ addLabel Vela.SharedSecret ]
+                    ]
+
+        testLabel =
+            "secrets"
+    in
+    case secretsModel.repoSecrets of
         Success s ->
             div []
                 [ Table.view
                     (Table.Config
-                        args.label
+                        tableLabel
                         testLabel
-                        args.noSecrets
+                        noSecretsLabel
                         tableHeaders
-                        (secretsToRows model.secretsModel.type_ s)
+                        (secretsToRows Vela.RepoSecret s)
+                        actions
+                    )
+                ]
+
+        RemoteData.Failure _  ->
+            viewResourceError
+                { resourceLabel =
+                    secretsErrorLabel Vela.SharedSecret
+                        secretsModel.org
+                    <|
+                        Just secretsModel.team
+                , testLabel = testLabel
+                }
+
+        _ ->
+            div [] [ largeLoader ]
+
+viewOrgSecrets : PartialModel a msg -> Bool -> Bool -> Html Msg
+viewOrgSecrets model showManage showAdd =
+    let
+        secretsModel =
+            model.secretsModel
+
+        tableLabel =
+            "Org Secrets"
+
+        noSecretsLabel =
+            "No secrets found for this org"
+
+        manageButton =
+            if showManage then
+                a
+                    [ class "button"
+                    , class "-outline"
+                    , Routes.href <|
+                        Routes.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
+                    ]
+                    [ text "Manage Org Secrets" ]
+
+            else
+                text ""
+        addButton = 
+            if showAdd then
+                a
+                [ class "button"
+                , class "-outline"
+                , Routes.href <|
+                    Routes.AddOrgSecret "native" secretsModel.org 
+                ]
+                [ addLabel Vela.OrgSecret ]
+
+            else
+                text ""
+
+        actions =
+            Just <|
+                div [ class "buttons" ]
+                    [ manageButton
+                    , addButton
+                    ]
+
+        testLabel =
+            "secrets"
+    in
+    case secretsModel.orgSecrets of
+        Success s  ->
+            div []
+                [ Table.view
+                    (Table.Config
+                        tableLabel
+                        testLabel
+                        noSecretsLabel
+                        tableHeaders
+                        (secretsToRows Vela.OrgSecret s)
                         actions
                     )
                 ]
@@ -150,10 +236,10 @@ secrets model =
         RemoteData.Failure _ ->
             viewResourceError
                 { resourceLabel =
-                    secretsErrorLabel secretsModel.type_
+                    secretsErrorLabel Vela.OrgSecret
                         secretsModel.org
                     <|
-                        secretsResourceKey secretsModel
+                        Nothing
                 , testLabel = testLabel
                 }
 
