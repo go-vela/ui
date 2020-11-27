@@ -107,11 +107,11 @@ toPath page =
                         organizationPage =
                             ( org, Nothing )
 
-                        repoBuilds =
-                            ( repo, Nothing )
-
                         pageNumber =
                             Util.pageToString maybePage
+
+                        repoBuilds =
+                            ( repo ++ pageNumber, Nothing )
                     in
                     [ overviewPage
                     , organizationPage
