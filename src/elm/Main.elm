@@ -2004,7 +2004,6 @@ setNewPage route model =
 
         rm =
             model.repoModel
-        
     in
     case ( route, sessionHasToken ) of
         -- Logged in and on auth flow pages - what are you doing here?
@@ -2158,6 +2157,8 @@ setNewPage route model =
 setFrom : Model -> Model
 setFrom model =
     { model | from = model.page }
+
+
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
 loadSourceReposPage model =
     case model.sourceRepos of

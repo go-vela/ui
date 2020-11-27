@@ -129,17 +129,16 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
             --         [ case model.repoModel.repo of
             --             Loading ->
             --                 text "Loading…"
-
             --             _ ->
             --                 text "Refresh"
             --         , FeatherIcons.refreshCw
             --             |> FeatherIcons.withSize 18
             --             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
             --         ]
-            --     , 
-                starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                -- ]
+            --     ,
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
+        -- ]
         Pages.RepoSecrets engine org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
