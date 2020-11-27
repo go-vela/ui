@@ -1863,8 +1863,6 @@ helpArgs model =
     , build = helpArg model.repoModel.build
     , repo = helpArg model.repoModel.repo
     , hooks = helpArg model.repoModel.hooks.hooks
-
-    -- TODO fix this secrets obscurity
     , secrets = helpArg model.secretsModel.repoSecrets
     , show = model.showHelp
     , toggle = ShowHideHelp
