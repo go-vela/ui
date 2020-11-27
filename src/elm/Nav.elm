@@ -9,6 +9,7 @@ module Nav exposing (Msgs, view)
 import Browser.Events exposing (Visibility(..))
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
+import FeatherIcons
 import Html
     exposing
         ( Html
@@ -32,6 +33,7 @@ import Pages exposing (Page(..))
 import Pages.Builds exposing (view)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
+import Svg.Attributes
 import Util
 import Vela
     exposing
@@ -53,6 +55,7 @@ type alias PartialModel a =
         , from : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
+        , repoModel : RepoModel
     }
 
 
@@ -112,52 +115,43 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.RepoSettings org repo ->
-            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+            -- div [ class "buttons" ]
+            --     [ button
+            --         [ classList
+            --             [ ( "button", True )
+            --             , ( "-outline", True )
+            --             , ( "button-with-icon", True )
+            --             ]
+            --         , onClick <| refreshSettings org repo
+            --         , disabled (model.repoModel.repo == Loading)
+            --         , Util.testAttribute "refresh-repo-settings"
+            --         ]
+            --         [ case model.repoModel.repo of
+            --             Loading ->
+            --                 text "Loading…"
 
-        Pages.OrgSecrets engine org _ _ ->
-            div [ class "buttons" ]
-                [ case model.from of
-                    Pages.RepoSecrets _ _ _ _  _ ->
-                        a
-                        [ class "button"
-                        , class "-outline"
-                        , Routes.href <|
-                            Pages.toRoute model.from
-                        ]
-                        [ text "Back" ]
-                    _ ->
-                        text ""
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Routes.href <|
-                        Routes.AddOrgSecret engine org
-                    ]
-                    [ text "Add Org Secret" ]
-                ]
+            --             _ ->
+            --                 text "Refresh"
+            --         , FeatherIcons.refreshCw
+            --             |> FeatherIcons.withSize 18
+            --             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+            --         ]
+            --     , 
+                starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+                -- ]
 
         Pages.RepoSecrets engine org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.SharedSecrets engine org team _ _ ->
             div [ class "buttons" ]
-                [ button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSecrets engine Vela.SharedSecret org team
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh"
-                    ]
-                , a
+                [ a
                     [ class "button"
                     , class "-outline"
                     , Routes.href <|
-                        Routes.AddOrgSecret engine org
+                        Routes.AddSharedSecret engine org team
                     ]
-                    [ text "Add Org Secret" ]
+                    [ text "Add Shared Secret" ]
                 ]
 
         Pages.Build org repo buildNumber _ ->

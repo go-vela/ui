@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Secrets.View exposing (addSecret, editSecret, viewOrgSecrets, viewRepoSecrets, viewSharedSecrets)
 
 import Errors exposing (viewResourceError)
+import FeatherIcons
 import Html
     exposing
         ( Html
@@ -46,6 +47,7 @@ import Pages.Secrets.Model
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
+import Svg.Attributes
 import Table
 import Url exposing (percentEncode)
 import Util exposing (largeLoader)
@@ -85,11 +87,16 @@ viewRepoSecrets model =
                 div [ class "buttons" ]
                     [ a
                         [ class "button"
+                        , class "button-with-icon"
                         , class "-outline"
                         , Routes.href <|
                             Routes.AddRepoSecret "native" secretsModel.org secretsModel.repo
                         ]
-                        [ addLabel Vela.RepoSecret ]
+                        [ text "Add Repo Secret"
+                        , FeatherIcons.plus
+                            |> FeatherIcons.withSize 18
+                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                        ]
                     ]
     in
     case secretsModel.repoSecrets of
@@ -122,8 +129,8 @@ viewRepoSecrets model =
 
 {-| viewOrgSecrets : takes secrets model and renders table for viewing org secrets
 -}
-viewOrgSecrets : PartialModel a msg -> Bool -> Html Msg
-viewOrgSecrets model showManage =
+viewOrgSecrets : PartialModel a msg -> Bool -> Bool -> Html Msg
+viewOrgSecrets model showManage showAdd =
     let
         secretsModel =
             model.secretsModel
@@ -141,10 +148,29 @@ viewOrgSecrets model showManage =
             else
                 text ""
 
+        addButton =
+            if showAdd then
+                a
+                    [ class "button"
+                    , class "-outline"
+                    , class "button-with-icon"
+                    , Routes.href <|
+                        Routes.AddOrgSecret secretsModel.engine secretsModel.org
+                    ]
+                    [ text "Add Org Secret"
+                    , FeatherIcons.plus
+                        |> FeatherIcons.withSize 18
+                        |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                    ]
+
+            else
+                text ""
+
         actions =
             Just <|
                 div [ class "buttons" ]
                     [ manageButton
+                    , addButton
                     ]
     in
     case secretsModel.orgSecrets of

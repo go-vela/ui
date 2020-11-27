@@ -1586,7 +1586,7 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
             , div []
                 [ Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.viewRepoSecrets model
-                , Html.map (\_ -> NoOp) <| lazy2 Pages.Secrets.View.viewOrgSecrets model True
+                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
                 ]
             )
 
@@ -1603,8 +1603,7 @@ viewContent model =
             in
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ page
             , div []
-                [ Pager.view model.secretsModel.orgSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
-                , Html.map (\_ -> NoOp) <| lazy2 Pages.Secrets.View.viewOrgSecrets model False
+                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
                 , Pager.view model.secretsModel.orgSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 ]
             )

@@ -7,7 +7,12 @@
 // ┘└┘┴ ┴ └┘
 
 // style for application nav
-
+.button-with-icon {
+    padding-right: 0.4rem;
+}
+.button-icon {
+    margin-left: 0.6rem;
+}
 .jump-bar {
   display: flex;
   width: 100%;
@@ -39,13 +44,15 @@
 }
 
 @media screen and (max-width: 600px) {
-    .jump-bar {
-        flex-direction: column;
+  .jump-bar {
+    flex-direction: column;
+  }
+
+  .jump-bar .jump {
+    &.fill,
+    &.spacer {
+      width: 0;
+      padding: 0;
     }
-    .jump-bar .jump {
-        &.fill, &.spacer{
-            width: 0;
-            padding: 0;
-        }
-      }
+  }
 }
