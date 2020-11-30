@@ -51,10 +51,10 @@ export type Flags = {
   readonly velaFeedbackURL: string;
   /** @property velaDocsURL allows you to customize the destination of the docs link */
   readonly velaDocsURL: string;
-  /** @property velaSession used for passsing in an existing Vela session to Elm */
-  readonly velaSession: Session | null;
   /** @property velaTheme: Theme | null */
   readonly velaTheme: Theme;
+  /** @property velaRedirect: string */
+  readonly velaRedirect: string;
 };
 
 /**
@@ -62,9 +62,8 @@ export type Flags = {
  *
  */
 export type Ports = {
-  readonly storeSession: ToJS<Session>;
-  readonly onSessionChange: ToElm<Session>;
   readonly setTheme: ToJS<Theme>;
+  readonly setRedirect: ToJS<string>;
   readonly setFavicon: ToJS<string>;
   readonly onThemeChange: ToElm<Theme>;
 };
@@ -84,16 +83,6 @@ export type ToJS<T> = {
  */
 export type ToElm<T> = {
   send(value: T): void;
-};
-
-/**
- * The shape of session that we are working with in Vela
- *
- */
-export type Session = {
-  readonly username: string;
-  readonly token: string;
-  readonly entrypoint: string;
 };
 
 /**

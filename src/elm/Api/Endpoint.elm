@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
-import Url.Builder as UB exposing (QueryParameter, string)
+import Url.Builder as UB exposing (QueryParameter)
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, Name, Org, Repo, StepNumber, Type)
 
 
@@ -23,7 +23,9 @@ apiBase =
 type Endpoint
     = Authenticate AuthParams
     | Login
+    | Logout
     | CurrentUser
+    | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Repository Org Repo
     | RepositoryChown Org Repo
@@ -48,7 +50,13 @@ toUrl api endpoint =
             url api [ "authenticate" ] [ UB.string "code" <| Maybe.withDefault "" code, UB.string "state" <| Maybe.withDefault "" state ]
 
         Login ->
-            url api [ "login" ] []
+            url api [ "login" ] [ UB.string "type" "ui" ]
+
+        Logout ->
+            url api [ "logout" ] []
+
+        Token ->
+            url api [ "token-refresh" ] []
 
         Repositories maybePage maybePerPage ->
             url api [ "repos" ] <| Pagination.toQueryParams maybePage maybePerPage
@@ -97,12 +105,18 @@ toUrl api endpoint =
 -}
 url : String -> List String -> List QueryParameter -> String
 url api segments params =
-    -- "/authenticate" and "/login" don't live at the base api path
+    -- these endpoints don't live at the api base path
     case List.head segments of
         Just "authenticate" ->
             UB.crossOrigin api segments params
 
         Just "login" ->
+            UB.crossOrigin api segments params
+
+        Just "logout" ->
+            UB.crossOrigin api segments params
+
+        Just "token-refresh" ->
             UB.crossOrigin api segments params
 
         _ ->

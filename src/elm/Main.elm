@@ -10,6 +10,8 @@ import Alerts exposing (Alert)
 import Api
 import Api.Endpoint
 import Api.Pagination as Pagination
+import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
+import Auth.Session exposing (Session(..), SessionDetails, defaultSessionDetails, refreshAccessToken)
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
@@ -57,7 +59,7 @@ import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7)
 import Http exposing (Error(..))
 import Http.Detailed
 import Interop
-import Json.Decode as Decode exposing (string)
+import Json.Decode as Decode
 import Json.Encode as Encode
 import List.Extra exposing (updateIf)
 import Maybe
@@ -135,7 +137,6 @@ import Vela
         , Secret
         , SecretType(..)
         , Secrets
-        , Session
         , SourceRepositories
         , Step
         , StepNumber
@@ -145,21 +146,17 @@ import Vela
         , Type
         , UpdateRepositoryPayload
         , UpdateUserPayload
-        , User
         , buildUpdateFavoritesPayload
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
-        , decodeSession
         , decodeTheme
         , defaultBuilds
         , defaultEnableRepositoryPayload
         , defaultFavicon
         , defaultHooks
         , defaultRepository
-        , defaultSession
         , encodeEnableRepository
-        , encodeSession
         , encodeTheme
         , encodeUpdateRepository
         , encodeUpdateUser
@@ -179,14 +176,14 @@ type alias Flags =
     , velaAPI : String
     , velaFeedbackURL : String
     , velaDocsURL : String
-    , velaSession : Maybe Session
     , velaTheme : String
+    , velaRedirect : String
     }
 
 
 type alias Model =
     { page : Page
-    , session : Maybe Session
+    , session : Session
     , user : WebData CurrentUser
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
@@ -235,10 +232,19 @@ type alias RefreshData =
 init : Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
+        redirect : Url
+        redirect =
+            case Url.fromString flags.velaRedirect of
+                Just re ->
+                    re
+
+                Nothing ->
+                    url
+
         model : Model
         model =
             { page = Pages.Overview
-            , session = flags.velaSession
+            , session = Unauthenticated
             , user = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
@@ -258,7 +264,7 @@ init flags url navKey =
             , favoritesFilter = ""
             , repo = RemoteData.succeed defaultRepository
             , inTimeout = Nothing
-            , entryURL = url
+            , entryURL = redirect
             , theme = stringToTheme flags.velaTheme
             , shift = False
             , visibility = Visible
@@ -276,10 +282,22 @@ init flags url navKey =
 
         setTime =
             Task.perform AdjustTime Time.now
+
+        fetchToken : Cmd Msg
+        fetchToken =
+            -- when redirect is set, we're in the
+            -- auth flow, skip fetching as it will
+            -- error anyway
+            if String.length flags.velaRedirect > 0 then
+                Cmd.none
+
+            else
+                getToken model
     in
     ( newModel
     , Cmd.batch
-        [ newPage
+        [ fetchToken
+        , newPage
 
         -- for themes, we rely on ports to apply the class on <body>
         , Interop.setTheme <| encodeTheme model.theme
@@ -310,6 +328,7 @@ type Msg
     | ShowHideIdentity (Maybe Bool)
     | Copy String
       -- Outgoing HTTP requests
+    | RefreshAccessToken
     | SignInRequested
     | FetchSourceRepositories
     | ToggleFavorite Org (Maybe Repo)
@@ -323,7 +342,8 @@ type Msg
     | RepairRepo Repository
     | RestartBuild Org Repo BuildNumber
       -- Inbound HTTP responses
-    | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
+    | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
@@ -347,7 +367,6 @@ type Msg
       -- Other
     | Error String
     | AlertsUpdate (Alerting.Msg Alert)
-    | SessionChanged (Maybe Session)
     | FilterBuildEventBy (Maybe Event) Org Repo
     | FocusOn String
     | FocusResult (Result Dom.Error ())
@@ -370,10 +389,15 @@ update msg model =
             setNewPage route model
 
         SignInRequested ->
+            -- Login on server needs to accept redirect URL and pass it along to as part of 'state' encoded as base64
+            -- so we can parse it when the source provider redirects back to the API
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
 
-        SessionChanged newSession ->
-            ( { model | session = newSession }, Cmd.none )
+        LogoutResponse _ ->
+            -- ignoring outcome of request and proceeding to logout
+            ( { model | session = Unauthenticated }
+            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
+            )
 
         FetchSourceRepositories ->
             ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
@@ -453,41 +477,88 @@ update msg model =
             , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
             )
 
-        UserResponse response ->
+        RefreshAccessToken ->
+            ( model, getToken model )
+
+        TokenResponse response ->
             case response of
-                Ok ( _, user ) ->
+                Ok ( _, token ) ->
                     let
                         currentSession : Session
                         currentSession =
-                            Maybe.withDefault defaultSession model.session
+                            model.session
 
-                        session : Session
-                        session =
-                            { currentSession | username = user.username, token = user.token }
+                        payload : JwtAccessTokenClaims
+                        payload =
+                            extractJwtClaims token
 
-                        redirectTo : String
-                        redirectTo =
-                            case session.entrypoint of
-                                "" ->
-                                    Routes.routeToUrl Routes.Overview
+                        newSessionDetails : SessionDetails
+                        newSessionDetails =
+                            SessionDetails token payload.exp payload.sub
 
-                                _ ->
-                                    session.entrypoint
+                        actions : List (Cmd Msg)
+                        actions =
+                            case currentSession of
+                                Unauthenticated ->
+                                    [ Navigation.pushUrl model.navigationKey <| Url.toString model.entryURL
+                                    , Interop.setRedirect Encode.null
+                                    ]
+
+                                Authenticated _ ->
+                                    []
                     in
-                    ( { model | session = Just session }
-                    , Cmd.batch
-                        [ Interop.storeSession <| encodeSession session
-                        , Navigation.pushUrl model.navigationKey redirectTo
-                        ]
+                    ( { model | session = Authenticated newSessionDetails }
+                    , Cmd.batch <|
+                        actions
+                            ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
                     )
 
                 Err error ->
-                    ( { model | session = Nothing }
-                    , Cmd.batch
-                        [ addError error
-                        , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
-                        ]
-                    )
+                    let
+                        redirectPage : Cmd Msg
+                        redirectPage =
+                            case model.page of
+                                Pages.Login ->
+                                    Cmd.none
+
+                                _ ->
+                                    Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
+                    in
+                    case error of
+                        Http.Detailed.BadStatus meta _ ->
+                            case meta.statusCode of
+                                401 ->
+                                    let
+                                        actions : List (Cmd Msg)
+                                        actions =
+                                            case model.session of
+                                                Unauthenticated ->
+                                                    [ redirectPage ]
+
+                                                Authenticated _ ->
+                                                    [ addErrorString "Session expired, please try logging in again."
+                                                    , redirectPage
+                                                    ]
+                                    in
+                                    ( { model | session = Unauthenticated }
+                                    , Cmd.batch actions
+                                    )
+
+                                _ ->
+                                    ( { model | session = Unauthenticated }
+                                    , Cmd.batch
+                                        [ addError error
+                                        , redirectPage
+                                        ]
+                                    )
+
+                        _ ->
+                            ( { model | session = Unauthenticated }
+                            , Cmd.batch
+                                [ addError error
+                                , redirectPage
+                                ]
+                            )
 
         CurrentUserResponse response ->
             case response of
@@ -1199,8 +1270,7 @@ keyDecoder =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch <|
-        [ Interop.onSessionChange decodeOnSessionChange
-        , Interop.onThemeChange decodeOnThemeChange
+        [ Interop.onThemeChange decodeOnThemeChange
         , onMouseDown "contextual-help" model ShowHideHelp
         , onMouseDown "identity" model ShowHideIdentity
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
@@ -1208,21 +1278,6 @@ subscriptions model =
         , Browser.Events.onVisibilityChange VisibilityChanged
         , refreshSubscriptions model
         ]
-
-
-decodeOnSessionChange : Decode.Value -> Msg
-decodeOnSessionChange sessionJson =
-    case Decode.decodeValue decodeSession sessionJson of
-        Ok session ->
-            if String.isEmpty session.token then
-                NewRoute Routes.Login
-
-            else
-                SessionChanged (Just session)
-
-        Err _ ->
-            -- typically you end up here when getting logged out where we return null
-            SessionChanged Nothing
 
 
 decodeOnThemeChange : Decode.Value -> Msg
@@ -1754,13 +1809,9 @@ viewLogin =
         ]
 
 
-viewHeader : Maybe Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Commands.Model Msg, showId : Bool } -> Html Msg
-viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
+viewHeader : Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Commands.Model Msg, showId : Bool } -> Html Msg
+viewHeader session { feedbackLink, docsLink, theme, help, showId } =
     let
-        session : Session
-        session =
-            Maybe.withDefault defaultSession maybeSession
-
         identityBaseClassList : Html.Attribute Msg
         identityBaseClassList =
             classList
@@ -1777,15 +1828,11 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
     header []
         [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
             [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
-            , case session.username of
-                "" ->
-                    details (identityBaseClassList :: identityAttributeList)
-                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
-
-                _ ->
+            , case session of
+                Authenticated auth ->
                     details (identityBaseClassList :: identityAttributeList)
                         [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ]
-                            [ text session.username
+                            [ text auth.user_name
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
                         , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
@@ -1795,6 +1842,10 @@ viewHeader maybeSession { feedbackLink, docsLink, theme, help, showId } =
                                 [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]
+
+                Unauthenticated ->
+                    details (identityBaseClassList :: identityAttributeList)
+                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
             ]
         , nav [ class "help-links", attribute "role" "navigation" ]
             [ ul []
@@ -1874,83 +1925,68 @@ buildUrl base paths params =
 
 setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
 setNewPage route model =
-    let
-        sessionHasToken : Bool
-        sessionHasToken =
-            case model.session of
-                Just session ->
-                    String.length session.token > 0
-
-                Nothing ->
-                    False
-    in
-    case ( route, sessionHasToken ) of
+    case ( route, model.session ) of
         -- Logged in and on auth flow pages - what are you doing here?
-        ( Routes.Login, True ) ->
+        ( Routes.Login, Authenticated _ ) ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview )
 
-        ( Routes.Authenticate _, True ) ->
+        ( Routes.Authenticate _, Authenticated _ ) ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview )
 
         -- "Not logged in" (yet) and on auth flow pages, continue on..
-        ( Routes.Authenticate { code, state }, False ) ->
+        ( Routes.Authenticate { code, state }, Unauthenticated ) ->
             ( { model | page = Pages.Authenticate <| AuthParams code state }
-            , Api.try UserResponse <| Api.getUser model <| AuthParams code state
+            , Api.try TokenResponse <| Api.getInitialToken model <| AuthParams code state
             )
 
         -- On the login page but not logged in.. good place to be
-        ( Routes.Login, False ) ->
+        ( Routes.Login, Unauthenticated ) ->
             ( { model | page = Pages.Login }, Cmd.none )
 
         -- "Normal" page handling below
-        ( Routes.Overview, True ) ->
+        ( Routes.Overview, Authenticated _ ) ->
             loadOverviewPage model
 
-        ( Routes.SourceRepositories, True ) ->
+        ( Routes.SourceRepositories, Authenticated _ ) ->
             loadSourceReposPage model
 
-        ( Routes.Hooks org repo maybePage maybePerPage, True ) ->
+        ( Routes.Hooks org repo maybePage maybePerPage, Authenticated _ ) ->
             loadHooksPage model org repo maybePage maybePerPage
 
-        ( Routes.RepoSettings org repo, True ) ->
+        ( Routes.RepoSettings org repo, Authenticated _ ) ->
             loadRepoSettingsPage model org repo
 
-        ( Routes.OrgSecrets engine org maybePage maybePerPage, True ) ->
+        ( Routes.OrgSecrets engine org maybePage maybePerPage, Authenticated _ ) ->
             loadOrgSecretsPage model maybePage maybePerPage engine org
 
-        ( Routes.RepoSecrets engine org repo maybePage maybePerPage, True ) ->
+        ( Routes.RepoSecrets engine org repo maybePage maybePerPage, Authenticated _ ) ->
             loadRepoSecretsPage model maybePage maybePerPage engine org repo
 
-        ( Routes.SharedSecrets engine org team maybePage maybePerPage, True ) ->
+        ( Routes.SharedSecrets engine org team maybePage maybePerPage, Authenticated _ ) ->
             loadSharedSecretsPage model maybePage maybePerPage engine org team
 
-        ( Routes.AddOrgSecret engine org, True ) ->
+        ( Routes.AddOrgSecret engine org, Authenticated _ ) ->
             loadAddOrgSecretPage model engine org
 
-        ( Routes.AddRepoSecret engine org repo, True ) ->
+        ( Routes.AddRepoSecret engine org repo, Authenticated _ ) ->
             loadAddRepoSecretPage model engine org repo
 
-        ( Routes.AddSharedSecret engine org team, True ) ->
+        ( Routes.AddSharedSecret engine org team, Authenticated _ ) ->
             loadAddSharedSecretPage model engine org team
 
-        ( Routes.OrgSecret engine org name, True ) ->
+        ( Routes.OrgSecret engine org name, Authenticated _ ) ->
             loadUpdateOrgSecretPage model engine org name
 
-        ( Routes.RepoSecret engine org repo name, True ) ->
+        ( Routes.RepoSecret engine org repo name, Authenticated _ ) ->
             loadUpdateRepoSecretPage model engine org repo name
 
-        ( Routes.SharedSecret engine org team name, True ) ->
+        ( Routes.SharedSecret engine org team name, Authenticated _ ) ->
             loadUpdateSharedSecretPage model engine org team name
 
-        ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, True ) ->
-            let
-                currentSession : Session
-                currentSession =
-                    Maybe.withDefault defaultSession model.session
-            in
-            loadRepoBuildsPage model org repo currentSession maybePage maybePerPage maybeEvent
+        ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
+            loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent
 
-        ( Routes.Build org repo buildNumber logFocus, True ) ->
+        ( Routes.Build org repo buildNumber logFocus, Authenticated _ ) ->
             case model.page of
                 Pages.Build o r b _ ->
                     if not <| buildChanged ( org, repo, buildNumber ) ( o, r, b ) then
@@ -1966,29 +2002,29 @@ setNewPage route model =
                 _ ->
                     loadBuildPage model org repo buildNumber logFocus
 
-        ( Routes.Settings, True ) ->
+        ( Routes.Settings, Authenticated _ ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
 
-        ( Routes.Logout, True ) ->
-            ( { model | session = Nothing }
-            , Cmd.batch
-                [ Interop.storeSession Encode.null
-                , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
-                ]
-            )
+        ( Routes.Logout, Authenticated _ ) ->
+            ( { model | page = Pages.Logout }, getLogout model )
 
+        -- ( { model | session = Unauthenticated }
+        -- , Cmd.batch
+        --     [ Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
+        --     ]
+        -- )
         -- Not found page handling
-        ( Routes.NotFound, True ) ->
+        ( Routes.NotFound, Authenticated _ ) ->
             ( { model | page = Pages.NotFound }, Cmd.none )
 
         {--Hitting any page and not being logged in will load the login page content
 
-           Note: we're not using .pushUrl to retain ability for user to use brower's back b
-           utton
+           Note: we're not using .pushUrl to retain ability for user to use
+           browser's back button
         --}
-        ( _, False ) ->
+        ( _, Unauthenticated ) ->
             ( { model | page = Pages.Login }
-            , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
+            , Interop.setRedirect <| Encode.string <| Url.toString model.entryURL
             )
 
 
@@ -2329,8 +2365,8 @@ loadUpdateSharedSecretPage model engine org team name =
     loadRepoBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
 -}
-loadRepoBuildsPage : Model -> Org -> Repo -> Session -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
-loadRepoBuildsPage model org repo _ maybePage maybePerPage maybeEvent =
+loadRepoBuildsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
+loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
     let
         -- Builds already loaded
         loadedBuilds =
@@ -2586,9 +2622,26 @@ initSecretsModel =
 -- API HELPERS
 
 
+{-| getToken attempts to retrieve a new access token
+-}
+getToken : Model -> Cmd Msg
+getToken model =
+    Api.try TokenResponse <| Api.getToken model
+
+
+getLogout : Model -> Cmd Msg
+getLogout model =
+    Api.try LogoutResponse <| Api.getLogout model
+
+
 getCurrentUser : Model -> Cmd Msg
 getCurrentUser model =
-    Api.try CurrentUserResponse <| Api.getCurrentUser model
+    case model.user of
+        NotAsked ->
+            Api.try CurrentUserResponse <| Api.getCurrentUser model
+
+        _ ->
+            Cmd.none
 
 
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
