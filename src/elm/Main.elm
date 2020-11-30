@@ -1874,7 +1874,7 @@ viewHeader session { feedbackLink, docsLink, theme, help, showId } =
                 Authenticated auth ->
                     details (identityBaseClassList :: identityAttributeList)
                         [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ]
-                            [ text auth.user_name
+                            [ text auth.userName
                             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                             ]
                         , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]

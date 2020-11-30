@@ -22,7 +22,7 @@ of the session information
 type alias SessionDetails =
     { token : String
     , expiresAt : Posix
-    , user_name : String
+    , userName : String
     }
 
 
