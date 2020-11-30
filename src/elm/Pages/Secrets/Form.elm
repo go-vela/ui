@@ -47,7 +47,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick, onInput)
 import Pages.RepoSettings exposing (checkbox)
-import Pages.Secrets.Model exposing (Model, Msg(..), SecretForm)
+import Pages.Secrets.Model exposing (DeleteSecretState(..), Model, Msg(..), SecretForm)
 import Util
 import Vela exposing (Field)
 
@@ -286,12 +286,19 @@ viewDeleteButton secretsModel =
         secretDeleteConfirm =
             "-secret-delete-confirm"
 
-        ( deleteButtonText, deleteButtonClass ) =
-            if secretsModel.deleteButton == False then
-                ( "Remove", "" )
+        secretDeleteLoading =
+            "-loading"
 
-            else
-                ( "Confirm", secretDeleteConfirm )
+        ( deleteButtonText, deleteButtonClass ) =
+            case secretsModel.deleteState of
+                NotAsked_ ->
+                    ( "Remove", "" )
+
+                Confirm ->
+                    ( "Confirm", secretDeleteConfirm )
+
+                Deleting ->
+                    ( "Removing", secretDeleteLoading )
     in
     button
         [ class "button"
@@ -305,17 +312,21 @@ viewDeleteButton secretsModel =
 
 viewCancelButton : Model msg -> Html Msg
 viewCancelButton secretsModel =
-    if secretsModel.deleteButton == False then
-        text ""
+    case secretsModel.deleteState of
+        NotAsked_ ->
+            text ""
 
-    else
-        button
-            [ class "button"
-            , class "-outline"
-            , Util.testAttribute "secret-cancel-button"
-            , onClick <| Pages.Secrets.Model.CancelDeleteSecret
-            ]
-            [ text "Cancel" ]
+        Confirm ->
+            button
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "secret-cancel-button"
+                , onClick <| Pages.Secrets.Model.CancelDeleteSecret
+                ]
+                [ text "Cancel" ]
+
+        Deleting ->
+            text ""
 
 
 

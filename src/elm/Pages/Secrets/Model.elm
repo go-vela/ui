@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Secrets.Model exposing
     ( AddSecretResponse
     , DeleteSecretResponse
+    , DeleteSecretState(..)
     , ManageSecretState(..)
     , Model
     , Msg(..)
@@ -68,7 +69,7 @@ type alias Model msg =
     , deleteSecretResponse : DeleteSecretResponse msg
     , updateSecretResponse : AddSecretResponse msg
     , pager : List WebLink
-    , deleteButton : Bool
+    , deleteState : DeleteSecretState
     }
 
 
@@ -140,6 +141,12 @@ type Msg
     | UpdateSecret Engine
     | DeleteSecret Engine
     | CancelDeleteSecret
+
+
+type DeleteSecretState
+    = NotAsked_
+    | Confirm
+    | Deleting
 
 
 type ManageSecretState

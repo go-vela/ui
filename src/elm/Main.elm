@@ -832,11 +832,17 @@ update msg model =
                         secretsModel =
                             model.secretsModel
 
+                        secretsType =
+                            secretTypeToString secretsModel.type_
+
+                        alertMessage =
+                            secretsModel.form.name ++ " removed from " ++ secretsType ++ " secrets."
+
                         redirectTo =
                             Pages.Secrets.Update.deleteSecretRedirect secretsModel
                     in
                     ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" "Secret removed." Nothing)
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -2279,7 +2285,7 @@ loadUpdateOrgSecretPage model engine org name =
                 , org = org
                 , engine = engine
                 , type_ = Vela.OrgSecret
-                , deleteButton = False
+                , deleteState = Pages.Secrets.Model.NotAsked_
             }
       }
     , Cmd.batch
@@ -2307,7 +2313,7 @@ loadUpdateRepoSecretPage model engine org repo name =
                 , repo = repo
                 , engine = engine
                 , type_ = Vela.RepoSecret
-                , deleteButton = False
+                , deleteState = Pages.Secrets.Model.NotAsked_
             }
       }
     , Cmd.batch
@@ -2335,7 +2341,7 @@ loadUpdateSharedSecretPage model engine org team name =
                 , team = team
                 , engine = engine
                 , type_ = Vela.SharedSecret
-                , deleteButton = False
+                , deleteState = Pages.Secrets.Model.NotAsked_
             }
       }
     , Cmd.batch

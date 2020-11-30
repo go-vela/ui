@@ -21,6 +21,7 @@ import Pages.Secrets.Model
     exposing
         ( AddSecretResponse
         , DeleteSecretResponse
+        , DeleteSecretState(..)
         , Model
         , Msg(..)
         , PartialModel
@@ -66,7 +67,7 @@ init secretResponse secretsResponse addSecretResponse updateSecretResponse delet
         deleteSecretResponse
         updateSecretResponse
         []
-        False
+        NotAsked_
 
 
 
@@ -372,34 +373,42 @@ update model msg =
                             secretsModel.form
 
                         updatedModel =
-                            if not secretsModel.deleteButton then
-                                { secretsModel
-                                    | deleteButton = True
-                                }
+                            case secretsModel.deleteState of
+                                NotAsked_ ->
+                                    { secretsModel
+                                        | deleteState = Confirm
+                                    }
 
-                            else
-                                { secretsModel
-                                    | deleteButton = False
-                                }
+                                Confirm ->
+                                    { secretsModel
+                                        | deleteState = Deleting
+                                    }
+
+                                Deleting ->
+                                    secretsModel
 
                         doAction =
-                            if not secretsModel.deleteButton then
-                                Cmd.none
+                            case secretsModel.deleteState of
+                                NotAsked_ ->
+                                    Cmd.none
 
-                            else
-                                Api.tryString secretsModel.deleteSecretResponse <|
-                                    Api.deleteSecret model
-                                        engine
-                                        (secretTypeToString secretsModel.type_)
-                                        secretsModel.org
-                                        (getKey secretsModel)
-                                        secret.name
+                                Confirm ->
+                                    Api.tryString secretsModel.deleteSecretResponse <|
+                                        Api.deleteSecret model
+                                            engine
+                                            (secretTypeToString secretsModel.type_)
+                                            secretsModel.org
+                                            (getKey secretsModel)
+                                            secret.name
+
+                                Deleting ->
+                                    Cmd.none
                     in
                     ( updatedModel, doAction )
 
                 Pages.Secrets.Model.CancelDeleteSecret ->
                     ( { secretsModel
-                        | deleteButton = False
+                        | deleteState = NotAsked_
                       }
                     , Cmd.none
                     )

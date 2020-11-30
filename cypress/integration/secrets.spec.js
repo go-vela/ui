@@ -77,7 +77,34 @@ context('Secrets', () => {
             '/-/secrets/native/repo/github/octocat',
           );
         });
+        it('Alert should show', () => {
+          cy.get('[data-test=alerts]').should('exist').contains('password').contains('removed').contains('repo');
+        });
       });
+    });
+  });
+
+  context('server returning remove error', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route(
+        'GET',
+        '*api/v1/secrets/native/repo/github/octocat/password*',
+        'fixture:secret_repo.json',
+      );
+      cy.route({
+        method: 'DELETE',
+        url: '*api/v1/secrets/native/repo/github/octocat/password*',
+        status: 500,
+        response: {error: 'server error could not remove'},
+      });
+      cy.login('/-/secrets/native/repo/github/octocat/password');
+      cy.get('[data-test=secret-delete-button]').click();
+      cy.get('[data-test=secret-delete-button]').click();
+    });
+
+    it('error should show', () => {
+      cy.get('[data-test=alerts]').should('exist').contains('could not remove');
     });
   });
 
