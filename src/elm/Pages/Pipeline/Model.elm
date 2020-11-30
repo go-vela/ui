@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Pipeline.Model exposing (Msg(..), PartialModel)
 
 import Alerts exposing (Alert)
+import Auth.Session exposing (Session(..))
 import Browser.Navigation as Navigation
 import Errors exposing (Error)
 import Http
@@ -21,7 +22,6 @@ import Vela
         , Org
         , Pipeline
         , Repo
-        , Session
         , Steps
         , Templates
         )
@@ -36,7 +36,7 @@ import Vela
 type alias PartialModel a =
     { a
         | velaAPI : String
-        , session : Maybe Session
+        , session : Session
         , navigationKey : Navigation.Key
         , time : Posix
         , build : WebData Build
