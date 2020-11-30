@@ -81,7 +81,7 @@ view buildsModel now zone org repo maybeEvent =
                 div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now zone org repo) builds
 
         RemoteData.Loading ->
-            div [] [ largeLoader ]
+            largeLoader
 
         RemoteData.NotAsked ->
             largeLoader

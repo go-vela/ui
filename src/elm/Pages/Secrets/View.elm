@@ -62,15 +62,6 @@ import Vela
 
 
 
--- TYPES
-
-
-secretsTestLabel : String
-secretsTestLabel =
-    "secrets"
-
-
-
 -- VIEW
 
 
@@ -105,7 +96,7 @@ viewRepoSecrets model =
                 [ Table.view
                     (Table.Config
                         "Repo Secrets"
-                        secretsTestLabel
+                        "secrets"
                         "No secrets found for this repository"
                         tableHeaders
                         (secretsToRows Vela.RepoSecret s)
@@ -120,7 +111,7 @@ viewRepoSecrets model =
                         secretsModel.org
                     <|
                         Just secretsModel.repo
-                , testLabel = secretsTestLabel
+                , testLabel = "secrets"
                 }
 
         _ ->
@@ -179,7 +170,7 @@ viewOrgSecrets model showManage showAdd =
                 [ Table.view
                     (Table.Config
                         "Org Secrets"
-                        secretsTestLabel
+                        "secrets"
                         "No secrets found for this org"
                         tableHeaders
                         (secretsToRows Vela.OrgSecret s)
@@ -194,7 +185,7 @@ viewOrgSecrets model showManage showAdd =
                         secretsModel.org
                     <|
                         Nothing
-                , testLabel = secretsTestLabel
+                , testLabel = "secrets"
                 }
 
         _ ->

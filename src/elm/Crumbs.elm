@@ -12,7 +12,7 @@ import Pages exposing (Page(..), toRoute)
 import Routes exposing (Route(..))
 import Tuple exposing (first, second)
 import Url exposing (percentDecode)
-import Util
+import Util exposing (pageToString, refToString)
 import Vela exposing (Ref)
 
 
@@ -108,7 +108,7 @@ toPath page =
                             ( org, Nothing )
 
                         pageNumber =
-                            Util.pageToString maybePage
+                            pageToString maybePage
 
                         repoBuilds =
                             ( repo ++ pageNumber, Nothing )
@@ -137,7 +137,7 @@ toPath page =
                             ( org, Nothing )
 
                         orgSecrets =
-                            ( "Org Secrets" ++ Util.pageToString maybePage, Nothing )
+                            ( "Org Secrets" ++ pageToString maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, orgSecrets ]
 
@@ -150,7 +150,7 @@ toPath page =
                             ( repo, Nothing )
 
                         repoSecrets =
-                            ( "Repo Secrets" ++ Util.pageToString maybePage, Nothing )
+                            ( "Repo Secrets" ++ pageToString maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, repoBuilds ]
 
@@ -163,7 +163,7 @@ toPath page =
                             ( team, Nothing )
 
                         sharedSecrets =
-                            ( "Shared Secrets" ++ Util.pageToString maybePage, Nothing )
+                            ( "Shared Secrets" ++ pageToString maybePage, Nothing )
                     in
                     [ overviewPage, orgPage, teamPage, sharedSecrets ]
 
@@ -263,7 +263,7 @@ toPath page =
                             ( org, Nothing )
 
                         pageNumber =
-                            Util.pageToString maybePage
+                            pageToString maybePage
                     in
                     [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
 
@@ -286,7 +286,7 @@ toPath page =
                         repoBuildsPage =
                             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                     in
-                    [ overviewPage, organizationPage, repoBuildsPage, ( Util.refToString ref, Nothing ) ]
+                    [ overviewPage, organizationPage, repoBuildsPage, ( refToString ref, Nothing ) ]
 
                 Pages.Login ->
                     []

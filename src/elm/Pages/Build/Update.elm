@@ -60,7 +60,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
 
                 -- step clicked is step being followed
                 onFollowedStep =
-                    model.repoModel.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+                    rm.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                 follow =
                     if onFollowedStep && not stepOpened then
@@ -68,7 +68,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         0
 
                     else
-                        model.repoModel.followingStep
+                        rm.followingStep
             in
             ( { model | repoModel = { rm | steps = steps, followingStep = follow } }
             , Cmd.batch <|

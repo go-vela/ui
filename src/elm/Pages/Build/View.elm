@@ -104,8 +104,11 @@ import Vela
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
 viewBuild model org repo =
     let
+        rm =
+            model.repoModel
+
         ( buildPreview, buildNumber ) =
-            case model.repoModel.build of
+            case rm.build of
                 RemoteData.Success bld ->
                     ( viewPreview model.time model.zone org repo bld, String.fromInt bld.number )
 
@@ -116,7 +119,7 @@ viewBuild model org repo =
                     ( text "", "" )
 
         logActions =
-            model.repoModel.steps
+            rm.steps
                 |> RemoteData.unwrap (text "")
                     (\_ ->
                         div
@@ -131,7 +134,7 @@ viewBuild model org repo =
                     )
 
         buildSteps =
-            case model.repoModel.steps of
+            case rm.steps of
                 RemoteData.Success steps_ ->
                     viewPipeline model <| BuildModel org repo buildNumber steps_
 
@@ -140,7 +143,7 @@ viewBuild model org repo =
 
                 _ ->
                     -- Don't show two loaders
-                    if Util.isLoading model.repoModel.build then
+                    if Util.isLoading rm.build then
                         text ""
 
                     else
