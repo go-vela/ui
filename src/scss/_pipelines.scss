@@ -1,0 +1,177 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// ┌─┐┬┌─┐┌─┐┬  ┬┌┐┌┌─┐┌─┐
+// ├─┘│├─┘├┤ │  ││││├┤ └─┐
+// ┴  ┴┴  └─┘┴─┘┴┘└┘└─┘└─┘
+
+// styles for the pipelines pages
+
+.pipeline {
+  .small-loader {
+    padding: 0.8rem 1rem;
+  }
+
+  .content {
+    font-size: 16px;
+
+    &.-error {
+      padding: 0.8rem 1rem;
+
+      border-left: 1px solid var(--color-red);
+    }
+
+    &.-success {
+      border-left: 1px solid var(--color-green);
+    }
+  }
+}
+
+.templates {
+  // stylelint-disable selector-max-specificity
+  &.details[open] .summary + *:first-of-type {
+    margin-top: 0.8rem;
+  }
+
+  summary {
+    margin-right: 1rem;
+    margin-left: 1rem;
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+  margin-bottom: 1rem;
+
+  padding: 0.8rem 0 0.8rem 0;
+
+  background-color: var(--color-bg-dark);
+
+  border: 1px solid transparent;
+
+  .content {
+    margin-top: 1rem;
+
+    font-weight: lighter;
+
+    border-top: 1px solid var(--color-secondary);
+
+    .-error {
+      padding: 0.8rem 1rem;
+
+      border-left: 1px solid var(--color-red);
+    }
+  }
+}
+
+.theme-light .templates {
+  background-color: var(--color-bg);
+  border-color: var(--color-bg-light);
+}
+
+.template {
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 0.6rem;
+
+  border-bottom: 1px solid var(--color-bg-light);
+
+  div {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0.4rem;
+    margin-left: 1rem;
+  }
+}
+
+.expand-templates {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+
+  border-bottom: 1px solid var(--color-bg-light);
+
+  .icon {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 1rem;
+  }
+
+  .small-loader {
+    padding: 0 0 0 1rem;
+  }
+
+  svg {
+    margin-right: 0.7rem;
+
+    color: var(--color-green);
+  }
+
+  .button {
+    margin-left: 0.4rem;
+  }
+
+  small {
+    margin-left: 1rem;
+    padding: 0.2rem 0.4rem;
+
+    background-color: var(--color-bg-light);
+  }
+
+  .tip {
+    margin-right: 0.6rem;
+  }
+}
+
+// modifying styles for build logs components
+// TODO: modularize logs rendering
+.theme-light .pipeline .logs-container {
+  border: 1px solid var(--color-bg-light);
+}
+
+.pipeline .logs-container {
+  border: 1px solid var(--color-bg);
+}
+
+.logs-container.-pipeline {
+  margin: 0;
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0.6rem 0.8rem;
+
+    font-weight: normal;
+    font-size: 18px;
+
+    border-bottom: 1px solid var(--color-secondary);
+  }
+
+  .logs-table {
+    padding-top: 0;
+    padding-bottom: 1rem;
+  }
+
+  .logs-table.-error {
+    padding-bottom: 0;
+
+    .content {
+      padding: 1rem;
+      padding-bottom: 1rem;
+
+      border-left: 1px solid var(--color-red);
+    }
+  }
+
+  .logs-table .line {
+    margin-top: 1rem;
+  }
+
+  // stylelint-disable selector-max-compound-selectors
+  .logs-table .line ~ .line {
+    margin-top: 0;
+  }
+}

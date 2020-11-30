@@ -7,7 +7,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Build.Logs exposing
     ( SetLogFocus
     , decodeAnsi
-    , focusFragmentToFocusId
     , focusLogs
     , focusStep
     , getCurrentStep
@@ -15,18 +14,14 @@ module Pages.Build.Logs exposing
     , getStepLog
     , logEmpty
     , logFocusExists
-    , logFocusFragment
-    , logFocusStyles
-    , logRangeId
-    , stepAndLineToFocusId
     , stepBottomTrackerFocusId
-    , stepToFocusId
     , stepTopTrackerFocusId
     , toString
     )
 
 import Ansi.Log
 import Array
+import Focus exposing (parseFocusFragment, resourceFocusFragment)
 import List.Extra exposing (updateIf)
 import Pages exposing (Page)
 import Pages.Build.Model exposing (Msg(..))
@@ -82,76 +77,6 @@ getStepLog step logs =
         )
 
 
-{-| logFocusFragment : takes step number and maybe line numbers and produces URL fragment for focusing log ranges
--}
-logFocusFragment : StepNumber -> List String -> String
-logFocusFragment stepNumber args =
-    String.join ":" <| [ "#step", stepNumber ] ++ args
-
-
-{-| stepToFocusId : takes step number and returns the step focus id for auto focusing on page load
--}
-stepToFocusId : StepNumber -> String
-stepToFocusId stepNumber =
-    "step-" ++ stepNumber
-
-
-{-| stepAndLineToFocusId : takes step number and line number and returns the line focus id for auto focusing on page load
--}
-stepAndLineToFocusId : StepNumber -> Int -> String
-stepAndLineToFocusId stepNumber lineNumber =
-    "step-" ++ stepNumber ++ "-line-" ++ String.fromInt lineNumber
-
-
-{-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus id for auto focusing on page load
--}
-focusFragmentToFocusId : FocusFragment -> String
-focusFragmentToFocusId focusFragment =
-    let
-        parsed =
-            parseFocusFragment focusFragment
-    in
-    case ( parsed.stepNumber, parsed.lineA, parsed.lineB ) of
-        ( Just step, Just lineA, Nothing ) ->
-            "step-" ++ String.fromInt step ++ "-line-" ++ String.fromInt lineA
-
-        ( Just step, Just lineA, Just lineB ) ->
-            "step-" ++ String.fromInt step ++ "-line-" ++ String.fromInt lineA ++ "-" ++ String.fromInt lineB
-
-        ( Just step, Nothing, Nothing ) ->
-            "step-" ++ String.fromInt step
-
-        _ ->
-            ""
-
-
-{-| logRangeId : takes step, line, and focus information and returns the fragment for focusing a range of logs
--}
-logRangeId : StepNumber -> Int -> LogFocus -> Bool -> String
-logRangeId stepNumber lineNumber logFocus shiftDown =
-    logFocusFragment stepNumber <|
-        List.map String.fromInt
-            (List.sort <|
-                case ( shiftDown, logFocus ) of
-                    ( True, ( Just lineA, Just lineB ) ) ->
-                        if lineNumber < lineA then
-                            [ lineNumber, lineB ]
-
-                        else
-                            [ lineA, lineNumber ]
-
-                    ( True, ( Just lineA, _ ) ) ->
-                        if lineNumber < lineA then
-                            [ lineNumber, lineA ]
-
-                        else
-                            [ lineA, lineNumber ]
-
-                    _ ->
-                        [ lineNumber ]
-            )
-
-
 {-| focusStep : takes FocusFragment URL fragment and expands the appropriate step to automatically view
 -}
 focusStep : FocusFragment -> Steps -> Steps
@@ -162,7 +87,7 @@ focusStep focusFragment steps =
     in
     case Maybe.withDefault "" parsed.target of
         "step" ->
-            case parsed.stepNumber of
+            case parsed.resourceID of
                 Just n ->
                     updateIf (\step -> step.number == n)
                         (\step ->
@@ -224,7 +149,7 @@ updateStepLogFocus steps focusFragment =
             parseFocusFragment focusFragment
 
         ( target, stepNumber ) =
-            ( parsed.target, parsed.stepNumber )
+            ( parsed.target, parsed.resourceID )
     in
     case Maybe.withDefault "" target of
         "step" ->
@@ -248,60 +173,11 @@ updateStepLogFocus steps focusFragment =
             steps
 
 
-{-| parseFocusFragment : takes URL fragment and parses it into appropriate line focus chunks
--}
-parseFocusFragment : FocusFragment -> { target : Maybe String, stepNumber : Maybe Int, lineA : Maybe Int, lineB : Maybe Int }
-parseFocusFragment focusFragment =
-    case String.split ":" (Maybe.withDefault "" focusFragment) of
-        target :: step :: lineA :: lineB :: _ ->
-            { target = Just target, stepNumber = String.toInt step, lineA = String.toInt lineA, lineB = String.toInt lineB }
-
-        target :: step :: lineA :: _ ->
-            { target = Just target, stepNumber = String.toInt step, lineA = String.toInt lineA, lineB = Nothing }
-
-        target :: step :: _ ->
-            { target = Just target, stepNumber = String.toInt step, lineA = Nothing, lineB = Nothing }
-
-        _ ->
-            { target = Nothing, stepNumber = Nothing, lineA = Nothing, lineB = Nothing }
-
-
 {-| clearStepLogFocus : takes step and clears all log line focus
 -}
 clearStepLogFocus : Step -> Step
 clearStepLogFocus step =
     { step | logFocus = ( Nothing, Nothing ) }
-
-
-{-| logFocusStyles : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
--}
-logFocusStyles : LogFocus -> Int -> String
-logFocusStyles logFocus lineNumber =
-    case logFocus of
-        ( Just lineA, Just lineB ) ->
-            let
-                ( a, b ) =
-                    if lineA < lineB then
-                        ( lineA, lineB )
-
-                    else
-                        ( lineB, lineA )
-            in
-            if lineNumber >= a && lineNumber <= b then
-                "-focus"
-
-            else
-                ""
-
-        ( Just lineA, Nothing ) ->
-            if lineA == lineNumber then
-                "-focus"
-
-            else
-                ""
-
-        _ ->
-            ""
 
 
 {-| logFocusExists : takes steps and returns if a line or range has already been focused

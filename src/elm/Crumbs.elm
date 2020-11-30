@@ -13,6 +13,7 @@ import Routes exposing (Route(..))
 import Tuple exposing (first, second)
 import Url exposing (percentDecode)
 import Util
+import Vela exposing (Ref)
 
 
 
@@ -267,6 +268,16 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
 
+                Pages.Pipeline org repo ref expand _ ->
+                    let
+                        organizationPage =
+                            ( org, Nothing )
+
+                        repoBuildsPage =
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                    in
+                    [ overviewPage, organizationPage, repoBuildsPage, ( refToString ref, Nothing ) ]
+
                 Pages.Login ->
                     []
 
@@ -299,3 +310,19 @@ pageToString maybePage =
 
             else
                 ""
+
+
+{-| refToString : small helper to turn ref to a string to display in crumbs
+-}
+refToString : Maybe Ref -> String
+refToString maybeRef =
+    case maybeRef of
+        Nothing ->
+            "(default branch)"
+
+        Just ref ->
+            if String.length ref > 0 then
+                ref
+
+            else
+                "(default branch)"

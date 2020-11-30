@@ -10,6 +10,7 @@ module Api exposing
     , chownRepo
     , deleteRepo
     , enableRepository
+    , expandPipelineConfig
     , getAllBuilds
     , getAllHooks
     , getAllRepositories
@@ -20,6 +21,8 @@ module Api exposing
     , getHooks
     , getInitialToken
     , getLogout
+    , getPipelineConfig
+    , getPipelineTemplates
     , getRepo
     , getRepositories
     , getSecret
@@ -33,6 +36,7 @@ module Api exposing
     , restartBuild
     , try
     , tryAll
+    , tryString
     , updateCurrentUser
     , updateRepository
     , updateSecret
@@ -61,6 +65,8 @@ import Vela
         , Log
         , Name
         , Org
+        , Pipeline
+        , PipelineConfig
         , Repo
         , Repositories
         , Repository
@@ -70,6 +76,7 @@ import Vela
         , Step
         , StepNumber
         , Steps
+        , Templates
         , Type
         , decodeBuild
         , decodeBuilds
@@ -77,6 +84,8 @@ import Vela
         , decodeHook
         , decodeHooks
         , decodeLog
+        , decodePipelineConfig
+        , decodePipelineTemplates
         , decodeRepositories
         , decodeRepository
         , decodeSecret
@@ -147,6 +156,20 @@ toTask (Request config) =
         , headers = config.headers
         , method = config.method
         , resolver = Http.stringResolver <| Http.Detailed.responseToJson config.decoder
+        , timeout = Nothing
+        , url = config.url
+        }
+
+
+{-| toStringTask : turn a request config into an HTTP task
+-}
+toStringTask : Request String -> Task (Http.Detailed.Error String) ( Http.Metadata, String )
+toStringTask (Request config) =
+    Http.task
+        { body = config.body
+        , headers = config.headers
+        , method = config.method
+        , resolver = Http.stringResolver <| Http.Detailed.responseToString
         , timeout = Nothing
         , url = config.url
         }
@@ -360,6 +383,18 @@ tryAll msg request_ =
         |> Task.attempt msg
 
 
+{-| tryString : default way to request information from and endpoint
+
+    example usage:
+        Api.tryString UserResponse <| Api.getUser model authParams
+
+-}
+tryString : (Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg) -> Request String -> Cmd msg
+tryString msg request_ =
+    toStringTask request_
+        |> Task.attempt msg
+
+
 
 -- OPERATIONS
 
@@ -473,6 +508,30 @@ enableRepository model body =
 updateRepository : PartialModel a -> Org -> Repo -> Http.Body -> Request Repository
 updateRepository model org repo body =
     put model.velaAPI (Endpoint.Repository org repo) body decodeRepository
+        |> withAuth model.session
+
+
+{-| getPipelineConfig : fetches vela pipeline by repository
+-}
+getPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Request String
+getPipelineConfig model org repository ref =
+    get model.velaAPI (Endpoint.PipelineConfig org repository ref) decodePipelineConfig
+        |> withAuth model.session
+
+
+{-| expandPipelineConfig : expands vela pipeline by repository
+-}
+expandPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Request String
+expandPipelineConfig model org repository ref =
+    post model.velaAPI (Endpoint.ExpandPipelineConfig org repository ref) Http.emptyBody decodePipelineConfig
+        |> withAuth model.session
+
+
+{-| getPipelineTemplates : fetches vela pipeline templates by repository
+-}
+getPipelineTemplates : PartialModel a -> Org -> Repo -> Maybe String -> Request Templates
+getPipelineTemplates model org repository ref =
+    get model.velaAPI (Endpoint.PipelineTemplates org repository ref) decodePipelineTemplates
         |> withAuth model.session
 
 

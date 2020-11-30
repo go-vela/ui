@@ -1,0 +1,20 @@
+{
+  "template1": {
+    "link": "https://github.com/someorg/somerepo/blob/master/template1.yml",
+    "name": "template1_name",
+    "source": "github.com/someorg/somerepo/template1.yml",
+    "type": "github"
+  },
+  "template2": {
+    "link": "https://github.com/someorg/somerepo/blob/master/template2.yml",
+    "name": "template2_name",
+    "source": "github.com/someorg/somerepo/template2.yml",
+    "type": "github"
+  },
+  "template3": {
+    "link": "https://github.com/someorg/somerepo/blob/master/template3.yml",
+    "name": "template3_name",
+    "source": "github.com/someorg/somerepo/template3.yml",
+    "type": "github"
+  }
+}

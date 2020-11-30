@@ -9,6 +9,7 @@ module Pages.Build.View exposing
     , statusToString
     , viewBuild
     , viewBuildHistory
+    , viewLine
     , viewPreview
     )
 
@@ -16,6 +17,15 @@ import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
+import Focus
+    exposing
+        ( Resource
+        , ResourceID
+        , lineFocusStyles
+        , lineRangeId
+        , resourceAndLineToFocusId
+        , resourceToFocusId
+        )
 import Html
     exposing
         ( Html
@@ -26,6 +36,7 @@ import Html
         , div
         , em
         , li
+        , p
         , small
         , span
         , strong
@@ -43,6 +54,7 @@ import Html.Attributes
         , classList
         , href
         , id
+        , title
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
@@ -54,11 +66,7 @@ import Pages.Build.Logs
         , getDownloadLogsFileName
         , getStepLog
         , logEmpty
-        , logFocusStyles
-        , logRangeId
-        , stepAndLineToFocusId
         , stepBottomTrackerFocusId
-        , stepToFocusId
         , stepTopTrackerFocusId
         , toString
         )
@@ -99,7 +107,7 @@ viewBuild model org repo =
         ( buildPreview, buildNumber ) =
             case model.build of
                 RemoteData.Success bld ->
-                    ( viewPreview model.time org repo bld, String.fromInt bld.number )
+                    ( viewPreview model.time model.zone org repo bld, String.fromInt bld.number )
 
                 RemoteData.Loading ->
                     ( Util.largeLoader, "" )
@@ -149,8 +157,8 @@ viewBuild model org repo =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Org -> Repo -> Build -> Html Msg
-viewPreview now org repo build =
+viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html Msg
+viewPreview now zone org repo build =
     let
         buildNumber =
             String.fromInt build.number
@@ -185,6 +193,12 @@ viewPreview now org repo build =
         age =
             [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
 
+        buildCreatedPosix =
+            Time.millisToPosix <| Util.secondsToMillis build.created
+
+        timestamp =
+            Util.humanReadableDateTimeFormatter zone buildCreatedPosix
+
         duration =
             [ text <| Util.formatRunTime now build.started build.finished ]
 
@@ -207,7 +221,11 @@ viewPreview now org repo build =
                         , div [ class "sender" ] sender
                         ]
                     , div [ class "time-info" ]
-                        [ div [ class "age" ] age
+                        [ div
+                            [ class "age"
+                            , title timestamp
+                            ]
+                            age
                         , span [ class "delimiter" ] [ text "/" ]
                         , div [ class "duration" ] duration
                         ]
@@ -269,7 +287,7 @@ viewStepDetails model buildModel step =
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
                 , onClick <| ExpandStep buildModel.org buildModel.repo buildModel.buildNumber stepNumber
-                , id <| stepToFocusId stepNumber
+                , id <| resourceToFocusId "step" stepNumber
                 ]
                 [ div
                     [ class "-info" ]
@@ -454,7 +472,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                     []
                 ]
     in
-    ( table [ class "logs-table" ] <|
+    ( table [ class "logs-table", class "scrollable" ] <|
         topTracker
             :: logs
             ++ [ bottomTracker ]
@@ -464,8 +482,8 @@ viewLines stepNumber logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : String -> Int -> Maybe Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
-viewLine id lineNumber line stepNumber logFocus shiftDown =
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> Resource -> LogFocus -> Bool -> Html Msg
+viewLine id lineNumber line resource logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             id
@@ -477,13 +495,13 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
             Just l ->
                 div
                     [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
-                    , class <| logFocusStyles logFocus lineNumber
+                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, String.fromInt lineNumber ]
+                    , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
+                        [ lineFocusButton resource logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
                         ]
@@ -501,9 +519,9 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             FocusLogs <|
-                logRangeId stepNumber lineNumber logFocus shiftDown
+                lineRangeId "step" stepNumber lineNumber logFocus shiftDown
         , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
-        , id <| stepAndLineToFocusId stepNumber lineNumber
+        , id <| resourceAndLineToFocusId "step" stepNumber lineNumber
         , class "line-number"
         , class "button"
         , class "-link"
@@ -755,9 +773,12 @@ viewBuildHistory now timezone page org repo builds limit =
         case builds of
             RemoteData.Success blds ->
                 if List.length blds > 0 then
-                    ul [ class "build-history", class "-no-pad", Util.testAttribute "build-history" ] <|
-                        List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
-                            List.take limit blds
+                    div [ class "build-history" ]
+                        [ p [ class "build-history-title" ] [ text "Recent Builds" ]
+                        , ul [ Util.testAttribute "build-history", class "previews" ] <|
+                            List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
+                                List.take limit blds
+                        ]
 
                 else
                     text ""
@@ -833,11 +854,21 @@ recentBuildTooltip now timezone build =
                 [ span [ class "number" ] [ text <| String.fromInt build.number ]
                 , em [] [ text build.event ]
                 ]
-            , li [ class "line" ] [ span [] [ text "started:" ], text <| Util.dateToHumanReadable timezone build.started ]
-            , li [ class "line" ] [ span [] [ text "finished:" ], text <| Util.dateToHumanReadable timezone build.finished ]
-            , li [ class "line" ] [ span [] [ text "duration:" ], text <| Util.formatRunTime now build.started build.finished ]
+            , viewTooltipField "started:" <| Util.dateToHumanReadable timezone build.started
+            , viewTooltipField "finished:" <| Util.dateToHumanReadable timezone build.finished
+            , viewTooltipField "duration:" <| Util.formatRunTime now build.started build.finished
+            , viewTooltipField "worker:" build.host
+            , viewTooltipField "commit:" <| trimCommitHash build.commit
+            , viewTooltipField "branch:" build.branch
             ]
         ]
+
+
+{-| viewTooltipField : takes build field key and value, renders field in the tooltip
+-}
+viewTooltipField : String -> String -> Html msg
+viewTooltipField key value =
+    li [ class "line" ] [ span [] [ text key ], text value ]
 
 
 
