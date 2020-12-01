@@ -65,14 +65,14 @@ context('Favorites', () => {
         beforeEach(() => {
           cy.visit('/account/source-repos');
         });
-        context('enable cat/octocat', () => {
+        context('enable github/octocat', () => {
           beforeEach(() => {
-            cy.get('[data-test=source-org-github]').as('catOrg');
+            cy.get('[data-test=source-org-github]').as('githubOrg');
             cy.get('[data-test=source-org-github] ~ [data-test^=source-repo]').as(
               'catRepos',
             );
 
-            cy.get('@catOrg').click();
+            cy.get('@githubOrg').click();
             cy.get('[data-test=enable-github-octocat]').click();
             cy.wait('@enableRepo');
             cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
@@ -88,7 +88,7 @@ context('Favorites', () => {
             );
           });
 
-          context('add favorite cat/octocat', () => {
+          context('add favorite github/octocat', () => {
             beforeEach(() => {
               cy.get('@toggleOctocat').should('exist').click();
             });
@@ -108,7 +108,7 @@ context('Favorites', () => {
                 .contains('added to favorites');
             });
 
-            context('remove favorite cat/octocat', () => {
+            context('remove favorite github/octocat', () => {
               beforeEach(() => {
                 cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
                 cy.get('@toggleOctocat').should('exist').click();
@@ -136,7 +136,7 @@ context('Favorites', () => {
       });
       context('Repo Builds page', () => {
         beforeEach(() => {
-          cy.visit('/cat/octocat');
+          cy.visit('/github/octocat');
           cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
         });
 
@@ -156,7 +156,7 @@ context('Favorites', () => {
           );
         });
 
-        context('add favorite cat/octocat', () => {
+        context('add favorite github/octocat', () => {
           beforeEach(() => {
             cy.get('@toggleOctocat').should('exist').click();
           });
@@ -174,7 +174,7 @@ context('Favorites', () => {
               cy.visit('/');
             });
 
-            it('cat/octocat should display in favorites', () => {
+            it('github/octocat should display in favorites', () => {
               cy.get('[data-test=star-toggle-github-octocat]')
                 .as('toggleOctocat')
                 .should('exist');
@@ -184,7 +184,7 @@ context('Favorites', () => {
               );
             });
 
-            it('clicking star should remove cat/octocat from favorites', () => {
+            it('clicking star should remove github/octocat from favorites', () => {
               cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
               cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
               cy.get('@toggleOctocat').click();
@@ -194,7 +194,7 @@ context('Favorites', () => {
             });
           });
 
-          context('remove favorite cat/octocat', () => {
+          context('remove favorite github/octocat', () => {
             beforeEach(() => {
               cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
               cy.get('@toggleOctocat').should('exist').click();

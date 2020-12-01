@@ -2,7 +2,7 @@
   "id": 1,
   "name": "octocat",
   "token": "token",
-  "favorites": ["org/repo_a", "org/repo_b", "github/octocat", "cat/octocat"],
+  "favorites": ["org/repo_a", "org/repo_b", "github/octocat"],
   "active": true,
   "admin": false
 }
