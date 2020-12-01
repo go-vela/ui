@@ -191,20 +191,6 @@ toAllTask (Request config) =
         }
 
 
-{-| toStringTask : turn a request config into an HTTP task
--}
-toStringTask : Request String -> Task (Http.Detailed.Error String) ( Http.Metadata, String )
-toStringTask (Request config) =
-    Http.task
-        { body = config.body
-        , headers = config.headers
-        , method = config.method
-        , resolver = Http.stringResolver <| Http.Detailed.responseToString
-        , timeout = Nothing
-        , url = config.url
-        }
-
-
 {-| listResponseToList : small helper that forwards the inital HTTP task to the recurse function
 -}
 listResponseToList : Task (Http.Detailed.Error String) ( Http.Metadata, ListResponse a ) -> Task (Http.Detailed.Error String) ( Http.Metadata, List a )
@@ -394,12 +380,13 @@ tryAll msg request_ =
         |> Task.attempt msg
 
 
+
 -- ENTRYPOINT
 
 
 {-| try : default way to request information from and endpoint
-    example usage:
-        Api.try UserResponse <| Api.getUser model authParams
+example usage:
+Api.try UserResponse <| Api.getUser model authParams
 -}
 tryString : (Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg) -> Request String -> Cmd msg
 tryString msg request_ =
