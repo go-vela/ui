@@ -2089,13 +2089,8 @@ setNewPage route model =
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
 
         ( Routes.Logout, Authenticated _ ) ->
-            ( { model | page = Pages.Logout }, getLogout model )
+            ( model, getLogout model )
 
-        -- ( { model | session = Unauthenticated }
-        -- , Cmd.batch
-        --     [ Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
-        --     ]
-        -- )
         -- Not found page handling
         ( Routes.NotFound, Authenticated _ ) ->
             ( { model | page = Pages.NotFound }, Cmd.none )
