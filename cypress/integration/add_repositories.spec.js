@@ -13,6 +13,7 @@ context('Source Repositories', () => {
         'fixture:source_repositories.json',
       ).as('sourceRepos');
       cy.route('POST', '*api/v1/repos*', 'fixture:enable_repo_response.json');
+      cy.route('PUT', '*api/v1/repos*', 'fixture:enable_repo_response.json');
       cy.login('/account/source-repos');
     });
 

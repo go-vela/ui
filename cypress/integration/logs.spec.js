@@ -7,11 +7,11 @@ context('visit Build with ansi encoded logs using url line fragment', () => {
     cy.server();
     cy.stubBuild();
     cy.stubStepsWithANSILogs();
-    cy.login('/someorg/somerepo/1');
+    cy.login('/github/octocat/1');
     cy.get('[data-test=step-header-2]').click({ force: true });
     cy.get('[data-test=logs-1]').as('logs');
     cy.get('[data-test=step-header-2]').click({ force: true });
-    cy.visit('/someorg/somerepo/1#step:2:31');
+    cy.visit('/github/octocat/1#step:2:31');
     cy.reload();
     cy.wait('@getLogs-2');
   });

@@ -65,36 +65,36 @@ context('Favorites', () => {
         beforeEach(() => {
           cy.visit('/account/source-repos');
         });
-        context('enable cat/purr', () => {
+        context('enable cat/octocat', () => {
           beforeEach(() => {
-            cy.get('[data-test=source-org-cat]').as('catOrg');
-            cy.get('[data-test=source-org-cat] ~ [data-test^=source-repo]').as(
+            cy.get('[data-test=source-org-github]').as('catOrg');
+            cy.get('[data-test=source-org-github] ~ [data-test^=source-repo]').as(
               'catRepos',
             );
 
             cy.get('@catOrg').click();
-            cy.get('[data-test=enable-cat-purr]').click();
+            cy.get('[data-test=enable-github-octocat]').click();
             cy.wait('@enableRepo');
-            cy.get('[data-test=star-toggle-cat-purr]').as('togglePurr');
+            cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
           });
           it('should show favorites star toggle', () => {
-            cy.get('[data-test=star-toggle-cat-purr]').should('be.visible');
+            cy.get('[data-test=star-toggle-github-octocat]').should('be.visible');
           });
 
           it('star should have favorited class', () => {
-            cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+            cy.get('[data-test=star-toggle-github-octocat] > svg').should(
               'have.class',
               'favorited',
             );
           });
 
-          context('add favorite cat/purr', () => {
+          context('add favorite cat/octocat', () => {
             beforeEach(() => {
-              cy.get('@togglePurr').should('exist').click();
+              cy.get('@toggleOctocat').should('exist').click();
             });
 
             it('star should have favorited class', () => {
-              cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+              cy.get('[data-test=star-toggle-github-octocat] > svg').should(
                 'have.class',
                 'favorited',
               );
@@ -108,10 +108,10 @@ context('Favorites', () => {
                 .contains('added to favorites');
             });
 
-            context('remove favorite cat/purr', () => {
+            context('remove favorite cat/octocat', () => {
               beforeEach(() => {
                 cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
-                cy.get('@togglePurr').should('exist').click();
+                cy.get('@toggleOctocat').should('exist').click();
               });
 
               it('should show a success alert', () => {
@@ -125,7 +125,7 @@ context('Favorites', () => {
               });
 
               it('star should not have favorited class', () => {
-                cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+                cy.get('[data-test=star-toggle-github-octocat] > svg').should(
                   'not.have.class',
                   'favorited',
                 );
@@ -136,33 +136,33 @@ context('Favorites', () => {
       });
       context('Repo Builds page', () => {
         beforeEach(() => {
-          cy.visit('/cat/purr');
-          cy.get('[data-test=star-toggle-cat-purr]').as('togglePurr');
+          cy.visit('/cat/octocat');
+          cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
         });
 
         it('enabling repo should show favorites star toggle', () => {
-          cy.get('[data-test=star-toggle-cat-purr]').should('be.visible');
+          cy.get('[data-test=star-toggle-github-octocat]').should('be.visible');
         });
 
         it('star should not have favorited class', () => {
-          cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+          cy.get('[data-test=star-toggle-github-octocat] > svg').should(
             'not.have.class',
             'favorited',
           );
-          cy.get('@togglePurr').should('exist').click();
-          cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+          cy.get('@toggleOctocat').should('exist').click();
+          cy.get('[data-test=star-toggle-github-octocat] > svg').should(
             'have.class',
             'favorited',
           );
         });
 
-        context('add favorite cat/purr', () => {
+        context('add favorite cat/octocat', () => {
           beforeEach(() => {
-            cy.get('@togglePurr').should('exist').click();
+            cy.get('@toggleOctocat').should('exist').click();
           });
 
           it('star should add favorited class', () => {
-            cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+            cy.get('[data-test=star-toggle-github-octocat] > svg').should(
               'have.class',
               'favorited',
             );
@@ -174,34 +174,34 @@ context('Favorites', () => {
               cy.visit('/');
             });
 
-            it('cat/purr should display in favorites', () => {
-              cy.get('[data-test=star-toggle-cat-purr]')
-                .as('togglePurr')
+            it('cat/octocat should display in favorites', () => {
+              cy.get('[data-test=star-toggle-github-octocat]')
+                .as('toggleOctocat')
                 .should('exist');
-              cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+              cy.get('[data-test=star-toggle-github-octocat] > svg').should(
                 'have.class',
                 'favorited',
               );
             });
 
-            it('clicking star should remove cat/purr from favorites', () => {
+            it('clicking star should remove cat/octocat from favorites', () => {
               cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
-              cy.get('[data-test=star-toggle-cat-purr]').as('togglePurr');
-              cy.get('@togglePurr').click();
-              cy.get('[data-test=star-toggle-cat-purr]').should(
+              cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
+              cy.get('@toggleOctocat').click();
+              cy.get('[data-test=star-toggle-github-octocat]').should(
                 'not.be.visible',
               );
             });
           });
 
-          context('remove favorite cat/purr', () => {
+          context('remove favorite cat/octocat', () => {
             beforeEach(() => {
               cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
-              cy.get('@togglePurr').should('exist').click();
+              cy.get('@toggleOctocat').should('exist').click();
             });
 
             it('star should not have favorited class', () => {
-              cy.get('[data-test=star-toggle-cat-purr] > svg').should(
+              cy.get('[data-test=star-toggle-github-octocat] > svg').should(
                 'not.have.class',
                 'favorited',
               );

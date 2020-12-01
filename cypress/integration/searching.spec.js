@@ -47,7 +47,7 @@ context('Searching', () => {
           cy.get('[data-test=source-repo-count]').should('not.be.visible');
         });
         it('cat org should not exist', () => {
-          cy.get('[data-test=source-org-cat]').should('not.be.visible');
+          cy.get('[data-test=source-org-github]').should('not.be.visible');
         });
       });
 
