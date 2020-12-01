@@ -9,6 +9,7 @@ module Pages.Build.View exposing
     , statusToString
     , viewBuild
     , viewBuildHistory
+    , viewLine
     , viewPreview
     )
 
@@ -16,6 +17,15 @@ import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
+import Focus
+    exposing
+        ( Resource
+        , ResourceID
+        , lineFocusStyles
+        , lineRangeId
+        , resourceAndLineToFocusId
+        , resourceToFocusId
+        )
 import Html
     exposing
         ( Html
@@ -56,11 +66,7 @@ import Pages.Build.Logs
         , getDownloadLogsFileName
         , getStepLog
         , logEmpty
-        , logFocusStyles
-        , logRangeId
-        , stepAndLineToFocusId
         , stepBottomTrackerFocusId
-        , stepToFocusId
         , stepTopTrackerFocusId
         , toString
         )
@@ -281,7 +287,7 @@ viewStepDetails model buildModel step =
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
                 , onClick <| ExpandStep buildModel.org buildModel.repo buildModel.buildNumber stepNumber
-                , id <| stepToFocusId stepNumber
+                , id <| resourceToFocusId "step" stepNumber
                 ]
                 [ div
                     [ class "-info" ]
@@ -466,7 +472,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                     []
                 ]
     in
-    ( table [ class "logs-table" ] <|
+    ( table [ class "logs-table", class "scrollable" ] <|
         topTracker
             :: logs
             ++ [ bottomTracker ]
@@ -476,8 +482,8 @@ viewLines stepNumber logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : String -> Int -> Maybe Ansi.Log.Line -> StepNumber -> LogFocus -> Bool -> Html Msg
-viewLine id lineNumber line stepNumber logFocus shiftDown =
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> Resource -> LogFocus -> Bool -> Html Msg
+viewLine id lineNumber line resource logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             id
@@ -489,13 +495,13 @@ viewLine id lineNumber line stepNumber logFocus shiftDown =
             Just l ->
                 div
                     [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", stepNumber, String.fromInt lineNumber ]
-                    , class <| logFocusStyles logFocus lineNumber
+                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, String.fromInt lineNumber ]
+                    , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton stepNumber logFocus lineNumber shiftDown ]
+                        [ lineFocusButton resource logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", stepNumber, String.fromInt lineNumber ] ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
                         ]
@@ -513,9 +519,9 @@ lineFocusButton stepNumber logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             FocusLogs <|
-                logRangeId stepNumber lineNumber logFocus shiftDown
+                lineRangeId "step" stepNumber lineNumber logFocus shiftDown
         , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
-        , id <| stepAndLineToFocusId stepNumber lineNumber
+        , id <| resourceAndLineToFocusId "step" stepNumber lineNumber
         , class "line-number"
         , class "button"
         , class "-link"

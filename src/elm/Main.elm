@@ -15,9 +15,10 @@ import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Dict
-import Errors exposing (detailedErrorToString)
+import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
+import Focus exposing (focusFragmentToFocusId, parseFocusFragment)
 import Help.Commands
 import Help.View
 import Html
@@ -53,8 +54,8 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy6, lazy7)
-import Http exposing (Error(..))
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy6, lazy7)
+import Http
 import Http.Detailed
 import Interop
 import Json.Decode as Decode exposing (string)
@@ -66,8 +67,7 @@ import Pager
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( focusFragmentToFocusId
-        , focusLogs
+        ( focusLogs
         , getCurrentStep
         , stepBottomTrackerFocusId
         )
@@ -77,6 +77,9 @@ import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
+import Pages.Pipeline.Model
+import Pages.Pipeline.Update
+import Pages.Pipeline.View
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.Model
 import Pages.Secrets.Update
@@ -105,7 +108,6 @@ import Vela
     exposing
         ( AuthParams
         , Build
-        , BuildIdentifier
         , BuildNumber
         , Builds
         , BuildsModel
@@ -127,8 +129,12 @@ import Vela
         , Logs
         , Name
         , Org
+        , Pipeline
+        , PipelineConfig
+        , PipelineTemplates
         , RepairRepo
         , Repo
+        , RepoResourceIdentifier
         , RepoSearchFilters
         , Repositories
         , Repository
@@ -141,6 +147,7 @@ import Vela
         , StepNumber
         , Steps
         , Team
+        , Templates
         , Theme(..)
         , Type
         , UpdateRepositoryPayload
@@ -156,6 +163,8 @@ import Vela
         , defaultEnableRepositoryPayload
         , defaultFavicon
         , defaultHooks
+        , defaultPipeline
+        , defaultPipelineTemplates
         , defaultRepository
         , defaultSession
         , encodeEnableRepository
@@ -214,6 +223,8 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
+    , pipeline : Pipeline
+    , templates : PipelineTemplates
     }
 
 
@@ -266,6 +277,8 @@ init flags url navKey =
             , showIdentity = False
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
+            , pipeline = defaultPipeline
+            , templates = defaultPipelineTemplates
             }
 
         ( newModel, newPage ) =
@@ -346,7 +359,7 @@ type Msg
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | SecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
       -- Other
-    | Error String
+    | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
     | FilterBuildEventBy (Maybe Event) Org Repo
@@ -357,6 +370,7 @@ type Msg
     | VisibilityChanged Visibility
       -- Components
     | BuildUpdate Pages.Build.Model.Msg
+    | PipelineUpdate Pages.Pipeline.Model.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
@@ -753,7 +767,7 @@ update msg model =
                                 )
 
                             else if not refresh then
-                                ( model.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId logFocus )
+                                ( model.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
 
                             else
                                 ( model.steps, "" )
@@ -886,7 +900,7 @@ update msg model =
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
-                        addErrorString "Could not disable webhook event. At least one event must be active."
+                        addErrorString "Could not disable webhook event. At least one event must be active." HandleError
             in
             ( model
             , cmd
@@ -999,7 +1013,7 @@ update msg model =
             , restartBuild model org repo buildNumber
             )
 
-        Error error ->
+        HandleError error ->
             ( model, Cmd.none )
                 |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
 
@@ -1078,6 +1092,15 @@ update msg model =
             in
             ( newModel
             , action
+            )
+
+        PipelineUpdate m ->
+            let
+                ( newModel, action ) =
+                    Pages.Pipeline.Update.update model m
+            in
+            ( newModel
+            , Cmd.map (\ms -> PipelineUpdate ms) action
             )
 
         AddSecretUpdate engine m ->
@@ -1516,7 +1539,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
-        , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos } navMsgs
+        , lazy2 Nav.view { page = model.page, user = model.user, sourceRepos = model.sourceRepos, build = model.build } navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
             , content
@@ -1689,6 +1712,24 @@ viewContent model =
                     }
                     org
                     repo
+            )
+
+        Pages.Pipeline org repo ref expand lineFocus ->
+            ( "Pipeline " ++ String.join "/" [ org, repo ]
+            , Html.map (\m -> PipelineUpdate m) <|
+                Pages.Pipeline.View.viewPipeline
+                    { navigationKey = model.navigationKey
+                    , velaAPI = model.velaAPI
+                    , session = model.session
+                    , time = model.time
+                    , build = model.build
+                    , steps = model.steps
+                    , shift = model.shift
+                    , templates = model.templates
+                    , pipeline = model.pipeline
+                    , page = model.page
+                    , toasties = model.toasties
+                    }
             )
 
         Pages.Settings ->
@@ -1977,7 +2018,7 @@ setNewPage route model =
         ( Routes.Build org repo buildNumber logFocus, True ) ->
             case model.page of
                 Pages.Build o r b _ ->
-                    if not <| buildChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                    if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
                             ( page, steps, action ) =
                                 focusLogs model (RemoteData.withDefault [] model.steps) org repo buildNumber logFocus getBuildStepsLogs
@@ -1989,6 +2030,47 @@ setNewPage route model =
 
                 _ ->
                     loadBuildPage model org repo buildNumber logFocus
+
+        ( Routes.Pipeline org repo ref expand lineFocus, True ) ->
+            let
+                loadPipeline =
+                    let
+                        ( loadedModel, loadAction ) =
+                            Pages.Pipeline.Update.load model org repo ref expand lineFocus
+                    in
+                    ( loadedModel, Cmd.map (\m -> PipelineUpdate m) <| loadAction )
+
+                ( newModel, action ) =
+                    case model.page of
+                        Pages.Pipeline o r ref_ _ _ ->
+                            let
+                                pipeline =
+                                    model.pipeline
+
+                                parsed =
+                                    parseFocusFragment lineFocus
+
+                                current =
+                                    ( org, repo, Maybe.withDefault "" ref )
+
+                                incoming =
+                                    ( o, r, Maybe.withDefault "" ref_ )
+                            in
+                            if not <| resourceChanged current incoming then
+                                ( { model
+                                    | pipeline =
+                                        { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
+                                  }
+                                , Cmd.none
+                                )
+
+                            else
+                                loadPipeline
+
+                        _ ->
+                            loadPipeline
+            in
+            ( newModel, action )
 
         ( Routes.Settings, True ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -2048,11 +2130,11 @@ loadOverviewPage model =
     )
 
 
-{-| buildChanged : takes two build identifiers and returns if the build has changed
+{-| resourceChanged : takes two repo resource identifiers and returns if the build has changed
 -}
-buildChanged : BuildIdentifier -> BuildIdentifier -> Bool
-buildChanged ( orgA, repoA, buildNumA ) ( orgB, repoB, buildNumB ) =
-    not <| orgA == orgB && repoA == repoB && buildNumA == buildNumB
+resourceChanged : RepoResourceIdentifier -> RepoResourceIdentifier -> Bool
+resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
+    not <| orgA == orgB && repoA == repoB && idA == idB
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.
@@ -2454,25 +2536,7 @@ buildEnableRepositoryPayload repo =
 -}
 addError : Http.Detailed.Error String -> Cmd Msg
 addError error =
-    succeed
-        (Error <| detailedErrorToString error)
-        |> perform identity
-
-
-{-| addErrorString : takes a string and produces a Cmd Msg that invokes an action in the Errors module
--}
-addErrorString : String -> Cmd Msg
-addErrorString error =
-    succeed
-        (Error <| error)
-        |> perform identity
-
-
-{-| toFailure : maps a detailed error into a WebData Failure value
--}
-toFailure : Http.Detailed.Error String -> WebData a
-toFailure error =
-    Failure <| Errors.detailedErrorToError error
+    Errors.addError error HandleError
 
 
 {-| stepsIds : extracts Ids from list of steps and returns List Int
@@ -2641,11 +2705,6 @@ getBuild model org repo buildNumber =
 getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
 getAllBuildSteps model org repo buildNumber logFocus refresh =
     Api.tryAll (StepsResponse org repo buildNumber logFocus refresh) <| Api.getAllSteps model org repo buildNumber
-
-
-getBuildStep : Model -> Org -> Repo -> BuildNumber -> StepNumber -> Cmd Msg
-getBuildStep model org repo buildNumber stepNumber =
-    Api.try (StepResponse org repo buildNumber stepNumber) <| Api.getStep model org repo buildNumber stepNumber
 
 
 getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg

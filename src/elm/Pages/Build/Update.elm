@@ -6,11 +6,13 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Update exposing (expandActiveStep, mergeSteps, update)
 
+import Api
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import File.Download as Download
+import Focus exposing (resourceFocusFragment)
 import List.Extra
-import Pages.Build.Logs exposing (focusStep, logFocusFragment)
+import Pages.Build.Logs exposing (focusStep)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -22,7 +24,10 @@ import Task
 import Util exposing (overwriteById)
 import Vela
     exposing
-        ( StepNumber
+        ( BuildNumber
+        , Org
+        , Repo
+        , StepNumber
         , Steps
         )
 
@@ -65,7 +70,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
-                    Navigation.pushUrl model.navigationKey <| logFocusFragment stepNumber []
+                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
 
                   else
                     Cmd.none

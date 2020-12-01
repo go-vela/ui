@@ -35,7 +35,8 @@ import Routes exposing (Route(..))
 import Util
 import Vela
     exposing
-        ( BuildNumber
+        ( Build
+        , BuildNumber
         , CurrentUser
         , Engine
         , Org
@@ -50,6 +51,7 @@ type alias PartialModel a =
         | page : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
+        , build : WebData Build
     }
 
 
@@ -218,15 +220,27 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 ]
 
         Pages.Build org repo buildNumber _ ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
+            div [ class "buttons" ]
+                [ case model.build of
+                    RemoteData.Success b ->
+                        a
+                            [ class "button"
+                            , class "-outline"
+                            , Util.testAttribute <| "goto-build-pipeline-" ++ org ++ "-" ++ repo ++ "-" ++ buildNumber
+                            , Routes.href <| Routes.Pipeline org repo (Just b.commit) Nothing Nothing
+                            ]
+                            [ text "View Config" ]
+
+                    _ ->
+                        text ""
+                , button
+                    [ class "button"
+                    , class "-outline"
+                    , onClick <| restartBuild org repo buildNumber
+                    , Util.testAttribute "restart-build"
                     ]
-                , onClick <| restartBuild org repo buildNumber
-                , Util.testAttribute "restart-build"
-                ]
-                [ text "Restart Build"
+                    [ text "Restart Build"
+                    ]
                 ]
 
         Pages.Hooks org repo _ _ ->

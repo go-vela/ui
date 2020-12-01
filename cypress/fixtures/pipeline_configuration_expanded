@@ -1,0 +1,28 @@
+version: "1"
+steps:
+- commands:
+  - echo $BUILD_EVENT
+  - echo $VELA_TASK
+  image: golang
+  name: invoke template1_name_first-step
+  pull: not_present
+  environment:
+    VELA_TASK: default value
+- commands:
+  - echo $BUILD_EVENT
+  - echo $VELA_TASK
+  image: golang
+  name: invoke template1_name_second-step
+  pull: not_present
+  environment:
+    VELA_TASK: default value
+templates:
+- name: template1_name
+  source: github.com/someorg/somerepo/template1.yml
+  type: github
+- name: template2_name
+  source: github.com/someorg/somerepo/template2.yml
+  type: github
+- name: template3_name
+  source: github.com/someorg/somerepo/template3.yml
+  type: github
