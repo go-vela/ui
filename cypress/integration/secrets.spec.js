@@ -78,7 +78,11 @@ context('Secrets', () => {
           );
         });
         it('Alert should show', () => {
-          cy.get('[data-test=alerts]').should('exist').contains('password').contains('removed').contains('repo');
+          cy.get('[data-test=alerts]')
+            .should('exist')
+            .contains('password')
+            .contains('removed')
+            .contains('repo');
         });
       });
     });
@@ -96,7 +100,7 @@ context('Secrets', () => {
         method: 'DELETE',
         url: '*api/v1/secrets/native/repo/github/octocat/password*',
         status: 500,
-        response: {error: 'server error could not remove'},
+        response: { error: 'server error could not remove' },
       });
       cy.login('/-/secrets/native/repo/github/octocat/password');
       cy.get('[data-test=secret-delete-button]').click();
