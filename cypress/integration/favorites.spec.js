@@ -67,18 +67,22 @@ context('Favorites', () => {
         });
         context('enable github/octocat', () => {
           beforeEach(() => {
-            cy.get('[data-test=source-org-github]').as('githubOrg');
-            cy.get('[data-test=source-org-github] ~ [data-test^=source-repo]').as(
-              'catRepos',
-            );
+            cy.get('[data-test=source-org-github]').as('catOrg');
+            cy.get(
+              '[data-test=source-org-github] ~ [data-test^=source-repo]',
+            ).as('catRepos');
 
             cy.get('@githubOrg').click();
             cy.get('[data-test=enable-github-octocat]').click();
             cy.wait('@enableRepo');
-            cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
+            cy.get('[data-test=star-toggle-github-octocat]').as(
+              'toggleOctocat',
+            );
           });
           it('should show favorites star toggle', () => {
-            cy.get('[data-test=star-toggle-github-octocat]').should('be.visible');
+            cy.get('[data-test=star-toggle-github-octocat]').should(
+              'be.visible',
+            );
           });
 
           it('star should have favorited class', () => {
@@ -186,7 +190,9 @@ context('Favorites', () => {
 
             it('clicking star should remove github/octocat from favorites', () => {
               cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
-              cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
+              cy.get('[data-test=star-toggle-github-octocat]').as(
+                'toggleOctocat',
+              );
               cy.get('@toggleOctocat').click();
               cy.get('[data-test=star-toggle-github-octocat]').should(
                 'not.be.visible',
