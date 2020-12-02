@@ -22,9 +22,11 @@ context('My Settings', () => {
   it('show auth token on page', () => {
     cy.get('[data-test=identity-summary]').click();
     cy.get('[data-test=settings-link]').click();
-    cy.get('#token')
-      .should('exist')
-      .should('be.visible')
-      .should('contain', 'super.duper.yummy');
+    cy.fixture('auth').then(auth => {
+      cy.get('#token')
+        .should('exist')
+        .should('be.visible')
+        .should('contain', auth.token);
+    });
   });
 });

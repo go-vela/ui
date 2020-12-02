@@ -53,7 +53,7 @@ toUrl api endpoint =
             url api [ "authenticate" ] [ UB.string "code" <| Maybe.withDefault "" code, UB.string "state" <| Maybe.withDefault "" state ]
 
         Login ->
-            url api [ "login" ] [ UB.string "type" "ui" ]
+            url api [ "login" ] [ UB.string "type" "web" ]
 
         Logout ->
             url api [ "logout" ] []
