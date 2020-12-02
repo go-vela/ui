@@ -31,9 +31,10 @@ context('Contextual Help', () => {
         cy.get('[data-test=help-tooltip]').should('be.visible');
       });
       it('dropdown should contain error msg', () => {
-        cy.get('[data-test=help-row] input')
-          .invoke('val')
-          .should('eq', 'something went wrong!');
+        cy.get('[data-test=help-row] input').should(
+          'have.value',
+          'something went wrong!',
+        );
       });
       it('dropdown footer should contain getting started docs', () => {
         cy.get('[data-test=help-footer]').contains('Getting Started Docs');
