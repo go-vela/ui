@@ -65,13 +65,6 @@ context('Source Repositories', () => {
       cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
 
-    it('disables the refresh list button while loading', () => {
-      cy.get('[data-test=refresh-source-repos]')
-        .should('be.visible')
-        .should('be.disabled');
-      cy.wait('@sourceRepos');
-    });
-
     it('shows the loading labels when all repos for org are enabled', () => {
       cy.get('[data-test=source-org-github]').click();
       cy.get('[data-test=enable-org-github]').click({ force: true });
@@ -87,6 +80,27 @@ context('Source Repositories', () => {
       cy.get('[data-test=source-repo-octocat-2]')
         .should('be.visible')
         .and('contain', 'Enabling');
+    });
+  });
+
+  context('logged in - artificial 1s load delay', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route({
+        method: 'GET',
+        url: '*api/v1/user/source/repos*',
+        delay: 1000,
+        response: {},
+      }).as('sourceRepos');
+      cy.route('POST', '*api/v1/repos*', 'fixture:enable_repo_response.json');
+      cy.login('/account/source-repos');
+    });
+
+    it('disables the refresh list button while loading', () => {
+      cy.get('[data-test=refresh-source-repos]')
+        .should('be.visible')
+        .should('be.disabled');
+      cy.wait('@sourceRepos');
     });
   });
 
