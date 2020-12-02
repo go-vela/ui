@@ -145,7 +145,6 @@ context('Steps', () => {
     });
     context('visit Build, then visit log line with fragment', () => {
       beforeEach(() => {
-        // cy.visit('/someorg/somerepo/1');
         cy.visit('/someorg/somerepo/1#step:2:2');
         cy.reload();
       });
