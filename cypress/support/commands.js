@@ -19,7 +19,7 @@ if (!Cypress.env('CI')) {
   });
 }
 
-// Login helper (accepts initial path to vist and session fixture)
+// Login helper (accepts initial path to vist)
 Cypress.Commands.add('login', (path = '/') => {
   cy.server();
   cy.route('/token-refresh', 'fixture:auth.json');
