@@ -383,7 +383,7 @@ timeoutWarning inTimeout =
     case inTimeout of
         Just _ ->
             p [ class "notice" ]
-                [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before altering this value. Timeouts must also lie between 1 and 90 minutes."
+                [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before increasing this value. Timeouts must also lie between 1 and 90 minutes."
                 ]
 
         Nothing ->
