@@ -290,7 +290,7 @@ toPath page =
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]
 
-                Pages.Authenticate _ ->
+                Pages.Authenticate ->
                     []
     in
     pages

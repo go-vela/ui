@@ -1779,7 +1779,7 @@ viewContent model =
             , h1 [] [ text "Logging out" ]
             )
 
-        Pages.Authenticate _ ->
+        Pages.Authenticate ->
             ( "Authentication"
             , h1 [ Util.testAttribute "page-h1" ] [ text "Authenticating..." ]
             )
@@ -1977,9 +1977,7 @@ setNewPage route model =
 
         -- "Not logged in" (yet) and on auth flow pages, continue on..
         ( Routes.Authenticate { code, state }, Unauthenticated ) ->
-            ( { model | page = Pages.Authenticate <| AuthParams code state }
-            , Api.try TokenResponse <| Api.getInitialToken model <| AuthParams code state
-            )
+            ( { model | page = Pages.Login }, Api.try TokenResponse <| Api.getInitialToken model <| AuthParams code state )
 
         -- On the login page but not logged in.. good place to be
         ( Routes.Login, Unauthenticated ) ->

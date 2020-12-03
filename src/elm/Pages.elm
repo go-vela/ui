@@ -32,7 +32,7 @@ type Page
     | Settings
     | Login
     | Logout
-    | Authenticate AuthParams
+    | Authenticate
     | NotFound
 
 
@@ -102,8 +102,9 @@ toRoute page =
         Logout ->
             Routes.Logout
 
-        Authenticate { code, state } ->
-            Routes.Authenticate { code = code, state = state }
+        Authenticate ->
+            -- this shouldn't be referenced, we'll just return login page
+            Routes.Login
 
         NotFound ->
             Routes.NotFound
