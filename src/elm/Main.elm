@@ -1977,7 +1977,9 @@ setNewPage route model =
 
         -- "Not logged in" (yet) and on auth flow pages, continue on..
         ( Routes.Authenticate { code, state }, Unauthenticated ) ->
-            ( { model | page = Pages.Login }, Api.try TokenResponse <| Api.getInitialToken model <| AuthParams code state )
+            ( { model | page = Pages.Login }
+            , Api.try TokenResponse <| Api.getInitialToken model <| AuthParams code state
+            )
 
         -- On the login page but not logged in.. good place to be
         ( Routes.Login, Unauthenticated ) ->
