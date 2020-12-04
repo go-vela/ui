@@ -64,7 +64,7 @@ import List.Extra exposing (updateIf)
 import Maybe
 import Nav
 import Pager
-import Pages exposing (Page(..))
+import Pages exposing (onPage, Page(..))
 import Pages.Build.Logs
     exposing
         ( focusLogs
@@ -1687,13 +1687,7 @@ viewContent model =
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
             , Html.map (\m -> BuildUpdate m) <|
                 lazy3 Pages.Build.View.viewBuild
-                    { navigationKey = model.navigationKey
-                    , time = model.time
-                    , zone = model.zone
-                    , repoModel = model.repoModel
-                    , followingStep = model.repoModel.followingStep
-                    , shift = model.shift
-                    }
+                    model
                     org
                     repo
             )
@@ -1702,17 +1696,7 @@ viewContent model =
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Html.map (\m -> PipelineUpdate m) <|
                 Pages.Pipeline.View.viewPipeline
-                    { navigationKey = model.navigationKey
-                    , velaAPI = model.velaAPI
-                    , session = model.session
-                    , time = model.time
-                    , repoModel = model.repoModel
-                    , shift = model.shift
-                    , templates = model.templates
-                    , pipeline = model.pipeline
-                    , page = model.page
-                    , toasties = model.toasties
-                    }
+                    model
             )
 
         Pages.Settings ->
@@ -1910,38 +1894,37 @@ repoNav model org repo =
     div [ class "jump-bar" ]
         [ a
             [ class "jump"
-            , onPage model.page <| Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
+            , currentClass model.page <| Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
             , Routes.href <| Routes.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
             ]
             [ text "Builds" ]
         , Html.span [ class "jump", class "spacer" ] []
         , a
             [ class "jump"
-            , onPage model.page <| Pages.RepoSecrets "native" org repo Nothing Nothing
+            , currentClass model.page <| Pages.RepoSecrets "native" org repo Nothing Nothing
             , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
             ]
             [ text "Secrets" ]
         , Html.span [ class "jump", class "spacer" ] []
         , a
             [ class "jump"
-            , onPage model.page <| Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
+            , currentClass model.page <| Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
             , Routes.href <| Routes.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
             ]
             [ text "Audit" ]
         , Html.span [ class "jump", class "spacer" ] []
         , a
             [ class "jump"
-            , onPage model.page <| Pages.RepoSettings org repo
+            , currentClass   model.page <| Pages.RepoSettings org repo
             , Routes.href <| Routes.RepoSettings org repo
             ]
             [ text "Settings" ]
         , Html.span [ class "jump", class "fill" ] []
         ]
 
-
-onPage : Page -> Page -> Html.Attribute Msg
-onPage p1 p2 =
-    if Pages.strip p1 == Pages.strip p2 then
+currentClass : Page -> Page -> Html.Attribute msg
+currentClass p1 p2 =
+    if onPage p1 p2 then
         class "current"
 
     else

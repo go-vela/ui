@@ -4,13 +4,15 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages exposing (Page(..), strip, toRoute)
+module Pages exposing (Page(..), strip, onPage, toRoute)
 
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Routes exposing (Route(..))
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
+import Html
+import Html.Attributes exposing (class)
 
 type Page
     = Overview
@@ -176,3 +178,9 @@ strip page =
 
         NotFound ->
             NotFound
+
+onPage : Page -> Page -> Bool
+onPage p1 p2 =
+    strip p1 ==  strip p2 
+
+

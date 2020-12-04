@@ -21,7 +21,7 @@ import Vela
         , StepNumber
         , Steps
         )
-
+import Pages exposing (Page(..))
 
 
 -- MODEL
@@ -32,21 +32,13 @@ import Vela
 type alias PartialModel a =
     { a
         | navigationKey : Navigation.Key
+        , page : Page
         , time : Posix
         , zone : Zone
         , repoModel : RepoModel
         , shift : Bool
     }
 
-
-{-| BuildModel : model to contain build information that is crucial for rendering a pipeline
--}
-type alias BuildModel =
-    { org : Org
-    , repo : Repo
-    , buildNumber : BuildNumber
-    , steps : Steps
-    }
 
 
 

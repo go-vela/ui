@@ -59,7 +59,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import List.Extra exposing (unique)
-import Pages exposing (Page(..))
+import Pages exposing (Page(..), onPage)
 import Pages.Build.Logs
     exposing
         ( decodeAnsi
@@ -99,6 +99,53 @@ import Vela
 -- VIEW
 
 
+buildNav :  PartialModel a  -> Org -> Repo -> Html Msg
+buildNav model org repo =
+    let
+        rm =
+            model.repoModel
+
+        -- bm = rm.buildModel
+    in
+    div [ class "jump-bar" ]
+        [ a
+            [ class "jump"
+            , currentClass model.page <| Pages.Build org repo "1053" Nothing
+            , Routes.href <| Routes.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
+            ]
+            [ text "Build" ]
+        , Html.span [ class "jump", class "spacer" ] []
+        , a
+            [ class "jump"
+            , currentClass model.page <| Pages.RepoSecrets "native" org repo Nothing Nothing
+            , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
+            ]
+            [ text "Secrets" ]
+        , Html.span [ class "jump", class "spacer" ] []
+        , a
+            [ class "jump"
+            , currentClass model.page <| Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
+            , Routes.href <| Routes.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
+            ]
+            [ text "Audit" ]
+        , Html.span [ class "jump", class "spacer" ] []
+        , a
+            [ class "jump"
+            , currentClass model.page <| Pages.RepoSettings org repo
+            , Routes.href <| Routes.RepoSettings org repo
+            ]
+            [ text "Settings" ]
+        , Html.span [ class "jump", class "fill" ] []
+        ]
+currentClass : Page -> Page -> Html.Attribute msg
+currentClass p1 p2 =
+    if onPage p1 p2 then
+        class "current"
+
+    else
+        class ""
+
+
 {-| viewBuild : renders entire build based on current application time
 -}
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
@@ -117,7 +164,8 @@ viewBuild model org repo =
 
                 _ ->
                     ( text "", "" )
-
+        navTabs = 
+            buildNav model org repo
         logActions =
             rm.steps
                 |> RemoteData.unwrap (text "")
@@ -151,6 +199,7 @@ viewBuild model org repo =
 
         markdown =
             [ buildPreview
+            , navTabs
             , logActions
             , buildSteps
             ]

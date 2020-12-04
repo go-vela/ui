@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Vela exposing
     ( AuthParams
     , Build
+    , BuildModel
     , BuildNumber
     , Builds
     , BuildsModel
@@ -356,13 +357,14 @@ type alias RepoModel =
     , followingStep : Int
     , hooks : HooksModel
     , builds : BuildsModel
+    , buildModel : BuildModel
     , initialized : Bool
     }
 
 
 defaultRepoModel : RepoModel
 defaultRepoModel =
-    RepoModel "" "" NotAsked NotAsked NotAsked [] 0 defaultHooks defaultBuilds False
+    RepoModel "" "" NotAsked NotAsked NotAsked [] 0 defaultHooks defaultBuilds defaultBuild False
 
 
 updateOrgRepo : RepoModel -> Org -> Repo -> RepoModel
@@ -756,6 +758,20 @@ type alias BuildsModel =
     , maybePerPage : Maybe Pagination.PerPage
     , maybeEvent : Maybe Event
     }
+
+
+{-| BuildModel : model to contain build information that is crucial for rendering a pipeline
+-}
+type alias BuildModel =
+    { org : Org
+    , repo : Repo
+    , buildNumber : BuildNumber
+    , steps : Steps
+    }
+
+defaultBuildModel : BuildModel 
+defaultBuildModel =
+    BuildModel "" "" "" []
 
 
 {-| Build : record type for vela build
