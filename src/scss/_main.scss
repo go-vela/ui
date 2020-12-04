@@ -936,21 +936,18 @@ nav {
   border-radius: 1rem;
   border: 2px solid var(--color-bg-dark);
 }
-
+  
 .logs-header {
   padding: 0.25rem 0;
   border-bottom: 1px solid var(--color-slate);
   background: var(--color-bg-dark);
   width: 100%;
   z-index: 1;
-}
+  justify-content: flex-end;
 
-.logs-header .actions {
-  padding: 0.3rem;
-
-  .buttons {
-    justify-content: flex-end;
-    margin-right: 0.3rem;
+  .button {
+    padding: 0.3rem;
+    margin: 0.2rem 0.6rem;
   }
 }
 
