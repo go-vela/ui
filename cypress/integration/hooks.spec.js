@@ -120,7 +120,7 @@ context('Hooks', () => {
     it('shows page 2 of the hooks', () => {
       cy.visit('/github/octocat/hooks?page=2');
       cy.get('[data-test=hooks-row]').should('have.length', 10);
-      cy.get('[data-test="crumb-hooks-(page-2)"]')
+      cy.get('[data-test="crumb-octocat-(page-2)"]')
         .should('exist')
         .should('contain', 'page 2');
 

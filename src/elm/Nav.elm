@@ -9,6 +9,7 @@ module Nav exposing (Msgs, view)
 import Browser.Events exposing (Visibility(..))
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
+import FeatherIcons
 import Html
     exposing
         ( Html
@@ -32,6 +33,7 @@ import Pages exposing (Page(..))
 import Pages.Builds exposing (view)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
+import Svg.Attributes
 import Util
 import Vela
     exposing
@@ -41,17 +43,19 @@ import Vela
         , Engine
         , Org
         , Repo
+        , RepoModel
+        , SecretType
         , SourceRepositories
-        , Type
         )
 
 
 type alias PartialModel a =
     { a
         | page : Page
+        , from : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
-        , build : WebData Build
+        , repoModel : RepoModel
     }
 
 
@@ -60,7 +64,7 @@ type alias Msgs msg =
     , toggleFavorite : ToggleFavorite msg
     , refreshSettings : Org -> Repo -> msg
     , refreshHooks : Org -> Repo -> msg
-    , refreshSecrets : Engine -> Type -> Org -> Repo -> msg
+    , refreshSecrets : Engine -> SecretType -> Org -> Repo -> msg
     , restartBuild : Org -> Repo -> BuildNumber -> msg
     }
 
@@ -108,169 +112,61 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 ]
 
         Pages.RepositoryBuilds org repo _ _ _ ->
-            div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-                    ]
-                    [ text "Secrets" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo Nothing Nothing
-                    ]
-                    [ text "Hooks" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSettings org repo
-                    ]
-                    [ text "Settings" ]
-                ]
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.RepoSettings org repo ->
-            div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-                    ]
-                    [ text "Secrets" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo Nothing Nothing
-                    ]
-                    [ text "Hooks" ]
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSettings org repo
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh"
-                    ]
-                ]
+            -- div [ class "buttons" ]
+            --     [ button
+            --         [ classList
+            --             [ ( "button", True )
+            --             , ( "-outline", True )
+            --             , ( "button-with-icon", True )
+            --             ]
+            --         , onClick <| refreshSettings org repo
+            --         , disabled (model.repoModel.repo == Loading)
+            --         , Util.testAttribute "refresh-repo-settings"
+            --         ]
+            --         [ case model.repoModel.repo of
+            --             Loading ->
+            --                 text "Loading…"
+            --             _ ->
+            --                 text "Refresh"
+            --         , FeatherIcons.refreshCw
+            --             |> FeatherIcons.withSize 18
+            --             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+            --         ]
+            --     ,
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
-        Pages.OrgSecrets engine org _ _ ->
-            div [ class "buttons" ]
-                [ button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSecrets engine "org" org "*"
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh"
-                    ]
-                ]
-
+        -- ]
         Pages.RepoSecrets engine org repo _ _ ->
-            div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo Nothing Nothing
-                    ]
-                    [ text "Hooks" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSettings org repo
-                    ]
-                    [ text "Settings" ]
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSecrets engine "repo" org repo
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh"
-                    ]
-                ]
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.SharedSecrets engine org team _ _ ->
             div [ class "buttons" ]
-                [ button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSecrets engine "shared" org team
-                    , Util.testAttribute "refresh-repo-settings"
+                [ a
+                    [ class "button"
+                    , class "-outline"
+                    , Routes.href <|
+                        Routes.AddSharedSecret engine org team
                     ]
-                    [ text "Refresh"
-                    ]
+                    [ text "Add Shared Secret" ]
                 ]
 
         Pages.Build org repo buildNumber _ ->
-            div [ class "buttons" ]
-                [ case model.build of
-                    RemoteData.Success b ->
-                        a
-                            [ class "button"
-                            , class "-outline"
-                            , Util.testAttribute <| "goto-build-pipeline-" ++ org ++ "-" ++ repo ++ "-" ++ buildNumber
-                            , Routes.href <| Routes.Pipeline org repo (Just b.commit) Nothing Nothing
-                            ]
-                            [ text "View Config" ]
-
-                    _ ->
-                        text ""
-                , button
-                    [ class "button"
-                    , class "-outline"
-                    , onClick <| restartBuild org repo buildNumber
-                    , Util.testAttribute "restart-build"
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
                     ]
-                    [ text "Restart Build"
-                    ]
+                , onClick <| restartBuild org repo buildNumber
+                , Util.testAttribute "restart-build"
+                ]
+                [ text "Restart Build"
                 ]
 
         Pages.Hooks org repo _ _ ->
-            div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-                    ]
-                    [ text "Secrets" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSettings org repo
-                    ]
-                    [ text "Settings" ]
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshHooks org repo
-                    , Util.testAttribute "refresh-repo-hooks"
-                    ]
-                    [ text "Refresh"
-                    ]
-                ]
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         _ ->
             text ""

@@ -12,7 +12,7 @@ import Pages exposing (Page(..), toRoute)
 import Routes exposing (Route(..))
 import Tuple exposing (first, second)
 import Url exposing (percentDecode)
-import Util
+import Util exposing (pageToString, refToString)
 import Vela exposing (Ref)
 
 
@@ -107,13 +107,16 @@ toPath page =
                         organizationPage =
                             ( org, Nothing )
 
-                        repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-
                         pageNumber =
                             pageToString maybePage
+
+                        repoBuilds =
+                            ( repo ++ pageNumber, Nothing )
                     in
-                    [ overviewPage, organizationPage, repoBuilds, ( "Hooks" ++ pageNumber, Nothing ) ]
+                    [ overviewPage
+                    , organizationPage
+                    , repoBuilds
+                    ]
 
                 Pages.RepoSettings org repo ->
                     let
@@ -121,9 +124,12 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                            ( repo, Nothing )
                     in
-                    [ overviewPage, organizationPage, repoBuilds, repoSettings ]
+                    [ overviewPage
+                    , organizationPage
+                    , repoBuilds
+                    ]
 
                 Pages.OrgSecrets _ org maybePage _ ->
                     let
@@ -141,12 +147,12 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                            ( repo, Nothing )
 
                         repoSecrets =
                             ( "Repo Secrets" ++ pageToString maybePage, Nothing )
                     in
-                    [ overviewPage, orgPage, repoBuilds, repoSecrets ]
+                    [ overviewPage, orgPage, repoBuilds ]
 
                 Pages.SharedSecrets _ org team maybePage _ ->
                     let
@@ -266,7 +272,11 @@ toPath page =
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
+                    [ overviewPage
+                    , organizationPage
+                    , ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                    , ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus )
+                    ]
 
                 Pages.Pipeline org repo ref expand _ ->
                     let
@@ -294,35 +304,3 @@ toPath page =
                     []
     in
     pages
-
-
-{-| renderPageNumber : small helper to turn page number to a string to display in crumbs
--}
-pageToString : Maybe Int -> String
-pageToString maybePage =
-    case maybePage of
-        Nothing ->
-            ""
-
-        Just num ->
-            if num > 1 then
-                " (page " ++ String.fromInt num ++ ")"
-
-            else
-                ""
-
-
-{-| refToString : small helper to turn ref to a string to display in crumbs
--}
-refToString : Maybe Ref -> String
-refToString maybeRef =
-    case maybeRef of
-        Nothing ->
-            "(default branch)"
-
-        Just ref ->
-            if String.length ref > 0 then
-                ref
-
-            else
-                "(default branch)"

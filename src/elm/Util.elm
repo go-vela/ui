@@ -32,7 +32,9 @@ module Util exposing
     , oneSecondMillis
     , open
     , overwriteById
+    , pageToString
     , pluralize
+    , refToString
     , relativeTimeNoSeconds
     , secondsToMillis
     , smallLoader
@@ -483,3 +485,35 @@ base64Decode inStr =
                     bytes
             )
         |> Maybe.withDefault ""
+
+
+{-| renderPageNumber : small helper to turn page number to a string to display in crumbs
+-}
+pageToString : Maybe Int -> String
+pageToString maybePage =
+    case maybePage of
+        Nothing ->
+            ""
+
+        Just num ->
+            if num > 1 then
+                " (page " ++ String.fromInt num ++ ")"
+
+            else
+                ""
+
+
+{-| refToString : small helper to turn ref to a string to display in crumbs
+-}
+refToString : Maybe String -> String
+refToString maybeRef =
+    case maybeRef of
+        Nothing ->
+            "(default branch)"
+
+        Just ref ->
+            if String.length ref > 0 then
+                ref
+
+            else
+                "(default branch)"

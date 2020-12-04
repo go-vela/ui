@@ -46,6 +46,7 @@ type alias PartialModel a msg =
     { a
         | velaAPI : String
         , session : Maybe Session
+        , page : Page
         , secretsModel : Model msg
     }
 
@@ -58,14 +59,20 @@ type alias Model msg =
     , team : Team
     , engine : Engine
     , type_ : SecretType
-    , secrets : WebData Secrets
+    , repoSecrets : WebData Secrets
+    , repoSecretsPager : List WebLink
+    , orgSecrets : WebData Secrets
+    , orgSecretsPager : List WebLink
+    , sharedSecrets : WebData Secrets
+    , sharedSecretsPager : List WebLink
     , secret : WebData Secret
     , form : SecretForm
     , secretResponse : SecretResponse msg
-    , secretsResponse : SecretsResponse msg
+    , repoSecretsResponse : SecretsResponse msg
+    , orgSecretsResponse : SecretsResponse msg
+    , sharedSecretsResponse : SecretsResponse msg
     , addSecretResponse : AddSecretResponse msg
     , updateSecretResponse : AddSecretResponse msg
-    , pager : List WebLink
     }
 
 

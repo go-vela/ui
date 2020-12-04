@@ -240,8 +240,6 @@ nav {
 
 .util {
   display: flex;
-
-  min-height: 3rem;
   padding-bottom: 0.3rem;
 }
 
@@ -1130,7 +1128,11 @@ nav {
 
 .pager-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+}
+
+.pager-icon-next {
+  margin-left: 1rem;
 }
 
 .pager-icon-next svg {

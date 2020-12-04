@@ -17,6 +17,7 @@ import Vela
         , Logs
         , Org
         , Repo
+        , RepoModel
         , StepNumber
         , Steps
         )
@@ -33,11 +34,8 @@ type alias PartialModel a =
         | navigationKey : Navigation.Key
         , time : Posix
         , zone : Zone
-        , build : WebData Build
-        , steps : WebData Steps
-        , logs : Logs
+        , repoModel : RepoModel
         , shift : Bool
-        , followingStep : Int
     }
 
 
