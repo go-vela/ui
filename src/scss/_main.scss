@@ -936,13 +936,15 @@ nav {
   border-radius: 1rem;
   border: 2px solid var(--color-bg-dark);
 }
-  
+
 .logs-header {
   padding: 0.25rem 0;
   border-bottom: 1px solid var(--color-slate);
   background: var(--color-bg-dark);
   width: 100%;
   z-index: 1;
+
+  display: flex;
   justify-content: flex-end;
 
   .button {
