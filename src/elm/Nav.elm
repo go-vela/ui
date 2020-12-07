@@ -73,6 +73,8 @@ type alias Msgs msg =
     }
 
 
+{-| Tab : record to represent information used by page navigation tab
+-}
 type alias Tab =
     { name : String
     , currentPage : Page
@@ -266,3 +268,12 @@ viewRepoTabs rm currentPage =
 
 
 -- BUILD TODO
+
+
+viewBuildTabs : RepoModel -> Page -> Html msg
+viewBuildTabs rm currentPage =
+    let
+        tabs =
+            []
+    in
+    viewTabs tabs
