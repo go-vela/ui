@@ -40,7 +40,7 @@ type alias PartialModel a =
         , session : Maybe Session
         , navigationKey : Navigation.Key
         , time : Posix
-        , repoModel : RepoModel
+        , repo : RepoModel
         , shift : Bool
         , templates : ( WebData Templates, Error )
         , pipeline : Pipeline

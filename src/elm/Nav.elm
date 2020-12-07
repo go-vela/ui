@@ -55,7 +55,7 @@ type alias PartialModel a =
         , from : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
-        , repoModel : RepoModel
+        , repo : RepoModel
     }
 
 
@@ -115,30 +115,8 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.RepoSettings org repo ->
-            -- div [ class "buttons" ]
-            --     [ button
-            --         [ classList
-            --             [ ( "button", True )
-            --             , ( "-outline", True )
-            --             , ( "button-with-icon", True )
-            --             ]
-            --         , onClick <| refreshSettings org repo
-            --         , disabled (model.repoModel.repo == Loading)
-            --         , Util.testAttribute "refresh-repo-settings"
-            --         ]
-            --         [ case model.repoModel.repo of
-            --             Loading ->
-            --                 text "Loading…"
-            --             _ ->
-            --                 text "Refresh"
-            --         , FeatherIcons.refreshCw
-            --             |> FeatherIcons.withSize 18
-            --             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-            --         ]
-            --     ,
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
-        -- ]
         Pages.RepoSecrets engine org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 

@@ -88,6 +88,7 @@ import Vela
         , Logs
         , Org
         , Repo
+        , RepoModel
         , Status
         , Step
         , StepNumber
@@ -106,10 +107,13 @@ viewBuild : PartialModel a -> Org -> Repo -> Html Msg
 viewBuild model org repo =
     let
         rm =
-            model.repoModel
+            model.repo
+
+        build =
+            rm.build
 
         ( buildPreview, buildNumber ) =
-            case rm.build.build of
+            case build.build of
                 RemoteData.Success bld ->
                     ( viewPreview model.time model.zone org repo bld, String.fromInt bld.number )
 
@@ -120,7 +124,7 @@ viewBuild model org repo =
                     ( text "", "" )
 
         logActions =
-            rm.build.steps
+            build.steps
                 |> RemoteData.unwrap (text "")
                     (\_ ->
                         div
@@ -135,16 +139,16 @@ viewBuild model org repo =
                     )
 
         buildSteps =
-            case rm.build.steps of
+            case build.steps of
                 RemoteData.Success steps_ ->
-                    viewBuildSteps model rm.build steps_
+                    viewBuildSteps model rm steps_
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
 
                 _ ->
                     -- Don't show two loaders
-                    if Util.isLoading rm.build.build then
+                    if Util.isLoading build.build then
                         text ""
 
                     else
@@ -248,40 +252,40 @@ viewPreview now zone org repo build =
 
 {-| viewBuildSteps : takes build/steps and renders pipeline
 -}
-viewBuildSteps : PartialModel a -> BuildModel -> Steps -> Html Msg
-viewBuildSteps model buildModel steps =
+viewBuildSteps : PartialModel a -> RepoModel -> Steps -> Html Msg
+viewBuildSteps model rm steps =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
             if hasStages steps then
-                viewStages model buildModel steps
+                viewStages model rm steps
 
             else
-                viewSteps model buildModel steps
+                viewSteps model rm steps
         ]
 
 
 {-| viewSteps : takes build/steps and renders steps
 -}
-viewSteps : PartialModel a -> BuildModel -> Steps -> List (Html Msg)
-viewSteps model buildModel steps =
-    List.map (\step -> viewStep model buildModel steps step) <| steps
+viewSteps : PartialModel a -> RepoModel -> Steps -> List (Html Msg)
+viewSteps model rm steps =
+    List.map (\step -> viewStep model rm steps step) <| steps
 
 
 {-| viewStep : renders single build step
 -}
-viewStep : PartialModel a -> BuildModel -> Steps -> Step -> Html Msg
-viewStep model buildModel steps step =
+viewStep : PartialModel a -> RepoModel -> Steps -> Step -> Html Msg
+viewStep model rm steps step =
     div [ stepClasses steps step, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
-        , viewStepDetails model buildModel step
+        , viewStepDetails model rm step
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : PartialModel a -> BuildModel -> Step -> Html Msg
-viewStepDetails model buildModel step =
+viewStepDetails : PartialModel a -> RepoModel -> Step -> Html Msg
+viewStepDetails model rm step =
     let
         stepNumber =
             String.fromInt step.number
@@ -290,7 +294,7 @@ viewStepDetails model buildModel step =
             [ summary
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
-                , onClick <| ExpandStep model.repoModel.org model.repoModel.name buildModel.buildNumber stepNumber
+                , onClick <| ExpandStep rm.org rm.name rm.build.buildNumber stepNumber
                 , id <| resourceToFocusId "step" stepNumber
                 ]
                 [ div
@@ -300,7 +304,7 @@ viewStepDetails model buildModel step =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ viewLogs model buildModel step ]
+            , div [ class "logs-container" ] [ viewLogs model rm step ]
             ]
     in
     details
@@ -316,8 +320,8 @@ viewStepDetails model buildModel step =
 
 {-| viewStages : takes model and build model and renders steps grouped by stages
 -}
-viewStages : PartialModel a -> BuildModel -> Steps -> List (Html Msg)
-viewStages model buildModel steps =
+viewStages : PartialModel a -> RepoModel -> Steps -> List (Html Msg)
+viewStages model rm steps =
     steps
         |> List.map .stage
         |> unique
@@ -325,27 +329,27 @@ viewStages model buildModel steps =
             (\stage ->
                 steps
                     |> List.filter (\step -> step.stage == stage)
-                    |> viewStage model buildModel stage
+                    |> viewStage model rm stage
             )
 
 
 {-| viewStage : takes model, build model and stage and renders the stage steps
 -}
-viewStage : PartialModel a -> BuildModel -> String -> Steps -> Html Msg
-viewStage model buildModel stage steps =
+viewStage : PartialModel a -> RepoModel -> String -> Steps -> Html Msg
+viewStage model rm stage steps =
     div
         [ class "stage", Util.testAttribute <| "stage" ]
-        [ viewStageDivider model buildModel stage
+        [ viewStageDivider model stage
         , steps
-            |> List.map (\step -> viewStep model buildModel steps step)
+            |> List.map (\step -> viewStep model rm steps step)
             |> div [ Util.testAttribute <| "stage-" ++ stage ]
         ]
 
 
 {-| viewStageDivider : renders divider between stage
 -}
-viewStageDivider : PartialModel a -> BuildModel -> String -> Html Msg
-viewStageDivider model buildModel stage =
+viewStageDivider : PartialModel a -> String -> Html Msg
+viewStageDivider model stage =
     if stage /= "init" && stage /= "clone" then
         div [ class "divider", Util.testAttribute <| "stage-divider-" ++ stage ]
             [ div [] [ text stage ] ]
@@ -367,8 +371,8 @@ hasStages steps =
 
 {-| viewLogs : takes step and logs and renders step logs or step error
 -}
-viewLogs : PartialModel a -> BuildModel -> Step -> Html Msg
-viewLogs model buildModel step =
+viewLogs : PartialModel a -> RepoModel -> Step -> Html Msg
+viewLogs model rm step =
     case step.status of
         Vela.Error ->
             stepError step
@@ -377,7 +381,7 @@ viewLogs model buildModel step =
             stepSkipped step
 
         _ ->
-            viewLogLines model.repoModel.org model.repoModel.name buildModel.buildNumber (String.fromInt step.number) step.logFocus (getStepLog step buildModel.logs) buildModel.followingStep model.shift
+            viewLogLines rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getStepLog step rm.build.logs) rm.build.followingStep model.shift
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step

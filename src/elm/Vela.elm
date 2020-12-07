@@ -348,6 +348,8 @@ type alias AuthParams =
 -- REPOSITORY
 
 
+{-| RepoModel : model to contain repository information that is crucial for rendering repo pages
+-}
 type alias RepoModel =
     { org : Org
     , name : Repo

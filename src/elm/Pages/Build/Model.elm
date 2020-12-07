@@ -34,7 +34,7 @@ type alias PartialModel a =
         | navigationKey : Navigation.Key
         , time : Posix
         , zone : Zone
-        , repoModel : RepoModel
+        , repo : RepoModel
         , shift : Bool
     }
 

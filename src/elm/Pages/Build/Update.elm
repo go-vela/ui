@@ -40,7 +40,7 @@ update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) 
 update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
     let
         rm =
-            model.repoModel
+            model.repo
 
         build =
             rm.build
@@ -49,7 +49,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
         ExpandStep org repo buildNumber stepNumber ->
             let
                 ( steps, fetchStepLogs ) =
-                    clickStep rm.build.steps stepNumber
+                    clickStep build.steps stepNumber
 
                 action =
                     if fetchStepLogs then
@@ -63,7 +63,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
 
                 -- step clicked is step being followed
                 onFollowedStep =
-                    rm.build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+                    build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                 follow =
                     if onFollowedStep && not stepOpened then
@@ -71,9 +71,9 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         0
 
                     else
-                        rm.build.followingStep
+                        build.followingStep
             in
-            ( { model | repoModel = { rm | build = { build | steps = steps, followingStep = follow } } }
+            ( { model | repo = { rm | build = { build | steps = steps, followingStep = follow } } }
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
@@ -95,7 +95,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             )
 
         FollowStep step ->
-            ( { model | repoModel = { rm | build = { build | followingStep = step } } }
+            ( { model | repo = { rm | build = { build | followingStep = step } } }
             , Cmd.none
             )
 
@@ -106,7 +106,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         |> RemoteData.unwrap build.steps
                             (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
             in
-            ( { model | repoModel = { rm | build = { build | steps = steps, followingStep = 0 } } }
+            ( { model | repo = { rm | build = { build | steps = steps, followingStep = 0 } } }
             , Cmd.none
             )
 
@@ -121,7 +121,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
             in
-            ( { model | repoModel = { rm | build = { build | steps = steps } } }
+            ( { model | repo = { rm | build = { build | steps = steps } } }
             , action
             )
 
