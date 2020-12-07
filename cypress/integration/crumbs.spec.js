@@ -91,9 +91,9 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-somerepo]').should('exist');
       cy.get('[data-test=crumb-password]').should('exist');
     });
-    it('repo crumb should redirect to repo builds', () => {
+    it('repo crumb should redirect to repo secrets', () => {
       cy.get('[data-test=crumb-somerepo]').click();
-      cy.location('pathname').should('eq', '/someorg/somerepo');
+      cy.location('pathname').should('eq', '/-/secrets/native/repo/someorg/somerepo');
     });
   });
   context(
