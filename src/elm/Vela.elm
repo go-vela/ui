@@ -120,6 +120,7 @@ module Vela exposing
     , updateBuild
     , updateBuilds
     , updateHooks
+    , updateHooksModel
     , updateOrgRepo
     , updateRepo
     , updateSteps
@@ -128,7 +129,6 @@ module Vela exposing
 import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Errors exposing (Error)
-import Html exposing (b)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
@@ -415,9 +415,18 @@ updateSteps rm update =
     { rm | build = { b | steps = update } }
 
 
-updateHooks : RepoModel -> HooksModel -> RepoModel
-updateHooks rm update =
+updateHooksModel : RepoModel -> HooksModel -> RepoModel
+updateHooksModel rm update =
     { rm | hooks = update }
+
+
+updateHooks : RepoModel -> WebData Hooks -> RepoModel
+updateHooks rm update =
+    let
+        h =
+            rm.hooks
+    in
+    { rm | hooks = { h | hooks = update } }
 
 
 type alias Repository =

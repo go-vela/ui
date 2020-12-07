@@ -62,7 +62,7 @@ import Json.Decode as Decode exposing (string)
 import Json.Encode as Encode
 import List.Extra exposing (updateIf)
 import Maybe
-import Nav
+import Nav exposing (viewNav, viewUtil)
 import Pager
 import Pages exposing (Page(..))
 import Pages.Build.Logs
@@ -181,6 +181,7 @@ import Vela
         , updateBuild
         , updateBuilds
         , updateHooks
+        , updateHooksModel
         , updateOrgRepo
         , updateRepo
         , updateSteps
@@ -203,7 +204,6 @@ type alias Flags =
 
 type alias Model =
     { page : Page
-    , from : Page
     , session : Maybe Session
     , user : WebData CurrentUser
     , toasties : Stack Alert
@@ -252,7 +252,6 @@ init flags url navKey =
         model : Model
         model =
             { page = Pages.Overview
-            , from = Pages.NotFound
             , session = flags.velaSession
             , user = NotAsked
             , sourceRepos = NotAsked
@@ -386,7 +385,7 @@ update msg model =
     in
     case msg of
         NewRoute route ->
-            setNewPage route <| setFrom model
+            setNewPage route model
 
         SignInRequested ->
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
@@ -1068,7 +1067,7 @@ update msg model =
                 hooks =
                     rm.hooks
             in
-            ( { model | repo = updateHooks rm { hooks | hooks = Loading } }, getHooks model org repo Nothing Nothing )
+            ( { model | repo = updateHooks rm Loading }, getHooks model org repo Nothing Nothing )
 
         RefreshSecrets engine type_ org key ->
             let
@@ -1552,7 +1551,7 @@ view model =
     { title = "Vela - " ++ title
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
-        , lazy2 Nav.view model navMsgs
+        , lazy2 Nav.viewNav model navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
             , content
@@ -1896,82 +1895,6 @@ helpArgs model =
     }
 
 
-viewUtil : Model -> Html Msg
-viewUtil model =
-    div [ class "util" ]
-        [ case model.page of
-            Pages.Build _ _ _ _ ->
-                viewBuildHistory model
-
-            Pages.RepositoryBuilds org repo _ _ _ ->
-                repoNav model org repo
-
-            Pages.RepoSecrets engine org repo _ _ ->
-                repoNav model org repo
-
-            Pages.Hooks org repo _ _ ->
-                repoNav model org repo
-
-            Pages.RepoSettings org repo ->
-                repoNav model org repo
-
-            _ ->
-                text ""
-        ]
-
-
-repoNav : Model -> Org -> Repo -> Html Msg
-repoNav model org repo =
-    let
-        rm =
-            model.repo
-    in
-    div [ class "jump-bar" ]
-        [ a
-            [ class "jump"
-            , onPage model.page <| Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
-            , Routes.href <| Routes.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
-            ]
-            [ text "Builds" ]
-        , Html.span [ class "jump", class "spacer" ] []
-        , a
-            [ class "jump"
-            , onPage model.page <| Pages.RepoSecrets "native" org repo Nothing Nothing
-            , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-            ]
-            [ text "Secrets" ]
-        , Html.span [ class "jump", class "spacer" ] []
-        , a
-            [ class "jump"
-            , onPage model.page <| Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
-            , Routes.href <| Routes.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
-            ]
-            [ text "Audit" ]
-        , Html.span [ class "jump", class "spacer" ] []
-        , a
-            [ class "jump"
-            , onPage model.page <| Pages.RepoSettings org repo
-            , Routes.href <| Routes.RepoSettings org repo
-            ]
-            [ text "Settings" ]
-        , Html.span [ class "jump", class "fill" ] []
-        ]
-
-
-onPage : Page -> Page -> Html.Attribute Msg
-onPage p1 p2 =
-    if Pages.strip p1 == Pages.strip p2 then
-        class "current"
-
-    else
-        class ""
-
-
-viewBuildHistory : Model -> Html Msg
-viewBuildHistory model =
-    lazy7 Pages.Build.View.viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
-
-
 viewAlerts : Stack Alert -> Html Msg
 viewAlerts toasties =
     div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig (Alerts.view Copy) AlertsUpdate toasties ]
@@ -2171,11 +2094,6 @@ setNewPage route model =
             ( { model | page = Pages.Login }
             , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
             )
-
-
-setFrom : Model -> Model
-setFrom model =
-    { model | from = model.page }
 
 
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
