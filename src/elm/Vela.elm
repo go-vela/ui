@@ -21,7 +21,7 @@ module Vela exposing
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
-    , Engine
+    , Engine,updateBuildLogs
     , Event
     , Favicon
     , Favorites
@@ -123,7 +123,7 @@ module Vela exposing
     , updateHooksModel
     , updateOrgRepo
     , updateRepo
-    , updateSteps
+    , updateBuildSteps
     )
 
 import Api.Pagination as Pagination
@@ -406,13 +406,23 @@ updateBuilds rm update =
     { rm | builds = update }
 
 
-updateSteps : RepoModel -> WebData Steps -> RepoModel
-updateSteps rm update =
+updateBuildSteps : RepoModel -> WebData Steps -> RepoModel
+updateBuildSteps rm update =
     let
         b =
             rm.build
     in
     { rm | build = { b | steps = update } }
+
+
+
+updateBuildLogs : RepoModel -> Logs -> RepoModel
+updateBuildLogs rm update =
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | logs = update } }
 
 
 updateHooksModel : RepoModel -> HooksModel -> RepoModel
