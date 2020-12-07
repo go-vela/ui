@@ -347,7 +347,7 @@ timeoutInput repo inTimeout inputMsg =
             [ id <| "repo-timeout"
             , onInput inputMsg
             , type_ "number"
-            , Html.Attributes.min "30"
+            , Html.Attributes.min "1"
             , Html.Attributes.max "90"
             , value <| String.fromInt <| Maybe.withDefault repo.timeout inTimeout
             ]
@@ -383,7 +383,7 @@ timeoutWarning inTimeout =
     case inTimeout of
         Just _ ->
             p [ class "notice" ]
-                [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before altering this value. Timeouts must also lie between 30 and 90 minutes."
+                [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before increasing this value. Timeouts must also lie between 1 and 90 minutes."
                 ]
 
         Nothing ->
@@ -543,7 +543,7 @@ validTimeout : Maybe Int -> Maybe Int -> Bool
 validTimeout inTimeout repoTimeout =
     case inTimeout of
         Just t ->
-            if t >= 30 && t <= 90 then
+            if t >= 1 && t <= 90 then
                 case repoTimeout of
                     Just ti ->
                         t /= ti

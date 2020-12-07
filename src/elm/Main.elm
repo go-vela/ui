@@ -357,6 +357,7 @@ type Msg
     | RepoSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | OrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | SharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
+    | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- Other
     | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
@@ -847,6 +848,28 @@ update msg model =
 
         RepoSecretsResponse response ->
             receiveSecrets model response Vela.RepoSecret
+        DeleteSecretResponse response ->
+            case response of
+                Ok ( _, r_string ) ->
+                    let
+                        secretsModel =
+                            model.secretsModel
+
+                        secretsType =
+                            secretTypeToString secretsModel.type_
+
+                        alertMessage =
+                            secretsModel.form.name ++ " removed from " ++ secretsType ++ " secrets."
+
+                        redirectTo =
+                            Pages.Secrets.Update.deleteSecretRedirect secretsModel
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
 
         OrgSecretsResponse response ->
             receiveSecrets model response Vela.OrgSecret
@@ -2514,6 +2537,7 @@ loadUpdateOrgSecretPage model engine org name =
                 | org = org
                 , engine = engine
                 , type_ = Vela.OrgSecret
+                , deleteState = Pages.Secrets.Model.NotAsked_
             }
       }
     , Cmd.batch
@@ -2540,6 +2564,7 @@ loadUpdateRepoSecretPage model engine org repo name =
                 , repo = repo
                 , engine = engine
                 , type_ = Vela.RepoSecret
+                , deleteState = Pages.Secrets.Model.NotAsked_
             }
       }
     , Cmd.batch
@@ -2566,6 +2591,7 @@ loadUpdateSharedSecretPage model engine org team name =
                 , team = team
                 , engine = engine
                 , type_ = Vela.SharedSecret
+                , deleteState = Pages.Secrets.Model.NotAsked_
             }
       }
     , Cmd.batch
@@ -2881,7 +2907,7 @@ repoSettingsMsgs =
 
 initSecretsModel : Pages.Secrets.Model.Model Msg
 initSecretsModel =
-    Pages.Secrets.Update.init SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse
+    Pages.Secrets.Update.init SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
 
 
 
