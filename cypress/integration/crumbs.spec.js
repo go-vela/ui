@@ -93,7 +93,10 @@ context('Crumbs', () => {
     });
     it('repo crumb should redirect to repo secrets', () => {
       cy.get('[data-test=crumb-somerepo]').click();
-      cy.location('pathname').should('eq', '/-/secrets/native/repo/someorg/somerepo');
+      cy.location('pathname').should(
+        'eq',
+        '/-/secrets/native/repo/someorg/somerepo',
+      );
     });
   });
   context(
