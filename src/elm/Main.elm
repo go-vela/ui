@@ -685,11 +685,13 @@ update msg model =
                     in
                     ( { model
                         | repoModel =
-                            { rm
-                                | build = RemoteData.succeed build
-                                , org = org
-                                , name = repo
-                            }
+                            updateBuild
+                                { rm
+                                    | org = org
+                                    , name = repo
+                                }
+                            <|
+                                RemoteData.succeed build
                         , favicon = statusToFavicon build.status
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
@@ -742,15 +744,15 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.mergeSteps logFocus refresh rm.steps
+                                |> Pages.Build.Update.mergeSteps logFocus refresh rm.build.steps
 
                         updatedModel =
-                            { model | repoModel = { rm | steps = RemoteData.succeed mergedSteps } }
+                            { model | repoModel = updateSteps rm <| RemoteData.succeed mergedSteps }
 
                         cmd =
                             getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
                     in
-                    ( { updatedModel | repoModel = { rm | steps = RemoteData.succeed mergedSteps } }, cmd )
+                    ( updatedModel, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -760,24 +762,24 @@ update msg model =
                 Ok ( _, incomingLog ) ->
                     let
                         following =
-                            rm.followingStep /= 0
+                            rm.build.followingStep /= 0
 
                         onFollowedStep =
-                            rm.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+                            rm.build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                         ( steps, focusId ) =
                             if following && refresh && onFollowedStep then
-                                ( rm.steps
-                                    |> RemoteData.unwrap rm.steps
+                                ( rm.build.steps
+                                    |> RemoteData.unwrap rm.build.steps
                                         (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
-                                , stepBottomTrackerFocusId <| String.fromInt rm.followingStep
+                                , stepBottomTrackerFocusId <| String.fromInt rm.build.followingStep
                                 )
 
                             else if not refresh then
-                                ( rm.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
+                                ( rm.build.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
 
                             else
-                                ( rm.steps, "" )
+                                ( rm.build.steps, "" )
 
                         cmd =
                             if not <| String.isEmpty focusId then
@@ -786,7 +788,7 @@ update msg model =
                             else
                                 Cmd.none
                     in
-                    ( updateLogs { model | repoModel = { rm | steps = steps } } incomingLog
+                    ( updateLogs { model | repoModel = updateSteps rm steps } incomingLog
                     , cmd
                     )
 
@@ -848,6 +850,7 @@ update msg model =
 
         RepoSecretsResponse response ->
             receiveSecrets model response Vela.RepoSecret
+
         DeleteSecretResponse response ->
             case response of
                 Ok ( _, r_string ) ->
@@ -869,7 +872,6 @@ update msg model =
 
                 Err error ->
                     ( model, addError error )
-
 
         OrgSecretsResponse response ->
             receiveSecrets model response Vela.OrgSecret
@@ -1131,7 +1133,7 @@ update msg model =
                 OneSecond ->
                     let
                         ( favicon, cmd ) =
-                            refreshFavicon model.page model.favicon rm.build
+                            refreshFavicon model.page model.favicon rm.build.build
                     in
                     ( { model | time = time, favicon = favicon }, cmd )
 
@@ -1141,7 +1143,7 @@ update msg model =
                 OneSecondHidden ->
                     let
                         ( favicon, cmd ) =
-                            refreshFavicon model.page model.favicon rm.build
+                            refreshFavicon model.page model.favicon rm.build.build
                     in
                     ( { model | time = time, favicon = favicon }, cmd )
 
@@ -1352,7 +1354,7 @@ refreshPage model =
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber focusFragment
-                , refreshLogs model org repo buildNumber model.repoModel.steps Nothing
+                , refreshLogs model org repo buildNumber model.repoModel.build.steps Nothing
                 ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
@@ -1406,7 +1408,7 @@ refreshData model =
             model.repoModel
 
         buildNumber =
-            case rm.build of
+            case rm.build.build of
                 Success build ->
                     Just <| String.fromInt build.number
 
@@ -1424,7 +1426,7 @@ refreshBuild model org repo buildNumber =
         refresh =
             getBuild model org repo buildNumber
     in
-    if shouldRefresh model.repoModel.build then
+    if shouldRefresh model.repoModel.build.build then
         refresh
 
     else
@@ -1435,7 +1437,7 @@ refreshBuild model org repo buildNumber =
 -}
 refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefresh model.repoModel.build then
+    if shouldRefresh model.repoModel.build.build then
         getAllBuildSteps model org repo buildNumber focusFragment True
 
     else
@@ -1478,7 +1480,7 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
         refresh =
             getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
     in
-    if shouldRefresh model.repoModel.build then
+    if shouldRefresh model.repoModel.build.build then
         refresh
 
     else
@@ -1710,13 +1712,7 @@ viewContent model =
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
             , Html.map (\m -> BuildUpdate m) <|
                 lazy3 Pages.Build.View.viewBuild
-                    { navigationKey = model.navigationKey
-                    , time = model.time
-                    , zone = model.zone
-                    , repoModel = model.repoModel
-                    , followingStep = model.repoModel.followingStep
-                    , shift = model.shift
-                    }
+                    model
                     org
                     repo
             )
@@ -1888,7 +1884,7 @@ helpArgs model =
     { user = helpArg model.user
     , sourceRepos = helpArg model.sourceRepos
     , builds = helpArg model.repoModel.builds.builds
-    , build = helpArg model.repoModel.build
+    , build = helpArg model.repoModel.build.build
     , repo = helpArg model.repoModel.repo
     , hooks = helpArg model.repoModel.hooks.hooks
     , secrets = helpArg model.secretsModel.repoSecrets
@@ -2100,7 +2096,7 @@ setNewPage route model =
                     if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
                             ( page, steps, action ) =
-                                focusLogs model (RemoteData.withDefault [] rm.steps) org repo buildNumber logFocus getBuildStepsLogs
+                                focusLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber logFocus getBuildStepsLogs
                         in
                         ( { model | page = page, repoModel = updateSteps rm <| RemoteData.succeed steps }, action )
 
@@ -2233,6 +2229,9 @@ loadRepoSubPage model org repo toPage =
         hooks =
             rm.hooks
 
+        build =
+            rm.build
+
         secretsModel =
             model.secretsModel
 
@@ -2273,7 +2272,7 @@ loadRepoSubPage model org repo toPage =
 
                                     _ ->
                                         { hooks | hooks = Loading, maybePage = Nothing, maybePerPage = Nothing }
-                            , steps = NotAsked
+                            , build = { build | steps = NotAsked }
                             , initialized = True
                         }
                   }
@@ -2615,6 +2614,9 @@ loadBuildPage model org repo buildNumber focusFragment =
         modelBuilds =
             rm.builds
 
+        build =
+            rm.build
+
         builds =
             if not <| Util.isSuccess rm.builds.builds then
                 { modelBuilds | builds = Loading }
@@ -2627,11 +2629,14 @@ loadBuildPage model org repo buildNumber focusFragment =
         | page = Pages.Build org repo buildNumber focusFragment
         , repoModel =
             { rm
-                | build = Loading
-                , steps = NotAsked
+                | build =
+                    { build
+                        | build = Loading
+                        , steps = NotAsked
+                        , logs = []
+                        , followingStep = 0
+                    }
                 , builds = builds
-                , followingStep = 0
-                , logs = []
             }
       }
     , Cmd.batch
@@ -2711,7 +2716,7 @@ updateStep model incomingStep =
             model.repoModel
 
         steps =
-            case rm.steps of
+            case rm.build.steps of
                 Success s ->
                     s
 
@@ -2722,7 +2727,7 @@ updateStep model incomingStep =
             List.member incomingStep.number <| stepsIds steps
 
         following =
-            rm.followingStep /= 0
+            rm.build.followingStep /= 0
     in
     if stepExists then
         { model
@@ -2757,17 +2762,20 @@ updateLogs model incomingLog =
         rm =
             model.repoModel
 
+        build =
+            rm.build
+
         logs =
-            rm.logs
+            build.logs
 
         logExists =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repoModel = { rm | logs = updateLog incomingLog logs } }
+        { model | repoModel = { rm | build = { build | logs = updateLog incomingLog logs } } }
 
     else if incomingLog.id /= 0 then
-        { model | repoModel = { rm | logs = addLog incomingLog logs } }
+        { model | repoModel = { rm | build = { build | logs = addLog incomingLog logs } } }
 
     else
         model

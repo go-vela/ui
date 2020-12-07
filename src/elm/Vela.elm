@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Vela exposing
     ( AuthParams
     , Build
+    , BuildModel
     , BuildNumber
     , Builds
     , BuildsModel
@@ -127,6 +128,7 @@ module Vela exposing
 import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Errors exposing (Error)
+import Html exposing (b)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
@@ -350,19 +352,32 @@ type alias RepoModel =
     { org : Org
     , name : Repo
     , repo : WebData Repository
-    , build : WebData Build
-    , steps : WebData Steps
-    , logs : Logs
-    , followingStep : Int
     , hooks : HooksModel
     , builds : BuildsModel
+    , build : BuildModel
     , initialized : Bool
     }
 
 
+{-| BuildModel : model to contain build information that is crucial for rendering a pipeline
+-}
+type alias BuildModel =
+    { buildNumber : BuildNumber
+    , build : WebData Build
+    , steps : WebData Steps
+    , logs : Logs
+    , followingStep : Int
+    }
+
+
+defaultBuildModel : BuildModel
+defaultBuildModel =
+    BuildModel "" NotAsked NotAsked [] 0
+
+
 defaultRepoModel : RepoModel
 defaultRepoModel =
-    RepoModel "" "" NotAsked NotAsked NotAsked [] 0 defaultHooks defaultBuilds False
+    RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
 
 
 updateOrgRepo : RepoModel -> Org -> Repo -> RepoModel
@@ -377,7 +392,11 @@ updateRepo rm update =
 
 updateBuild : RepoModel -> WebData Build -> RepoModel
 updateBuild rm update =
-    { rm | build = update }
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | build = update } }
 
 
 updateBuilds : RepoModel -> BuildsModel -> RepoModel
@@ -387,7 +406,11 @@ updateBuilds rm update =
 
 updateSteps : RepoModel -> WebData Steps -> RepoModel
 updateSteps rm update =
-    { rm | steps = update }
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | steps = update } }
 
 
 updateHooks : RepoModel -> HooksModel -> RepoModel
