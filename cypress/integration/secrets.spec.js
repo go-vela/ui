@@ -148,7 +148,7 @@ context('Secrets', () => {
     });
 
     it('secrets table should show', () => {
-      cy.get('[data-test=secrets-table]').should('be.visible');
+      cy.get('[data-test=org-secrets-table]').should('be.visible');
     });
 
     it('secrets table should show 5 secrets', () => {

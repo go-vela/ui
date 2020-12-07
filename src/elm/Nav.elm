@@ -195,13 +195,13 @@ viewUtil model =
 
 {-| viewTabs : takes list of tab records and renders them with spacers and horizontal filler
 -}
-viewTabs : List Tab -> Html msg
-viewTabs tabs =
+viewTabs : List Tab -> String -> Html msg
+viewTabs tabs testLabel =
     tabs
         |> List.map viewTab
         |> List.intersperse viewSpacer
         |> (\t -> t ++ [ viewFiller ])
-        |> div [ class "jump-bar" ]
+        |> div [ class "jump-bar", Util.testAttribute testLabel ]
 
 
 {-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style
@@ -212,6 +212,7 @@ viewTab { name, currentPage, toPage } =
         [ class "jump"
         , viewingTab currentPage toPage
         , Routes.href <| Pages.toRoute toPage
+        , Util.testAttribute <| "jump-" ++ name
         ]
         [ text name ]
 
@@ -263,7 +264,7 @@ viewRepoTabs rm currentPage =
             , Tab "Settings" currentPage <| Pages.RepoSettings org repo
             ]
     in
-    viewTabs tabs
+    viewTabs tabs "jump-bar-repo"
 
 
 
@@ -276,4 +277,4 @@ viewBuildTabs rm currentPage =
         tabs =
             []
     in
-    viewTabs tabs
+    viewTabs tabs "build"

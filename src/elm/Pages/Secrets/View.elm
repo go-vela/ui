@@ -81,6 +81,7 @@ viewRepoSecrets model =
                         [ class "button"
                         , class "button-with-icon"
                         , class "-outline"
+                        , Util.testAttribute "add-repo-secret"
                         , Routes.href <|
                             Routes.AddRepoSecret "native" secretsModel.org secretsModel.repo
                         ]
@@ -97,7 +98,7 @@ viewRepoSecrets model =
                 [ Table.view
                     (Table.Config
                         "Repo Secrets"
-                        "secrets"
+                        "repo-secrets"
                         "No secrets found for this repository"
                         tableHeaders
                         (secretsToRows Vela.RepoSecret s)
@@ -112,7 +113,7 @@ viewRepoSecrets model =
                         secretsModel.org
                     <|
                         Just secretsModel.repo
-                , testLabel = "secrets"
+                , testLabel = "repo-secrets-error"
                 }
 
         _ ->
@@ -134,6 +135,7 @@ viewOrgSecrets model showManage showAdd =
                     , class "-outline"
                     , Routes.href <|
                         Routes.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
+                    , Util.testAttribute "manage-org-secrets"
                     ]
                     [ text "Manage Org Secrets" ]
 
@@ -146,6 +148,7 @@ viewOrgSecrets model showManage showAdd =
                     [ class "button"
                     , class "-outline"
                     , class "button-with-icon"
+                    , Util.testAttribute "add-org-secret"
                     , Routes.href <|
                         Routes.AddOrgSecret secretsModel.engine secretsModel.org
                     ]
@@ -171,7 +174,7 @@ viewOrgSecrets model showManage showAdd =
                 [ Table.view
                     (Table.Config
                         "Org Secrets"
-                        "secrets"
+                        "org-secrets"
                         "No secrets found for this org"
                         tableHeaders
                         (secretsToRows Vela.OrgSecret s)
@@ -186,7 +189,7 @@ viewOrgSecrets model showManage showAdd =
                         secretsModel.org
                     <|
                         Nothing
-                , testLabel = "secrets"
+                , testLabel = "org-secrets-error"
                 }
 
         _ ->
@@ -210,7 +213,7 @@ viewSharedSecrets model =
                 [ Table.view
                     (Table.Config
                         "Shared Secrets"
-                        "secrets"
+                        "shared-secrets"
                         "No secrets found for this org/team"
                         tableHeaders
                         (secretsToRows Vela.SharedSecret s)
@@ -225,7 +228,7 @@ viewSharedSecrets model =
                         secretsModel.org
                     <|
                         Just secretsModel.team
-                , testLabel = "secrets"
+                , testLabel = "shared-secrets-error"
                 }
 
         _ ->
