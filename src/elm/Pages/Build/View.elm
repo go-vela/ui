@@ -560,17 +560,8 @@ expandAllStepsButton org repo buildNumber =
 -}
 logsHeader : StepNumber -> String -> String -> Html Msg
 logsHeader stepNumber fileName decodedLog =
-    div [ class "buttons", class "logs-header" ]
-        [ div
-            [ class "line", class "actions" ]
-            [ div
-                [ class "wrapper"
-                , class "buttons"
-                , Util.testAttribute <| "logs-header-actions-" ++ stepNumber
-                ]
-                [ downloadStepLogsButton stepNumber fileName decodedLog ]
-            ]
-        ]
+    div [ class "logs-header", class "buttons", Util.testAttribute <| "logs-header-actions-" ++ stepNumber ]
+        [ downloadStepLogsButton stepNumber fileName decodedLog ]
 
 
 {-| logsSidebar : takes step number/following and renders the logs sidebar

@@ -943,14 +943,13 @@ nav {
   background: var(--color-bg-dark);
   width: 100%;
   z-index: 1;
-}
 
-.logs-header .actions {
-  padding: 0.3rem;
+  display: flex;
+  justify-content: flex-end;
 
-  .buttons {
-    justify-content: flex-end;
-    margin-right: 0.3rem;
+  .button {
+    padding: 0.3rem;
+    margin: 0.2rem 0.6rem;
   }
 }
 
