@@ -266,8 +266,8 @@ viewSubmitButtons : Model msg -> Html Msg
 viewSubmitButtons secretsModel =
     div [ class "buttons" ]
         [ viewUpdateButton secretsModel
-        , viewDeleteButton secretsModel
         , viewCancelButton secretsModel
+        , viewDeleteButton secretsModel
         ]
 
 
