@@ -172,10 +172,8 @@ toPath page =
                         orgSecrets =
                             ( "Org Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
-                        add =
-                            ( "Add", Nothing )
                     in
-                    [ overviewPage, orgPage, orgSecrets, add ]
+                    [ overviewPage, orgPage, orgSecrets ]
 
                 Pages.AddRepoSecret engine org repo ->
                     let
@@ -197,11 +195,8 @@ toPath page =
 
                         sharedSecrets =
                             ( "Shared Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
-
-                        add =
-                            ( "Add", Nothing )
                     in
-                    [ overviewPage, orgPage, teamPage, sharedSecrets, add ]
+                    [ overviewPage, orgPage, teamPage, sharedSecrets ]
 
                 Pages.OrgSecret engine org name ->
                     let
