@@ -34,6 +34,7 @@ import Pages.Secrets.Form
         , viewHelp
         , viewImagesInput
         , viewNameInput
+        , viewSubmitButtons
         , viewValueInput
         )
 import Pages.Secrets.Model
@@ -376,7 +377,5 @@ editForm secretsModel =
 
         -- , allowCommandCheckbox secretUpdate
         , viewHelp
-        , div [ class "form-action" ]
-            [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.UpdateSecret secretsModel.engine ] [ text "Update" ]
-            ]
+        , viewSubmitButtons secretsModel
         ]
