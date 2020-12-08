@@ -131,7 +131,7 @@ context('Secrets', () => {
       cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
     it('error banner should show', () => {
-      cy.get('[data-test=secrets-error]')
+      cy.get('[data-test=org-secrets-error]')
         .should('exist')
         .contains('try again later');
     });
