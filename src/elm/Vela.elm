@@ -118,11 +118,13 @@ module Vela exposing
     , toMaybeSecretType
     , toSecretType
     , updateBuild
+    , updateBuildLogs
+    , updateBuildSteps
     , updateBuilds
     , updateHooks
+    , updateHooksModel
     , updateOrgRepo
     , updateRepo
-    , updateSteps
     )
 
 import Api.Pagination as Pagination
@@ -347,24 +349,38 @@ type alias AuthParams =
 -- REPOSITORY
 
 
+{-| RepoModel : model to contain repository information that is crucial for rendering repo pages
+-}
 type alias RepoModel =
     { org : Org
     , name : Repo
     , repo : WebData Repository
-    , build : WebData Build
-    , steps : WebData Steps
-    , logs : Logs
-    , followingStep : Int
     , hooks : HooksModel
     , builds : BuildsModel
-    , buildModel : BuildModel
+    , build : BuildModel
     , initialized : Bool
     }
 
 
+{-| BuildModel : model to contain build information that is crucial for rendering a pipeline
+-}
+type alias BuildModel =
+    { buildNumber : BuildNumber
+    , build : WebData Build
+    , steps : WebData Steps
+    , logs : Logs
+    , followingStep : Int
+    }
+
+
+defaultBuildModel : BuildModel
+defaultBuildModel =
+    BuildModel "" NotAsked NotAsked [] 0
+
+
 defaultRepoModel : RepoModel
 defaultRepoModel =
-    RepoModel "" "" NotAsked NotAsked NotAsked [] 0 defaultHooks defaultBuilds defaultBuild False
+    RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
 
 
 updateOrgRepo : RepoModel -> Org -> Repo -> RepoModel
@@ -379,7 +395,11 @@ updateRepo rm update =
 
 updateBuild : RepoModel -> WebData Build -> RepoModel
 updateBuild rm update =
-    { rm | build = update }
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | build = update } }
 
 
 updateBuilds : RepoModel -> BuildsModel -> RepoModel
@@ -387,14 +407,36 @@ updateBuilds rm update =
     { rm | builds = update }
 
 
-updateSteps : RepoModel -> WebData Steps -> RepoModel
-updateSteps rm update =
-    { rm | steps = update }
+updateBuildSteps : RepoModel -> WebData Steps -> RepoModel
+updateBuildSteps rm update =
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | steps = update } }
 
 
-updateHooks : RepoModel -> HooksModel -> RepoModel
-updateHooks rm update =
+updateBuildLogs : RepoModel -> Logs -> RepoModel
+updateBuildLogs rm update =
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | logs = update } }
+
+
+updateHooksModel : RepoModel -> HooksModel -> RepoModel
+updateHooksModel rm update =
     { rm | hooks = update }
+
+
+updateHooks : RepoModel -> WebData Hooks -> RepoModel
+updateHooks rm update =
+    let
+        h =
+            rm.hooks
+    in
+    { rm | hooks = { h | hooks = update } }
 
 
 type alias Repository =
@@ -758,20 +800,6 @@ type alias BuildsModel =
     , maybePerPage : Maybe Pagination.PerPage
     , maybeEvent : Maybe Event
     }
-
-
-{-| BuildModel : model to contain build information that is crucial for rendering a pipeline
--}
-type alias BuildModel =
-    { org : Org
-    , repo : Repo
-    , buildNumber : BuildNumber
-    , steps : Steps
-    }
-
-defaultBuildModel : BuildModel 
-defaultBuildModel =
-    BuildModel "" "" "" []
 
 
 {-| Build : record type for vela build

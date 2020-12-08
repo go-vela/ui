@@ -5,7 +5,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Secrets.Update exposing
-    ( init
+    ( deleteSecretRedirect
+    , init
+    , onChangeStringField
     , reinitializeSecretAdd
     , reinitializeSecretUpdate
     , update
@@ -18,6 +20,8 @@ import List.Extra
 import Pages.Secrets.Model
     exposing
         ( AddSecretResponse
+        , DeleteSecretResponse
+        , DeleteSecretState(..)
         , Model
         , Msg(..)
         , PartialModel
@@ -41,10 +45,14 @@ import Vela
         )
 
 
+
+-- INIT
+
+
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
-init : SecretResponse msg -> SecretsResponse msg -> SecretsResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> Model msg
-init secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse addSecretResponse updateSecretResponse =
+init : SecretResponse msg -> SecretsResponse msg -> SecretsResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> DeleteSecretResponse msg -> Model msg
+init secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse addSecretResponse updateSecretResponse deleteSecretResponse =
     Model "native"
         ""
         ""
@@ -63,7 +71,14 @@ init secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse
         orgSecretsResponse
         sharedSecretsResponse
         addSecretResponse
+        deleteSecretResponse
         updateSecretResponse
+        []
+        NotAsked_
+
+
+
+-- HELPERS
 
 
 {-| reinitializeSecretAdd : takes an incoming secret and reinitializes the secrets page input arguments
@@ -358,5 +373,69 @@ update model msg =
                             secret.name
                             body
                     )
+
+                Pages.Secrets.Model.DeleteSecret engine ->
+                    let
+                        secret =
+                            secretsModel.form
+
+                        updatedModel =
+                            case secretsModel.deleteState of
+                                NotAsked_ ->
+                                    { secretsModel
+                                        | deleteState = Confirm
+                                    }
+
+                                Confirm ->
+                                    { secretsModel
+                                        | deleteState = Deleting
+                                    }
+
+                                Deleting ->
+                                    secretsModel
+
+                        doAction =
+                            case secretsModel.deleteState of
+                                NotAsked_ ->
+                                    Cmd.none
+
+                                Confirm ->
+                                    Api.tryString secretsModel.deleteSecretResponse <|
+                                        Api.deleteSecret model
+                                            engine
+                                            (secretTypeToString secretsModel.type_)
+                                            secretsModel.org
+                                            (getKey secretsModel)
+                                            secret.name
+
+                                Deleting ->
+                                    Cmd.none
+                    in
+                    ( updatedModel, doAction )
+
+                Pages.Secrets.Model.CancelDeleteSecret ->
+                    ( { secretsModel
+                        | deleteState = NotAsked_
+                      }
+                    , Cmd.none
+                    )
     in
     ( { model | secretsModel = sm }, action )
+
+
+
+-- takes secretsModel and returns the URL to redirect to
+
+
+deleteSecretRedirect : Model msg -> String
+deleteSecretRedirect { engine, org, repo, team, type_ } =
+    Routes.routeToUrl <|
+        case type_ of
+            Vela.OrgSecret ->
+                Routes.OrgSecrets engine org Nothing Nothing
+
+            Vela.RepoSecret ->
+                Routes.RepoSecrets engine org repo Nothing Nothing
+
+            Vela.SharedSecret ->
+                Routes.SharedSecrets engine org team Nothing Nothing

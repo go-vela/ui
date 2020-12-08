@@ -9,6 +9,7 @@ module Api exposing
     , addSecret
     , chownRepo
     , deleteRepo
+    , deleteSecret
     , enableRepository
     , expandPipelineConfig
     , getAllBuilds
@@ -380,11 +381,13 @@ tryAll msg request_ =
         |> Task.attempt msg
 
 
-{-| tryString : default way to request information from and endpoint
 
-    example usage:
-        Api.tryString UserResponse <| Api.getUser model authParams
+-- ENTRYPOINT
 
+
+{-| try : default way to request information from and endpoint
+example usage:
+Api.try UserResponse <| Api.getUser model authParams
 -}
 tryString : (Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg) -> Request String -> Cmd msg
 tryString msg request_ =
@@ -648,4 +651,12 @@ updateSecret model engine type_ org key name body =
 addSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Http.Body -> Request Secret
 addSecret model engine type_ org key body =
     post model.velaAPI (Endpoint.Secrets Nothing Nothing engine type_ org key) body decodeSecret
+        |> withAuth model.session
+
+
+{-| deleteSecret : deletes a secret
+-}
+deleteSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Request String
+deleteSecret model engine type_ org key name =
+    delete model.velaAPI (Endpoint.Secret engine type_ org key name)
         |> withAuth model.session

@@ -595,8 +595,8 @@ nav {
 
 .build-history-title {
   font-size: 0.8em;
-  margin: 0 0.4rem;
-  padding: 0.4rem 0 0;
+  padding: 0.4rem 0 0.4rem 0.4rem;
+  display: inline;
 }
 
 .recent-build {
@@ -1297,6 +1297,7 @@ nav {
   }
 }
 
+// Secrets Section begin
 .secrets-first-cell {
   padding: 0.5rem 1rem;
   padding-bottom: 0;
@@ -1413,6 +1414,22 @@ nav {
 .secret-form .form-action {
   padding-left: 1rem;
 }
+
+.button.-secret-delete-confirm {
+  background-color: var(--color-bg);
+  color: var(--color-red);
+  border-color: var(--color-red);
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: var(--color-red-dark);
+    color: var(--color-offwhite);
+    border-color: var(--color-offwhite);
+  }
+}
+
+// Secrets Section end
 
 .field-description {
   font-size: 1rem;

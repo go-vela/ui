@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Model exposing (BuildModel, GetLogs, Msg(..), PartialModel)
+module Pages.Build.Model exposing (GetLogs, Msg(..), PartialModel)
 
 import Browser.Navigation as Navigation
 import RemoteData exposing (WebData)
@@ -35,10 +35,9 @@ type alias PartialModel a =
         , page : Page
         , time : Posix
         , zone : Zone
-        , repoModel : RepoModel
+        , repo : RepoModel
         , shift : Bool
     }
-
 
 
 

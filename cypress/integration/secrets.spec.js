@@ -4,6 +4,114 @@
  */
 
 context('Secrets', () => {
+  context('server returning repo secret', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route(
+        'GET',
+        '*api/v1/secrets/native/repo/github/octocat/password*',
+        'fixture:secret_repo.json',
+      );
+      cy.route(
+        'GET',
+        '*api/v1/secrets/native/org/github/*/password*',
+        'fixture:secret_org.json',
+      );
+      cy.route(
+        'DELETE',
+        '*api/v1/secrets/native/repo/github/octocat/password*',
+        'Secret repo/github/octocat/password deleted from native service',
+      );
+      cy.login('/-/secrets/native/repo/github/octocat/password');
+    });
+
+    it('Remove button should show', () => {
+      cy.get('[data-test=secret-delete-button]')
+        .should('exist')
+        .contains('Remove');
+    });
+
+    context('click Remove', () => {
+      beforeEach(() => {
+        cy.get('[data-test=secret-delete-button]').click();
+      });
+
+      it('Remove button should show when going to another secrets page', () => {
+        cy.visit('/-/secrets/native/org/github/password');
+        cy.get('[data-test=secret-delete-button]')
+          .should('exist')
+          .contains('Remove');
+      });
+      it('Cancel button should show', () => {
+        cy.get('[data-test=secret-cancel-button]')
+          .should('exist')
+          .contains('Cancel');
+      });
+      it('Confirm button should show', () => {
+        cy.get('[data-test=secret-delete-button]')
+          .should('exist')
+          .contains('Confirm');
+      });
+      context('click Cancel', () => {
+        beforeEach(() => {
+          cy.get('[data-test=secret-cancel-button]').click();
+        });
+
+        it('Cancel should revert Confirm to Remove', () => {
+          cy.get('[data-test=secret-delete-button]')
+            .should('exist')
+            .contains('Remove');
+        });
+        it('Cancel should not show', () => {
+          cy.get('[data-test=secret-cancel-button]').should('not.exist');
+        });
+      });
+      context('click Confirm', () => {
+        beforeEach(() => {
+          cy.get('[data-test=secret-delete-button]').click();
+        });
+
+        it('Confirm should redirect to repo secrets page', () => {
+          cy.location('pathname').should(
+            'eq',
+            '/-/secrets/native/repo/github/octocat',
+          );
+        });
+        it('Alert should show', () => {
+          cy.get('[data-test=alerts]')
+            .should('exist')
+            .contains('password')
+            .contains('removed')
+            .contains('repo');
+        });
+      });
+    });
+  });
+
+  context('server returning remove error', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route(
+        'GET',
+        '*api/v1/secrets/native/repo/github/octocat/password*',
+        'fixture:secret_repo.json',
+      );
+      cy.route({
+        method: 'DELETE',
+        url: '*api/v1/secrets/native/repo/github/octocat/password*',
+        status: 500,
+        response: { error: 'server error could not remove' },
+      });
+      cy.login('/-/secrets/native/repo/github/octocat/password');
+      cy.get('[data-test=secret-delete-button]').click();
+      cy.get('[data-test=secret-delete-button]').click();
+    });
+
+    it('error should show', () => {
+      cy.get('[data-test=alerts]').should('exist').contains('could not remove');
+    });
+  });
+
   context('server returning secrets error', () => {
     beforeEach(() => {
       cy.server();
@@ -23,7 +131,7 @@ context('Secrets', () => {
       cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
     it('error banner should show', () => {
-      cy.get('[data-test=secrets-error]')
+      cy.get('[data-test=org-secrets-error]')
         .should('exist')
         .contains('try again later');
     });
@@ -40,7 +148,7 @@ context('Secrets', () => {
     });
 
     it('secrets table should show', () => {
-      cy.get('[data-test=secrets-table]').should('be.visible');
+      cy.get('[data-test=org-secrets-table]').should('be.visible');
     });
 
     it('secrets table should show 5 secrets', () => {
