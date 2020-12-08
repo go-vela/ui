@@ -7,8 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Build.View exposing
     ( statusToClass
     , statusToString
-    , viewBuild
-    , viewBuildHistory
+    , viewBuild, viewError, buildStatusStyles
     , viewLine
     , viewPreview
     )
@@ -58,6 +57,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
+import Nav exposing (viewBuildNav)
 import List.Extra exposing (unique)
 import Pages exposing (Page(..), onPage)
 import Pages.Build.Logs
@@ -74,7 +74,7 @@ import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
-import SvgBuilder exposing (buildStatusToIcon, recentBuildStatusToIcon, stepStatusToIcon)
+import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone, millisToPosix)
 import Util
 import Vela
@@ -101,53 +101,6 @@ import Vela
 -- VIEW
 
 
-buildNav :  PartialModel a  -> Org -> Repo -> Html Msg
-buildNav model org repo =
-    let
-        rm =
-            model.repoModel
-
-        -- bm = rm.buildModel
-    in
-    div [ class "jump-bar" ]
-        [ a
-            [ class "jump"
-            , currentClass model.page <| Pages.Build org repo "1053" Nothing
-            , Routes.href <| Routes.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
-            ]
-            [ text "Build" ]
-        , Html.span [ class "jump", class "spacer" ] []
-        , a
-            [ class "jump"
-            , currentClass model.page <| Pages.RepoSecrets "native" org repo Nothing Nothing
-            , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-            ]
-            [ text "Secrets" ]
-        , Html.span [ class "jump", class "spacer" ] []
-        , a
-            [ class "jump"
-            , currentClass model.page <| Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
-            , Routes.href <| Routes.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
-            ]
-            [ text "Audit" ]
-        , Html.span [ class "jump", class "spacer" ] []
-        , a
-            [ class "jump"
-            , currentClass model.page <| Pages.RepoSettings org repo
-            , Routes.href <| Routes.RepoSettings org repo
-            ]
-            [ text "Settings" ]
-        , Html.span [ class "jump", class "fill" ] []
-        ]
-currentClass : Page -> Page -> Html.Attribute msg
-currentClass p1 p2 =
-    if onPage p1 p2 then
-        class "current"
-
-    else
-        class ""
-
-
 {-| viewBuild : renders entire build based on current application time
 -}
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
@@ -170,7 +123,7 @@ viewBuild model org repo =
                 _ ->
                     ( text "", "" )
         navTabs = 
-            buildNav model org repo
+            viewBuildNav rm model.page
         logActions =
             build.steps
                 |> RemoteData.unwrap (text "")
@@ -226,12 +179,12 @@ viewPreview now zone org repo build =
         commit =
             [ text <| String.replace "_" " " build.event
             , text " ("
-            , a [ href build.source ] [ text <| trimCommitHash build.commit ]
+            , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
             , text <| ")"
             ]
 
         branch =
-            [ a [ href <| buildBranchUrl build.clone build.branch ] [ text build.branch ] ]
+            [ a [ href <| Util.buildBranchUrl build.clone build.branch ] [ text build.branch ] ]
 
         sender =
             [ text build.sender ]
@@ -804,121 +757,6 @@ viewError build =
             div [] []
 
 
-{-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
--}
-viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Builds -> Int -> Html msg
-viewBuildHistory now timezone page org repo builds limit =
-    let
-        ( show, buildNumber ) =
-            case page of
-                Pages.Build _ _ b _ ->
-                    ( True, Maybe.withDefault -1 <| String.toInt b )
-
-                _ ->
-                    ( False, -1 )
-    in
-    if show then
-        case builds of
-            RemoteData.Success blds ->
-                if List.length blds > 0 then
-                    div [ class "build-history" ]
-                        [ p [ class "build-history-title" ] [ text "Recent Builds" ]
-                        , ul [ Util.testAttribute "build-history", class "previews" ] <|
-                            List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
-                                List.take limit blds
-                        ]
-
-                else
-                    text ""
-
-            RemoteData.Loading ->
-                div [ class "build-history" ] [ Util.smallLoader ]
-
-            RemoteData.NotAsked ->
-                div [ class "build-history" ] [ Util.smallLoader ]
-
-            _ ->
-                text ""
-
-    else
-        text ""
-
-
-{-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget
-
-    focusing or hovering the recent build icon will display a build info tooltip
-
--}
-viewRecentBuild : Posix -> Zone -> Org -> Repo -> Int -> Int -> Build -> Html msg
-viewRecentBuild now timezone org repo buildNumber idx build =
-    li [ class "recent-build" ]
-        [ recentBuildLink org repo buildNumber build idx
-        , recentBuildTooltip now timezone build
-        ]
-
-
-{-| recentBuildLink : takes time info and build and renders line for redirecting to recent build
-
-    focusing and hovering this element will display the tooltip
-
--}
-recentBuildLink : Org -> Repo -> Int -> Build -> Int -> Html msg
-recentBuildLink org repo buildNumber build idx =
-    let
-        icon =
-            recentBuildStatusToIcon build.status idx
-
-        currentBuildClass =
-            if buildNumber == build.number then
-                class "-current"
-
-            else if buildNumber > build.number then
-                class "-older"
-
-            else
-                class ""
-    in
-    a
-        [ class "recent-build-link"
-        , Util.testAttribute <| "recent-build-link-" ++ String.fromInt buildNumber
-        , currentBuildClass
-        , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
-        , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
-        ]
-        [ icon
-        ]
-
-
-{-| recentBuildTooltip : takes time info and build and renders tooltip for viewing recent build info
-
-    tooltip is visible when the recent build link is focused or hovered
-
--}
-recentBuildTooltip : Posix -> Zone -> Build -> Html msg
-recentBuildTooltip now timezone build =
-    div [ class "recent-build-tooltip", Util.testAttribute "build-history-tooltip" ]
-        [ ul [ class "info" ]
-            [ li [ class "line" ]
-                [ span [ class "number" ] [ text <| String.fromInt build.number ]
-                , em [] [ text build.event ]
-                ]
-            , viewTooltipField "started:" <| Util.dateToHumanReadable timezone build.started
-            , viewTooltipField "finished:" <| Util.dateToHumanReadable timezone build.finished
-            , viewTooltipField "duration:" <| Util.formatRunTime now build.started build.finished
-            , viewTooltipField "worker:" build.host
-            , viewTooltipField "commit:" <| trimCommitHash build.commit
-            , viewTooltipField "branch:" build.branch
-            ]
-        ]
-
-
-{-| viewTooltipField : takes build field key and value, renders field in the tooltip
--}
-viewTooltipField : String -> String -> Html msg
-viewTooltipField key value =
-    li [ class "line" ] [ span [] [ text key ], text value ]
-
-
 
 -- HELPERS
 
@@ -1071,16 +909,3 @@ bottomBuildNumberDashes buildNumber =
         _ ->
             "-animation-dashes-2"
 
-
-{-| buildBranchUrl : drops '.git' off the clone url and concatenates tree + branch ref
--}
-buildBranchUrl : String -> String -> String
-buildBranchUrl clone branch =
-    String.dropRight 4 clone ++ "/tree/" ++ branch
-
-
-{-| trimCommitHash : takes the first 7 characters of the full commit hash
--}
-trimCommitHash : String -> String
-trimCommitHash commit =
-    String.left 7 commit

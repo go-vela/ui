@@ -1716,7 +1716,7 @@ viewContent model =
         Pages.Pipeline org repo ref expand lineFocus ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Html.map (\m -> PipelineUpdate m) <|
-                Pages.Pipeline.View.viewPipeline
+                Pages.Pipeline.View.view
                     model
             )
 
@@ -2533,6 +2533,7 @@ loadBuildPage model org repo buildNumber focusFragment =
                 | build =
                     { build
                         | build = Loading
+                        , buildNumber = buildNumber
                         , steps = NotAsked
                         , logs = []
                         , followingStep = 0

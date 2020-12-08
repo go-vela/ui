@@ -4,12 +4,13 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.View exposing (viewPipeline)
+module Pages.Pipeline.View exposing (view)
 
 import Ansi.Log
 import Array
 import Dict
 import Dict.Extra
+import DateFormat.Relative exposing (relativeTime)
 import Errors exposing (Error, detailedErrorToString)
 import FeatherIcons exposing (Icon)
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
@@ -28,7 +29,9 @@ import Html
         , text
         , tr
         )
-import Html.Attributes exposing (attribute, class)
+import Time exposing (Zone, Posix)
+import Nav exposing (viewBuildNav)
+import Html.Attributes exposing (title, href, attribute, class)
 import Html.Events exposing (onClick)
 import List.Extra
 import Pages exposing (Page(..))
@@ -48,14 +51,141 @@ import Vela
         , PipelineConfig
         , Repo
         , Step
-        , Steps
+        , Steps,Status 
         , Template
         , Templates
         )
-
+import SvgBuilder exposing (buildStatusToIcon)
 
 
 -- VIEW
+
+
+
+{-| view : renders entire build based on current application time
+-}
+view : PartialModel a -> Html Msg
+view model  =
+    let
+        rm =
+            model.repo
+
+        build =
+            rm.build
+
+        ( buildPreview, buildNumber ) =
+            case build.build of
+                RemoteData.Success bld ->
+                    ( viewPreview model.time model.zone rm.org rm.name bld, String.fromInt bld.number )
+
+                RemoteData.Loading ->
+                    ( Util.largeLoader, "" )
+
+                _ ->
+                    ( text "", "" )
+        navTabs = 
+            viewBuildNav rm model.page
+
+
+        markdown =
+            [ buildPreview
+            , navTabs
+            , viewPipeline model
+            ]
+    in
+    div [ Util.testAttribute "full-build" ] markdown
+
+
+
+
+
+{-| viewPreview : renders single build item preview based on current application time
+-}
+viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html Msg
+viewPreview now zone org repo build =
+    let
+        buildNumber =
+            String.fromInt build.number
+
+        status =
+            [ buildStatusToIcon build.status ]
+
+        commit =
+            [ text <| String.replace "_" " " build.event
+            , text " ("
+            , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+            , text <| ")"
+            ]
+
+        branch =
+            [ a [ href <| Util.buildBranchUrl build.clone build.branch ] [ text build.branch ] ]
+
+        sender =
+            [ text build.sender ]
+
+        message =
+            [ text <| "- " ++ build.message ]
+
+        id =
+            [ a
+                [ Util.testAttribute "build-number"
+                , Routes.href <| Routes.Build org repo buildNumber Nothing
+                ]
+                [ text <| "#" ++ buildNumber ]
+            ]
+
+        age =
+            [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
+
+        buildCreatedPosix =
+            Time.millisToPosix <| Util.secondsToMillis build.created
+
+        timestamp =
+            Util.humanReadableDateTimeFormatter zone buildCreatedPosix
+
+        duration =
+            [ text <| Util.formatRunTime now build.started build.finished ]
+
+        statusClass =
+            Pages.Build.View.statusToClass build.status
+
+        markdown =
+            [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
+            , div [ class "info" ]
+                [ div [ class "row -left" ]
+                    [ div [ class "id" ] id
+                    , div [ class "commit-msg" ] [ strong [] message ]
+                    ]
+                , div [ class "row" ]
+                    [ div [ class "git-info" ]
+                        [ div [ class "commit" ] commit
+                        , text "on"
+                        , div [ class "branch" ] branch
+                        , text "by"
+                        , div [ class "sender" ] sender
+                        ]
+                    , div [ class "time-info" ]
+                        [ div
+                            [ class "age"
+                            , title timestamp
+                            ]
+                            age
+                        , span [ class "delimiter" ] [ text "/" ]
+                        , div [ class "duration" ] duration
+                        ]
+                    ]
+                , div [ class "row" ]
+                    [ Pages.Build.View.viewError build
+                    ]
+                ]
+            ]
+    in
+    div [ class "build-container", Util.testAttribute "build" ]
+        [ div [ class "build", statusClass ] <|
+            Pages.Build.View.buildStatusStyles markdown build.status build.number
+        ]
+
+
 
 
 {-| viewPipeline : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.

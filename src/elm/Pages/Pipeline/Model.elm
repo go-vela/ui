@@ -13,7 +13,7 @@ import Http
 import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
-import Time exposing (Posix)
+import Time exposing (Zone,Posix)
 import Toasty as Alerting exposing (Stack)
 import Vela
     exposing
@@ -40,6 +40,7 @@ type alias PartialModel a =
         , session : Maybe Session
         , navigationKey : Navigation.Key
         , time : Posix
+        , zone : Zone
         , repo : RepoModel
         , shift : Bool
         , templates : ( WebData Templates, Error )
