@@ -113,7 +113,7 @@ viewRepoSecrets model =
                         secretsModel.org
                     <|
                         Just secretsModel.repo
-                , testLabel = "repo-secrets-error"
+                , testLabel = "repo-secrets"
                 }
 
         _ ->
@@ -189,7 +189,7 @@ viewOrgSecrets model showManage showAdd =
                         secretsModel.org
                     <|
                         Nothing
-                , testLabel = "org-secrets-error"
+                , testLabel = "org-secrets"
                 }
 
         _ ->
@@ -228,7 +228,7 @@ viewSharedSecrets model =
                         secretsModel.org
                     <|
                         Just secretsModel.team
-                , testLabel = "shared-secrets-error"
+                , testLabel = "shared-secrets"
                 }
 
         _ ->
