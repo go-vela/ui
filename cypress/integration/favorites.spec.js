@@ -40,7 +40,7 @@ context('Favorites', () => {
     });
   });
 
-  context('source repos/user favorites loaded', () => {
+  context('source repos/user favorites loaded, mocked add favorite', () => {
     beforeEach(() => {
       cy.server();
       cy.route('GET', '*api/v1/user*', 'fixture:favorites.json');
@@ -67,10 +67,10 @@ context('Favorites', () => {
         });
         context('enable github/octocat', () => {
           beforeEach(() => {
-            cy.get('[data-test=source-org-github]').as('catOrg');
+            cy.get('[data-test=source-org-github]').as('githubOrg');
             cy.get(
               '[data-test=source-org-github] ~ [data-test^=source-repo]',
-            ).as('catRepos');
+            ).as('githubRepos');
 
             cy.get('@githubOrg').click();
             cy.get('[data-test=enable-github-octocat]').click();
@@ -108,32 +108,8 @@ context('Favorites', () => {
               cy.get('[data-test=alerts]').should('exist').contains('Success');
               cy.get('[data-test=alerts]')
                 .children()
-                .last()
+                .first()
                 .contains('added to favorites');
-            });
-
-            context('remove favorite github/octocat', () => {
-              beforeEach(() => {
-                cy.route('PUT', '*api/v1/user*', 'fixture:favorites.json');
-                cy.get('@toggleOctocat').should('exist').click();
-              });
-
-              it('should show a success alert', () => {
-                cy.get('[data-test=alerts]')
-                  .should('exist')
-                  .contains('Success');
-                cy.get('[data-test=alerts]')
-                  .children()
-                  .last()
-                  .contains('removed from favorites');
-              });
-
-              it('star should not have favorited class', () => {
-                cy.get('[data-test=star-toggle-github-octocat] > svg').should(
-                  'not.have.class',
-                  'favorited',
-                );
-              });
             });
           });
         });
@@ -215,6 +191,33 @@ context('Favorites', () => {
           });
         });
       });
+    });
+  });
+  context('source repos/user favorites loaded, mocked remove favorite', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route('GET', '*api/v1/user*', 'fixture:favorites_add.json');
+      cy.route('PUT', '*api/v1/user*', 'fixture:favorites_remove.json');
+      cy.get('[data-test=star-toggle-github-octocat]').as(
+        'toggleOctocat',
+      );
+    });
+
+    it('should show a success alert', () => {
+      cy.get('[data-test=alerts]')
+        .should('exist')
+        .contains('Success');
+      cy.get('[data-test=alerts]')
+        .children()
+        .first()
+        .contains('removed from favorites');
+    });
+
+    it('star should not have favorited class', () => {
+      cy.get('[data-test=star-toggle-github-octocat] > svg').should(
+        'not.have.class',
+        'favorited',
+      );
     });
   });
 });
