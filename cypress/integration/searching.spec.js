@@ -113,7 +113,6 @@ context('Searching', () => {
                 .clear();
             });
             it('filtered repos should show and display enabling', () => {
-
               cy.get('[data-test=source-repo-octocat-1]')
                 .should('be.visible')
                 .and('contain', 'Enabling');

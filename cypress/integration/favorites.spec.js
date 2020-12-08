@@ -198,15 +198,11 @@ context('Favorites', () => {
       cy.server();
       cy.route('GET', '*api/v1/user*', 'fixture:favorites_add.json');
       cy.route('PUT', '*api/v1/user*', 'fixture:favorites_remove.json');
-      cy.get('[data-test=star-toggle-github-octocat]').as(
-        'toggleOctocat',
-      );
+      cy.get('[data-test=star-toggle-github-octocat]').as('toggleOctocat');
     });
 
     it('should show a success alert', () => {
-      cy.get('[data-test=alerts]')
-        .should('exist')
-        .contains('Success');
+      cy.get('[data-test=alerts]').should('exist').contains('Success');
       cy.get('[data-test=alerts]')
         .children()
         .first()
