@@ -15,11 +15,11 @@ import Vela
         , BuildNumber
         , FocusFragment
         , Logs
-        , Org
+        , Org,Pipeline
         , Repo
         , RepoModel
         , StepNumber
-        , Steps
+        , Steps,SourceRepositories,CurrentUser
         )
 import Pages exposing (Page(..))
 
@@ -32,11 +32,15 @@ import Pages exposing (Page(..))
 type alias PartialModel a =
     { a
         | navigationKey : Navigation.Key
+        ,  sourceRepos  : WebData SourceRepositories
+                ,  user : WebData CurrentUser
+
         , page : Page
         , time : Posix
         , zone : Zone
         , repo : RepoModel
         , shift : Bool
+        , pipeline : Pipeline
     }
 
 

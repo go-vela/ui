@@ -125,7 +125,7 @@ viewBuild model org repo =
         navTabs = 
             case build.build of
                 RemoteData.Success bld ->
-                    viewBuildNav org repo bld model.page 
+                    viewBuildNav model org repo bld model.page 
 
                 RemoteData.Loading ->
                     Util.largeLoader 
@@ -148,7 +148,6 @@ viewBuild model org repo =
                             , expandAllStepsButton org repo buildNumber
                             ]
                     )
-
         buildSteps =
             case build.steps of
                 RemoteData.Success steps_ ->
@@ -177,7 +176,7 @@ viewBuild model org repo =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html Msg
+viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html msg
 viewPreview now zone org repo build =
     let
         buildNumber =

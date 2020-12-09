@@ -48,7 +48,7 @@ import Vela
         , RepoModel
         , Builds
         , SecretType
-        , SourceRepositories
+        , SourceRepositories,Pipeline
         )
 
 
@@ -60,6 +60,7 @@ type alias PartialModel a =
         , repo : RepoModel
         , time : Posix
         , zone : Zone
+        , pipeline : Pipeline
     }
 
 
@@ -273,14 +274,17 @@ viewRepoTabs rm currentPage =
 -- BUILD
 
 
-viewBuildNav : Org -> Repo -> Build -> Page -> Html msg
-viewBuildNav org repo build currentPage =
+viewBuildNav : PartialModel a -> Org -> Repo -> Build -> Page -> Html msg
+viewBuildNav model org repo build currentPage =
     let
         buildNumber = String.fromInt build.number
+
+        bm = model.repo.build
+        pipeline = model.pipeline
         tabs =
-            [ Tab "Build" currentPage <| Pages.Build   org repo buildNumber Nothing
+            [ Tab "Build" currentPage <| Pages.Build org repo buildNumber bm.focusFragment
             -- , Tab "Services" currentPage <| Pages.Build  rm.org rm.name rm.build.buildNumber Nothing
-            , Tab "Pipeline" currentPage <| Pages.Pipeline  org repo (Just buildNumber) (Just build.commit) Nothing Nothing
+            , Tab "Pipeline" currentPage <| Pages.Pipeline  org repo (Just buildNumber) (Just build.commit) Nothing pipeline.focusFragment
             -- , Tab "Troubleshooting" currentPage <| Pages.Pipeline  rm.org rm.name (Just "master") Nothing Nothing
             ]
     in
@@ -297,6 +301,8 @@ viewBuildHistory now timezone page org repo builds limit =
             case page of
                 Pages.Build _ _ b _ ->
                     Maybe.withDefault -1 <| String.toInt b
+                Pages.Pipeline _ _ b _ _ _ ->
+                    Maybe.withDefault -1 <| String.toInt <| Maybe.withDefault "" b
 
                 _ ->
                     -1
@@ -307,7 +313,7 @@ viewBuildHistory now timezone page org repo builds limit =
                     div [ class "build-history" ]
                         [ p [ class "build-history-title" ] [ text "Recent Builds" ]
                         , ul [ Util.testAttribute "build-history", class "previews" ] <|
-                            List.indexedMap (viewRecentBuild now timezone org repo buildNumber) <|
+                            List.indexedMap (viewRecentBuild now timezone page org repo buildNumber) <|
                                 List.take limit blds
                         ]
 
@@ -331,10 +337,10 @@ viewBuildHistory now timezone page org repo builds limit =
     focusing or hovering the recent build icon will display a build info tooltip
 
 -}
-viewRecentBuild : Posix -> Zone -> Org -> Repo -> Int -> Int -> Build -> Html msg
-viewRecentBuild now timezone org repo buildNumber idx build =
+viewRecentBuild : Posix -> Zone -> Page -> Org -> Repo -> Int -> Int -> Build -> Html msg
+viewRecentBuild now timezone page org repo buildNumber idx build =
     li [ class "recent-build" ]
-        [ recentBuildLink org repo buildNumber build idx
+        [ recentBuildLink page org repo buildNumber build idx
         , recentBuildTooltip now timezone build
         ]
 
@@ -344,8 +350,8 @@ viewRecentBuild now timezone org repo buildNumber idx build =
     focusing and hovering this element will display the tooltip
 
 -}
-recentBuildLink : Org -> Repo -> Int -> Build -> Int -> Html msg
-recentBuildLink org repo buildNumber build idx =
+recentBuildLink : Page -> Org -> Repo -> Int -> Build -> Int -> Html msg
+recentBuildLink page org repo buildNumber build idx =
     let
         icon =
             recentBuildStatusToIcon build.status idx
@@ -364,7 +370,14 @@ recentBuildLink org repo buildNumber build idx =
         [ class "recent-build-link"
         , Util.testAttribute <| "recent-build-link-" ++ String.fromInt buildNumber
         , currentBuildClass
-        , Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
+        , case page of 
+            Pages.Build _ _ _ _ ->
+                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
+            Pages.Pipeline _ _ _ _ _ _ ->
+                Routes.href <| Routes.Pipeline org repo (Just <| String.fromInt build.number) (Just build.commit) Nothing Nothing
+            _ ->
+                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
+
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
         ]
         [ icon

@@ -16,7 +16,7 @@ module Vela exposing
     , Copy
     , CurrentUser
     , DisableRepo
-    , EnableRepo
+    , EnableRepo,updateBuildFocusFragment
     , EnableRepos
     , EnableRepositoryPayload
     , Enabled
@@ -370,12 +370,13 @@ type alias BuildModel =
     , steps : WebData Steps
     , logs : Logs
     , followingStep : Int
+    , focusFragment : FocusFragment
     }
 
 
 defaultBuildModel : BuildModel
 defaultBuildModel =
-    BuildModel "" NotAsked NotAsked [] 0
+    BuildModel "" NotAsked NotAsked [] 0 Nothing
 
 
 defaultRepoModel : RepoModel
@@ -400,6 +401,15 @@ updateBuild rm update =
             rm.build
     in
     { rm | build = { b | build = update } }
+
+
+updateBuildFocusFragment : RepoModel -> FocusFragment -> RepoModel
+updateBuildFocusFragment rm update =
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | focusFragment = update } }
 
 
 updateBuilds : RepoModel -> BuildsModel -> RepoModel
@@ -731,12 +741,13 @@ type alias Pipeline =
     , ref : Maybe Ref
     , expand : Maybe String
     , lineFocus : LogFocus
+    , focusFragment : FocusFragment
     }
 
 
 defaultPipeline : Pipeline
 defaultPipeline =
-    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing )
+    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =

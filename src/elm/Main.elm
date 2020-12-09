@@ -18,7 +18,7 @@ import Dict
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
-import Focus exposing (lineRangeId,ExpandTemplatesQuery, Fragment, RefQuery, focusFragmentToFocusId, parseFocusFragment)
+import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, focusFragmentToFocusId, lineRangeId, parseFocusFragment)
 import Help.Commands
 import Help.View
 import Html
@@ -179,6 +179,7 @@ import Vela
         , statusToFavicon
         , stringToTheme
         , updateBuild
+        , updateBuildFocusFragment
         , updateBuildLogs
         , updateBuildSteps
         , updateBuilds
@@ -361,9 +362,9 @@ type Msg
     | OrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | SharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | GetPipelineConfigResponse Org Repo   (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | ExpandPipelineConfigResponse Org Repo   (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | PipelineTemplatesResponse Org Repo   (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
+    | GetPipelineConfigResponse Org Repo (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ExpandPipelineConfigResponse Org Repo (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | PipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
       -- Other
     | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
@@ -406,6 +407,7 @@ update msg model =
               }
             , Navigation.pushUrl model.navigationKey <| url
             )
+
         GetPipelineConfig org repo buildNumber ref expansionToggle ->
             ( { model
                 | pipeline =
@@ -414,7 +416,7 @@ update msg model =
                     }
               }
             , Cmd.batch
-                [ getPipelineConfig model org repo   ref
+                [ getPipelineConfig model org repo ref
                 , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo buildNumber ref Nothing Nothing
                 ]
             )
@@ -427,12 +429,12 @@ update msg model =
                     }
               }
             , Cmd.batch
-                [ expandPipelineConfig model org repo   ref
+                [ expandPipelineConfig model org repo ref
                 , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo buildNumber ref (Just "true") Nothing
                 ]
             )
 
-        GetPipelineConfigResponse org repo   ref response ->
+        GetPipelineConfigResponse org repo ref response ->
             case response of
                 Ok ( meta, config ) ->
                     ( { model
@@ -456,7 +458,7 @@ update msg model =
                     , Errors.addError error HandleError
                     )
 
-        ExpandPipelineConfigResponse org repo   ref response ->
+        ExpandPipelineConfigResponse org repo ref response ->
             case response of
                 Ok ( _, config ) ->
                     ( { model
@@ -482,7 +484,7 @@ update msg model =
                     , addError error
                     )
 
-        PipelineTemplatesResponse org repo   response ->
+        PipelineTemplatesResponse org repo response ->
             case response of
                 Ok ( meta, templates ) ->
                     ( { model
@@ -1815,9 +1817,12 @@ viewContent model =
 
         Pages.Pipeline org repo buildNumber ref expand lineFocus ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Pages.Pipeline.View.view
+            , Pages.Pipeline.View.viewPipeline
                 model
                 { get = GetPipelineConfig, expand = ExpandPipelineConfig, focusLineNumber = FocusLineNumber }
+                org
+                repo
+                ref
             )
 
         Pages.Settings ->
@@ -2101,64 +2106,88 @@ setNewPage route model =
             loadRepoBuildsPage model org repo currentSession maybePage maybePerPage maybeEvent
 
         ( Routes.Build org repo buildNumber logFocus, True ) ->
-            case model.page of
-                Pages.Build o r b _ ->
-                    if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
-                        let
-                            ( page, steps, action ) =
-                                focusLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber logFocus getBuildStepsLogs
-                        in
-                        ( { model | page = page, repo = updateBuildSteps rm <| RemoteData.succeed steps }, action )
+            setBuildFocusFragment logFocus <|
+                case model.page of
+                    Pages.Pipeline o r b _ _ _ ->
+                        loadBuildPage model org repo buildNumber logFocus False
 
-                    else
-                        loadBuildPage model org repo buildNumber logFocus
+                    Pages.Build o r b _ ->
+                        if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                            let
+                                ( page, steps, action ) =
+                                    focusLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber logFocus getBuildStepsLogs
+                            in
+                            ( { model | page = page, repo = updateBuildSteps rm <| RemoteData.succeed steps }, action )
 
-                _ ->
-                    loadBuildPage model org repo buildNumber logFocus
+                        else
+                            loadBuildPage model org repo buildNumber logFocus True
+
+                    _ ->
+                        loadBuildPage model org repo buildNumber logFocus True
 
         ( Routes.Pipeline org repo buildNumber ref expand lineFocus, True ) ->
-            loadPipelinePage model org repo buildNumber ref expand lineFocus
-            -- let
-            --     loadPipeline =
-            --         let
-            --             ( loadedModel, loadAction ) =
-            --                 loadPipelinePage model org repo buildNumber ref expand lineFocus
-            --         in
-            --         ( loadedModel, loadAction )
+            let
 
-            --     ( newModel, action ) =
-            --         case model.page of
-            --             -- todo handle build and ref?
-            --             -- todo handle maybe values
-            --             Pages.Pipeline o r b_ rf _ _ ->
-            --                 let
-            --                     pipeline =
-            --                         model.pipeline
+                loadPipeline =
+                    let
+                        ( loadedModel, loadAction ) =
+                            loadPipelinePage model org repo buildNumber ref expand lineFocus False
+                    in
+                    ( loadedModel, loadAction )
 
-            --                     parsed =
-            --                         parseFocusFragment lineFocus
+                ( newModel, action ) =
+                    case model.page of
+                        -- todo handle build and ref?
+                        -- todo handle maybe values
+                        Pages.Pipeline o r b_ rf _ _ ->
+                            let
+                                pipeline =
+                                    model.pipeline
 
-            --                     current =
-            --                         ( org, repo, Maybe.withDefault "" buildNumber )
+                                parsed =
+                                    parseFocusFragment lineFocus
 
-            --                     incoming =
-            --                         ( o, r, Maybe.withDefault "" b_ )
-            --                 in
-            --                 if not <| resourceChanged current incoming then
-            --                     ( { model
-            --                         | pipeline =
-            --                             { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
-            --                       }
-            --                     , Cmd.none
-            --                     )
+                                current =
+                                    ( org, repo, Maybe.withDefault "" buildNumber )
 
-            --                 else
-            --                     loadPipeline
+                                incoming =
+                                    ( o, r, Maybe.withDefault "" b_ )
+                            in
+                            if not <| resourceChanged current incoming then
+                                ( { model
+                                    | pipeline =
+                                        { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
+                                  }
+                                , Cmd.none
+                                )
 
-            --             _ ->
-            --                 loadPipeline
-            -- in
-            -- ( newModel, action )
+                            else
+                                loadPipeline
+
+                        Pages.Build o r b_  _ ->
+                            let
+                                pipeline =
+                                    model.pipeline
+
+                                parsed =
+                                    parseFocusFragment lineFocus
+
+                                current =
+                                    ( org, repo, Maybe.withDefault "" buildNumber )
+
+                                incoming =
+                                    ( o, r, b_ )
+                            in
+                            if not <| resourceChanged current incoming then
+                                loadPipeline
+
+                            else
+                                loadPipeline
+
+                        _ ->
+                            loadPipeline
+            in
+            ( newModel, action ) |> setPipelineFocusFragment lineFocus
 
         ( Routes.Settings, True ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -2184,6 +2213,48 @@ setNewPage route model =
             ( { model | page = Pages.Login }
             , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
             )
+
+
+setBuildFocusFragment : FocusFragment -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+setBuildFocusFragment logFocus ( model, c ) =
+    let
+        rm =
+            model.repo
+    in
+    ( { model
+        | repo =
+            updateBuildFocusFragment rm <|
+                case logFocus of
+                    Just l ->
+                        Just <| "#" ++ l
+
+                    Nothing ->
+                        Nothing
+      }
+    , c
+    )
+
+
+setPipelineFocusFragment : FocusFragment -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+setPipelineFocusFragment logFocus ( model, c ) =
+    let
+        p =
+            model.pipeline
+    in
+    ( { model
+        | pipeline =
+            { p
+                | focusFragment =
+                    case logFocus of
+                        Just l ->
+                            Just <| "#" ++ l
+
+                        Nothing ->
+                            Nothing
+            }
+      }
+    , c
+    )
 
 
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
@@ -2609,8 +2680,8 @@ loadUpdateSharedSecretPage model engine org team name =
     loadBuildPage   Checks if the build has already been loaded from the repo view. If not, fetches the build from the Api.
 
 -}
-loadBuildPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
-loadBuildPage model org repo buildNumber focusFragment =
+loadBuildPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> ( Model, Cmd Msg )
+loadBuildPage model org repo buildNumber focusFragment setLoading =
     let
         rm =
             model.repo
@@ -2622,7 +2693,7 @@ loadBuildPage model org repo buildNumber focusFragment =
             rm.build
 
         builds =
-            if not <| Util.isSuccess rm.builds.builds then
+            if (not <| Util.isSuccess rm.builds.builds) && setLoading then
                 { modelBuilds | builds = Loading }
 
             else
@@ -2635,7 +2706,12 @@ loadBuildPage model org repo buildNumber focusFragment =
             { rm
                 | build =
                     { build
-                        | build = Loading
+                        | build =
+                            if setLoading then
+                                Loading
+
+                            else
+                                build.build
                         , buildNumber = buildNumber
                         , steps = NotAsked
                         , logs = []
@@ -2654,28 +2730,37 @@ loadBuildPage model org repo buildNumber focusFragment =
 
 {-| loadPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadPipelinePage : Model -> Org -> Repo -> Maybe BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
-loadPipelinePage model org repo buildNumber ref expand lineFocus =
+loadPipelinePage : Model -> Org -> Repo -> Maybe BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> Bool -> ( Model, Cmd Msg )
+loadPipelinePage model org repo buildNumber ref expand lineFocus refresh =
     let
         getPipelineConfigAction =
             case expand of
                 Just e ->
                     if e == "true" then
-                        expandPipelineConfig model org repo   ref
+                        expandPipelineConfig model org repo ref
 
                     else
-                        getPipelineConfig model org repo   ref
+                        getPipelineConfig model org repo ref
 
                 Nothing ->
-                    getPipelineConfig model org repo   ref
+                    getPipelineConfig model org repo ref
 
         parsed =
             parseFocusFragment lineFocus
+
+        pipeline =
+            model.pipeline
     in
     ( { model
         | page = Pages.Pipeline org repo buildNumber ref expand lineFocus
+        , repo = updateBuildFocusFragment model.repo Nothing
         , pipeline =
-            { config = ( Loading, "" )
+            { config =
+                if refresh then
+                    pipeline.config
+
+                else
+                    ( Loading, "" )
             , expanded = False
             , expanding = True
             , org = org
@@ -2683,18 +2768,20 @@ loadPipelinePage model org repo buildNumber ref expand lineFocus =
             , ref = ref
             , expand = expand
             , lineFocus = ( parsed.lineA, parsed.lineB )
+            , focusFragment = lineFocus
             , buildNumber = buildNumber
             }
         , templates = ( Loading, "" )
       }
     , Cmd.batch
-        [ case buildNumber of 
+        [ case buildNumber of
             Just b ->
-                getBuild model org repo b
+                Cmd.batch [ getBuilds model org repo Nothing Nothing Nothing, getBuild model org repo b ]
+
             Nothing ->
                 Cmd.none
         , getPipelineConfigAction
-        , getPipelineTemplates model org repo   ref
+        , getPipelineTemplates model org repo ref
         ]
     )
 
@@ -3089,23 +3176,23 @@ getSecret model engine type_ org key name =
 
 {-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
 -}
-getPipelineConfig : Model -> Org -> Repo  -> Maybe Ref -> Cmd Msg
-getPipelineConfig model org repo   ref =
-    Api.tryString (GetPipelineConfigResponse org repo   ref) <| Api.getPipelineConfig model org repo ref
+getPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> Cmd Msg
+getPipelineConfig model org repo ref =
+    Api.tryString (GetPipelineConfigResponse org repo ref) <| Api.getPipelineConfig model org repo ref
 
 
 {-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
 -}
-expandPipelineConfig : Model -> Org -> Repo  -> Maybe Ref -> Cmd Msg
-expandPipelineConfig model org repo   ref =
-    Api.tryString (ExpandPipelineConfigResponse org repo   ref) <| Api.expandPipelineConfig model org repo ref
+expandPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> Cmd Msg
+expandPipelineConfig model org repo ref =
+    Api.tryString (ExpandPipelineConfigResponse org repo ref) <| Api.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
 -}
-getPipelineTemplates : Model -> Org -> Repo  -> Maybe Ref -> Cmd Msg
-getPipelineTemplates model org repo   ref =
-    Api.try (PipelineTemplatesResponse org repo  ) <| Api.getPipelineTemplates model org repo ref
+getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> Cmd Msg
+getPipelineTemplates model org repo ref =
+    Api.try (PipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref
 
 
 

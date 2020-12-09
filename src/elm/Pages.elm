@@ -161,8 +161,8 @@ strip page =
         Build org repo buildNumber _ ->
             Build org repo buildNumber Nothing
 
-        Pipeline org repo buildNumber ref _ _ ->
-            Pipeline org repo buildNumber ref Nothing Nothing
+        Pipeline org repo buildNumber _ _ _ ->
+            Pipeline org repo buildNumber Nothing Nothing Nothing
 
         Settings ->
             Settings

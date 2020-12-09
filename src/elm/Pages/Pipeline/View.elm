@@ -4,16 +4,16 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.View exposing (view)
+module Pages.Pipeline.View exposing (viewPipeline)
 
 import Ansi.Log
 import Array
+import DateFormat.Relative exposing (relativeTime)
 import Dict
 import Dict.Extra
-import DateFormat.Relative exposing (relativeTime)
 import Errors exposing (Error, detailedErrorToString)
 import FeatherIcons exposing (Icon)
-import Focus exposing (FocusLineNumber, ExpandTemplatesQuery, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
+import Focus exposing (ExpandTemplatesQuery, FocusLineNumber, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html
@@ -29,18 +29,18 @@ import Html
         , text
         , tr
         )
-import Time exposing (Zone, Posix)
-import Nav exposing (viewBuildNav)
-import Html.Attributes exposing (title, href, attribute, class)
+import Html.Attributes exposing (attribute, class, href, title)
 import Html.Events exposing (onClick)
 import List.Extra
+import Nav exposing (viewBuildNav)
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Build.View exposing (viewLine)
-import Pages.Pipeline.Model exposing (Get,Expand,Msgs,PartialModel)
+import Pages.Pipeline.Model exposing (Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import SvgBuilder
+import SvgBuilder exposing (buildStatusToIcon)
+import Time exposing (Posix, Zone)
 import Util
 import Vela
     exposing
@@ -50,159 +50,56 @@ import Vela
         , Pipeline
         , PipelineConfig
         , Repo
+        , Status
         , Step
-        , Steps,Status 
+        , Steps,Ref
         , Template
         , Templates
         )
-import SvgBuilder exposing (buildStatusToIcon)
+
+
 
 -- VIEW
 
 
-
-{-| view : renders entire build based on current application time
+{-| viewPipeline : renders entire build based on current application time
 -}
-view : PartialModel a   -> Msgs msg -> Html msg
-view model msgs =
-    let 
+viewPipeline : PartialModel a -> Msgs msg -> Org -> Repo -> Maybe Ref -> Html msg
+viewPipeline model msgs org repo ref =
+    let
         rm =
             model.repo
 
         build =
             rm.build
 
-        ( buildPreview, buildNumber ) =
+        ( buildPreview, navTabs ) =
             case build.build of
                 RemoteData.Success bld ->
-                    ( viewPreview model.time model.zone rm.org rm.name bld, String.fromInt bld.number )
+                    ( Pages.Build.View.viewPreview model.time model.zone org repo bld, viewBuildNav model org repo bld model.page )
 
                 RemoteData.Loading ->
-                    ( Util.largeLoader, "" )
+                    ( Util.largeLoader, text "" )
 
                 _ ->
-                    ( text "", "" )
-        navTabs =
-            case build.build of
-                RemoteData.Success bld ->
-                    viewBuildNav rm.org rm.name bld model.page
-
-                RemoteData.Loading ->
-                    Util.largeLoader 
-
-                _ ->
-                    text ""  
- 
-
+                    ( text "", text "" )
 
         markdown =
             [ buildPreview
             , navTabs
-            , viewPipeline model msgs
+            , viewPipeline_ model msgs ref 
             ]
     in
     div [ Util.testAttribute "full-build" ] markdown
 
 
-
-
-
-{-| viewPreview : renders single build item preview based on current application time
+{-| viewPipeline\_ : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.
 -}
-viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html msg
-viewPreview now zone org repo build =
-    let
-        buildNumber =
-            String.fromInt build.number
-
-        status =
-            [ buildStatusToIcon build.status ]
-
-        commit =
-            [ text <| String.replace "_" " " build.event
-            , text " ("
-            , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
-            , text <| ")"
-            ]
-
-        branch =
-            [ a [ href <| Util.buildBranchUrl build.clone build.branch ] [ text build.branch ] ]
-
-        sender =
-            [ text build.sender ]
-
-        message =
-            [ text <| "- " ++ build.message ]
-
-        id =
-            [ a
-                [ Util.testAttribute "build-number"
-                , Routes.href <| Routes.Build org repo buildNumber Nothing
-                ]
-                [ text <| "#" ++ buildNumber ]
-            ]
-
-        age =
-            [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
-
-        buildCreatedPosix =
-            Time.millisToPosix <| Util.secondsToMillis build.created
-
-        timestamp =
-            Util.humanReadableDateTimeFormatter zone buildCreatedPosix
-
-        duration =
-            [ text <| Util.formatRunTime now build.started build.finished ]
-
-        statusClass =
-            Pages.Build.View.statusToClass build.status
-
-        markdown =
-            [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
-            , div [ class "info" ]
-                [ div [ class "row -left" ]
-                    [ div [ class "id" ] id
-                    , div [ class "commit-msg" ] [ strong [] message ]
-                    ]
-                , div [ class "row" ]
-                    [ div [ class "git-info" ]
-                        [ div [ class "commit" ] commit
-                        , text "on"
-                        , div [ class "branch" ] branch
-                        , text "by"
-                        , div [ class "sender" ] sender
-                        ]
-                    , div [ class "time-info" ]
-                        [ div
-                            [ class "age"
-                            , title timestamp
-                            ]
-                            age
-                        , span [ class "delimiter" ] [ text "/" ]
-                        , div [ class "duration" ] duration
-                        ]
-                    ]
-                , div [ class "row" ]
-                    [ Pages.Build.View.viewError build
-                    ]
-                ]
-            ]
-    in
-    div [ class "build-container", Util.testAttribute "build" ]
-        [ div [ class "build", statusClass ] <|
-            Pages.Build.View.buildStatusStyles markdown build.status build.number
-        ]
-
-
-
-
-{-| viewPipeline : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.
--}
-viewPipeline : PartialModel a -> Msgs msg  -> Html msg
-viewPipeline model msgs =
+viewPipeline_ : PartialModel a -> Msgs msg -> Maybe Ref-> Html msg
+viewPipeline_ model msgs ref =
     div [ class "pipeline" ]
         [ viewPipelineTemplates model.templates
-        , viewPipelineConfiguration model msgs
+        , viewPipelineConfiguration model msgs ref
         ]
 
 
@@ -290,8 +187,8 @@ viewTemplate ( _, t ) =
 
 {-| viewPipelineConfiguration : takes model and renders a wrapper view for a pipeline configuration if Success or Failure.
 -}
-viewPipelineConfiguration : PartialModel a   ->Msgs msg ->  Html msg
-viewPipelineConfiguration model msgs =
+viewPipelineConfiguration : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
+viewPipelineConfiguration model msgs ref =
     case model.pipeline.config of
         ( Loading, _ ) ->
             Util.smallLoaderWithText "loading pipeline configuration"
@@ -300,21 +197,21 @@ viewPipelineConfiguration model msgs =
             text ""
 
         _ ->
-            viewPipelineConfigurationResponse model msgs
+            viewPipelineConfigurationResponse model msgs ref 
 
 
 {-| viewPipelineConfiguration : takes model and renders view for a pipeline configuration.
 -}
-viewPipelineConfigurationResponse : PartialModel a   ->Msgs msg ->  Html msg
-viewPipelineConfigurationResponse model msgs =
+viewPipelineConfigurationResponse : PartialModel a ->  Msgs msg ->Maybe Ref-> Html msg
+viewPipelineConfigurationResponse model  msgs ref =
     -- TODO: modularize logs rendering
     div [ class "logs-container", class "-pipeline" ]
         [ case model.pipeline.config of
             ( Success config, _ ) ->
-                viewPipelineConfigurationData model msgs config 
+                viewPipelineConfigurationData model msgs ref config
 
             ( Failure _, err ) ->
-                viewPipelineConfigurationError model msgs err
+                viewPipelineConfigurationError model msgs ref err
 
             _ ->
                 text ""
@@ -323,30 +220,37 @@ viewPipelineConfigurationResponse model msgs =
 
 {-| viewPipelineConfigurationData : takes model and config and renders view for a pipeline configuration's data.
 -}
-viewPipelineConfigurationData : PartialModel a  -> Msgs msg -> PipelineConfig -> Html msg
-viewPipelineConfigurationData model msgs config =
-    wrapPipelineConfigurationContent model msgs (class "") <|
+viewPipelineConfigurationData : PartialModel a -> Msgs msg ->Maybe Ref ->  PipelineConfig -> Html msg
+viewPipelineConfigurationData model msgs ref config =
+    wrapPipelineConfigurationContent model msgs ref (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
             viewLines config model.pipeline.lineFocus model.shift msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
 -}
-viewPipelineConfigurationError : PartialModel a -> Msgs msg  -> Error -> Html msg
-viewPipelineConfigurationError model msgs err =
-    wrapPipelineConfigurationContent model msgs (class "-error") <|
+viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Maybe Ref ->  Error -> Html msg
+viewPipelineConfigurationError model msgs ref err =
+    wrapPipelineConfigurationContent model msgs ref (class "-error") <|
         div [ class "content", Util.testAttribute "pipeline-configuration-error" ]
             [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
 
 
 {-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
 -}
-wrapPipelineConfigurationContent : PartialModel a  -> Msgs msg  -> Html.Attribute msg -> Html msg -> Html msg
-wrapPipelineConfigurationContent model { get, expand } cls content =
+wrapPipelineConfigurationContent : PartialModel a -> Msgs msg ->Maybe Ref ->  Html.Attribute msg -> Html msg -> Html msg
+wrapPipelineConfigurationContent model { get, expand }  ref cls content =
     let
         body =
             [ div [ class "header" ]
-                [ span [] [ text "Pipeline Configuration" ]
+                [ span []
+                    [ text "Pipeline Configuration"
+                       , case ref of 
+                            Just r ->
+                                span [ class "link" ] [ text <| "("++ r ++")" ]
+                            Nothing -> 
+                                text ""
+                    ]
                 ]
             , viewTemplatesExpansion model get expand
             ]
@@ -361,14 +265,14 @@ wrapPipelineConfigurationContent model { get, expand } cls content =
 
 {-| viewTemplatesExpansion : takes model and renders the config header button for expanding pipeline templates.
 -}
-viewTemplatesExpansion : PartialModel a -> Get msg -> Expand msg  -> Html msg
+viewTemplatesExpansion : PartialModel a -> Get msg -> Expand msg -> Html msg
 viewTemplatesExpansion model get expand =
     case model.templates of
         ( Success templates, _ ) ->
             if Dict.size templates > 0 then
                 div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
                     [ expandTemplatesToggleIcon model.pipeline
-                    , expandTemplatesToggleButton model.pipeline  get  expand
+                    , expandTemplatesToggleButton model.pipeline get expand
                     , expandTemplatesTip
                     ]
 
@@ -447,7 +351,7 @@ expandTemplatesTip =
     returns a list of rendered data lines with focusable line numbers.
 
 -}
-viewLines : PipelineConfig -> LogFocus -> Bool ->FocusLineNumber msg ->  List (Html msg)
+viewLines : PipelineConfig -> LogFocus -> Bool -> FocusLineNumber msg -> List (Html msg)
 viewLines config lineFocus shift focusLineNumber =
     config.data
         |> decodeAnsi
@@ -503,7 +407,7 @@ viewLine id lineNumber line resource lineFocus shiftDown focus =
 {-| lineFocusButton : renders button for focusing log line ranges.
 -}
 lineFocusButton : Resource -> LogFocus -> Int -> Bool -> FocusLineNumber msg -> Html msg
-lineFocusButton resource logFocus lineNumber shiftDown focus  =
+lineFocusButton resource logFocus lineNumber shiftDown focus =
     button
         [ Util.onClickPreventDefault <|
             focus <|

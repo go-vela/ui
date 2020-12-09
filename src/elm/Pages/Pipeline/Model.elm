@@ -21,7 +21,7 @@ import Vela
         , Org
         , Pipeline
         , Repo
-        , RepoModel
+        , RepoModel,SourceRepositories,CurrentUser
         , Session
         , Steps
         , Templates
@@ -49,6 +49,8 @@ type alias PartialModel a   =
         , pipeline : Pipeline
         , page : Page
         , toasties : Stack Alert
+        , sourceRepos : WebData SourceRepositories
+        , user : WebData CurrentUser
     }
 
 type alias Msgs msg =
