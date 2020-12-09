@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Msg(..), PartialModel)
+module Pages.Pipeline.Model exposing (Get,Msgs,Expand, PartialModel)
 
 import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
@@ -26,6 +26,8 @@ import Vela
         , Steps
         , Templates
         )
+import Vela exposing (BuildNumber)
+import Focus exposing (FocusLineNumber)
 
 
 
@@ -34,7 +36,7 @@ import Vela
 
 {-| PartialModel : an abbreviated version of the main model
 -}
-type alias PartialModel a =
+type alias PartialModel a   =
     { a
         | velaAPI : String
         , session : Maybe Session
@@ -49,17 +51,16 @@ type alias PartialModel a =
         , toasties : Stack Alert
     }
 
+type alias Msgs msg =
+    {
+        get : Get msg
+        , expand : Expand msg
+        , focusLineNumber : FocusLineNumber msg
+    }
+
+type alias Get msg = 
+    Org -> Repo -> (Maybe BuildNumber) -> (Maybe String) -> Bool-> msg
 
 
--- MSG
-
-
-type Msg
-    = GetPipelineConfig Org Repo (Maybe String) Bool
-    | ExpandPipelineConfig Org Repo (Maybe String) Bool
-    | GetPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | ExpandPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | PipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
-    | FocusLine Int
-    | Error Error
-    | AlertsUpdate (Alerting.Msg Alert)
+type alias Expand msg = 
+    Org -> Repo -> (Maybe BuildNumber) -> (Maybe String) -> Bool-> msg

@@ -18,7 +18,7 @@ import Dict
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
-import Focus exposing (focusFragmentToFocusId, parseFocusFragment)
+import Focus exposing (lineRangeId,ExpandTemplatesQuery, Fragment, RefQuery, focusFragmentToFocusId, parseFocusFragment)
 import Help.Commands
 import Help.View
 import Html
@@ -64,7 +64,7 @@ import List.Extra exposing (updateIf)
 import Maybe
 import Nav exposing (viewNav, viewUtil)
 import Pager
-import Pages exposing (onPage, Page(..))
+import Pages exposing (Page(..), onPage)
 import Pages.Build.Logs
     exposing
         ( focusLogs
@@ -78,7 +78,6 @@ import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
 import Pages.Pipeline.Model
-import Pages.Pipeline.Update
 import Pages.Pipeline.View
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.Model
@@ -132,6 +131,7 @@ import Vela
         , Pipeline
         , PipelineConfig
         , PipelineTemplates
+        , Ref
         , RepairRepo
         , Repo
         , RepoModel
@@ -315,6 +315,7 @@ type Msg
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
+    | FocusLineNumber Int
     | SetTheme Theme
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
@@ -333,6 +334,8 @@ type Msg
     | ChownRepo Repository
     | RepairRepo Repository
     | RestartBuild Org Repo BuildNumber
+    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) Bool
+    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) Bool
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
@@ -358,6 +361,9 @@ type Msg
     | OrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | SharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | GetPipelineConfigResponse Org Repo   (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ExpandPipelineConfigResponse Org Repo   (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | PipelineTemplatesResponse Org Repo   (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
       -- Other
     | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
@@ -370,7 +376,6 @@ type Msg
     | VisibilityChanged Visibility
       -- Components
     | BuildUpdate Pages.Build.Model.Msg
-    | PipelineUpdate Pages.Pipeline.Model.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Time
     | AdjustTimeZone Zone
@@ -383,8 +388,112 @@ update msg model =
     let
         rm =
             model.repo
+
+        pipeline =
+            model.pipeline
     in
     case msg of
+        FocusLineNumber line ->
+            let
+                url =
+                    lineRangeId "config" "0" line pipeline.lineFocus model.shift
+            in
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | lineFocus = pipeline.lineFocus
+                    }
+              }
+            , Navigation.pushUrl model.navigationKey <| url
+            )
+        GetPipelineConfig org repo buildNumber ref expansionToggle ->
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | expanding = True
+                    }
+              }
+            , Cmd.batch
+                [ getPipelineConfig model org repo   ref
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo buildNumber ref Nothing Nothing
+                ]
+            )
+
+        ExpandPipelineConfig org repo buildNumber ref expansionToggle ->
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | expanding = True
+                    }
+              }
+            , Cmd.batch
+                [ expandPipelineConfig model org repo   ref
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo buildNumber ref (Just "true") Nothing
+                ]
+            )
+
+        GetPipelineConfigResponse org repo   ref response ->
+            case response of
+                Ok ( meta, config ) ->
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( RemoteData.succeed { data = config }, "" )
+                                , expanded = False
+                                , expanding = False
+                            }
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( toFailure error, detailedErrorToString error )
+                            }
+                      }
+                    , Errors.addError error HandleError
+                    )
+
+        ExpandPipelineConfigResponse org repo   ref response ->
+            case response of
+                Ok ( _, config ) ->
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( RemoteData.succeed { data = config }, "" )
+                                , expanded = True
+                                , expanding = False
+                            }
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( Errors.toFailure error, detailedErrorToString error )
+                                , expanding = False
+                                , expanded = True
+                            }
+                      }
+                    , addError error
+                    )
+
+        PipelineTemplatesResponse org repo   response ->
+            case response of
+                Ok ( meta, templates ) ->
+                    ( { model
+                        | templates = ( RemoteData.succeed templates, "" )
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | templates = ( toFailure error, detailedErrorToString error ) }, addError error )
+
         NewRoute route ->
             setNewPage route model
 
@@ -1096,15 +1205,6 @@ update msg model =
             , action
             )
 
-        PipelineUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Pipeline.Update.update model m
-            in
-            ( newModel
-            , Cmd.map (\ms -> PipelineUpdate ms) action
-            )
-
         AddSecretUpdate engine m ->
             let
                 ( newModel, action ) =
@@ -1713,11 +1813,11 @@ viewContent model =
                     repo
             )
 
-        Pages.Pipeline org repo ref expand lineFocus ->
+        Pages.Pipeline org repo buildNumber ref expand lineFocus ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Html.map (\m -> PipelineUpdate m) <|
-                Pages.Pipeline.View.view
-                    model
+            , Pages.Pipeline.View.view
+                model
+                { get = GetPipelineConfig, expand = ExpandPipelineConfig, focusLineNumber = FocusLineNumber }
             )
 
         Pages.Settings ->
@@ -2016,46 +2116,49 @@ setNewPage route model =
                 _ ->
                     loadBuildPage model org repo buildNumber logFocus
 
-        ( Routes.Pipeline org repo ref expand lineFocus, True ) ->
-            let
-                loadPipeline =
-                    let
-                        ( loadedModel, loadAction ) =
-                            Pages.Pipeline.Update.load model org repo ref expand lineFocus
-                    in
-                    ( loadedModel, Cmd.map (\m -> PipelineUpdate m) <| loadAction )
+        ( Routes.Pipeline org repo buildNumber ref expand lineFocus, True ) ->
+            loadPipelinePage model org repo buildNumber ref expand lineFocus
+            -- let
+            --     loadPipeline =
+            --         let
+            --             ( loadedModel, loadAction ) =
+            --                 loadPipelinePage model org repo buildNumber ref expand lineFocus
+            --         in
+            --         ( loadedModel, loadAction )
 
-                ( newModel, action ) =
-                    case model.page of
-                        Pages.Pipeline o r ref_ _ _ ->
-                            let
-                                pipeline =
-                                    model.pipeline
+            --     ( newModel, action ) =
+            --         case model.page of
+            --             -- todo handle build and ref?
+            --             -- todo handle maybe values
+            --             Pages.Pipeline o r b_ rf _ _ ->
+            --                 let
+            --                     pipeline =
+            --                         model.pipeline
 
-                                parsed =
-                                    parseFocusFragment lineFocus
+            --                     parsed =
+            --                         parseFocusFragment lineFocus
 
-                                current =
-                                    ( org, repo, Maybe.withDefault "" ref )
+            --                     current =
+            --                         ( org, repo, Maybe.withDefault "" buildNumber )
 
-                                incoming =
-                                    ( o, r, Maybe.withDefault "" ref_ )
-                            in
-                            if not <| resourceChanged current incoming then
-                                ( { model
-                                    | pipeline =
-                                        { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
-                                  }
-                                , Cmd.none
-                                )
+            --                     incoming =
+            --                         ( o, r, Maybe.withDefault "" b_ )
+            --                 in
+            --                 if not <| resourceChanged current incoming then
+            --                     ( { model
+            --                         | pipeline =
+            --                             { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
+            --                       }
+            --                     , Cmd.none
+            --                     )
 
-                            else
-                                loadPipeline
+            --                 else
+            --                     loadPipeline
 
-                        _ ->
-                            loadPipeline
-            in
-            ( newModel, action )
+            --             _ ->
+            --                 loadPipeline
+            -- in
+            -- ( newModel, action )
 
         ( Routes.Settings, True ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -2549,6 +2652,53 @@ loadBuildPage model org repo buildNumber focusFragment =
     )
 
 
+{-| loadPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
+-}
+loadPipelinePage : Model -> Org -> Repo -> Maybe BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
+loadPipelinePage model org repo buildNumber ref expand lineFocus =
+    let
+        getPipelineConfigAction =
+            case expand of
+                Just e ->
+                    if e == "true" then
+                        expandPipelineConfig model org repo   ref
+
+                    else
+                        getPipelineConfig model org repo   ref
+
+                Nothing ->
+                    getPipelineConfig model org repo   ref
+
+        parsed =
+            parseFocusFragment lineFocus
+    in
+    ( { model
+        | page = Pages.Pipeline org repo buildNumber ref expand lineFocus
+        , pipeline =
+            { config = ( Loading, "" )
+            , expanded = False
+            , expanding = True
+            , org = org
+            , repo = repo
+            , ref = ref
+            , expand = expand
+            , lineFocus = ( parsed.lineA, parsed.lineB )
+            , buildNumber = buildNumber
+            }
+        , templates = ( Loading, "" )
+      }
+    , Cmd.batch
+        [ case buildNumber of 
+            Just b ->
+                getBuild model org repo b
+            Nothing ->
+                Cmd.none
+        , getPipelineConfigAction
+        , getPipelineTemplates model org repo   ref
+        ]
+    )
+
+
 {-| repoEnabledError : takes model repo and error and updates the source repos within the model
 
     repoEnabledError : consumes 409 conflicts that result from the repo already being enabled
@@ -2935,6 +3085,27 @@ getSharedSecrets model maybePage maybePerPage engine org team =
 getSecret : Model -> Engine -> Type -> Org -> Key -> Name -> Cmd Msg
 getSecret model engine type_ org key name =
     Api.try SecretResponse <| Api.getSecret model engine type_ org key name
+
+
+{-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
+-}
+getPipelineConfig : Model -> Org -> Repo  -> Maybe Ref -> Cmd Msg
+getPipelineConfig model org repo   ref =
+    Api.tryString (GetPipelineConfigResponse org repo   ref) <| Api.getPipelineConfig model org repo ref
+
+
+{-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
+-}
+expandPipelineConfig : Model -> Org -> Repo  -> Maybe Ref -> Cmd Msg
+expandPipelineConfig model org repo   ref =
+    Api.tryString (ExpandPipelineConfigResponse org repo   ref) <| Api.expandPipelineConfig model org repo ref
+
+
+{-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
+-}
+getPipelineTemplates : Model -> Org -> Repo  -> Maybe Ref -> Cmd Msg
+getPipelineTemplates model org repo   ref =
+    Api.try (PipelineTemplatesResponse org repo  ) <| Api.getPipelineTemplates model org repo ref
 
 
 

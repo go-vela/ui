@@ -726,7 +726,8 @@ type alias Pipeline =
     , expanded : Bool
     , expanding : Bool
     , org : Org
-    , repo : Org
+    , repo : Repo
+    , buildNumber : (Maybe BuildNumber)
     , ref : Maybe Ref
     , expand : Maybe String
     , lineFocus : LogFocus
@@ -735,7 +736,7 @@ type alias Pipeline =
 
 defaultPipeline : Pipeline
 defaultPipeline =
-    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing ( Nothing, Nothing )
+    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing )
 
 
 type alias PipelineConfig =

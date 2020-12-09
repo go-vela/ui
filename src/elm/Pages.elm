@@ -9,7 +9,7 @@ module Pages exposing (Page(..), strip, onPage, toRoute)
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Routes exposing (Route(..))
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name,Ref, Org, Repo, Team)
 
 import Html
 import Html.Attributes exposing (class)
@@ -30,7 +30,7 @@ type Page
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
-    | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
+    | Pipeline Org Repo (Maybe BuildNumber) (Maybe Ref) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
     | Login
     | Logout
@@ -92,8 +92,8 @@ toRoute page =
         Build org repo buildNumber logFocus ->
             Routes.Build org repo buildNumber logFocus
 
-        Pipeline org repo ref expanded lineFocus ->
-            Routes.Pipeline org repo ref expanded lineFocus
+        Pipeline org repo buildNumber ref expanded lineFocus ->
+            Routes.Pipeline org repo buildNumber ref expanded lineFocus
 
         Settings ->
             Routes.Settings
@@ -161,8 +161,8 @@ strip page =
         Build org repo buildNumber _ ->
             Build org repo buildNumber Nothing
 
-        Pipeline org repo _ _ _ ->
-            Pipeline org repo Nothing Nothing Nothing
+        Pipeline org repo buildNumber ref _ _ ->
+            Pipeline org repo buildNumber ref Nothing Nothing
 
         Settings ->
             Settings

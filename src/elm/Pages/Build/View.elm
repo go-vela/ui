@@ -123,7 +123,17 @@ viewBuild model org repo =
                 _ ->
                     ( text "", "" )
         navTabs = 
-            viewBuildNav rm model.page
+            case build.build of
+                RemoteData.Success bld ->
+                    viewBuildNav org repo bld model.page 
+
+                RemoteData.Loading ->
+                    Util.largeLoader 
+
+                _ ->
+                    text "" 
+
+            
         logActions =
             build.steps
                 |> RemoteData.unwrap (text "")

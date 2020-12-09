@@ -22,6 +22,9 @@ type alias Resource =
 type alias ResourceID =
     String
 
+type alias FocusLineNumber msg =
+    Int -> msg
+
 
 {-| resourceFocusFragment : takes resource tag and maybe line numbers and produces URL fragment for focusing line ranges
 -}

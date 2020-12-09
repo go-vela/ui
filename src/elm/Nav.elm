@@ -188,7 +188,9 @@ viewUtil model =
             Pages.RepoSettings org repo ->
                 viewRepoTabs rm model.page
 
-            _ ->
+            Pages.Pipeline org repo buildNumber ref _ _   ->
+                viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
+            _ -> 
                 text ""
         ]
 
@@ -271,13 +273,14 @@ viewRepoTabs rm currentPage =
 -- BUILD
 
 
-viewBuildNav : RepoModel -> Page -> Html msg
-viewBuildNav rm currentPage =
+viewBuildNav : Org -> Repo -> Build -> Page -> Html msg
+viewBuildNav org repo build currentPage =
     let
+        buildNumber = String.fromInt build.number
         tabs =
-            [ Tab "Build" currentPage <| Pages.Build  rm.org rm.name rm.build.buildNumber Nothing
+            [ Tab "Build" currentPage <| Pages.Build   org repo buildNumber Nothing
             -- , Tab "Services" currentPage <| Pages.Build  rm.org rm.name rm.build.buildNumber Nothing
-            , Tab "Pipeline" currentPage <| Pages.Pipeline  rm.org rm.name (Just "master") Nothing Nothing
+            , Tab "Pipeline" currentPage <| Pages.Pipeline  org repo (Just buildNumber) (Just build.commit) Nothing Nothing
             -- , Tab "Troubleshooting" currentPage <| Pages.Pipeline  rm.org rm.name (Just "master") Nothing Nothing
             ]
     in
@@ -290,15 +293,14 @@ viewBuildNav rm currentPage =
 viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Builds -> Int -> Html msg
 viewBuildHistory now timezone page org repo builds limit =
     let
-        ( show, buildNumber ) =
+        buildNumber =
             case page of
                 Pages.Build _ _ b _ ->
-                    ( True, Maybe.withDefault -1 <| String.toInt b )
+                    Maybe.withDefault -1 <| String.toInt b
 
                 _ ->
-                    ( False, -1 )
+                    -1
     in
-    if show then
         case builds of
             RemoteData.Success blds ->
                 if List.length blds > 0 then
@@ -321,8 +323,7 @@ viewBuildHistory now timezone page org repo builds limit =
             _ ->
                 text ""
 
-    else
-        text ""
+
 
 
 {-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget

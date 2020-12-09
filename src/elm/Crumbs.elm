@@ -257,7 +257,7 @@ toPath page =
                     , ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus )
                     ]
 
-                Pages.Pipeline org repo ref expand _ ->
+                Pages.Pipeline org repo buildNumber ref expand _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -265,7 +265,11 @@ toPath page =
                         repoBuildsPage =
                             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                     in
-                    [ overviewPage, organizationPage, repoBuildsPage, ( refToString ref, Nothing ) ]
+                    [ overviewPage
+                    , organizationPage
+                    , repoBuildsPage
+                    -- , ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber Nothing )
+                    ]
 
                 Pages.Login ->
                     []
