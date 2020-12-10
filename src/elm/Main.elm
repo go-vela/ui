@@ -317,6 +317,7 @@ type Msg
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
     | RefreshSecrets Engine Type Org Repo
+    | FilterBuildEventBy (Maybe Event) Org Repo
     | SetTheme Theme
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
@@ -370,7 +371,6 @@ type Msg
     | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
-    | FilterBuildEventBy (Maybe Event) Org Repo
     | FocusOn String
     | FocusResult (Result Dom.Error ())
     | OnKeyDown String
@@ -383,13 +383,6 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        rm =
-            model.repo
-
-        pipeline =
-            model.pipeline
-    in
     case msg of
         -- User events
         NewRoute route ->
@@ -443,6 +436,9 @@ update msg model =
             ( { model | secretsModel = { secretsModel | secrets = Loading } }
             , getSecrets model Nothing Nothing engine type_ org key
             )
+
+        FilterBuildEventBy maybeEvent org repo ->
+            ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
 
         SetTheme theme ->
             if theme == model.theme then
@@ -1159,9 +1155,6 @@ update msg model =
 
         SessionChanged newSession ->
             ( { model | session = newSession }, Cmd.none )
-
-        FilterBuildEventBy maybeEvent org repo ->
-            ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent )
 
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt FocusResult )
