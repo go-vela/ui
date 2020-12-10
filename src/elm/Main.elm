@@ -307,9 +307,8 @@ init flags url navKey =
 
 
 type Msg
-    = NoOp
-      -- User events
-    | NewRoute Routes.Route
+    = -- User events
+      NewRoute Routes.Route
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
     | SearchFavorites String
@@ -323,39 +322,48 @@ type Msg
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
     | Copy String
+    | DownloadTextFile String String
+    | ExpandAllSteps Org Repo BuildNumber
+    | CollapseAllSteps
+    | ExpandStep Org Repo BuildNumber StepNumber
+    | FollowStep Int
+    | ClickBuildNavTab String
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
     | ToggleFavorite Org (Maybe Repo)
-    | EnableRepo Repository
-    | UpdateRepoEvent Org Repo Field Bool
-    | UpdateRepoAccess Org Repo Field String
-    | UpdateRepoTimeout Org Repo Field Int
     | EnableRepos Repositories
+    | EnableRepo Repository
     | DisableRepo Repository
     | ChownRepo Repository
     | RepairRepo Repository
+    | UpdateRepoEvent Org Repo Field Bool
+    | UpdateRepoAccess Org Repo Field String
+    | UpdateRepoTimeout Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
     | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) Bool
     | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) Bool
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
-    | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoFavoritedResponse String Bool (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
-    | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
+    | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
-    | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoDisabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoChownedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RepoRepairedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
+    | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
+    | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | StepsResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
+    | GetPipelineConfigResponse Org Repo (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ExpandPipelineConfigResponse Org Repo (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | GetPipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -363,9 +371,12 @@ type Msg
     | OrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | SharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | GetPipelineConfigResponse Org Repo (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | ExpandPipelineConfigResponse Org Repo (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | PipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
+      -- Time
+    | AdjustTimeZone Zone
+    | AdjustTime Posix
+    | Tick Interval Posix
+      -- Components
+    | AddSecretUpdate Engine Pages.Secrets.Model.Msg
       -- Other
     | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
@@ -376,19 +387,9 @@ type Msg
     | OnKeyDown String
     | OnKeyUp String
     | VisibilityChanged Visibility
-      -- Components
-    | AddSecretUpdate Engine Pages.Secrets.Model.Msg
-    | ExpandStep Org Repo BuildNumber StepNumber
     | PushUrl String
-    | DownloadLogs String String
-    | FollowStep Int
-    | ExpandAllSteps Org Repo BuildNumber
-    | CollapseAllSteps
-    | ClickBuildNavTab String
-      -- Time
-    | AdjustTimeZone Zone
-    | AdjustTime Posix
-    | Tick Interval Posix
+      -- NoOp
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -401,100 +402,66 @@ update msg model =
             model.pipeline
     in
     case msg of
-        ClickBuildNavTab route ->
-            ( model, Navigation.pushUrl model.navigationKey route )
+        -- User events
+        NewRoute route ->
+            setNewPage route model
 
-        ExpandStep org repo buildNumber stepNumber ->
+        ClickedLink urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Navigation.pushUrl model.navigationKey <| Url.toString url )
+
+                Browser.External url ->
+                    ( model, Navigation.load url )
+
+        SearchSourceRepos org searchBy ->
             let
-                build =
-                    rm.build
-
-                ( steps, fetchStepLogs ) =
-                    clickStep build.steps stepNumber
-
-                action =
-                    if fetchStepLogs then
-                        getBuildStepLogs model org repo buildNumber stepNumber Nothing True
-
-                    else
-                        Cmd.none
-
-                stepOpened =
-                    isViewingStep steps stepNumber
-
-                -- step clicked is step being followed
-                onFollowedStep =
-                    build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
-
-                follow =
-                    if onFollowedStep && not stepOpened then
-                        -- stop following a step when collapsed
-                        0
-
-                    else
-                        build.followingStep
+                filters =
+                    Dict.update org (\_ -> Just searchBy) model.filters
             in
-            ( { model | repo = { rm | build = { build | steps = steps, followingStep = follow } } }
-            , Cmd.batch <|
-                [ action
-                , if stepOpened then
-                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
+            ( { model | filters = filters }, Cmd.none )
 
-                  else
-                    Cmd.none
-                ]
-            )
+        SearchFavorites searchBy ->
+            ( { model | favoritesFilter = searchBy }, Cmd.none )
 
-        PushUrl url ->
-            ( model
-            , Navigation.pushUrl model.navigationKey url
-            )
-
-        DownloadLogs filename logs ->
-            ( model
-            , Download.string filename "text" logs
-            )
-
-        FollowStep step ->
+        ChangeRepoTimeout inTimeout ->
             let
-                build =
-                    rm.build
-            in
-            ( { model | repo = { rm | build = { build | followingStep = step } } }
-            , Cmd.none
-            )
+                newTimeout =
+                    case String.toInt inTimeout of
+                        Just t ->
+                            Just t
 
-        CollapseAllSteps ->
+                        Nothing ->
+                            Just 0
+            in
+            ( { model | inTimeout = newTimeout }, Cmd.none )
+
+        RefreshSettings org repo ->
+            ( { model | inTimeout = Nothing, repo = updateRepo rm Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
+
+        RefreshHooks org repo ->
+            ( { model | repo = updateHooks rm Loading }, getHooks model org repo Nothing Nothing )
+
+        RefreshSecrets engine type_ org key ->
             let
-                build =
-                    rm.build
-
-                steps =
-                    build.steps
-                        |> RemoteData.unwrap build.steps
-                            (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
+                secretsModel =
+                    model.secretsModel
             in
-            ( { model | repo = { rm | build = { build | steps = steps, followingStep = 0 } } }
-            , Cmd.none
-            )
+            case type_ of
+                Vela.RepoSecret ->
+                    ( { model | secretsModel = { secretsModel | repoSecrets = Loading } }
+                    , getRepoSecrets model Nothing Nothing engine org key
+                    )
 
-        ExpandAllSteps org repo buildNumber ->
-            let
-                build =
-                    rm.build
+                Vela.OrgSecret ->
+                    ( { model | secretsModel = { secretsModel | orgSecrets = Loading } }
+                    , getOrgSecrets model Nothing Nothing engine org
+                    )
 
-                steps =
-                    RemoteData.unwrap build.steps
-                        (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
-                        build.steps
-
-                -- refresh logs for expanded steps
-                action =
-                    getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
-            in
-            ( { model | repo = { rm | build = { build | steps = steps } } }
-            , action
-            )
+                Vela.SharedSecret ->
+                    ( { model | secretsModel = { secretsModel | sharedSecrets = Loading } }
+                    , getSharedSecrets model Nothing Nothing engine org key
+                    )
 
         FocusLineNumber line ->
             let
@@ -508,649 +475,6 @@ update msg model =
                     }
               }
             , Navigation.pushUrl model.navigationKey <| url
-            )
-
-        GetPipelineConfig org repo buildNumber ref expansionToggle ->
-            ( { model
-                | pipeline =
-                    { pipeline
-                        | expanding = True
-                    }
-              }
-            , Cmd.batch
-                [ getPipelineConfig model org repo ref
-                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo buildNumber ref Nothing Nothing
-                ]
-            )
-
-        ExpandPipelineConfig org repo buildNumber ref expansionToggle ->
-            ( { model
-                | pipeline =
-                    { pipeline
-                        | expanding = True
-                    }
-              }
-            , Cmd.batch
-                [ expandPipelineConfig model org repo ref
-                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo buildNumber ref (Just "true") Nothing
-                ]
-            )
-
-        GetPipelineConfigResponse org repo ref response ->
-            case response of
-                Ok ( meta, config ) ->
-                    ( { model
-                        | pipeline =
-                            { pipeline
-                                | config = ( RemoteData.succeed { data = config }, "" )
-                                , expanded = False
-                                , expanding = False
-                            }
-                      }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( { model
-                        | pipeline =
-                            { pipeline
-                                | config = ( toFailure error, detailedErrorToString error )
-                            }
-                      }
-                    , Errors.addError error HandleError
-                    )
-
-        ExpandPipelineConfigResponse org repo ref response ->
-            case response of
-                Ok ( _, config ) ->
-                    ( { model
-                        | pipeline =
-                            { pipeline
-                                | config = ( RemoteData.succeed { data = config }, "" )
-                                , expanded = True
-                                , expanding = False
-                            }
-                      }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( { model
-                        | pipeline =
-                            { pipeline
-                                | config = ( Errors.toFailure error, detailedErrorToString error )
-                                , expanding = False
-                                , expanded = True
-                            }
-                      }
-                    , addError error
-                    )
-
-        PipelineTemplatesResponse org repo response ->
-            case response of
-                Ok ( meta, templates ) ->
-                    ( { model
-                        | templates = ( RemoteData.succeed templates, "" )
-                      }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( { model | templates = ( toFailure error, detailedErrorToString error ) }, addError error )
-
-        NewRoute route ->
-            setNewPage route model
-
-        SignInRequested ->
-            ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
-
-        SessionChanged newSession ->
-            ( { model | session = newSession }, Cmd.none )
-
-        FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
-
-        ToggleFavorite org repo ->
-            let
-                favorite =
-                    toFavorite org repo
-
-                ( favorites, favorited ) =
-                    updateFavorites model.user favorite
-
-                payload : UpdateUserPayload
-                payload =
-                    buildUpdateFavoritesPayload favorites
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateUser payload
-            in
-            ( model
-            , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
-            )
-
-        ShowHideHelp show ->
-            ( { model
-                | showHelp =
-                    case show of
-                        Just s ->
-                            s
-
-                        Nothing ->
-                            not model.showHelp
-              }
-            , Cmd.none
-            )
-
-        ShowHideIdentity show ->
-            ( { model
-                | showIdentity =
-                    case show of
-                        Just s ->
-                            s
-
-                        Nothing ->
-                            not model.showIdentity
-              }
-            , Cmd.none
-            )
-
-        Copy content ->
-            ( model, Cmd.none )
-                |> Alerting.addToast Alerts.successConfig
-                    AlertsUpdate
-                    (Alerts.Success ""
-                        ("Copied " ++ wrapAlertMessage content ++ "to your clipboard.")
-                        Nothing
-                    )
-
-        EnableRepo repo ->
-            let
-                payload : EnableRepositoryPayload
-                payload =
-                    buildEnableRepositoryPayload repo
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeEnableRepository payload
-
-                currentRepo =
-                    RemoteData.withDefault defaultRepository rm.repo
-            in
-            ( { model
-                | sourceRepos = enableUpdate repo Loading model.sourceRepos
-                , repo = updateRepo rm <| RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
-              }
-            , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
-            )
-
-        UserResponse response ->
-            case response of
-                Ok ( _, user ) ->
-                    let
-                        currentSession : Session
-                        currentSession =
-                            Maybe.withDefault defaultSession model.session
-
-                        session : Session
-                        session =
-                            { currentSession | username = user.username, token = user.token }
-
-                        redirectTo : String
-                        redirectTo =
-                            case session.entrypoint of
-                                "" ->
-                                    Routes.routeToUrl Routes.Overview
-
-                                _ ->
-                                    session.entrypoint
-                    in
-                    ( { model | session = Just session }
-                    , Cmd.batch
-                        [ Interop.storeSession <| encodeSession session
-                        , Navigation.pushUrl model.navigationKey redirectTo
-                        ]
-                    )
-
-                Err error ->
-                    ( { model | session = Nothing }
-                    , Cmd.batch
-                        [ addError error
-                        , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
-                        ]
-                    )
-
-        CurrentUserResponse response ->
-            case response of
-                Ok ( _, user ) ->
-                    ( { model | user = RemoteData.succeed user }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( { model | user = toFailure error }, addError error )
-
-        RepoResponse response ->
-            case response of
-                Ok ( _, repoResponse ) ->
-                    ( { model | repo = updateRepo rm <| RemoteData.succeed repoResponse }, Cmd.none )
-
-                Err error ->
-                    ( { model | repo = updateRepo rm <| toFailure error }, addError error )
-
-        SourceRepositoriesResponse response ->
-            case response of
-                Ok ( _, repositories ) ->
-                    ( { model | sourceRepos = RemoteData.succeed repositories }, Util.dispatch <| FocusOn "global-search-input" )
-
-                Err error ->
-                    ( { model | sourceRepos = toFailure error }, addError error )
-
-        RepoEnabledResponse repo response ->
-            let
-                currentRepo =
-                    RemoteData.withDefault defaultRepository rm.repo
-            in
-            case response of
-                Ok ( _, enabledRepo ) ->
-                    ( { model
-                        | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
-                        , repo = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled } }
-                      }
-                    , Util.dispatch <| ToggleFavorite repo.org <| Just repo.name
-                    )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
-
-                Err error ->
-                    let
-                        ( sourceRepos, action ) =
-                            repoEnabledError model.sourceRepos repo error
-                    in
-                    ( { model | sourceRepos = sourceRepos }, action )
-
-        RepoFavoritedResponse favorite favorited response ->
-            case response of
-                Ok ( _, user ) ->
-                    ( { model | user = RemoteData.succeed user }
-                    , Cmd.none
-                    )
-                        |> (if favorited then
-                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " added to favorites.") Nothing)
-
-                            else
-                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " removed from favorites.") Nothing)
-                           )
-
-                Err error ->
-                    ( { model | user = toFailure error }, addError error )
-
-        RepoUpdatedResponse field response ->
-            case response of
-                Ok ( _, updatedRepo ) ->
-                    ( { model | repo = { rm | repo = RemoteData.succeed updatedRepo } }, Cmd.none )
-                        |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
-
-                Err error ->
-                    ( { model | repo = { rm | repo = toFailure error } }, addError error )
-
-        DisableRepo repo ->
-            let
-                currentRepo =
-                    RemoteData.withDefault defaultRepository rm.repo
-
-                ( status, action ) =
-                    case repo.enabling of
-                        Vela.Enabled ->
-                            ( Vela.ConfirmDisable, Cmd.none )
-
-                        Vela.ConfirmDisable ->
-                            ( Vela.Disabling, Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo )
-
-                        _ ->
-                            ( repo.enabling, Cmd.none )
-            in
-            ( { model
-                | repo = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = status } }
-              }
-            , action
-            )
-
-        RepoDisabledResponse repo response ->
-            let
-                currentRepo =
-                    RemoteData.withDefault defaultRepository rm.repo
-            in
-            case response of
-                Ok _ ->
-                    ( { model
-                        | repo = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Disabled } }
-                        , sourceRepos = enableUpdate repo NotAsked model.sourceRepos
-                      }
-                    , Cmd.none
-                    )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " disabled.") Nothing)
-
-                Err error ->
-                    ( model, addError error )
-
-        ChownRepo repo ->
-            ( model, Api.try (RepoChownedResponse repo) <| Api.chownRepo model repo )
-
-        RepoChownedResponse repo response ->
-            case response of
-                Ok _ ->
-                    ( model, Cmd.none )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("You are now the owner of " ++ repo.full_name) Nothing)
-
-                Err error ->
-                    ( model, addError error )
-
-        RepairRepo repo ->
-            ( model, Api.try (RepoRepairedResponse repo) <| Api.repairRepo model repo )
-
-        RepoRepairedResponse repo response ->
-            let
-                currentRepo =
-                    RemoteData.withDefault defaultRepository rm.repo
-            in
-            case response of
-                Ok _ ->
-                    -- TODO: could 'refresh' settings page instead
-                    ( { model
-                        | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
-                        , repo = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled } }
-                      }
-                    , Cmd.none
-                    )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " has been repaired.") Nothing)
-
-                Err error ->
-                    ( model, addError error )
-
-        RestartedBuildResponse org repo buildNumber response ->
-            case response of
-                Ok ( _, build ) ->
-                    let
-                        restartedBuild =
-                            "Build " ++ String.join "/" [ org, repo, buildNumber ]
-
-                        newBuildNumber =
-                            String.fromInt <| build.number
-
-                        newBuild =
-                            String.join "/" [ "", org, repo, newBuildNumber ]
-                    in
-                    ( model
-                    , getBuilds model org repo Nothing Nothing Nothing
-                    )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
-
-                Err error ->
-                    ( model, addError error )
-
-        BuildResponse org repo _ response ->
-            case response of
-                Ok ( _, build ) ->
-                    let
-                        builds =
-                            rm.builds
-                    in
-                    ( { model
-                        | repo =
-                            updateBuild
-                                { rm
-                                    | org = org
-                                    , name = repo
-                                }
-                            <|
-                                RemoteData.succeed build
-                        , favicon = statusToFavicon build.status
-                      }
-                    , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
-                    )
-
-                Err error ->
-                    ( { model | repo = { rm | repo = toFailure error } }, addError error )
-
-        BuildsResponse org repo response ->
-            let
-                currentBuilds =
-                    rm.builds
-            in
-            case response of
-                Ok ( meta, builds ) ->
-                    let
-                        pager =
-                            Pagination.get meta.headers
-                    in
-                    ( { model
-                        | repo =
-                            { rm
-                                | builds =
-                                    { currentBuilds
-                                        | builds = RemoteData.succeed builds
-                                        , pager = pager
-                                    }
-                                , org = org
-                                , name = repo
-                            }
-                      }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( { model | repo = updateBuilds rm { currentBuilds | builds = toFailure error } }, addError error )
-
-        StepResponse _ _ _ _ response ->
-            case response of
-                Ok ( _, step ) ->
-                    ( updateStep model step, Cmd.none )
-
-                Err error ->
-                    ( model, addError error )
-
-        StepsResponse org repo buildNumber logFocus refresh response ->
-            case response of
-                Ok ( _, steps ) ->
-                    let
-                        mergedSteps =
-                            steps
-                                |> List.sortBy .number
-                                |> Pages.Build.Update.mergeSteps logFocus refresh rm.build.steps
-
-                        updatedModel =
-                            { model | repo = updateBuildSteps rm <| RemoteData.succeed mergedSteps }
-
-                        cmd =
-                            getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
-                    in
-                    ( updatedModel, cmd )
-
-                Err error ->
-                    ( model, addError error )
-
-        StepLogResponse stepNumber logFocus refresh response ->
-            case response of
-                Ok ( _, incomingLog ) ->
-                    let
-                        following =
-                            rm.build.followingStep /= 0
-
-                        onFollowedStep =
-                            rm.build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
-
-                        ( steps, focusId ) =
-                            if following && refresh && onFollowedStep then
-                                ( rm.build.steps
-                                    |> RemoteData.unwrap rm.build.steps
-                                        (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
-                                , stepBottomTrackerFocusId <| String.fromInt rm.build.followingStep
-                                )
-
-                            else if not refresh then
-                                ( rm.build.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
-
-                            else
-                                ( rm.build.steps, "" )
-
-                        cmd =
-                            if not <| String.isEmpty focusId then
-                                Util.dispatch <| FocusOn <| focusId
-
-                            else
-                                Cmd.none
-                    in
-                    ( updateLogs { model | repo = updateBuildSteps rm steps } incomingLog
-                    , cmd
-                    )
-
-                Err error ->
-                    ( model, addError error )
-
-        SecretResponse response ->
-            case response of
-                Ok ( _, secret ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-
-                        updatedSecretsModel =
-                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
-                    in
-                    ( { model | secretsModel = updatedSecretsModel }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( model, addError error )
-
-        AddSecretResponse response ->
-            case response of
-                Ok ( _, secret ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-
-                        updatedSecretsModel =
-                            Pages.Secrets.Update.reinitializeSecretAdd secretsModel
-                    in
-                    ( { model | secretsModel = updatedSecretsModel }
-                    , Cmd.none
-                    )
-                        |> addSecretResponseAlert secret
-
-                Err error ->
-                    ( model, addError error )
-
-        UpdateSecretResponse response ->
-            case response of
-                Ok ( _, secret ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-
-                        updatedSecretsModel =
-                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
-                    in
-                    ( { model | secretsModel = updatedSecretsModel }
-                    , Cmd.none
-                    )
-                        |> updateSecretResponseAlert secret
-
-                Err error ->
-                    ( model, addError error )
-
-        RepoSecretsResponse response ->
-            receiveSecrets model response Vela.RepoSecret
-
-        DeleteSecretResponse response ->
-            case response of
-                Ok ( _, r_string ) ->
-                    let
-                        secretsModel =
-                            model.secretsModel
-
-                        secretsType =
-                            secretTypeToString secretsModel.type_
-
-                        alertMessage =
-                            secretsModel.form.name ++ " removed from " ++ secretsType ++ " secrets."
-
-                        redirectTo =
-                            Pages.Secrets.Update.deleteSecretRedirect secretsModel
-                    in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
-
-                Err error ->
-                    ( model, addError error )
-
-        OrgSecretsResponse response ->
-            receiveSecrets model response Vela.OrgSecret
-
-        SharedSecretsResponse response ->
-            receiveSecrets model response Vela.SharedSecret
-
-        UpdateRepoEvent org repo field value ->
-            let
-                payload : UpdateRepositoryPayload
-                payload =
-                    buildUpdateRepoBoolPayload field value
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
-                cmd =
-                    if Pages.RepoSettings.validEventsUpdate rm.repo payload then
-                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
-
-                    else
-                        addErrorString "Could not disable webhook event. At least one event must be active." HandleError
-            in
-            ( model
-            , cmd
-            )
-
-        UpdateRepoAccess org repo field value ->
-            let
-                payload : UpdateRepositoryPayload
-                payload =
-                    buildUpdateRepoStringPayload field value
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
-                cmd =
-                    if Pages.RepoSettings.validAccessUpdate rm.repo payload then
-                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
-
-                    else
-                        Cmd.none
-            in
-            ( model
-            , cmd
-            )
-
-        UpdateRepoTimeout org repo field value ->
-            let
-                payload : UpdateRepositoryPayload
-                payload =
-                    buildUpdateRepoIntPayload field value
-
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-            in
-            ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
-            )
-
-        EnableRepos repos ->
-            ( model
-            , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
             )
 
         SetTheme theme ->
@@ -1215,14 +539,503 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        ShowHideHelp show ->
+            ( { model
+                | showHelp =
+                    case show of
+                        Just s ->
+                            s
+
+                        Nothing ->
+                            not model.showHelp
+              }
+            , Cmd.none
+            )
+
+        ShowHideIdentity show ->
+            ( { model
+                | showIdentity =
+                    case show of
+                        Just s ->
+                            s
+
+                        Nothing ->
+                            not model.showIdentity
+              }
+            , Cmd.none
+            )
+
+        Copy content ->
+            ( model, Cmd.none )
+                |> Alerting.addToast Alerts.successConfig
+                    AlertsUpdate
+                    (Alerts.Success ""
+                        ("Copied " ++ wrapAlertMessage content ++ "to your clipboard.")
+                        Nothing
+                    )
+
+        DownloadTextFile filename content ->
+            ( model
+            , Download.string filename "text" content
+            )
+
+        ExpandAllSteps org repo buildNumber ->
+            let
+                build =
+                    rm.build
+
+                steps =
+                    RemoteData.unwrap build.steps
+                        (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
+                        build.steps
+
+                -- refresh logs for expanded steps
+                action =
+                    getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
+            in
+            ( { model | repo = { rm | build = { build | steps = steps } } }
+            , action
+            )
+
+        CollapseAllSteps ->
+            let
+                build =
+                    rm.build
+
+                steps =
+                    build.steps
+                        |> RemoteData.unwrap build.steps
+                            (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
+            in
+            ( { model | repo = { rm | build = { build | steps = steps, followingStep = 0 } } }
+            , Cmd.none
+            )
+
+        ExpandStep org repo buildNumber stepNumber ->
+            let
+                build =
+                    rm.build
+
+                ( steps, fetchStepLogs ) =
+                    clickStep build.steps stepNumber
+
+                action =
+                    if fetchStepLogs then
+                        getBuildStepLogs model org repo buildNumber stepNumber Nothing True
+
+                    else
+                        Cmd.none
+
+                stepOpened =
+                    isViewingStep steps stepNumber
+
+                -- step clicked is step being followed
+                onFollowedStep =
+                    build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+
+                follow =
+                    if onFollowedStep && not stepOpened then
+                        -- stop following a step when collapsed
+                        0
+
+                    else
+                        build.followingStep
+            in
+            ( { model | repo = { rm | build = { build | steps = steps, followingStep = follow } } }
+            , Cmd.batch <|
+                [ action
+                , if stepOpened then
+                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
+
+                  else
+                    Cmd.none
+                ]
+            )
+
+        FollowStep step ->
+            let
+                build =
+                    rm.build
+            in
+            ( { model | repo = { rm | build = { build | followingStep = step } } }
+            , Cmd.none
+            )
+
+        ClickBuildNavTab route ->
+            ( model, Navigation.replaceUrl model.navigationKey route )
+
+        -- Outgoing HTTP requests
+        SignInRequested ->
+            ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
+
+        FetchSourceRepositories ->
+            ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+
+        ToggleFavorite org repo ->
+            let
+                favorite =
+                    toFavorite org repo
+
+                ( favorites, favorited ) =
+                    updateFavorites model.user favorite
+
+                payload : UpdateUserPayload
+                payload =
+                    buildUpdateFavoritesPayload favorites
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateUser payload
+            in
+            ( model
+            , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
+            )
+
+        EnableRepos repos ->
+            ( model
+            , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
+            )
+
+        EnableRepo repo ->
+            let
+                payload : EnableRepositoryPayload
+                payload =
+                    buildEnableRepositoryPayload repo
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeEnableRepository payload
+
+                currentRepo =
+                    RemoteData.withDefault defaultRepository rm.repo
+            in
+            ( { model
+                | sourceRepos = enableUpdate repo Loading model.sourceRepos
+                , repo = updateRepo rm <| RemoteData.succeed <| { currentRepo | enabling = Vela.Enabling }
+              }
+            , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
+            )
+
+        DisableRepo repo ->
+            let
+                currentRepo =
+                    RemoteData.withDefault defaultRepository rm.repo
+
+                ( status, action ) =
+                    case repo.enabling of
+                        Vela.Enabled ->
+                            ( Vela.ConfirmDisable, Cmd.none )
+
+                        Vela.ConfirmDisable ->
+                            ( Vela.Disabling, Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo )
+
+                        _ ->
+                            ( repo.enabling, Cmd.none )
+            in
+            ( { model
+                | repo = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = status } }
+              }
+            , action
+            )
+
+        ChownRepo repo ->
+            ( model, Api.try (RepoChownedResponse repo) <| Api.chownRepo model repo )
+
+        RepairRepo repo ->
+            ( model, Api.try (RepoRepairedResponse repo) <| Api.repairRepo model repo )
+
+        UpdateRepoEvent org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoBoolPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+
+                cmd =
+                    if Pages.RepoSettings.validEventsUpdate rm.repo payload then
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        addErrorString "Could not disable webhook event. At least one event must be active." HandleError
+            in
+            ( model
+            , cmd
+            )
+
+        UpdateRepoAccess org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoStringPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+
+                cmd =
+                    if Pages.RepoSettings.validAccessUpdate rm.repo payload then
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        Cmd.none
+            in
+            ( model
+            , cmd
+            )
+
+        UpdateRepoTimeout org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoIntPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+            in
+            ( model
+            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            )
+
         RestartBuild org repo buildNumber ->
             ( model
             , restartBuild model org repo buildNumber
             )
 
-        HandleError error ->
-            ( model, Cmd.none )
-                |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
+        GetPipelineConfig org repo buildNumber ref expansionToggle ->
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | expanding = True
+                    }
+              }
+            , Cmd.batch
+                [ getPipelineConfig model org repo ref
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo buildNumber ref Nothing Nothing
+                ]
+            )
+
+        ExpandPipelineConfig org repo buildNumber ref expansionToggle ->
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | expanding = True
+                    }
+              }
+            , Cmd.batch
+                [ expandPipelineConfig model org repo ref
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo buildNumber ref (Just "true") Nothing
+                ]
+            )
+
+        -- Inbound HTTP responses
+        UserResponse response ->
+            case response of
+                Ok ( _, user ) ->
+                    let
+                        currentSession : Session
+                        currentSession =
+                            Maybe.withDefault defaultSession model.session
+
+                        session : Session
+                        session =
+                            { currentSession | username = user.username, token = user.token }
+
+                        redirectTo : String
+                        redirectTo =
+                            case session.entrypoint of
+                                "" ->
+                                    Routes.routeToUrl Routes.Overview
+
+                                _ ->
+                                    session.entrypoint
+                    in
+                    ( { model | session = Just session }
+                    , Cmd.batch
+                        [ Interop.storeSession <| encodeSession session
+                        , Navigation.pushUrl model.navigationKey redirectTo
+                        ]
+                    )
+
+                Err error ->
+                    ( { model | session = Nothing }
+                    , Cmd.batch
+                        [ addError error
+                        , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
+                        ]
+                    )
+
+        CurrentUserResponse response ->
+            case response of
+                Ok ( _, user ) ->
+                    ( { model | user = RemoteData.succeed user }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | user = toFailure error }, addError error )
+
+        SourceRepositoriesResponse response ->
+            case response of
+                Ok ( _, repositories ) ->
+                    ( { model | sourceRepos = RemoteData.succeed repositories }, Util.dispatch <| FocusOn "global-search-input" )
+
+                Err error ->
+                    ( { model | sourceRepos = toFailure error }, addError error )
+
+        RepoFavoritedResponse favorite favorited response ->
+            case response of
+                Ok ( _, user ) ->
+                    ( { model | user = RemoteData.succeed user }
+                    , Cmd.none
+                    )
+                        |> (if favorited then
+                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " added to favorites.") Nothing)
+
+                            else
+                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " removed from favorites.") Nothing)
+                           )
+
+                Err error ->
+                    ( { model | user = toFailure error }, addError error )
+
+        RepoResponse response ->
+            case response of
+                Ok ( _, repoResponse ) ->
+                    ( { model | repo = updateRepo rm <| RemoteData.succeed repoResponse }, Cmd.none )
+
+                Err error ->
+                    ( { model | repo = updateRepo rm <| toFailure error }, addError error )
+
+        RepoEnabledResponse repo response ->
+            let
+                currentRepo =
+                    RemoteData.withDefault defaultRepository rm.repo
+            in
+            case response of
+                Ok ( _, enabledRepo ) ->
+                    ( { model
+                        | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
+                        , repo = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled } }
+                      }
+                    , Util.dispatch <| ToggleFavorite repo.org <| Just repo.name
+                    )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
+
+                Err error ->
+                    let
+                        ( sourceRepos, action ) =
+                            repoEnabledError model.sourceRepos repo error
+                    in
+                    ( { model | sourceRepos = sourceRepos }, action )
+
+        RepoDisabledResponse repo response ->
+            let
+                currentRepo =
+                    RemoteData.withDefault defaultRepository rm.repo
+            in
+            case response of
+                Ok _ ->
+                    ( { model
+                        | repo = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Disabled } }
+                        , sourceRepos = enableUpdate repo NotAsked model.sourceRepos
+                      }
+                    , Cmd.none
+                    )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " disabled.") Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        RepoUpdatedResponse field response ->
+            case response of
+                Ok ( _, updatedRepo ) ->
+                    ( { model | repo = { rm | repo = RemoteData.succeed updatedRepo } }, Cmd.none )
+                        |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
+
+                Err error ->
+                    ( { model | repo = { rm | repo = toFailure error } }, addError error )
+
+        RepoChownedResponse repo response ->
+            case response of
+                Ok _ ->
+                    ( model, Cmd.none )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("You are now the owner of " ++ repo.full_name) Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        RepoRepairedResponse repo response ->
+            let
+                currentRepo =
+                    RemoteData.withDefault defaultRepository rm.repo
+            in
+            case response of
+                Ok _ ->
+                    -- TODO: could 'refresh' settings page instead
+                    ( { model
+                        | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
+                        , repo = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled } }
+                      }
+                    , Cmd.none
+                    )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " has been repaired.") Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        RestartedBuildResponse org repo buildNumber response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        restartedBuild =
+                            "Build " ++ String.join "/" [ org, repo, buildNumber ]
+
+                        newBuildNumber =
+                            String.fromInt <| build.number
+
+                        newBuild =
+                            String.join "/" [ "", org, repo, newBuildNumber ]
+                    in
+                    ( model
+                    , getBuilds model org repo Nothing Nothing Nothing
+                    )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
+
+                Err error ->
+                    ( model, addError error )
+
+        BuildsResponse org repo response ->
+            let
+                currentBuilds =
+                    rm.builds
+            in
+            case response of
+                Ok ( meta, builds ) ->
+                    let
+                        pager =
+                            Pagination.get meta.headers
+                    in
+                    ( { model
+                        | repo =
+                            { rm
+                                | builds =
+                                    { currentBuilds
+                                        | builds = RemoteData.succeed builds
+                                        , pager = pager
+                                    }
+                                , org = org
+                                , name = repo
+                            }
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | repo = updateBuilds rm { currentBuilds | builds = toFailure error } }, addError error )
 
         HooksResponse _ _ response ->
             let
@@ -1240,75 +1053,243 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateHooks rm <| toFailure error }, addError error )
 
-        AlertsUpdate subMsg ->
-            Alerting.update Alerts.successConfig AlertsUpdate subMsg model
-
-        ClickedLink urlRequest ->
-            case urlRequest of
-                Browser.Internal url ->
-                    ( model, Navigation.pushUrl model.navigationKey <| Url.toString url )
-
-                Browser.External url ->
-                    ( model, Navigation.load url )
-
-        SearchSourceRepos org searchBy ->
-            let
-                filters =
-                    Dict.update org (\_ -> Just searchBy) model.filters
-            in
-            ( { model | filters = filters }, Cmd.none )
-
-        SearchFavorites searchBy ->
-            ( { model | favoritesFilter = searchBy }, Cmd.none )
-
-        ChangeRepoTimeout inTimeout ->
-            let
-                newTimeout =
-                    case String.toInt inTimeout of
-                        Just t ->
-                            Just t
-
-                        Nothing ->
-                            Just 0
-            in
-            ( { model | inTimeout = newTimeout }, Cmd.none )
-
-        RefreshSettings org repo ->
-            ( { model | inTimeout = Nothing, repo = updateRepo rm Loading }, Api.try RepoResponse <| Api.getRepo model org repo )
-
-        RefreshHooks org repo ->
-            ( { model | repo = updateHooks rm Loading }, getHooks model org repo Nothing Nothing )
-
-        RefreshSecrets engine type_ org key ->
-            let
-                secretsModel =
-                    model.secretsModel
-            in
-            case type_ of
-                Vela.RepoSecret ->
-                    ( { model | secretsModel = { secretsModel | repoSecrets = Loading } }
-                    , getRepoSecrets model Nothing Nothing engine org key
+        BuildResponse org repo _ response ->
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        builds =
+                            rm.builds
+                    in
+                    ( { model
+                        | repo =
+                            updateBuild
+                                { rm
+                                    | org = org
+                                    , name = repo
+                                }
+                            <|
+                                RemoteData.succeed build
+                        , favicon = statusToFavicon build.status
+                      }
+                    , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
 
-                Vela.OrgSecret ->
-                    ( { model | secretsModel = { secretsModel | orgSecrets = Loading } }
-                    , getOrgSecrets model Nothing Nothing engine org
+                Err error ->
+                    ( { model | repo = { rm | repo = toFailure error } }, addError error )
+
+        StepsResponse org repo buildNumber logFocus refresh response ->
+            case response of
+                Ok ( _, steps ) ->
+                    let
+                        mergedSteps =
+                            steps
+                                |> List.sortBy .number
+                                |> Pages.Build.Update.mergeSteps logFocus refresh rm.build.steps
+
+                        updatedModel =
+                            { model | repo = updateBuildSteps rm <| RemoteData.succeed mergedSteps }
+
+                        cmd =
+                            getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
+                    in
+                    ( updatedModel, cmd )
+
+                Err error ->
+                    ( model, addError error )
+
+        StepResponse _ _ _ _ response ->
+            case response of
+                Ok ( _, step ) ->
+                    ( updateStep model step, Cmd.none )
+
+                Err error ->
+                    ( model, addError error )
+
+        StepLogResponse stepNumber logFocus refresh response ->
+            case response of
+                Ok ( _, incomingLog ) ->
+                    let
+                        following =
+                            rm.build.followingStep /= 0
+
+                        onFollowedStep =
+                            rm.build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+
+                        ( steps, focusId ) =
+                            if following && refresh && onFollowedStep then
+                                ( rm.build.steps
+                                    |> RemoteData.unwrap rm.build.steps
+                                        (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
+                                , stepBottomTrackerFocusId <| String.fromInt rm.build.followingStep
+                                )
+
+                            else if not refresh then
+                                ( rm.build.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
+
+                            else
+                                ( rm.build.steps, "" )
+
+                        cmd =
+                            if not <| String.isEmpty focusId then
+                                Util.dispatch <| FocusOn <| focusId
+
+                            else
+                                Cmd.none
+                    in
+                    ( updateLogs { model | repo = updateBuildSteps rm steps } incomingLog
+                    , cmd
                     )
 
-                Vela.SharedSecret ->
-                    ( { model | secretsModel = { secretsModel | sharedSecrets = Loading } }
-                    , getSharedSecrets model Nothing Nothing engine org key
+                Err error ->
+                    ( model, addError error )
+
+        GetPipelineConfigResponse org repo ref response ->
+            case response of
+                Ok ( meta, config ) ->
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( RemoteData.succeed { data = config }, "" )
+                                , expanded = False
+                                , expanding = False
+                            }
+                      }
+                    , Cmd.none
                     )
 
-        AddSecretUpdate engine m ->
-            let
-                ( newModel, action ) =
-                    Pages.Secrets.Update.update model m
-            in
-            ( newModel
-            , action
-            )
+                Err error ->
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( toFailure error, detailedErrorToString error )
+                            }
+                      }
+                    , Errors.addError error HandleError
+                    )
 
+        ExpandPipelineConfigResponse org repo ref response ->
+            case response of
+                Ok ( _, config ) ->
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( RemoteData.succeed { data = config }, "" )
+                                , expanded = True
+                                , expanding = False
+                            }
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model
+                        | pipeline =
+                            { pipeline
+                                | config = ( Errors.toFailure error, detailedErrorToString error )
+                                , expanding = False
+                                , expanded = True
+                            }
+                      }
+                    , addError error
+                    )
+
+        GetPipelineTemplatesResponse org repo response ->
+            case response of
+                Ok ( meta, templates ) ->
+                    ( { model
+                        | templates = ( RemoteData.succeed templates, "" )
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | templates = ( toFailure error, detailedErrorToString error ) }, addError error )
+
+        SecretResponse response ->
+            case response of
+                Ok ( _, secret ) ->
+                    let
+                        secretsModel =
+                            model.secretsModel
+
+                        updatedSecretsModel =
+                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
+                    in
+                    ( { model | secretsModel = updatedSecretsModel }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( model, addError error )
+
+        AddSecretResponse response ->
+            case response of
+                Ok ( _, secret ) ->
+                    let
+                        secretsModel =
+                            model.secretsModel
+
+                        updatedSecretsModel =
+                            Pages.Secrets.Update.reinitializeSecretAdd secretsModel
+                    in
+                    ( { model | secretsModel = updatedSecretsModel }
+                    , Cmd.none
+                    )
+                        |> addSecretResponseAlert secret
+
+                Err error ->
+                    ( model, addError error )
+
+        UpdateSecretResponse response ->
+            case response of
+                Ok ( _, secret ) ->
+                    let
+                        secretsModel =
+                            model.secretsModel
+
+                        updatedSecretsModel =
+                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
+                    in
+                    ( { model | secretsModel = updatedSecretsModel }
+                    , Cmd.none
+                    )
+                        |> updateSecretResponseAlert secret
+
+                Err error ->
+                    ( model, addError error )
+
+        RepoSecretsResponse response ->
+            receiveSecrets model response Vela.RepoSecret
+
+        OrgSecretsResponse response ->
+            receiveSecrets model response Vela.OrgSecret
+
+        SharedSecretsResponse response ->
+            receiveSecrets model response Vela.SharedSecret
+
+        DeleteSecretResponse response ->
+            case response of
+                Ok ( _, r_string ) ->
+                    let
+                        secretsModel =
+                            model.secretsModel
+
+                        secretsType =
+                            secretTypeToString secretsModel.type_
+
+                        alertMessage =
+                            secretsModel.form.name ++ " removed from " ++ secretsType ++ " secrets."
+
+                        redirectTo =
+                            Pages.Secrets.Update.deleteSecretRedirect secretsModel
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        -- Time
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
             , Cmd.none
@@ -1340,6 +1321,27 @@ update msg model =
 
                 FiveSecondHidden data ->
                     ( model, refreshPageHidden model data )
+
+        -- Components
+        AddSecretUpdate engine m ->
+            let
+                ( newModel, action ) =
+                    Pages.Secrets.Update.update model m
+            in
+            ( newModel
+            , action
+            )
+
+        -- Other
+        HandleError error ->
+            ( model, Cmd.none )
+                |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
+
+        AlertsUpdate subMsg ->
+            Alerting.update Alerts.successConfig AlertsUpdate subMsg model
+
+        SessionChanged newSession ->
+            ( { model | session = newSession }, Cmd.none )
 
         FilterBuildEventBy maybeEvent org repo ->
             let
@@ -1396,6 +1398,12 @@ update msg model =
             in
             ( { model | visibility = visibility, shift = False }, cmd )
 
+        PushUrl url ->
+            ( model
+            , Navigation.pushUrl model.navigationKey url
+            )
+
+        -- NoOp
         NoOp ->
             ( model, Cmd.none )
 
@@ -2008,7 +2016,7 @@ buildMsgs =
     , expandStep = ExpandStep
     , logsMsgs =
         { focusLine = PushUrl
-        , download = DownloadLogs
+        , download = DownloadTextFile
         , focusOn = FocusOn
         , followStep = FollowStep
         }
@@ -3313,7 +3321,7 @@ expandPipelineConfig model org repo ref =
 -}
 getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> Cmd Msg
 getPipelineTemplates model org repo ref =
-    Api.try (PipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref
+    Api.try (GetPipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref
 
 
 
