@@ -22,6 +22,7 @@ type alias Resource =
 type alias ResourceID =
     String
 
+
 type alias FocusLineNumber msg =
     Int -> msg
 

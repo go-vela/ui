@@ -18,7 +18,8 @@ import Dict
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (toFavorite, updateFavorites)
 import FeatherIcons
-import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, focusFragmentToFocusId, lineRangeId, parseFocusFragment)
+import File.Download as Download
+import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, focusFragmentToFocusId, lineRangeId, parseFocusFragment, resourceFocusFragment)
 import Help.Commands
 import Help.View
 import Html
@@ -72,7 +73,7 @@ import Pages.Build.Logs
         , stepBottomTrackerFocusId
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (expandActiveStep)
+import Pages.Build.Update exposing (clickStep, expandActiveStep, isViewingStep, setAllStepViews)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -128,8 +129,8 @@ import Vela
         , Logs
         , Name
         , Org
-        , Pipeline
         , PipelineConfig
+        , PipelineModel
         , PipelineTemplates
         , Ref
         , RepairRepo
@@ -228,7 +229,7 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
-    , pipeline : Pipeline
+    , pipeline : PipelineModel
     , templates : PipelineTemplates
     }
 
@@ -376,8 +377,14 @@ type Msg
     | OnKeyUp String
     | VisibilityChanged Visibility
       -- Components
-    | BuildUpdate Pages.Build.Model.Msg
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
+    | ExpandStep Org Repo BuildNumber StepNumber
+    | PushUrl String
+    | DownloadLogs String String
+    | FollowStep Int
+    | ExpandAllSteps Org Repo BuildNumber
+    | CollapseAllSteps
+    | ClickBuildNavTab String
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -394,6 +401,101 @@ update msg model =
             model.pipeline
     in
     case msg of
+        ClickBuildNavTab route ->
+            ( model, Navigation.pushUrl model.navigationKey route )
+
+        ExpandStep org repo buildNumber stepNumber ->
+            let
+                build =
+                    rm.build
+
+                ( steps, fetchStepLogs ) =
+                    clickStep build.steps stepNumber
+
+                action =
+                    if fetchStepLogs then
+                        getBuildStepLogs model org repo buildNumber stepNumber Nothing True
+
+                    else
+                        Cmd.none
+
+                stepOpened =
+                    isViewingStep steps stepNumber
+
+                -- step clicked is step being followed
+                onFollowedStep =
+                    build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+
+                follow =
+                    if onFollowedStep && not stepOpened then
+                        -- stop following a step when collapsed
+                        0
+
+                    else
+                        build.followingStep
+            in
+            ( { model | repo = { rm | build = { build | steps = steps, followingStep = follow } } }
+            , Cmd.batch <|
+                [ action
+                , if stepOpened then
+                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
+
+                  else
+                    Cmd.none
+                ]
+            )
+
+        PushUrl url ->
+            ( model
+            , Navigation.pushUrl model.navigationKey url
+            )
+
+        DownloadLogs filename logs ->
+            ( model
+            , Download.string filename "text" logs
+            )
+
+        FollowStep step ->
+            let
+                build =
+                    rm.build
+            in
+            ( { model | repo = { rm | build = { build | followingStep = step } } }
+            , Cmd.none
+            )
+
+        CollapseAllSteps ->
+            let
+                build =
+                    rm.build
+
+                steps =
+                    build.steps
+                        |> RemoteData.unwrap build.steps
+                            (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
+            in
+            ( { model | repo = { rm | build = { build | steps = steps, followingStep = 0 } } }
+            , Cmd.none
+            )
+
+        ExpandAllSteps org repo buildNumber ->
+            let
+                build =
+                    rm.build
+
+                steps =
+                    RemoteData.unwrap build.steps
+                        (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
+                        build.steps
+
+                -- refresh logs for expanded steps
+                action =
+                    getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
+            in
+            ( { model | repo = { rm | build = { build | steps = steps } } }
+            , action
+            )
+
         FocusLineNumber line ->
             let
                 url =
@@ -1198,15 +1300,6 @@ update msg model =
                     , getSharedSecrets model Nothing Nothing engine org key
                     )
 
-        BuildUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Build.Update.update model m ( getBuildStepLogs, getBuildStepsLogs ) FocusResult
-            in
-            ( newModel
-            , action
-            )
-
         AddSecretUpdate engine m ->
             let
                 ( newModel, action ) =
@@ -1800,29 +1893,39 @@ viewContent model =
             , div []
                 [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , Html.map (\m -> BuildUpdate m) <|
-                    lazy6 Pages.Builds.view model.repo.builds model.time model.zone org repo maybeEvent
+                , lazy6 Pages.Builds.view model.repo.builds model.time model.zone org repo maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , Html.map (\m -> BuildUpdate m) <|
-                lazy3 Pages.Build.View.viewBuild
-                    model
-                    org
-                    repo
+            , Pages.Build.View.viewBuild
+                model
+                buildMsgs
+                org
+                repo
             )
 
         Pages.Pipeline org repo buildNumber ref expand lineFocus ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Pages.Pipeline.View.viewPipeline
-                model
-                { get = GetPipelineConfig, expand = ExpandPipelineConfig, focusLineNumber = FocusLineNumber }
-                org
-                repo
-                ref
+            , case buildNumber of
+                Just b ->
+                    Pages.Pipeline.View.viewPipeline
+                        model
+                        pipelineMsgs
+                        ref
+                        |> Pages.Build.View.wrapWithBuildPreview
+                            model
+                            buildMsgs
+                            org
+                            repo
+
+                Nothing ->
+                    Pages.Pipeline.View.viewPipeline
+                        model
+                        pipelineMsgs
+                        ref
             )
 
         Pages.Settings ->
@@ -1895,6 +1998,26 @@ viewBuildsFilter shouldRender org repo maybeEvent =
 
     else
         text ""
+
+
+buildMsgs : Pages.Build.Model.Msgs Msg
+buildMsgs =
+    { clickBuildNavTab = ClickBuildNavTab
+    , collapseAllSteps = CollapseAllSteps
+    , expandAllSteps = ExpandAllSteps
+    , expandStep = ExpandStep
+    , logsMsgs =
+        { focusLine = PushUrl
+        , download = DownloadLogs
+        , focusOn = FocusOn
+        , followStep = FollowStep
+        }
+    }
+
+
+pipelineMsgs : Pages.Pipeline.Model.Msgs Msg
+pipelineMsgs =
+    { get = GetPipelineConfig, expand = ExpandPipelineConfig, focusLineNumber = FocusLineNumber, clickNavTab = ClickBuildNavTab }
 
 
 viewLogin : Html Msg
@@ -2106,28 +2229,26 @@ setNewPage route model =
             loadRepoBuildsPage model org repo currentSession maybePage maybePerPage maybeEvent
 
         ( Routes.Build org repo buildNumber logFocus, True ) ->
-            setBuildFocusFragment logFocus <|
-                case model.page of
-                    Pages.Pipeline o r b _ _ _ ->
-                        loadBuildPage model org repo buildNumber logFocus False
+            case model.page of
+                Pages.Pipeline o r b _ _ _ ->
+                    loadBuildPage model org repo buildNumber logFocus False
 
-                    Pages.Build o r b _ ->
-                        if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
-                            let
-                                ( page, steps, action ) =
-                                    focusLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber logFocus getBuildStepsLogs
-                            in
-                            ( { model | page = page, repo = updateBuildSteps rm <| RemoteData.succeed steps }, action )
+                Pages.Build o r b _ ->
+                    if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                        let
+                            ( page, steps, action ) =
+                                focusLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber logFocus getBuildStepsLogs
+                        in
+                        ( { model | page = page, repo = updateBuildSteps rm <| RemoteData.succeed steps }, action )
 
-                        else
-                            loadBuildPage model org repo buildNumber logFocus True
-
-                    _ ->
+                    else
                         loadBuildPage model org repo buildNumber logFocus True
+
+                _ ->
+                    loadBuildPage model org repo buildNumber logFocus True
 
         ( Routes.Pipeline org repo buildNumber ref expand lineFocus, True ) ->
             let
-
                 loadPipeline =
                     let
                         ( loadedModel, loadAction ) =
@@ -2164,7 +2285,7 @@ setNewPage route model =
                             else
                                 loadPipeline
 
-                        Pages.Build o r b_  _ ->
+                        Pages.Build o r b_ _ ->
                             let
                                 pipeline =
                                     model.pipeline

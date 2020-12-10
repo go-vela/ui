@@ -14,7 +14,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (Ref,AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team)
 
 
 
@@ -70,7 +70,7 @@ routes =
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
-        , map Pipeline (string </> string </> s "pipeline"     <?> Query.string "build" <?> Query.string "ref"   <?> Query.string "expand" </> fragment identity)
+        , map Pipeline (string </> string </> s "pipeline" <?> Query.string "build" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
         , map Build (string </> string </> string </> fragment identity)
         , map NotFound (s "404")
         ]
@@ -147,7 +147,7 @@ routeToUrl route =
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" lineFocus
 
         Pipeline org repo buildNumber ref expand lineFocus ->
-            "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [maybeToQueryParam buildNumber "build", maybeToQueryParam ref "ref",  maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
+            "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam buildNumber "build", maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

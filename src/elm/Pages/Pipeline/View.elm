@@ -35,7 +35,8 @@ import List.Extra
 import Nav exposing (viewBuildNav)
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
-import Pages.Build.View exposing (viewLine)
+import Pages.Build.Model
+import Pages.Build.View exposing (viewLine, wrapWithBuildPreview)
 import Pages.Pipeline.Model exposing (Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
@@ -45,14 +46,16 @@ import Util
 import Vela
     exposing
         ( Build
+        , BuildNumber
         , LogFocus
         , Org
-        , Pipeline
         , PipelineConfig
+        , PipelineModel
+        , Ref
         , Repo
         , Status
         , Step
-        , Steps,Ref
+        , Steps
         , Template
         , Templates
         )
@@ -62,41 +65,10 @@ import Vela
 -- VIEW
 
 
-{-| viewPipeline : renders entire build based on current application time
+{-| viewPipeline : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.
 -}
-viewPipeline : PartialModel a -> Msgs msg -> Org -> Repo -> Maybe Ref -> Html msg
-viewPipeline model msgs org repo ref =
-    let
-        rm =
-            model.repo
-
-        build =
-            rm.build
-
-        ( buildPreview, navTabs ) =
-            case build.build of
-                RemoteData.Success bld ->
-                    ( Pages.Build.View.viewPreview model.time model.zone org repo bld, viewBuildNav model org repo bld model.page )
-
-                RemoteData.Loading ->
-                    ( Util.largeLoader, text "" )
-
-                _ ->
-                    ( text "", text "" )
-
-        markdown =
-            [ buildPreview
-            , navTabs
-            , viewPipeline_ model msgs ref 
-            ]
-    in
-    div [ Util.testAttribute "full-build" ] markdown
-
-
-{-| viewPipeline\_ : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.
--}
-viewPipeline_ : PartialModel a -> Msgs msg -> Maybe Ref-> Html msg
-viewPipeline_ model msgs ref =
+viewPipeline : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
+viewPipeline model msgs ref =
     div [ class "pipeline" ]
         [ viewPipelineTemplates model.templates
         , viewPipelineConfiguration model msgs ref
@@ -197,13 +169,13 @@ viewPipelineConfiguration model msgs ref =
             text ""
 
         _ ->
-            viewPipelineConfigurationResponse model msgs ref 
+            viewPipelineConfigurationResponse model msgs ref
 
 
 {-| viewPipelineConfiguration : takes model and renders view for a pipeline configuration.
 -}
-viewPipelineConfigurationResponse : PartialModel a ->  Msgs msg ->Maybe Ref-> Html msg
-viewPipelineConfigurationResponse model  msgs ref =
+viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
+viewPipelineConfigurationResponse model msgs ref =
     -- TODO: modularize logs rendering
     div [ class "logs-container", class "-pipeline" ]
         [ case model.pipeline.config of
@@ -220,7 +192,7 @@ viewPipelineConfigurationResponse model  msgs ref =
 
 {-| viewPipelineConfigurationData : takes model and config and renders view for a pipeline configuration's data.
 -}
-viewPipelineConfigurationData : PartialModel a -> Msgs msg ->Maybe Ref ->  PipelineConfig -> Html msg
+viewPipelineConfigurationData : PartialModel a -> Msgs msg -> Maybe Ref -> PipelineConfig -> Html msg
 viewPipelineConfigurationData model msgs ref config =
     wrapPipelineConfigurationContent model msgs ref (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
@@ -229,7 +201,7 @@ viewPipelineConfigurationData model msgs ref config =
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
 -}
-viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Maybe Ref ->  Error -> Html msg
+viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Maybe Ref -> Error -> Html msg
 viewPipelineConfigurationError model msgs ref err =
     wrapPipelineConfigurationContent model msgs ref (class "-error") <|
         div [ class "content", Util.testAttribute "pipeline-configuration-error" ]
@@ -238,18 +210,19 @@ viewPipelineConfigurationError model msgs ref err =
 
 {-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
 -}
-wrapPipelineConfigurationContent : PartialModel a -> Msgs msg ->Maybe Ref ->  Html.Attribute msg -> Html msg -> Html msg
-wrapPipelineConfigurationContent model { get, expand }  ref cls content =
+wrapPipelineConfigurationContent : PartialModel a -> Msgs msg -> Maybe Ref -> Html.Attribute msg -> Html msg -> Html msg
+wrapPipelineConfigurationContent model { get, expand } ref cls content =
     let
         body =
             [ div [ class "header" ]
                 [ span []
                     [ text "Pipeline Configuration"
-                       , case ref of 
-                            Just r ->
-                                span [ class "link" ] [ text <| "("++ r ++")" ]
-                            Nothing -> 
-                                text ""
+                    , case ref of
+                        Just r ->
+                            span [ class "link" ] [ text <| "(" ++ r ++ ")" ]
+
+                        Nothing ->
+                            text ""
                     ]
                 ]
             , viewTemplatesExpansion model get expand
@@ -288,7 +261,7 @@ viewTemplatesExpansion model get expand =
 
 {-| expandTemplatesToggleIcon : takes pipeline and renders icon for toggling templates expansion.
 -}
-expandTemplatesToggleIcon : Pipeline -> Html msg
+expandTemplatesToggleIcon : PipelineModel -> Html msg
 expandTemplatesToggleIcon pipeline =
     let
         wrapExpandTemplatesIcon : Icon -> Html msg
@@ -307,7 +280,7 @@ expandTemplatesToggleIcon pipeline =
 
 {-| expandTemplatesToggleButton : takes pipeline and renders button that toggles templates expansion.
 -}
-expandTemplatesToggleButton : Pipeline -> Get msg -> Expand msg -> Html msg
+expandTemplatesToggleButton : PipelineModel -> Get msg -> Expand msg -> Html msg
 expandTemplatesToggleButton pipeline get expand =
     let
         { org, repo, buildNumber, ref } =

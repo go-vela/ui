@@ -4,30 +4,32 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Get,Msgs,Expand, PartialModel)
+module Pages.Pipeline.Model exposing (Expand, Get, Msgs, PartialModel)
 
 import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
 import Errors exposing (Error)
+import Focus exposing (FocusLineNumber)
 import Http
 import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
-import Time exposing (Zone,Posix)
+import Time exposing (Posix, Zone)
 import Toasty as Alerting exposing (Stack)
 import Vela
     exposing
         ( Build
+        , BuildNumber
+        , CurrentUser
         , Org
-        , Pipeline
+        , PipelineModel
         , Repo
-        , RepoModel,SourceRepositories,CurrentUser
+        , RepoModel
         , Session
+        , SourceRepositories
         , Steps
         , Templates
         )
-import Vela exposing (BuildNumber)
-import Focus exposing (FocusLineNumber)
 
 
 
@@ -36,7 +38,7 @@ import Focus exposing (FocusLineNumber)
 
 {-| PartialModel : an abbreviated version of the main model
 -}
-type alias PartialModel a   =
+type alias PartialModel a =
     { a
         | velaAPI : String
         , session : Maybe Session
@@ -46,23 +48,25 @@ type alias PartialModel a   =
         , repo : RepoModel
         , shift : Bool
         , templates : ( WebData Templates, Error )
-        , pipeline : Pipeline
+        , pipeline : PipelineModel
         , page : Page
         , toasties : Stack Alert
         , sourceRepos : WebData SourceRepositories
         , user : WebData CurrentUser
     }
 
+
 type alias Msgs msg =
-    {
-        get : Get msg
-        , expand : Expand msg
-        , focusLineNumber : FocusLineNumber msg
+    { get : Get msg
+    , expand : Expand msg
+    , focusLineNumber : FocusLineNumber msg
+    , clickNavTab : String -> msg
     }
 
-type alias Get msg = 
-    Org -> Repo -> (Maybe BuildNumber) -> (Maybe String) -> Bool-> msg
+
+type alias Get msg =
+    Org -> Repo -> Maybe BuildNumber -> Maybe String -> Bool -> msg
 
 
-type alias Expand msg = 
-    Org -> Repo -> (Maybe BuildNumber) -> (Maybe String) -> Bool-> msg
+type alias Expand msg =
+    Org -> Repo -> Maybe BuildNumber -> Maybe String -> Bool -> msg

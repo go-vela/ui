@@ -4,19 +4,17 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandActiveStep, mergeSteps, update)
+module Pages.Build.Update exposing (..)
 
 import Api
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
-import File.Download as Download
 import Focus exposing (resourceFocusFragment)
 import List.Extra
 import Pages.Build.Logs exposing (focusStep)
 import Pages.Build.Model
     exposing
         ( GetLogs
-        , Msg(..)
         , PartialModel
         )
 import RemoteData exposing (RemoteData(..), WebData)
@@ -33,100 +31,7 @@ import Vela
 
 
 
--- UPDATE
-
-
-update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> ( PartialModel a, Cmd msg )
-update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
-    let
-        rm =
-            model.repo
-
-        build =
-            rm.build
-    in
-    case msg of
-        ExpandStep org repo buildNumber stepNumber ->
-            let
-                ( steps, fetchStepLogs ) =
-                    clickStep build.steps stepNumber
-
-                action =
-                    if fetchStepLogs then
-                        getBuildStepLogs model org repo buildNumber stepNumber Nothing True
-
-                    else
-                        Cmd.none
-
-                stepOpened =
-                    isViewingStep steps stepNumber
-
-                -- step clicked is step being followed
-                onFollowedStep =
-                    build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
-
-                follow =
-                    if onFollowedStep && not stepOpened then
-                        -- stop following a step when collapsed
-                        0
-
-                    else
-                        build.followingStep
-            in
-            ( { model | repo = { rm | build = { build | steps = steps, followingStep = follow } } }
-            , Cmd.batch <|
-                [ action
-                , if stepOpened then
-                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
-
-                  else
-                    Cmd.none
-                ]
-            )
-
-        FocusLogs url ->
-            ( model
-            , Navigation.pushUrl model.navigationKey url
-            )
-
-        DownloadLogs filename logs ->
-            ( model
-            , Download.string filename "text" logs
-            )
-
-        FollowStep step ->
-            ( { model | repo = { rm | build = { build | followingStep = step } } }
-            , Cmd.none
-            )
-
-        CollapseAllSteps ->
-            let
-                steps =
-                    build.steps
-                        |> RemoteData.unwrap build.steps
-                            (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
-            in
-            ( { model | repo = { rm | build = { build | steps = steps, followingStep = 0 } } }
-            , Cmd.none
-            )
-
-        ExpandAllSteps org repo buildNumber ->
-            let
-                steps =
-                    RemoteData.unwrap build.steps
-                        (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
-                        build.steps
-
-                -- refresh logs for expanded steps
-                action =
-                    getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
-            in
-            ( { model | repo = { rm | build = { build | steps = steps } } }
-            , action
-            )
-
-        FocusOn id ->
-            ( model, Dom.focus id |> Task.attempt focusResult )
+-- UPDATE HELPERS
 
 
 {-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs

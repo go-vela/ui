@@ -24,7 +24,6 @@ import Array
 import Focus exposing (parseFocusFragment, resourceFocusFragment)
 import List.Extra exposing (updateIf)
 import Pages exposing (Page)
-import Pages.Build.Model exposing (Msg(..))
 import RemoteData exposing (WebData)
 import Vela
     exposing

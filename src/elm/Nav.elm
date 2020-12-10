@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, viewNav, viewUtil,viewBuildNav)
+module Nav exposing (Msgs, viewBuildNav, viewNav, viewUtil)
 
 import Browser.Events exposing (Visibility(..))
 import Crumbs
@@ -15,10 +15,14 @@ import Html
         ( Html
         , a
         , button
-        , div,p,ul,li,em
+        , div
+        , em
+        , li
         , nav
+        , p
         , span
         , text
+        , ul
         )
 import Html.Attributes
     exposing
@@ -41,14 +45,15 @@ import Vela
     exposing
         ( Build
         , BuildNumber
+        , Builds
         , CurrentUser
         , Engine
         , Org
+        , PipelineModel
         , Repo
         , RepoModel
-        , Builds
         , SecretType
-        , SourceRepositories,Pipeline
+        , SourceRepositories
         )
 
 
@@ -60,7 +65,7 @@ type alias PartialModel a =
         , repo : RepoModel
         , time : Posix
         , zone : Zone
-        , pipeline : Pipeline
+        , pipeline : PipelineModel
     }
 
 
@@ -74,10 +79,20 @@ type alias Msgs msg =
     }
 
 
-{-| Tab : record to represent information used by page navigation tab
+{-| Tab : record to represent information used by page navigation tab via anchor link
 -}
 type alias Tab =
     { name : String
+    , currentPage : Page
+    , toPage : Page
+    }
+
+
+{-| ButtonTab : record to represent information used by page navigation tab via button
+-}
+type alias ButtonTab msg =
+    { name : String
+    , onClick : Html.Attribute msg
     , currentPage : Page
     , toPage : Page
     }
@@ -189,9 +204,10 @@ viewUtil model =
             Pages.RepoSettings org repo ->
                 viewRepoTabs rm model.page
 
-            Pages.Pipeline org repo buildNumber ref _ _   ->
+            Pages.Pipeline org repo buildNumber ref _ _ ->
                 viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
-            _ -> 
+
+            _ ->
                 text ""
         ]
 
@@ -207,6 +223,17 @@ viewTabs tabs testLabel =
         |> div [ class "jump-bar", Util.testAttribute testLabel ]
 
 
+{-| viewButtonTabs : takes list of tab records and renders them with spacers and horizontal filler
+-}
+viewButtonTabs : List (ButtonTab msg) -> String -> Html msg
+viewButtonTabs tabs testLabel =
+    tabs
+        |> List.map viewTabButton
+        |> List.intersperse viewSpacer
+        |> (\t -> t ++ [ viewFiller ])
+        |> div [ class "jump-bar", Util.testAttribute testLabel ]
+
+
 {-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style
 -}
 viewTab : Tab -> Html msg
@@ -215,6 +242,21 @@ viewTab { name, currentPage, toPage } =
         [ class "jump"
         , viewingTab currentPage toPage
         , Routes.href <| Pages.toRoute toPage
+        , Util.testAttribute <| "jump-" ++ name
+        ]
+        [ text name ]
+
+
+{-| viewTabButton : takes single tab record and renders jump link as a button, uses current page to display conditional style
+-}
+viewTabButton : ButtonTab msg -> Html msg
+viewTabButton { name, currentPage, toPage, onClick } =
+    button
+        [ class "jump-button"
+        , class "button"
+        , class "link"
+        , viewingTab currentPage toPage
+        , onClick
         , Util.testAttribute <| "jump-" ++ name
         ]
         [ text name ]
@@ -274,23 +316,50 @@ viewRepoTabs rm currentPage =
 -- BUILD
 
 
-viewBuildNav : PartialModel a -> Org -> Repo -> Build -> Page -> Html msg
-viewBuildNav model org repo build currentPage =
+viewBuildNav : PartialModel a -> Org -> Repo -> Build -> (String -> msg) -> Page -> Html msg
+viewBuildNav model org repo build onClickRoute currentPage =
     let
-        buildNumber = String.fromInt build.number
+        buildNumber =
+            String.fromInt build.number
 
-        bm = model.repo.build
-        pipeline = model.pipeline
+        bm =
+            model.repo.build
+
+        pipeline =
+            model.pipeline
+
+        t =
+            { build =
+                { route = Routes.Build org repo buildNumber bm.focusFragment
+                , to = Pages.Build org repo buildNumber bm.focusFragment
+                }
+            , pipeline =
+                { route =
+                    Routes.Pipeline org
+                        repo
+                        (Just buildNumber)
+                        (Just build.commit)
+                        Nothing
+                        pipeline.focusFragment
+                , to = Pages.Pipeline org repo (Just buildNumber) (Just build.commit) Nothing pipeline.focusFragment
+                }
+            }
+
         tabs =
-            [ Tab "Build" currentPage <| Pages.Build org repo buildNumber bm.focusFragment
+            [ ButtonTab "Build" (onClick <| onClickRoute <| Routes.routeToUrl <| t.build.route) currentPage t.build.to
+
             -- , Tab "Services" currentPage <| Pages.Build  rm.org rm.name rm.build.buildNumber Nothing
-            , Tab "Pipeline" currentPage <| Pages.Pipeline  org repo (Just buildNumber) (Just build.commit) Nothing pipeline.focusFragment
-            -- , Tab "Troubleshooting" currentPage <| Pages.Pipeline  rm.org rm.name (Just "master") Nothing Nothing
+            , ButtonTab "Pipeline" (onClick <| onClickRoute <| Routes.routeToUrl <| t.pipeline.route) currentPage t.pipeline.to
+
+            -- , ButtonTab "Troubleshooting" (onClick <| onClickRoute <| Routes.routeToUrl <| t.pipeline.route) currentPage t.pipeline.to
             ]
     in
-    viewTabs tabs "jump-bar-build"
+    viewButtonTabs tabs "jump-bar-build"
+
+
 
 -- RECENT BUILDS
+
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
 -}
@@ -301,35 +370,34 @@ viewBuildHistory now timezone page org repo builds limit =
             case page of
                 Pages.Build _ _ b _ ->
                     Maybe.withDefault -1 <| String.toInt b
+
                 Pages.Pipeline _ _ b _ _ _ ->
                     Maybe.withDefault -1 <| String.toInt <| Maybe.withDefault "" b
 
                 _ ->
                     -1
     in
-        case builds of
-            RemoteData.Success blds ->
-                if List.length blds > 0 then
-                    div [ class "build-history" ]
-                        [ p [ class "build-history-title" ] [ text "Recent Builds" ]
-                        , ul [ Util.testAttribute "build-history", class "previews" ] <|
-                            List.indexedMap (viewRecentBuild now timezone page org repo buildNumber) <|
-                                List.take limit blds
-                        ]
+    case builds of
+        RemoteData.Success blds ->
+            if List.length blds > 0 then
+                div [ class "build-history" ]
+                    [ p [ class "build-history-title" ] [ text "Recent Builds" ]
+                    , ul [ Util.testAttribute "build-history", class "previews" ] <|
+                        List.indexedMap (viewRecentBuild now timezone page org repo buildNumber) <|
+                            List.take limit blds
+                    ]
 
-                else
-                    text ""
-
-            RemoteData.Loading ->
-                div [ class "build-history" ] [ Util.smallLoader ]
-
-            RemoteData.NotAsked ->
-                div [ class "build-history" ] [ Util.smallLoader ]
-
-            _ ->
+            else
                 text ""
 
+        RemoteData.Loading ->
+            div [ class "build-history" ] [ Util.smallLoader ]
 
+        RemoteData.NotAsked ->
+            div [ class "build-history" ] [ Util.smallLoader ]
+
+        _ ->
+            text ""
 
 
 {-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget
@@ -370,14 +438,15 @@ recentBuildLink page org repo buildNumber build idx =
         [ class "recent-build-link"
         , Util.testAttribute <| "recent-build-link-" ++ String.fromInt buildNumber
         , currentBuildClass
-        , case page of 
+        , case page of
             Pages.Build _ _ _ _ ->
                 Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
+
             Pages.Pipeline _ _ _ _ _ _ ->
                 Routes.href <| Routes.Pipeline org repo (Just <| String.fromInt build.number) (Just build.commit) Nothing Nothing
+
             _ ->
                 Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
-
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
         ]
         [ icon
@@ -412,4 +481,3 @@ recentBuildTooltip now timezone build =
 viewTooltipField : String -> String -> Html msg
 viewTooltipField key value =
     li [ class "line" ] [ span [] [ text key ], text value ]
-

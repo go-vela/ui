@@ -16,7 +16,7 @@ module Vela exposing
     , Copy
     , CurrentUser
     , DisableRepo
-    , EnableRepo,updateBuildFocusFragment
+    , EnableRepo
     , EnableRepos
     , EnableRepositoryPayload
     , Enabled
@@ -36,8 +36,8 @@ module Vela exposing
     , Logs
     , Name
     , Org
-    , Pipeline
     , PipelineConfig
+    , PipelineModel
     , PipelineTemplates
     , Ref
     , RepairRepo
@@ -118,6 +118,7 @@ module Vela exposing
     , toMaybeSecretType
     , toSecretType
     , updateBuild
+    , updateBuildFocusFragment
     , updateBuildLogs
     , updateBuildSteps
     , updateBuilds
@@ -731,13 +732,13 @@ buildUpdateRepoIntPayload field value =
 -- PIPELINE
 
 
-type alias Pipeline =
+type alias PipelineModel =
     { config : ( WebData PipelineConfig, Error )
     , expanded : Bool
     , expanding : Bool
     , org : Org
     , repo : Repo
-    , buildNumber : (Maybe BuildNumber)
+    , buildNumber : Maybe BuildNumber
     , ref : Maybe Ref
     , expand : Maybe String
     , lineFocus : LogFocus
@@ -745,9 +746,9 @@ type alias Pipeline =
     }
 
 
-defaultPipeline : Pipeline
+defaultPipeline : PipelineModel
 defaultPipeline =
-    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing ) Nothing
+    PipelineModel ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =
