@@ -1,9 +1,9 @@
 {
   "id": 205,
   "user_id": 7,
-  "org": "cat",
-  "name": "purr",
-  "full_name": "cat/purr",
+  "org": "github",
+  "name": "octocat",
+  "full_name": "github/octocat",
   "link": "",
   "clone": "",
   "branch": "master",

@@ -115,8 +115,8 @@ context('Repo Settings', () => {
     it('clicking button should prompt disable confirmation', () => {
       cy.route({
         method: 'DELETE',
-        url: '*api/v1/repos/DavidVader/**',
-        response: `"Repo DavidVader/applications deleted"`,
+        url: '*api/v1/repos/CookieCat/**',
+        response: `"Repo CookieCat/applications deleted"`,
       });
       cy.get('[data-test=repo-disable]').first().click({ force: true });
       cy.get('[data-test=repo-disable]').should('contain', 'Really Disable?');
@@ -125,8 +125,8 @@ context('Repo Settings', () => {
     it('clicking button twice should disable the repo', () => {
       cy.route({
         method: 'DELETE',
-        url: '*api/v1/repos/DavidVader/**',
-        response: `"Repo DavidVader/applications deleted"`,
+        url: '*api/v1/repos/CookieCat/**',
+        response: `"Repo CookieCat/applications deleted"`,
       });
       cy.get('[data-test=repo-disable]')
         .first()

@@ -10,7 +10,7 @@ context('Build', () => {
       cy.stubBuildErrors();
       cy.stubBuildsErrors();
       cy.stubStepsErrors();
-      cy.login('/someorg/somerepo/1');
+      cy.login('/github/octocat/1');
     });
     it('error alert should show', () => {
       cy.get('[data-test=alerts]').should('exist').contains('Error');
@@ -20,7 +20,7 @@ context('Build', () => {
     beforeEach(() => {
       cy.server();
       cy.route('GET', '*api/v1/repos/*/*/builds*', 'fixture:builds_5.json');
-      cy.login('/someorg/somerepo/1');
+      cy.login('/github/octocat/1');
       cy.get('[data-test=build-history]').as('buildHistory');
     });
 
@@ -35,7 +35,7 @@ context('Build', () => {
 
     it('clicking build history item should redirect to build page', () => {
       cy.get('[data-test=recent-build-link-1]').children().last().click();
-      cy.location('pathname').should('eq', '/someorg/somerepo/105');
+      cy.location('pathname').should('eq', '/github/octocat/105');
     });
   });
 
@@ -47,7 +47,7 @@ context('Build', () => {
         url: 'api/v1/repos/*/*/builds?page=1&per_page=100',
         response: [],
       });
-      cy.login('/someorg/somerepo/1');
+      cy.login('/github/octocat/1');
     });
 
     it('build history should not show', () => {
@@ -60,7 +60,7 @@ context('Build', () => {
       cy.server();
       cy.stubBuild();
       cy.stubBuilds();
-      cy.login('/someorg/somerepo/1');
+      cy.login('/github/octocat/1');
     });
 
     context('server returning 55 builds', () => {
@@ -79,7 +79,7 @@ context('Build', () => {
 
       it('clicking build history item should redirect to build page', () => {
         cy.get('[data-test=recent-build-link-1]').children().last().click();
-        cy.location('pathname').should('eq', '/someorg/somerepo/10');
+        cy.location('pathname').should('eq', '/github/octocat/10');
       });
 
       context('hover build history item', () => {
@@ -134,14 +134,14 @@ context('Build', () => {
         cy.get('@restartBuild').click();
         cy.get('[data-test=alert]').should(
           'contain',
-          'someorg/somerepo/1 restarted',
+          'github/octocat/1 restarted',
         );
       });
 
       it('clicking restarted build link should redirect to Build page', () => {
         cy.get('@restartBuild').click({ force: true });
         cy.get('[data-test=alert-hyperlink]').click({ force: true });
-        cy.location('pathname').should('eq', '/someorg/somerepo/2');
+        cy.location('pathname').should('eq', '/github/octocat/2');
       });
     });
 
@@ -166,7 +166,7 @@ context('Build', () => {
 
     context('visit running build', () => {
       beforeEach(() => {
-        cy.visit('/someorg/somerepo/1');
+        cy.visit('/github/octocat/1');
         cy.get('[data-test=full-build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
@@ -202,7 +202,7 @@ context('Build', () => {
 
     context('visit pending build', () => {
       beforeEach(() => {
-        cy.visit('/someorg/somerepo/2');
+        cy.visit('/github/octocat/2');
         cy.get('[data-test=full-build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
@@ -214,7 +214,7 @@ context('Build', () => {
 
     context('visit success build', () => {
       beforeEach(() => {
-        cy.visit('/someorg/somerepo/3');
+        cy.visit('/github/octocat/3');
         cy.get('[data-test=full-build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
@@ -226,7 +226,7 @@ context('Build', () => {
 
     context('visit failure build', () => {
       beforeEach(() => {
-        cy.visit('/someorg/somerepo/4');
+        cy.visit('/github/octocat/4');
         cy.get('[data-test=full-build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
@@ -238,7 +238,7 @@ context('Build', () => {
 
     context('visit build with server error', () => {
       beforeEach(() => {
-        cy.visit('/someorg/somerepo/5');
+        cy.visit('/github/octocat/5');
         cy.get('[data-test=full-build]').as('build');
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
