@@ -13,6 +13,7 @@ context('Source Repositories', () => {
         'fixture:source_repositories.json',
       ).as('sourceRepos');
       cy.route('POST', '*api/v1/repos*', 'fixture:enable_repo_response.json');
+      cy.route('PUT', '*api/v1/repos*', 'fixture:enable_repo_response.json');
       cy.login('/account/source-repos');
     });
 
@@ -36,10 +37,10 @@ context('Source Repositories', () => {
     });
 
     it('shows the enabled label when a repo is enabled', () => {
-      cy.get('[data-test=source-org-cat]').click();
-      cy.get('[data-test=enable-cat-purr]').click();
+      cy.get('[data-test=source-org-github]').click();
+      cy.get('[data-test=enable-github-octocat]').click();
 
-      cy.get('[data-test=enabled-cat-purr]')
+      cy.get('[data-test=enabled-github-octocat]')
         .first()
         .should('be.visible')
         .and('contain', 'Enabled');
@@ -76,15 +77,15 @@ context('Source Repositories', () => {
       cy.get('[data-test=source-org-github]').click();
       cy.get('[data-test=enable-org-github]').click({ force: true });
 
-      cy.get('[data-test=source-repo-octocat]')
-        .should('be.visible')
-        .and('contain', 'Enabling');
-
       cy.get('[data-test=source-repo-octocat-1]')
         .should('be.visible')
         .and('contain', 'Enabling');
 
       cy.get('[data-test=source-repo-octocat-2]')
+        .should('be.visible')
+        .and('contain', 'Enabling');
+
+      cy.get('[data-test=source-repo-server]')
         .should('be.visible')
         .and('contain', 'Enabling');
     });

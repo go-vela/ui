@@ -9,7 +9,7 @@ context('Steps', () => {
       cy.server();
       cy.stubBuild();
       cy.stubStepsWithLogsAndSkipped();
-      cy.login('/someorg/somerepo/1');
+      cy.login('/github/octocat/1');
       cy.get('[data-test=steps]').as('steps');
       cy.get('[data-test=step]').as('step');
       cy.clickSteps();
@@ -145,8 +145,8 @@ context('Steps', () => {
     });
     context('visit Build, then visit log line with fragment', () => {
       beforeEach(() => {
-        cy.visit('/someorg/somerepo/1');
-        cy.visit('/someorg/somerepo/1#step:2:2');
+        cy.visit('/github/octocat/1');
+        cy.visit('/github/octocat/1#step:2:2');
         cy.reload();
       });
       it('line should be highlighted', () => {
@@ -158,8 +158,8 @@ context('Steps', () => {
     });
     context('visit Build, with only step fragment', () => {
       beforeEach(() => {
-        cy.visit('/someorg/somerepo/1');
-        cy.visit('/someorg/somerepo/1#step:2');
+        cy.visit('/github/octocat/1');
+        cy.visit('/github/octocat/1#step:2');
         cy.reload();
       });
       it('range start line should not be highlighted', () => {
@@ -201,8 +201,8 @@ context('Steps', () => {
     });
     context('visit Build, then visit log line range with fragment', () => {
       beforeEach(() => {
-        cy.visit('/someorg/somerepo/1');
-        cy.visit('/someorg/somerepo/1#step:2:2:5');
+        cy.visit('/github/octocat/1');
+        cy.visit('/github/octocat/1#step:2:2:5');
         cy.reload();
         cy.wait('@getLogs-2');
       });
@@ -229,14 +229,14 @@ context('Steps', () => {
       'visit Build, click log line, then visit log line with fragment',
       () => {
         beforeEach(() => {
-          cy.visit('/someorg/somerepo/1');
+          cy.visit('/github/octocat/1');
           cy.clickSteps();
           cy.get('[data-test=log-line-2-2]').as('line2:2');
           cy.get('[data-test=log-line-num-2-2]').as('lineNumber2:2');
           cy.get('[data-test=log-line-3-3]').as('line3:3');
           cy.get('[data-test=log-line-num-3-3]').as('lineNumber3:3');
           cy.get('@lineNumber3:3').click({ force: true });
-          cy.visit('/someorg/somerepo/1#step:2:2');
+          cy.visit('/github/octocat/1#step:2:2');
           cy.reload();
         });
         it('original line should not be highlighted', () => {
@@ -268,7 +268,7 @@ context('Steps', () => {
       cy.server();
       cy.stubBuild();
       cy.stubStepsWithErrorLogs();
-      cy.login('/someorg/somerepo/5');
+      cy.login('/github/octocat/5');
 
       // load logs
       cy.clickSteps();
@@ -316,7 +316,7 @@ context('Steps', () => {
         status: 200,
         response: '@steps',
       });
-      cy.login('/someorg/somerepo/5');
+      cy.login('/github/octocat/5');
     });
 
     it('build should contain stages', () => {
