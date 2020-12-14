@@ -246,7 +246,7 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
 
-                Pages.Build org repo buildNumber logFocus ->
+                Pages.Build org repo buildNumber logFocus  v ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -254,10 +254,10 @@ toPath page =
                     [ overviewPage
                     , organizationPage
                     , ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                    , ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus )
+                    , ( "#" ++ buildNumber, Nothing )
                     ]
 
-                Pages.Pipeline org repo buildNumber ref expand _ ->
+                Pages.Pipeline org repo   ref expand _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -270,6 +270,20 @@ toPath page =
                     , repoBuildsPage
 
                     -- , ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber Nothing )
+                    ]
+                Pages.BuildPipeline org repo  buildNumber ref expand _ ->
+                    let
+                        organizationPage =
+                            ( org, Nothing )
+
+                        repoBuildsPage =
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                    in
+                    [ overviewPage
+                    , organizationPage
+                    , repoBuildsPage
+
+                    , ( "#" ++ buildNumber,  Nothing )
                     ]
 
                 Pages.Login ->

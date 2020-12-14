@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Build.Logs exposing
     ( SetLogFocus
     , decodeAnsi
-    , focusLogs
+    , focusStepLogs
     , focusStep
     , getCurrentStep
     , getDownloadLogsFileName
@@ -117,10 +117,11 @@ getCurrentStep steps =
     step
 
 
-{-| focusLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+
+{-| focusStepLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
 -}
-focusLogs : a -> Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Page, Steps, Cmd msg )
-focusLogs model steps org repo buildNumber focusFragment getLogs =
+focusStepLogs : a -> Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Steps, Cmd msg )
+focusStepLogs model steps org repo buildNumber focusFragment getLogs =
     let
         ( stepsOut, action ) =
             let
@@ -133,8 +134,7 @@ focusLogs model steps org repo buildNumber focusFragment getLogs =
                 ]
             )
     in
-    ( Pages.Build org repo buildNumber focusFragment
-    , stepsOut
+    ( stepsOut
     , action
     )
 

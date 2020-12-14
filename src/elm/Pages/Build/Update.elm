@@ -68,13 +68,17 @@ mergeSteps logFocus refresh currentSteps incomingSteps =
                                     let
                                         ( viewing, focus ) =
                                             getStepInfo steps incomingStep.number
+                                        s = { incomingStep
+                                                | viewing = viewing
+                                                , logFocus = focus
+                                            }
+                                        outStep = 
+                                            overwriteById
+                                            s
+                                            steps
+
                                     in
-                                    overwriteById
-                                        { incomingStep
-                                            | viewing = viewing
-                                            , logFocus = focus
-                                        }
-                                        steps
+                                        Just <| Maybe.withDefault s outStep
                                 )
                             |> List.filterMap identity
                     )

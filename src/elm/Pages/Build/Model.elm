@@ -26,7 +26,7 @@ import Vela
         , Steps
         )
 
-
+import Routes exposing (Route)
 
 -- MODEL
 
@@ -52,7 +52,7 @@ type alias PartialModel a =
 
 
 type alias Msgs msg =
-    { clickBuildNavTab : String -> msg
+    { clickBuildNavTab :  Route -> msg
     , collapseAllSteps : msg
     , expandAllSteps : ExpandAllSteps msg
     , expandStep : ExpandStep msg

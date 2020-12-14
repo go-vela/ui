@@ -109,7 +109,7 @@ import Vela
 -}
 viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
 viewBuild model msgs org repo =
-    wrapWithBuildPreview model msgs org repo <|
+    wrapWithBuildPreview model org repo <|
         case model.repo.build.steps of
             RemoteData.Success steps_ ->
                 viewBuildSteps model
@@ -131,8 +131,8 @@ viewBuild model msgs org repo =
 
 {-| wrapWithBuildPreview : takes html content and wraps it with the build preview
 -}
-wrapWithBuildPreview : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg -> Html msg
-wrapWithBuildPreview model msgs org repo content =
+wrapWithBuildPreview : PartialModel a  -> Org -> Repo -> Html msg -> Html msg
+wrapWithBuildPreview model   org repo content =
     let
         rm =
             model.repo
@@ -154,7 +154,7 @@ wrapWithBuildPreview model msgs org repo content =
         navTabs =
             case build.build of
                 RemoteData.Success bld ->
-                    viewBuildNav model org repo bld msgs.clickBuildNavTab model.page
+                    viewBuildNav model org repo bld model.page
 
                 RemoteData.Loading ->
                     Util.largeLoader
@@ -201,7 +201,7 @@ viewPreview now zone org repo build =
         id =
             [ a
                 [ Util.testAttribute "build-number"
-                , Routes.href <| Routes.Build org repo buildNumber Nothing
+                , Routes.href <| Routes.Build org repo buildNumber Nothing Nothing
                 ]
                 [ text <| "#" ++ buildNumber ]
             ]

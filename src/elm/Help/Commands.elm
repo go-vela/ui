@@ -89,10 +89,12 @@ commands page =
         Pages.RepositoryBuilds org repo _ _ _ ->
             [ listBuilds org repo ]
 
-        Pages.Build org repo buildNumber _ ->
+        Pages.Build org repo buildNumber _ _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
 
-        Pages.Pipeline _ _ _ _ _ _ ->
+        Pages.BuildPipeline _ _   _ _ _ _ ->
+            []
+        Pages.Pipeline _   _ _ _ _ ->
             []
 
         Pages.RepoSettings org repo ->
@@ -601,10 +603,12 @@ resourceLoaded args =
         Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.success
 
-        Pages.Build _ _ _ _ ->
+        Pages.Build _ _ _ _ _ ->
             args.build.success
 
-        Pages.Pipeline _ _ _ _ _ _ ->
+        Pages.BuildPipeline _ _ _   _ _ _ ->
+            True
+        Pages.Pipeline _ _   _ _ _ ->
             True
 
         Pages.AddOrgSecret secretEngine org ->
@@ -670,10 +674,13 @@ resourceLoading args =
         Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.loading
 
-        Pages.Build _ _ _ _ ->
+        Pages.Build _ _ _ _ _ ->
             args.build.loading
 
-        Pages.Pipeline _ _ _ _ _ _ ->
+        Pages.BuildPipeline _ _ _ _ _ _ ->
+            args.build.loading
+
+        Pages.Pipeline   _ _ _ _ _ ->
             False
 
         Pages.OrgSecrets _ _ _ _ ->

@@ -30,7 +30,7 @@ import Vela
         , Steps
         , Templates
         )
-
+import Routes exposing (Route)
 
 
 -- MODEL
@@ -57,10 +57,10 @@ type alias PartialModel a =
 
 
 type alias Msgs msg =
-    { get : Get msg
+    { clickNavTab : Route -> msg
+    , get : Get msg
     , expand : Expand msg
     , focusLineNumber : FocusLineNumber msg
-    , clickNavTab : String -> msg
     }
 
 

@@ -22,7 +22,7 @@ module Vela exposing
     , Enabled
     , Enabling(..)
     , Engine
-    , Event
+    , Event, toBuildView
     , Favicon
     , Favorites
     , Field
@@ -35,7 +35,7 @@ module Vela exposing
     , LogFocus
     , Logs
     , Name
-    , Org
+    , Org,BuildView
     , PipelineConfig
     , PipelineModel
     , PipelineTemplates
@@ -373,6 +373,23 @@ type alias BuildModel =
     , followingStep : Int
     , focusFragment : FocusFragment
     }
+
+toBuildView : String -> BuildView
+toBuildView s = 
+    case String.toLower <| String.trim <| s of 
+        "steps" ->
+            Steps
+        "services" ->
+            Services 
+        "pipeline" ->
+            Pipeline
+        _ ->
+            Steps
+
+type BuildView = 
+    Steps 
+    | Services
+    | Pipeline
 
 
 defaultBuildModel : BuildModel
