@@ -86,7 +86,7 @@ Cypress.Commands.add('stubBuilds', () => {
     method: 'GET',
     url: '*api/v1/repos/*/*/builds*',
     headers: {
-      link: `<http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=2&per_page=10>; rel="last",`,
+      link: `<http://localhost:8888/api/v1/repos/github/octocat/builds?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/repos/github/octocat/builds?page=2&per_page=10>; rel="last",`,
     },
     response: '@buildsPage1',
   });
@@ -94,7 +94,7 @@ Cypress.Commands.add('stubBuilds', () => {
     method: 'GET',
     url: '*api/v1/repos/*/*/builds?page=2*',
     headers: {
-      link: `<http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/repos/someorg/somerepo/builds?page=1&per_page=10>; rel="prev",`,
+      link: `<http://localhost:8888/api/v1/repos/github/octocat/builds?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/repos/github/octocat/builds?page=1&per_page=10>; rel="prev",`,
     },
     response: '@buildsPage2',
   });
@@ -389,7 +389,7 @@ Cypress.Commands.add('hookPages', () => {
     method: 'GET',
     url: '*api/v1/hooks/github/octocat*',
     headers: {
-      link: `<http://localhost:8888/api/v1/hooks/someorg/somerepo?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/hooks/someorg/somerepo?page=2&per_page=10>; rel="last",`,
+      link: `<http://localhost:8888/api/v1/hooks/github/octocat?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/hooks/github/octocat?page=2&per_page=10>; rel="last",`,
     },
     response: '@hooksPage1',
   });
@@ -397,7 +397,7 @@ Cypress.Commands.add('hookPages', () => {
     method: 'GET',
     url: '*api/v1/hooks/github/octocat?page=2*',
     headers: {
-      link: `<http://localhost:8888/api/v1/hooks/someorg/somerepo?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/hooks/someorg/somerepo?page=1&per_page=10>; rel="prev",`,
+      link: `<http://localhost:8888/api/v1/hooks/github/octocat?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/hooks/github/octocat?page=1&per_page=10>; rel="prev",`,
     },
     response: '@hooksPage2',
   });

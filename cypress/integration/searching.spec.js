@@ -47,7 +47,7 @@ context('Searching', () => {
           cy.get('[data-test=source-repo-count]').should('not.be.visible');
         });
         it('cat org should not exist', () => {
-          cy.get('[data-test=source-org-cat]').should('not.be.visible');
+          cy.get('[data-test=source-org-github]').should('not.be.visible');
         });
       });
 
@@ -113,10 +113,6 @@ context('Searching', () => {
                 .clear();
             });
             it('filtered repos should show and display enabling', () => {
-              cy.get('[data-test=source-repo-octocat]')
-                .should('be.visible')
-                .and('contain', 'Enabling');
-
               cy.get('[data-test=source-repo-octocat-1]')
                 .should('be.visible')
                 .and('contain', 'Enabling');
@@ -135,7 +131,7 @@ context('Searching', () => {
                 .and('not.contain', 'Enabling');
               cy.get('[data-test=source-repo-octocat]')
                 .should('be.visible')
-                .and('contain', 'Enabling');
+                .and('not.contain', 'Enabling');
             });
             it('without search input, enable all button should contain Enable All', () => {
               cy.get('[data-test=enable-org-github]').contains('Enable All');

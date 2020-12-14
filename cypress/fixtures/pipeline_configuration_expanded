@@ -18,11 +18,11 @@ steps:
     VELA_TASK: default value
 templates:
 - name: template1_name
-  source: github.com/someorg/somerepo/template1.yml
+  source: github.com/github/octocat/template1.yml
   type: github
 - name: template2_name
-  source: github.com/someorg/somerepo/template2.yml
+  source: github.com/github/octocat/template2.yml
   type: github
 - name: template3_name
-  source: github.com/someorg/somerepo/template3.yml
+  source: github.com/github/octocat/template3.yml
   type: github

@@ -71,6 +71,9 @@ import Vela
         , Repository
         , Secret
         , Secrets
+        , Service
+        , ServiceNumber
+        , Services
         , Session
         , SourceRepositories
         , Step
@@ -91,6 +94,8 @@ import Vela
         , decodeRepository
         , decodeSecret
         , decodeSecrets
+        , decodeService
+        , decodeServices
         , decodeSourceRepositories
         , decodeStep
         , decodeSteps
@@ -591,6 +596,38 @@ getStep model org repository buildNumber stepNumber =
 getStepLogs : PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> Request Log
 getStepLogs model org repository buildNumber stepNumber =
     get model.velaAPI (Endpoint.StepLogs org repository buildNumber stepNumber) decodeLog
+        |> withAuth model.session
+
+
+{-| getServices : fetches vela build services by repository and build number
+-}
+getServices : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> BuildNumber -> Request Services
+getServices model maybePage maybePerPage org repository buildNumber =
+    get model.velaAPI (Endpoint.Services maybePage maybePerPage org repository buildNumber) decodeServices
+        |> withAuth model.session
+
+
+{-| getAllServices : used in conjuction with 'tryAll', it retrieves all pages for a build service
+-}
+getAllServices : PartialModel a -> Org -> Repo -> BuildNumber -> Request Service
+getAllServices model org repository buildNumber =
+    get model.velaAPI (Endpoint.Services (Just 1) (Just 100) org repository buildNumber) decodeService
+        |> withAuth model.session
+
+
+{-| getService : fetches vela build services by repository, build number and step number
+-}
+getService : PartialModel a -> Org -> Repo -> BuildNumber -> ServiceNumber -> Request Service
+getService model org repository buildNumber serviceNumber =
+    get model.velaAPI (Endpoint.Service org repository buildNumber serviceNumber) decodeService
+        |> withAuth model.session
+
+
+{-| getServiceLogs : fetches vela build service log by repository, build number and service number
+-}
+getServiceLogs : PartialModel a -> Org -> Repo -> BuildNumber -> ServiceNumber -> Request Log
+getServiceLogs model org repository buildNumber serviceNumber =
+    get model.velaAPI (Endpoint.ServiceLogs org repository buildNumber serviceNumber) decodeLog
         |> withAuth model.session
 
 
