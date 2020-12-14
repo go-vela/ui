@@ -32,6 +32,7 @@ type Endpoint
     | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
     | Build Org Repo BuildNumber
+    | BuildServices Org Repo BuildNumber
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | Step Org Repo BuildNumber StepNumber
     | StepLogs Org Repo BuildNumber StepNumber
@@ -79,6 +80,10 @@ toUrl api endpoint =
 
         Build org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber ] []
+
+
+        BuildServices org repo buildNumber ->
+            url api [ "repos", org, repo, "builds", buildNumber, "services" ] []
 
         Steps maybePage maybePerPage org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "steps" ] <| Pagination.toQueryParams maybePage maybePerPage
