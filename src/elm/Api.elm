@@ -606,23 +606,19 @@ getServices model maybePage maybePerPage org repository buildNumber =
         |> withAuth model.session
 
 
-{-| getAllServices : used in conjuction with 'tryAll', it retrieves all pages of the resource
-
-    Note: the singular version of the type/decoder is needed in this case as it turns it into a list
-
+{-| getAllServices : used in conjuction with 'tryAll', it retrieves all pages for a build service
 -}
 getAllServices : PartialModel a -> Org -> Repo -> BuildNumber -> Request Service
 getAllServices model org repository buildNumber =
-    -- we are using the max perPage setting of 100 to reduce the number of calls
     get model.velaAPI (Endpoint.Services (Just 1) (Just 100) org repository buildNumber) decodeService
         |> withAuth model.session
 
 
 {-| getService : fetches vela build services by repository, build number and step number
 -}
-getService : PartialModel a -> Org -> Repo -> BuildNumber -> ServiceNumber -> Request Step
+getService : PartialModel a -> Org -> Repo -> BuildNumber -> ServiceNumber -> Request Service
 getService model org repository buildNumber serviceNumber =
-    get model.velaAPI (Endpoint.Service org repository buildNumber serviceNumber) decodeStep
+    get model.velaAPI (Endpoint.Service org repository buildNumber serviceNumber) decodeService
         |> withAuth model.session
 
 
