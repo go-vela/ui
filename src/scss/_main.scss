@@ -52,15 +52,15 @@ header {
   border-left-width: 0;
   border-image-source: linear-gradient(
     to right,
-    var(--color-primary) 55%,
+    var(--color-secondary) 55%,
     transparent 55%,
     transparent 58%,
-    var(--color-primary) 58%,
-    var(--color-primary) 69%,
+    var(--color-secondary) 58%,
+    var(--color-secondary) 69%,
     transparent 69%,
     transparent 75%,
-    var(--color-secondary) 75%,
-    var(--color-secondary) 76%,
+    var(--color-primary) 75%,
+    var(--color-primary) 76%,
     transparent 76%
   );
   border-image-slice: 1;
@@ -192,18 +192,18 @@ nav {
   padding: 0 var(--horizontal-pad);
 
   border-top-width: 0;
-  border-bottom: var(--line-width) solid;
+  // border-bottom: var(--line-width) solid;
   border-left-width: 0;
-  border-image-source: linear-gradient(
-    to right,
-    var(--color-bg-light) 15%,
-    transparent 15%,
-    transparent 18%,
-    var(--color-bg-light) 18%,
-    var(--color-bg-light) 18.8%,
-    transparent 18.8%
-  );
-  border-image-slice: 1;
+  // border-image-source: linear-gradient(
+  //   to right,
+  //   var(--color-bg-light) 15%,
+  //   transparent 15%,
+  //   transparent 18%,
+  //   var(--color-bg-light) 18%,
+  //   var(--color-bg-light) 18.8%,
+  //   transparent 18.8%
+  // );
+  // border-image-slice: 1;
 }
 
 .item {
@@ -272,6 +272,23 @@ nav {
 }
 
 // breadcrumb styles
+
+.breadcrumb {
+  background-color: red;
+  transform: skew(-20deg, 0deg);
+
+  &:last-child {
+    color: var(--color-bg-dark);
+    background-color: var(--color-secondary);
+  }
+}
+
+.breadcrumb a {
+  display: inline-block;
+  transform: skew(20deg, 0deg);
+  color: inherit;
+}
+
 .crumb {
   font-weight: 300;
 }
