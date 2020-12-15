@@ -62,6 +62,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import List.Extra exposing (unique)
+import Html.Lazy exposing (lazy4)
 import Nav exposing (viewBuildNav)
 import Pages exposing (Page(..), onPage)
 import Pages.Build.Logs
@@ -142,7 +143,7 @@ viewBuildServices model msgs org repo =
                             div
                                 [ class "buttons"
                                 , class "log-actions"
-                                , class "flowline-left"
+                                -- , class "flowline-left"
                                 , Util.testAttribute "log-actions"
                                 ]
                                 [ collapseAllStepsButton msgs.collapseAllSteps
@@ -186,7 +187,7 @@ viewService model msgs rm services service =
         
         serviceClasses services service,
     
-     Util.testAttribute "step" ]
+     Util.testAttribute "service" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStatusIcon service.status ] ]
         , viewServiceDetails model msgs rm service
@@ -207,7 +208,7 @@ serviceClasses services service =
                 Nothing ->
                     -1
     in
-    classList [ ( "step", True ), ( "flowline-left", True ) ]
+    classList [ ( "step", True )]
 
 
 {-| viewServiceDetails : renders build steps detailed information
@@ -223,7 +224,7 @@ viewServiceDetails model msgs rm service =
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ serviceNumber
                 , onClick <| msgs.expandService rm.org rm.name rm.build.buildNumber serviceNumber
-                , id <| resourceToFocusId "step" serviceNumber
+                , id <| resourceToFocusId "service" serviceNumber
                 ]
                 [ div
                     [ class "-info" ]
@@ -232,7 +233,7 @@ viewServiceDetails model msgs rm service =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ viewServiceLogs msgs.logsMsgs model rm service ]
+            , div [ class "logs-container" ] [ lazy4 viewServiceLogs msgs.logsMsgs model rm service ]
             ]
     in
     details
@@ -444,7 +445,7 @@ viewStepDetails model msgs rm step =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ viewLogs msgs.logsMsgs model rm step ]
+            , div [ class "logs-container" ] [viewStepLogs msgs.logsMsgs model rm step ]
             ]
     in
     details
@@ -509,10 +510,10 @@ hasStages steps =
         |> (\step -> step.stage /= "")
 
 
-{-| viewLogs : takes step and logs and renders step logs or step error
+{-| viewStepLogs : takes step and logs and renders step logs or step error
 -}
-viewLogs : LogsMsgs msg -> PartialModel a -> RepoModel -> Step -> Html msg
-viewLogs msgs model rm step =
+viewStepLogs : LogsMsgs msg -> PartialModel a -> RepoModel -> Step -> Html msg
+viewStepLogs msgs model rm step =
     case step.status of
         Vela.Error ->
             stepError step
@@ -521,39 +522,44 @@ viewLogs msgs model rm step =
             stepSkipped step
 
         _ ->
-            viewLogLines msgs rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getStepLog step rm.build.logs) rm.build.followingStep model.shift
+            viewLogLines msgs rm.org rm.name rm.build.buildNumber "step" (String.fromInt step.number) step.logFocus (getStepLog step rm.build.logs) rm.build.followingStep model.shift
 
 
 
 {-| viewServiceLogs : takes service and logs and renders step logs or step error
 -}
 viewServiceLogs : LogsMsgs msg -> PartialModel a -> RepoModel -> Service -> Html msg
-viewServiceLogs msgs model rm step =
-    case step.status of
-        -- Vela.Error ->
-        --     stepError step
+viewServiceLogs msgs model rm service =
+    let
+        _=Debug.log "reloading" "service logs" 
+    in
 
-        -- Vela.Killed ->
-        --     stepSkipped step
+    case service.status of
+        Vela.Error ->
+            serviceError service
+
+        Vela.Killed ->
+            serviceSkipped service
 
         _ ->
-            viewLogLines msgs rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getServiceLog step rm.build.logs) rm.build.followingStep model.shift
+
+            viewLogLines msgs rm.org rm.name rm.build.buildNumber "service" (String.fromInt service.number) service.logFocus (getServiceLog service rm.build.logs) rm.build.followingService model.shift
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
 -}
-viewLogLines : LogsMsgs msg -> Org -> Repo -> BuildNumber -> StepNumber -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
-viewLogLines msgs org repo buildNumber stepNumber logFocus maybeLog following shiftDown =
+viewLogLines : LogsMsgs msg -> Org -> Repo -> BuildNumber -> String-> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
+viewLogLines msgs org repo buildNumber resource resourceID logFocus maybeLog following shiftDown =
     let
         decodedLog =
             toString maybeLog
 
         fileName =
-            getDownloadLogsFileName org repo buildNumber "step" stepNumber
+            getDownloadLogsFileName org repo buildNumber resource resourceID
     in
     div
         [ class "logs"
-        , Util.testAttribute <| "logs-" ++ stepNumber
+        , Util.testAttribute <| "logs-" ++ resourceID
         ]
     <|
         case Maybe.withDefault RemoteData.NotAsked maybeLog of
@@ -564,10 +570,10 @@ viewLogLines msgs org repo buildNumber stepNumber logFocus maybeLog following sh
                 else
                     let
                         ( logs, numLines ) =
-                            viewLines msgs.focusLine stepNumber logFocus decodedLog shiftDown
+                            viewLines msgs.focusLine resource resourceID logFocus decodedLog shiftDown
                     in
-                    [ logsHeader msgs stepNumber fileName decodedLog
-                    , logsSidebar msgs stepNumber following numLines
+                    [ logsHeader msgs resourceID fileName decodedLog
+                    , logsSidebar msgs resourceID following numLines
                     , logs
                     ]
 
@@ -580,8 +586,8 @@ viewLogLines msgs org repo buildNumber stepNumber logFocus maybeLog following sh
 
 {-| viewLines : takes step number, line focus information and click action and renders logs
 -}
-viewLines : FocusLine msg -> StepNumber -> LogFocus -> String -> Bool -> ( Html msg, Int )
-viewLines focusLine stepNumber logFocus decodedLog shiftDown =
+viewLines : FocusLine msg -> Resource -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
+viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
     let
         lines =
             if not <| logEmpty decodedLog then
@@ -591,10 +597,10 @@ viewLines focusLine stepNumber logFocus decodedLog shiftDown =
                         (\idx line ->
                             Just <|
                                 viewLine focusLine
-                                    stepNumber
+                                    resource
+                                    resourceID
                                     (idx + 1)
                                     (Just line)
-                                    stepNumber
                                     logFocus
                                     shiftDown
                         )
@@ -603,10 +609,10 @@ viewLines focusLine stepNumber logFocus decodedLog shiftDown =
             else
                 [ Just <|
                     viewLine focusLine
-                        stepNumber
+                        resource
+                        resourceID
                         1
                         Nothing
-                        stepNumber
                         logFocus
                         shiftDown
                 ]
@@ -620,8 +626,8 @@ viewLines focusLine stepNumber logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        stepTopTrackerFocusId stepNumber
-                    , Util.testAttribute <| "top-log-tracker-" ++ stepNumber
+                        stepTopTrackerFocusId resourceID
+                    , Util.testAttribute <| "top-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
                     []
@@ -631,8 +637,8 @@ viewLines focusLine stepNumber logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        stepBottomTrackerFocusId stepNumber
-                    , Util.testAttribute <| "bottom-log-tracker-" ++ stepNumber
+                        stepBottomTrackerFocusId resourceID
+                    , Util.testAttribute <| "bottom-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
                     []
@@ -648,11 +654,11 @@ viewLines focusLine stepNumber logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : FocusLine msg -> ResourceID -> Int -> Maybe Ansi.Log.Line -> Resource -> LogFocus -> Bool -> Html msg
-viewLine focusLine id lineNumber line resource logFocus shiftDown =
+viewLine : FocusLine msg  -> Resource -> ResourceID -> Int -> Maybe Ansi.Log.Line-> LogFocus -> Bool -> Html msg
+viewLine focusLine resource resourceID lineNumber line  logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
-            id
+            resourceID
                 ++ ":"
                 ++ String.fromInt lineNumber
         , class "line"
@@ -665,7 +671,7 @@ viewLine focusLine id lineNumber line resource logFocus shiftDown =
                     , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton focusLine resource logFocus lineNumber shiftDown ]
+                        [ lineFocusButton focusLine resource resourceID logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
                         [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
@@ -680,18 +686,18 @@ viewLine focusLine id lineNumber line resource logFocus shiftDown =
 
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
-lineFocusButton : (String -> msg) -> StepNumber -> LogFocus -> Int -> Bool -> Html msg
-lineFocusButton focusLogs stepNumber logFocus lineNumber shiftDown =
+lineFocusButton : (String -> msg) -> Resource -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
+lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             focusLogs <|
-                lineRangeId "step" stepNumber lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
-        , id <| resourceAndLineToFocusId "step" stepNumber lineNumber
+                lineRangeId resource resourceID lineNumber logFocus shiftDown
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resourceID, String.fromInt lineNumber ]
+        , id <| resourceAndLineToFocusId resource resourceID lineNumber
         , class "line-number"
         , class "button"
         , class "-link"
-        , attribute "aria-label" <| "focus step " ++ stepNumber
+        , attribute "aria-label" <| "focus "++resource++" " ++ resourceID
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
@@ -848,6 +854,29 @@ stepError step =
                 step.error
         ]
 
+
+
+{-| serviceError : checks for build error and renders message
+-}
+serviceError : Service -> Html msg
+serviceError service =
+    div [ class "message", class "error", Util.testAttribute "service-error" ]
+        [ span [] [ text "error:" ]
+        , text <|
+            if String.isEmpty service.error then
+                "null"
+
+            else
+                service.error
+        ]
+
+
+{-| serviceSkipped : renders message for a skipped service
+-}
+serviceSkipped : Service -> Html msg
+serviceSkipped _ =
+    div [ class "message", class "error", Util.testAttribute "service-skipped" ]
+        [ text "service was skipped" ]
 
 {-| loadingLogs : renders message for loading logs
 -}

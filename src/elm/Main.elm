@@ -69,7 +69,8 @@ import Pages exposing (Page(..), onPage)
 import Pages.Build.Logs
     exposing
         ( focusStepLogs
-        , getCurrentStep
+        , focusServiceLogs
+        , getCurrentResource
         , stepBottomTrackerFocusId
         )
 import Pages.Build.Model
@@ -1212,7 +1213,7 @@ update msg model =
                                 |> Pages.Build.Update.mergeServices logFocus refresh rm.build.services
 
                         updatedModel =
-                            { model | repo = updateBuildServices rm <| RemoteData.succeed services }
+                            { model | repo = updateBuildServices rm <| RemoteData.succeed mergedServices }
 
                         cmd =
                             getBuildServicesLogs updatedModel org repo buildNumber mergedServices logFocus refresh
@@ -1224,24 +1225,23 @@ update msg model =
         ServiceLogResponse serviceNumber logFocus refresh response ->
             case response of
                 Ok ( _, incomingLog ) ->
-                    -- (model, Cmd.none)
                     let
                         following =
-                            rm.build.followingStep /= 0
+                            rm.build.followingService /= 0
 
-                        onFollowedStep =
-                            rm.build.followingStep == (Maybe.withDefault -1 <| String.toInt serviceNumber)
+                        onFollowedService =
+                            rm.build.followingService == (Maybe.withDefault -1 <| String.toInt serviceNumber)
 
                         ( services, focusId ) =
-                            if following && refresh && onFollowedStep then
+                            if following && refresh && onFollowedService then
                                 ( rm.build.services
                                     |> RemoteData.unwrap rm.build.services
                                         (\s -> expandActiveService serviceNumber s |> RemoteData.succeed)
-                                , stepBottomTrackerFocusId <| String.fromInt rm.build.followingStep
+                                , stepBottomTrackerFocusId <| String.fromInt rm.build.followingService
                                 )
 
                             else if not refresh then
-                                ( rm.build.services, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
+                                ( rm.build.services, Util.extractFocusIdFromRange <| focusFragmentToFocusId "service" logFocus )
 
                             else
                                 ( rm.build.services, "" )
@@ -2451,11 +2451,100 @@ setNewPage route model =
 
                     else
                         loadBuildPage model org repo buildNumber lineFocus False  
+                Pages.BuildServices o r b _   ->
+                    if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                        let
+                            ( steps, action ) =
+                                focusStepLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber lineFocus getBuildStepsLogs
+                        in
+                        ( { model
+                            | page = Pages.Build org repo buildNumber lineFocus   
+                                    , repo =
+                                        { rm
+                                            | build =
+                                                { build
+                                                    | buildNumber = buildNumber
+                                                    , steps = RemoteData.succeed steps
+                                                    , focusFragment =
+                                                        case lineFocus of
+                                                            Just l ->
+                                                                Just <| "#" ++ l
 
+                                                            Nothing ->
+                                                                Nothing
+                                                }
+                                        }
+                                  }
+                        , action
+                        ) 
+
+                    else 
+                        loadBuildPage model org repo buildNumber lineFocus False  
                 _ ->
                     loadBuildPage model org repo buildNumber lineFocus False  
         ( Routes.BuildServices org repo buildNumber lineFocus  , True ) ->
-            loadBuildServicesPage model org repo buildNumber lineFocus False
+                case model.page of
+                    Pages.BuildServices o r b _   ->
+                        if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                            let
+                                ( services, action ) =
+                                    focusServiceLogs model (RemoteData.withDefault [] rm.build.services) org repo buildNumber lineFocus getBuildServicesLogs
+                            in
+                            ( { model
+                                | page = Pages.BuildServices org repo buildNumber lineFocus   
+                                        , repo =
+                                            { rm
+                                                | build =
+                                                    { build
+                                                        | buildNumber = buildNumber
+                                                        , services = RemoteData.succeed services
+                                                        , focusFragment =
+                                                            case lineFocus of
+                                                                Just l ->
+                                                                    Just <| "#" ++ l
+
+                                                                Nothing ->
+                                                                    Nothing
+                                                    }
+                                            }
+                                    }
+                            , action
+                            )
+
+                        else
+                            loadBuildServicesPage model org repo buildNumber lineFocus False  
+                    Pages.Build o r b _   ->
+                        if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                            let
+                                ( services, action ) =
+                                    focusServiceLogs model (RemoteData.withDefault [] rm.build.services) org repo buildNumber lineFocus getBuildServicesLogs
+                            in
+                            ( { model
+                                | page = Pages.BuildServices org repo buildNumber lineFocus   
+                                        , repo =
+                                            { rm
+                                                | build =
+                                                    { build
+                                                        | buildNumber = buildNumber
+                                                        , services = RemoteData.succeed services
+                                                        , focusFragment =
+                                                            case lineFocus of
+                                                                Just l ->
+                                                                    Just <| "#" ++ l
+
+                                                                Nothing ->
+                                                                    Nothing
+                                                    }
+                                            }
+                                    }
+                            , action
+                            ) 
+
+                        else 
+                            loadBuildServicesPage model org repo buildNumber lineFocus False  
+
+                    _ ->
+                        loadBuildServicesPage model org repo buildNumber lineFocus False  
         ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, True ) ->
                     case model.page of
                         -- todo handle build and ref?
@@ -3355,7 +3444,7 @@ updateStep model incomingStep =
                                     shouldView =
                                         following
                                             && (step.status /= Vela.Pending)
-                                            && (step.number == getCurrentStep steps)
+                                            && (step.number == getCurrentResource steps)
                                 in
                                 { incomingStep
                                     | viewing = step.viewing || shouldView

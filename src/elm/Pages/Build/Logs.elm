@@ -7,10 +7,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Build.Logs exposing
     ( SetLogFocus
     , decodeAnsi,getServiceLog
-    , focusStepLogs
+    , focusStepLogs,focusServiceLogs
     , focusStep
     , focusService
-    , getCurrentStep
+    , getCurrentResource
     , getDownloadLogsFileName
     , getStepLog
     , logEmpty
@@ -56,6 +56,11 @@ type alias GetLogsFromSteps a msg =
 
 
 
+type alias GetLogsFromServices a msg =
+    a -> Org -> Repo -> BuildNumber -> Services -> FocusFragment -> Bool -> Cmd msg
+
+
+
 -- HELPERS
 
 
@@ -68,7 +73,7 @@ getServiceLog service logs =
             (\log ->
                 case log of
                     RemoteData.Success log_ ->
-                        log_.step_id == service.id
+                        log_.service_id == service.id
 
                     _ ->
                         False
@@ -143,20 +148,20 @@ focusService focusFragment services =
             services
 
 
-{-| getCurrentStep : takes steps and returns the newest running or pending step
+{-| getCurrentResource : takes steps and returns the newest running or pending step
 -}
-getCurrentStep : Steps -> Int
-getCurrentStep steps =
+getCurrentResource : List {a | status: Vela.Status, number : Int} -> Int
+getCurrentResource resources =
     let
-        step =
-            steps
+        resource =
+            resources
                 |> List.filter (\s -> s.status == Vela.Pending || s.status == Vela.Running)
                 |> List.map .number
                 |> List.sort
                 |> List.head
                 |> Maybe.withDefault 0
     in
-    step
+    resource
 
 
 
@@ -179,6 +184,7 @@ focusStepLogs model steps org repo buildNumber focusFragment getLogs =
     ( stepsOut
     , action
     )
+
 
 
 {-| updateStepLogFocus : takes steps and line focus and sets a new log line focus
@@ -330,3 +336,67 @@ see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 decodeAnsi : String -> Array.Array Ansi.Log.Line
 decodeAnsi log =
     .lines <| Ansi.Log.update log defaultLogModel
+
+
+
+
+
+-- SERVICES
+
+{-| focusServiceLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+-}
+focusServiceLogs : a -> Services -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromServices a msg -> ( Services, Cmd msg )
+focusServiceLogs model services org repo buildNumber focusFragment getLogs =
+    let
+        ( servicesOut, action ) =
+            let
+                focusedServices =
+                    updateServiceLogFocus services focusFragment
+            in
+            ( focusedServices
+            , Cmd.batch
+                [ getLogs model org repo buildNumber focusedServices focusFragment False
+                ]
+            )
+    in
+    ( servicesOut
+    , action
+    )
+
+{-| updateServiceLogFocus : takes services and line focus and sets a new log line focus
+-}
+updateServiceLogFocus : Services -> FocusFragment -> Services
+updateServiceLogFocus services focusFragment =
+    let
+        parsed =
+            parseFocusFragment focusFragment
+
+        ( target, serviceNumber ) =
+            ( parsed.target, parsed.resourceID )
+    in
+    case Maybe.withDefault "" target of
+        "service" ->
+            case serviceNumber of
+                Just n ->
+                    List.map
+                        (\service ->
+                            if service.number == n then
+                                { service | viewing = True, logFocus = ( parsed.lineA, parsed.lineB ) }
+
+                            else
+                                clearServiceLogFocus service
+                        )
+                    <|
+                        services
+
+                Nothing ->
+                    services
+
+        _ ->
+            services
+
+{-| clearServiceLogFocus : takes service and clears all log line focus
+-}
+clearServiceLogFocus : Service -> Service
+clearServiceLogFocus service =
+    { service | logFocus = ( Nothing, Nothing ) }

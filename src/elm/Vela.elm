@@ -1190,6 +1190,7 @@ type alias LogFocus =
 type alias Log =
     { id : Int
     , step_id : Int
+    , service_id : Int
     , build_id : Int
     , repository_id : Int
     , rawData : String
@@ -1204,6 +1205,7 @@ decodeLog =
     Decode.succeed Log
         |> optional "id" int -1
         |> optional "step_id" int -1
+        |> optional "service_id" int -1
         |> optional "build_id" int -1
         |> optional "repository_id" int -1
         |> optional "data" string ""
