@@ -29,7 +29,8 @@ type Page
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
-    | Build Org Repo BuildNumber FocusFragment (Maybe String)
+    | Build Org Repo BuildNumber FocusFragment 
+    | BuildServices Org Repo BuildNumber FocusFragment 
     | BuildPipeline Org Repo BuildNumber (Maybe Ref) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Pipeline Org Repo (Maybe Ref) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
@@ -90,8 +91,12 @@ toRoute page =
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
-        Build org repo buildNumber logFocus v ->
-            Routes.Build org repo buildNumber logFocus  v
+        Build org repo buildNumber logFocus ->
+            Routes.Build org repo buildNumber logFocus 
+
+        BuildServices org repo buildNumber logFocus ->
+            Routes.BuildServices org repo buildNumber logFocus 
+
         BuildPipeline org repo buildNumber ref  expanded lineFocus ->
             Routes.BuildPipeline org  repo buildNumber ref expanded lineFocus
 
@@ -161,8 +166,10 @@ strip page =
         RepositoryBuilds org repo _ _ _ ->
             RepositoryBuilds org repo Nothing Nothing Nothing
 
-        Build org repo buildNumber _ _ ->
-            Build org repo buildNumber Nothing Nothing
+        Build org repo buildNumber _   ->
+            Build org repo buildNumber Nothing  
+        BuildServices org repo buildNumber _   ->
+            BuildServices org repo buildNumber Nothing  
 
         BuildPipeline org repo buildNumber _ _ _ ->
             BuildPipeline org repo buildNumber Nothing Nothing Nothing

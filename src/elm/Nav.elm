@@ -160,7 +160,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
                     [ text "Add Shared Secret" ]
                 ]
 
-        Pages.Build org repo buildNumber _ _ ->
+        Pages.Build org repo buildNumber  _ ->
             button
                 [ classList
                     [ ( "button", True )
@@ -214,9 +214,11 @@ viewUtil model =
 
             Pages.RepoSettings org repo ->
                 viewRepoTabs rm model.page
-            Pages.Build _ _ _ _ _ ->
+            Pages.Build _ _   _ _ ->
                 viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
 
+            Pages.BuildServices _ _ _ _   ->
+                viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
             Pages.BuildPipeline _ _ _ _ _ _ ->
                 viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
 
@@ -344,11 +346,11 @@ viewBuildNav model org repo build   currentPage =
             { build =
                 { 
                 -- TODO: ensure focusFragment is set and accurate
-                to = Pages.Build org repo buildNumber bm.focusFragment (Just "steps")
+                to = Pages.Build org repo buildNumber bm.focusFragment 
                 }
             , services =
                 { 
-                to = Pages.NotFound
+                to = Pages.BuildServices org repo buildNumber Nothing
                 }
             , pipeline =
                 { 
@@ -380,7 +382,10 @@ viewBuildHistory now timezone page org repo builds limit =
     let
         buildNumber =
             case page of
-                Pages.Build _ _ b _ _ ->
+                Pages.Build _ _ b _   ->
+                    Maybe.withDefault -1 <| String.toInt b
+
+                Pages.BuildServices _ _ b _   ->
                     Maybe.withDefault -1 <| String.toInt b
 
                 Pages.BuildPipeline _ _ b _ _ _ ->
@@ -451,14 +456,14 @@ recentBuildLink page org repo buildNumber build idx =
         , Util.testAttribute <| "recent-build-link-" ++ String.fromInt buildNumber
         , currentBuildClass
         , case page of
-            Pages.Build _ _ _ _ _ ->
-                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing Nothing
+            Pages.Build _ _ _   _ ->
+                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing  
 
             Pages.BuildPipeline _ _ _ _ _ _ ->
                 Routes.href <| Routes.BuildPipeline org repo (String.fromInt build.number)  (Just build.commit) Nothing Nothing
 
             _ ->
-                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing Nothing
+                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing  
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
         ]
         [ icon

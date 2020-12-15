@@ -9,7 +9,7 @@ module Pages.Build.View exposing
     , statusToClass
     , statusToString
     , viewBuild
-    , viewBuildSteps
+    , viewBuildSteps,viewBuildServices 
     , viewError
     , viewLine
     , viewPreview
@@ -66,7 +66,7 @@ import Nav exposing (viewBuildNav)
 import Pages exposing (Page(..), onPage)
 import Pages.Build.Logs
     exposing
-        ( decodeAnsi
+        ( decodeAnsi,getServiceLog
         , getDownloadLogsFileName
         , getStepLog
         , logEmpty
@@ -91,7 +91,7 @@ import Vela
         , LogFocus
         , Logs
         , Org
-        , Repo
+        , Repo,Service,Services
         , RepoModel
         , Status
         , Step
@@ -127,6 +127,123 @@ viewBuild model msgs org repo =
 
                 else
                     Util.smallLoader
+
+
+
+{-| viewBuildSteps : renders entire build based on current application time
+-}
+viewBuildServices : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
+viewBuildServices model msgs org repo =
+    wrapWithBuildPreview model org repo <|
+        case model.repo.build.services of
+            RemoteData.Success services_ ->
+                    let
+                        logActions =
+                            div
+                                [ class "buttons"
+                                , class "log-actions"
+                                , class "flowline-left"
+                                , Util.testAttribute "log-actions"
+                                ]
+                                [ collapseAllStepsButton msgs.collapseAllSteps
+                                , expandAllStepsButton msgs.expandAllSteps model.repo.org model.repo.name model.repo.build.buildNumber
+                                ]
+                    in
+                    div []
+                        [ logActions
+                        , div [ class "steps" ]
+                            [ div [ class "-items", Util.testAttribute "steps" ] <|
+                                viewServices model msgs model.repo services_
+                            ]
+                        ]
+
+            RemoteData.Failure _ ->
+                div [] [ text "Error loading services... Please try again" ]
+
+            _ ->
+                -- Don't show two loaders
+                if Util.isLoading model.repo.build.build then
+                    text ""
+
+                else
+                    Util.smallLoader
+
+
+
+
+{-| viewSteps : takes build/steps and renders steps
+-}
+viewServices : PartialModel a -> Msgs msg -> RepoModel -> Services -> List (Html msg)
+viewServices model msgs rm services =
+    List.map (\service -> viewService model msgs rm services service) <| services
+
+
+{-| viewService : renders single build step
+-}
+viewService : PartialModel a -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
+viewService model msgs rm services service =
+    div [ 
+        
+        serviceClasses services service,
+    
+     Util.testAttribute "step" ]
+        [ div [ class "-status" ]
+            [ div [ class "-icon-container" ] [ viewStatusIcon service.status ] ]
+        , viewServiceDetails model msgs rm service
+        ]
+
+
+
+{-| serviceClasses : returns css classes for a particular service
+-}
+serviceClasses : Services -> Service -> Html.Attribute msg
+serviceClasses services service =
+    let
+        last =
+            case List.head <| List.reverse services of
+                Just s ->
+                    s.number
+
+                Nothing ->
+                    -1
+    in
+    classList [ ( "step", True ), ( "flowline-left", True ) ]
+
+
+{-| viewServiceDetails : renders build steps detailed information
+-}
+viewServiceDetails : PartialModel a -> Msgs msg -> RepoModel -> Service -> Html msg
+viewServiceDetails model msgs rm service =
+    let
+        serviceNumber =
+            String.fromInt service.number
+
+        serviceSummary =
+            [ summary
+                [ class "summary"
+                , Util.testAttribute <| "step-header-" ++ serviceNumber
+                , onClick <| msgs.expandService rm.org rm.name rm.build.buildNumber serviceNumber
+                , id <| resourceToFocusId "step" serviceNumber
+                ]
+                [ div
+                    [ class "-info" ]
+                    [ div [ class "-name" ] [ text service.name ]
+                    , div [ class "-duration" ] [ text <| Util.formatRunTime model.time service.started service.finished ]
+                    ]
+                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+                ]
+            , div [ class "logs-container" ] [ viewServiceLogs msgs.logsMsgs model rm service ]
+            ]
+    in
+    details
+        (classList
+            [ ( "details", True )
+            , ( "-with-border", True )
+            , ( "-running", service.status == Vela.Running )
+            ]
+            :: Util.open service.viewing
+        )
+        serviceSummary
 
 
 {-| wrapWithBuildPreview : takes html content and wraps it with the build preview
@@ -201,7 +318,7 @@ viewPreview now zone org repo build =
         id =
             [ a
                 [ Util.testAttribute "build-number"
-                , Routes.href <| Routes.Build org repo buildNumber Nothing Nothing
+                , Routes.href <| Routes.Build org repo buildNumber Nothing  
                 ]
                 [ text <| "#" ++ buildNumber ]
             ]
@@ -260,7 +377,7 @@ viewPreview now zone org repo build =
 
 {-| viewBuildSteps : takes build/steps and renders pipeline
 -}
-viewBuildSteps : PartialModel a -> Msgs msg -> RepoModel -> Steps -> Html msg
+viewBuildSteps  : PartialModel a -> Msgs msg -> RepoModel -> Steps -> Html msg
 viewBuildSteps model msgs rm steps =
     let
         logActions =
@@ -300,7 +417,7 @@ viewStep : PartialModel a -> Msgs msg -> RepoModel -> Steps -> Step -> Html msg
 viewStep model msgs rm steps step =
     div [ stepClasses steps step, Util.testAttribute "step" ]
         [ div [ class "-status" ]
-            [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
+            [ div [ class "-icon-container" ] [ viewStatusIcon step.status ] ]
         , viewStepDetails model msgs rm step
         ]
 
@@ -405,6 +522,22 @@ viewLogs msgs model rm step =
 
         _ ->
             viewLogLines msgs rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getStepLog step rm.build.logs) rm.build.followingStep model.shift
+
+
+
+{-| viewServiceLogs : takes service and logs and renders step logs or step error
+-}
+viewServiceLogs : LogsMsgs msg -> PartialModel a -> RepoModel -> Service -> Html msg
+viewServiceLogs msgs model rm step =
+    case step.status of
+        -- Vela.Error ->
+        --     stepError step
+
+        -- Vela.Killed ->
+        --     stepSkipped step
+
+        _ ->
+            viewLogLines msgs rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getServiceLog step rm.build.logs) rm.build.followingStep model.shift
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
@@ -751,11 +884,11 @@ stepSkipped _ =
         [ text "step was skipped" ]
 
 
-{-| viewStepIcon : renders a build step status icon
+{-| viewStatusIcon : renders a build step status icon
 -}
-viewStepIcon : Step -> Html msg
-viewStepIcon step =
-    stepStatusToIcon step.status
+viewStatusIcon : Status -> Html msg
+viewStatusIcon status =
+    stepStatusToIcon status
 
 
 {-| viewError : checks for build error and renders message

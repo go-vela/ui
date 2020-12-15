@@ -6,9 +6,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Logs exposing
     ( SetLogFocus
-    , decodeAnsi
+    , decodeAnsi,getServiceLog
     , focusStepLogs
     , focusStep
+    , focusService
     , getCurrentStep
     , getDownloadLogsFileName
     , getStepLog
@@ -32,8 +33,8 @@ import Vela
         , Log
         , LogFocus
         , Logs
-        , Org
-        , Repo
+        , Org,Service
+        , Repo,Services
         , Step
         , StepNumber
         , Steps
@@ -57,6 +58,23 @@ type alias GetLogsFromSteps a msg =
 
 -- HELPERS
 
+
+{-| getServiceLog : takes step and logs and returns the log corresponding to that step
+-}
+getServiceLog : Service -> Logs -> Maybe (WebData Log)
+getServiceLog service logs =
+    List.head
+        (List.filter
+            (\log ->
+                case log of
+                    RemoteData.Success log_ ->
+                        log_.step_id == service.id
+
+                    _ ->
+                        False
+            )
+            logs
+        )
 
 {-| getStepLog : takes step and logs and returns the log corresponding to that step
 -}
@@ -99,6 +117,30 @@ focusStep focusFragment steps =
 
         _ ->
             steps
+
+{-| focusService : takes FocusFragment URL fragment and expands the appropriate step to automatically view
+-}
+focusService : FocusFragment -> Services -> Services
+focusService focusFragment services =
+    let
+        parsed =
+            parseFocusFragment focusFragment
+    in
+    case Maybe.withDefault "" parsed.target of
+        "service" ->
+            case parsed.resourceID of
+                Just n ->
+                    updateIf (\service -> service.number == n)
+                        (\service ->
+                            { service | viewing = True, logFocus = ( parsed.lineA, parsed.lineB ) }
+                        )
+                        services
+
+                Nothing ->
+                    services
+
+        _ ->
+            services
 
 
 {-| getCurrentStep : takes steps and returns the newest running or pending step

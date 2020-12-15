@@ -55,7 +55,8 @@ type alias Msgs msg =
     { clickBuildNavTab :  Route -> msg
     , collapseAllSteps : msg
     , expandAllSteps : ExpandAllSteps msg
-    , expandStep : ExpandStep msg
+    , expandStep : ExpandResource msg
+    , expandService : ExpandResource msg
     , logsMsgs : LogsMsgs msg
     }
 
@@ -72,8 +73,8 @@ type alias ExpandAllSteps msg =
     Org -> Repo -> BuildNumber -> msg
 
 
-type alias ExpandStep msg =
-    Org -> Repo -> BuildNumber -> StepNumber -> msg
+type alias ExpandResource msg =
+    Org -> Repo -> BuildNumber -> String -> msg
 
 
 type alias FollowStep msg =

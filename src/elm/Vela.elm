@@ -13,7 +13,7 @@ module Vela exposing
     , BuildsModel
     , ChownRepo
     , Commit
-    , Copy
+    , Copy,updateBuildServices
     , CurrentUser
     , DisableRepo
     , EnableRepo
@@ -378,8 +378,10 @@ type alias BuildModel =
     { buildNumber : BuildNumber
     , build : WebData Build
     , steps : WebData Steps
+    , services : WebData Services
     , logs : Logs
     , followingStep : Int
+    , followingService : Int
     , focusFragment : FocusFragment
     }
 
@@ -403,7 +405,7 @@ type BuildView =
 
 defaultBuildModel : BuildModel
 defaultBuildModel =
-    BuildModel "" NotAsked NotAsked [] 0 Nothing
+    BuildModel "" NotAsked NotAsked  NotAsked [] 0 0 Nothing
 
 
 defaultRepoModel : RepoModel
@@ -451,6 +453,16 @@ updateBuildSteps rm update =
             rm.build
     in
     { rm | build = { b | steps = update } }
+
+
+
+updateBuildServices : RepoModel -> WebData Services -> RepoModel
+updateBuildServices rm update =
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | services = update } }
 
 
 updateBuildLogs : RepoModel -> Logs -> RepoModel

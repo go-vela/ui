@@ -36,7 +36,8 @@ type Route
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
-    | Build Org Repo BuildNumber (Maybe String) FocusFragment 
+    | Build Org Repo BuildNumber FocusFragment 
+    | BuildServices Org Repo BuildNumber FocusFragment 
     | BuildPipeline Org Repo    BuildNumber  (Maybe Ref) (Maybe ExpandTemplatesQuery) FocusFragment
     | Pipeline Org Repo (Maybe Ref) (Maybe ExpandTemplatesQuery) FocusFragment
     | Settings
@@ -71,9 +72,10 @@ routes =
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
+        , map Build (string </> string </> string   </> fragment identity)
+        , map BuildServices (string </> string </> string  </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string  </> string </> s "pipeline"  <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
         , map Pipeline (string </> string </> s "pipeline"  <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
-        , map Build (string </> string </> string <?> Query.string "ref" </> fragment identity)
         , map NotFound (s "404")
         ]
 
@@ -145,8 +147,11 @@ routeToUrl route =
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
-        Build org repo buildNumber lineFocus v ->
+        Build org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" lineFocus
+
+        BuildServices org repo buildNumber lineFocus ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/services" ++ Maybe.withDefault "" lineFocus
 
         BuildPipeline org repo buildNumber ref expand lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
