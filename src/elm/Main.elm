@@ -2378,6 +2378,10 @@ setNewPage route model =
             loadRepoBuildsPage model org repo currentSession maybePage maybePerPage maybeEvent
 
         ( Routes.Build org repo buildNumber lineFocus  , True ) ->
+            let
+                _ = buildChanged (Pages.Build org repo buildNumber lineFocus) model.page
+            in
+
             case model.page of
                 Pages.BuildPipeline o r b _ _ _ ->
                     case rm.build.build of
@@ -2474,7 +2478,7 @@ setNewPage route model =
                                                                 Nothing
                                                 }
                                         }
-                                  }
+                                }
                         , action
                         ) 
 
@@ -2616,7 +2620,42 @@ setNewPage route model =
             , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
             )
 
-
+buildChanged : Page -> Page -> Bool
+buildChanged onPage toPage =
+    let
+        (onIdentifier, onFocus) =
+            case onPage of
+                Pages.Build o r b f ->
+                    ((o, r, b), f)
+                Pages.BuildServices o r b f ->
+                    ((o, r, b), f)
+                Pages.BuildPipeline o r b _ _ f ->
+                    ((o, r, b), f)
+                _ ->
+                    (("","","" ), Nothing)
+        (toIdentifier, toFocus) =
+            case onPage of
+                Pages.Build o r b f ->
+                    ((o, r, b), f)
+                Pages.BuildServices o r b f ->
+                    ((o, r, b), f)
+                Pages.BuildPipeline o r b _ _ f ->
+                    ((o, r, b), f)
+                _ ->
+                    (("","","" ), Nothing)
+    in
+        if not <| resourceChanged onIdentifier toIdentifier then
+            if onFocus == toFocus then
+                let
+                    _ = Debug.log "focus changed on:" onFocus
+                    _ = Debug.log "focus changed to:" toFocus
+                in
+                    True
+            else
+                True
+        else
+            True
+    
 setBuildFocusFragment : FocusFragment -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 setBuildFocusFragment logFocus ( model, c ) =
     let
