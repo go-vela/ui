@@ -51,6 +51,9 @@ module Vela exposing
     , Secret
     , SecretType(..)
     , Secrets
+    , Service
+    , ServiceNumber
+    , Services
     , Session
     , SourceRepositories
     , Status(..)
@@ -84,6 +87,8 @@ module Vela exposing
     , decodeRepository
     , decodeSecret
     , decodeSecrets
+    , decodeService
+    , decodeServices
     , decodeSession
     , decodeSourceRepositories
     , decodeStep
@@ -136,6 +141,7 @@ module Vela exposing
     , updateRepo
     , updateRepoEnabling
     , updateRepoInitialized
+    , updateRepoTimeout
     )
 
 import Api.Pagination as Pagination
@@ -191,6 +197,10 @@ type alias Commit =
 
 
 type alias StepNumber =
+    String
+
+
+type alias ServiceNumber =
     String
 
 
@@ -409,6 +419,23 @@ updateRepo update rm =
     { rm | repo = update }
 
 
+updateRepoTimeout : Maybe Int -> RepoModel -> RepoModel
+updateRepoTimeout update rm =
+    let
+        repo =
+            rm.repo
+    in
+    { rm
+        | repo =
+            case repo of
+                RemoteData.Success r ->
+                    RemoteData.succeed { r | inTimeout = update }
+
+                _ ->
+                    repo
+    }
+
+
 updateRepoEnabling : Enabling -> RepoModel -> RepoModel
 updateRepoEnabling update rm =
     let
@@ -574,6 +601,7 @@ type alias Repository =
     , allow_comment : Bool
     , enabled : Enabled
     , enabling : Enabling
+    , inTimeout : Maybe Int
     }
 
 
@@ -592,7 +620,7 @@ type Enabling
 
 defaultRepository : Repository
 defaultRepository =
-    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False False NotAsked NotAsked_
+    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False False NotAsked NotAsked_ Nothing
 
 
 decodeRepository : Decoder Repository
@@ -620,6 +648,8 @@ decodeRepository =
         |> optional "active" enabledDecoder NotAsked
         -- "enabling"
         |> optional "active" enablingDecoder NotAsked_
+        -- "inTimeout"
+        |> hardcoded Nothing
 
 
 {-| enabledDecoder : decodes string field "status" to the union type Enabled
@@ -1171,6 +1201,75 @@ decodeSteps =
 
 type alias Steps =
     List Step
+
+
+
+-- SERVICE
+
+
+type alias Service =
+    { id : Int
+    , build_id : Int
+    , repo_id : Int
+    , number : Int
+    , name : String
+    , status : Status
+    , error : String
+    , exit_code : Int
+    , created : Int
+    , started : Int
+    , finished : Int
+    , host : String
+    , runtime : String
+    , distribution : String
+    , image : String
+    , viewing : Bool
+    , logFocus : ( Maybe Int, Maybe Int )
+    }
+
+
+{-| defaultService : returns default, empty service
+-}
+defaultService : Service
+defaultService =
+    Service 0 0 0 0 "" Pending "" 0 0 0 0 "" "" "" "" False ( Nothing, Nothing )
+
+
+{-| decodeService : decodes json from vela into service
+-}
+decodeService : Decoder Service
+decodeService =
+    Decode.succeed Service
+        |> optional "id" int -1
+        |> optional "build_id" int -1
+        |> optional "repo_id" int -1
+        |> optional "number" int -1
+        |> optional "name" string ""
+        |> optional "status" buildStatusDecoder Pending
+        |> optional "error" string ""
+        |> optional "exit_code" int -1
+        |> optional "created" int -1
+        |> optional "started" int -1
+        |> optional "finished" int -1
+        |> optional "host" string ""
+        |> optional "runtime" string ""
+        |> optional "distribution" string ""
+        |> optional "image" string ""
+        -- "viewing"
+        |> hardcoded False
+        -- "logFocus"
+        |> hardcoded ( Nothing, Nothing )
+
+
+{-| decodeServices : decodes json from vela into list of services
+-}
+decodeServices : Decoder Services
+decodeServices =
+    Decode.list decodeService
+
+
+type alias Services =
+    List Service
 
 
 type alias LogFocus =

@@ -8,7 +8,7 @@ module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
 import Url.Builder as UB exposing (QueryParameter, string)
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, Name, Org, Ref, Repo, StepNumber, Type)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, Name, Org, Ref, Repo, ServiceNumber, StepNumber, Type)
 
 
 {-| apiBase : is the versioned base of all API paths
@@ -32,6 +32,9 @@ type Endpoint
     | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
     | Build Org Repo BuildNumber
+    | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
+    | Service Org Repo BuildNumber ServiceNumber
+    | ServiceLogs Org Repo BuildNumber ServiceNumber
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | Step Org Repo BuildNumber StepNumber
     | StepLogs Org Repo BuildNumber StepNumber
@@ -79,6 +82,15 @@ toUrl api endpoint =
 
         Build org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber ] []
+
+        Services maybePage maybePerPage org repo buildNumber ->
+            url api [ "repos", org, repo, "builds", buildNumber, "services" ] <| Pagination.toQueryParams maybePage maybePerPage
+
+        Service org repo buildNumber serviceNumber ->
+            url api [ "repos", org, repo, "builds", buildNumber, "services", serviceNumber ] []
+
+        ServiceLogs org repo buildNumber serviceNumber ->
+            url api [ "repos", org, repo, "builds", buildNumber, "services", serviceNumber, "logs" ] []
 
         Steps maybePage maybePerPage org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "steps" ] <| Pagination.toQueryParams maybePage maybePerPage

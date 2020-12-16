@@ -14,7 +14,7 @@ context('Builds', () => {
         response: 'server error',
       });
       cy.stubBuild();
-      cy.login('/someorg/somerepo');
+      cy.login('/github/octocat');
     });
 
     it('builds should not show', () => {
@@ -39,7 +39,7 @@ context('Builds', () => {
         response: 'fixture:builds_5.json',
       });
       cy.stubBuild();
-      cy.login('/someorg/somerepo');
+      cy.login('/github/octocat');
 
       cy.get('[data-test=builds]').as('builds');
     });
@@ -68,7 +68,7 @@ context('Builds', () => {
       cy.server();
       cy.stubBuilds();
       cy.stubBuild();
-      cy.login('/someorg/somerepo');
+      cy.login('/github/octocat');
 
       cy.get('[data-test=builds]').as('builds');
       cy.get('@builds').children().first().as('firstBuild');
@@ -94,19 +94,19 @@ context('Builds', () => {
     });
 
     it('build page 2 should show the next set of results', () => {
-      cy.visit('/someorg/somerepo?page=2');
+      cy.visit('/github/octocat?page=2');
       cy.get('@firstBuild').should('exist').should('contain', '#11');
       cy.get('@lastBuild').should('exist').should('contain', '#20');
       cy.get('[data-test=pager-next]').should('be.disabled');
     });
 
     it("loads the first page when hitting the 'previous' button", () => {
-      cy.visit('/someorg/somerepo?page=2');
+      cy.visit('/github/octocat?page=2');
       cy.get('[data-test=pager-previous]')
         .should('have.length', 2)
         .first()
         .click();
-      cy.location('pathname').should('eq', '/someorg/somerepo');
+      cy.location('pathname').should('eq', '/github/octocat');
     });
 
     it('builds should show commit hash', () => {
@@ -142,7 +142,7 @@ context('Builds', () => {
 
     it('clicking build number should redirect to build page', () => {
       cy.get('@firstBuild').get('[data-test=build-number]').first().click();
-      cy.location('pathname').should('eq', '/someorg/somerepo/1');
+      cy.location('pathname').should('eq', '/github/octocat/1');
     });
   });
 
@@ -150,7 +150,7 @@ context('Builds', () => {
     beforeEach(() => {
       cy.server();
       cy.stubBuildsErrors();
-      cy.login('/someorg/somerepo');
+      cy.login('/github/octocat');
     });
 
     it('error alert should show', () => {
@@ -163,7 +163,7 @@ context('Builds', () => {
       cy.clearSession();
       cy.server();
       cy.stubBuilds();
-      cy.visit('/someorg/somerepo');
+      cy.visit('/github/octocat');
     });
 
     it('error alert should not show', () => {
@@ -178,7 +178,7 @@ context('Builds', () => {
   context('build filters', () => {
     beforeEach(() => {
       cy.stubBuildsFilter();
-      cy.login('/someorg/somerepo');
+      cy.login('/github/octocat');
       cy.get('[data-test=build-filter]').as('buildsFilter');
     });
 
