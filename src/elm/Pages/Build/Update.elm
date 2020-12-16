@@ -29,6 +29,9 @@ import Vela
         , Repo
         , StepNumber
         , Steps
+        , updateBuild
+        , updateBuildStepFollowing
+        , updateBuildSteps
         )
 
 
@@ -73,7 +76,12 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                     else
                         build.followingStep
             in
-            ( { model | repo = { rm | build = { build | steps = steps, followingStep = follow } } }
+            ( { model
+                | repo =
+                    rm
+                        |> updateBuildSteps steps
+                        |> updateBuildStepFollowing follow
+              }
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
@@ -95,7 +103,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             )
 
         FollowStep step ->
-            ( { model | repo = { rm | build = { build | followingStep = step } } }
+            ( { model | repo = updateBuildStepFollowing step rm }
             , Cmd.none
             )
 
@@ -106,7 +114,12 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         |> RemoteData.unwrap build.steps
                             (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
             in
-            ( { model | repo = { rm | build = { build | steps = steps, followingStep = 0 } } }
+            ( { model
+                | repo =
+                    rm
+                        |> updateBuildSteps steps
+                        |> updateBuildStepFollowing 0
+              }
             , Cmd.none
             )
 
@@ -121,7 +134,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
             in
-            ( { model | repo = { rm | build = { build | steps = steps } } }
+            ( { model | repo = updateBuildSteps steps rm }
             , action
             )
 

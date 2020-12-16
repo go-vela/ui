@@ -119,12 +119,23 @@ module Vela exposing
     , toSecretType
     , updateBuild
     , updateBuildLogs
+    , updateBuildStepFollowing
     , updateBuildSteps
     , updateBuilds
+    , updateBuildsEvent
+    , updateBuildsModel
+    , updateBuildsPage
+    , updateBuildsPager
+    , updateBuildsPerPage
     , updateHooks
     , updateHooksModel
+    , updateHooksPage
+    , updateHooksPager
+    , updateHooksPerPage
     , updateOrgRepo
     , updateRepo
+    , updateRepoEnabling
+    , updateRepoInitialized
     )
 
 import Api.Pagination as Pagination
@@ -383,18 +394,37 @@ defaultRepoModel =
     RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
 
 
-updateOrgRepo : RepoModel -> Org -> Repo -> RepoModel
-updateOrgRepo rm org repo =
+updateRepoInitialized : Bool -> RepoModel -> RepoModel
+updateRepoInitialized update rm =
+    { rm | initialized = update }
+
+
+updateOrgRepo : Org -> Repo -> RepoModel -> RepoModel
+updateOrgRepo org repo rm =
     { rm | org = org, name = repo }
 
 
-updateRepo : RepoModel -> WebData Repository -> RepoModel
-updateRepo rm update =
+updateRepo : WebData Repository -> RepoModel -> RepoModel
+updateRepo update rm =
     { rm | repo = update }
 
 
-updateBuild : RepoModel -> WebData Build -> RepoModel
-updateBuild rm update =
+updateRepoEnabling : Enabling -> RepoModel -> RepoModel
+updateRepoEnabling update rm =
+    let
+        repo =
+            rm.repo
+    in
+    case repo of
+        RemoteData.Success r ->
+            { rm | repo = RemoteData.succeed { r | enabling = update } }
+
+        _ ->
+            rm
+
+
+updateBuild : WebData Build -> RepoModel -> RepoModel
+updateBuild update rm =
     let
         b =
             rm.build
@@ -402,13 +432,70 @@ updateBuild rm update =
     { rm | build = { b | build = update } }
 
 
-updateBuilds : RepoModel -> BuildsModel -> RepoModel
-updateBuilds rm update =
+updateBuildStepFollowing : Int -> RepoModel -> RepoModel
+updateBuildStepFollowing update rm =
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | followingStep = update } }
+
+
+updateBuilds : WebData Builds -> RepoModel -> RepoModel
+updateBuilds update rm =
+    let
+        bm =
+            rm.builds
+
+        builds =
+            bm.builds
+    in
+    { rm | builds = { bm | builds = update } }
+
+
+updateBuildsPager : List WebLink -> RepoModel -> RepoModel
+updateBuildsPager update rm =
+    let
+        bm =
+            rm.builds
+    in
+    { rm | builds = { bm | pager = update } }
+
+
+updateBuildsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
+updateBuildsPage maybePage rm =
+    let
+        bm =
+            rm.builds
+    in
+    { rm | builds = { bm | maybePage = maybePage } }
+
+
+updateBuildsPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
+updateBuildsPerPage maybePerPage rm =
+    let
+        bm =
+            rm.builds
+    in
+    { rm | builds = { bm | maybePerPage = maybePerPage } }
+
+
+updateBuildsEvent : Maybe Event -> RepoModel -> RepoModel
+updateBuildsEvent maybeEvent rm =
+    let
+        bm =
+            rm.builds
+    in
+    { rm | builds = { bm | maybeEvent = maybeEvent } }
+
+
+updateBuildsModel : BuildsModel -> RepoModel -> RepoModel
+updateBuildsModel update rm =
     { rm | builds = update }
 
 
-updateBuildSteps : RepoModel -> WebData Steps -> RepoModel
-updateBuildSteps rm update =
+updateBuildSteps : WebData Steps -> RepoModel -> RepoModel
+updateBuildSteps update rm =
     let
         b =
             rm.build
@@ -416,8 +503,8 @@ updateBuildSteps rm update =
     { rm | build = { b | steps = update } }
 
 
-updateBuildLogs : RepoModel -> Logs -> RepoModel
-updateBuildLogs rm update =
+updateBuildLogs : Logs -> RepoModel -> RepoModel
+updateBuildLogs update rm =
     let
         b =
             rm.build
@@ -425,18 +512,45 @@ updateBuildLogs rm update =
     { rm | build = { b | logs = update } }
 
 
-updateHooksModel : RepoModel -> HooksModel -> RepoModel
-updateHooksModel rm update =
+updateHooksModel : HooksModel -> RepoModel -> RepoModel
+updateHooksModel update rm =
     { rm | hooks = update }
 
 
-updateHooks : RepoModel -> WebData Hooks -> RepoModel
-updateHooks rm update =
+updateHooks : WebData Hooks -> RepoModel -> RepoModel
+updateHooks update rm =
     let
         h =
             rm.hooks
     in
     { rm | hooks = { h | hooks = update } }
+
+
+updateHooksPager : List WebLink -> RepoModel -> RepoModel
+updateHooksPager update rm =
+    let
+        h =
+            rm.hooks
+    in
+    { rm | hooks = { h | pager = update } }
+
+
+updateHooksPage : Maybe Pagination.Page -> RepoModel -> RepoModel
+updateHooksPage maybePage rm =
+    let
+        h =
+            rm.hooks
+    in
+    { rm | hooks = { h | maybePage = maybePage } }
+
+
+updateHooksPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
+updateHooksPerPage maybePerPage rm =
+    let
+        h =
+            rm.hooks
+    in
+    { rm | hooks = { h | maybePerPage = maybePerPage } }
 
 
 type alias Repository =
