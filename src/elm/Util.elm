@@ -489,7 +489,7 @@ base64Decode inStr =
         |> Maybe.withDefault ""
 
 
-{-| renderPageNumber : small helper to turn page number to a string to display in crumbs
+{-| pageToString : small helper to turn page number to a string to display in crumbs
 -}
 pageToString : Maybe Int -> String
 pageToString maybePage =
