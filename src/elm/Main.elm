@@ -68,13 +68,13 @@ import Pager
 import Pages exposing (Page(..), onPage)
 import Pages.Build.Logs
     exposing
-        ( focusStepLogs
-        , focusServiceLogs
+        ( focusServiceLogs
+        , focusStepLogs
         , getCurrentResource
         , stepBottomTrackerFocusId
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (clickStep,expandActiveService,clickService, expandActiveStep, isViewingStep,  isViewingService, setAllStepViews)
+import Pages.Build.Update exposing (clickService, clickStep, expandActiveService, expandActiveStep, isViewingService, isViewingStep, setAllStepViews)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -119,7 +119,7 @@ import Vela
         , EnableRepositoryPayload
         , Enabling(..)
         , Engine
-        , Event,Services,Service
+        , Event
         , Favicon
         , Field
         , FocusFragment
@@ -127,7 +127,7 @@ import Vela
         , HooksModel
         , Key
         , Log
-        , Logs,updateBuildServices
+        , Logs
         , Name
         , Org
         , PipelineConfig
@@ -144,14 +144,17 @@ import Vela
         , Secret
         , SecretType(..)
         , Secrets
+        , Service
+        , ServiceNumber
+        , Services
         , Session
         , SourceRepositories
         , Step
         , StepNumber
         , Steps
-        , Team
+        , Team,updateBuildFocusFragment
         , Templates
-        , Theme(..)
+        , Theme(..),updateRepoModel
         , Type
         , UpdateRepositoryPayload
         , UpdateUserPayload
@@ -183,8 +186,8 @@ import Vela
         , updateBuild
         , updateBuildFocusFragment
         , updateBuildLogs
+        , updateBuildServices
         , updateBuildSteps
-        , updateBuilds,ServiceNumber
         , updateBuilds
         , updateBuildsEvent
         , updateBuildsModel
@@ -200,6 +203,7 @@ import Vela
         , updateRepo
         , updateRepoEnabling
         , updateRepoInitialized
+        , updateRepoTimeout
         )
 
 
@@ -232,7 +236,6 @@ type alias Model =
     , time : Posix
     , filters : RepoSearchFilters
     , favoritesFilter : String
-    , inTimeout : Maybe Int
     , entryURL : Url
     , theme : Theme
     , shift : Bool
@@ -280,7 +283,6 @@ init flags url navKey =
             , filters = Dict.empty
             , favoritesFilter = ""
             , repo = defaultRepoModel
-            , inTimeout = Nothing
             , entryURL = url
             , theme = stringToTheme flags.velaTheme
             , shift = False
@@ -329,6 +331,7 @@ type Msg
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
     | FocusLineNumber Int
+    | FilterBuildEventBy (Maybe Event) Org Repo
     | SetTheme Theme
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
@@ -396,7 +399,6 @@ type Msg
     | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
     | SessionChanged (Maybe Session)
-    | FilterBuildEventBy (Maybe Event) Org Repo
     | FocusOn String
     | FocusResult (Result Dom.Error ())
     | OnKeyDown String
@@ -439,23 +441,30 @@ update msg model =
         SearchFavorites searchBy ->
             ( { model | favoritesFilter = searchBy }, Cmd.none )
 
-        ChangeRepoTimeout inTimeout ->
+        ChangeRepoTimeout timeout ->
             let
                 newTimeout =
-                    case String.toInt inTimeout of
+                    case String.toInt timeout of
                         Just t ->
                             Just t
 
                         Nothing ->
                             Just 0
             in
-            ( { model | inTimeout = newTimeout }, Cmd.none )
+            ( { model | repo = updateRepoTimeout newTimeout rm }, Cmd.none )
 
         RefreshSettings org repo ->
-            ( { model | inTimeout = Nothing, repo = updateRepo  Loading rm}, Api.try RepoResponse <| Api.getRepo model org repo )
+            ( { model
+                | repo =
+                    rm
+                        |> updateRepoTimeout Nothing
+                        |> updateRepo Loading
+              }
+            , Api.try RepoResponse <| Api.getRepo model org repo
+            )
 
         RefreshHooks org repo ->
-            ( { model | repo = updateHooks   Loading rm }, getHooks model org repo Nothing Nothing )
+            ( { model | repo = updateHooks Loading rm }, getHooks model org repo Nothing Nothing )
 
         RefreshSecrets engine type_ org key ->
             let
@@ -477,6 +486,16 @@ update msg model =
                     ( { model | secretsModel = { secretsModel | sharedSecrets = Loading } }
                     , getSharedSecrets model Nothing Nothing engine org key
                     )
+
+        FilterBuildEventBy maybeEvent org repo ->
+            ( { model
+                | repo =
+                    rm
+                        |> updateBuilds Loading
+                        |> updateBuildsPager []
+              }
+            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
+            )
 
         FocusLineNumber line ->
             let
@@ -510,6 +529,7 @@ update msg model =
                     ( { model | repo = updateHooks Loading rm }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage
                     )
+
                 Pages.RepoSecrets engine org repo _ maybePerPage ->
                     let
                         currentSecrets =
@@ -518,7 +538,9 @@ update msg model =
                         loadingSecrets =
                             { currentSecrets | repoSecrets = Loading }
                     in
-                    ( { model | secretsModel = loadingSecrets }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepoSecrets engine org repo (Just pageNumber) maybePerPage )
+                    ( { model | secretsModel = loadingSecrets }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepoSecrets engine org repo (Just pageNumber) maybePerPage
+                    )
 
                 Pages.OrgSecrets engine org _ maybePerPage ->
                     let
@@ -528,7 +550,9 @@ update msg model =
                         loadingSecrets =
                             { currentSecrets | orgSecrets = Loading }
                     in
-                    ( { model | secretsModel = loadingSecrets }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgSecrets engine org (Just pageNumber) maybePerPage )
+                    ( { model | secretsModel = loadingSecrets }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgSecrets engine org (Just pageNumber) maybePerPage
+                    )
 
                 Pages.SharedSecrets engine org team _ maybePerPage ->
                     let
@@ -538,7 +562,9 @@ update msg model =
                         loadingSecrets =
                             { currentSecrets | sharedSecrets = Loading }
                     in
-                    ( { model | secretsModel = loadingSecrets }, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.SharedSecrets engine org team (Just pageNumber) maybePerPage )
+                    ( { model | secretsModel = loadingSecrets }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.SharedSecrets engine org team (Just pageNumber) maybePerPage
+                    )
 
                 _ ->
                     ( model, Cmd.none )
@@ -665,9 +691,7 @@ update msg model =
             , Cmd.none
             )
 
-
--- services
-
+        -- services
         ExpandService org repo buildNumber serviceNumber ->
             let
                 build =
@@ -709,15 +733,12 @@ update msg model =
                 ]
             )
 
-
-
-
         ClickBuildNavTab route ->
             case route of
-                Routes.Build o r b l   ->
+                Routes.Build o r b l ->
                     let
                         rt =
-                            Routes.Build o r b l  
+                            Routes.Build o r b l
                     in
                     ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl rt )
 
@@ -771,7 +792,7 @@ update msg model =
             in
             ( { model
                 | sourceRepos = enableUpdate repo Loading model.sourceRepos
-                , repo = updateRepoEnabling Vela.Enabling rm  
+                , repo = updateRepoEnabling Vela.Enabling rm
               }
             , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
             )
@@ -968,15 +989,11 @@ update msg model =
                     ( { model | repo = updateRepo (toFailure error) rm }, addError error )
 
         RepoEnabledResponse repo response ->
-            let
-                currentRepo =
-                    RemoteData.withDefault defaultRepository rm.repo
-            in
             case response of
                 Ok ( _, enabledRepo ) ->
                     ( { model
                         | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
-                        , repo = { rm | repo = RemoteData.succeed <| { currentRepo | enabling = Vela.Enabled } }
+                        , repo = updateRepoEnabling Vela.Enabled rm
                       }
                     , Util.dispatch <| ToggleFavorite repo.org <| Just repo.name
                     )
@@ -1006,11 +1023,11 @@ update msg model =
         RepoUpdatedResponse field response ->
             case response of
                 Ok ( _, updatedRepo ) ->
-                    ( { model | repo = { rm | repo = RemoteData.succeed updatedRepo } }, Cmd.none )
+                    ( { model | repo = updateRepo (RemoteData.succeed updatedRepo) rm }, Cmd.none )
                         |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
 
                 Err error ->
-                    ( { model | repo = { rm | repo = toFailure error } }, addError error )
+                    ( { model | repo = updateRepo (toFailure error) rm }, addError error )
 
         RepoChownedResponse repo response ->
             case response of
@@ -1087,6 +1104,7 @@ update msg model =
 
                 Err error ->
                     ( { model | repo = updateHooks (toFailure error) rm }, addError error )
+
         BuildResponse org repo _ response ->
             case response of
                 Ok ( _, build ) ->
@@ -1166,7 +1184,6 @@ update msg model =
                     , cmd
                     )
 
-
                 Err error ->
                     ( model, addError error )
 
@@ -1180,7 +1197,7 @@ update msg model =
                                 |> Pages.Build.Update.mergeServices logFocus refresh rm.build.services
 
                         updatedModel =
-                            { model | repo = updateBuildServices  (RemoteData.succeed mergedServices) rm }
+                            { model | repo = updateBuildServices (RemoteData.succeed mergedServices) rm }
 
                         cmd =
                             getBuildServicesLogs updatedModel org repo buildNumber mergedServices logFocus refresh
@@ -1189,6 +1206,7 @@ update msg model =
 
                 Err error ->
                     ( model, addError error )
+
         ServiceLogResponse serviceNumber logFocus refresh response ->
             case response of
                 Ok ( _, incomingLog ) ->
@@ -1220,7 +1238,7 @@ update msg model =
                             else
                                 Cmd.none
                     in
-                    ( updateLogs { model | repo = updateBuildServices   services rm } incomingLog
+                    ( updateLogs { model | repo = updateBuildServices services rm } incomingLog
                     , cmd
                     )
 
@@ -1427,16 +1445,6 @@ update msg model =
         SessionChanged newSession ->
             ( { model | session = newSession }, Cmd.none )
 
-        FilterBuildEventBy maybeEvent org repo ->
-            ( { model
-                | repo =
-                    rm
-                        |> updateBuilds Loading
-                        |> updateBuildsPager []
-              }
-            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
-            )
-
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt FocusResult )
 
@@ -1599,7 +1607,7 @@ refreshSubscriptions model =
 refreshFavicon : Page -> Favicon -> WebData Build -> ( Favicon, Cmd Msg )
 refreshFavicon page currentFavicon build =
     case page of
-        Pages.Build _ _ _ _   ->
+        Pages.Build _ _ _ _ ->
             case build of
                 RemoteData.Success b ->
                     let
@@ -1635,7 +1643,7 @@ refreshPage model =
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             getBuilds model org repo maybePage maybePerPage maybeEvent
 
-        Pages.Build org repo buildNumber focusFragment   ->
+        Pages.Build org repo buildNumber focusFragment ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
@@ -1643,12 +1651,11 @@ refreshPage model =
                 , refreshLogs model org repo buildNumber model.repo.build.steps Nothing
                 ]
 
-    
         Pages.BuildPipeline org repo buildNumber _ _ _ ->
             Cmd.batch
-            [ getBuilds model org repo Nothing Nothing Nothing
-            , refreshBuild model org repo buildNumber
-            ]
+                [ getBuilds model org repo Nothing Nothing Nothing
+                , refreshBuild model org repo buildNumber
+                ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
             Cmd.batch
@@ -1683,7 +1690,7 @@ refreshPageHidden model _ =
             model.page
     in
     case page of
-        Pages.Build org repo buildNumber   _ ->
+        Pages.Build org repo buildNumber _ ->
             Cmd.batch
                 [ refreshBuild model org repo buildNumber
                 ]
@@ -1897,7 +1904,7 @@ viewContent model =
 
         Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy5 Pages.RepoSettings.view model.repo.repo model.inTimeout repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
+            , lazy4 Pages.RepoSettings.view model.repo.repo repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
             )
 
         Pages.RepoSecrets engine org repo _ _ ->
@@ -2000,48 +2007,43 @@ viewContent model =
                 ]
             )
 
-        Pages.Build org repo buildNumber _  ->
-            
+        Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
             , Pages.Build.View.viewBuild
-                            model
-                            buildMsgs
-                            org
-                            repo 
+                model
+                buildMsgs
+                org
+                repo
             )
 
-        Pages.BuildServices org repo buildNumber _  ->
-            
+        Pages.BuildServices org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , Pages.Build.View.viewBuildServices 
-                            model
-                            buildMsgs
-                            org
-                            repo 
+            , Pages.Build.View.viewBuildServices
+                model
+                buildMsgs
+                org
+                repo
             )
 
         Pages.BuildPipeline org repo buildNumber ref expand lineFocus ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
-            ,  Pages.Pipeline.View.viewPipeline
-                        model
-                        pipelineMsgs
-                        ref
-                        |> Pages.Build.View.wrapWithBuildPreview
-                            model
-                            org
-                            repo
-
- 
+            , Pages.Pipeline.View.viewPipeline
+                model
+                pipelineMsgs
+                ref
+                |> Pages.Build.View.wrapWithBuildPreview
+                    model
+                    org
+                    repo
             )
-        Pages.Pipeline org repo   ref expand lineFocus ->
+
+        Pages.Pipeline org repo ref expand lineFocus ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Pages.Pipeline.View.viewPipeline
-                        model
-                        pipelineMsgs
-                        ref
+                model
+                pipelineMsgs
+                ref
             )
-
-
 
         Pages.Settings ->
             ( "Settings"
@@ -2347,221 +2349,182 @@ setNewPage route model =
             in
             loadRepoBuildsPage model org repo currentSession maybePage maybePerPage maybeEvent
 
-        ( Routes.Build org repo buildNumber lineFocus  , True ) ->
+        ( Routes.Build org repo buildNumber lineFocus, True ) ->
             let
-                _ = buildChanged (Pages.Build org repo buildNumber lineFocus) model.page
+                _ =
+                    buildChanged (Pages.Build org repo buildNumber lineFocus) model.page
             in
 
-            case model.page of
-                Pages.BuildPipeline o r b _ _ _ ->
-                    case rm.build.build of
-                        NotAsked ->
-                            loadBuildPage model org repo buildNumber lineFocus True  
 
-                        Failure _ ->
-                            loadBuildPage model org repo buildNumber lineFocus True   
+            
+                case rm.build.build of
+                    NotAsked ->
+                        loadBuildPage model org repo buildNumber lineFocus True
 
-                        _ ->
-                            if not <| resourceChanged ( org, repo, rm.build.buildNumber ) ( o, r,  b ) then
-                                let
-                                    ( steps, action ) =
-                                        focusStepLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber lineFocus getBuildStepsLogs
-                                in
-                                ( { model
-                                    | page = Pages.Build org repo buildNumber lineFocus  
-                                    , repo =
-                                        { rm
-                                            | build =
-                                                { build
-                                                    | buildNumber = buildNumber
-                                                    , followingStep = 0
-                                                    , steps = RemoteData.succeed steps
-                                                    , focusFragment =
-                                                        case lineFocus of
-                                                            Just l ->
-                                                                Just <| "#" ++ l
-
-                                                            Nothing ->
-                                                                Nothing
-                                                }
-                                        }
-                                  }
-                                , Cmd.batch
-                                    [ getBuild model org repo buildNumber
-                                    , getAllBuildSteps model org repo buildNumber lineFocus False
-                                    , action
-                                    ]
-                                )
-
-                            else
-                                loadBuildPage model org repo buildNumber lineFocus True  
-
-                Pages.Build o r b _   ->
-                    if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
-                        let
-                            ( steps, action ) =
-                                focusStepLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber lineFocus getBuildStepsLogs
-                        in
-                        ( { model
-                            | page = Pages.Build org repo buildNumber lineFocus   
-                                    , repo =
-                                        { rm
-                                            | build =
-                                                { build
-                                                    | buildNumber = buildNumber
-                                                    , steps = RemoteData.succeed steps
-                                                    , focusFragment =
-                                                        case lineFocus of
-                                                            Just l ->
-                                                                Just <| "#" ++ l
-
-                                                            Nothing ->
-                                                                Nothing
-                                                }
-                                        }
-                                  }
-                        , action
-                        )
-
-                    else
-                        loadBuildPage model org repo buildNumber lineFocus False  
-                Pages.BuildServices o r b _   ->
-                    if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
-                        let
-                            ( steps, action ) =
-                                focusStepLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber lineFocus getBuildStepsLogs
-                        in
-                        ( { model
-                            | page = Pages.Build org repo buildNumber lineFocus   
-                                    , repo =
-                                        { rm
-                                            | build =
-                                                { build
-                                                    | buildNumber = buildNumber
-                                                    , steps = RemoteData.succeed steps
-                                                    , focusFragment =
-                                                        case lineFocus of
-                                                            Just l ->
-                                                                Just <| "#" ++ l
-
-                                                            Nothing ->
-                                                                Nothing
-                                                }
-                                        }
-                                }
-                        , action
-                        ) 
-
-                    else 
-                        loadBuildPage model org repo buildNumber lineFocus False  
-                _ ->
-                    loadBuildPage model org repo buildNumber lineFocus False  
-        ( Routes.BuildServices org repo buildNumber lineFocus  , True ) ->
-                case model.page of
-                    Pages.BuildServices o r b _   ->
-                        if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
-                            let
-                                ( services, action ) =
-                                    focusServiceLogs model (RemoteData.withDefault [] rm.build.services) org repo buildNumber lineFocus getBuildServicesLogs
-                            in
-                            ( { model
-                                | page = Pages.BuildServices org repo buildNumber lineFocus   
-                                        , repo =
-                                            { rm
-                                                | build =
-                                                    { build
-                                                        | buildNumber = buildNumber
-                                                        , services = RemoteData.succeed services
-                                                        , focusFragment =
-                                                            case lineFocus of
-                                                                Just l ->
-                                                                    Just <| "#" ++ l
-
-                                                                Nothing ->
-                                                                    Nothing
-                                                    }
-                                            }
-                                    }
-                            , action
-                            )
-
-                        else
-                            loadBuildServicesPage model org repo buildNumber lineFocus False  
-                    Pages.Build o r b _   ->
-                        if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
-                            let
-                                ( services, action ) =
-                                    focusServiceLogs model (RemoteData.withDefault [] rm.build.services) org repo buildNumber lineFocus getBuildServicesLogs
-                            in
-                            ( { model
-                                | page = Pages.BuildServices org repo buildNumber lineFocus   
-                                        , repo =
-                                            { rm
-                                                | build =
-                                                    { build
-                                                        | buildNumber = buildNumber
-                                                        , services = RemoteData.succeed services
-                                                        , focusFragment =
-                                                            case lineFocus of
-                                                                Just l ->
-                                                                    Just <| "#" ++ l
-
-                                                                Nothing ->
-                                                                    Nothing
-                                                    }
-                                            }
-                                    }
-                            , action
-                            ) 
-
-                        else 
-                            loadBuildServicesPage model org repo buildNumber lineFocus False  
+                    Failure _ ->
+                        loadBuildPage model org repo buildNumber lineFocus True
 
                     _ ->
-                        loadBuildServicesPage model org repo buildNumber lineFocus False  
+                        case model.page of
+
+                            Pages.BuildServices o r b _ ->
+                                if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                                    let
+                                        ( steps, action ) =
+                                            focusStepLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber lineFocus getBuildStepsLogs
+
+                                        m_ = { model
+                                                | page = Pages.Build org repo buildNumber lineFocus
+                                                , repo =
+                                                    { rm
+                                                        | build =
+                                                            { build
+                                                                | buildNumber = buildNumber
+                                                                , steps = RemoteData.succeed steps
+                                                                , focusFragment =
+                                                                    case lineFocus of
+                                                                        Just l ->
+                                                                            Just <| "#" ++ l
+
+                                                                        Nothing ->
+                                                                            Nothing
+                                                            }
+                                                    }   
+                                            }
+                                        (m, a) = loadBuildPage model org repo buildNumber lineFocus True
+                                    in
+                                        ( m
+                                        , Cmd.batch [a, action]
+                                        )
+
+                                else
+                                    loadBuildPage model org repo buildNumber lineFocus True
+                            Pages.BuildPipeline o r b _ _ _ ->
+                                if not <| resourceChanged ( org, repo, rm.build.buildNumber ) ( o, r, b ) then
+                                    let
+                                        ( steps, action ) =
+                                            focusStepLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber lineFocus getBuildStepsLogs
+                                    in
+                                    ( { model
+                                        | page = Pages.Build org repo buildNumber lineFocus
+                                        , repo =
+                                            { rm
+                                                | build =
+                                                    { build
+                                                        | buildNumber = buildNumber
+                                                        , followingStep = 0
+                                                        , steps = RemoteData.succeed steps
+                                                        , focusFragment =
+                                                            case lineFocus of
+                                                                Just l ->
+                                                                    Just <| "#" ++ l
+
+                                                                Nothing ->
+                                                                    Nothing
+                                                    }
+                                            }
+                                    }
+                                    , Cmd.batch
+                                        [ getBuild model org repo buildNumber
+                                        , getAllBuildSteps model org repo buildNumber lineFocus False
+                                        , action
+                                        ]
+                                    )
+
+                                else
+                                    loadBuildPage model org repo buildNumber lineFocus True
+
+                            Pages.Build o r b _ ->
+                                if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
+                                    let
+                                        ( steps, action ) =
+                                            focusStepLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber lineFocus getBuildStepsLogs
+                                    in
+                                    ( { model
+                                        | page = Pages.Build org repo buildNumber lineFocus
+                                        , repo =
+                                            { rm
+                                                | build =
+                                                    { build
+                                                        | buildNumber = buildNumber
+                                                        , steps = RemoteData.succeed steps
+                                                        , focusFragment =
+                                                            case lineFocus of
+                                                                Just l ->
+                                                                    Just <| "#" ++ l
+
+                                                                Nothing ->
+                                                                    Nothing
+                                                    }
+                                            }
+                                    }
+                                    , action
+                                    )
+
+                                else
+                                    loadBuildPage model org repo buildNumber lineFocus False
+
+                            _ ->
+                                loadBuildPage model org repo buildNumber lineFocus False
+
+        ( Routes.BuildServices org repo buildNumber lineFocus, True ) ->
+            case model.page of
+                Pages.BuildServices o r b _ ->
+                        loadBuildServicesPage model org repo buildNumber lineFocus True (not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ))
+
+                Pages.Build o r b _ ->
+                    loadBuildServicesPage model org repo buildNumber lineFocus True False
+
+                Pages.BuildPipeline o r b _ _ _->
+                    loadBuildServicesPage model org repo buildNumber lineFocus True False
+                _ ->
+                    loadBuildServicesPage model org repo buildNumber lineFocus False False
+
         ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, True ) ->
-                    case model.page of
-                        -- todo handle build and ref?
-                        -- todo handle maybe values
-                        Pages.BuildPipeline o r  b r_ ex _ ->
-                            let
-                                pipeline =
-                                    model.pipeline
+            case model.page of
+                -- todo handle build and ref?
+                -- todo handle maybe values
+                Pages.BuildPipeline o r b r_ ex _ ->
+                    let
+                        pipeline =
+                            model.pipeline
 
-                                parsed =
-                                    parseFocusFragment lineFocus
+                        parsed =
+                            parseFocusFragment lineFocus
 
-                                currentRef =
-                                    ( org, repo, Maybe.withDefault "" r_ )
+                        currentRef =
+                            ( org, repo, Maybe.withDefault "" r_ )
 
-                                incomingRef =
-                                    ( o, r, Maybe.withDefault "_" ref )
-                                currentBuild =
-                                    ( org, repo,  b )
+                        incomingRef =
+                            ( o, r, Maybe.withDefault "_" ref )
 
-                                incomingBuild =
-                                    ( o, r, buildNumber )
-                            in
-                            if resourceChanged currentRef incomingRef || resourceChanged currentBuild incomingBuild then
-                                loadBuildPipelinePage model org repo buildNumber  ref expand lineFocus False                            
-                            else
-                                ( { model
-                                    | pipeline =
-                                        { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
-                                  }
-                                , Cmd.none
-                                )
+                        currentBuild =
+                            ( org, repo, b )
 
-                        Pages.Build o r b   _   ->
-                            loadBuildPipelinePage model org repo buildNumber  ref expand lineFocus True
+                        incomingBuild =
+                            ( o, r, buildNumber )
+                    in
+                    if resourceChanged currentRef incomingRef || resourceChanged currentBuild incomingBuild then
+                        loadBuildPipelinePage model org repo buildNumber ref expand lineFocus False
 
-                        _ ->
+                    else
+                        ( { model
+                            | pipeline =
+                                { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
+                          }
+                        , Cmd.none
+                        )
 
-                            loadBuildPipelinePage model org repo buildNumber  ref expand lineFocus False
-        ( Routes.Pipeline org repo   ref expand lineFocus, True ) ->
+                Pages.Build o r b _ ->
+                    loadBuildPipelinePage model org repo buildNumber ref expand lineFocus True
+
+                _ ->
+                    loadBuildPipelinePage model org repo buildNumber ref expand lineFocus False
+
+        ( Routes.Pipeline org repo ref expand lineFocus, True ) ->
             let
                 ( newModel, action ) =
-                    loadPipelinePage model org repo   ref expand lineFocus False
+                    loadPipelinePage model org repo ref expand lineFocus False
             in
             ( newModel, action ) |> setPipelineFocusFragment lineFocus
 
@@ -2590,60 +2553,55 @@ setNewPage route model =
             , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
             )
 
+
 buildChanged : Page -> Page -> Bool
 buildChanged onPage toPage =
     let
-        (onIdentifier, onFocus) =
+        ( onIdentifier, onFocus ) =
             case onPage of
                 Pages.Build o r b f ->
-                    ((o, r, b), f)
+                    ( ( o, r, b ), f )
+
                 Pages.BuildServices o r b f ->
-                    ((o, r, b), f)
+                    ( ( o, r, b ), f )
+
                 Pages.BuildPipeline o r b _ _ f ->
-                    ((o, r, b), f)
+                    ( ( o, r, b ), f )
+
                 _ ->
-                    (("","","" ), Nothing)
-        (toIdentifier, toFocus) =
+                    ( ( "", "", "" ), Nothing )
+
+        ( toIdentifier, toFocus ) =
             case onPage of
                 Pages.Build o r b f ->
-                    ((o, r, b), f)
+                    ( ( o, r, b ), f )
+
                 Pages.BuildServices o r b f ->
-                    ((o, r, b), f)
+                    ( ( o, r, b ), f )
+
                 Pages.BuildPipeline o r b _ _ f ->
-                    ((o, r, b), f)
+                    ( ( o, r, b ), f )
+
                 _ ->
-                    (("","","" ), Nothing)
+                    ( ( "", "", "" ), Nothing )
     in
-        if not <| resourceChanged onIdentifier toIdentifier then
-            if onFocus == toFocus then
-                let
-                    _ = Debug.log "focus changed on:" onFocus
-                    _ = Debug.log "focus changed to:" toFocus
-                in
-                    True
-            else
-                True
+    if not <| resourceChanged onIdentifier toIdentifier then
+        if onFocus == toFocus then
+            let
+                _ =
+                    Debug.log "focus changed on:" onFocus
+
+                _ =
+                    Debug.log "focus changed to:" toFocus
+            in
+            True
+
         else
             True
-    
-setBuildFocusFragment : FocusFragment -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-setBuildFocusFragment logFocus ( model, c ) =
-    let
-        rm =
-            model.repo
-    in
-    ( { model
-        | repo =
-            updateBuildFocusFragment rm <|
-                case logFocus of
-                    Just l ->
-                        Just <| "#" ++ l
 
-                    Nothing ->
-                        Nothing
-      }
-    , c
-    )
+    else
+        True
+
 
 
 setPipelineFocusFragment : FocusFragment -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -3109,8 +3067,8 @@ loadUpdateSharedSecretPage model engine org team name =
 
 {-| loadBuildPage : takes model org, repo, and build number and loads the appropriate build.
 -}
-loadBuildPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool  ->( Model, Cmd Msg )
-loadBuildPage model org repo buildNumber lineFocus soft   =
+loadBuildPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> ( Model, Cmd Msg )
+loadBuildPage model org repo buildNumber lineFocus soft =
     let
         rm =
             model.repo
@@ -3133,7 +3091,7 @@ loadBuildPage model org repo buildNumber lineFocus soft   =
     in
     -- Fetch build from Api
     ( { model
-        | page = Pages.Build org repo buildNumber lineFocus  
+        | page = Pages.Build org repo buildNumber lineFocus
         , pipeline = { pipeline | focusFragment = Nothing }
         , repo =
             { rm
@@ -3168,12 +3126,12 @@ loadBuildPage model org repo buildNumber lineFocus soft   =
     )
 
 
-
 {-| loadBuildServicesPage : takes model org, repo, and build number and loads the appropriate build services.
 -}
-loadBuildServicesPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool  ->( Model, Cmd Msg )
-loadBuildServicesPage model org repo buildNumber lineFocus soft   =
+loadBuildServicesPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Bool -> ( Model, Cmd Msg )
+loadBuildServicesPage model org repo buildNumber lineFocus soft focus =
     let
+                            
         rm =
             model.repo
 
@@ -3192,10 +3150,16 @@ loadBuildServicesPage model org repo buildNumber lineFocus soft   =
 
             else
                 rm.builds
+        
+        ( services, focusLine ) =
+            if focus then
+                Tuple.mapFirst (\s -> RemoteData.succeed s) <| focusServiceLogs model (RemoteData.withDefault [] rm.build.services) org repo buildNumber lineFocus getBuildServicesLogs
+            else
+                (NotAsked, Cmd.none)
     in
     -- Fetch build from Api
     ( { model
-        | page = Pages.BuildServices org repo buildNumber lineFocus  
+        | page = Pages.BuildServices org repo buildNumber lineFocus
         , pipeline = { pipeline | focusFragment = Nothing }
         , repo =
             { rm
@@ -3208,8 +3172,8 @@ loadBuildServicesPage model org repo buildNumber lineFocus soft   =
                             else
                                 Loading
                         , buildNumber = buildNumber
-                        , services = NotAsked
-                        , logs = []
+                        , services = services
+                        , logs = if focus then rm.build.logs else []
                         , followingService = 0
                         , focusFragment =
                             case lineFocus of
@@ -3223,17 +3187,21 @@ loadBuildServicesPage model org repo buildNumber lineFocus soft   =
             }
       }
     , Cmd.batch
-        [ getBuilds model org repo Nothing Nothing Nothing
-        , getBuild model org repo buildNumber
-        , getAllBuildServices model org repo buildNumber lineFocus False
-        ]
+        <| if focus then 
+            [focusLine]
+            else 
+                [
+                    getBuilds model org repo Nothing Nothing Nothing
+                    , getBuild model org repo buildNumber
+                    , getAllBuildServices model org repo buildNumber lineFocus soft
+                ]
     )
 
 
 {-| loadBuildPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadBuildPipelinePage : Model -> Org -> Repo ->   BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> Bool -> ( Model, Cmd Msg )
-loadBuildPipelinePage model org repo buildNumber ref expand lineFocus refresh =
+loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> Bool -> ( Model, Cmd Msg )
+loadBuildPipelinePage model org repo buildNumber ref expand lineFocus refresh   =
     let
         getPipelineConfigAction =
             case expand of
@@ -3258,13 +3226,13 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus refresh =
 
         pipeline =
             model.pipeline
+
         templates =
             model.templates
     in
     ( { model
-        |
-         page =  Pages.BuildPipeline org repo buildNumber ref expand lineFocus
-         ,  repo = { rm | build = { build | focusFragment = Nothing } }
+        | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus
+        , repo = { rm | build = { build | focusFragment = Nothing } }
         , pipeline =
             { config =
                 if refresh then
@@ -3272,12 +3240,14 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus refresh =
 
                 else
                     ( Loading, "" )
-            , expanded =   if refresh then
+            , expanded =
+                if refresh then
                     pipeline.expanded
 
                 else
                     False
-            , expanding = if refresh then
+            , expanding =
+                if refresh then
                     pipeline.expanding
 
                 else
@@ -3296,28 +3266,25 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus refresh =
                         Nothing
             , buildNumber = Just buildNumber
             }
-        , templates = if refresh then
-                    templates
+        , templates =
+            if refresh then
+                templates
 
-                else
-                    ( Loading, "" )
+            else
+                ( Loading, "" )
       }
     , Cmd.batch
-        [ 
-                Cmd.batch [ getBuilds model org repo Nothing Nothing Nothing, getBuild model org repo buildNumber ]
- 
+        [ Cmd.batch [ getBuilds model org repo Nothing Nothing Nothing, getBuild model org repo buildNumber ]
         , getPipelineConfigAction
         , getPipelineTemplates model org repo ref
         ]
     )
 
 
-
-
 {-| loadPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
 loadPipelinePage : Model -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> Bool -> ( Model, Cmd Msg )
-loadPipelinePage model org repo   ref expand lineFocus refresh =
+loadPipelinePage model org repo ref expand lineFocus refresh =
     let
         getPipelineConfigAction =
             case expand of
@@ -3344,9 +3311,8 @@ loadPipelinePage model org repo   ref expand lineFocus refresh =
             model.pipeline
     in
     ( { model
-        |
-         page =  Pages.Pipeline org repo   ref expand lineFocus
-         ,  repo = { rm | build = { build | focusFragment = Nothing } }
+        | page = Pages.Pipeline org repo ref expand lineFocus
+        , repo = { rm | build = { build | focusFragment = Nothing } }
         , pipeline =
             { config =
                 if refresh then
@@ -3377,8 +3343,6 @@ loadPipelinePage model org repo   ref expand lineFocus refresh =
         , getPipelineTemplates model org repo ref
         ]
     )
-
-
 
 
 {-| repoEnabledError : takes model repo and error and updates the source repos within the model
@@ -3710,9 +3674,11 @@ getAllBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bo
 getAllBuildServices model org repo buildNumber logFocus refresh =
     Api.tryAll (ServicesResponse org repo buildNumber logFocus refresh) <| Api.getAllServices model org repo buildNumber
 
+
 getBuildServiceLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg
 getBuildServiceLogs model org repo buildNumber stepNumber logFocus refresh =
     Api.try (ServiceLogResponse stepNumber logFocus refresh) <| Api.getServiceLogs model org repo buildNumber stepNumber
+
 
 getBuildServicesLogs : Model -> Org -> Repo -> BuildNumber -> Services -> FocusFragment -> Bool -> Cmd Msg
 getBuildServicesLogs model org repo buildNumber services logFocus refresh =
@@ -3726,6 +3692,7 @@ getBuildServicesLogs model org repo buildNumber services logFocus refresh =
                     Cmd.none
             )
             services
+
 
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 restartBuild model org repo buildNumber =

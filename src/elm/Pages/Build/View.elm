@@ -138,25 +138,28 @@ viewBuildServices model msgs org repo =
     wrapWithBuildPreview model org repo <|
         case model.repo.build.services of
             RemoteData.Success services_ ->
-                    let
-                        logActions =
-                            div
-                                [ class "buttons"
-                                , class "log-actions"
-                                -- , class "flowline-left"
-                                , Util.testAttribute "log-actions"
+                    if List.isEmpty services_  then
+                        div [class "no-services"] [small [][ code [][text "This pipeline has no services."]]]
+                    else
+                        let
+                                logActions =
+                                    div
+                                        [ class "buttons"
+                                        , class "log-actions"
+                                        -- , class "flowline-left"
+                                        , Util.testAttribute "log-actions"
+                                        ]
+                                        [ collapseAllStepsButton msgs.collapseAllSteps
+                                        , expandAllStepsButton msgs.expandAllSteps model.repo.org model.repo.name model.repo.build.buildNumber
+                                        ]
+                        in
+                            div []
+                                [ logActions
+                                , div [ class "steps" ]
+                                    [ div [ class "-items", Util.testAttribute "steps" ] <|
+                                        viewServices model msgs model.repo services_
+                                    ]
                                 ]
-                                [ collapseAllStepsButton msgs.collapseAllSteps
-                                , expandAllStepsButton msgs.expandAllSteps model.repo.org model.repo.name model.repo.build.buildNumber
-                                ]
-                    in
-                    div []
-                        [ logActions
-                        , div [ class "steps" ]
-                            [ div [ class "-items", Util.testAttribute "steps" ] <|
-                                viewServices model msgs model.repo services_
-                            ]
-                        ]
 
             RemoteData.Failure _ ->
                 div [] [ text "Error loading services... Please try again" ]

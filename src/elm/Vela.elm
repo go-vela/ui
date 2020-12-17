@@ -9,7 +9,7 @@ module Vela exposing
     , Build
     , BuildModel
     , BuildNumber
-    , BuildView
+    , BuildView,updateRepoModel
     , Builds
     , BuildsModel
     , ChownRepo
@@ -145,6 +145,7 @@ module Vela exposing
     , updateRepo
     , updateRepoEnabling
     , updateRepoInitialized
+    , updateRepoTimeout
     )
 
 import Api.Pagination as Pagination
@@ -430,6 +431,13 @@ defaultBuildModel =
 defaultRepoModel : RepoModel
 defaultRepoModel =
     RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
+ 
+updateRepoModel :  RepoModel -> { a | repo : RepoModel } -> { a | repo : RepoModel } 
+updateRepoModel update m  =
+    let
+        rm = m.repo
+    in
+    { m | repo = rm }
 
 
 updateRepoInitialized : Bool -> RepoModel -> RepoModel
@@ -445,6 +453,23 @@ updateOrgRepo org repo rm =
 updateRepo : WebData Repository -> RepoModel -> RepoModel
 updateRepo update rm =
     { rm | repo = update }
+
+
+updateRepoTimeout : Maybe Int -> RepoModel -> RepoModel
+updateRepoTimeout update rm =
+    let
+        repo =
+            rm.repo
+    in
+    { rm
+        | repo =
+            case repo of
+                RemoteData.Success r ->
+                    RemoteData.succeed { r | inTimeout = update }
+
+                _ ->
+                    repo
+    }
 
 
 updateRepoEnabling : Enabling -> RepoModel -> RepoModel
@@ -470,8 +495,8 @@ updateBuild update rm =
     { rm | build = { b | build = update } }
 
 
-updateBuildFocusFragment : RepoModel -> FocusFragment -> RepoModel
-updateBuildFocusFragment rm update =
+updateBuildFocusFragment : FocusFragment ->RepoModel ->  RepoModel
+updateBuildFocusFragment  update rm =
     let
         b =
             rm.build
@@ -630,6 +655,7 @@ type alias Repository =
     , allow_comment : Bool
     , enabled : Enabled
     , enabling : Enabling
+    , inTimeout : Maybe Int
     }
 
 
@@ -648,7 +674,7 @@ type Enabling
 
 defaultRepository : Repository
 defaultRepository =
-    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False False NotAsked NotAsked_
+    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False False NotAsked NotAsked_ Nothing
 
 
 decodeRepository : Decoder Repository
@@ -676,6 +702,8 @@ decodeRepository =
         |> optional "active" enabledDecoder NotAsked
         -- "enabling"
         |> optional "active" enablingDecoder NotAsked_
+        -- "inTimeout"
+        |> hardcoded Nothing
 
 
 {-| enabledDecoder : decodes string field "status" to the union type Enabled
