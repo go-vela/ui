@@ -346,11 +346,11 @@ viewBuildNav model org repo build   currentPage =
             { build =
                 { 
                 -- TODO: ensure focusFragment is set and accurate
-                to = Pages.Build org repo buildNumber bm.focusFragment 
+                to = Pages.Build org repo buildNumber bm.steps.focusFragment 
                 }
             , services =
                 { 
-                to = Pages.BuildServices org repo buildNumber Nothing
+                to = Pages.BuildServices org repo buildNumber bm.services.focusFragment 
                 }
             , pipeline =
                 { 
@@ -458,6 +458,10 @@ recentBuildLink page org repo buildNumber build idx =
         , case page of
             Pages.Build _ _ _   _ ->
                 Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing  
+
+            Pages.BuildServices _ _ _ _  ->
+                Routes.href <| Routes.BuildServices org repo (String.fromInt build.number)  Nothing
+
 
             Pages.BuildPipeline _ _ _ _ _ _ ->
                 Routes.href <| Routes.BuildPipeline org repo (String.fromInt build.number)  (Just build.commit) Nothing Nothing

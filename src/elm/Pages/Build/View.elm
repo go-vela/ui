@@ -110,8 +110,11 @@ import Vela
 -}
 viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
 viewBuild model msgs org repo =
+    let
+        _ = Debug.log "services in viewBUild" model.repo.build.services.services
+    in
     wrapWithBuildPreview model org repo <|
-        case model.repo.build.steps of
+        case model.repo.build.steps.steps of
             RemoteData.Success steps_ ->
                 viewBuildSteps model
                     msgs
@@ -136,7 +139,7 @@ viewBuild model msgs org repo =
 viewBuildServices : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
 viewBuildServices model msgs org repo =
     wrapWithBuildPreview model org repo <|
-        case model.repo.build.services of
+        case model.repo.build.services.services of
             RemoteData.Success services_ ->
                     if List.isEmpty services_  then
                         div [class "no-services"] [small [][ code [][text "This pipeline has no services."]]]
@@ -179,13 +182,13 @@ viewBuildServices model msgs org repo =
 -}
 viewServices : PartialModel a -> Msgs msg -> RepoModel -> Services -> List (Html msg)
 viewServices model msgs rm services =
-    List.map (\service -> viewService model msgs rm services service) <| services
+    List.map (\service -> viewService model   msgs rm services service) <| services
 
 
 {-| viewService : renders single build step
 -}
-viewService : PartialModel a -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
-viewService model msgs rm services service =
+viewService : PartialModel a  -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
+viewService model   msgs rm services service =
     div [ 
         
         serviceClasses services service,
@@ -216,8 +219,8 @@ serviceClasses services service =
 
 {-| viewServiceDetails : renders build steps detailed information
 -}
-viewServiceDetails : PartialModel a -> Msgs msg -> RepoModel -> Service -> Html msg
-viewServiceDetails model msgs rm service =
+viewServiceDetails : PartialModel a  -> Msgs msg -> RepoModel -> Service -> Html msg
+viewServiceDetails model   msgs rm service =
     let
         serviceNumber =
             String.fromInt service.number
@@ -236,7 +239,7 @@ viewServiceDetails model msgs rm service =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ lazy4 viewServiceLogs msgs.logsMsgs model rm service ]
+            , div [ class "logs-container" ] [ lazy4 viewServiceLogs msgs.logsMsgs model.shift rm service ]
             ]
     in
     details
@@ -448,7 +451,7 @@ viewStepDetails model msgs rm step =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [viewStepLogs msgs.logsMsgs model rm step ]
+            , div [ class "logs-container" ] [viewStepLogs msgs.logsMsgs model.shift rm step ]
             ]
     in
     details
@@ -515,8 +518,8 @@ hasStages steps =
 
 {-| viewStepLogs : takes step and logs and renders step logs or step error
 -}
-viewStepLogs : LogsMsgs msg -> PartialModel a -> RepoModel -> Step -> Html msg
-viewStepLogs msgs model rm step =
+viewStepLogs : LogsMsgs msg -> Bool -> RepoModel -> Step -> Html msg
+viewStepLogs msgs shift rm step =
     case step.status of
         Vela.Error ->
             stepError step
@@ -525,14 +528,14 @@ viewStepLogs msgs model rm step =
             stepSkipped step
 
         _ ->
-            viewLogLines msgs rm.org rm.name rm.build.buildNumber "step" (String.fromInt step.number) step.logFocus (getStepLog step rm.build.logs) rm.build.followingStep model.shift
+            viewLogLines msgs rm.org rm.name rm.build.buildNumber "step" (String.fromInt step.number) step.logFocus (getStepLog step rm.build.steps.logs) rm.build.steps.followingStep shift
 
 
 
 {-| viewServiceLogs : takes service and logs and renders step logs or step error
 -}
-viewServiceLogs : LogsMsgs msg -> PartialModel a -> RepoModel -> Service -> Html msg
-viewServiceLogs msgs model rm service =
+viewServiceLogs : LogsMsgs msg -> Bool -> RepoModel -> Service -> Html msg
+viewServiceLogs msgs shift rm service =
     let
         _=Debug.log "reloading" "service logs" 
     in
@@ -546,7 +549,7 @@ viewServiceLogs msgs model rm service =
 
         _ ->
 
-            viewLogLines msgs rm.org rm.name rm.build.buildNumber "service" (String.fromInt service.number) service.logFocus (getServiceLog service rm.build.logs) rm.build.followingService model.shift
+            viewLogLines msgs rm.org rm.name rm.build.buildNumber "service" (String.fromInt service.number) service.logFocus (getServiceLog service rm.build.services.logs) rm.build.services.followingService shift
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step

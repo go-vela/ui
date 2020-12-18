@@ -27,9 +27,6 @@ import Vela
         , Repo,ServiceNumber
         , StepNumber
         , Steps
-        , updateBuild
-        , updateBuildStepFollowing
-        , updateBuildSteps
         )
 
 
