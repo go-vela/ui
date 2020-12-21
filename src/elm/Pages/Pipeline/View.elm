@@ -291,7 +291,7 @@ expandTemplatesToggleButton pipeline get expand =
                 get org repo buildNumber ref True Nothing
 
             else
-                expand org repo buildNumber ref True
+                expand org repo buildNumber ref True Nothing
     in
     button
         [ class "button"

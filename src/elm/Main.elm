@@ -367,7 +367,7 @@ type Msg
     | UpdateRepoTimeout Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
     | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) Bool FocusFragment
-    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) Bool
+    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) Bool FocusFragment
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
@@ -389,7 +389,7 @@ type Msg
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | GetPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | ExpandPipelineConfigResponse Org Repo (Maybe Ref) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ExpandPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | GetPipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -933,11 +933,17 @@ update msg model =
               }
             , Cmd.batch
                 [ getPipelineConfig model org repo ref lineFocus
-                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing lineFocus
+
+                , case buildNumber of 
+                    Just b ->
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref Nothing lineFocus
+
+                    Nothing ->
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing lineFocus
                 ]
             )
 
-        ExpandPipelineConfig org repo buildNumber ref expansionToggle ->
+        ExpandPipelineConfig org repo buildNumber ref expansionToggle lineFocus ->
             ( { model
                 | pipeline =
                     { pipeline
@@ -945,8 +951,13 @@ update msg model =
                     }
               }
             , Cmd.batch
-                [ expandPipelineConfig model org repo ref
-                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") Nothing
+                [ expandPipelineConfig model org repo ref lineFocus
+                , case buildNumber of 
+                    Just b ->
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref (Just "true") lineFocus
+
+                    Nothing ->
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") lineFocus
                 ]
             )
 
@@ -1307,7 +1318,7 @@ update msg model =
                     let
                         focusId =
                             Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
-
+                        
                         cmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
@@ -1336,9 +1347,20 @@ update msg model =
                     , Errors.addError error HandleError
                     )
 
-        ExpandPipelineConfigResponse org repo ref response ->
+        ExpandPipelineConfigResponse org repo ref lineFocus response ->
             case response of
                 Ok ( _, config ) ->
+                    let
+                        focusId =
+                            Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
+                        
+                        cmd =
+                            if not <| String.isEmpty focusId then
+                                Util.dispatch <| FocusOn <| focusId
+
+                            else
+                                Cmd.none
+                    in
                     ( { model
                         | pipeline =
                             { pipeline
@@ -1347,7 +1369,7 @@ update msg model =
                                 , expanding = False
                             }
                       }
-                    , Cmd.none
+                    , cmd
                     )
 
                 Err error ->
@@ -3069,6 +3091,9 @@ loadBuildPage model org repo buildNumber lineFocus =
                     else
                         Nothing
                 , config = if sameBuild then pipeline.config else (NotAsked, "")
+                , expand = if sameBuild then pipeline.expand else Nothing
+                , expanding = if sameBuild then pipeline.expanding else False
+                , expanded = if sameBuild then pipeline.expanded else False
             }
         , templates = if sameBuild then model.templates else (NotAsked, "")
         , repo =
@@ -3189,7 +3214,10 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                     else
                         Nothing
                 , config = if sameBuild then pipeline.config else (NotAsked, "")
-            }
+                , expand = if sameBuild then pipeline.expand else Nothing
+                , expanding = if sameBuild then pipeline.expanding else False
+                , expanded = if sameBuild then pipeline.expanded else False
+        }
         , templates = if sameBuild then model.templates else (NotAsked, "")
         , repo =
             rm
@@ -3306,7 +3334,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus   =
             case expand of
                 Just e ->
                     if e == "true" then
-                        expandPipelineConfig model org repo ref
+                        expandPipelineConfig model org repo ref lineFocus
 
                     else
                         getPipelineConfig model org repo ref lineFocus
@@ -3451,7 +3479,7 @@ loadPipelinePage model org repo ref expand lineFocus refresh =
             case expand of
                 Just e ->
                     if e == "true" then
-                        expandPipelineConfig model org repo ref
+                        expandPipelineConfig model org repo ref lineFocus
 
                     else
                         getPipelineConfig model org repo ref lineFocus
@@ -3954,9 +3982,9 @@ getPipelineConfig model org repo ref lineFocus =
 
 {-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
 -}
-expandPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> Cmd Msg
-expandPipelineConfig model org repo ref =
-    Api.tryString (ExpandPipelineConfigResponse org repo ref) <| Api.expandPipelineConfig model org repo ref
+expandPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Cmd Msg
+expandPipelineConfig model org repo ref lineFocus =
+    Api.tryString (ExpandPipelineConfigResponse org repo ref lineFocus) <| Api.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.

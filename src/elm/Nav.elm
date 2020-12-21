@@ -363,7 +363,7 @@ viewBuildNav model org repo build currentPage =
                 { to = Pages.BuildServices org repo buildNumber bm.services.focusFragment
                 }
             , pipeline =
-                { to = Pages.BuildPipeline org repo buildNumber (Just build.commit) Nothing pipeline.focusFragment
+                { to = Pages.BuildPipeline org repo buildNumber (Just build.commit) model.pipeline.expand pipeline.focusFragment
                 }
             }
 

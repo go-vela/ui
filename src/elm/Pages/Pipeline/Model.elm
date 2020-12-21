@@ -71,4 +71,4 @@ type alias Get msg =
 
 
 type alias Expand msg =
-    Org -> Repo -> Maybe BuildNumber -> Maybe String -> Bool -> msg
+    Org -> Repo -> Maybe BuildNumber -> Maybe String -> Bool -> FocusFragment -> msg
