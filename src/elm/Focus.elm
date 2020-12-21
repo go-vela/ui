@@ -57,10 +57,10 @@ focusFragmentToFocusId resource focusFragment =
             resource ++ "-" ++ String.fromInt resourceID ++ "-line-" ++ String.fromInt lineA
 
         ( Just resourceID, Just lineA, Just lineB ) ->
-            resource ++ "resource-" ++ String.fromInt resourceID ++ "-line-" ++ String.fromInt lineA ++ "-" ++ String.fromInt lineB
+            resource ++ "-" ++ String.fromInt resourceID ++ "-line-" ++ String.fromInt lineA ++ "-" ++ String.fromInt lineB
 
         ( Just resourceID, Nothing, Nothing ) ->
-            resource ++ "resource-" ++ String.fromInt resourceID
+            resource ++ "-" ++ String.fromInt resourceID
 
         _ ->
             ""
