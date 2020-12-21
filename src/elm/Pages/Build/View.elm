@@ -9,7 +9,8 @@ module Pages.Build.View exposing
     , statusToClass
     , statusToString
     , viewBuild
-    , viewBuildSteps,viewBuildServices 
+    , viewBuildServices
+    , viewBuildSteps
     , viewError
     , viewLine
     , viewPreview
@@ -60,15 +61,16 @@ import Html.Attributes
         , title
         )
 import Html.Events exposing (onClick)
+import Html.Lazy exposing (lazy4)
 import Http exposing (Error(..))
 import List.Extra exposing (unique)
-import Html.Lazy exposing (lazy4)
 import Nav exposing (viewBuildNav)
 import Pages exposing (Page(..), onPage)
 import Pages.Build.Logs
     exposing
-        ( decodeAnsi,getServiceLog
+        ( decodeAnsi
         , getDownloadLogsFileName
+        , getServiceLog
         , getStepLog
         , logEmpty
         , stepBottomTrackerFocusId
@@ -92,8 +94,10 @@ import Vela
         , LogFocus
         , Logs
         , Org
-        , Repo,Service,Services
+        , Repo
         , RepoModel
+        , Service
+        , Services
         , Status
         , Step
         , StepNumber
@@ -110,9 +114,6 @@ import Vela
 -}
 viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
 viewBuild model msgs org repo =
-    let
-        _ = Debug.log "services in viewBUild" model.repo.build.services.services
-    in
     wrapWithBuildPreview model org repo <|
         case model.repo.build.steps.steps of
             RemoteData.Success steps_ ->
@@ -133,7 +134,6 @@ viewBuild model msgs org repo =
                     Util.smallLoader
 
 
-
 {-| viewBuildSteps : renders entire build based on current application time
 -}
 viewBuildServices : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
@@ -141,28 +141,30 @@ viewBuildServices model msgs org repo =
     wrapWithBuildPreview model org repo <|
         case model.repo.build.services.services of
             RemoteData.Success services_ ->
-                    if List.isEmpty services_  then
-                        div [class "no-services"] [small [][ code [][text "This pipeline has no services."]]]
-                    else
-                        let
-                                logActions =
-                                    div
-                                        [ class "buttons"
-                                        , class "log-actions"
-                                        -- , class "flowline-left"
-                                        , Util.testAttribute "log-actions"
-                                        ]
-                                        [ collapseAllStepsButton msgs.collapseAllSteps
-                                        , expandAllStepsButton msgs.expandAllSteps model.repo.org model.repo.name model.repo.build.buildNumber
-                                        ]
-                        in
-                            div []
-                                [ logActions
-                                , div [ class "steps" ]
-                                    [ div [ class "-items", Util.testAttribute "steps" ] <|
-                                        viewServices model msgs model.repo services_
-                                    ]
+                if List.isEmpty services_ then
+                    div [ class "no-services" ] [ small [] [ code [] [ text "This pipeline has no services." ] ] ]
+
+                else
+                    let
+                        logActions =
+                            div
+                                [ class "buttons"
+                                , class "log-actions"
+
+                                -- , class "flowline-left"
+                                , Util.testAttribute "log-actions"
                                 ]
+                                [ collapseAllStepsButton msgs.collapseAllSteps
+                                , expandAllStepsButton msgs.expandAllSteps model.repo.org model.repo.name model.repo.build.buildNumber
+                                ]
+                    in
+                    div []
+                        [ logActions
+                        , div [ class "steps" ]
+                            [ div [ class "-items", Util.testAttribute "steps" ] <|
+                                viewServices model msgs model.repo services_
+                            ]
+                        ]
 
             RemoteData.Failure _ ->
                 div [] [ text "Error loading services... Please try again" ]
@@ -176,29 +178,25 @@ viewBuildServices model msgs org repo =
                     Util.smallLoader
 
 
-
-
 {-| viewSteps : takes build/steps and renders steps
 -}
 viewServices : PartialModel a -> Msgs msg -> RepoModel -> Services -> List (Html msg)
 viewServices model msgs rm services =
-    List.map (\service -> viewService model   msgs rm services service) <| services
+    List.map (\service -> viewService model msgs rm services service) <| services
 
 
 {-| viewService : renders single build step
 -}
-viewService : PartialModel a  -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
-viewService model   msgs rm services service =
-    div [ 
-        
-        serviceClasses services service,
-    
-     Util.testAttribute "service" ]
+viewService : PartialModel a -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
+viewService model msgs rm services service =
+    div
+        [ serviceClasses services service
+        , Util.testAttribute "service"
+        ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStatusIcon service.status ] ]
         , viewServiceDetails model msgs rm service
         ]
-
 
 
 {-| serviceClasses : returns css classes for a particular service
@@ -214,13 +212,13 @@ serviceClasses services service =
                 Nothing ->
                     -1
     in
-    classList [ ( "step", True )]
+    classList [ ( "step", True ) ]
 
 
 {-| viewServiceDetails : renders build steps detailed information
 -}
-viewServiceDetails : PartialModel a  -> Msgs msg -> RepoModel -> Service -> Html msg
-viewServiceDetails model   msgs rm service =
+viewServiceDetails : PartialModel a -> Msgs msg -> RepoModel -> Service -> Html msg
+viewServiceDetails model msgs rm service =
     let
         serviceNumber =
             String.fromInt service.number
@@ -255,8 +253,8 @@ viewServiceDetails model   msgs rm service =
 
 {-| wrapWithBuildPreview : takes html content and wraps it with the build preview
 -}
-wrapWithBuildPreview : PartialModel a  -> Org -> Repo -> Html msg -> Html msg
-wrapWithBuildPreview model   org repo content =
+wrapWithBuildPreview : PartialModel a -> Org -> Repo -> Html msg -> Html msg
+wrapWithBuildPreview model org repo content =
     let
         rm =
             model.repo
@@ -325,7 +323,7 @@ viewPreview now zone org repo build =
         id =
             [ a
                 [ Util.testAttribute "build-number"
-                , Routes.href <| Routes.Build org repo buildNumber Nothing  
+                , Routes.href <| Routes.Build org repo buildNumber Nothing
                 ]
                 [ text <| "#" ++ buildNumber ]
             ]
@@ -384,7 +382,7 @@ viewPreview now zone org repo build =
 
 {-| viewBuildSteps : takes build/steps and renders pipeline
 -}
-viewBuildSteps  : PartialModel a -> Msgs msg -> RepoModel -> Steps -> Html msg
+viewBuildSteps : PartialModel a -> Msgs msg -> RepoModel -> Steps -> Html msg
 viewBuildSteps model msgs rm steps =
     let
         logActions =
@@ -451,7 +449,7 @@ viewStepDetails model msgs rm step =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [viewStepLogs msgs.logsMsgs model.shift rm step ]
+            , div [ class "logs-container" ] [ viewStepLogs msgs.logsMsgs model.shift rm step ]
             ]
     in
     details
@@ -531,15 +529,14 @@ viewStepLogs msgs shift rm step =
             viewLogLines msgs rm.org rm.name rm.build.buildNumber "step" (String.fromInt step.number) step.logFocus (getStepLog step rm.build.steps.logs) rm.build.steps.followingStep shift
 
 
-
 {-| viewServiceLogs : takes service and logs and renders step logs or step error
 -}
 viewServiceLogs : LogsMsgs msg -> Bool -> RepoModel -> Service -> Html msg
 viewServiceLogs msgs shift rm service =
     let
-        _=Debug.log "reloading" "service logs" 
+        _ =
+            Debug.log "reloading" "service logs"
     in
-
     case service.status of
         Vela.Error ->
             serviceError service
@@ -548,13 +545,12 @@ viewServiceLogs msgs shift rm service =
             serviceSkipped service
 
         _ ->
-
             viewLogLines msgs rm.org rm.name rm.build.buildNumber "service" (String.fromInt service.number) service.logFocus (getServiceLog service rm.build.services.logs) rm.build.services.followingService shift
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
 -}
-viewLogLines : LogsMsgs msg -> Org -> Repo -> BuildNumber -> String-> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
+viewLogLines : LogsMsgs msg -> Org -> Repo -> BuildNumber -> String -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
 viewLogLines msgs org repo buildNumber resource resourceID logFocus maybeLog following shiftDown =
     let
         decodedLog =
@@ -660,8 +656,8 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : FocusLine msg  -> Resource -> ResourceID -> Int -> Maybe Ansi.Log.Line-> LogFocus -> Bool -> Html msg
-viewLine focusLine resource resourceID lineNumber line  logFocus shiftDown =
+viewLine : FocusLine msg -> Resource -> ResourceID -> Int -> Maybe Ansi.Log.Line -> LogFocus -> Bool -> Html msg
+viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             resourceID
@@ -703,7 +699,7 @@ lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
         , class "line-number"
         , class "button"
         , class "-link"
-        , attribute "aria-label" <| "focus "++resource++" " ++ resourceID
+        , attribute "aria-label" <| "focus " ++ resource ++ " " ++ resourceID
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
@@ -861,7 +857,6 @@ stepError step =
         ]
 
 
-
 {-| serviceError : checks for build error and renders message
 -}
 serviceError : Service -> Html msg
@@ -883,6 +878,7 @@ serviceSkipped : Service -> Html msg
 serviceSkipped _ =
     div [ class "message", class "error", Util.testAttribute "service-skipped" ]
         [ text "service was skipped" ]
+
 
 {-| loadingLogs : renders message for loading logs
 -}

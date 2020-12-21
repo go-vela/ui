@@ -9,6 +9,7 @@ module Pages.Build.Model exposing (..)
 import Browser.Navigation as Navigation
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
+import Routes exposing (Route)
 import Time exposing (Posix, Zone)
 import Vela
     exposing
@@ -26,7 +27,7 @@ import Vela
         , Steps
         )
 
-import Routes exposing (Route)
+
 
 -- MODEL
 
@@ -52,7 +53,7 @@ type alias PartialModel a =
 
 
 type alias Msgs msg =
-    { clickBuildNavTab :  Route -> msg
+    { clickBuildNavTab : Route -> msg
     , collapseAllSteps : msg
     , expandAllSteps : ExpandAllSteps msg
     , expandStep : ExpandResource msg

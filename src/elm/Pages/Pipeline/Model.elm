@@ -14,6 +14,7 @@ import Http
 import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
+import Routes exposing (Route)
 import Time exposing (Posix, Zone)
 import Toasty as Alerting exposing (Stack)
 import Vela
@@ -21,6 +22,7 @@ import Vela
         ( Build
         , BuildNumber
         , CurrentUser
+        , FocusFragment
         , Org
         , PipelineModel
         , Repo
@@ -30,7 +32,7 @@ import Vela
         , Steps
         , Templates
         )
-import Routes exposing (Route)
+
 
 
 -- MODEL
@@ -65,7 +67,7 @@ type alias Msgs msg =
 
 
 type alias Get msg =
-    Org -> Repo -> Maybe BuildNumber -> Maybe String -> Bool -> msg
+    Org -> Repo -> Maybe BuildNumber -> Maybe String -> Bool -> FocusFragment -> msg
 
 
 type alias Expand msg =

@@ -6,12 +6,14 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.Logs exposing
     ( SetLogFocus
-    , decodeAnsi,getServiceLog
-    , focusStepLogs,focusServiceLogs
-    , focusStep
+    , decodeAnsi
     , focusService
+    , focusServiceLogs
+    , focusStep
+    , focusStepLogs
     , getCurrentResource
     , getDownloadLogsFileName
+    , getServiceLog
     , getStepLog
     , logEmpty
     , logFocusExists
@@ -33,8 +35,10 @@ import Vela
         , Log
         , LogFocus
         , Logs
-        , Org,Service
-        , Repo,Services
+        , Org
+        , Repo
+        , Service
+        , Services
         , Step
         , StepNumber
         , Steps
@@ -53,7 +57,6 @@ type alias SetLogFocus msg =
 
 type alias GetLogsFromSteps a msg =
     a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
-
 
 
 type alias GetLogsFromServices a msg =
@@ -80,6 +83,7 @@ getServiceLog service logs =
             )
             logs
         )
+
 
 {-| getStepLog : takes step and logs and returns the log corresponding to that step
 -}
@@ -123,6 +127,7 @@ focusStep focusFragment steps =
         _ ->
             steps
 
+
 {-| focusService : takes FocusFragment URL fragment and expands the appropriate step to automatically view
 -}
 focusService : FocusFragment -> Services -> Services
@@ -150,7 +155,7 @@ focusService focusFragment services =
 
 {-| getCurrentResource : takes steps and returns the newest running or pending step
 -}
-getCurrentResource : List {a | status: Vela.Status, number : Int} -> Int
+getCurrentResource : List { a | status : Vela.Status, number : Int } -> Int
 getCurrentResource resources =
     let
         resource =
@@ -162,7 +167,6 @@ getCurrentResource resources =
                 |> Maybe.withDefault 0
     in
     resource
-
 
 
 {-| focusStepLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
@@ -184,7 +188,6 @@ focusStepLogs model steps org repo buildNumber focusFragment getLogs =
     ( stepsOut
     , action
     )
-
 
 
 {-| updateStepLogFocus : takes steps and line focus and sets a new log line focus
@@ -339,9 +342,8 @@ decodeAnsi log =
 
 
 
-
-
 -- SERVICES
+
 
 {-| focusServiceLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
 -}
@@ -362,6 +364,7 @@ focusServiceLogs model services org repo buildNumber focusFragment getLogs =
     ( servicesOut
     , action
     )
+
 
 {-| updateServiceLogFocus : takes services and line focus and sets a new log line focus
 -}
@@ -394,6 +397,7 @@ updateServiceLogFocus services focusFragment =
 
         _ ->
             services
+
 
 {-| clearServiceLogFocus : takes service and clears all log line focus
 -}

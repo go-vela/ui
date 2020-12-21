@@ -160,7 +160,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
                     [ text "Add Shared Secret" ]
                 ]
 
-        Pages.Build org repo buildNumber  _ ->
+        Pages.Build org repo buildNumber _ ->
             button
                 [ classList
                     [ ( "button", True )
@@ -171,19 +171,18 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
                 ]
                 [ text "Restart Build"
                 ]
-        Pages.BuildPipeline org repo buildNumber _ _ _ ->
-            
-                    button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| restartBuild org repo buildNumber
-                    , Util.testAttribute "restart-build"
-                    ]
-                    [ text "Restart Build"
-                    ]
 
+        Pages.BuildPipeline org repo buildNumber _ _ _ ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick <| restartBuild org repo buildNumber
+                , Util.testAttribute "restart-build"
+                ]
+                [ text "Restart Build"
+                ]
 
         Pages.Hooks org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
@@ -202,7 +201,6 @@ viewUtil model =
     in
     div [ class "util" ]
         [ case model.page of
-
             Pages.RepositoryBuilds org repo _ _ _ ->
                 viewRepoTabs rm model.page
 
@@ -214,11 +212,13 @@ viewUtil model =
 
             Pages.RepoSettings org repo ->
                 viewRepoTabs rm model.page
-            Pages.Build _ _   _ _ ->
+
+            Pages.Build _ _ _ _ ->
                 viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
 
-            Pages.BuildServices _ _ _ _   ->
+            Pages.BuildServices _ _ _ _ ->
                 viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
+
             Pages.BuildPipeline _ _ _ _ _ _ ->
                 viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
 
@@ -331,8 +331,8 @@ viewRepoTabs rm currentPage =
 -- BUILD
 
 
-viewBuildNav : PartialModel a -> Org -> Repo -> Build   -> Page -> Html msg
-viewBuildNav model org repo build   currentPage =
+viewBuildNav : PartialModel a -> Org -> Repo -> Build -> Page -> Html msg
+viewBuildNav model org repo build currentPage =
     let
         buildNumber =
             String.fromInt build.number
@@ -342,24 +342,22 @@ viewBuildNav model org repo build   currentPage =
 
         pipeline =
             model.pipeline
+
         t =
             { build =
-                { 
-                -- TODO: ensure focusFragment is set and accurate
-                to = Pages.Build org repo buildNumber bm.steps.focusFragment 
+                { -- TODO: ensure focusFragment is set and accurate
+                  to = Pages.Build org repo buildNumber bm.steps.focusFragment
                 }
             , services =
-                { 
-                to = Pages.BuildServices org repo buildNumber bm.services.focusFragment 
+                { to = Pages.BuildServices org repo buildNumber bm.services.focusFragment
                 }
             , pipeline =
-                { 
-                    to = Pages.BuildPipeline org repo buildNumber  (Just build.commit) Nothing pipeline.focusFragment
+                { to = Pages.BuildPipeline org repo buildNumber (Just build.commit) Nothing pipeline.focusFragment
                 }
             }
 
         tabs =
-            [ Tab "Build"  currentPage t.build.to
+            [ Tab "Build" currentPage t.build.to
 
             -- , Tab "Services" currentPage <| Pages.Build  rm.org rm.name rm.build.buildNumber Nothing
             , Tab "Services" currentPage t.services.to
@@ -382,14 +380,14 @@ viewBuildHistory now timezone page org repo builds limit =
     let
         buildNumber =
             case page of
-                Pages.Build _ _ b _   ->
+                Pages.Build _ _ b _ ->
                     Maybe.withDefault -1 <| String.toInt b
 
-                Pages.BuildServices _ _ b _   ->
+                Pages.BuildServices _ _ b _ ->
                     Maybe.withDefault -1 <| String.toInt b
 
                 Pages.BuildPipeline _ _ b _ _ _ ->
-                    Maybe.withDefault -1 <| String.toInt  b
+                    Maybe.withDefault -1 <| String.toInt b
 
                 _ ->
                     -1
@@ -456,18 +454,17 @@ recentBuildLink page org repo buildNumber build idx =
         , Util.testAttribute <| "recent-build-link-" ++ String.fromInt buildNumber
         , currentBuildClass
         , case page of
-            Pages.Build _ _ _   _ ->
-                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing  
+            Pages.Build _ _ _ _ ->
+                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
 
-            Pages.BuildServices _ _ _ _  ->
-                Routes.href <| Routes.BuildServices org repo (String.fromInt build.number)  Nothing
-
+            Pages.BuildServices _ _ _ _ ->
+                Routes.href <| Routes.BuildServices org repo (String.fromInt build.number) Nothing
 
             Pages.BuildPipeline _ _ _ _ _ _ ->
-                Routes.href <| Routes.BuildPipeline org repo (String.fromInt build.number)  (Just build.commit) Nothing Nothing
+                Routes.href <| Routes.BuildPipeline org repo (String.fromInt build.number) (Just build.commit) Nothing Nothing
 
             _ ->
-                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing  
+                Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing
         , attribute "aria-label" <| "go to previous build number " ++ String.fromInt build.number
         ]
         [ icon

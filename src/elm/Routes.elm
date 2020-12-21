@@ -14,7 +14,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team, BuildView)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team)
 
 
 
@@ -36,9 +36,9 @@ type Route
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
-    | Build Org Repo BuildNumber FocusFragment 
-    | BuildServices Org Repo BuildNumber FocusFragment 
-    | BuildPipeline Org Repo    BuildNumber  (Maybe Ref) (Maybe ExpandTemplatesQuery) FocusFragment
+    | Build Org Repo BuildNumber FocusFragment
+    | BuildServices Org Repo BuildNumber FocusFragment
+    | BuildPipeline Org Repo BuildNumber (Maybe Ref) (Maybe ExpandTemplatesQuery) FocusFragment
     | Pipeline Org Repo (Maybe Ref) (Maybe ExpandTemplatesQuery) FocusFragment
     | Settings
     | Login
@@ -72,10 +72,10 @@ routes =
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
-        , map Build (string </> string </> string   </> fragment identity)
-        , map BuildServices (string </> string </> string  </> s "services" </> fragment identity)
-        , map BuildPipeline (string </> string  </> string </> s "pipeline"  <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
-        , map Pipeline (string </> string </> s "pipeline"  <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
+        , map Build (string </> string </> string </> fragment identity)
+        , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
+        , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
+        , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
         , map NotFound (s "404")
         ]
 

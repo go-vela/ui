@@ -9,7 +9,6 @@ module Vela exposing
     , Build
     , BuildModel
     , BuildNumber
-    , BuildView,updateRepoModel
     , Builds
     , BuildsModel
     , ChownRepo
@@ -18,9 +17,9 @@ module Vela exposing
     , CurrentUser
     , DisableRepo
     , EnableRepo
-    , EnableRepos,updateBuildServicesFocusFragment
+    , EnableRepos
     , EnableRepositoryPayload
-    , Enabled,updateBuildNumber
+    , Enabled
     , Enabling(..)
     , Engine
     , Event
@@ -121,16 +120,18 @@ module Vela exposing
     , secretsErrorLabel
     , statusToFavicon
     , stringToTheme
-    , toBuildView
     , toMaybeSecretType
     , toSecretType
     , updateBuild
-    , updateBuildStepsFocusFragment
-    , updateBuildStepsLogs
-    , updateBuildServicesLogs
+    , updateBuildNumber
     , updateBuildServices
-    , updateBuildStepsFollowing,updateBuildServicesFollowing
+    , updateBuildServicesFocusFragment
+    , updateBuildServicesFollowing
+    , updateBuildServicesLogs
     , updateBuildSteps
+    , updateBuildStepsFocusFragment
+    , updateBuildStepsFollowing
+    , updateBuildStepsLogs
     , updateBuilds
     , updateBuildsEvent
     , updateBuildsModel
@@ -146,6 +147,7 @@ module Vela exposing
     , updateRepo
     , updateRepoEnabling
     , updateRepoInitialized
+    , updateRepoModel
     , updateRepoTimeout
     )
 
@@ -397,43 +399,21 @@ type alias BuildModel =
     , services : ServicesModel
     }
 
+
 type alias StepsModel =
-    {
-        steps : WebData Steps
-        , logs : Logs
-        , focusFragment : FocusFragment
-        , followingStep : Int
+    { steps : WebData Steps
+    , logs : Logs
+    , focusFragment : FocusFragment
+    , followingStep : Int
     }
+
 
 type alias ServicesModel =
-    {
-        services : WebData Services
-        , logs : Logs
-        , focusFragment : FocusFragment
-        , followingService : Int
+    { services : WebData Services
+    , logs : Logs
+    , focusFragment : FocusFragment
+    , followingService : Int
     }
-
-
-toBuildView : String -> BuildView
-toBuildView s =
-    case String.toLower <| String.trim <| s of
-        "steps" ->
-            Steps
-
-        "services" ->
-            Services
-
-        "pipeline" ->
-            Pipeline
-
-        _ ->
-            Steps
-
-
-type BuildView
-    = Steps
-    | Services
-    | Pipeline
 
 
 defaultBuildModel : BuildModel
@@ -444,19 +424,23 @@ defaultBuildModel =
 defaultRepoModel : RepoModel
 defaultRepoModel =
     RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
- 
+
+
 defaultStepsModel : StepsModel
 defaultStepsModel =
     StepsModel NotAsked [] Nothing 0
- 
+
+
 defaultServicesModel : ServicesModel
 defaultServicesModel =
     ServicesModel NotAsked [] Nothing 0
- 
-updateRepoModel :  RepoModel -> { a | repo : RepoModel } -> { a | repo : RepoModel } 
-updateRepoModel update m  =
+
+
+updateRepoModel : RepoModel -> { a | repo : RepoModel } -> { a | repo : RepoModel }
+updateRepoModel update m =
     let
-        rm = m.repo
+        rm =
+            m.repo
     in
     { m | repo = rm }
 
@@ -525,16 +509,16 @@ updateBuildNumber update rm =
     { rm | build = { b | buildNumber = update } }
 
 
-updateBuildStepsFocusFragment : FocusFragment ->RepoModel ->  RepoModel
-updateBuildStepsFocusFragment  update rm =
+updateBuildStepsFocusFragment : FocusFragment -> RepoModel -> RepoModel
+updateBuildStepsFocusFragment update rm =
     let
         b =
             rm.build
+
         s =
             b.steps
-        
     in
-    { rm | build = { b | steps = {s | focusFragment = update} } }
+    { rm | build = { b | steps = { s | focusFragment = update } } }
 
 
 updateBuildStepsFollowing : Int -> RepoModel -> RepoModel
@@ -542,20 +526,25 @@ updateBuildStepsFollowing update rm =
     let
         b =
             rm.build
+
         s =
             b.steps
-        
     in
-    { rm | build = { b | steps = { s | followingStep = update} } }
+    { rm | build = { b | steps = { s | followingStep = update } } }
 
-updateBuildStepsLogs :Logs ->  RepoModel -> RepoModel
-updateBuildStepsLogs  update rm =
+
+updateBuildStepsLogs : Logs -> RepoModel -> RepoModel
+updateBuildStepsLogs update rm =
     let
         b =
             rm.build
-        s = b.steps
+
+        s =
+            b.steps
     in
-    { rm | build = { b | steps = { s | logs = update} } }
+    { rm | build = { b | steps = { s | logs = update } } }
+
+
 updateBuilds : WebData Builds -> RepoModel -> RepoModel
 updateBuilds update rm =
     let
@@ -614,31 +603,35 @@ updateBuildSteps update rm =
     let
         b =
             rm.build
-        s = b.steps
+
+        s =
+            b.steps
     in
     { rm | build = { b | steps = { s | steps = update } } }
 
 
-updateBuildServices :  WebData Services ->RepoModel -> RepoModel
-updateBuildServices  update rm =
+updateBuildServices : WebData Services -> RepoModel -> RepoModel
+updateBuildServices update rm =
     let
         b =
             rm.build
-        s = b.services
+
+        s =
+            b.services
     in
     { rm | build = { b | services = { s | services = update } } }
 
 
-updateBuildServicesFocusFragment : FocusFragment ->RepoModel ->  RepoModel
-updateBuildServicesFocusFragment  update rm =
+updateBuildServicesFocusFragment : FocusFragment -> RepoModel -> RepoModel
+updateBuildServicesFocusFragment update rm =
     let
         b =
             rm.build
+
         s =
             b.services
-        
     in
-    { rm | build = { b | services = {s | focusFragment = update} } }
+    { rm | build = { b | services = { s | focusFragment = update } } }
 
 
 updateBuildServicesFollowing : Int -> RepoModel -> RepoModel
@@ -646,23 +639,23 @@ updateBuildServicesFollowing update rm =
     let
         b =
             rm.build
+
         s =
             b.services
-        
     in
-    { rm | build = { b | services = {s | followingService = update} } }
+    { rm | build = { b | services = { s | followingService = update } } }
 
 
-
-updateBuildServicesLogs :Logs ->  RepoModel -> RepoModel
-updateBuildServicesLogs  update rm =
+updateBuildServicesLogs : Logs -> RepoModel -> RepoModel
+updateBuildServicesLogs update rm =
     let
         b =
             rm.build
-        s = b.services
 
+        s =
+            b.services
     in
-    { rm | build = { b | services = { s | logs = update }} }
+    { rm | build = { b | services = { s | logs = update } } }
 
 
 updateHooksModel : HooksModel -> RepoModel -> RepoModel

@@ -11,7 +11,7 @@ import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Html
 import Html.Attributes exposing (class)
 import Routes exposing (Route(..))
-import Vela exposing (BuildView, AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team)
 
 
 type Page
@@ -29,8 +29,8 @@ type Page
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
-    | Build Org Repo BuildNumber FocusFragment 
-    | BuildServices Org Repo BuildNumber FocusFragment 
+    | Build Org Repo BuildNumber FocusFragment
+    | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe Ref) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Pipeline Org Repo (Maybe Ref) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
@@ -92,13 +92,13 @@ toRoute page =
             Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
         Build org repo buildNumber logFocus ->
-            Routes.Build org repo buildNumber logFocus 
+            Routes.Build org repo buildNumber logFocus
 
         BuildServices org repo buildNumber logFocus ->
-            Routes.BuildServices org repo buildNumber logFocus 
+            Routes.BuildServices org repo buildNumber logFocus
 
-        BuildPipeline org repo buildNumber ref  expanded lineFocus ->
-            Routes.BuildPipeline org  repo buildNumber ref expanded lineFocus
+        BuildPipeline org repo buildNumber ref expanded lineFocus ->
+            Routes.BuildPipeline org repo buildNumber ref expanded lineFocus
 
         Pipeline org repo ref expanded lineFocus ->
             Routes.Pipeline org repo ref expanded lineFocus
@@ -166,13 +166,15 @@ strip page =
         RepositoryBuilds org repo _ _ _ ->
             RepositoryBuilds org repo Nothing Nothing Nothing
 
-        Build org repo buildNumber _   ->
-            Build org repo buildNumber Nothing  
-        BuildServices org repo buildNumber _   ->
-            BuildServices org repo buildNumber Nothing  
+        Build org repo buildNumber _ ->
+            Build org repo buildNumber Nothing
+
+        BuildServices org repo buildNumber _ ->
+            BuildServices org repo buildNumber Nothing
 
         BuildPipeline org repo buildNumber _ _ _ ->
             BuildPipeline org repo buildNumber Nothing Nothing Nothing
+
         Pipeline org repo _ _ _ ->
             Pipeline org repo Nothing Nothing Nothing
 

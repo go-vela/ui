@@ -288,7 +288,7 @@ expandTemplatesToggleButton pipeline get expand =
 
         action =
             if pipeline.expanded then
-                get org repo buildNumber ref True
+                get org repo buildNumber ref True Nothing
 
             else
                 expand org repo buildNumber ref True

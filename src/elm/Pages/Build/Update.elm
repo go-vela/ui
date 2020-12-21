@@ -11,7 +11,7 @@ import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Focus exposing (resourceFocusFragment)
 import List.Extra
-import Pages.Build.Logs exposing (focusStep,focusService)
+import Pages.Build.Logs exposing (focusService, focusStep)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -22,9 +22,12 @@ import Task
 import Util exposing (overwriteById)
 import Vela
     exposing
-        ( BuildNumber,Services,Service
+        ( BuildNumber
         , Org
-        , Repo,ServiceNumber
+        , Repo
+        , Service
+        , ServiceNumber
+        , Services
         , StepNumber
         , Steps
         )
@@ -53,7 +56,6 @@ clickStep steps stepNumber =
     )
 
 
-
 {-| mergeSteps : takes takes current steps and incoming step information and merges them, updating old logs and retaining previous state.
 -}
 mergeSteps : Maybe String -> Bool -> WebData Steps -> Steps -> Steps
@@ -69,17 +71,19 @@ mergeSteps logFocus refresh currentSteps incomingSteps =
                                     let
                                         ( viewing, focus ) =
                                             getStepInfo steps incomingStep.number
-                                        s = { incomingStep
+
+                                        s =
+                                            { incomingStep
                                                 | viewing = viewing
                                                 , logFocus = focus
                                             }
-                                        outStep = 
-                                            overwriteById
-                                            s
-                                            steps
 
+                                        outStep =
+                                            overwriteById
+                                                s
+                                                steps
                                     in
-                                        Just <| Maybe.withDefault s outStep
+                                    Just <| Maybe.withDefault s outStep
                                 )
                             |> List.filterMap identity
                     )
@@ -130,8 +134,6 @@ expandActiveStep stepNumber steps =
         steps
 
 
-
-
 {-| getStepInfo : takes steps and step number and returns the step update information
 -}
 getStepInfo : Steps -> Int -> ( Bool, ( Maybe Int, Maybe Int ) )
@@ -158,17 +160,19 @@ mergeServices logFocus refresh currentServices incomingServices =
                                     let
                                         ( viewing, focus ) =
                                             getServiceInfo services incomingService.number
-                                        s = { incomingService
+
+                                        s =
+                                            { incomingService
                                                 | viewing = viewing
                                                 , logFocus = focus
                                             }
-                                        outService = 
-                                            overwriteById
-                                            s
-                                            services
 
+                                        outService =
+                                            overwriteById
+                                                s
+                                                services
                                     in
-                                        Just <| Maybe.withDefault s outService
+                                    Just <| Maybe.withDefault s outService
                                 )
                             |> List.filterMap identity
                     )
@@ -179,6 +183,7 @@ mergeServices logFocus refresh currentServices incomingServices =
 
     else
         updatedServices
+
 
 {-| clickService : takes steps and step number, toggles step view state, and returns whether or not to fetch logs
 -}
@@ -198,6 +203,7 @@ clickService services serviceNumber =
     , action
     )
 
+
 {-| isViewingService: takes steps and step number and returns the step viewing state
 -}
 isViewingService : WebData Services -> ServiceNumber -> Bool
@@ -209,6 +215,7 @@ isViewingService services serviceNumber =
         |> List.head
         |> Maybe.withDefault False
 
+
 {-| getServiceInfo : takes steps and step number and returns the step update information
 -}
 getServiceInfo : Services -> Int -> ( Bool, ( Maybe Int, Maybe Int ) )
@@ -218,6 +225,7 @@ getServiceInfo services serviceNumber =
         |> List.map (\service -> ( service.viewing, service.logFocus ))
         |> List.head
         |> Maybe.withDefault ( False, ( Nothing, Nothing ) )
+
 
 {-| toggleServiceView : takes services and step number and toggles that steps viewing state
 -}
@@ -243,4 +251,3 @@ expandActiveService serviceNumber services =
         (\service -> (String.fromInt service.number == serviceNumber) && (service.status /= Vela.Pending))
         (\service -> { service | viewing = True })
         services
-
