@@ -2465,7 +2465,7 @@ setNewPage route model =
             loadBuildServicesPage model org repo buildNumber lineFocus
 
         ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, True ) ->
-            loadBuildPipelinePage model org repo buildNumber ref expand lineFocus False
+            loadBuildPipelinePage model org repo buildNumber ref expand lineFocus 
 
         ( Routes.Pipeline org repo ref expand lineFocus, True ) ->
             let
@@ -3070,6 +3070,7 @@ loadBuildPage model org repo buildNumber lineFocus =
                         Nothing
                 , config = if sameBuild then pipeline.config else (NotAsked, "")
             }
+        , templates = if sameBuild then model.templates else (NotAsked, "")
         , repo =
             rm
                 |> updateBuild
@@ -3189,6 +3190,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                         Nothing
                 , config = if sameBuild then pipeline.config else (NotAsked, "")
             }
+        , templates = if sameBuild then model.templates else (NotAsked, "")
         , repo =
             rm
                 |> updateBuild
@@ -3249,8 +3251,8 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 
 {-| loadBuildPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> Bool -> ( Model, Cmd Msg )
-loadBuildPipelinePage model org repo buildNumber ref expand lineFocus refresh =
+loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment  -> ( Model, Cmd Msg )
+loadBuildPipelinePage model org repo buildNumber ref expand lineFocus   =
     let
 
 
@@ -3346,13 +3348,13 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus refresh =
             { config =
                 config
             , expanded =
-                if refresh || sameBuild  then
+                if sameBuild  then
                     pipeline.expanded
 
                 else
                     False
             , expanding =
-                if refresh || sameBuild  then
+                if sameBuild  then
                     pipeline.expanding
 
                 else
@@ -3372,7 +3374,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus refresh =
             , buildNumber = Just buildNumber
             }
         , templates =
-            if refresh || sameBuild  then
+            if sameBuild  then
                 templates
 
             else
