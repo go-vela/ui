@@ -155,9 +155,7 @@ buildStatusAnimation dashes y classNames =
             List.append classes
                 [ class "build-animation"
                 , strokeWidth "4"
-                , width ""
                 , height "4"
-                , viewBox ""
                 , ariaHidden
                 ]
     in
