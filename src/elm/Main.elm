@@ -970,8 +970,7 @@ update msg model =
 
                             else
                                 ( model.steps, "" )
-                        
-                        
+
                         cmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
