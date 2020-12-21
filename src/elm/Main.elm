@@ -74,7 +74,7 @@ import Pages.Build.Logs
         , stepBottomTrackerFocusId
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (clickService, clickStep, expandActiveService, expandActiveStep, isViewingService, isViewingStep, setAllStepViews)
+import Pages.Build.Update exposing (clickService,setAllServiceViews, clickStep, expandActiveService, expandActiveStep, isViewingService, isViewingStep, setAllStepViews)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -348,6 +348,8 @@ type Msg
     | CollapseAllSteps
     | ExpandStep Org Repo BuildNumber StepNumber
     | FollowStep Int
+    | ExpandAllServices Org Repo BuildNumber
+    | CollapseAllServices
     | ExpandService Org Repo BuildNumber ServiceNumber
     | FollowService Int
     | ClickBuildNavTab Route
@@ -695,6 +697,37 @@ update msg model =
             )
 
         -- services
+        ExpandAllServices org repo buildNumber ->
+            let
+                build =
+                    rm.build
+
+                services =
+                    RemoteData.unwrap build.services.services
+                        (\services_ -> services_ |> setAllServiceViews True |> RemoteData.succeed)
+                        build.services.services
+
+                -- refresh logs for expanded steps
+                action =
+                    getBuildServicesLogs model org repo buildNumber (RemoteData.withDefault [] services) Nothing True
+            in
+            ( { model | repo = updateBuildServices services rm }
+            , action
+            )
+
+        CollapseAllServices ->
+            let
+                build =
+                    rm.build
+
+                services =
+                    build.services.services
+                        |> RemoteData.unwrap build.services.services
+                            (\services_ -> services_ |> setAllServiceViews False |> RemoteData.succeed)
+            in
+            ( { model | repo = rm |> updateBuildServices services |> updateBuildServicesFollowing 0 }
+            , Cmd.none
+            )
         ExpandService org repo buildNumber serviceNumber ->
             let
                 build =
@@ -1682,7 +1715,14 @@ refreshPage model =
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber focusFragment
-                , refreshLogs model org repo buildNumber model.repo.build.steps.steps Nothing
+                , refreshStepLogs model org repo buildNumber model.repo.build.steps.steps Nothing
+                ]
+        Pages.BuildServices org repo buildNumber focusFragment ->
+            Cmd.batch
+                [ getBuilds model org repo Nothing Nothing Nothing
+                , refreshBuild model org repo buildNumber
+                , refreshBuildServices model org repo buildNumber focusFragment
+                , refreshServiceLogs model org repo buildNumber model.repo.build.services.services Nothing
                 ]
 
         Pages.BuildPipeline org repo buildNumber _ _ _ ->
@@ -1777,6 +1817,16 @@ refreshBuildSteps model org repo buildNumber focusFragment =
     else
         Cmd.none
 
+{-| refreshBuildServices : takes model org repo and build number and refreshes the build services based on service status
+-}
+refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
+refreshBuildServices model org repo buildNumber focusFragment =
+    if shouldRefresh model.repo.build.build then
+        getAllBuildServices model org repo buildNumber focusFragment True
+
+    else
+        Cmd.none
+
 
 {-| shouldRefresh : takes build and returns true if a refresh is required
 -}
@@ -1797,10 +1847,10 @@ shouldRefresh build =
             False
 
 
-{-| refreshLogs : takes model org repo and build number and steps and refreshes the build step logs depending on their status
+{-| refreshStepLogs : takes model org repo and build number and steps and refreshes the build step logs depending on their status
 -}
-refreshLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Cmd Msg
-refreshLogs model org repo buildNumber inSteps focusFragment =
+refreshStepLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Cmd Msg
+refreshStepLogs model org repo buildNumber inSteps focusFragment =
     let
         stepsToRefresh =
             case inSteps of
@@ -1813,6 +1863,29 @@ refreshLogs model org repo buildNumber inSteps focusFragment =
 
         refresh =
             getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
+    in
+    if shouldRefresh model.repo.build.build then
+        refresh
+
+    else
+        Cmd.none
+
+{-| refreshServiceLogs : takes model org repo and build number and services and refreshes the build service logs depending on their status
+-}
+refreshServiceLogs : Model -> Org -> Repo -> BuildNumber -> WebData Services -> FocusFragment -> Cmd Msg
+refreshServiceLogs model org repo buildNumber inServices focusFragment =
+    let
+        servicesToRefresh =
+            case inServices of
+                Success s ->
+                    -- Do not refresh logs for a service in success or failure state
+                    List.filter (\service -> service.status /= Vela.Success && service.status /= Vela.Failure) s
+
+                _ ->
+                    []
+
+        refresh =
+            getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
     in
     if shouldRefresh model.repo.build.build then
         refresh
@@ -2157,6 +2230,8 @@ buildMsgs =
     , collapseAllSteps = CollapseAllSteps
     , expandAllSteps = ExpandAllSteps
     , expandStep = ExpandStep
+    , collapseAllServices = CollapseAllServices
+    , expandAllServices = ExpandAllServices
     , expandService = ExpandService
     , logsMsgs =
         { focusLine = PushUrl

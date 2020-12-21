@@ -154,8 +154,8 @@ viewBuildServices model msgs org repo =
                                 -- , class "flowline-left"
                                 , Util.testAttribute "log-actions"
                                 ]
-                                [ collapseAllStepsButton msgs.collapseAllSteps
-                                , expandAllStepsButton msgs.expandAllSteps model.repo.org model.repo.name model.repo.build.buildNumber
+                                [ collapseAllButton msgs.collapseAllServices
+                                , expandAllButton msgs.expandAllServices model.repo.org model.repo.name model.repo.build.buildNumber
                                 ]
                     in
                     div []
@@ -392,8 +392,8 @@ viewBuildSteps model msgs rm steps =
                 , class "flowline-left"
                 , Util.testAttribute "log-actions"
                 ]
-                [ collapseAllStepsButton msgs.collapseAllSteps
-                , expandAllStepsButton msgs.expandAllSteps rm.org rm.name rm.build.buildNumber
+                [ collapseAllButton msgs.collapseAllSteps
+                , expandAllButton msgs.expandAllSteps rm.org rm.name rm.build.buildNumber
                 ]
     in
     div []
@@ -704,10 +704,10 @@ lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
 
-{-| collapseAllStepsButton : renders a button for collapsing all steps
+{-| collapseAllButton : renders a button for collapsing all resources
 -}
-collapseAllStepsButton : msg -> Html msg
-collapseAllStepsButton collapseAllSteps =
+collapseAllButton : msg -> Html msg
+collapseAllButton collapseAllSteps =
     Html.button
         [ class "button"
         , class "-link"
@@ -717,14 +717,14 @@ collapseAllStepsButton collapseAllSteps =
         [ small [] [ text "collapse all" ] ]
 
 
-{-| expandAllStepsButton : renders a button for expanding all steps
+{-| expandAllButton : renders a button for expanding all resources
 -}
-expandAllStepsButton : ExpandAllSteps msg -> Org -> Repo -> BuildNumber -> Html msg
-expandAllStepsButton expandAllSteps org repo buildNumber =
+expandAllButton : ExpandAll  msg -> Org -> Repo -> BuildNumber -> Html msg
+expandAllButton expandAll  org repo buildNumber =
     Html.button
         [ class "button"
         , class "-link"
-        , onClick <| expandAllSteps org repo buildNumber
+        , onClick <| expandAll  org repo buildNumber
         , Util.testAttribute "expand-all"
         ]
         [ small [] [ text "expand all" ] ]

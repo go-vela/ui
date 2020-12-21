@@ -171,6 +171,17 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
                 ]
                 [ text "Restart Build"
                 ]
+        Pages.BuildServices org repo buildNumber _ ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick <| restartBuild org repo buildNumber
+                , Util.testAttribute "restart-build"
+                ]
+                [ text "Restart Build"
+                ]
 
         Pages.BuildPipeline org repo buildNumber _ _ _ ->
             button

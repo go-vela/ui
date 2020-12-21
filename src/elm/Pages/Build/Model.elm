@@ -55,9 +55,11 @@ type alias PartialModel a =
 type alias Msgs msg =
     { clickBuildNavTab : Route -> msg
     , collapseAllSteps : msg
-    , expandAllSteps : ExpandAllSteps msg
-    , expandStep : ExpandResource msg
-    , expandService : ExpandResource msg
+    , collapseAllServices : msg
+    , expandAllSteps : ExpandAll msg
+    , expandAllServices: ExpandAll msg
+    , expandStep : Expand  msg
+    , expandService : Expand  msg
     , logsMsgs : LogsMsgs msg
     }
 
@@ -70,11 +72,11 @@ type alias LogsMsgs msg =
     }
 
 
-type alias ExpandAllSteps msg =
+type alias ExpandAll  msg =
     Org -> Repo -> BuildNumber -> msg
 
 
-type alias ExpandResource msg =
+type alias Expand  msg =
     Org -> Repo -> BuildNumber -> String -> msg
 
 
