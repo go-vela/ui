@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Expand, Get, Msgs, PartialModel)
+module Pages.Pipeline.Model exposing (Expand, Get, Msgs, PartialModel, ShowHideTemplates)
 
 import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
@@ -25,12 +25,12 @@ import Vela
         , FocusFragment
         , Org
         , PipelineModel
+        , PipelineTemplates
         , Repo
         , RepoModel
         , Session
         , SourceRepositories
         , Steps
-        , Templates
         )
 
 
@@ -48,7 +48,7 @@ type alias PartialModel a =
         , time : Posix
         , repo : RepoModel
         , shift : Bool
-        , templates : ( WebData Templates, Error )
+        , templates : PipelineTemplates
         , pipeline : PipelineModel
         , page : Page
         , toasties : Stack Alert
@@ -62,12 +62,17 @@ type alias Msgs msg =
     , get : Get msg
     , expand : Expand msg
     , focusLineNumber : FocusLineNumber msg
+    , showHideTemplates : msg
     }
 
 
 type alias Get msg =
-    Org -> Repo -> Maybe BuildNumber -> Maybe String -> Bool -> FocusFragment -> msg
+    Org -> Repo -> Maybe BuildNumber -> Maybe String -> FocusFragment -> Bool -> msg
 
 
 type alias Expand msg =
-    Org -> Repo -> Maybe BuildNumber -> Maybe String -> Bool -> FocusFragment -> msg
+    Org -> Repo -> Maybe BuildNumber -> Maybe String -> FocusFragment -> Bool -> msg
+
+
+type alias ShowHideTemplates msg =
+    msg

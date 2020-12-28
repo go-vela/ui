@@ -51,6 +51,7 @@ import Vela
         , Org
         , PipelineConfig
         , PipelineModel
+        , PipelineTemplates
         , Ref
         , Repo
         , Status
@@ -70,27 +71,27 @@ import Vela
 viewPipeline : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
 viewPipeline model msgs ref =
     div [ class "pipeline" ]
-        [ viewPipelineTemplates model.templates
+        [ viewPipelineTemplates model.templates msgs.showHideTemplates
         , viewPipelineConfiguration model msgs ref
         ]
 
 
 {-| viewPipelineTemplates : takes templates and renders a list above the pipeline configuration.
 -}
-viewPipelineTemplates : ( WebData Templates, Error ) -> Html msg
-viewPipelineTemplates templates =
-    case templates of
-        ( NotAsked, _ ) ->
+viewPipelineTemplates : PipelineTemplates -> msg -> Html msg
+viewPipelineTemplates { data, error, show } showHide =
+    case data of
+        NotAsked ->
             text ""
 
-        ( Loading, _ ) ->
+        Loading ->
             Util.smallLoaderWithText "loading pipeline templates"
 
-        ( Success t, _ ) ->
-            viewTemplates t
+        Success t ->
+            viewTemplates t show showHide
 
-        ( Failure _, err ) ->
-            viewTemplatesError err
+        Failure _ ->
+            viewTemplatesError error show showHide
 
 
 {-| viewTemplates : takes templates and renders a list of templates.
@@ -98,13 +99,13 @@ viewPipelineTemplates templates =
     Does not show if no templates are used in the pipeline.
 
 -}
-viewTemplates : Templates -> Html msg
-viewTemplates templates =
+viewTemplates : Templates -> Bool -> msg -> Html msg
+viewTemplates templates open showHide =
     if not <| Dict.isEmpty templates then
         templates
             |> Dict.toList
             |> List.map viewTemplate
-            |> viewTemplatesDetails (class "-success")
+            |> viewTemplatesDetails (class "-success") open showHide
 
     else
         text ""
@@ -112,25 +113,26 @@ viewTemplates templates =
 
 {-| viewTemplates : renders an error from fetching templates.
 -}
-viewTemplatesError : Error -> Html msg
-viewTemplatesError err =
+viewTemplatesError : Error -> Bool -> msg -> Html msg
+viewTemplatesError err open showHide =
     [ text <| "There was a problem fetching templates for this pipeline configuration"
     , div [ Util.testAttribute "pipeline-templates-error" ] [ text err ]
     ]
-        |> viewTemplatesDetails (class "-error")
+        |> viewTemplatesDetails (class "-error") open showHide
 
 
 {-| viewTemplatesDetails : takes templates content and wraps it in a details/summary.
 -}
-viewTemplatesDetails : Html.Attribute msg -> List (Html msg) -> Html msg
-viewTemplatesDetails cls content =
+viewTemplatesDetails : Html.Attribute msg -> Bool -> msg -> List (Html msg) -> Html msg
+viewTemplatesDetails cls open showHide content =
     Html.details
-        [ class "details"
-        , class "templates"
-        , Html.Attributes.attribute "open" ""
-        , Util.testAttribute "pipeline-templates"
-        ]
-        ([ Html.summary [ class "summary" ]
+        ([ class "details"
+         , class "templates"
+         , Util.testAttribute "pipeline-templates"
+         ]
+            ++ Util.open open
+        )
+        ([ Html.summary [ class "summary", Util.onClickPreventDefault showHide ]
             [ div [] [ text "Templates" ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
@@ -240,8 +242,8 @@ wrapPipelineConfigurationContent model { get, expand } ref cls content =
 -}
 viewTemplatesExpansion : PartialModel a -> Get msg -> Expand msg -> Html msg
 viewTemplatesExpansion model get expand =
-    case model.templates of
-        ( Success templates, _ ) ->
+    case model.templates.data of
+        Success templates ->
             if Dict.size templates > 0 then
                 div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
                     [ expandTemplatesToggleIcon model.pipeline
@@ -251,9 +253,6 @@ viewTemplatesExpansion model get expand =
 
             else
                 text ""
-
-        ( Loading, _ ) ->
-            text ""
 
         _ ->
             text ""
@@ -288,10 +287,10 @@ expandTemplatesToggleButton pipeline get expand =
 
         action =
             if pipeline.expanded then
-                get org repo buildNumber ref True Nothing
+                get org repo buildNumber ref Nothing True
 
             else
-                expand org repo buildNumber ref True Nothing
+                expand org repo buildNumber ref Nothing True
     in
     button
         [ class "button"

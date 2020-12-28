@@ -1009,7 +1009,10 @@ type alias PipelineConfig =
 
 
 type alias PipelineTemplates =
-    ( WebData Templates, Error )
+    { data : WebData Templates
+    , error : Error
+    , show : Bool
+    }
 
 
 type alias Template =
@@ -1026,7 +1029,7 @@ type alias Templates =
 
 defaultPipelineTemplates : PipelineTemplates
 defaultPipelineTemplates =
-    ( NotAsked, "" )
+    PipelineTemplates NotAsked "" True
 
 
 decodePipelineConfig : Decode.Decoder String

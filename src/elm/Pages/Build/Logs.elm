@@ -169,31 +169,10 @@ getCurrentResource resources =
     resource
 
 
-{-| focusStepLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+{-| focusStepLogs : takes steps and line focus and sets a new log line focus
 -}
-focusStepLogs : a -> Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Steps, Cmd msg )
-focusStepLogs model steps org repo buildNumber focusFragment getLogs =
-    let
-        ( stepsOut, action ) =
-            let
-                focusedSteps =
-                    updateStepLogFocus steps focusFragment
-            in
-            ( focusedSteps
-            , Cmd.batch
-                [ getLogs model org repo buildNumber focusedSteps focusFragment False
-                ]
-            )
-    in
-    ( stepsOut
-    , action
-    )
-
-
-{-| updateStepLogFocus : takes steps and line focus and sets a new log line focus
--}
-updateStepLogFocus : Steps -> FocusFragment -> Steps
-updateStepLogFocus steps focusFragment =
+focusStepLogs : Steps -> FocusFragment -> Steps
+focusStepLogs steps focusFragment =
     let
         parsed =
             parseFocusFragment focusFragment
@@ -345,31 +324,10 @@ decodeAnsi log =
 -- SERVICES
 
 
-{-| focusServiceLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
+{-| focusServiceLogs : takes services and line focus and sets a new log line focus
 -}
-focusServiceLogs : a -> Services -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromServices a msg -> ( Services, Cmd msg )
-focusServiceLogs model services org repo buildNumber focusFragment getLogs =
-    let
-        ( servicesOut, action ) =
-            let
-                focusedServices =
-                    updateServiceLogFocus services focusFragment
-            in
-            ( focusedServices
-            , Cmd.batch
-                [ getLogs model org repo buildNumber focusedServices focusFragment False
-                ]
-            )
-    in
-    ( servicesOut
-    , action
-    )
-
-
-{-| updateServiceLogFocus : takes services and line focus and sets a new log line focus
--}
-updateServiceLogFocus : Services -> FocusFragment -> Services
-updateServiceLogFocus services focusFragment =
+focusServiceLogs : Services -> FocusFragment -> Services
+focusServiceLogs services focusFragment =
     let
         parsed =
             parseFocusFragment focusFragment
