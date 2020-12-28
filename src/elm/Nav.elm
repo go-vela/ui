@@ -4,11 +4,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, view)
+module Nav exposing (Msgs, viewNav, viewUtil)
 
 import Browser.Events exposing (Visibility(..))
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
+import FeatherIcons
 import Html
     exposing
         ( Html
@@ -16,6 +17,7 @@ import Html
         , button
         , div
         , nav
+        , span
         , text
         )
 import Html.Attributes
@@ -29,9 +31,12 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import Pages exposing (Page(..))
+import Pages.Build.View exposing (viewBuildHistory)
 import Pages.Builds exposing (view)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
+import Svg.Attributes
+import Time exposing (Posix, Zone)
 import Util
 import Vela
     exposing
@@ -41,8 +46,9 @@ import Vela
         , Engine
         , Org
         , Repo
+        , RepoModel
+        , SecretType
         , SourceRepositories
-        , Type
         )
 
 
@@ -51,7 +57,9 @@ type alias PartialModel a =
         | page : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
-        , build : WebData Build
+        , repo : RepoModel
+        , time : Posix
+        , zone : Zone
     }
 
 
@@ -60,25 +68,34 @@ type alias Msgs msg =
     , toggleFavorite : ToggleFavorite msg
     , refreshSettings : Org -> Repo -> msg
     , refreshHooks : Org -> Repo -> msg
-    , refreshSecrets : Engine -> Type -> Org -> Repo -> msg
+    , refreshSecrets : Engine -> SecretType -> Org -> Repo -> msg
     , restartBuild : Org -> Repo -> BuildNumber -> msg
     }
 
 
-{-| view : uses current state to render navigation, such as breadcrumb
+{-| Tab : record to represent information used by page navigation tab
 -}
-view : PartialModel a -> Msgs msg -> Html msg
-view model msgs =
+type alias Tab =
+    { name : String
+    , currentPage : Page
+    , toPage : Page
+    }
+
+
+{-| viewNav : uses current state to render navigation, such as breadcrumb
+-}
+viewNav : PartialModel a -> Msgs msg -> Html msg
+viewNav model msgs =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
         [ Crumbs.view model.page
-        , navButton model msgs
+        , navButtons model msgs
         ]
 
 
-{-| navButton : uses current page to build the commonly used button on the right side of the nav
+{-| navButtons : uses current page to build the commonly used button on the right side of the nav
 -}
-navButton : PartialModel a -> Msgs msg -> Html msg
-navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets, restartBuild } =
+navButtons : PartialModel a -> Msgs msg -> Html msg
+navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets, restartBuild } =
     case model.page of
         Pages.Overview ->
             a
@@ -108,169 +125,156 @@ navButton model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHook
                 ]
 
         Pages.RepositoryBuilds org repo _ _ _ ->
-            div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-                    ]
-                    [ text "Secrets" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo Nothing Nothing
-                    ]
-                    [ text "Hooks" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSettings org repo
-                    ]
-                    [ text "Settings" ]
-                ]
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.RepoSettings org repo ->
-            div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-                    ]
-                    [ text "Secrets" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo Nothing Nothing
-                    ]
-                    [ text "Hooks" ]
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSettings org repo
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh"
-                    ]
-                ]
-
-        Pages.OrgSecrets engine org _ _ ->
-            div [ class "buttons" ]
-                [ button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSecrets engine "org" org "*"
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh"
-                    ]
-                ]
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.RepoSecrets engine org repo _ _ ->
-            div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-hooks-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.Hooks org repo Nothing Nothing
-                    ]
-                    [ text "Hooks" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSettings org repo
-                    ]
-                    [ text "Settings" ]
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSecrets engine "repo" org repo
-                    , Util.testAttribute "refresh-repo-settings"
-                    ]
-                    [ text "Refresh"
-                    ]
-                ]
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.SharedSecrets engine org team _ _ ->
             div [ class "buttons" ]
-                [ button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshSecrets engine "shared" org team
-                    , Util.testAttribute "refresh-repo-settings"
+                [ a
+                    [ class "button"
+                    , class "-outline"
+                    , Routes.href <|
+                        Routes.AddSharedSecret engine org team
                     ]
-                    [ text "Refresh"
-                    ]
+                    [ text "Add Shared Secret" ]
                 ]
 
         Pages.Build org repo buildNumber _ ->
-            div [ class "buttons" ]
-                [ case model.build of
-                    RemoteData.Success b ->
-                        a
-                            [ class "button"
-                            , class "-outline"
-                            , Util.testAttribute <| "goto-build-pipeline-" ++ org ++ "-" ++ repo ++ "-" ++ buildNumber
-                            , Routes.href <| Routes.Pipeline org repo (Just b.commit) Nothing Nothing
-                            ]
-                            [ text "View Config" ]
-
-                    _ ->
-                        text ""
-                , button
-                    [ class "button"
-                    , class "-outline"
-                    , onClick <| restartBuild org repo buildNumber
-                    , Util.testAttribute "restart-build"
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
                     ]
-                    [ text "Restart Build"
-                    ]
+                , onClick <| restartBuild org repo buildNumber
+                , Util.testAttribute "restart-build"
+                ]
+                [ text "Restart Build"
                 ]
 
         Pages.Hooks org repo _ _ ->
-            div [ class "buttons" ]
-                [ starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-secrets-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
-                    ]
-                    [ text "Secrets" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute <| "goto-repo-settings-" ++ org ++ "/" ++ repo
-                    , Routes.href <| Routes.RepoSettings org repo
-                    ]
-                    [ text "Settings" ]
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| refreshHooks org repo
-                    , Util.testAttribute "refresh-repo-hooks"
-                    ]
-                    [ text "Refresh"
-                    ]
-                ]
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         _ ->
             text ""
+
+
+{-| viewUtil : uses current state to render navigation in util area below nav
+-}
+viewUtil : PartialModel a -> Html msg
+viewUtil model =
+    let
+        rm =
+            model.repo
+    in
+    div [ class "util" ]
+        [ case model.page of
+            Pages.Build _ _ _ _ ->
+                viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
+
+            Pages.RepositoryBuilds org repo _ _ _ ->
+                viewRepoTabs rm model.page
+
+            Pages.RepoSecrets engine org repo _ _ ->
+                viewRepoTabs rm model.page
+
+            Pages.Hooks org repo _ _ ->
+                viewRepoTabs rm model.page
+
+            Pages.RepoSettings org repo ->
+                viewRepoTabs rm model.page
+
+            _ ->
+                text ""
+        ]
+
+
+{-| viewTabs : takes list of tab records and renders them with spacers and horizontal filler
+-}
+viewTabs : List Tab -> String -> Html msg
+viewTabs tabs testLabel =
+    tabs
+        |> List.map viewTab
+        |> List.intersperse viewSpacer
+        |> (\t -> t ++ [ viewFiller ])
+        |> div [ class "jump-bar", Util.testAttribute testLabel ]
+
+
+{-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style
+-}
+viewTab : Tab -> Html msg
+viewTab { name, currentPage, toPage } =
+    a
+        [ class "jump"
+        , viewingTab currentPage toPage
+        , Routes.href <| Pages.toRoute toPage
+        , Util.testAttribute <| "jump-" ++ name
+        ]
+        [ text name ]
+
+
+{-| viewSpacer : renders horizontal spacer between tabs
+-}
+viewSpacer : Html msg
+viewSpacer =
+    span [ class "jump", class "spacer" ] []
+
+
+{-| viewSpacer : renders horizontal filler to the right of tabs
+-}
+viewFiller : Html msg
+viewFiller =
+    span [ class "jump", class "fill" ] []
+
+
+{-| viewingTab : returns true if user is viewing this tab
+-}
+viewingTab : Page -> Page -> Html.Attribute msg
+viewingTab p1 p2 =
+    if Pages.strip p1 == Pages.strip p2 then
+        class "current"
+
+    else
+        class ""
+
+
+
+-- REPO
+
+
+{-| viewRepoTabs : takes RepoModel and current page and renders navigation tabs
+-}
+viewRepoTabs : RepoModel -> Page -> Html msg
+viewRepoTabs rm currentPage =
+    let
+        org =
+            rm.org
+
+        repo =
+            rm.name
+
+        tabs =
+            [ Tab "Builds" currentPage <| Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
+            , Tab "Secrets" currentPage <| Pages.RepoSecrets "native" org repo Nothing Nothing
+            , Tab "Audit" currentPage <| Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
+            , Tab "Settings" currentPage <| Pages.RepoSettings org repo
+            ]
+    in
+    viewTabs tabs "jump-bar-repo"
+
+
+
+-- BUILD TODO
+
+
+viewBuildTabs : RepoModel -> Page -> Html msg
+viewBuildTabs rm currentPage =
+    let
+        tabs =
+            []
+    in
+    viewTabs tabs "build"

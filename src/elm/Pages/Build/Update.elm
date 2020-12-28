@@ -29,6 +29,9 @@ import Vela
         , Repo
         , StepNumber
         , Steps
+        , updateBuild
+        , updateBuildStepFollowing
+        , updateBuildSteps
         )
 
 
@@ -38,11 +41,18 @@ import Vela
 
 update : PartialModel a -> Msg -> GetLogs a msg -> (Result Dom.Error () -> msg) -> ( PartialModel a, Cmd msg )
 update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
+    let
+        rm =
+            model.repo
+
+        build =
+            rm.build
+    in
     case msg of
         ExpandStep org repo buildNumber stepNumber ->
             let
                 ( steps, fetchStepLogs ) =
-                    clickStep model.steps stepNumber
+                    clickStep build.steps stepNumber
 
                 action =
                     if fetchStepLogs then
@@ -56,7 +66,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
 
                 -- step clicked is step being followed
                 onFollowedStep =
-                    model.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+                    build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                 follow =
                     if onFollowedStep && not stepOpened then
@@ -64,9 +74,14 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         0
 
                     else
-                        model.followingStep
+                        build.followingStep
             in
-            ( { model | steps = steps, followingStep = follow }
+            ( { model
+                | repo =
+                    rm
+                        |> updateBuildSteps steps
+                        |> updateBuildStepFollowing follow
+              }
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
@@ -88,33 +103,38 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             )
 
         FollowStep step ->
-            ( { model | followingStep = step }
+            ( { model | repo = updateBuildStepFollowing step rm }
             , Cmd.none
             )
 
         CollapseAllSteps ->
             let
                 steps =
-                    model.steps
-                        |> RemoteData.unwrap model.steps
+                    build.steps
+                        |> RemoteData.unwrap build.steps
                             (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
             in
-            ( { model | steps = steps, followingStep = 0 }
+            ( { model
+                | repo =
+                    rm
+                        |> updateBuildSteps steps
+                        |> updateBuildStepFollowing 0
+              }
             , Cmd.none
             )
 
         ExpandAllSteps org repo buildNumber ->
             let
                 steps =
-                    RemoteData.unwrap model.steps
+                    RemoteData.unwrap build.steps
                         (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
-                        model.steps
+                        build.steps
 
                 -- refresh logs for expanded steps
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
             in
-            ( { model | steps = steps }
+            ( { model | repo = updateBuildSteps steps rm }
             , action
             )
 

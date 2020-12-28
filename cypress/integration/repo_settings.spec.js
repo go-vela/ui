@@ -36,14 +36,6 @@ context('Repo Settings', () => {
       cy.login('/github/octocat/settings');
     });
 
-    it('should show the repo in the breadcrumb', () => {
-      cy.get('[data-test=crumb-settings]').should('be.visible');
-    });
-
-    it('should show the Refresh Settings button', () => {
-      cy.get('[data-test=refresh-repo-settings]').should('be.visible');
-    });
-
     it('build timeout input should show', () => {
       cy.get('[data-test=repo-timeout]').should('be.visible');
     });
@@ -97,15 +89,6 @@ context('Repo Settings', () => {
         .should('be.visible')
         .click({ force: true });
       cy.get('[data-test=repo-timeout] + button').should('be.disabled');
-    });
-
-    it('clicking Refresh Settings button should clear input', () => {
-      cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
-      cy.get('@repoTimeoutInput').should('be.visible').type('123');
-      cy.get('[data-test=refresh-repo-settings]')
-        .should('be.visible')
-        .click({ force: true });
-      cy.get('@repoTimeoutInput').should('have.value', '30');
     });
 
     it('Disable button should exist', () => {

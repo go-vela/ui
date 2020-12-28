@@ -58,7 +58,7 @@ view buildsModel now zone org repo maybeEvent =
                                 , text "."
                                 ]
                             , li []
-                                [ text "Triggered one of the "
+                                [ text "Trigger one of the "
                                 , a [ href settingsLink ] [ text "configured webhook events" ]
                                 , text " by performing the respective action via "
                                 , em [] [ text "Git" ]

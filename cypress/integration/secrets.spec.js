@@ -131,7 +131,7 @@ context('Secrets', () => {
       cy.get('[data-test=alerts]').should('exist').contains('Error');
     });
     it('error banner should show', () => {
-      cy.get('[data-test=secrets-error]')
+      cy.get('[data-test=org-secrets-error]')
         .should('exist')
         .contains('try again later');
     });
@@ -148,7 +148,7 @@ context('Secrets', () => {
     });
 
     it('secrets table should show', () => {
-      cy.get('[data-test=secrets-table]').should('be.visible');
+      cy.get('[data-test=org-secrets-table]').should('be.visible');
     });
 
     it('secrets table should show 5 secrets', () => {

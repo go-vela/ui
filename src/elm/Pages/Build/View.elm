@@ -70,7 +70,7 @@ import Pages.Build.Logs
         , stepTopTrackerFocusId
         , toString
         )
-import Pages.Build.Model exposing (BuildModel, Msg(..), PartialModel)
+import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
@@ -80,6 +80,7 @@ import Util
 import Vela
     exposing
         ( Build
+        , BuildModel
         , BuildNumber
         , Builds
         , Log
@@ -87,6 +88,7 @@ import Vela
         , Logs
         , Org
         , Repo
+        , RepoModel
         , Status
         , Step
         , StepNumber
@@ -104,8 +106,14 @@ import Vela
 viewBuild : PartialModel a -> Org -> Repo -> Html Msg
 viewBuild model org repo =
     let
+        rm =
+            model.repo
+
+        build =
+            rm.build
+
         ( buildPreview, buildNumber ) =
-            case model.build of
+            case build.build of
                 RemoteData.Success bld ->
                     ( viewPreview model.time model.zone org repo bld, String.fromInt bld.number )
 
@@ -116,7 +124,7 @@ viewBuild model org repo =
                     ( text "", "" )
 
         logActions =
-            model.steps
+            build.steps
                 |> RemoteData.unwrap (text "")
                     (\_ ->
                         div
@@ -131,16 +139,16 @@ viewBuild model org repo =
                     )
 
         buildSteps =
-            case model.steps of
+            case build.steps of
                 RemoteData.Success steps_ ->
-                    viewPipeline model <| BuildModel org repo buildNumber steps_
+                    viewBuildSteps model rm steps_
 
                 RemoteData.Failure _ ->
                     div [] [ text "Error loading steps... Please try again" ]
 
                 _ ->
                     -- Don't show two loaders
-                    if Util.isLoading model.build then
+                    if Util.isLoading build.build then
                         text ""
 
                     else
@@ -242,42 +250,42 @@ viewPreview now zone org repo build =
         ]
 
 
-{-| viewPipeline : takes build/steps and renders pipeline
+{-| viewBuildSteps : takes build/steps and renders pipeline
 -}
-viewPipeline : PartialModel a -> BuildModel -> Html Msg
-viewPipeline model buildModel =
+viewBuildSteps : PartialModel a -> RepoModel -> Steps -> Html Msg
+viewBuildSteps model rm steps =
     div [ class "steps" ]
         [ div [ class "-items", Util.testAttribute "steps" ] <|
-            if hasStages buildModel.steps then
-                viewStages model buildModel
+            if hasStages steps then
+                viewStages model rm steps
 
             else
-                viewSteps model buildModel
+                viewSteps model rm steps
         ]
 
 
 {-| viewSteps : takes build/steps and renders steps
 -}
-viewSteps : PartialModel a -> BuildModel -> List (Html Msg)
-viewSteps model buildModel =
-    List.map (\step -> viewStep model buildModel step) <| buildModel.steps
+viewSteps : PartialModel a -> RepoModel -> Steps -> List (Html Msg)
+viewSteps model rm steps =
+    List.map (\step -> viewStep model rm steps step) <| steps
 
 
 {-| viewStep : renders single build step
 -}
-viewStep : PartialModel a -> BuildModel -> Step -> Html Msg
-viewStep model buildModel step =
-    div [ stepClasses step buildModel.steps, Util.testAttribute "step" ]
+viewStep : PartialModel a -> RepoModel -> Steps -> Step -> Html Msg
+viewStep model rm steps step =
+    div [ stepClasses steps step, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStepIcon step ] ]
-        , viewStepDetails model buildModel step
+        , viewStepDetails model rm step
         ]
 
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : PartialModel a -> BuildModel -> Step -> Html Msg
-viewStepDetails model buildModel step =
+viewStepDetails : PartialModel a -> RepoModel -> Step -> Html Msg
+viewStepDetails model rm step =
     let
         stepNumber =
             String.fromInt step.number
@@ -286,7 +294,7 @@ viewStepDetails model buildModel step =
             [ summary
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
-                , onClick <| ExpandStep buildModel.org buildModel.repo buildModel.buildNumber stepNumber
+                , onClick <| ExpandStep rm.org rm.name rm.build.buildNumber stepNumber
                 , id <| resourceToFocusId "step" stepNumber
                 ]
                 [ div
@@ -296,7 +304,7 @@ viewStepDetails model buildModel step =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ viewLogs model buildModel step ]
+            , div [ class "logs-container" ] [ viewLogs model rm step ]
             ]
     in
     details
@@ -312,36 +320,36 @@ viewStepDetails model buildModel step =
 
 {-| viewStages : takes model and build model and renders steps grouped by stages
 -}
-viewStages : PartialModel a -> BuildModel -> List (Html Msg)
-viewStages model buildModel =
-    buildModel.steps
+viewStages : PartialModel a -> RepoModel -> Steps -> List (Html Msg)
+viewStages model rm steps =
+    steps
         |> List.map .stage
         |> unique
         |> List.map
             (\stage ->
-                buildModel.steps
+                steps
                     |> List.filter (\step -> step.stage == stage)
-                    |> viewStage model buildModel stage
+                    |> viewStage model rm stage
             )
 
 
 {-| viewStage : takes model, build model and stage and renders the stage steps
 -}
-viewStage : PartialModel a -> BuildModel -> String -> Steps -> Html Msg
-viewStage model buildModel stage steps =
+viewStage : PartialModel a -> RepoModel -> String -> Steps -> Html Msg
+viewStage model rm stage steps =
     div
         [ class "stage", Util.testAttribute <| "stage" ]
-        [ viewStageDivider model { buildModel | steps = steps } stage
+        [ viewStageDivider model stage
         , steps
-            |> List.map (\step -> viewStep model { buildModel | steps = steps } step)
+            |> List.map (\step -> viewStep model rm steps step)
             |> div [ Util.testAttribute <| "stage-" ++ stage ]
         ]
 
 
 {-| viewStageDivider : renders divider between stage
 -}
-viewStageDivider : PartialModel a -> BuildModel -> String -> Html Msg
-viewStageDivider model buildModel stage =
+viewStageDivider : PartialModel a -> String -> Html Msg
+viewStageDivider model stage =
     if stage /= "init" && stage /= "clone" then
         div [ class "divider", Util.testAttribute <| "stage-divider-" ++ stage ]
             [ div [] [ text stage ] ]
@@ -363,8 +371,8 @@ hasStages steps =
 
 {-| viewLogs : takes step and logs and renders step logs or step error
 -}
-viewLogs : PartialModel a -> BuildModel -> Step -> Html Msg
-viewLogs model buildModel step =
+viewLogs : PartialModel a -> RepoModel -> Step -> Html Msg
+viewLogs model rm step =
     case step.status of
         Vela.Error ->
             stepError step
@@ -373,7 +381,7 @@ viewLogs model buildModel step =
             stepSkipped step
 
         _ ->
-            viewLogLines buildModel.org buildModel.repo buildModel.buildNumber (String.fromInt step.number) step.logFocus (getStepLog step model.logs) model.followingStep model.shift
+            viewLogLines rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getStepLog step rm.build.logs) rm.build.followingStep model.shift
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
@@ -916,8 +924,8 @@ statusToClass status =
 
 {-| stepClasses : returns css classes for a particular step
 -}
-stepClasses : Step -> Steps -> Html.Attribute msg
-stepClasses step steps =
+stepClasses : Steps -> Step -> Html.Attribute msg
+stepClasses steps step =
     let
         last =
             case List.head <| List.reverse steps of
