@@ -3167,7 +3167,14 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
         { pageSet
             | pipeline =
                 { pipeline
-                    | org = org
+                    | config =
+                        case pipeline.config of
+                            ( Success _, _ ) ->
+                                pipeline.config
+
+                            _ ->
+                                ( Loading, "" )
+                    , org = org
                     , repo = repo
                     , buildNumber = Just buildNumber
                     , ref = ref
