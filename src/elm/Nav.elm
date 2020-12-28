@@ -171,6 +171,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
                 ]
                 [ text "Restart Build"
                 ]
+
         Pages.BuildServices org repo buildNumber _ ->
             button
                 [ classList

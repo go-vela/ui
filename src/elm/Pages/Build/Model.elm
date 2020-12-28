@@ -57,9 +57,9 @@ type alias Msgs msg =
     , collapseAllSteps : msg
     , collapseAllServices : msg
     , expandAllSteps : ExpandAll msg
-    , expandAllServices: ExpandAll msg
-    , expandStep : Expand  msg
-    , expandService : Expand  msg
+    , expandAllServices : ExpandAll msg
+    , expandStep : Expand msg
+    , expandService : Expand msg
     , logsMsgs : LogsMsgs msg
     }
 
@@ -72,11 +72,11 @@ type alias LogsMsgs msg =
     }
 
 
-type alias ExpandAll  msg =
+type alias ExpandAll msg =
     Org -> Repo -> BuildNumber -> msg
 
 
-type alias Expand  msg =
+type alias Expand msg =
     Org -> Repo -> BuildNumber -> String -> msg
 
 

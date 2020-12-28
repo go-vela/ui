@@ -74,7 +74,7 @@ import Pages.Build.Logs
         , stepBottomTrackerFocusId
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (clickService,setAllServiceViews, clickStep, expandActiveService, expandActiveStep, isViewingService, isViewingStep, setAllStepViews)
+import Pages.Build.Update exposing (clickService, clickStep, expandActiveService, expandActiveStep, isViewingService, isViewingStep, setAllServiceViews, setAllStepViews)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -728,6 +728,7 @@ update msg model =
             ( { model | repo = rm |> updateBuildServices services |> updateBuildServicesFollowing 0 }
             , Cmd.none
             )
+
         ExpandService org repo buildNumber serviceNumber ->
             let
                 build =
@@ -933,8 +934,7 @@ update msg model =
               }
             , Cmd.batch
                 [ getPipelineConfig model org repo ref lineFocus
-
-                , case buildNumber of 
+                , case buildNumber of
                     Just b ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref Nothing lineFocus
 
@@ -952,7 +952,7 @@ update msg model =
               }
             , Cmd.batch
                 [ expandPipelineConfig model org repo ref lineFocus
-                , case buildNumber of 
+                , case buildNumber of
                     Just b ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref (Just "true") lineFocus
 
@@ -1318,7 +1318,7 @@ update msg model =
                     let
                         focusId =
                             Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
-                        
+
                         cmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
@@ -1353,7 +1353,7 @@ update msg model =
                     let
                         focusId =
                             Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
-                        
+
                         cmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
@@ -1739,6 +1739,7 @@ refreshPage model =
                 , refreshBuildSteps model org repo buildNumber focusFragment
                 , refreshStepLogs model org repo buildNumber model.repo.build.steps.steps Nothing
                 ]
+
         Pages.BuildServices org repo buildNumber focusFragment ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
@@ -1839,6 +1840,7 @@ refreshBuildSteps model org repo buildNumber focusFragment =
     else
         Cmd.none
 
+
 {-| refreshBuildServices : takes model org repo and build number and refreshes the build services based on service status
 -}
 refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
@@ -1891,6 +1893,7 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
 
     else
         Cmd.none
+
 
 {-| refreshServiceLogs : takes model org repo and build number and services and refreshes the build service logs depending on their status
 -}
@@ -2487,7 +2490,7 @@ setNewPage route model =
             loadBuildServicesPage model org repo buildNumber lineFocus
 
         ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, True ) ->
-            loadBuildPipelinePage model org repo buildNumber ref expand lineFocus 
+            loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
 
         ( Routes.Pipeline org repo ref expand lineFocus, True ) ->
             let
@@ -3090,12 +3093,37 @@ loadBuildPage model org repo buildNumber lineFocus =
 
                     else
                         Nothing
-                , config = if sameBuild then pipeline.config else (NotAsked, "")
-                , expand = if sameBuild then pipeline.expand else Nothing
-                , expanding = if sameBuild then pipeline.expanding else False
-                , expanded = if sameBuild then pipeline.expanded else False
+                , config =
+                    if sameBuild then
+                        pipeline.config
+
+                    else
+                        ( NotAsked, "" )
+                , expand =
+                    if sameBuild then
+                        pipeline.expand
+
+                    else
+                        Nothing
+                , expanding =
+                    if sameBuild then
+                        pipeline.expanding
+
+                    else
+                        False
+                , expanded =
+                    if sameBuild then
+                        pipeline.expanded
+
+                    else
+                        False
             }
-        , templates = if sameBuild then model.templates else (NotAsked, "")
+        , templates =
+            if sameBuild then
+                model.templates
+
+            else
+                ( NotAsked, "" )
         , repo =
             rm
                 |> updateBuild
@@ -3213,12 +3241,37 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 
                     else
                         Nothing
-                , config = if sameBuild then pipeline.config else (NotAsked, "")
-                , expand = if sameBuild then pipeline.expand else Nothing
-                , expanding = if sameBuild then pipeline.expanding else False
-                , expanded = if sameBuild then pipeline.expanded else False
-        }
-        , templates = if sameBuild then model.templates else (NotAsked, "")
+                , config =
+                    if sameBuild then
+                        pipeline.config
+
+                    else
+                        ( NotAsked, "" )
+                , expand =
+                    if sameBuild then
+                        pipeline.expand
+
+                    else
+                        Nothing
+                , expanding =
+                    if sameBuild then
+                        pipeline.expanding
+
+                    else
+                        False
+                , expanded =
+                    if sameBuild then
+                        pipeline.expanded
+
+                    else
+                        False
+            }
+        , templates =
+            if sameBuild then
+                model.templates
+
+            else
+                ( NotAsked, "" )
         , repo =
             rm
                 |> updateBuild
@@ -3279,43 +3332,32 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 
 {-| loadBuildPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment  -> ( Model, Cmd Msg )
-loadBuildPipelinePage model org repo buildNumber ref expand lineFocus   =
+loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
+loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
     let
-
-
-
-                -- Pages.BuildPipeline o r b r_ ex _ ->
-                --     let
-                --         pipeline =
-                --             model.pipeline
-
-                --         parsed =
-                --             parseFocusFragment lineFocus
-
-                --         currentRef =
-                --             ( org, repo, Maybe.withDefault "" r_ )
-
-                --         incomingRef =
-                --             ( o, r, Maybe.withDefault "_" ref )
-
-                --         currentBuild =
-                --             ( org, repo, b )
-
-                --         incomingBuild =
-                --             ( o, r, buildNumber )
-                --     if resourceChanged currentRef incomingRef || resourceChanged currentBuild incomingBuild then
-                --         loadBuildPipelinePage model org repo buildNumber ref expand lineFocus False
-
-                --     else
-                --         ( { model
-                --             | pipeline =
-                --                 { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
-                --           }
-                --         , Cmd.none
-                --         )
-
-
+        -- Pages.BuildPipeline o r b r_ ex _ ->
+        --     let
+        --         pipeline =
+        --             model.pipeline
+        --         parsed =
+        --             parseFocusFragment lineFocus
+        --         currentRef =
+        --             ( org, repo, Maybe.withDefault "" r_ )
+        --         incomingRef =
+        --             ( o, r, Maybe.withDefault "_" ref )
+        --         currentBuild =
+        --             ( org, repo, b )
+        --         incomingBuild =
+        --             ( o, r, buildNumber )
+        --     if resourceChanged currentRef incomingRef || resourceChanged currentBuild incomingBuild then
+        --         loadBuildPipelinePage model org repo buildNumber ref expand lineFocus False
+        --     else
+        --         ( { model
+        --             | pipeline =
+        --                 { pipeline | lineFocus = ( parsed.lineA, parsed.lineB ) }
+        --           }
+        --         , Cmd.none
+        --         )
         ( transition, sameBuild ) =
             case model.page of
                 Pages.BuildServices o r b _ ->
@@ -3360,15 +3402,14 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus   =
         ( config, focusLine ) =
             if sameBuild then
                 case pipeline.config of
-                    (RemoteData.Success config_, _) ->
+                    ( RemoteData.Success config_, _ ) ->
                         ( pipeline.config, Cmd.none )
-                        
+
                     _ ->
-                        ( (Loading, ""), Cmd.none )
+                        ( ( Loading, "" ), Cmd.none )
 
             else
-                ( (Loading, ""), Cmd.none )
-
+                ( ( Loading, "" ), Cmd.none )
     in
     ( { model
         | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus
@@ -3376,13 +3417,13 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus   =
             { config =
                 config
             , expanded =
-                if sameBuild  then
+                if sameBuild then
                     pipeline.expanded
 
                 else
                     False
             , expanding =
-                if sameBuild  then
+                if sameBuild then
                     pipeline.expanding
 
                 else
@@ -3402,12 +3443,11 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus   =
             , buildNumber = Just buildNumber
             }
         , templates =
-            if sameBuild  then
+            if sameBuild then
                 templates
 
             else
                 ( Loading, "" )
-
         , repo =
             rm
                 |> updateBuild

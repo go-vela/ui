@@ -17,6 +17,8 @@ module Pages.Build.View exposing
     , wrapWithBuildPreview
     )
 
+-- TODO better imports
+
 import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
@@ -719,12 +721,12 @@ collapseAllButton collapseAllSteps =
 
 {-| expandAllButton : renders a button for expanding all resources
 -}
-expandAllButton : ExpandAll  msg -> Org -> Repo -> BuildNumber -> Html msg
-expandAllButton expandAll  org repo buildNumber =
+expandAllButton : ExpandAll msg -> Org -> Repo -> BuildNumber -> Html msg
+expandAllButton expandAll org repo buildNumber =
     Html.button
         [ class "button"
         , class "-link"
-        , onClick <| expandAll  org repo buildNumber
+        , onClick <| expandAll org repo buildNumber
         , Util.testAttribute "expand-all"
         ]
         [ small [] [ text "expand all" ] ]

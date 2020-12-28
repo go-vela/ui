@@ -46,7 +46,6 @@ type alias PartialModel a =
         , session : Maybe Session
         , navigationKey : Navigation.Key
         , time : Posix
-        , zone : Zone
         , repo : RepoModel
         , shift : Bool
         , templates : ( WebData Templates, Error )
