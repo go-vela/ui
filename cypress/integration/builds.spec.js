@@ -97,10 +97,6 @@ context('Builds', () => {
       cy.visit('/github/octocat?page=2');
       cy.get('@firstBuild').should('exist').should('contain', '#11');
       cy.get('@lastBuild').should('exist').should('contain', '#20');
-      cy.get('[data-test="crumb-octocat-(page-2)"]')
-        .should('exist')
-        .should('contain', 'page 2');
-
       cy.get('[data-test=pager-next]').should('be.disabled');
     });
 

@@ -12,7 +12,7 @@ import Pages exposing (Page(..), toRoute)
 import Routes exposing (Route(..))
 import Tuple exposing (first, second)
 import Url exposing (percentDecode)
-import Util
+import Util exposing (pageToString, refToString)
 import Vela exposing (Ref)
 
 
@@ -102,28 +102,31 @@ toPath page =
                 Pages.SourceRepositories ->
                     [ overviewPage, accountPage, sourceRepositoriesPage ]
 
-                Pages.Hooks org repo maybePage _ ->
+                Pages.Hooks org repo _ _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
 
-                        repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-
-                        pageNumber =
-                            pageToString maybePage
+                        currentRepo =
+                            ( repo, Nothing )
                     in
-                    [ overviewPage, organizationPage, repoBuilds, ( "Hooks" ++ pageNumber, Nothing ) ]
+                    [ overviewPage
+                    , organizationPage
+                    , currentRepo
+                    ]
 
                 Pages.RepoSettings org repo ->
                     let
                         organizationPage =
                             ( org, Nothing )
 
-                        repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                        currentRepo =
+                            ( repo, Nothing )
                     in
-                    [ overviewPage, organizationPage, repoBuilds, repoSettings ]
+                    [ overviewPage
+                    , organizationPage
+                    , currentRepo
+                    ]
 
                 Pages.OrgSecrets _ org maybePage _ ->
                     let
@@ -135,18 +138,18 @@ toPath page =
                     in
                     [ overviewPage, orgPage, orgSecrets ]
 
-                Pages.RepoSecrets _ org repo maybePage _ ->
+                Pages.RepoSecrets _ org repo _ _ ->
                     let
                         orgPage =
                             ( org, Nothing )
 
-                        repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                        currentRepo =
+                            ( repo, Nothing )
 
                         repoSecrets =
-                            ( "Repo Secrets" ++ pageToString maybePage, Nothing )
+                            ( "Repo Secrets", Nothing )
                     in
-                    [ overviewPage, orgPage, repoBuilds, repoSecrets ]
+                    [ overviewPage, orgPage, currentRepo ]
 
                 Pages.SharedSecrets _ org team maybePage _ ->
                     let
@@ -168,27 +171,18 @@ toPath page =
 
                         orgSecrets =
                             ( "Org Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
-
-                        add =
-                            ( "Add", Nothing )
                     in
-                    [ overviewPage, orgPage, orgSecrets, add ]
+                    [ overviewPage, orgPage, orgSecrets ]
 
                 Pages.AddRepoSecret engine org repo ->
                     let
                         orgPage =
                             ( org, Nothing )
 
-                        repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-
-                        repoSecrets =
-                            ( "Repo Secrets", Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
-
-                        add =
-                            ( "Add", Nothing )
+                        currentRepo =
+                            ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
                     in
-                    [ overviewPage, orgPage, repoBuilds, repoSecrets, add ]
+                    [ overviewPage, orgPage, currentRepo ]
 
                 Pages.AddSharedSecret engine org team ->
                     let
@@ -200,11 +194,8 @@ toPath page =
 
                         sharedSecrets =
                             ( "Shared Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
-
-                        add =
-                            ( "Add", Nothing )
                     in
-                    [ overviewPage, orgPage, teamPage, sharedSecrets, add ]
+                    [ overviewPage, orgPage, teamPage, sharedSecrets ]
 
                 Pages.OrgSecret engine org name ->
                     let
@@ -224,16 +215,13 @@ toPath page =
                         orgPage =
                             ( org, Nothing )
 
-                        repoBuilds =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-
-                        repoSecrets =
-                            ( "Repo Secrets", Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
+                        currentRepo =
+                            ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )
                     in
-                    [ overviewPage, orgPage, repoBuilds, repoSecrets, nameCrumb ]
+                    [ overviewPage, orgPage, currentRepo, nameCrumb ]
 
                 Pages.SharedSecret engine org team name ->
                     let
@@ -255,18 +243,19 @@ toPath page =
                     let
                         organizationPage =
                             ( org, Nothing )
-
-                        pageNumber =
-                            pageToString maybePage
                     in
-                    [ overviewPage, organizationPage, ( repo ++ pageNumber, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
 
                 Pages.Build org repo buildNumber logFocus ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing ), ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus ) ]
+                    [ overviewPage
+                    , organizationPage
+                    , ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                    , ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber logFocus )
+                    ]
 
                 Pages.Pipeline org repo ref expand _ ->
                     let
@@ -294,35 +283,3 @@ toPath page =
                     []
     in
     pages
-
-
-{-| renderPageNumber : small helper to turn page number to a string to display in crumbs
--}
-pageToString : Maybe Int -> String
-pageToString maybePage =
-    case maybePage of
-        Nothing ->
-            ""
-
-        Just num ->
-            if num > 1 then
-                " (page " ++ String.fromInt num ++ ")"
-
-            else
-                ""
-
-
-{-| refToString : small helper to turn ref to a string to display in crumbs
--}
-refToString : Maybe Ref -> String
-refToString maybeRef =
-    case maybeRef of
-        Nothing ->
-            "(default branch)"
-
-        Just ref ->
-            if String.length ref > 0 then
-                ref
-
-            else
-                "(default branch)"

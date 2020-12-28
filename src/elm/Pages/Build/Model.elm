@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Model exposing (BuildModel, GetLogs, Msg(..), PartialModel)
+module Pages.Build.Model exposing (GetLogs, Msg(..), PartialModel)
 
 import Browser.Navigation as Navigation
 import RemoteData exposing (WebData)
@@ -17,6 +17,7 @@ import Vela
         , Logs
         , Org
         , Repo
+        , RepoModel
         , StepNumber
         , Steps
         )
@@ -33,21 +34,8 @@ type alias PartialModel a =
         | navigationKey : Navigation.Key
         , time : Posix
         , zone : Zone
-        , build : WebData Build
-        , steps : WebData Steps
-        , logs : Logs
+        , repo : RepoModel
         , shift : Bool
-        , followingStep : Int
-    }
-
-
-{-| BuildModel : model to contain build information that is crucial for rendering a pipeline
--}
-type alias BuildModel =
-    { org : Org
-    , repo : Repo
-    , buildNumber : BuildNumber
-    , steps : Steps
     }
 
 
