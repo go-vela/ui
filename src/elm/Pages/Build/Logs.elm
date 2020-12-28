@@ -17,8 +17,8 @@ module Pages.Build.Logs exposing
     , getStepLog
     , logEmpty
     , logFocusExists
-    , stepBottomTrackerFocusId
-    , stepTopTrackerFocusId
+    , resourceBottomTrackerFocusId
+    , resourceTopTrackerFocusId
     , toString
     )
 
@@ -38,6 +38,7 @@ import Vela
         , Org
         , Repo
         , Service
+        , ServiceNumber
         , Services
         , Step
         , StepNumber
@@ -248,18 +249,18 @@ toString log =
             ""
 
 
-{-| stepTopTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+{-| resourceTopTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
 -}
-stepTopTrackerFocusId : StepNumber -> String
-stepTopTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker-top"
+resourceTopTrackerFocusId : String -> String -> String
+resourceTopTrackerFocusId resource number =
+    resource ++ "-" ++ number ++ "-line-tracker-top"
 
 
-{-| stepBottomTrackerFocusId : takes step number and returns the line focus id for auto focusing on log follow
+{-| resourceBottomTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
 -}
-stepBottomTrackerFocusId : StepNumber -> String
-stepBottomTrackerFocusId stepNumber =
-    "step-" ++ stepNumber ++ "-line-tracker-bottom"
+resourceBottomTrackerFocusId : String -> String -> String
+resourceBottomTrackerFocusId resource number =
+    resource ++ "-" ++ number ++ "-line-tracker-bottom"
 
 
 {-| getDownloadLogsFileName : takes step information and produces a filename for downloading logs

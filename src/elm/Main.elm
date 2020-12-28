@@ -71,7 +71,7 @@ import Pages.Build.Logs
         ( focusServiceLogs
         , focusStepLogs
         , getCurrentResource
-        , stepBottomTrackerFocusId
+        , resourceBottomTrackerFocusId
         )
 import Pages.Build.Model
 import Pages.Build.Update exposing (clickService, clickStep, expandActiveService, expandActiveStep, isViewingService, isViewingStep, setAllServiceViews, setAllStepViews)
@@ -1224,7 +1224,7 @@ update msg model =
                                 ( rm.build.steps.steps
                                     |> RemoteData.unwrap rm.build.steps.steps
                                         (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
-                                , stepBottomTrackerFocusId <| String.fromInt rm.build.steps.followingStep
+                                , resourceBottomTrackerFocusId "step" <| String.fromInt rm.build.steps.followingStep
                                 )
 
                             else if not refresh then
@@ -1282,7 +1282,7 @@ update msg model =
                                 ( rm.build.services.services
                                     |> RemoteData.unwrap rm.build.services.services
                                         (\s -> expandActiveService serviceNumber s |> RemoteData.succeed)
-                                , stepBottomTrackerFocusId <| String.fromInt rm.build.services.followingService
+                                , resourceBottomTrackerFocusId "service" <| String.fromInt rm.build.services.followingService
                                 )
 
                             else if not refresh then
@@ -2264,6 +2264,7 @@ buildMsgs =
         , download = DownloadTextFile
         , focusOn = FocusOn
         , followStep = FollowStep
+        , followService = FollowService
         }
     }
 

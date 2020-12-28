@@ -68,7 +68,8 @@ type alias LogsMsgs msg =
     { focusLine : FocusLine msg
     , download : Download msg
     , focusOn : FocusOn msg
-    , followStep : FollowStep msg
+    , followStep : FollowResource msg
+    , followService : FollowResource msg
     }
 
 
@@ -80,7 +81,7 @@ type alias Expand msg =
     Org -> Repo -> BuildNumber -> String -> msg
 
 
-type alias FollowStep msg =
+type alias FollowResource msg =
     Int -> msg
 
 
