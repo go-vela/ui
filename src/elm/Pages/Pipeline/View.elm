@@ -236,6 +236,8 @@ wrapPipelineConfigurationContent model { get, expand, download } ref cls content
         ]
         body
 
+velaYmlFileName =
+    ".vela.yml"
 
 {-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
 -}
@@ -264,15 +266,15 @@ viewPipelineActions model get expand download =
                     [ class "button"
                     , class "-link"
                     , Util.testAttribute <| "download-yml"
-                    , onClick <| download "vela.yml" <| RemoteData.unwrap "" .data <| Tuple.first model.pipeline.config
+                    , onClick <| download velaYmlFileName <| RemoteData.unwrap "" .data <| Tuple.first model.pipeline.config
                     , attribute "aria-label" <| "download pipeline configuration file for "
                     ]
                     [ text <|
                         if model.pipeline.expanded then
-                            "download (expanded) .vela.yml"
+                            "download (expanded) " ++ velaYmlFileName
 
                         else
-                            "download .vela.yml"
+                            "download " ++ velaYmlFileName
                     ]
                 ]
     in
