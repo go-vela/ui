@@ -953,7 +953,8 @@ update msg model =
 
         ExpandPipelineConfig org repo buildNumber ref lineFocus refresh ->
             let
-                _ = Debug.log "ref" ref
+                _ =
+                    Debug.log "ref" ref
             in
             ( { model
                 | pipeline =
@@ -1239,7 +1240,6 @@ update msg model =
                         cmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
-
                             else
                                 Cmd.none
                     in
@@ -1297,7 +1297,6 @@ update msg model =
                         cmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
-
                             else
                                 Cmd.none
                     in
@@ -2264,7 +2263,7 @@ buildMsgs =
     , expandService = ExpandService
     , logsMsgs =
         { focusLine = PushUrl
-        , download = (DownloadFile "text")
+        , download = DownloadFile "text"
         , focusOn = FocusOn
         , followStep = FollowStep
         , followService = FollowService
@@ -2274,7 +2273,13 @@ buildMsgs =
 
 pipelineMsgs : Pages.Pipeline.Model.Msgs Msg
 pipelineMsgs =
-    { get = GetPipelineConfig, expand = ExpandPipelineConfig, focusLineNumber = FocusLineNumber, clickNavTab = ClickBuildNavTab, showHideTemplates = ShowHideTemplates, download = (DownloadFile "yaml") }
+    { get = GetPipelineConfig
+    , expand = ExpandPipelineConfig
+    , focusLineNumber = FocusLineNumber
+    , clickNavTab = ClickBuildNavTab
+    , showHideTemplates = ShowHideTemplates
+    , download = DownloadFile "text"
+    }
 
 
 viewLogin : Html Msg
@@ -3165,7 +3170,35 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             { model | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus }
     in
     ( if not sameBuild then
-        resetBuild org repo buildNumber pageSet
+        let
+            r =
+                resetBuild org repo buildNumber pageSet
+        in
+        { r
+            | pipeline =
+                { pipeline
+                    | config =
+                        case pipeline.config of
+                            ( Success _, _ ) ->
+                                pipeline.config
+
+                            _ ->
+                                ( Loading, "" )
+                    , org = org
+                    , repo = repo
+                    , buildNumber = Just buildNumber
+                    , ref = ref
+                    , expand = expand
+                    , lineFocus = ( parsed.lineA, parsed.lineB )
+                    , focusFragment =
+                        case lineFocus of
+                            Just l ->
+                                Just <| "#" ++ l
+
+                            Nothing ->
+                                Nothing
+                }
+        }
 
       else
         { pageSet

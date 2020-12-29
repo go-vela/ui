@@ -213,7 +213,7 @@ viewPipelineConfigurationError model msgs ref err =
 {-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
 -}
 wrapPipelineConfigurationContent : PartialModel a -> Msgs msg -> Maybe Ref -> Html.Attribute msg -> Html msg -> Html msg
-wrapPipelineConfigurationContent model { get, expand } ref cls content =
+wrapPipelineConfigurationContent model { get, expand, download } ref cls content =
     let
         body =
             [ div [ class "header" ]
@@ -226,8 +226,9 @@ wrapPipelineConfigurationContent model { get, expand } ref cls content =
                         Nothing ->
                             text ""
                     ]
+                
                 ]
-            , viewTemplatesExpansion model get expand
+            , viewPipelineActions model get expand  download
             ]
                 ++ [ content ]
     in
@@ -237,27 +238,46 @@ wrapPipelineConfigurationContent model { get, expand } ref cls content =
         ]
         body
 
+ 
 
-{-| viewTemplatesExpansion : takes model and renders the config header button for expanding pipeline templates.
+{-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
 -}
-viewTemplatesExpansion : PartialModel a -> Get msg -> Expand msg -> Html msg
-viewTemplatesExpansion model get expand =
-    case model.templates.data of
-        Success templates ->
-            if Dict.size templates > 0 then
-                div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
-                    [ expandTemplatesToggleIcon model.pipeline
-                    , expandTemplatesToggleButton model.pipeline get expand
-                    , expandTemplatesTip
-                    , span [class "filler"][]
-                    , button [class "button", class "-link"] [text "download yaml"]
-                    ]
+viewPipelineActions : PartialModel a -> Get msg -> Expand msg -> Download msg -> Html msg
+viewPipelineActions model get expand download =
+    let
 
-            else
-                text ""
+        t = 
+            case model.templates.data of
+                Success templates ->
+                    if Dict.size templates > 0 then
+                        div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand"] [expandTemplatesToggleButton model.pipeline get expand
+                            , expandTemplatesToggleIcon model.pipeline
+                            , expandTemplatesTip]
+                        
 
-        _ ->
-            text ""
+                    else
+                        text ""
+
+                _ ->
+                    text ""
+
+
+        d = div [][ button
+            [ class "button"
+            , class "-link"
+            ,class "download"
+            , Util.testAttribute <| "download-yml"
+            , onClick <| download "vela.yml" <| RemoteData.unwrap "" .data <| Tuple.first model.pipeline.config
+            , attribute "aria-label" <| "download pipeline configuration file for "
+            ]
+            [ text <| 
+                if model.pipeline.expanded then 
+                    "download (expanded) .vela.yml"
+                else
+                    "download .vela.yml" ]]
+    in
+    div [ class "actions" ] <|[ t, d]
+
 
 
 {-| expandTemplatesToggleIcon : takes pipeline and renders icon for toggling templates expansion.
@@ -313,22 +333,7 @@ expandTemplatesToggleButton pipeline get expand =
 expandTemplatesTip : Html msg
 expandTemplatesTip =
     small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
-
-{-| downloadPipelineYamlButton : renders action button for downloading a pipeline configuration as .yml
--}
-downloadPipelineYmlButton : Download msg -> String ->Org -> Repo -> String -> Html msg
-downloadPipelineYmlButton download fileName org repo config =
-    button
-        [ class "button"
-        , class "-link"
-        , Util.testAttribute <| "download-pipeline-" ++ org ++ "/" ++ repo
-        , onClick <| download fileName config
-        , attribute "aria-label" <| "download pipeline configuration for " ++ org ++ "/" ++ repo
-        ]
-        [ text <| "download yml" ]
-
-
-
+ 
 
 {-| viewLines : takes pipeline configuration, line focus and shift key.
 
