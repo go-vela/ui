@@ -546,10 +546,6 @@ viewStepLogs msgs shift rm step =
 -}
 viewServiceLogs : LogsMsgs msg -> Bool -> RepoModel -> Service -> Html msg
 viewServiceLogs msgs shift rm service =
-    let
-        _ =
-            Debug.log "reloading" "service logs"
-    in
     case service.status of
         Vela.Error ->
             serviceError service

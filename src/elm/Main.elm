@@ -343,7 +343,7 @@ type Msg
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
     | Copy String
-    | DownloadTextFile String String
+    | DownloadFile String String String
     | ExpandAllSteps Org Repo BuildNumber
     | CollapseAllSteps
     | ExpandStep Org Repo BuildNumber StepNumber
@@ -614,9 +614,9 @@ update msg model =
                         Nothing
                     )
 
-        DownloadTextFile filename content ->
+        DownloadFile ext filename content ->
             ( model
-            , Download.string filename "text" content
+            , Download.string filename ext content
             )
 
         ExpandAllSteps org repo buildNumber ->
@@ -952,6 +952,9 @@ update msg model =
             )
 
         ExpandPipelineConfig org repo buildNumber ref lineFocus refresh ->
+            let
+                _ = Debug.log "ref" ref
+            in
             ( { model
                 | pipeline =
                     { pipeline
@@ -2261,7 +2264,7 @@ buildMsgs =
     , expandService = ExpandService
     , logsMsgs =
         { focusLine = PushUrl
-        , download = DownloadTextFile
+        , download = (DownloadFile "text")
         , focusOn = FocusOn
         , followStep = FollowStep
         , followService = FollowService
@@ -2271,7 +2274,7 @@ buildMsgs =
 
 pipelineMsgs : Pages.Pipeline.Model.Msgs Msg
 pipelineMsgs =
-    { get = GetPipelineConfig, expand = ExpandPipelineConfig, focusLineNumber = FocusLineNumber, clickNavTab = ClickBuildNavTab, showHideTemplates = ShowHideTemplates }
+    { get = GetPipelineConfig, expand = ExpandPipelineConfig, focusLineNumber = FocusLineNumber, clickNavTab = ClickBuildNavTab, showHideTemplates = ShowHideTemplates, download = (DownloadFile "yaml") }
 
 
 viewLogin : Html Msg

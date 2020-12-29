@@ -89,9 +89,12 @@
   align-items: center;
   padding-top: 1rem;
   padding-bottom: 1rem;
+  padding-right: 1rem;
 
   border-bottom: 1px solid var(--color-bg-light);
-
+  .filler {
+    flex: 1;
+  }
   .icon {
     display: flex;
     flex-direction: column;

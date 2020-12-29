@@ -740,7 +740,7 @@ nav {
   justify-content: flex-start;
 
   padding-right: 1rem;
-  padding-left: 2.6rem;
+  padding-left: 1.6rem;
   padding-top: 0.6rem;
 
   margin-top: 0.6rem;
@@ -1451,6 +1451,7 @@ nav {
 .break-text {
   word-break: break-word;
   word-wrap: break-word;
+
   overflow-wrap: break-word;
 }
 

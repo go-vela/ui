@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Expand, Get, Msgs, PartialModel, ShowHideTemplates)
+module Pages.Pipeline.Model exposing (Expand, Get, Msgs, PartialModel,Download, ShowHideTemplates)
 
 import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
@@ -63,6 +63,7 @@ type alias Msgs msg =
     , expand : Expand msg
     , focusLineNumber : FocusLineNumber msg
     , showHideTemplates : msg
+        , download : Download msg
     }
 
 
@@ -76,3 +77,7 @@ type alias Expand msg =
 
 type alias ShowHideTemplates msg =
     msg
+
+
+type alias Download msg =
+    String -> String -> msg

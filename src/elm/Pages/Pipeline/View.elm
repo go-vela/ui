@@ -37,7 +37,7 @@ import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Build.Model
 import Pages.Build.View exposing (viewLine, wrapWithBuildPreview)
-import Pages.Pipeline.Model exposing (Expand, Get, Msgs, PartialModel)
+import Pages.Pipeline.Model exposing (Expand, Download,Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (buildStatusToIcon)
@@ -249,6 +249,8 @@ viewTemplatesExpansion model get expand =
                     [ expandTemplatesToggleIcon model.pipeline
                     , expandTemplatesToggleButton model.pipeline get expand
                     , expandTemplatesTip
+                    , span [class "filler"][]
+                    , button [class "button", class "-link"] [text "download yaml"]
                     ]
 
             else
@@ -312,13 +314,23 @@ expandTemplatesTip : Html msg
 expandTemplatesTip =
     small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
 
+{-| downloadPipelineYamlButton : renders action button for downloading a pipeline configuration as .yml
+-}
+downloadPipelineYmlButton : Download msg -> String ->Org -> Repo -> String -> Html msg
+downloadPipelineYmlButton download fileName org repo config =
+    button
+        [ class "button"
+        , class "-link"
+        , Util.testAttribute <| "download-pipeline-" ++ org ++ "/" ++ repo
+        , onClick <| download fileName config
+        , attribute "aria-label" <| "download pipeline configuration for " ++ org ++ "/" ++ repo
+        ]
+        [ text <| "download yml" ]
 
 
--- LINE FOCUS
--- TODO: modularize logs rendering
 
 
-{-| viewLineS : takes pipeline configuration, line focus and shift key.
+{-| viewLines : takes pipeline configuration, line focus and shift key.
 
     returns a list of rendered data lines with focusable line numbers.
 
