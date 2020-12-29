@@ -391,7 +391,7 @@ type Msg
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | GetPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ExpandPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | GetPipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
+    | GetPipelineTemplatesResponse Org Repo FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -1389,13 +1389,13 @@ update msg model =
                     , addError error
                     )
 
-        GetPipelineTemplatesResponse org repo response ->
+        GetPipelineTemplatesResponse org repo lineFocus response ->
             case response of
                 Ok ( meta, templates ) ->
                     ( { model
                         | templates = { data = RemoteData.succeed templates, error = "", show = model.templates.show }
                       }
-                    , Cmd.none
+                    , Util.dispatch <| FocusOn <| Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
                     )
 
                 Err error ->
@@ -1540,6 +1540,10 @@ update msg model =
             ( { model | session = newSession }, Cmd.none )
 
         FocusOn id ->
+            let
+                _ =
+                    Debug.log "focus" id
+            in
             ( model, Dom.focus id |> Task.attempt FocusResult )
 
         FocusResult result ->
@@ -2505,11 +2509,7 @@ setNewPage route model =
             loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
 
         ( Routes.Pipeline org repo ref expand lineFocus, True ) ->
-            let
-                ( newModel, action ) =
-                    loadPipelinePage model org repo ref expand lineFocus False
-            in
-            ( newModel, action ) |> setPipelineFocusFragment lineFocus
+            loadPipelinePage model org repo ref expand lineFocus
 
         ( Routes.Settings, True ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -3232,7 +3232,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
         , getPipeline model org repo ref lineFocus sameBuild
-        , getPipelineTemplates model org repo ref
+        , getPipelineTemplates model org repo ref lineFocus
         ]
     )
 
@@ -3248,6 +3248,16 @@ isSameBuild id currentPage =
 
         Pages.BuildPipeline o r b _ _ _ ->
             not <| resourceChanged id ( o, r, b )
+
+        _ ->
+            False
+
+
+isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
+isSamePipelineRef id currentPage =
+    case currentPage of
+        Pages.Pipeline o r rf _ _ ->
+            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
 
         _ ->
             False
@@ -3293,8 +3303,8 @@ resetBuild org repo buildNumber model =
 
 {-| loadPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadPipelinePage : Model -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> Bool -> ( Model, Cmd Msg )
-loadPipelinePage model org repo ref expand lineFocus refresh =
+loadPipelinePage : Model -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
+loadPipelinePage model org repo ref expand lineFocus =
     let
         getPipeline =
             case expand of
@@ -3319,12 +3329,15 @@ loadPipelinePage model org repo ref expand lineFocus refresh =
 
         pipeline =
             model.pipeline
+
+        sameRef =
+            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page
     in
     ( { model
         | page = Pages.Pipeline org repo ref expand lineFocus
         , pipeline =
             { config =
-                if refresh then
+                if sameRef then
                     pipeline.config
 
                 else
@@ -3345,11 +3358,16 @@ loadPipelinePage model org repo ref expand lineFocus refresh =
                         Nothing
             , buildNumber = Nothing
             }
-        , templates = { data = Loading, error = "", show = True }
+        , templates =
+            if sameRef then
+                model.templates
+
+            else
+                { data = Loading, error = "", show = True }
       }
     , Cmd.batch
         [ getPipeline model org repo ref lineFocus False
-        , getPipelineTemplates model org repo ref
+        , getPipelineTemplates model org repo ref lineFocus
         ]
     )
 
@@ -3810,9 +3828,9 @@ expandPipelineConfig model org repo ref lineFocus refresh =
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
 -}
-getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> Cmd Msg
-getPipelineTemplates model org repo ref =
-    Api.try (GetPipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref
+getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Cmd Msg
+getPipelineTemplates model org repo ref lineFocus =
+    Api.try (GetPipelineTemplatesResponse org repo lineFocus) <| Api.getPipelineTemplates model org repo ref
 
 
 
