@@ -279,8 +279,6 @@ toPath page =
                     [ overviewPage
                     , organizationPage
                     , repoBuildsPage
-
-                    -- , ( "#" ++ buildNumber, Just <| Pages.Build org repo buildNumber Nothing )
                     ]
 
                 Pages.BuildPipeline org repo buildNumber ref expand _ ->
