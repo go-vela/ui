@@ -236,8 +236,10 @@ wrapPipelineConfigurationContent model { get, expand, download } ref cls content
         ]
         body
 
+
 velaYmlFileName =
     ".vela.yml"
+
 
 {-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
 -}

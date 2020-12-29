@@ -1240,6 +1240,7 @@ update msg model =
                         cmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
+
                             else
                                 Cmd.none
                     in
@@ -1297,6 +1298,7 @@ update msg model =
                         cmd =
                             if not <| String.isEmpty focusId then
                                 Util.dispatch <| FocusOn <| focusId
+
                             else
                                 Cmd.none
                     in
