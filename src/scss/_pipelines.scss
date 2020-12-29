@@ -88,11 +88,9 @@
   flex-direction: row;
   justify-content: flex-start;
 }
-
-.pipeline .download {
-  margin-top: 1rem;
+.pipeline .action:not(:last-child) {
+  margin-bottom: 0.5rem;
 }
-
 .pipeline .actions {
   display: flex;
   flex-direction: column;

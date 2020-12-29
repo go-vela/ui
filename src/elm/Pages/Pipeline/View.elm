@@ -37,7 +37,7 @@ import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Build.Model
 import Pages.Build.View exposing (viewLine, wrapWithBuildPreview)
-import Pages.Pipeline.Model exposing (Expand, Download,Get, Msgs, PartialModel)
+import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (buildStatusToIcon)
@@ -178,7 +178,6 @@ viewPipelineConfiguration model msgs ref =
 -}
 viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
 viewPipelineConfigurationResponse model msgs ref =
-    -- TODO: modularize logs rendering
     div [ class "logs-container", class "-pipeline" ]
         [ case model.pipeline.config of
             ( Success config, _ ) ->
@@ -226,9 +225,8 @@ wrapPipelineConfigurationContent model { get, expand, download } ref cls content
                         Nothing ->
                             text ""
                     ]
-                
                 ]
-            , viewPipelineActions model get expand  download
+            , viewPipelineActions model get expand download
             ]
                 ++ [ content ]
     in
@@ -238,22 +236,21 @@ wrapPipelineConfigurationContent model { get, expand, download } ref cls content
         ]
         body
 
- 
 
 {-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
 -}
 viewPipelineActions : PartialModel a -> Get msg -> Expand msg -> Download msg -> Html msg
 viewPipelineActions model get expand download =
     let
-
-        t = 
+        t =
             case model.templates.data of
                 Success templates ->
                     if Dict.size templates > 0 then
-                        div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand"] [expandTemplatesToggleButton model.pipeline get expand
+                        div [ class "action", class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
+                            [ expandTemplatesToggleButton model.pipeline get expand
                             , expandTemplatesToggleIcon model.pipeline
-                            , expandTemplatesTip]
-                        
+                            , expandTemplatesTip
+                            ]
 
                     else
                         text ""
@@ -261,23 +258,25 @@ viewPipelineActions model get expand download =
                 _ ->
                     text ""
 
+        d =
+            div [ class "action" ]
+                [ button
+                    [ class "button"
+                    , class "-link"
+                    , Util.testAttribute <| "download-yml"
+                    , onClick <| download "vela.yml" <| RemoteData.unwrap "" .data <| Tuple.first model.pipeline.config
+                    , attribute "aria-label" <| "download pipeline configuration file for "
+                    ]
+                    [ text <|
+                        if model.pipeline.expanded then
+                            "download (expanded) .vela.yml"
 
-        d = div [][ button
-            [ class "button"
-            , class "-link"
-            ,class "download"
-            , Util.testAttribute <| "download-yml"
-            , onClick <| download "vela.yml" <| RemoteData.unwrap "" .data <| Tuple.first model.pipeline.config
-            , attribute "aria-label" <| "download pipeline configuration file for "
-            ]
-            [ text <| 
-                if model.pipeline.expanded then 
-                    "download (expanded) .vela.yml"
-                else
-                    "download .vela.yml" ]]
+                        else
+                            "download .vela.yml"
+                    ]
+                ]
     in
-    div [ class "actions" ] <|[ t, d]
-
+    div [ class "actions" ] [ t, d ]
 
 
 {-| expandTemplatesToggleIcon : takes pipeline and renders icon for toggling templates expansion.
@@ -333,7 +332,7 @@ expandTemplatesToggleButton pipeline get expand =
 expandTemplatesTip : Html msg
 expandTemplatesTip =
     small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
- 
+
 
 {-| viewLines : takes pipeline configuration, line focus and shift key.
 
