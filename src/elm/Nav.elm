@@ -250,17 +250,6 @@ viewTabs tabs testLabel =
         |> div [ class "jump-bar", Util.testAttribute testLabel ]
 
 
-{-| viewButtonTabs : takes list of tab records and renders them with spacers and horizontal filler
--}
-viewButtonTabs : List (ButtonTab msg) -> String -> Html msg
-viewButtonTabs tabs testLabel =
-    tabs
-        |> List.map viewTabButton
-        |> List.intersperse viewSpacer
-        |> (\t -> t ++ [ viewFiller ])
-        |> div [ class "jump-bar", Util.testAttribute testLabel ]
-
-
 {-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style
 -}
 viewTab : Tab -> Html msg
@@ -269,21 +258,6 @@ viewTab { name, currentPage, toPage } =
         [ class "jump"
         , viewingTab currentPage toPage
         , Routes.href <| Pages.toRoute toPage
-        , Util.testAttribute <| "jump-" ++ name
-        ]
-        [ text name ]
-
-
-{-| viewTabButton : takes single tab record and renders jump link as a button, uses current page to display conditional style
--}
-viewTabButton : ButtonTab msg -> Html msg
-viewTabButton { name, currentPage, toPage, onClick } =
-    button
-        [ class "jump-button"
-        , class "button"
-        , class "link"
-        , viewingTab currentPage toPage
-        , onClick
         , Util.testAttribute <| "jump-" ++ name
         ]
         [ text name ]
