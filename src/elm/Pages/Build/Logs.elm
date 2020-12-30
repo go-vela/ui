@@ -10,7 +10,6 @@ module Pages.Build.Logs exposing
     , downloadFileName
     , focus
     , focusAndClear
-    , focusLogs
     , getCurrentResource
     , getLog
     , logEmpty
@@ -35,16 +34,7 @@ import Vela
         , Repo
         , Resource
         , Resources
-        , Steps
         )
-
-
-
--- TYPES
-
-
-type alias GetLogsFromSteps a msg =
-    a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
 
 
 
@@ -111,28 +101,6 @@ focus focusFragment resources =
 
         _ ->
             resources
-
-
-{-| focusLogs : takes model org, repo, build number and log line fragment and loads the appropriate build with focus set on the appropriate log line.
--}
-focusLogs : a -> Steps -> Org -> Repo -> BuildNumber -> FocusFragment -> GetLogsFromSteps a msg -> ( Page, Steps, Cmd msg )
-focusLogs model steps org repo buildNumber focusFragment getLogs =
-    let
-        ( stepsOut, action ) =
-            let
-                focusedSteps =
-                    focusAndClear steps focusFragment
-            in
-            ( focusedSteps
-            , Cmd.batch
-                [ getLogs model org repo buildNumber focusedSteps focusFragment False
-                ]
-            )
-    in
-    ( Pages.Build org repo buildNumber focusFragment
-    , stepsOut
-    , action
-    )
 
 
 {-| focusAndClear : takes resources and line focus and sets a new log line focus

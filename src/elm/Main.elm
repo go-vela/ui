@@ -69,7 +69,7 @@ import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
         , focus
-        , focusLogs
+        , focusAndClear
         , getCurrentResource
         )
 import Pages.Build.Model
@@ -2006,8 +2006,14 @@ setNewPage route model =
                 Pages.Build o r b _ ->
                     if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
+                            focusedSteps =
+                                focusAndClear (RemoteData.withDefault [] rm.build.steps) logFocus
+
                             ( page, steps, action ) =
-                                focusLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber logFocus getBuildStepsLogs
+                                ( Pages.Build org repo buildNumber logFocus
+                                , focusedSteps
+                                , getBuildStepsLogs model org repo buildNumber focusedSteps logFocus False
+                                )
                         in
                         ( { model | page = page, repo = updateBuildSteps (RemoteData.succeed steps) rm }, action )
 
