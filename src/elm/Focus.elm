@@ -72,7 +72,7 @@ focusFragmentToFocusId resource focusFragment =
 
 {-| parseFocusFragment : takes URL fragment and parses it into appropriate line focus chunks
 -}
-parseFocusFragment : FocusFragment -> { target : Maybe String, resourceID : Maybe Int, lineA : Maybe Int, lineB : Maybe Int }
+parseFocusFragment : FocusFragment -> FocusTarget
 parseFocusFragment focusFragment =
     case String.split ":" (Maybe.withDefault "" focusFragment) of
         target :: resourceID :: lineA :: lineB :: _ ->
