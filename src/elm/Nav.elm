@@ -88,15 +88,6 @@ type alias Tab =
     }
 
 
-{-| ButtonTab : record to represent information used by page navigation tab via button
--}
-type alias ButtonTab msg =
-    { name : String
-    , onClick : Html.Attribute msg
-    , currentPage : Page
-    , toPage : Page
-    }
-
 
 {-| viewNav : uses current state to render navigation, such as breadcrumb
 -}
@@ -214,16 +205,16 @@ viewUtil model =
     div [ class "util" ]
         [ case model.page of
             Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoTabs rm model.page
+                viewRepoNav rm model.page
 
             Pages.RepoSecrets engine org repo _ _ ->
-                viewRepoTabs rm model.page
+                viewRepoNav rm model.page
 
             Pages.Hooks org repo _ _ ->
-                viewRepoTabs rm model.page
+                viewRepoNav rm model.page
 
             Pages.RepoSettings org repo ->
-                viewRepoTabs rm model.page
+                viewRepoNav rm model.page
 
             Pages.Build _ _ _ _ ->
                 viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
@@ -292,10 +283,10 @@ viewingTab p1 p2 =
 -- REPO
 
 
-{-| viewRepoTabs : takes RepoModel and current page and renders navigation tabs
+{-| viewRepoNav : takes RepoModel and current page and renders navigation tabs
 -}
-viewRepoTabs : RepoModel -> Page -> Html msg
-viewRepoTabs rm currentPage =
+viewRepoNav : RepoModel -> Page -> Html msg
+viewRepoNav rm currentPage =
     let
         org =
             rm.org
@@ -317,6 +308,8 @@ viewRepoTabs rm currentPage =
 -- BUILD
 
 
+{-| viewBuildNav : takes model information and current page and renders build navigation tabs
+-}
 viewBuildNav : PartialModel a -> Org -> Repo -> Build -> Page -> Html msg
 viewBuildNav model org repo build currentPage =
     let
@@ -329,27 +322,10 @@ viewBuildNav model org repo build currentPage =
         pipeline =
             model.pipeline
 
-        t =
-            { build =
-                { -- TODO: ensure focusFragment is set and accurate
-                  to = Pages.Build org repo buildNumber bm.steps.focusFragment
-                }
-            , services =
-                { to = Pages.BuildServices org repo buildNumber bm.services.focusFragment
-                }
-            , pipeline =
-                { to = Pages.BuildPipeline org repo buildNumber (Just build.commit) model.pipeline.expand pipeline.focusFragment
-                }
-            }
-
         tabs =
-            [ Tab "Build" currentPage t.build.to
-
-            -- , Tab "Services" currentPage <| Pages.Build  rm.org rm.name rm.build.buildNumber Nothing
-            , Tab "Services" currentPage t.services.to
-            , Tab "Pipeline" currentPage t.pipeline.to
-
-            -- , ButtonTab "Troubleshooting" (onClick <| onClickRoute <| Routes.routeToUrl <| t.pipeline.route) currentPage t.pipeline.to
+            [ Tab "Build" currentPage <| Pages.Build org repo buildNumber bm.steps.focusFragment
+            , Tab "Services" currentPage <| Pages.BuildServices org repo buildNumber bm.services.focusFragment
+            , Tab "Pipeline" currentPage <| Pages.BuildPipeline org repo buildNumber (Just build.commit) pipeline.expand pipeline.focusFragment
             ]
     in
     viewTabs tabs "jump-bar-build"

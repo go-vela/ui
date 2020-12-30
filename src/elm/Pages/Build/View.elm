@@ -67,7 +67,7 @@ import Html.Lazy exposing (lazy4)
 import Http exposing (Error(..))
 import List.Extra exposing (unique)
 import Nav exposing (viewBuildNav)
-import Pages exposing (Page(..), onPage)
+import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( decodeAnsi

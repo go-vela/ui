@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages exposing (Page(..), onPage, strip, toRoute)
+module Pages exposing (Page(..), strip, toRoute)
 
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
@@ -192,8 +192,3 @@ strip page =
 
         NotFound ->
             NotFound
-
-
-onPage : Page -> Page -> Bool
-onPage p1 p2 =
-    strip p1 == strip p2

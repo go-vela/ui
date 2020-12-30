@@ -65,7 +65,7 @@ import List.Extra exposing (updateIf)
 import Maybe
 import Nav exposing (viewNav, viewUtil)
 import Pager
-import Pages exposing (Page(..), onPage)
+import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( focusServiceLogs
@@ -2535,55 +2535,6 @@ setNewPage route model =
             ( { model | page = Pages.Login }
             , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
             )
-
-
-buildChanged : Page -> Page -> Bool
-buildChanged onPage toPage =
-    let
-        ( onIdentifier, onFocus ) =
-            case onPage of
-                Pages.Build o r b f ->
-                    ( ( o, r, b ), f )
-
-                Pages.BuildServices o r b f ->
-                    ( ( o, r, b ), f )
-
-                Pages.BuildPipeline o r b _ _ f ->
-                    ( ( o, r, b ), f )
-
-                _ ->
-                    ( ( "", "", "" ), Nothing )
-
-        ( toIdentifier, toFocus ) =
-            case onPage of
-                Pages.Build o r b f ->
-                    ( ( o, r, b ), f )
-
-                Pages.BuildServices o r b f ->
-                    ( ( o, r, b ), f )
-
-                Pages.BuildPipeline o r b _ _ f ->
-                    ( ( o, r, b ), f )
-
-                _ ->
-                    ( ( "", "", "" ), Nothing )
-    in
-    if not <| resourceChanged onIdentifier toIdentifier then
-        if onFocus == toFocus then
-            let
-                _ =
-                    Debug.log "focus changed on:" onFocus
-
-                _ =
-                    Debug.log "focus changed to:" toFocus
-            in
-            True
-
-        else
-            True
-
-    else
-        True
 
 
 setPipelineFocusFragment : FocusFragment -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
