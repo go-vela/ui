@@ -47,6 +47,8 @@ module Vela exposing
     , RepoSearchFilters
     , Repositories
     , Repository
+    , Resource
+    , Resources
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -1278,7 +1280,7 @@ type alias Step =
     , distribution : String
     , image : String
     , viewing : Bool
-    , logFocus : ( Maybe Int, Maybe Int )
+    , logFocus : LogFocus
     }
 
 
@@ -1348,7 +1350,7 @@ type alias Service =
     , distribution : String
     , image : String
     , viewing : Bool
-    , logFocus : ( Maybe Int, Maybe Int )
+    , logFocus : LogFocus
     }
 
 
@@ -1398,6 +1400,18 @@ type alias Services =
 
 type alias LogFocus =
     ( Maybe Int, Maybe Int )
+
+
+
+-- RESOURCE
+
+
+type alias Resource a =
+    { a | id : Int, number : Int, status : Status, viewing : Bool, logFocus : LogFocus }
+
+
+type alias Resources a =
+    List (Resource a)
 
 
 

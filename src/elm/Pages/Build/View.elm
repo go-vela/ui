@@ -70,14 +70,13 @@ import Nav exposing (viewBuildNav)
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( decodeAnsi
-        , getDownloadLogsFileName
-        , getServiceLog
-        , getStepLog
+        ( bottomTrackerFocusId
+        , decodeAnsi
+        , downloadFileName
+        , getLog
         , logEmpty
-        , resourceBottomTrackerFocusId
-        , resourceTopTrackerFocusId
         , toString
+        , topTrackerFocusId
         )
 import Pages.Build.Model exposing (..)
 import RemoteData exposing (WebData)
@@ -537,7 +536,7 @@ viewStepLogs msgs shift rm step =
                 "step"
                 (String.fromInt step.number)
                 step.logFocus
-                (getStepLog step rm.build.steps.logs)
+                (getLog step .step_id rm.build.steps.logs)
                 rm.build.steps.followingStep
                 shift
 
@@ -562,7 +561,7 @@ viewServiceLogs msgs shift rm service =
                 "service"
                 (String.fromInt service.number)
                 service.logFocus
-                (getServiceLog service rm.build.services.logs)
+                (getLog service .service_id rm.build.services.logs)
                 rm.build.services.followingService
                 shift
 
@@ -576,7 +575,7 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
             toString maybeLog
 
         fileName =
-            getDownloadLogsFileName org repo buildNumber resource resourceID
+            downloadFileName org repo buildNumber resource resourceID
     in
     div
         [ class "logs"
@@ -647,7 +646,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        resourceTopTrackerFocusId resource resourceID
+                        topTrackerFocusId resource resourceID
                     , Util.testAttribute <| "top-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
@@ -658,7 +657,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        resourceBottomTrackerFocusId resource resourceID
+                        bottomTrackerFocusId resource resourceID
                     , Util.testAttribute <| "bottom-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
@@ -795,7 +794,7 @@ jumpToBottomButton focusOn resource number =
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ number
-        , onClick <| focusOn <| resourceBottomTrackerFocusId resource number
+        , onClick <| focusOn <| bottomTrackerFocusId resource number
         , attribute "aria-label" <| "jump to bottom of logs for " ++ resource ++ " " ++ number
         ]
         [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -811,7 +810,7 @@ jumpToTopButton focusOn resource number =
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ number
-        , onClick <| focusOn <| resourceTopTrackerFocusId resource number
+        , onClick <| focusOn <| topTrackerFocusId resource number
         , attribute "aria-label" <| "jump to top of logs for " ++ resource ++ " " ++ number
         ]
         [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]

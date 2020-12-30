@@ -5,26 +5,21 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build.Logs exposing
-    ( SetLogFocus
+    ( bottomTrackerFocusId
     , decodeAnsi
-    , focusService
-    , focusServiceLogs
-    , focusStep
-    , focusStepLogs
+    , downloadFileName
+    , focus
+    , focusAndClear
     , getCurrentResource
-    , getDownloadLogsFileName
-    , getServiceLog
-    , getStepLog
+    , getLog
     , logEmpty
-    , logFocusExists
-    , resourceBottomTrackerFocusId
-    , resourceTopTrackerFocusId
     , toString
+    , topTrackerFocusId
     )
 
 import Ansi.Log
 import Array
-import Focus exposing (parseFocusFragment, resourceFocusFragment)
+import Focus exposing (FocusTarget, parseFocusFragment, resourceFocusFragment)
 import List.Extra exposing (updateIf)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
@@ -37,126 +32,18 @@ import Vela
         , Logs
         , Org
         , Repo
-        , Service
-        , ServiceNumber
-        , Services
-        , Step
-        , StepNumber
-        , Steps
+        , Resource
+        , Resources
         )
-
-
-
--- TYPES
-
-
-{-| FocusFragment : update action for focusing a log line
--}
-type alias SetLogFocus msg =
-    String -> msg
-
-
-type alias GetLogsFromSteps a msg =
-    a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
-
-
-type alias GetLogsFromServices a msg =
-    a -> Org -> Repo -> BuildNumber -> Services -> FocusFragment -> Bool -> Cmd msg
 
 
 
 -- HELPERS
 
 
-{-| getServiceLog : takes step and logs and returns the log corresponding to that step
+{-| getCurrentResource : takes resources and returns the newest running or pending resource
 -}
-getServiceLog : Service -> Logs -> Maybe (WebData Log)
-getServiceLog service logs =
-    List.head
-        (List.filter
-            (\log ->
-                case log of
-                    RemoteData.Success log_ ->
-                        log_.service_id == service.id
-
-                    _ ->
-                        False
-            )
-            logs
-        )
-
-
-{-| getStepLog : takes step and logs and returns the log corresponding to that step
--}
-getStepLog : Step -> Logs -> Maybe (WebData Log)
-getStepLog step logs =
-    List.head
-        (List.filter
-            (\log ->
-                case log of
-                    RemoteData.Success log_ ->
-                        log_.step_id == step.id
-
-                    _ ->
-                        False
-            )
-            logs
-        )
-
-
-{-| focusStep : takes FocusFragment URL fragment and expands the appropriate step to automatically view
--}
-focusStep : FocusFragment -> Steps -> Steps
-focusStep focusFragment steps =
-    let
-        parsed =
-            parseFocusFragment focusFragment
-    in
-    case Maybe.withDefault "" parsed.target of
-        "step" ->
-            case parsed.resourceID of
-                Just n ->
-                    updateIf (\step -> step.number == n)
-                        (\step ->
-                            { step | viewing = True, logFocus = ( parsed.lineA, parsed.lineB ) }
-                        )
-                        steps
-
-                Nothing ->
-                    steps
-
-        _ ->
-            steps
-
-
-{-| focusService : takes FocusFragment URL fragment and expands the appropriate step to automatically view
--}
-focusService : FocusFragment -> Services -> Services
-focusService focusFragment services =
-    let
-        parsed =
-            parseFocusFragment focusFragment
-    in
-    case Maybe.withDefault "" parsed.target of
-        "service" ->
-            case parsed.resourceID of
-                Just n ->
-                    updateIf (\service -> service.number == n)
-                        (\service ->
-                            { service | viewing = True, logFocus = ( parsed.lineA, parsed.lineB ) }
-                        )
-                        services
-
-                Nothing ->
-                    services
-
-        _ ->
-            services
-
-
-{-| getCurrentResource : takes steps and returns the newest running or pending step
--}
-getCurrentResource : List { a | status : Vela.Status, number : Int } -> Int
+getCurrentResource : Resources a -> Int
 getCurrentResource resources =
     let
         resource =
@@ -170,59 +57,112 @@ getCurrentResource resources =
     resource
 
 
-{-| focusStepLogs : takes steps and line focus and sets a new log line focus
+{-| getLog : takes resource and logs and returns the log corresponding to that resource
 -}
-focusStepLogs : Steps -> FocusFragment -> Steps
-focusStepLogs steps focusFragment =
+getLog : Resource a -> (Log -> Int) -> Logs -> Maybe (WebData Log)
+getLog resource get logs =
+    logs
+        |> List.filter
+            (\log ->
+                case log of
+                    RemoteData.Success log_ ->
+                        get log_ == resource.id
+
+                    _ ->
+                        False
+            )
+        |> List.head
+
+
+{-| focus : takes FocusFragment URL fragment and expands the appropriate resource to automatically view
+-}
+focus : FocusFragment -> Resources a -> Resources a
+focus focusFragment resources =
     let
-        parsed =
+        ft =
+            parseFocusFragment focusFragment
+    in
+    case Maybe.withDefault "" ft.target of
+        "step" ->
+            case ft.resourceID of
+                Just n ->
+                    set ft n resources
+
+                Nothing ->
+                    resources
+
+        "service" ->
+            case ft.resourceID of
+                Just n ->
+                    set ft n resources
+
+                Nothing ->
+                    resources
+
+        _ ->
+            resources
+
+
+{-| focusAndClear : takes resources and line focus and sets a new log line focus
+-}
+focusAndClear : Resources a -> FocusFragment -> Resources a
+focusAndClear resources focusFragment =
+    let
+        ft =
             parseFocusFragment focusFragment
 
-        ( target, stepNumber ) =
-            ( parsed.target, parsed.resourceID )
+        ( target, id ) =
+            ( ft.target, ft.resourceID )
     in
     case Maybe.withDefault "" target of
         "step" ->
-            case stepNumber of
+            case id of
                 Just n ->
-                    List.map
-                        (\step ->
-                            if step.number == n then
-                                { step | viewing = True, logFocus = ( parsed.lineA, parsed.lineB ) }
-
-                            else
-                                clearStepLogFocus step
-                        )
-                    <|
-                        steps
+                    setAndClear ft n resources
 
                 Nothing ->
-                    steps
+                    resources
+
+        "service" ->
+            case id of
+                Just n ->
+                    setAndClear ft n resources
+
+                Nothing ->
+                    resources
 
         _ ->
-            steps
+            resources
 
 
-{-| clearStepLogFocus : takes step and clears all log line focus
+{-| set : takes focus target and resource number, sets the log focus
 -}
-clearStepLogFocus : Step -> Step
-clearStepLogFocus step =
-    { step | logFocus = ( Nothing, Nothing ) }
+set : FocusTarget -> Int -> Resources a -> Resources a
+set ft n =
+    updateIf (\r -> r.number == n)
+        (\r -> { r | viewing = True, logFocus = ( ft.lineA, ft.lineB ) })
 
 
-{-| logFocusExists : takes steps and returns if a line or range has already been focused
+{-| setAndClear : takes focus target and resource number, sets the log focus and clears all other resources
 -}
-logFocusExists : WebData Steps -> Bool
-logFocusExists steps =
-    (Maybe.withDefault ( Nothing, Nothing ) <|
-        List.head <|
-            List.map (\step -> step.logFocus) <|
-                List.filter
-                    (\step -> step.logFocus /= ( Nothing, Nothing ))
-                <|
-                    RemoteData.withDefault [] steps
-    )
-        /= ( Nothing, Nothing )
+setAndClear : FocusTarget -> Int -> Resources a -> Resources a
+setAndClear ft n resources =
+    resources
+        |> List.map
+            (\r ->
+                if r.number == n then
+                    { r | viewing = True, logFocus = ( ft.lineA, ft.lineB ) }
+
+                else
+                    clear r
+            )
+
+
+{-| clear : takes resource and clears all log line focus
+-}
+clear : Resource a -> Resource a
+clear resource =
+    { resource | logFocus = ( Nothing, Nothing ) }
 
 
 {-| logEmpty : takes log string and returns True if content does not exist
@@ -249,24 +189,24 @@ toString log =
             ""
 
 
-{-| resourceTopTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
+{-| topTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
 -}
-resourceTopTrackerFocusId : String -> String -> String
-resourceTopTrackerFocusId resource number =
+topTrackerFocusId : String -> String -> String
+topTrackerFocusId resource number =
     resource ++ "-" ++ number ++ "-line-tracker-top"
 
 
-{-| resourceBottomTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
+{-| bottomTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
 -}
-resourceBottomTrackerFocusId : String -> String -> String
-resourceBottomTrackerFocusId resource number =
+bottomTrackerFocusId : String -> String -> String
+bottomTrackerFocusId resource number =
     resource ++ "-" ++ number ++ "-line-tracker-bottom"
 
 
-{-| getDownloadLogsFileName : takes step information and produces a filename for downloading logs
+{-| downloadFileName : takes resource information and produces a filename for downloading logs
 -}
-getDownloadLogsFileName : Org -> Repo -> BuildNumber -> String -> String -> String
-getDownloadLogsFileName org repo buildNumber resourceType resourceNumber =
+downloadFileName : Org -> Repo -> BuildNumber -> String -> String -> String
+downloadFileName org repo buildNumber resourceType resourceNumber =
     String.join "-" [ org, repo, buildNumber, resourceType, resourceNumber ]
 
 
@@ -319,47 +259,3 @@ see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 decodeAnsi : String -> Array.Array Ansi.Log.Line
 decodeAnsi log =
     .lines <| Ansi.Log.update log defaultLogModel
-
-
-
--- SERVICES
-
-
-{-| focusServiceLogs : takes services and line focus and sets a new log line focus
--}
-focusServiceLogs : Services -> FocusFragment -> Services
-focusServiceLogs services focusFragment =
-    let
-        parsed =
-            parseFocusFragment focusFragment
-
-        ( target, serviceNumber ) =
-            ( parsed.target, parsed.resourceID )
-    in
-    case Maybe.withDefault "" target of
-        "service" ->
-            case serviceNumber of
-                Just n ->
-                    List.map
-                        (\service ->
-                            if service.number == n then
-                                { service | viewing = True, logFocus = ( parsed.lineA, parsed.lineB ) }
-
-                            else
-                                clearServiceLogFocus service
-                        )
-                    <|
-                        services
-
-                Nothing ->
-                    services
-
-        _ ->
-            services
-
-
-{-| clearServiceLogFocus : takes service and clears all log line focus
--}
-clearServiceLogFocus : Service -> Service
-clearServiceLogFocus service =
-    { service | logFocus = ( Nothing, Nothing ) }

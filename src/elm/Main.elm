@@ -68,13 +68,12 @@ import Pager
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( focusServiceLogs
-        , focusStepLogs
+        ( bottomTrackerFocusId
+        , focusAndClear
         , getCurrentResource
-        , resourceBottomTrackerFocusId
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (clickService, clickStep, expandActiveService, expandActiveStep, isViewingService, isViewingStep, setAllServiceViews, setAllStepViews)
+import Pages.Build.Update exposing (clickResource, expandActive, isViewing, setAllViews)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -626,7 +625,7 @@ update msg model =
 
                 steps =
                     RemoteData.unwrap build.steps.steps
-                        (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
+                        (\steps_ -> steps_ |> setAllViews True |> RemoteData.succeed)
                         build.steps.steps
 
                 -- refresh logs for expanded steps
@@ -645,7 +644,7 @@ update msg model =
                 steps =
                     build.steps.steps
                         |> RemoteData.unwrap build.steps.steps
-                            (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
+                            (\steps_ -> steps_ |> setAllViews False |> RemoteData.succeed)
             in
             ( { model | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing 0 }
             , Cmd.none
@@ -657,7 +656,7 @@ update msg model =
                     rm.build
 
                 ( steps, fetchStepLogs ) =
-                    clickStep build.steps.steps stepNumber
+                    clickResource build.steps.steps stepNumber
 
                 action =
                     if fetchStepLogs then
@@ -667,7 +666,7 @@ update msg model =
                         Cmd.none
 
                 stepOpened =
-                    isViewingStep steps stepNumber
+                    isViewing steps stepNumber
 
                 -- step clicked is step being followed
                 onFollowedStep =
@@ -705,7 +704,7 @@ update msg model =
 
                 services =
                     RemoteData.unwrap build.services.services
-                        (\services_ -> services_ |> setAllServiceViews True |> RemoteData.succeed)
+                        (\services_ -> services_ |> setAllViews True |> RemoteData.succeed)
                         build.services.services
 
                 -- refresh logs for expanded steps
@@ -724,7 +723,7 @@ update msg model =
                 services =
                     build.services.services
                         |> RemoteData.unwrap build.services.services
-                            (\services_ -> services_ |> setAllServiceViews False |> RemoteData.succeed)
+                            (\services_ -> services_ |> setAllViews False |> RemoteData.succeed)
             in
             ( { model | repo = rm |> updateBuildServices services |> updateBuildServicesFollowing 0 }
             , Cmd.none
@@ -736,7 +735,7 @@ update msg model =
                     rm.build
 
                 ( services, fetchServiceLogs ) =
-                    clickService build.services.services serviceNumber
+                    clickResource build.services.services serviceNumber
 
                 action =
                     if fetchServiceLogs then
@@ -746,7 +745,7 @@ update msg model =
                         Cmd.none
 
                 serviceOpened =
-                    isViewingService services serviceNumber
+                    isViewing services serviceNumber
 
                 -- step clicked is step being followed
                 onFollowedService =
@@ -1192,7 +1191,7 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.mergeSteps logFocus refresh rm.build.steps.steps
+                                |> Pages.Build.Update.merge logFocus refresh rm.build.steps.steps
 
                         updatedModel =
                             { model | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm }
@@ -1227,8 +1226,8 @@ update msg model =
                             if following && refresh && onFollowedStep then
                                 ( rm.build.steps.steps
                                     |> RemoteData.unwrap rm.build.steps.steps
-                                        (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
-                                , resourceBottomTrackerFocusId "step" <| String.fromInt rm.build.steps.followingStep
+                                        (\s -> expandActive stepNumber s |> RemoteData.succeed)
+                                , bottomTrackerFocusId "step" <| String.fromInt rm.build.steps.followingStep
                                 )
 
                             else if not refresh then
@@ -1258,7 +1257,7 @@ update msg model =
                         mergedServices =
                             services
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.mergeServices logFocus refresh rm.build.services.services
+                                |> Pages.Build.Update.merge logFocus refresh rm.build.services.services
 
                         updatedModel =
                             { model | repo = updateBuildServices (RemoteData.succeed mergedServices) rm }
@@ -1285,8 +1284,8 @@ update msg model =
                             if following && refresh && onFollowedService then
                                 ( rm.build.services.services
                                     |> RemoteData.unwrap rm.build.services.services
-                                        (\s -> expandActiveService serviceNumber s |> RemoteData.succeed)
-                                , resourceBottomTrackerFocusId "service" <| String.fromInt rm.build.services.followingService
+                                        (\s -> expandActive serviceNumber s |> RemoteData.succeed)
+                                , bottomTrackerFocusId "service" <| String.fromInt rm.build.services.followingService
                                 )
 
                             else if not refresh then
@@ -3023,7 +3022,7 @@ loadBuildPage model org repo buildNumber lineFocus =
                     |> updateBuildSteps
                         (RemoteData.unwrap Loading
                             (\steps_ ->
-                                RemoteData.succeed <| focusStepLogs steps_ lineFocus
+                                RemoteData.succeed <| focusAndClear steps_ lineFocus
                             )
                             rm.build.steps.steps
                         )
@@ -3070,7 +3069,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                     |> updateBuildServices
                         (RemoteData.unwrap Loading
                             (\services ->
-                                RemoteData.succeed <| focusServiceLogs services lineFocus
+                                RemoteData.succeed <| focusAndClear services lineFocus
                             )
                             rm.build.services.services
                         )
