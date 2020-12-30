@@ -84,7 +84,11 @@ merge logFocus refresh current incoming =
     in
     -- when not an automatic refresh, respect the url focus
     if not refresh then
+<<<<<<< HEAD
         focus logFocus merged
+=======
+        focus logFocus updatedSteps
+>>>>>>> feat_nav_prep_logs
 
     else
         merged
