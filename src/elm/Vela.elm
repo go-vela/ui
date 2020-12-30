@@ -1407,7 +1407,7 @@ type alias LogFocus =
 
 
 type alias Resource a =
-    { a | id : Int, number : Int, status : Status, viewing : Bool, logFocus : LogFocus }
+    { a | id : Int, number : Int, status : Status, viewing : Bool, logFocus : LogFocus, error : String }
 
 
 type alias Resources a =
