@@ -67,9 +67,10 @@ import Pager
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( focusLogs
-        , getCurrentStep
-        , stepBottomTrackerFocusId
+        ( bottomTrackerFocusId
+        , focus
+        , focusLogs
+        , getCurrentResource
         )
 import Pages.Build.Model
 import Pages.Build.Update exposing (expandActiveStep)
@@ -958,7 +959,7 @@ update msg model =
                                 ( rm.build.steps
                                     |> RemoteData.unwrap rm.build.steps
                                         (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
-                                , stepBottomTrackerFocusId <| String.fromInt rm.build.followingStep
+                                , bottomTrackerFocusId "step" <| String.fromInt rm.build.followingStep
                                 )
 
                             else if not refresh then
@@ -2662,7 +2663,7 @@ updateStep model incomingStep =
                                     shouldView =
                                         following
                                             && (step.status /= Vela.Pending)
-                                            && (step.number == getCurrentStep steps)
+                                            && (step.number == getCurrentResource steps)
                                 in
                                 { incomingStep
                                     | viewing = step.viewing || shouldView

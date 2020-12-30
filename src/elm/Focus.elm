@@ -23,6 +23,10 @@ type alias ResourceID =
     String
 
 
+type alias FocusTarget =
+    { target : Maybe String, resourceID : Maybe Int, lineA : Maybe Int, lineB : Maybe Int }
+
+
 {-| resourceFocusFragment : takes resource tag and maybe line numbers and produces URL fragment for focusing line ranges
 -}
 resourceFocusFragment : Resource -> ResourceID -> List String -> String

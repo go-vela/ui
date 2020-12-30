@@ -47,6 +47,8 @@ module Vela exposing
     , RepoSearchFilters
     , Repositories
     , Repository
+    , Resource
+    , Resources
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -1277,12 +1279,25 @@ type alias LogFocus =
 
 
 
+-- RESOURCE
+
+
+type alias Resource a =
+    { a | id : Int, number : Int, status : Status, viewing : Bool, logFocus : LogFocus, error : String }
+
+
+type alias Resources a =
+    List (Resource a)
+
+
+
 -- LOG
 
 
 type alias Log =
     { id : Int
     , step_id : Int
+    , service_id : Int
     , build_id : Int
     , repository_id : Int
     , rawData : String
@@ -1297,6 +1312,7 @@ decodeLog =
     Decode.succeed Log
         |> optional "id" int -1
         |> optional "step_id" int -1
+        |> optional "service_id" int -1
         |> optional "build_id" int -1
         |> optional "repository_id" int -1
         |> optional "data" string ""

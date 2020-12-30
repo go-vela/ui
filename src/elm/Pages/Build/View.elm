@@ -62,13 +62,13 @@ import List.Extra exposing (unique)
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( decodeAnsi
-        , getDownloadLogsFileName
-        , getStepLog
+        ( bottomTrackerFocusId
+        , decodeAnsi
+        , downloadFileName
+        , getLog
         , logEmpty
-        , stepBottomTrackerFocusId
-        , stepTopTrackerFocusId
         , toString
+        , topTrackerFocusId
         )
 import Pages.Build.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (WebData)
@@ -381,7 +381,7 @@ viewLogs model rm step =
             stepSkipped step
 
         _ ->
-            viewLogLines rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getStepLog step rm.build.logs) rm.build.followingStep model.shift
+            viewLogLines rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getLog step .step_id rm.build.logs) rm.build.followingStep model.shift
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
@@ -393,7 +393,7 @@ viewLogLines org repo buildNumber stepNumber logFocus maybeLog following shiftDo
             toString maybeLog
 
         fileName =
-            getDownloadLogsFileName org repo buildNumber "step" stepNumber
+            downloadFileName org repo buildNumber "step" stepNumber
     in
     div
         [ class "logs"
@@ -462,7 +462,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        stepTopTrackerFocusId stepNumber
+                        topTrackerFocusId "step" stepNumber
                     , Util.testAttribute <| "top-log-tracker-" ++ stepNumber
                     , Html.Attributes.tabindex -1
                     ]
@@ -473,7 +473,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        stepBottomTrackerFocusId stepNumber
+                        bottomTrackerFocusId "step" stepNumber
                     , Util.testAttribute <| "bottom-log-tracker-" ++ stepNumber
                     , Html.Attributes.tabindex -1
                     ]
@@ -610,7 +610,7 @@ jumpToBottomButton stepNumber =
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ stepNumber
-        , onClick <| FocusOn <| stepBottomTrackerFocusId stepNumber
+        , onClick <| FocusOn <| bottomTrackerFocusId "step" stepNumber
         , attribute "aria-label" <| "jump to bottom of logs for step " ++ stepNumber
         ]
         [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -626,7 +626,7 @@ jumpToTopButton stepNumber =
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ stepNumber
-        , onClick <| FocusOn <| stepTopTrackerFocusId stepNumber
+        , onClick <| FocusOn <| topTrackerFocusId "step" stepNumber
         , attribute "aria-label" <| "jump to top of logs for step " ++ stepNumber
         ]
         [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
