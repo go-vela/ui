@@ -79,14 +79,13 @@ type alias Msgs msg =
     }
 
 
-{-| Tab : record to represent information used by page navigation tab via anchor link
+{-| Tab : record to represent information used by page navigation tab
 -}
 type alias Tab =
     { name : String
     , currentPage : Page
     , toPage : Page
     }
-
 
 
 {-| viewNav : uses current state to render navigation, such as breadcrumb
@@ -217,13 +216,13 @@ viewUtil model =
                 viewRepoNav rm model.page
 
             Pages.Build _ _ _ _ ->
-                viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
+                viewBuildHistory model.time model.zone model.page 10 model.repo
 
             Pages.BuildServices _ _ _ _ ->
-                viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
+                viewBuildHistory model.time model.zone model.page 10 model.repo
 
             Pages.BuildPipeline _ _ _ _ _ _ ->
-                viewBuildHistory model.time model.zone model.page model.repo.org model.repo.name model.repo.builds.builds 10
+                viewBuildHistory model.time model.zone model.page 10 model.repo
 
             _ ->
                 text ""
@@ -337,9 +336,18 @@ viewBuildNav model org repo build currentPage =
 
 {-| viewBuildHistory : takes the 10 most recent builds and renders icons/links back to them as a widget at the top of the Build page
 -}
-viewBuildHistory : Posix -> Zone -> Page -> Org -> Repo -> WebData Builds -> Int -> Html msg
-viewBuildHistory now timezone page org repo builds limit =
+viewBuildHistory : Posix -> Zone -> Page -> Int -> RepoModel -> Html msg
+viewBuildHistory now timezone page limit rm =
     let
+        org =
+            rm.org
+
+        repo =
+            rm.name
+
+        builds =
+            rm.builds.builds
+
         buildNumber =
             case page of
                 Pages.Build _ _ b _ ->
