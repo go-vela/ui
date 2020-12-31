@@ -67,9 +67,10 @@ import Pager
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( focusLogs
-        , getCurrentStep
-        , stepBottomTrackerFocusId
+        ( bottomTrackerFocusId
+        , focus
+        , focusAndClear
+        , getCurrentResource
         )
 import Pages.Build.Model
 import Pages.Build.Update exposing (expandActiveStep)
@@ -1045,7 +1046,7 @@ update msg model =
                                 ( rm.build.steps
                                     |> RemoteData.unwrap rm.build.steps
                                         (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
-                                , stepBottomTrackerFocusId <| String.fromInt rm.build.followingStep
+                                , bottomTrackerFocusId "step" <| String.fromInt rm.build.followingStep
                                 )
 
                             else if not refresh then
@@ -2083,8 +2084,14 @@ setNewPage route model =
                 Pages.Build o r b _ ->
                     if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
+                            focusedSteps =
+                                focusAndClear (RemoteData.withDefault [] rm.build.steps) logFocus
+
                             ( page, steps, action ) =
-                                focusLogs model (RemoteData.withDefault [] rm.build.steps) org repo buildNumber logFocus getBuildStepsLogs
+                                ( Pages.Build org repo buildNumber logFocus
+                                , focusedSteps
+                                , getBuildStepsLogs model org repo buildNumber focusedSteps logFocus False
+                                )
                         in
                         ( { model | page = page, repo = updateBuildSteps (RemoteData.succeed steps) rm }, action )
 
@@ -2740,7 +2747,7 @@ updateStep model incomingStep =
                                     shouldView =
                                         following
                                             && (step.status /= Vela.Pending)
-                                            && (step.number == getCurrentStep steps)
+                                            && (step.number == getCurrentResource steps)
                                 in
                                 { incomingStep
                                     | viewing = step.viewing || shouldView
