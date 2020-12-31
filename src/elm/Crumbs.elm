@@ -6,8 +6,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Crumbs exposing (view)
 
-import Html exposing (Html, a, li, ol, p, text)
-import Html.Attributes exposing (attribute, class)
+import Html exposing (Html, a, li, ol, text)
+import Html.Attributes exposing (attribute)
 import Pages exposing (Page(..), toRoute)
 import Routes exposing (Route(..))
 import Tuple exposing (first, second)
@@ -60,14 +60,14 @@ item crumb currentPage =
     in
     case second crumb of
         Nothing ->
-            li [ class "breadcrumb", testAttribute ] [ a [] [ text decodedLink ] ]
+            li [ testAttribute ] [ text decodedLink ]
 
         Just page ->
             if page == currentPage then
-                li [ class "breadcrumb", testAttribute, attribute "aria-current" "page" ] [ a [] [ text decodedLink ] ]
+                li [ testAttribute, attribute "aria-current" "page" ] [ text decodedLink ]
 
             else
-                li [ class "breadcrumb", testAttribute ] [ a [ Routes.href <| toRoute page ] [ text decodedLink ] ]
+                li [ testAttribute ] [ a [ Routes.href <| toRoute page ] [ text decodedLink ] ]
 
 
 

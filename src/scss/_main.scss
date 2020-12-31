@@ -189,21 +189,56 @@ nav {
 }
 
 .navigation {
-  padding: 0 var(--horizontal-pad);
+  padding: 0 var(--horizontal-pad) 0 0;
+  // padding-left: 20px;
+  // background-color: red;
 
-  border-top-width: 0;
-  // border-bottom: var(--line-width) solid;
-  border-left-width: 0;
-  // border-image-source: linear-gradient(
-  //   to right,
-  //   var(--color-bg-light) 15%,
-  //   transparent 15%,
-  //   transparent 18%,
-  //   var(--color-bg-light) 18%,
-  //   var(--color-bg-light) 18.8%,
-  //   transparent 18.8%
-  // );
-  // border-image-slice: 1;
+  // border-top-width: 0;
+  // border-left-width: 20px;
+  // border-left-color: red;
+  // border-left: 20px;
+  // border-color: red;
+
+  ol {
+    background-color: var(--color-bg-dark);
+    // background-color: red;
+    padding: 0 0 0 2.5rem;
+
+    margin: 0;
+    display: inline-block;
+    list-style-type: none;
+    width: auto;
+  }
+
+  li {
+    position: relative;
+    display: inline-block;
+    padding: 0.2rem 1rem;
+  }
+
+  li:last-child {
+    background-color: var(--color-lavender);
+  }
+
+  li:last-child::before,
+  li:last-child::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1em;
+    height: 2.08rem;
+    background: var(--color-lavender);
+    transform: skew(-15deg);
+  }
+
+  li:last-child::before {
+    left: -0.5em;
+  }
+
+  li:last-child::after {
+    right: -0.5em;
+  }
 }
 
 .item {
@@ -270,23 +305,6 @@ nav {
 }
 
 // breadcrumb styles
-
-.breadcrumb {
-  background-color: red;
-  transform: skew(-20deg, 0deg);
-
-  &:last-child {
-    color: var(--color-bg-dark);
-    background-color: var(--color-secondary);
-  }
-}
-
-.breadcrumb a {
-  display: inline-block;
-  transform: skew(20deg, 0deg);
-  color: inherit;
-}
-
 .crumb {
   font-weight: 300;
 }
