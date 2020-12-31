@@ -202,8 +202,7 @@ nav {
   ol {
     background-color: var(--color-bg-dark);
     // background-color: red;
-    padding: 0 0 0 2.5rem;
-
+    padding: 0 0 0 var(--horizontal-pad);
     margin: 0;
     display: inline-block;
     list-style-type: none;
@@ -214,6 +213,10 @@ nav {
     position: relative;
     display: inline-block;
     padding: 0.2rem 1rem;
+  }
+
+  li:first-child {
+    padding-left: 0;
   }
 
   li:nth-last-child(2)::after {
