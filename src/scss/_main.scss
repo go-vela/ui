@@ -216,6 +216,10 @@ nav {
     padding: 0.2rem 1rem;
   }
 
+  li:nth-last-child(2)::after {
+    content: '';
+  }
+
   li:last-child {
     background-color: var(--color-lavender);
   }
