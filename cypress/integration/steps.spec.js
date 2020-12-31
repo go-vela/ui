@@ -103,7 +103,7 @@ context('Steps', () => {
         cy.clickSteps();
         cy.wait('@getLogs-1');
         cy.get('[data-test=log-line-step-1-3]').as('line');
-        cy.get('[data-test=log-line-step-num-1-3]').as('lineNumber');
+        cy.get('[data-test=log-line-num-step-1-3]').as('lineNumber');
         cy.get('@lineNumber').click({ force: true });
       });
 
@@ -120,7 +120,7 @@ context('Steps', () => {
       context('click other log line number', () => {
         beforeEach(() => {
           cy.get('[data-test=log-line-step-3-2]').as('otherLine');
-          cy.get('[data-test=log-line-step-num-3-2]').as('otherLineNumber');
+          cy.get('[data-test=log-line-num-step-3-2]').as('otherLineNumber');
           cy.get('@otherLineNumber').click({ force: true });
         });
         it('original line should not be highlighted', () => {
@@ -152,7 +152,7 @@ context('Steps', () => {
       it('line should be highlighted', () => {
         cy.wait('@getLogs-2');
         cy.get('[data-test=log-line-step-2-2]').as('line2:2');
-        cy.get('[data-test=log-line-step-num-2-2]').as('lineNumber2:2');
+        cy.get('[data-test=log-line-num-step-2-2]').as('lineNumber2:2');
         cy.get('@line2:2').should('have.class', '-focus');
       });
     });
@@ -172,8 +172,8 @@ context('Steps', () => {
           cy.wait('@getLogs-2');
           cy.get('[data-test=log-line-step-2-2]').as('line2:2');
           cy.get('[data-test=log-line-step-2-5]').as('line2:5');
-          cy.get('[data-test=log-line-step-num-2-2]').as('lineNumber2:2');
-          cy.get('[data-test=log-line-step-num-2-5]').as('lineNumber2:5');
+          cy.get('[data-test=log-line-num-step-2-2]').as('lineNumber2:2');
+          cy.get('[data-test=log-line-num-step-2-5]').as('lineNumber2:5');
           cy.get('@lineNumber2:2')
             .type('{shift}', { release: false })
             .get('@lineNumber2:2')
@@ -232,9 +232,9 @@ context('Steps', () => {
           cy.visit('/github/octocat/1');
           cy.clickSteps();
           cy.get('[data-test=log-line-step-2-2]').as('line2:2');
-          cy.get('[data-test=log-line-step-num-2-2]').as('lineNumber2:2');
+          cy.get('[data-test=log-line-num-step-2-2]').as('lineNumber2:2');
           cy.get('[data-test=log-line-step-3-3]').as('line3:3');
-          cy.get('[data-test=log-line-step-num-3-3]').as('lineNumber3:3');
+          cy.get('[data-test=log-line-num-step-3-3]').as('lineNumber3:3');
           cy.get('@lineNumber3:3').click({ force: true });
           cy.visit('/github/octocat/1#step:2:2');
           cy.reload();
