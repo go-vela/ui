@@ -192,7 +192,7 @@ import Vela
         , updateHooksModel
         , updateHooksPage
         , updateHooksPager
-        , updateHooksPerPage
+        , updateHooksPerPage,updateBuildStepsFollowing
         , updateOrgRepo
         , updateRepo
         , updateRepoEnabling
@@ -330,6 +330,11 @@ type Msg
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
     | Copy String
+    | DownloadFile String String String
+    | ExpandAllSteps Org Repo BuildNumber
+    | CollapseAllSteps
+    | ExpandStep Org Repo BuildNumber StepNumber
+    | FollowStep Int
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -567,6 +572,88 @@ update msg model =
                         ("Copied " ++ wrapAlertMessage content ++ "to your clipboard.")
                         Nothing
                     )
+        DownloadFile ext filename content ->
+            ( model
+            , Download.string filename ext content
+            )
+
+        ExpandAllSteps org repo buildNumber ->
+            let
+                build =
+                    rm.build
+
+                steps =
+                    RemoteData.unwrap build.steps.steps
+                        (\steps_ -> steps_ |> setAllViews True |> RemoteData.succeed)
+                        build.steps.steps
+
+                -- refresh logs for expanded steps
+                action =
+                    getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
+            in
+            ( { model | repo = updateBuildSteps steps rm }
+            , action
+            )
+
+        CollapseAllSteps ->
+            let
+                build =
+                    rm.build
+
+                steps =
+                    build.steps.steps
+                        |> RemoteData.unwrap build.steps.steps
+                            (\steps_ -> steps_ |> setAllViews False |> RemoteData.succeed)
+            in
+            ( { model | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing 0 }
+            , Cmd.none
+            )
+
+        ExpandStep org repo buildNumber stepNumber ->
+            let
+                build =
+                    rm.build
+
+                ( steps, fetchStepLogs ) =
+                    clickResource build.steps.steps stepNumber
+
+                action =
+                    if fetchStepLogs then
+                        getBuildStepLogs model org repo buildNumber stepNumber Nothing True
+
+                    else
+                        Cmd.none
+
+                stepOpened =
+                    isViewing steps stepNumber
+
+                -- step clicked is step being followed
+                onFollowedStep =
+                    build.steps.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+
+                follow =
+                    if onFollowedStep && not stepOpened then
+                        -- stop following a step when collapsed
+                        0
+
+                    else
+                        build.steps.followingStep
+            in
+            ( { model | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing follow }
+            , Cmd.batch <|
+                [ action
+                , if stepOpened then
+                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
+
+                  else
+                    Cmd.none
+                ]
+            )
+
+        FollowStep follow ->
+            ( { model | repo = updateBuildStepsFollowing follow rm }
+            , Cmd.none
+            )
 
         -- Outgoing HTTP requests
         SignInRequested ->
@@ -1103,15 +1190,6 @@ update msg model =
             let
                 ( newModel, action ) =
                     Pages.Secrets.Update.update model m
-            in
-            ( newModel
-            , action
-            )
-
-        BuildUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Build.Update.update model m ( getBuildStepLogs, getBuildStepsLogs ) FocusResult
             in
             ( newModel
             , action

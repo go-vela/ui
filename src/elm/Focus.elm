@@ -23,6 +23,14 @@ type alias ResourceID =
     String
 
 
+type alias FocusLineNumber msg =
+    Int -> msg
+
+
+type alias FocusTarget =
+    { target : Maybe String, resourceID : Maybe Int, lineA : Maybe Int, lineB : Maybe Int }
+
+
 {-| resourceFocusFragment : takes resource tag and maybe line numbers and produces URL fragment for focusing line ranges
 -}
 resourceFocusFragment : Resource -> ResourceID -> List String -> String
@@ -68,7 +76,7 @@ focusFragmentToFocusId resource focusFragment =
 
 {-| parseFocusFragment : takes URL fragment and parses it into appropriate line focus chunks
 -}
-parseFocusFragment : FocusFragment -> { target : Maybe String, resourceID : Maybe Int, lineA : Maybe Int, lineB : Maybe Int }
+parseFocusFragment : FocusFragment -> FocusTarget
 parseFocusFragment focusFragment =
     case String.split ":" (Maybe.withDefault "" focusFragment) of
         target :: resourceID :: lineA :: lineB :: _ ->
