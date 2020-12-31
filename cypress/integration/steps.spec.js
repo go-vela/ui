@@ -182,12 +182,21 @@ context('Steps', () => {
         });
         it('range start line should be highlighted', () => {
           cy.wait('@getLogs-2');
-          cy.get('[data-test=log-line-step-2-2]').should('have.class', '-focus');
+          cy.get('[data-test=log-line-step-2-2]').should(
+            'have.class',
+            '-focus',
+          );
         });
         it('lines between range start and end should be highlighted', () => {
           cy.wait('@getLogs-2');
-          cy.get('[data-test=log-line-step-2-3]').should('have.class', '-focus');
-          cy.get('[data-test=log-line-step-2-4]').should('have.class', '-focus');
+          cy.get('[data-test=log-line-step-2-3]').should(
+            'have.class',
+            '-focus',
+          );
+          cy.get('[data-test=log-line-step-2-4]').should(
+            'have.class',
+            '-focus',
+          );
         });
       });
       context('click first step', () => {
