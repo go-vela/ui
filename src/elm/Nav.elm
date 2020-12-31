@@ -274,14 +274,16 @@ viewRepoNav rm currentPage =
 
 
 
--- BUILD
+-- BUILD TODO
 
 
-{-| viewBuildNav : takes model information and current page and renders build navigation tabs
--}
-viewBuildNav : PartialModel a -> Org -> Repo -> Build -> Page -> Html msg
-viewBuildNav model org repo build currentPage =
-    text ""
+viewBuildTabs : RepoModel -> Page -> Html msg
+viewBuildTabs rm currentPage =
+    let
+        tabs =
+            []
+    in
+    viewTabs tabs "build"
 
 
 
