@@ -3131,6 +3131,8 @@ repoSettingsMsgs =
     Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
 
 
+{-| buildMsgs : prepares the input record required for the Build pages to route Msgs back to Main.elm
+-}
 buildMsgs : Pages.Build.Model.Msgs Msg
 buildMsgs =
     { collapseAllSteps = CollapseAllSteps
@@ -3145,6 +3147,8 @@ buildMsgs =
     }
 
 
+{-| pipelineMsgs : prepares the input record required for the Pipeline pages to route Msgs back to Main.elm
+-}
 pipelineMsgs : Pages.Pipeline.Model.Msgs Msg
 pipelineMsgs =
     { get = GetPipelineConfig
