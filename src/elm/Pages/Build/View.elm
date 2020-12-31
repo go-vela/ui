@@ -579,7 +579,7 @@ lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
         [ Util.onClickPreventDefault <|
             focusLogs <|
                 lineRangeId resource resourceID lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resourceID, String.fromInt lineNumber ]
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, String.fromInt lineNumber ]
         , id <| resourceAndLineToFocusId resource resourceID lineNumber
         , class "line-number"
         , class "button"

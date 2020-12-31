@@ -102,8 +102,8 @@ context('Steps', () => {
       beforeEach(() => {
         cy.clickSteps();
         cy.wait('@getLogs-1');
-        cy.get('[data-test=log-line-1-3]').as('line');
-        cy.get('[data-test=log-line-num-1-3]').as('lineNumber');
+        cy.get('[data-test=log-line-step-1-3]').as('line');
+        cy.get('[data-test=log-line-step-num-1-3]').as('lineNumber');
         cy.get('@lineNumber').click({ force: true });
       });
 
@@ -119,8 +119,8 @@ context('Steps', () => {
 
       context('click other log line number', () => {
         beforeEach(() => {
-          cy.get('[data-test=log-line-3-2]').as('otherLine');
-          cy.get('[data-test=log-line-num-3-2]').as('otherLineNumber');
+          cy.get('[data-test=log-line-step-3-2]').as('otherLine');
+          cy.get('[data-test=log-line-step-num-3-2]').as('otherLineNumber');
           cy.get('@otherLineNumber').click({ force: true });
         });
         it('original line should not be highlighted', () => {
@@ -151,8 +151,8 @@ context('Steps', () => {
       });
       it('line should be highlighted', () => {
         cy.wait('@getLogs-2');
-        cy.get('[data-test=log-line-2-2]').as('line2:2');
-        cy.get('[data-test=log-line-num-2-2]').as('lineNumber2:2');
+        cy.get('[data-test=log-line-step-2-2]').as('line2:2');
+        cy.get('[data-test=log-line-step-num-2-2]').as('lineNumber2:2');
         cy.get('@line2:2').should('have.class', '-focus');
       });
     });
@@ -164,16 +164,16 @@ context('Steps', () => {
       });
       it('range start line should not be highlighted', () => {
         cy.wait('@getLogs-2');
-        cy.get('[data-test=log-line-2-2]').as('line2:2');
+        cy.get('[data-test=log-line-step-2-2]').as('line2:2');
         cy.get('@line2:2').should('not.have.class', '-focus');
       });
       context('click line 2, shift click line 5', () => {
         beforeEach(() => {
           cy.wait('@getLogs-2');
-          cy.get('[data-test=log-line-2-2]').as('line2:2');
-          cy.get('[data-test=log-line-2-5]').as('line2:5');
-          cy.get('[data-test=log-line-num-2-2]').as('lineNumber2:2');
-          cy.get('[data-test=log-line-num-2-5]').as('lineNumber2:5');
+          cy.get('[data-test=log-line-step-2-2]').as('line2:2');
+          cy.get('[data-test=log-line-step-2-5]').as('line2:5');
+          cy.get('[data-test=log-line-step-num-2-2]').as('lineNumber2:2');
+          cy.get('[data-test=log-line-step-num-2-5]').as('lineNumber2:5');
           cy.get('@lineNumber2:2')
             .type('{shift}', { release: false })
             .get('@lineNumber2:2')
@@ -182,12 +182,12 @@ context('Steps', () => {
         });
         it('range start line should be highlighted', () => {
           cy.wait('@getLogs-2');
-          cy.get('[data-test=log-line-2-2]').should('have.class', '-focus');
+          cy.get('[data-test=log-line-step-2-2]').should('have.class', '-focus');
         });
         it('lines between range start and end should be highlighted', () => {
           cy.wait('@getLogs-2');
-          cy.get('[data-test=log-line-2-3]').should('have.class', '-focus');
-          cy.get('[data-test=log-line-2-4]').should('have.class', '-focus');
+          cy.get('[data-test=log-line-step-2-3]').should('have.class', '-focus');
+          cy.get('[data-test=log-line-step-2-4]').should('have.class', '-focus');
         });
       });
       context('click first step', () => {
@@ -207,14 +207,14 @@ context('Steps', () => {
         cy.wait('@getLogs-2');
       });
       it('range start line should be highlighted', () => {
-        cy.get('[data-test=log-line-2-2]').should('have.class', '-focus');
+        cy.get('[data-test=log-line-step-2-2]').should('have.class', '-focus');
       });
       it('range end line should be highlighted', () => {
-        cy.get('[data-test=log-line-2-5]').should('have.class', '-focus');
+        cy.get('[data-test=log-line-step-2-5]').should('have.class', '-focus');
       });
       it('lines between range start and end should be highlighted', () => {
-        cy.get('[data-test=log-line-2-3]').should('have.class', '-focus');
-        cy.get('[data-test=log-line-2-4]').should('have.class', '-focus');
+        cy.get('[data-test=log-line-step-2-3]').should('have.class', '-focus');
+        cy.get('[data-test=log-line-step-2-4]').should('have.class', '-focus');
       });
       context('click first step', () => {
         beforeEach(() => {
@@ -231,10 +231,10 @@ context('Steps', () => {
         beforeEach(() => {
           cy.visit('/github/octocat/1');
           cy.clickSteps();
-          cy.get('[data-test=log-line-2-2]').as('line2:2');
-          cy.get('[data-test=log-line-num-2-2]').as('lineNumber2:2');
-          cy.get('[data-test=log-line-3-3]').as('line3:3');
-          cy.get('[data-test=log-line-num-3-3]').as('lineNumber3:3');
+          cy.get('[data-test=log-line-step-2-2]').as('line2:2');
+          cy.get('[data-test=log-line-step-num-2-2]').as('lineNumber2:2');
+          cy.get('[data-test=log-line-step-3-3]').as('line3:3');
+          cy.get('[data-test=log-line-step-num-3-3]').as('lineNumber3:3');
           cy.get('@lineNumber3:3').click({ force: true });
           cy.visit('/github/octocat/1#step:2:2');
           cy.reload();
