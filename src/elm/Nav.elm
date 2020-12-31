@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, viewBuildNav, viewNav, viewUtil)
+module Nav exposing (Msgs, viewNav, viewUtil)
 
 import Browser.Events exposing (Visibility(..))
 import Crumbs
