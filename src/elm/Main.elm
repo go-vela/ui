@@ -69,10 +69,6 @@ import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
-<<<<<<< HEAD
-=======
-        , focus
->>>>>>> feat_nav_prep_logs
         , focusAndClear
         , getCurrentResource
         )
@@ -1228,7 +1224,6 @@ update msg model =
 
                         ( steps, focusId ) =
                             if following && refresh && onFollowedStep then
-<<<<<<< HEAD
                                 ( rm.build.steps.steps
                                     |> RemoteData.unwrap rm.build.steps.steps
                                         (\s -> expandActive stepNumber s |> RemoteData.succeed)
@@ -1291,12 +1286,6 @@ update msg model =
                                     |> RemoteData.unwrap rm.build.services.services
                                         (\s -> expandActive serviceNumber s |> RemoteData.succeed)
                                 , bottomTrackerFocusId "service" <| String.fromInt rm.build.services.followingService
-=======
-                                ( rm.build.steps
-                                    |> RemoteData.unwrap rm.build.steps
-                                        (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
-                                , bottomTrackerFocusId "step" <| String.fromInt rm.build.followingStep
->>>>>>> feat_nav_prep_logs
                                 )
 
                             else if not refresh then
@@ -2509,26 +2498,8 @@ setNewPage route model =
             in
             loadRepoBuildsPage model org repo currentSession maybePage maybePerPage maybeEvent
 
-<<<<<<< HEAD
         ( Routes.Build org repo buildNumber lineFocus, True ) ->
             loadBuildPage model org repo buildNumber lineFocus
-=======
-        ( Routes.Build org repo buildNumber logFocus, True ) ->
-            case model.page of
-                Pages.Build o r b _ ->
-                    if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
-                        let
-                            focusedSteps =
-                                focusAndClear (RemoteData.withDefault [] rm.build.steps) logFocus
-
-                            ( page, steps, action ) =
-                                ( Pages.Build org repo buildNumber logFocus
-                                , focusedSteps
-                                , getBuildStepsLogs model org repo buildNumber focusedSteps logFocus False
-                                )
-                        in
-                        ( { model | page = page, repo = updateBuildSteps (RemoteData.succeed steps) rm }, action )
->>>>>>> feat_nav_prep_logs
 
         ( Routes.BuildServices org repo buildNumber lineFocus, True ) ->
             loadBuildServicesPage model org repo buildNumber lineFocus
