@@ -8,11 +8,12 @@ module Pages.Pipeline.View exposing (viewPipeline)
 
 import Ansi.Log
 import Array
+import DateFormat.Relative exposing (relativeTime)
 import Dict
 import Dict.Extra
 import Errors exposing (Error, detailedErrorToString)
 import FeatherIcons exposing (Icon)
-import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
+import Focus exposing (ExpandTemplatesQuery, FocusLineNumber, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html
@@ -28,25 +29,31 @@ import Html
         , text
         , tr
         )
-import Html.Attributes exposing (attribute, class)
+import Html.Attributes exposing (attribute, class, href, title)
 import Html.Events exposing (onClick)
 import List.Extra
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
-import Pages.Build.View exposing (viewLine)
-import Pages.Pipeline.Model exposing (Msg(..), PartialModel)
+import Pages.Build.Model
+import Pages.Build.View exposing (viewLine, wrapWithBuildPreview)
+import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import SvgBuilder
+import SvgBuilder exposing (buildStatusToIcon)
+import Time exposing (Posix, Zone)
 import Util
 import Vela
     exposing
         ( Build
+        , BuildNumber
         , LogFocus
         , Org
-        , Pipeline
         , PipelineConfig
+        , PipelineModel
+        , PipelineTemplates
+        , Ref
         , Repo
+        , Status
         , Step
         , Steps
         , Template
@@ -60,30 +67,30 @@ import Vela
 
 {-| viewPipeline : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.
 -}
-viewPipeline : PartialModel a -> Html Msg
-viewPipeline model =
+viewPipeline : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
+viewPipeline model msgs ref =
     div [ class "pipeline" ]
-        [ viewPipelineTemplates model.templates
-        , viewPipelineConfiguration model
+        [ viewPipelineTemplates model.templates msgs.showHideTemplates
+        , viewPipelineConfiguration model msgs ref
         ]
 
 
 {-| viewPipelineTemplates : takes templates and renders a list above the pipeline configuration.
 -}
-viewPipelineTemplates : ( WebData Templates, Error ) -> Html Msg
-viewPipelineTemplates templates =
-    case templates of
-        ( NotAsked, _ ) ->
+viewPipelineTemplates : PipelineTemplates -> msg -> Html msg
+viewPipelineTemplates { data, error, show } showHide =
+    case data of
+        NotAsked ->
             text ""
 
-        ( Loading, _ ) ->
+        Loading ->
             Util.smallLoaderWithText "loading pipeline templates"
 
-        ( Success t, _ ) ->
-            viewTemplates t
+        Success t ->
+            viewTemplates t show showHide
 
-        ( Failure _, err ) ->
-            viewTemplatesError err
+        Failure _ ->
+            viewTemplatesError error show showHide
 
 
 {-| viewTemplates : takes templates and renders a list of templates.
@@ -91,13 +98,13 @@ viewPipelineTemplates templates =
     Does not show if no templates are used in the pipeline.
 
 -}
-viewTemplates : Templates -> Html Msg
-viewTemplates templates =
+viewTemplates : Templates -> Bool -> msg -> Html msg
+viewTemplates templates open showHide =
     if not <| Dict.isEmpty templates then
         templates
             |> Dict.toList
             |> List.map viewTemplate
-            |> viewTemplatesDetails (class "-success")
+            |> viewTemplatesDetails (class "-success") open showHide
 
     else
         text ""
@@ -105,25 +112,26 @@ viewTemplates templates =
 
 {-| viewTemplates : renders an error from fetching templates.
 -}
-viewTemplatesError : Error -> Html Msg
-viewTemplatesError err =
+viewTemplatesError : Error -> Bool -> msg -> Html msg
+viewTemplatesError err open showHide =
     [ text <| "There was a problem fetching templates for this pipeline configuration"
     , div [ Util.testAttribute "pipeline-templates-error" ] [ text err ]
     ]
-        |> viewTemplatesDetails (class "-error")
+        |> viewTemplatesDetails (class "-error") open showHide
 
 
 {-| viewTemplatesDetails : takes templates content and wraps it in a details/summary.
 -}
-viewTemplatesDetails : Html.Attribute Msg -> List (Html Msg) -> Html Msg
-viewTemplatesDetails cls content =
+viewTemplatesDetails : Html.Attribute msg -> Bool -> msg -> List (Html msg) -> Html msg
+viewTemplatesDetails cls open showHide content =
     Html.details
-        [ class "details"
-        , class "templates"
-        , Html.Attributes.attribute "open" ""
-        , Util.testAttribute "pipeline-templates"
-        ]
-        ([ Html.summary [ class "summary" ]
+        ([ class "details"
+         , class "templates"
+         , Util.testAttribute "pipeline-templates"
+         ]
+            ++ Util.open open
+        )
+        ([ Html.summary [ class "summary", Util.onClickPreventDefault showHide ]
             [ div [] [ text "Templates" ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
@@ -152,8 +160,8 @@ viewTemplate ( _, t ) =
 
 {-| viewPipelineConfiguration : takes model and renders a wrapper view for a pipeline configuration if Success or Failure.
 -}
-viewPipelineConfiguration : PartialModel a -> Html Msg
-viewPipelineConfiguration model =
+viewPipelineConfiguration : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
+viewPipelineConfiguration model msgs ref =
     case model.pipeline.config of
         ( Loading, _ ) ->
             Util.smallLoaderWithText "loading pipeline configuration"
@@ -162,21 +170,20 @@ viewPipelineConfiguration model =
             text ""
 
         _ ->
-            viewPipelineConfigurationResponse model
+            viewPipelineConfigurationResponse model msgs ref
 
 
 {-| viewPipelineConfiguration : takes model and renders view for a pipeline configuration.
 -}
-viewPipelineConfigurationResponse : PartialModel a -> Html Msg
-viewPipelineConfigurationResponse model =
-    -- TODO: modularize logs rendering
+viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
+viewPipelineConfigurationResponse model msgs ref =
     div [ class "logs-container", class "-pipeline" ]
         [ case model.pipeline.config of
             ( Success config, _ ) ->
-                viewPipelineConfigurationData model config
+                viewPipelineConfigurationData model msgs ref config
 
             ( Failure _, err ) ->
-                viewPipelineConfigurationError model err
+                viewPipelineConfigurationError model msgs ref err
 
             _ ->
                 text ""
@@ -185,32 +192,40 @@ viewPipelineConfigurationResponse model =
 
 {-| viewPipelineConfigurationData : takes model and config and renders view for a pipeline configuration's data.
 -}
-viewPipelineConfigurationData : PartialModel a -> PipelineConfig -> Html Msg
-viewPipelineConfigurationData model config =
-    wrapPipelineConfigurationContent model (class "") <|
+viewPipelineConfigurationData : PartialModel a -> Msgs msg -> Maybe Ref -> PipelineConfig -> Html msg
+viewPipelineConfigurationData model msgs ref config =
+    wrapPipelineConfigurationContent model msgs ref (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-            viewLines config model.pipeline.lineFocus model.shift
+            viewLines config model.pipeline.lineFocus model.shift msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
 -}
-viewPipelineConfigurationError : PartialModel a -> Error -> Html Msg
-viewPipelineConfigurationError model err =
-    wrapPipelineConfigurationContent model (class "-error") <|
+viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Maybe Ref -> Error -> Html msg
+viewPipelineConfigurationError model msgs ref err =
+    wrapPipelineConfigurationContent model msgs ref (class "-error") <|
         div [ class "content", Util.testAttribute "pipeline-configuration-error" ]
             [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
 
 
 {-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
 -}
-wrapPipelineConfigurationContent : PartialModel a -> Html.Attribute Msg -> Html Msg -> Html Msg
-wrapPipelineConfigurationContent model cls content =
+wrapPipelineConfigurationContent : PartialModel a -> Msgs msg -> Maybe Ref -> Html.Attribute msg -> Html msg -> Html msg
+wrapPipelineConfigurationContent model { get, expand, download } ref cls content =
     let
         body =
             [ div [ class "header" ]
-                [ span [] [ text "Pipeline Configuration" ]
+                [ span []
+                    [ text "Pipeline Configuration"
+                    , case ref of
+                        Just r ->
+                            span [ class "link" ] [ text <| "(" ++ r ++ ")" ]
+
+                        Nothing ->
+                            text ""
+                    ]
                 ]
-            , viewTemplatesExpansion model
+            , viewPipelineActions model get expand download
             ]
                 ++ [ content ]
     in
@@ -221,35 +236,58 @@ wrapPipelineConfigurationContent model cls content =
         body
 
 
-{-| viewTemplatesExpansion : takes model and renders the config header button for expanding pipeline templates.
+velaYmlFileName =
+    "vela.yml"
+
+
+{-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
 -}
-viewTemplatesExpansion : PartialModel a -> Html Msg
-viewTemplatesExpansion model =
-    case model.templates of
-        ( Success templates, _ ) ->
-            if Dict.size templates > 0 then
-                div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
-                    [ expandTemplatesToggleIcon model.pipeline
-                    , expandTemplatesToggleButton model.pipeline
-                    , expandTemplatesTip
+viewPipelineActions : PartialModel a -> Get msg -> Expand msg -> Download msg -> Html msg
+viewPipelineActions model get expand download =
+    let
+        t =
+            case model.templates.data of
+                Success templates ->
+                    if Dict.size templates > 0 then
+                        div [ class "action", class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
+                            [ expandTemplatesToggleButton model.pipeline get expand
+                            , expandTemplatesToggleIcon model.pipeline
+                            , expandTemplatesTip
+                            ]
+
+                    else
+                        text ""
+
+                _ ->
+                    text ""
+
+        d =
+            div [ class "action" ]
+                [ button
+                    [ class "button"
+                    , class "-link"
+                    , Util.testAttribute <| "download-yml"
+                    , onClick <| download velaYmlFileName <| RemoteData.unwrap "" .data <| Tuple.first model.pipeline.config
+                    , attribute "aria-label" <| "download pipeline configuration file for "
                     ]
+                    [ text <|
+                        if model.pipeline.expanded then
+                            "download (expanded) " ++ velaYmlFileName
 
-            else
-                text ""
-
-        ( Loading, _ ) ->
-            text ""
-
-        _ ->
-            text ""
+                        else
+                            "download " ++ velaYmlFileName
+                    ]
+                ]
+    in
+    div [ class "actions" ] [ t, d ]
 
 
 {-| expandTemplatesToggleIcon : takes pipeline and renders icon for toggling templates expansion.
 -}
-expandTemplatesToggleIcon : Pipeline -> Html Msg
+expandTemplatesToggleIcon : PipelineModel -> Html msg
 expandTemplatesToggleIcon pipeline =
     let
-        wrapExpandTemplatesIcon : Icon -> Html Msg
+        wrapExpandTemplatesIcon : Icon -> Html msg
         wrapExpandTemplatesIcon i =
             div [ class "icon" ] [ i |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
     in
@@ -265,18 +303,18 @@ expandTemplatesToggleIcon pipeline =
 
 {-| expandTemplatesToggleButton : takes pipeline and renders button that toggles templates expansion.
 -}
-expandTemplatesToggleButton : Pipeline -> Html Msg
-expandTemplatesToggleButton pipeline =
+expandTemplatesToggleButton : PipelineModel -> Get msg -> Expand msg -> Html msg
+expandTemplatesToggleButton pipeline get expand =
     let
-        { org, repo, ref } =
+        { org, repo, buildNumber, ref } =
             pipeline
 
         action =
             if pipeline.expanded then
-                GetPipelineConfig org repo ref True
+                get org repo buildNumber ref Nothing True
 
             else
-                ExpandPipelineConfig org repo ref True
+                expand org repo buildNumber ref Nothing True
     in
     button
         [ class "button"
@@ -294,23 +332,18 @@ expandTemplatesToggleButton pipeline =
 
 {-| expandTemplatesTip : renders help tip that is displayed next to the expand templates button.
 -}
-expandTemplatesTip : Html Msg
+expandTemplatesTip : Html msg
 expandTemplatesTip =
     small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
 
 
-
--- LINE FOCUS
--- TODO: modularize logs rendering
-
-
-{-| viewLineS : takes pipeline configuration, line focus and shift key.
+{-| viewLines : takes pipeline configuration, line focus and shift key.
 
     returns a list of rendered data lines with focusable line numbers.
 
 -}
-viewLines : PipelineConfig -> LogFocus -> Bool -> List (Html Msg)
-viewLines config lineFocus shift =
+viewLines : PipelineConfig -> LogFocus -> Bool -> FocusLineNumber msg -> List (Html msg)
+viewLines config lineFocus shift focusLineNumber =
     config.data
         |> decodeAnsi
         |> Array.indexedMap
@@ -322,6 +355,7 @@ viewLines config lineFocus shift =
                         "0"
                         lineFocus
                         shift
+                        focusLineNumber
             )
         |> Array.toList
         |> Just
@@ -331,8 +365,8 @@ viewLines config lineFocus shift =
 
 {-| viewLine : takes line and focus information and renders line number button and data.
 -}
-viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> Html Msg
-viewLine id lineNumber line resource lineFocus shiftDown =
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> FocusLineNumber msg -> Html msg
+viewLine id lineNumber line resource lineFocus shiftDown focus =
     tr
         [ Html.Attributes.id <|
             id
@@ -348,7 +382,7 @@ viewLine id lineNumber line resource lineFocus shiftDown =
                     , class <| lineFocusStyles lineFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton resource lineFocus lineNumber shiftDown ]
+                        [ lineFocusButton resource lineFocus lineNumber shiftDown focus ]
                     , td [ class "break-text", class "overflow-auto" ]
                         [ code [ Util.testAttribute <| String.join "-" [ "config", "data", resource, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
@@ -363,11 +397,11 @@ viewLine id lineNumber line resource lineFocus shiftDown =
 
 {-| lineFocusButton : renders button for focusing log line ranges.
 -}
-lineFocusButton : Resource -> LogFocus -> Int -> Bool -> Html Msg
-lineFocusButton resource logFocus lineNumber shiftDown =
+lineFocusButton : Resource -> LogFocus -> Int -> Bool -> FocusLineNumber msg -> Html msg
+lineFocusButton resource logFocus lineNumber shiftDown focus =
     button
         [ Util.onClickPreventDefault <|
-            FocusLine <|
+            focus <|
                 lineNumber
         , Util.testAttribute <| String.join "-" [ "config", "line", "num", resource, String.fromInt lineNumber ]
         , Html.Attributes.id <| resourceAndLineToFocusId "config" resource lineNumber

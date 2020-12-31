@@ -35,7 +35,6 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import Pages exposing (Page(..))
-import Pages.Builds exposing (view)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import Svg.Attributes
