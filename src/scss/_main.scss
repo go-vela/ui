@@ -189,21 +189,11 @@ nav {
 }
 
 .navigation {
-  padding: 0 var(--horizontal-pad) 0 0;
-  // padding-left: 20px;
-  // background-color: red;
-
-  // border-top-width: 0;
-  // border-left-width: 20px;
-  // border-left-color: red;
-  // border-left: 20px;
-  // border-color: red;
+  padding: 0px var(--horizontal-pad) 0px 0px;
 
   ol {
     background-color: var(--color-bg-dark);
-    // background-color: red;
-    padding: 0 0 0 var(--horizontal-pad);
-    margin: 0;
+    padding: 0;
     display: inline-block;
     list-style-type: none;
     width: auto;
@@ -216,7 +206,7 @@ nav {
   }
 
   li:first-child {
-    padding-left: 0;
+    padding-left: var(--horizontal-pad);
   }
 
   li:nth-last-child(2)::after {
@@ -234,7 +224,6 @@ nav {
     top: 0;
     bottom: 0;
     width: 1em;
-    height: 2.08rem;
     background: var(--color-lavender);
     transform: skew(-15deg);
   }
@@ -245,6 +234,15 @@ nav {
 
   li:last-child::after {
     right: -0.5em;
+  }
+
+  li:only-child::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    height: 0;
   }
 }
 
