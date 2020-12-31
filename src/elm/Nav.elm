@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, viewBuildHistory, viewNav, viewUtil)
+module Nav exposing (Msgs, viewBuildNav, viewNav, viewUtil)
 
 import Browser.Events exposing (Visibility(..))
 import Crumbs
@@ -45,9 +45,11 @@ import Vela
     exposing
         ( Build
         , BuildNumber
+        , Builds
         , CurrentUser
         , Engine
         , Org
+        , PipelineModel
         , Repo
         , RepoModel
         , SecretType
@@ -63,6 +65,7 @@ type alias PartialModel a =
         , repo : RepoModel
         , time : Posix
         , zone : Zone
+        , pipeline : PipelineModel
     }
 
 
@@ -176,20 +179,20 @@ viewUtil model =
     in
     div [ class "util" ]
         [ case model.page of
-            Pages.Build _ _ _ _ ->
-                viewBuildHistory model.time model.zone model.page 10 rm
-
             Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoTabs rm model.page
+                viewRepoNav rm model.page
 
             Pages.RepoSecrets engine org repo _ _ ->
-                viewRepoTabs rm model.page
+                viewRepoNav rm model.page
 
             Pages.Hooks org repo _ _ ->
-                viewRepoTabs rm model.page
+                viewRepoNav rm model.page
 
             Pages.RepoSettings org repo ->
-                viewRepoTabs rm model.page
+                viewRepoNav rm model.page
+
+            Pages.Build _ _ _ _ ->
+                viewBuildHistory model.time model.zone model.page 10 model.repo
 
             _ ->
                 text ""
@@ -249,10 +252,10 @@ viewingTab p1 p2 =
 -- REPO
 
 
-{-| viewRepoTabs : takes RepoModel and current page and renders navigation tabs
+{-| viewRepoNav : takes RepoModel and current page and renders navigation tabs
 -}
-viewRepoTabs : RepoModel -> Page -> Html msg
-viewRepoTabs rm currentPage =
+viewRepoNav : RepoModel -> Page -> Html msg
+viewRepoNav rm currentPage =
     let
         org =
             rm.org
@@ -271,16 +274,14 @@ viewRepoTabs rm currentPage =
 
 
 
--- BUILD TODO
+-- BUILD
 
 
-viewBuildTabs : RepoModel -> Page -> Html msg
-viewBuildTabs rm currentPage =
-    let
-        tabs =
-            []
-    in
-    viewTabs tabs "build"
+{-| viewBuildNav : takes model information and current page and renders build navigation tabs
+-}
+viewBuildNav : PartialModel a -> Org -> Repo -> Build -> Page -> Html msg
+viewBuildNav model org repo build currentPage =
+    text ""
 
 
 

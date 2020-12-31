@@ -32,6 +32,7 @@ import Html
 import Html.Attributes exposing (attribute, class, href, title)
 import Html.Events exposing (onClick)
 import List.Extra
+import Nav exposing (viewBuildNav)
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Build.Model

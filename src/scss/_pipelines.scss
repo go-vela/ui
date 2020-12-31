@@ -84,11 +84,23 @@
 .expand-templates {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  justify-content: flex-start;
+}
+
+.pipeline .action:not(:last-child) {
+  margin-bottom: 0.5rem;
+}
+
+.pipeline .actions {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
 
   border-bottom: 1px solid var(--color-bg-light);
+
+  .filler {
+    flex: 1;
+  }
 
   .icon {
     display: flex;
@@ -112,14 +124,9 @@
   }
 
   small {
-    margin-left: 1rem;
     padding: 0.2rem 0.4rem;
 
     background-color: var(--color-bg-light);
-  }
-
-  .tip {
-    margin-right: 0.6rem;
   }
 }
 
@@ -139,13 +146,19 @@
   .header {
     display: flex;
     flex-direction: row;
+    align-items: center;
     justify-content: space-between;
+
     padding: 0.6rem 0.8rem;
 
     font-weight: normal;
     font-size: 18px;
 
     border-bottom: 1px solid var(--color-secondary);
+
+    .link {
+      margin-left: 1rem;
+    }
   }
 
   .logs-table {
@@ -172,4 +185,12 @@
   .logs-table .line ~ .line {
     margin-top: 0;
   }
+}
+
+// SERVICES
+
+.no-services {
+  padding: 1rem 1rem;
+
+  background-color: var(--color-bg-dark);
 }

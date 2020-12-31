@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Main exposing (main)
+module Main exposing (buildMsgs, main)
 
 import Alerts exposing (Alert)
 import Api
@@ -184,6 +184,10 @@ import Vela
         , stringToTheme
         , updateBuild
         , updateBuildNumber
+        , updateBuildServices
+        , updateBuildServicesFocusFragment
+        , updateBuildServicesFollowing
+        , updateBuildServicesLogs
         , updateBuildSteps
         , updateBuildStepsFocusFragment
         , updateBuildStepsFollowing
@@ -343,6 +347,10 @@ type Msg
     | CollapseAllSteps
     | ExpandStep Org Repo BuildNumber StepNumber
     | FollowStep Int
+    | ExpandAllServices Org Repo BuildNumber
+    | CollapseAllServices
+    | ExpandService Org Repo BuildNumber ServiceNumber
+    | FollowService Int
     | ShowHideTemplates
       -- Outgoing HTTP requests
     | SignInRequested
@@ -377,6 +385,8 @@ type Msg
     | StepsResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
+    | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
+    | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | GetPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ExpandPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | GetPipelineTemplatesResponse Org Repo FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
@@ -682,6 +692,85 @@ update msg model =
 
         FollowStep follow ->
             ( { model | repo = updateBuildStepsFollowing follow rm }
+            , Cmd.none
+            )
+
+        -- services
+        ExpandAllServices org repo buildNumber ->
+            let
+                build =
+                    rm.build
+
+                services =
+                    RemoteData.unwrap build.services.services
+                        (\services_ -> services_ |> setAllViews True |> RemoteData.succeed)
+                        build.services.services
+
+                -- refresh logs for expanded steps
+                action =
+                    getBuildServicesLogs model org repo buildNumber (RemoteData.withDefault [] services) Nothing True
+            in
+            ( { model | repo = updateBuildServices services rm }
+            , action
+            )
+
+        CollapseAllServices ->
+            let
+                build =
+                    rm.build
+
+                services =
+                    build.services.services
+                        |> RemoteData.unwrap build.services.services
+                            (\services_ -> services_ |> setAllViews False |> RemoteData.succeed)
+            in
+            ( { model | repo = rm |> updateBuildServices services |> updateBuildServicesFollowing 0 }
+            , Cmd.none
+            )
+
+        ExpandService org repo buildNumber serviceNumber ->
+            let
+                build =
+                    rm.build
+
+                ( services, fetchServiceLogs ) =
+                    clickResource build.services.services serviceNumber
+
+                action =
+                    if fetchServiceLogs then
+                        getBuildServiceLogs model org repo buildNumber serviceNumber Nothing True
+
+                    else
+                        Cmd.none
+
+                serviceOpened =
+                    isViewing services serviceNumber
+
+                -- step clicked is step being followed
+                onFollowedService =
+                    build.services.followingService == (Maybe.withDefault -1 <| String.toInt serviceNumber)
+
+                follow =
+                    if onFollowedService && not serviceOpened then
+                        -- stop following a step when collapsed
+                        0
+
+                    else
+                        build.services.followingService
+            in
+            ( { model | repo = rm |> updateBuildServices services |> updateBuildServicesFollowing follow }
+            , Cmd.batch <|
+                [ action
+                , if serviceOpened then
+                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "service" serviceNumber []
+
+                  else
+                    Cmd.none
+                ]
+            )
+
+        FollowService follow ->
+            ( { model | repo = updateBuildServicesFollowing follow rm }
             , Cmd.none
             )
 
@@ -1128,6 +1217,64 @@ update msg model =
                                 Cmd.none
                     in
                     ( updateStepLogs { model | repo = updateBuildSteps steps rm } incomingLog
+                    , cmd
+                    )
+
+                Err error ->
+                    ( model, addError error )
+
+        ServicesResponse org repo buildNumber logFocus refresh response ->
+            case response of
+                Ok ( _, services ) ->
+                    let
+                        mergedServices =
+                            services
+                                |> List.sortBy .number
+                                |> Pages.Build.Update.merge logFocus refresh rm.build.services.services
+
+                        updatedModel =
+                            { model | repo = updateBuildServices (RemoteData.succeed mergedServices) rm }
+
+                        cmd =
+                            getBuildServicesLogs updatedModel org repo buildNumber mergedServices logFocus refresh
+                    in
+                    ( updatedModel, cmd )
+
+                Err error ->
+                    ( model, addError error )
+
+        ServiceLogResponse serviceNumber logFocus refresh response ->
+            case response of
+                Ok ( _, incomingLog ) ->
+                    let
+                        following =
+                            rm.build.services.followingService /= 0
+
+                        onFollowedService =
+                            rm.build.services.followingService == (Maybe.withDefault -1 <| String.toInt serviceNumber)
+
+                        ( services, focusId ) =
+                            if following && refresh && onFollowedService then
+                                ( rm.build.services.services
+                                    |> RemoteData.unwrap rm.build.services.services
+                                        (\s -> expandActive serviceNumber s |> RemoteData.succeed)
+                                , bottomTrackerFocusId "service" <| String.fromInt rm.build.services.followingService
+                                )
+
+                            else if not refresh then
+                                ( rm.build.services.services, Util.extractFocusIdFromRange <| focusFragmentToFocusId "service" logFocus )
+
+                            else
+                                ( rm.build.services.services, "" )
+
+                        cmd =
+                            if not <| String.isEmpty focusId then
+                                Util.dispatch <| FocusOn <| focusId
+
+                            else
+                                Cmd.none
+                    in
+                    ( updateServiceLogs { model | repo = updateBuildServices services rm } incomingLog
                     , cmd
                     )
 
@@ -1661,6 +1808,17 @@ refreshBuildSteps model org repo buildNumber focusFragment =
         Cmd.none
 
 
+{-| refreshBuildServices : takes model org repo and build number and refreshes the build services based on service status
+-}
+refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
+refreshBuildServices model org repo buildNumber focusFragment =
+    if shouldRefresh model.repo.build.build then
+        getAllBuildServices model org repo buildNumber focusFragment True
+
+    else
+        Cmd.none
+
+
 {-| shouldRefresh : takes build and returns true if a refresh is required
 -}
 shouldRefresh : WebData Build -> Bool
@@ -1696,6 +1854,30 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
 
         refresh =
             getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
+    in
+    if shouldRefresh model.repo.build.build then
+        refresh
+
+    else
+        Cmd.none
+
+
+{-| refreshServiceLogs : takes model org repo and build number and services and refreshes the build service logs depending on their status
+-}
+refreshServiceLogs : Model -> Org -> Repo -> BuildNumber -> WebData Services -> FocusFragment -> Cmd Msg
+refreshServiceLogs model org repo buildNumber inServices focusFragment =
+    let
+        servicesToRefresh =
+            case inServices of
+                Success s ->
+                    -- Do not refresh logs for a service in success or failure state
+                    List.filter (\service -> service.status /= Vela.Success && service.status /= Vela.Failure) s
+
+                _ ->
+                    []
+
+        refresh =
+            getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
     in
     if shouldRefresh model.repo.build.build then
         refresh
@@ -2154,6 +2336,9 @@ setNewPage route model =
 
         rm =
             model.repo
+
+        build =
+            rm.build
     in
     case ( route, sessionHasToken ) of
         -- Logged in and on auth flow pages - what are you doing here?
@@ -2251,6 +2436,28 @@ setNewPage route model =
             ( { model | page = Pages.Login }
             , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
             )
+
+
+setPipelineFocusFragment : FocusFragment -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+setPipelineFocusFragment logFocus ( model, c ) =
+    let
+        p =
+            model.pipeline
+    in
+    ( { model
+        | pipeline =
+            { p
+                | focusFragment =
+                    case logFocus of
+                        Just l ->
+                            Just <| "#" ++ l
+
+                        Nothing ->
+                            Nothing
+            }
+      }
+    , c
+    )
 
 
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
@@ -2730,6 +2937,7 @@ loadBuildPage model org repo buildNumber lineFocus =
                             Nothing ->
                                 Nothing
                         )
+                    |> updateBuildServicesFollowing 0
         }
     , Cmd.batch <|
         [ getBuilds model org repo Nothing Nothing Nothing
@@ -2999,6 +3207,33 @@ updateStepLogs model incomingLog =
         model
 
 
+{-| updateServiceLogs : takes model and incoming log and updates the list of service logs if necessary
+-}
+updateServiceLogs : Model -> Log -> Model
+updateServiceLogs model incomingLog =
+    let
+        rm =
+            model.repo
+
+        build =
+            rm.build
+
+        logs =
+            build.services.logs
+
+        logExists =
+            List.member incomingLog.id <| logIds logs
+    in
+    if logExists then
+        { model | repo = updateBuildServicesLogs (updateLog incomingLog logs) rm }
+
+    else if incomingLog.id /= 0 then
+        { model | repo = updateBuildServicesLogs (addLog incomingLog logs) rm }
+
+    else
+        model
+
+
 {-| updateLog : takes incoming log and logs and updates the appropriate log data
 -}
 updateLog : Log -> Logs -> Logs
@@ -3136,11 +3371,15 @@ buildMsgs =
     { collapseAllSteps = CollapseAllSteps
     , expandAllSteps = ExpandAllSteps
     , expandStep = ExpandStep
+    , collapseAllServices = CollapseAllServices
+    , expandAllServices = ExpandAllServices
+    , expandService = ExpandService
     , logsMsgs =
         { focusLine = PushUrl
         , download = DownloadFile "text"
         , focusOn = FocusOn
         , followStep = FollowStep
+        , followService = FollowService
         }
     }
 
@@ -3211,6 +3450,30 @@ getBuildStepsLogs model org repo buildNumber steps logFocus refresh =
                     Cmd.none
             )
             steps
+
+
+getAllBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
+getAllBuildServices model org repo buildNumber logFocus refresh =
+    Api.tryAll (ServicesResponse org repo buildNumber logFocus refresh) <| Api.getAllServices model org repo buildNumber
+
+
+getBuildServiceLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg
+getBuildServiceLogs model org repo buildNumber stepNumber logFocus refresh =
+    Api.try (ServiceLogResponse stepNumber logFocus refresh) <| Api.getServiceLogs model org repo buildNumber stepNumber
+
+
+getBuildServicesLogs : Model -> Org -> Repo -> BuildNumber -> Services -> FocusFragment -> Bool -> Cmd Msg
+getBuildServicesLogs model org repo buildNumber services logFocus refresh =
+    Cmd.batch <|
+        List.map
+            (\service ->
+                if service.viewing then
+                    getBuildServiceLogs model org repo buildNumber (String.fromInt service.number) logFocus refresh
+
+                else
+                    Cmd.none
+            )
+            services
 
 
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg

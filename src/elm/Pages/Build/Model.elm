@@ -56,6 +56,9 @@ type alias Msgs msg =
     { collapseAllSteps : msg
     , expandAllSteps : ExpandAll msg
     , expandStep : Expand msg
+    , collapseAllServices : msg
+    , expandAllServices : ExpandAll msg
+    , expandService : Expand msg
     , logsMsgs : LogsMsgs msg
     }
 
@@ -65,6 +68,7 @@ type alias LogsMsgs msg =
     , download : Download msg
     , focusOn : FocusOn msg
     , followStep : FollowResource msg
+    , followService : FollowResource msg
     }
 
 

@@ -16,6 +16,7 @@ module Api exposing
     , getAllHooks
     , getAllRepositories
     , getAllSecrets
+    , getAllServices
     , getAllSteps
     , getBuild
     , getBuilds
@@ -27,6 +28,7 @@ module Api exposing
     , getRepositories
     , getSecret
     , getSecrets
+    , getServiceLogs
     , getSourceRepositories
     , getStep
     , getStepLogs
