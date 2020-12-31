@@ -554,13 +554,13 @@ viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
             Just l ->
                 div
                     [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, String.fromInt lineNumber ]
+                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, resourceID, String.fromInt lineNumber ]
                     , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
                         [ lineFocusButton focusLine resource resourceID logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, String.fromInt lineNumber ] ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, resourceID, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
                         ]
@@ -579,7 +579,7 @@ lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
         [ Util.onClickPreventDefault <|
             focusLogs <|
                 lineRangeId resource resourceID lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, String.fromInt lineNumber ]
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, resourceID, String.fromInt lineNumber ]
         , id <| resourceAndLineToFocusId resource resourceID lineNumber
         , class "line-number"
         , class "button"
