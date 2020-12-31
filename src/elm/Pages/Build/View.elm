@@ -733,11 +733,13 @@ viewResourceError : Vela.Resource a -> Html msg
 viewResourceError resource =
     div [ class "message", class "error", Util.testAttribute "resource-error" ]
         [ text <|
-            if String.isEmpty resource.error then
-                "null"
+            "error: "
+                ++ (if String.isEmpty resource.error then
+                        "null"
 
-            else
-                resource.error
+                    else
+                        resource.error
+                   )
         ]
 
 
