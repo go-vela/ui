@@ -12,7 +12,7 @@ import Browser.Navigation as Navigation
 import File.Download as Download
 import Focus exposing (resourceFocusFragment)
 import List.Extra
-import Pages.Build.Logs exposing (focusStep)
+import Pages.Build.Logs exposing (focus)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -189,7 +189,7 @@ mergeSteps logFocus refresh currentSteps incomingSteps =
     in
     -- when not an automatic refresh, respect the url focus
     if not refresh then
-        focusStep logFocus updatedSteps
+        focus logFocus updatedSteps
 
     else
         updatedSteps
