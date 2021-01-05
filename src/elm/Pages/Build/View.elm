@@ -477,7 +477,7 @@ viewBuildServices model msgs org repo =
                     Util.smallLoader
 
 
-{-| viewService : renders single build step
+{-| viewService : renders single build service
 -}
 viewService : PartialModel a -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
 viewService model msgs rm services service =
@@ -507,7 +507,7 @@ serviceClasses services service =
     classList [ ( "service", True ) ]
 
 
-{-| viewServiceDetails : renders build steps detailed information
+{-| viewServiceDetails : renders build services detailed information
 -}
 viewServiceDetails : PartialModel a -> Msgs msg -> RepoModel -> Service -> Html msg
 viewServiceDetails model msgs rm service =
@@ -518,7 +518,7 @@ viewServiceDetails model msgs rm service =
         serviceSummary =
             [ summary
                 [ class "summary"
-                , Util.testAttribute <| "step-header-" ++ serviceNumber
+                , Util.testAttribute <| "service-header-" ++ serviceNumber
                 , onClick <| msgs.expandService rm.org rm.name rm.build.buildNumber serviceNumber
                 , id <| resourceToFocusId "service" serviceNumber
                 ]
@@ -543,7 +543,7 @@ viewServiceDetails model msgs rm service =
         serviceSummary
 
 
-{-| viewServiceLogs : takes service and logs and renders step logs or step error
+{-| viewServiceLogs : renders service logs
 -}
 viewServiceLogs : LogsMsgs msg -> Bool -> RepoModel -> Service -> Html msg
 viewServiceLogs msgs shift rm service =
