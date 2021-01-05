@@ -44,8 +44,9 @@ import Vela
         ( Build
         , LogFocus
         , Org
-        , Pipeline
         , PipelineConfig
+        , PipelineModel
+        , PipelineTemplates
         , Repo
         , Step
         , Steps
@@ -70,9 +71,9 @@ viewPipeline model =
 
 {-| viewPipelineTemplates : takes templates and renders a list above the pipeline configuration.
 -}
-viewPipelineTemplates : ( WebData Templates, Error ) -> Html Msg
+viewPipelineTemplates : PipelineTemplates -> Html Msg
 viewPipelineTemplates templates =
-    case templates of
+    case ( templates.data, templates.error ) of
         ( NotAsked, _ ) ->
             text ""
 
@@ -210,7 +211,7 @@ wrapPipelineConfigurationContent model cls content =
             [ div [ class "header" ]
                 [ span [] [ text "Pipeline Configuration" ]
                 ]
-            , viewTemplatesExpansion model
+            , viewPipelineActions model
             ]
                 ++ [ content ]
     in
@@ -221,32 +222,55 @@ wrapPipelineConfigurationContent model cls content =
         body
 
 
-{-| viewTemplatesExpansion : takes model and renders the config header button for expanding pipeline templates.
+{-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
 -}
-viewTemplatesExpansion : PartialModel a -> Html Msg
-viewTemplatesExpansion model =
-    case model.templates of
-        ( Success templates, _ ) ->
-            if Dict.size templates > 0 then
-                div [ class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
-                    [ expandTemplatesToggleIcon model.pipeline
-                    , expandTemplatesToggleButton model.pipeline
-                    , expandTemplatesTip
+viewPipelineActions : PartialModel a -> Html Msg
+viewPipelineActions model =
+    let
+        t =
+            case model.templates.data of
+                Success templates ->
+                    if Dict.size templates > 0 then
+                        div [ class "action", class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
+                            [ expandTemplatesToggleButton model.pipeline
+                            , expandTemplatesToggleIcon model.pipeline
+                            , expandTemplatesTip
+                            ]
+
+                    else
+                        text ""
+
+                _ ->
+                    text ""
+
+        d =
+            div [ class "action" ]
+                [ button
+                    [ class "button"
+                    , class "-link"
+                    , Util.testAttribute <| "download-yml"
+                    , onClick <| DownloadLogs velaYmlFileName <| RemoteData.unwrap "" .data <| Tuple.first model.pipeline.config
+                    , attribute "aria-label" <| "download pipeline configuration file for "
                     ]
+                    [ text <|
+                        if model.pipeline.expanded then
+                            "download (expanded) " ++ velaYmlFileName
 
-            else
-                text ""
+                        else
+                            "download " ++ velaYmlFileName
+                    ]
+                ]
+    in
+    div [ class "actions" ] [ t, d ]
 
-        ( Loading, _ ) ->
-            text ""
 
-        _ ->
-            text ""
+velaYmlFileName =
+    "vela.yml"
 
 
 {-| expandTemplatesToggleIcon : takes pipeline and renders icon for toggling templates expansion.
 -}
-expandTemplatesToggleIcon : Pipeline -> Html Msg
+expandTemplatesToggleIcon : PipelineModel -> Html Msg
 expandTemplatesToggleIcon pipeline =
     let
         wrapExpandTemplatesIcon : Icon -> Html Msg
@@ -265,7 +289,7 @@ expandTemplatesToggleIcon pipeline =
 
 {-| expandTemplatesToggleButton : takes pipeline and renders button that toggles templates expansion.
 -}
-expandTemplatesToggleButton : Pipeline -> Html Msg
+expandTemplatesToggleButton : PipelineModel -> Html Msg
 expandTemplatesToggleButton pipeline =
     let
         { org, repo, ref } =
