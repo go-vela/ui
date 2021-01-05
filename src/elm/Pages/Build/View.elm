@@ -436,8 +436,8 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                                 viewLine stepNumber
                                     (idx + 1)
                                     (Just line)
-                                    stepNumber
                                     "step"
+                                    stepNumber
                                     logFocus
                                     shiftDown
                         )
@@ -448,8 +448,8 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                     viewLine stepNumber
                         1
                         Nothing
-                        stepNumber
                         "step"
+                        stepNumber
                         logFocus
                         shiftDown
                 ]
