@@ -93,24 +93,6 @@ load model org repo ref expand lineFocus =
     )
 
 
-{-| resourceChanged : takes two repo resource identifiers and returns if the build has changed
--}
-resourceChanged : RepoResourceIdentifier -> RepoResourceIdentifier -> Bool
-resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
-    not <| orgA == orgB && repoA == repoB && idA == idB
-
-
-{-| isSamePipelineRef : takes two pipeline resource identifiers and returns if the pipeline ref has changed
--}
-isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
-isSamePipelineRef id currentPage =
-    case currentPage of
-        Pages.Pipeline o r rf _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
-
-        _ ->
-            False
-
 
 
 -- UPDATE
@@ -252,3 +234,22 @@ update model msg =
                 Ok ok ->
                     -- successfully focus the dom
                     ( model, Cmd.none )
+
+
+{-| resourceChanged : takes two repo resource identifiers and returns if the build has changed
+-}
+resourceChanged : RepoResourceIdentifier -> RepoResourceIdentifier -> Bool
+resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
+    not <| orgA == orgB && repoA == repoB && idA == idB
+
+
+{-| isSamePipelineRef : takes two pipeline resource identifiers and returns if the pipeline ref has changed
+-}
+isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
+isSamePipelineRef id currentPage =
+    case currentPage of
+        Pages.Pipeline o r rf _ _ ->
+            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
+
+        _ ->
+            False
