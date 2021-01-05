@@ -100,6 +100,8 @@ resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
     not <| orgA == orgB && repoA == repoB && idA == idB
 
 
+{-| isSamePipelineRef : takes two pipeline resource identifiers and returns if the pipeline ref has changed
+-}
 isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
 isSamePipelineRef id currentPage =
     case currentPage of
