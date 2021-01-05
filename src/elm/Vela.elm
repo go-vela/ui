@@ -107,6 +107,7 @@ module Vela exposing
     , defaultRepository
     , defaultSession
     , defaultStep
+    , defaultStepsModel
     , defaultUpdateRepositoryPayload
     , defaultUser
     , encodeEnableRepository
@@ -125,9 +126,11 @@ module Vela exposing
     , toMaybeSecretType
     , toSecretType
     , updateBuild
-    , updateBuildLogs
-    , updateBuildStepFollowing
+    , updateBuildNumber
     , updateBuildSteps
+    , updateBuildStepsFocusFragment
+    , updateBuildStepsFollowing
+    , updateBuildStepsLogs
     , updateBuilds
     , updateBuildsEvent
     , updateBuildsModel
@@ -143,6 +146,7 @@ module Vela exposing
     , updateRepo
     , updateRepoEnabling
     , updateRepoInitialized
+    , updateRepoModel
     , updateRepoTimeout
     )
 
@@ -390,20 +394,40 @@ type alias RepoModel =
 type alias BuildModel =
     { buildNumber : BuildNumber
     , build : WebData Build
-    , steps : WebData Steps
+    , steps : StepsModel
+    }
+
+
+type alias StepsModel =
+    { steps : WebData Steps
     , logs : Logs
+    , focusFragment : FocusFragment
     , followingStep : Int
     }
 
 
 defaultBuildModel : BuildModel
 defaultBuildModel =
-    BuildModel "" NotAsked NotAsked [] 0
+    BuildModel "" NotAsked defaultStepsModel
 
 
 defaultRepoModel : RepoModel
 defaultRepoModel =
     RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
+
+
+defaultStepsModel : StepsModel
+defaultStepsModel =
+    StepsModel NotAsked [] Nothing 0
+
+
+updateRepoModel : RepoModel -> { a | repo : RepoModel } -> { a | repo : RepoModel }
+updateRepoModel update m =
+    let
+        rm =
+            m.repo
+    in
+    { m | repo = rm }
 
 
 updateRepoInitialized : Bool -> RepoModel -> RepoModel
@@ -461,13 +485,49 @@ updateBuild update rm =
     { rm | build = { b | build = update } }
 
 
-updateBuildStepFollowing : Int -> RepoModel -> RepoModel
-updateBuildStepFollowing update rm =
+updateBuildNumber : BuildNumber -> RepoModel -> RepoModel
+updateBuildNumber update rm =
     let
         b =
             rm.build
     in
-    { rm | build = { b | followingStep = update } }
+    { rm | build = { b | buildNumber = update } }
+
+
+updateBuildStepsFocusFragment : FocusFragment -> RepoModel -> RepoModel
+updateBuildStepsFocusFragment update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | focusFragment = update } } }
+
+
+updateBuildStepsFollowing : Int -> RepoModel -> RepoModel
+updateBuildStepsFollowing update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | followingStep = update } } }
+
+
+updateBuildStepsLogs : Logs -> RepoModel -> RepoModel
+updateBuildStepsLogs update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | logs = update } } }
 
 
 updateBuilds : WebData Builds -> RepoModel -> RepoModel
@@ -528,17 +588,11 @@ updateBuildSteps update rm =
     let
         b =
             rm.build
-    in
-    { rm | build = { b | steps = update } }
 
-
-updateBuildLogs : Logs -> RepoModel -> RepoModel
-updateBuildLogs update rm =
-    let
-        b =
-            rm.build
+        s =
+            b.steps
     in
-    { rm | build = { b | logs = update } }
+    { rm | build = { b | steps = { s | steps = update } } }
 
 
 updateHooksModel : HooksModel -> RepoModel -> RepoModel

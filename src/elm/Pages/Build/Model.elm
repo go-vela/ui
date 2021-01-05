@@ -46,7 +46,7 @@ type alias PartialModel a =
 type Msg
     = ExpandStep Org Repo BuildNumber StepNumber
     | FocusLogs String
-    | DownloadLogs String String
+    | DownloadFile String String String
     | FollowStep Int
     | ExpandAllSteps Org Repo BuildNumber
     | CollapseAllSteps

@@ -123,7 +123,7 @@ viewBuild model org repo =
                     ( text "", "" )
 
         logActions =
-            build.steps
+            build.steps.steps
                 |> RemoteData.unwrap (text "")
                     (\_ ->
                         div
@@ -138,7 +138,7 @@ viewBuild model org repo =
                     )
 
         buildSteps =
-            case build.steps of
+            case build.steps.steps of
                 RemoteData.Success steps_ ->
                     viewBuildSteps model rm steps_
 
@@ -380,7 +380,7 @@ viewLogs model rm step =
             stepSkipped step
 
         _ ->
-            viewLogLines rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getLog step .step_id rm.build.logs) rm.build.followingStep model.shift
+            viewLogLines rm.org rm.name rm.build.buildNumber (String.fromInt step.number) step.logFocus (getLog step .step_id rm.build.steps.logs) rm.build.steps.followingStep model.shift
 
 
 {-| viewLogLines : takes stepnumber linefocus log and clickAction shiftDown and renders logs for a build step
@@ -639,7 +639,7 @@ downloadStepLogsButton stepNumber fileName logs =
         [ class "button"
         , class "-link"
         , Util.testAttribute <| "download-logs-" ++ stepNumber
-        , onClick <| DownloadLogs fileName logs
+        , onClick <| DownloadFile "text" fileName logs
         , attribute "aria-label" <| "download logs for step " ++ stepNumber
         ]
         [ text "download step logs" ]
