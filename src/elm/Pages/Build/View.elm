@@ -508,7 +508,7 @@ viewLine id lineNumber line resource resourceID logFocus shiftDown =
                     , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton resource logFocus lineNumber shiftDown ]
+                        [ lineFocusButton resource resourceID logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
                         [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, resourceID, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
@@ -523,18 +523,18 @@ viewLine id lineNumber line resource resourceID logFocus shiftDown =
 
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
-lineFocusButton : StepNumber -> LogFocus -> Int -> Bool -> Html Msg
-lineFocusButton stepNumber logFocus lineNumber shiftDown =
+lineFocusButton : Resource -> ResourceID -> LogFocus -> Int -> Bool -> Html Msg
+lineFocusButton resource resourceID logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             FocusLogs <|
-                lineRangeId "step" stepNumber lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
-        , id <| resourceAndLineToFocusId "step" stepNumber lineNumber
+                lineRangeId resource resourceID lineNumber logFocus shiftDown
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, resourceID, String.fromInt lineNumber ]
+        , id <| resourceAndLineToFocusId resource resourceID lineNumber
         , class "line-number"
         , class "button"
         , class "-link"
-        , attribute "aria-label" <| "focus step " ++ stepNumber
+        , attribute "aria-label" <| "focus " ++ resource ++ " " ++ resourceID
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
