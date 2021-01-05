@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel, ShowHideTemplates)
+module Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 
 import Alerts exposing (Alert)
 import Browser.Navigation as Navigation
@@ -45,6 +45,8 @@ type alias PartialModel a =
         | velaAPI : String
         , session : Maybe Session
         , navigationKey : Navigation.Key
+        , sourceRepos : WebData SourceRepositories
+        , user : WebData CurrentUser
         , time : Posix
         , repo : RepoModel
         , shift : Bool
@@ -52,8 +54,6 @@ type alias PartialModel a =
         , pipeline : PipelineModel
         , page : Page
         , toasties : Stack Alert
-        , sourceRepos : WebData SourceRepositories
-        , user : WebData CurrentUser
     }
 
 
@@ -72,10 +72,6 @@ type alias Get msg =
 
 type alias Expand msg =
     Org -> Repo -> Maybe BuildNumber -> Maybe String -> FocusFragment -> Bool -> msg
-
-
-type alias ShowHideTemplates msg =
-    msg
 
 
 type alias Download msg =

@@ -401,8 +401,7 @@ lineFocusButton : Resource -> LogFocus -> Int -> Bool -> FocusLineNumber msg -> 
 lineFocusButton resource logFocus lineNumber shiftDown focus =
     button
         [ Util.onClickPreventDefault <|
-            focus <|
-                lineNumber
+            focus lineNumber
         , Util.testAttribute <| String.join "-" [ "config", "line", "num", resource, String.fromInt lineNumber ]
         , Html.Attributes.id <| resourceAndLineToFocusId "config" resource lineNumber
         , class "line-number"

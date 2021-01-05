@@ -331,7 +331,7 @@ type Msg
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
-    | FocusLineNumber Int
+    | FocusPipelineLineNumber Int
     | FilterBuildEventBy (Maybe Event) Org Repo
     | SetTheme Theme
     | GotoPage Pagination.Page
@@ -357,8 +357,8 @@ type Msg
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
-    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) FocusFragment Bool
-    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) FocusFragment Bool
+    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
+    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
@@ -374,7 +374,7 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | StepsResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
+    | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | GetPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
@@ -495,7 +495,7 @@ update msg model =
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
             )
 
-        FocusLineNumber line ->
+        FocusPipelineLineNumber line ->
             let
                 url =
                     lineRangeId "config" "0" line pipeline.lineFocus model.shift
@@ -3153,7 +3153,7 @@ pipelineMsgs : Pages.Pipeline.Model.Msgs Msg
 pipelineMsgs =
     { get = GetPipelineConfig
     , expand = ExpandPipelineConfig
-    , focusLineNumber = FocusLineNumber
+    , focusLineNumber = FocusPipelineLineNumber
     , showHideTemplates = ShowHideTemplates
     , download = DownloadFile "text"
     }

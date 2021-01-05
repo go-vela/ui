@@ -12,11 +12,6 @@ import Browser.Navigation as Navigation
 import Focus exposing (resourceFocusFragment)
 import List.Extra
 import Pages.Build.Logs exposing (focus)
-import Pages.Build.Model
-    exposing
-        ( GetLogs
-        , PartialModel
-        )
 import RemoteData exposing (RemoteData(..), WebData)
 import Task
 import Util exposing (overwriteById)
@@ -39,7 +34,7 @@ import Vela
 
 
 
--- UPDATE HELPERS
+-- UPDATE
 
 
 {-| clickResource : takes resources and resource number, toggles resource view state, and returns whether or not to fetch logs
