@@ -201,12 +201,9 @@ nav {
 
   li {
     position: relative;
-    display: inline-block;
+    // inline-table corrects pixel overflow on the last child skewed shapes
+    display: inline-table;
     padding: 1rem 1rem;
-
-    &:first-child {
-      padding-left: var(--horizontal-pad);
-    }
 
     &:first-child {
       padding-left: var(--horizontal-pad);
@@ -218,6 +215,7 @@ nav {
 
     &:last-child {
       color: var(--color-bg-dark);
+      font-weight: bold;
       background-color: var(--color-lavender);
     }
 
@@ -227,26 +225,21 @@ nav {
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 1em;
+      width: 1rem;
       background: var(--color-lavender);
       transform: skew(-15deg);
     }
 
     &:last-child::before {
-      left: -0.5em;
+      left: -0.5rem;
     }
 
     &:last-child::after {
-      right: -0.5em;
+      right: -0.5rem;
     }
 
     &:only-child::before {
       content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 0;
-      height: 0;
     }
   }
 }
