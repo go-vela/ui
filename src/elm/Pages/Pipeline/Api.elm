@@ -8,7 +8,7 @@ module Pages.Pipeline.Api exposing (expandPipelineConfig, getPipelineConfig, get
 
 import Api
 import Pages.Pipeline.Model exposing (Msg(..), PartialModel)
-import Vela exposing (Org, Ref, Repo)
+import Vela exposing (FocusFragment, Org, Ref, Repo)
 
 
 {-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
@@ -27,6 +27,6 @@ expandPipelineConfig model org repo ref =
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
 -}
-getPipelineTemplates : PartialModel a -> Org -> Repo -> Maybe Ref -> Cmd Msg
-getPipelineTemplates model org repo ref =
-    Api.try (PipelineTemplatesResponse org repo) <| Api.getPipelineTemplates model org repo ref
+getPipelineTemplates : PartialModel a -> Org -> Repo -> Maybe Ref -> FocusFragment -> Cmd Msg
+getPipelineTemplates model org repo ref lineFocus =
+    Api.try (GetPipelineTemplatesResponse org repo lineFocus) <| Api.getPipelineTemplates model org repo ref

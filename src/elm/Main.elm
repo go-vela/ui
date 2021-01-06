@@ -131,8 +131,8 @@ import Vela
         , Logs
         , Name
         , Org
-        , Pipeline
         , PipelineConfig
+        , PipelineModel
         , PipelineTemplates
         , Ref
         , RepairRepo
@@ -241,7 +241,7 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
-    , pipeline : Pipeline
+    , pipeline : PipelineModel
     , templates : PipelineTemplates
     }
 

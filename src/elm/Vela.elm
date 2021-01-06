@@ -36,8 +36,8 @@ module Vela exposing
     , Logs
     , Name
     , Org
-    , Pipeline
     , PipelineConfig
+    , PipelineModel
     , PipelineTemplates
     , Ref
     , RepairRepo
@@ -921,21 +921,23 @@ buildUpdateRepoIntPayload field value =
 -- PIPELINE
 
 
-type alias Pipeline =
+type alias PipelineModel =
     { config : ( WebData PipelineConfig, Error )
     , expanded : Bool
     , expanding : Bool
     , org : Org
-    , repo : Org
+    , repo : Repo
+    , buildNumber : Maybe BuildNumber
     , ref : Maybe Ref
     , expand : Maybe String
     , lineFocus : LogFocus
+    , focusFragment : FocusFragment
     }
 
 
-defaultPipeline : Pipeline
+defaultPipeline : PipelineModel
 defaultPipeline =
-    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing ( Nothing, Nothing )
+    PipelineModel ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =
@@ -944,7 +946,10 @@ type alias PipelineConfig =
 
 
 type alias PipelineTemplates =
-    ( WebData Templates, Error )
+    { data : WebData Templates
+    , error : Error
+    , show : Bool
+    }
 
 
 type alias Template =
@@ -961,7 +966,7 @@ type alias Templates =
 
 defaultPipelineTemplates : PipelineTemplates
 defaultPipelineTemplates =
-    ( NotAsked, "" )
+    PipelineTemplates NotAsked "" True
 
 
 decodePipelineConfig : Decode.Decoder String
