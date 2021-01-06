@@ -10,7 +10,6 @@ import Alerts exposing (Alert)
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Errors exposing (Error)
-import Focus exposing (FocusLineNumber)
 import Http
 import Http.Detailed
 import Pages exposing (Page(..))
@@ -56,7 +55,7 @@ type alias PartialModel a =
 type alias Msgs msg =
     { get : Get msg
     , expand : Expand msg
-    , focusLineNumber : FocusLineNumber msg
+    , focusLineNumber : Int -> msg
     , showHideTemplates : msg
     , download : Download msg
     }

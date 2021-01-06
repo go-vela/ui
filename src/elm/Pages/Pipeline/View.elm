@@ -12,7 +12,7 @@ import Dict
 import Dict.Extra
 import Errors exposing (Error, detailedErrorToString)
 import FeatherIcons exposing (Icon)
-import Focus exposing (ExpandTemplatesQuery, FocusLineNumber, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
+import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html
@@ -335,7 +335,7 @@ expandTemplatesTip =
     returns a list of rendered data lines with focusable line numbers.
 
 -}
-viewLines : PipelineConfig -> LogFocus -> Bool -> FocusLineNumber msg -> List (Html msg)
+viewLines : PipelineConfig -> LogFocus -> Bool -> (Int -> msg) -> List (Html msg)
 viewLines config lineFocus shift focusLineNumber =
     config.data
         |> decodeAnsi
@@ -358,7 +358,7 @@ viewLines config lineFocus shift focusLineNumber =
 
 {-| viewLine : takes line and focus information and renders line number button and data.
 -}
-viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> FocusLineNumber msg -> Html msg
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> (Int -> msg) -> Html msg
 viewLine id lineNumber line resource lineFocus shiftDown focus =
     tr
         [ Html.Attributes.id <|
@@ -390,7 +390,7 @@ viewLine id lineNumber line resource lineFocus shiftDown focus =
 
 {-| lineFocusButton : renders button for focusing log line ranges.
 -}
-lineFocusButton : Resource -> LogFocus -> Int -> Bool -> FocusLineNumber msg -> Html msg
+lineFocusButton : Resource -> LogFocus -> Int -> Bool -> (Int -> msg) -> Html msg
 lineFocusButton resource logFocus lineNumber shiftDown focus =
     button
         [ Util.onClickPreventDefault <|
