@@ -2700,9 +2700,9 @@ loadBuildPage model org repo buildNumber lineFocus =
         pageSet =
             { model | page = Pages.Build org repo buildNumber lineFocus }
     in
-    -- Fetch build from Api
+    -- load page depending on build change
     ( if not sameBuild then
-        resetBuild org repo buildNumber pageSet
+        setBuild org repo buildNumber pageSet
 
       else
         { pageSet
@@ -2738,6 +2738,7 @@ loadBuildPage model org repo buildNumber lineFocus =
 loadPipelinePage : Model -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
 loadPipelinePage model org repo ref expand lineFocus =
     let
+        -- get or expand the pipeline depending on expand query parameter
         getPipeline =
             case expand of
                 Just e ->
@@ -2765,6 +2766,7 @@ loadPipelinePage model org repo ref expand lineFocus =
         sameRef =
             isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page
     in
+    -- load page depending on ref change
     ( { model
         | page = Pages.Pipeline org repo ref expand lineFocus
         , pipeline =
@@ -2804,6 +2806,8 @@ loadPipelinePage model org repo ref expand lineFocus =
     )
 
 
+{-| isSameBuild : takes build identifier and current page and returns true if the build has not changed
+-}
 isSameBuild : RepoResourceIdentifier -> Page -> Bool
 isSameBuild id currentPage =
     case currentPage of
@@ -2814,6 +2818,8 @@ isSameBuild id currentPage =
             False
 
 
+{-| isSamePipelineRef : takes pipeline ref identifier and current page and returns true if the pipeline ref has not changed
+-}
 isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
 isSamePipelineRef id currentPage =
     case currentPage of
@@ -2824,8 +2830,10 @@ isSamePipelineRef id currentPage =
             False
 
 
-resetBuild : Org -> Repo -> BuildNumber -> Model -> Model
-resetBuild org repo buildNumber model =
+{-| setBuild : takes new build information and sets the appropriate model state
+-}
+setBuild : Org -> Repo -> BuildNumber -> Model -> Model
+setBuild org repo buildNumber model =
     let
         rm =
             model.repo
