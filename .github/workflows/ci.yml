@@ -28,19 +28,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-modules-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-bin-${{ hashFiles('**/package-lock.json') }}
@@ -66,19 +66,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-modules-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-bin-${{ hashFiles('**/package-lock.json') }}
@@ -104,19 +104,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-modules-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-bin-${{ hashFiles('**/package-lock.json') }}
@@ -143,19 +143,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-modules-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-bin-${{ hashFiles('**/package-lock.json') }}
@@ -181,13 +181,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: node_modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
