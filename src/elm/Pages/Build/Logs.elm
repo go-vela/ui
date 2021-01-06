@@ -74,13 +74,13 @@ merge logFocus refresh current incoming =
                             |> List.map
                                 (\r ->
                                     let
-                                        ( viewing, logFocus_ ) =
+                                        ( viewing, f ) =
                                             getInfo resources r.number
 
                                         s =
                                             { r
                                                 | viewing = viewing
-                                                , logFocus = logFocus_
+                                                , logFocus = f
                                             }
                                     in
                                     Just <| Maybe.withDefault s <| overwriteById s resources
