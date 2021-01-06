@@ -21,7 +21,7 @@
     "typescript": "4.0.3"
   },
   "devDependencies": {
-    "axe-core": "4.0.2",
+    "axe-core": "4.1.1",
     "cypress": "5.2.0",
     "cypress-axe": "0.8.1",
     "elm-hot": "1.1.5",
