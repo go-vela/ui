@@ -436,6 +436,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                                 viewLine stepNumber
                                     (idx + 1)
                                     (Just line)
+                                    "step"
                                     stepNumber
                                     logFocus
                                     shiftDown
@@ -447,6 +448,7 @@ viewLines stepNumber logFocus decodedLog shiftDown =
                     viewLine stepNumber
                         1
                         Nothing
+                        "step"
                         stepNumber
                         logFocus
                         shiftDown
@@ -489,8 +491,8 @@ viewLines stepNumber logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> Resource -> LogFocus -> Bool -> Html Msg
-viewLine id lineNumber line resource logFocus shiftDown =
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> Resource -> ResourceID -> LogFocus -> Bool -> Html Msg
+viewLine id lineNumber line resource resourceID logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             id
@@ -502,13 +504,13 @@ viewLine id lineNumber line resource logFocus shiftDown =
             Just l ->
                 div
                     [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, String.fromInt lineNumber ]
+                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, resourceID, String.fromInt lineNumber ]
                     , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton resource logFocus lineNumber shiftDown ]
+                        [ lineFocusButton resource resourceID logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, String.fromInt lineNumber ] ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, resourceID, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
                         ]
@@ -521,18 +523,18 @@ viewLine id lineNumber line resource logFocus shiftDown =
 
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
-lineFocusButton : StepNumber -> LogFocus -> Int -> Bool -> Html Msg
-lineFocusButton stepNumber logFocus lineNumber shiftDown =
+lineFocusButton : Resource -> ResourceID -> LogFocus -> Int -> Bool -> Html Msg
+lineFocusButton resource resourceID logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             FocusLogs <|
-                lineRangeId "step" stepNumber lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", stepNumber, String.fromInt lineNumber ]
-        , id <| resourceAndLineToFocusId "step" stepNumber lineNumber
+                lineRangeId resource resourceID lineNumber logFocus shiftDown
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, resourceID, String.fromInt lineNumber ]
+        , id <| resourceAndLineToFocusId resource resourceID lineNumber
         , class "line-number"
         , class "button"
         , class "-link"
-        , attribute "aria-label" <| "focus step " ++ stepNumber
+        , attribute "aria-label" <| "focus " ++ resource ++ " " ++ resourceID
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
