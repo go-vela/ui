@@ -146,9 +146,6 @@ import Vela
         , Secret
         , SecretType(..)
         , Secrets
-        , Service
-        , ServiceNumber
-        , Services
         , Session
         , SourceRepositories
         , Step
@@ -335,7 +332,6 @@ type Msg
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
-    | FocusPipelineLineNumber Int
     | FilterBuildEventBy (Maybe Event) Org Repo
     | SetTheme Theme
     | GotoPage Pagination.Page
@@ -348,6 +344,7 @@ type Msg
     | ExpandStep Org Repo BuildNumber StepNumber
     | FollowStep Int
     | ShowHideTemplates
+    | FocusPipelineConfigLineNumber Int
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -497,20 +494,6 @@ update msg model =
                         |> updateBuildsPager []
               }
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
-            )
-
-        FocusPipelineLineNumber line ->
-            let
-                url =
-                    lineRangeId "config" "0" line pipeline.lineFocus model.shift
-            in
-            ( { model
-                | pipeline =
-                    { pipeline
-                        | lineFocus = pipeline.lineFocus
-                    }
-              }
-            , Navigation.pushUrl model.navigationKey <| url
             )
 
         SetTheme theme ->
@@ -696,6 +679,20 @@ update msg model =
             in
             ( { model | templates = { templates | show = not templates.show } }, Cmd.none )
 
+        FocusPipelineConfigLineNumber line ->
+            let
+                url =
+                    lineRangeId "config" "0" line pipeline.lineFocus model.shift
+            in
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | lineFocus = pipeline.lineFocus
+                    }
+              }
+            , Navigation.pushUrl model.navigationKey <| url
+            )
+
         -- Outgoing HTTP requests
         SignInRequested ->
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
@@ -737,9 +734,6 @@ update msg model =
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeEnableRepository payload
-
-                currentRepo =
-                    RemoteData.withDefault defaultRepository rm.repo
             in
             ( { model
                 | sourceRepos = enableUpdate repo Loading model.sourceRepos
@@ -3157,7 +3151,7 @@ pipelineMsgs : Pages.Pipeline.Model.Msgs Msg
 pipelineMsgs =
     { get = GetPipelineConfig
     , expand = ExpandPipelineConfig
-    , focusLineNumber = FocusPipelineLineNumber
+    , focusLineNumber = FocusPipelineConfigLineNumber
     , showHideTemplates = ShowHideTemplates
     , download = DownloadFile "text"
     }
