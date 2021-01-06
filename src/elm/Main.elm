@@ -1363,10 +1363,6 @@ update msg model =
             ( { model | session = newSession }, Cmd.none )
 
         FocusOn id ->
-            let
-                _ =
-                    Debug.log "focus" id
-            in
             ( model, Dom.focus id |> Task.attempt FocusResult )
 
         FocusResult result ->
