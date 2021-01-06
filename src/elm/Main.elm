@@ -68,12 +68,13 @@ import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
+        , expandActive
         , focus
         , focusAndClear
         , getCurrentResource
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (expandActiveStep)
+import Pages.Build.Update
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -171,6 +172,7 @@ import Vela
         , defaultRepoModel
         , defaultRepository
         , defaultSession
+        , defaultStepsModel
         , encodeEnableRepository
         , encodeSession
         , encodeTheme
@@ -181,8 +183,8 @@ import Vela
         , statusToFavicon
         , stringToTheme
         , updateBuild
-        , updateBuildLogs
         , updateBuildSteps
+        , updateBuildStepsLogs
         , updateBuilds
         , updateBuildsEvent
         , updateBuildsModel
@@ -923,7 +925,7 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.mergeSteps logFocus refresh rm.build.steps
+                                |> Pages.Build.Logs.merge logFocus refresh rm.build.steps.steps
 
                         updatedModel =
                             { model | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm }
@@ -949,24 +951,24 @@ update msg model =
                 Ok ( _, incomingLog ) ->
                     let
                         following =
-                            rm.build.followingStep /= 0
+                            rm.build.steps.followingStep /= 0
 
                         onFollowedStep =
-                            rm.build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+                            rm.build.steps.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                         ( steps, focusId ) =
                             if following && refresh && onFollowedStep then
-                                ( rm.build.steps
-                                    |> RemoteData.unwrap rm.build.steps
-                                        (\s -> expandActiveStep stepNumber s |> RemoteData.succeed)
-                                , bottomTrackerFocusId "step" <| String.fromInt rm.build.followingStep
+                                ( rm.build.steps.steps
+                                    |> RemoteData.unwrap rm.build.steps.steps
+                                        (\s -> expandActive stepNumber s |> RemoteData.succeed)
+                                , bottomTrackerFocusId "step" <| String.fromInt rm.build.steps.followingStep
                                 )
 
                             else if not refresh then
-                                ( rm.build.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
+                                ( rm.build.steps.steps, Util.extractFocusIdFromRange <| focusFragmentToFocusId "step" logFocus )
 
                             else
-                                ( rm.build.steps, "" )
+                                ( rm.build.steps.steps, "" )
 
                         cmd =
                             if not <| String.isEmpty focusId then
@@ -1341,7 +1343,7 @@ refreshPage model =
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber focusFragment
-                , refreshLogs model org repo buildNumber model.repo.build.steps Nothing
+                , refreshLogs model org repo buildNumber model.repo.build.steps.steps Nothing
                 ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
@@ -2007,7 +2009,7 @@ setNewPage route model =
                     if not <| resourceChanged ( org, repo, buildNumber ) ( o, r, b ) then
                         let
                             focusedSteps =
-                                focusAndClear (RemoteData.withDefault [] rm.build.steps) logFocus
+                                focusAndClear (RemoteData.withDefault [] rm.build.steps.steps) logFocus
 
                             ( page, steps, action ) =
                                 ( Pages.Build org repo buildNumber logFocus
@@ -2561,9 +2563,7 @@ loadBuildPage model org repo buildNumber focusFragment =
                 | build =
                     { build
                         | build = Loading
-                        , steps = NotAsked
-                        , logs = []
-                        , followingStep = 0
+                        , steps = defaultStepsModel
                     }
                 , builds = builds
             }
@@ -2645,7 +2645,7 @@ updateStep model incomingStep =
             model.repo
 
         steps =
-            case rm.build.steps of
+            case rm.build.steps.steps of
                 Success s ->
                     s
 
@@ -2656,7 +2656,7 @@ updateStep model incomingStep =
             List.member incomingStep.number <| stepsIds steps
 
         following =
-            rm.build.followingStep /= 0
+            rm.build.steps.followingStep /= 0
     in
     if stepExists then
         { model
@@ -2696,16 +2696,16 @@ updateLogs model incomingLog =
             rm.build
 
         logs =
-            build.logs
+            build.steps.logs
 
         logExists =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repo = updateBuildLogs (updateLog incomingLog logs) rm }
+        { model | repo = updateBuildStepsLogs (updateLog incomingLog logs) rm }
 
     else if incomingLog.id /= 0 then
-        { model | repo = updateBuildLogs (addLog incomingLog logs) rm }
+        { model | repo = updateBuildStepsLogs (addLog incomingLog logs) rm }
 
     else
         model
