@@ -1215,7 +1215,7 @@ type alias Step =
     , distribution : String
     , image : String
     , viewing : Bool
-    , logFocus : ( Maybe Int, Maybe Int )
+    , logFocus : LogFocus
     }
 
 
@@ -1285,7 +1285,7 @@ type alias Service =
     , distribution : String
     , image : String
     , viewing : Bool
-    , logFocus : ( Maybe Int, Maybe Int )
+    , logFocus : LogFocus
     }
 
 
