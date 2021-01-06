@@ -10,6 +10,7 @@ module Pages.Build.Logs exposing
     , decodeAnsi
     , downloadFileName
     , expandActive
+    , focus
     , focusAndClear
     , getCurrentResource
     , getInfo
