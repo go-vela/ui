@@ -229,10 +229,6 @@ wrapPipelineConfigurationContent model { get, expand, download } ref cls content
         body
 
 
-velaYmlFileName =
-    "vela.yml"
-
-
 {-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
 -}
 viewPipelineActions : PartialModel a -> Get msg -> Expand msg -> Download msg -> Html msg
@@ -273,6 +269,10 @@ viewPipelineActions model get expand download =
                 ]
     in
     div [ class "actions" ] [ t, d ]
+
+
+velaYmlFileName =
+    "vela.yml"
 
 
 {-| expandTemplatesToggleIcon : takes pipeline and renders icon for toggling templates expansion.
