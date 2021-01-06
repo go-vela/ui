@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-16.04
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/cache@v1
         with:
           path: ~/.npm
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-16.04
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/cache@v1
         with:
           path: ~/.npm
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-16.04
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/cache@v1
         with:
           path: ~/.npm
@@ -142,7 +142,7 @@ jobs:
       TERM: xterm
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/cache@v1
         with:
           path: ~/.npm
@@ -180,7 +180,7 @@ jobs:
     needs: [lint, elm-format, elm-test, integration]
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/cache@v1
         with:
           path: ~/.npm
