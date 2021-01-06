@@ -21,7 +21,6 @@ import Vela
     exposing
         ( Build
         , BuildNumber
-        , CurrentUser
         , FocusFragment
         , Org
         , PipelineModel
@@ -29,7 +28,6 @@ import Vela
         , Repo
         , RepoModel
         , Session
-        , SourceRepositories
         , Steps
         )
 

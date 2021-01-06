@@ -14,14 +14,11 @@ import Vela
     exposing
         ( Build
         , BuildNumber
-        , CurrentUser
         , FocusFragment
         , Logs
         , Org
-        , PipelineModel
         , Repo
         , RepoModel
-        , SourceRepositories
         , StepNumber
         , Steps
         )

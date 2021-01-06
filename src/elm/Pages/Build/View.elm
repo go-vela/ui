@@ -60,7 +60,6 @@ import Html.Attributes
         , title
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy4)
 import Http exposing (Error(..))
 import List.Extra exposing (unique)
 import Pages exposing (Page(..))
