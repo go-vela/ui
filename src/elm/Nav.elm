@@ -6,7 +6,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Nav exposing (Msgs, viewBuildHistory, viewNav, viewUtil)
 
-import Browser.Events exposing (Visibility(..))
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
 import FeatherIcons
@@ -33,11 +32,9 @@ import Html.Attributes
         , href
         )
 import Html.Events exposing (onClick)
-import Http exposing (Error(..))
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import Svg.Attributes
 import SvgBuilder exposing (recentBuildStatusToIcon)
 import Time exposing (Posix, Zone)
 import Util
