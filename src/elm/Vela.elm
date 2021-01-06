@@ -107,6 +107,7 @@ module Vela exposing
     , defaultRepository
     , defaultSession
     , defaultStep
+    , defaultStepsModel
     , defaultUpdateRepositoryPayload
     , defaultUser
     , encodeEnableRepository

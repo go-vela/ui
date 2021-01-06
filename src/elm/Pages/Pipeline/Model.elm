@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 
 import Alerts exposing (Alert)
+import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Errors exposing (Error)
 import Focus exposing (FocusLineNumber)

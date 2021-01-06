@@ -69,11 +69,14 @@ import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
+        , clickResource
+        , expandActive
         , focusAndClear
         , getCurrentResource
+        , isViewing
+        , setAllViews
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (clickResource, expandActive, isViewing, setAllViews)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -173,6 +176,7 @@ import Vela
         , defaultRepoModel
         , defaultRepository
         , defaultSession
+        , defaultStepsModel
         , encodeEnableRepository
         , encodeSession
         , encodeTheme
@@ -1075,7 +1079,7 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.merge logFocus refresh rm.build.steps.steps
+                                |> Pages.Build.Logs.merge logFocus refresh rm.build.steps.steps
 
                         updatedModel =
                             { model | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm }
