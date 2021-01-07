@@ -15,14 +15,11 @@ import Vela
     exposing
         ( Build
         , BuildNumber
-        , CurrentUser
-        , FocusFragment
+            , FocusFragment
         , Logs
         , Org
-        , PipelineModel
         , Repo
         , RepoModel
-        , SourceRepositories
         , StepNumber
         , Steps
         )
@@ -37,14 +34,11 @@ import Vela
 type alias PartialModel a =
     { a
         | navigationKey : Navigation.Key
-        , sourceRepos : WebData SourceRepositories
-        , user : WebData CurrentUser
         , page : Page
         , time : Posix
         , zone : Zone
         , repo : RepoModel
         , shift : Bool
-        , pipeline : PipelineModel
     }
 
 

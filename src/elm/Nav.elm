@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, viewNav, viewUtil)
+module Nav exposing (Msgs, viewBuildHistory, viewNav, viewUtil)
 
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
@@ -174,7 +174,7 @@ viewUtil model =
     div [ class "util" ]
         [ case model.page of
             Pages.Build _ _ _ _ ->
-                viewBuildHistory model.time model.zone model.page 10 model.repo
+                viewBuildHistory model.time model.zone model.page 10 rm
 
             Pages.RepositoryBuilds org repo _ _ _ ->
                 viewRepoTabs rm model.page
