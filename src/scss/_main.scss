@@ -741,7 +741,7 @@ nav {
   justify-content: flex-start;
 
   padding-right: 1rem;
-  padding-left: 1.6rem;
+  padding-left: 2.6rem;
   padding-top: 0.6rem;
 
   margin-top: 0.6rem;
@@ -756,9 +756,9 @@ nav {
 .flowline-left {
   background: linear-gradient(
     90deg,
-    hsla(0, 0, 0, 0) calc(2.25em - 1px),
-    var(--color-flowline) calc(2.25em),
-    hsla(0, 0, 0, 0) calc(2.25em + 1px)
+    hsla(0, 0, 0, 0) calc(3.25em - 1px),
+    var(--color-flowline) calc(3.25em),
+    hsla(0, 0, 0, 0) calc(3.25em + 1px)
   );
 }
 
@@ -771,7 +771,7 @@ nav {
 .service .-status {
   margin-top: 2rem;
   margin-right: 1rem;
-  margin-left: 1.6rem;
+  margin-left: 2.6rem;
 }
 
 .step .-icon-container,
@@ -1458,8 +1458,6 @@ nav {
 .break-text {
   word-break: break-word;
   word-wrap: break-word;
-
-  overflow-wrap: break-word;
 }
 
 .break-word {
