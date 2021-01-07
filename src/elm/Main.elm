@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Main exposing (buildMsgs, main)
+module Main exposing (main)
 
 import Alerts exposing (Alert)
 import Api
@@ -339,7 +339,6 @@ type Msg
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
-    | FocusLineNumber Int
     | FilterBuildEventBy (Maybe Event) Org Repo
     | SetTheme Theme
     | GotoPage Pagination.Page
@@ -510,20 +509,6 @@ update msg model =
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
             )
 
-        FocusLineNumber line ->
-            let
-                url =
-                    lineRangeId "config" "0" line pipeline.lineFocus model.shift
-            in
-            ( { model
-                | pipeline =
-                    { pipeline
-                        | lineFocus = pipeline.lineFocus
-                    }
-              }
-            , Navigation.pushUrl model.navigationKey <| url
-            )
-
         SetTheme theme ->
             if theme == model.theme then
                 ( model, Cmd.none )
@@ -622,6 +607,7 @@ update msg model =
             , Download.string filename ext content
             )
 
+        -- steps
         ExpandAllSteps org repo buildNumber ->
             let
                 build =
@@ -711,7 +697,7 @@ update msg model =
                         (\services_ -> services_ |> setAllViews True |> RemoteData.succeed)
                         build.services.services
 
-                -- refresh logs for expanded steps
+                -- refresh logs for expanded services
                 action =
                     getBuildServicesLogs model org repo buildNumber (RemoteData.withDefault [] services) Nothing True
             in
@@ -751,13 +737,13 @@ update msg model =
                 serviceOpened =
                     isViewing services serviceNumber
 
-                -- step clicked is step being followed
+                -- step clicked is service being followed
                 onFollowedService =
                     build.services.followingService == (Maybe.withDefault -1 <| String.toInt serviceNumber)
 
                 follow =
                     if onFollowedService && not serviceOpened then
-                        -- stop following a step when collapsed
+                        -- stop following a service when collapsed
                         0
 
                     else
@@ -841,9 +827,6 @@ update msg model =
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeEnableRepository payload
-
-                currentRepo =
-                    RemoteData.withDefault defaultRepository rm.repo
             in
             ( { model
                 | sourceRepos = enableUpdate repo Loading model.sourceRepos
@@ -1531,10 +1514,6 @@ update msg model =
             ( { model | session = newSession }, Cmd.none )
 
         FocusOn id ->
-            let
-                _ =
-                    Debug.log "focus" id
-            in
             ( model, Dom.focus id |> Task.attempt FocusResult )
 
         FocusResult result ->
@@ -2355,9 +2334,6 @@ setNewPage route model =
 
         rm =
             model.repo
-
-        build =
-            rm.build
     in
     case ( route, sessionHasToken ) of
         -- Logged in and on auth flow pages - what are you doing here?
@@ -2455,28 +2431,6 @@ setNewPage route model =
             ( { model | page = Pages.Login }
             , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
             )
-
-
-setPipelineFocusFragment : FocusFragment -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-setPipelineFocusFragment logFocus ( model, c ) =
-    let
-        p =
-            model.pipeline
-    in
-    ( { model
-        | pipeline =
-            { p
-                | focusFragment =
-                    case logFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-            }
-      }
-    , c
-    )
 
 
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
@@ -3488,9 +3442,9 @@ getAllBuildServices model org repo buildNumber logFocus refresh =
     Api.tryAll (ServicesResponse org repo buildNumber logFocus refresh) <| Api.getAllServices model org repo buildNumber
 
 
-getBuildServiceLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg
-getBuildServiceLogs model org repo buildNumber stepNumber logFocus refresh =
-    Api.try (ServiceLogResponse stepNumber logFocus refresh) <| Api.getServiceLogs model org repo buildNumber stepNumber
+getBuildServiceLogs : Model -> Org -> Repo -> BuildNumber -> ServiceNumber -> FocusFragment -> Bool -> Cmd Msg
+getBuildServiceLogs model org repo buildNumber serviceNumber logFocus refresh =
+    Api.try (ServiceLogResponse serviceNumber logFocus refresh) <| Api.getServiceLogs model org repo buildNumber serviceNumber
 
 
 getBuildServicesLogs : Model -> Org -> Repo -> BuildNumber -> Services -> FocusFragment -> Bool -> Cmd Msg

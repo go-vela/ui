@@ -10,19 +10,16 @@ import Alerts exposing (Alert)
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Errors exposing (Error)
-import Focus exposing (FocusLineNumber)
 import Http
 import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
-import Routes exposing (Route)
-import Time exposing (Posix, Zone)
+import Time exposing (Posix)
 import Toasty as Alerting exposing (Stack)
 import Vela
     exposing
         ( Build
         , BuildNumber
-        , CurrentUser
         , FocusFragment
         , Org
         , PipelineModel
@@ -30,7 +27,6 @@ import Vela
         , Repo
         , RepoModel
         , Session
-        , SourceRepositories
         , Steps
         )
 
@@ -53,8 +49,6 @@ type alias PartialModel a =
         , pipeline : PipelineModel
         , page : Page
         , toasties : Stack Alert
-        , sourceRepos : WebData SourceRepositories
-        , user : WebData CurrentUser
     }
 
 

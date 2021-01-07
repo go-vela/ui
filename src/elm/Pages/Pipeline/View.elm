@@ -8,12 +8,11 @@ module Pages.Pipeline.View exposing (viewPipeline)
 
 import Ansi.Log
 import Array
-import DateFormat.Relative exposing (relativeTime)
 import Dict
 import Dict.Extra
 import Errors exposing (Error, detailedErrorToString)
 import FeatherIcons exposing (Icon)
-import Focus exposing (ExpandTemplatesQuery, FocusLineNumber, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
+import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html
@@ -29,7 +28,7 @@ import Html
         , text
         , tr
         )
-import Html.Attributes exposing (attribute, class, href, title)
+import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import List.Extra
 import Pages exposing (Page(..))
@@ -41,7 +40,6 @@ import Util
 import Vela
     exposing
         ( Build
-        , BuildNumber
         , LogFocus
         , Org
         , PipelineConfig
@@ -49,7 +47,6 @@ import Vela
         , PipelineTemplates
         , Ref
         , Repo
-        , Status
         , Step
         , Steps
         , Template

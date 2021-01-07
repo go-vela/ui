@@ -98,10 +98,6 @@
 
   border-bottom: 1px solid var(--color-bg-light);
 
-  .filler {
-    flex: 1;
-  }
-
   .icon {
     display: flex;
     flex-direction: column;
@@ -185,12 +181,4 @@
   .logs-table .line ~ .line {
     margin-top: 0;
   }
-}
-
-// SERVICES
-
-.no-services {
-  padding: 1rem 1rem;
-
-  background-color: var(--color-bg-dark);
 }

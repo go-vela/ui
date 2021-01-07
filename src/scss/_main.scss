@@ -810,6 +810,12 @@ nav {
   font-family: var(--font-code);
 }
 
+.no-services {
+  padding: 1rem 1rem;
+
+  background-color: var(--color-bg-dark);
+}
+
 .logs-container {
   margin-right: -1rem;
   margin-left: -1rem;

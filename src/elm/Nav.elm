@@ -42,11 +42,9 @@ import Vela
     exposing
         ( Build
         , BuildNumber
-        , Builds
         , CurrentUser
         , Engine
         , Org
-        , PipelineModel
         , Repo
         , RepoModel
         , SecretType
@@ -62,7 +60,6 @@ type alias PartialModel a =
         , repo : RepoModel
         , time : Posix
         , zone : Zone
-        , pipeline : PipelineModel
     }
 
 
@@ -176,20 +173,20 @@ viewUtil model =
     in
     div [ class "util" ]
         [ case model.page of
-            Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoNav rm model.page
-
-            Pages.RepoSecrets engine org repo _ _ ->
-                viewRepoNav rm model.page
-
-            Pages.Hooks org repo _ _ ->
-                viewRepoNav rm model.page
-
-            Pages.RepoSettings org repo ->
-                viewRepoNav rm model.page
-
             Pages.Build _ _ _ _ ->
                 viewBuildHistory model.time model.zone model.page 10 model.repo
+
+            Pages.RepositoryBuilds org repo _ _ _ ->
+                viewRepoTabs rm model.page
+
+            Pages.RepoSecrets engine org repo _ _ ->
+                viewRepoTabs rm model.page
+
+            Pages.Hooks org repo _ _ ->
+                viewRepoTabs rm model.page
+
+            Pages.RepoSettings org repo ->
+                viewRepoTabs rm model.page
 
             _ ->
                 text ""
@@ -249,10 +246,10 @@ viewingTab p1 p2 =
 -- REPO
 
 
-{-| viewRepoNav : takes RepoModel and current page and renders navigation tabs
+{-| viewRepoTabs : takes RepoModel and current page and renders navigation tabs
 -}
-viewRepoNav : RepoModel -> Page -> Html msg
-viewRepoNav rm currentPage =
+viewRepoTabs : RepoModel -> Page -> Html msg
+viewRepoTabs rm currentPage =
     let
         org =
             rm.org

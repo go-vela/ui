@@ -61,7 +61,6 @@ import Html.Attributes
         , title
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy4)
 import Http exposing (Error(..))
 import List.Extra exposing (unique)
 import Pages exposing (Page(..))
@@ -477,10 +476,6 @@ viewBuildServices model msgs org repo =
                     Util.smallLoader
 
 
-
--- LOGS
-
-
 {-| viewService : renders single build service
 -}
 viewService : PartialModel a -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
@@ -533,7 +528,7 @@ viewServiceDetails model msgs rm service =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ lazy4 viewServiceLogs msgs.logsMsgs model.shift rm service ]
+            , div [ class "logs-container" ] [ viewServiceLogs msgs.logsMsgs model.shift rm service ]
             ]
     in
     details
