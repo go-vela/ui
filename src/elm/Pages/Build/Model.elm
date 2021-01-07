@@ -9,7 +9,6 @@ module Pages.Build.Model exposing (..)
 import Browser.Navigation as Navigation
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
-import Routes exposing (Route)
 import Time exposing (Posix, Zone)
 import Vela
     exposing
@@ -34,7 +33,6 @@ import Vela
 type alias PartialModel a =
     { a
         | navigationKey : Navigation.Key
-        , page : Page
         , time : Posix
         , zone : Zone
         , repo : RepoModel
