@@ -1719,6 +1719,14 @@ refreshPage model =
                 , refreshStepLogs model org repo buildNumber model.repo.build.steps.steps Nothing
                 ]
 
+        Pages.BuildServices org repo buildNumber focusFragment ->
+            Cmd.batch
+                [ getBuilds model org repo Nothing Nothing Nothing
+                , refreshBuild model org repo buildNumber
+                , refreshBuildServices model org repo buildNumber focusFragment
+                , refreshServiceLogs model org repo buildNumber model.repo.build.services.services Nothing
+                ]
+
         Pages.Hooks org repo maybePage maybePerPage ->
             Cmd.batch
                 [ getHooks model org repo maybePage maybePerPage
@@ -2113,6 +2121,15 @@ viewContent model =
                 repo
             )
 
+        Pages.BuildServices org repo buildNumber _ ->
+            ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+            , Pages.Build.View.viewBuildServices
+                model
+                buildMsgs
+                org
+                repo
+            )
+
         Pages.Pipeline org repo ref expand lineFocus ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Pages.Pipeline.View.viewPipeline
@@ -2403,6 +2420,9 @@ setNewPage route model =
 
         ( Routes.Build org repo buildNumber lineFocus, True ) ->
             loadBuildPage model org repo buildNumber lineFocus
+
+        ( Routes.BuildServices org repo buildNumber lineFocus, True ) ->
+            loadBuildServicesPage model org repo buildNumber lineFocus
 
         ( Routes.Pipeline org repo ref expand lineFocus, True ) ->
             loadPipelinePage model org repo ref expand lineFocus
@@ -2901,7 +2921,6 @@ loadBuildPage model org repo buildNumber lineFocus =
                             )
                             rm.build.steps.steps
                         )
-                    |> updateBuildStepsFollowing 0
                     |> updateBuildStepsFocusFragment
                         (case lineFocus of
                             Just l ->
@@ -2916,6 +2935,52 @@ loadBuildPage model org repo buildNumber lineFocus =
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
         , getAllBuildSteps model org repo buildNumber lineFocus sameBuild
+        ]
+    )
+
+
+{-| loadBuildServicesPage : takes model org, repo, and build number and loads the appropriate build services.
+-}
+loadBuildServicesPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
+loadBuildServicesPage model org repo buildNumber lineFocus =
+    let
+        rm =
+            model.repo
+
+        sameBuild =
+            isSameBuild ( org, repo, buildNumber ) model.page
+
+        pageSet =
+            { model | page = Pages.BuildServices org repo buildNumber lineFocus }
+    in
+    ( if not sameBuild then
+        setBuild org repo buildNumber pageSet
+
+      else
+        { pageSet
+            | repo =
+                rm
+                    |> updateBuildServices
+                        (RemoteData.unwrap Loading
+                            (\services ->
+                                RemoteData.succeed <| focusAndClear services lineFocus
+                            )
+                            rm.build.services.services
+                        )
+                    |> updateBuildServicesFocusFragment
+                        (case lineFocus of
+                            Just l ->
+                                Just <| "#" ++ l
+
+                            Nothing ->
+                                Nothing
+                        )
+                    |> updateBuildStepsFollowing 0
+        }
+    , Cmd.batch <|
+        [ getBuilds model org repo Nothing Nothing Nothing
+        , getBuild model org repo buildNumber
+        , getAllBuildServices model org repo buildNumber lineFocus sameBuild
         ]
     )
 
@@ -2999,6 +3064,9 @@ isSameBuild : RepoResourceIdentifier -> Page -> Bool
 isSameBuild id currentPage =
     case currentPage of
         Pages.Build o r b _ ->
+            not <| resourceChanged id ( o, r, b )
+
+        Pages.BuildServices o r b _ ->
             not <| resourceChanged id ( o, r, b )
 
         _ ->
