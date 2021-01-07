@@ -15,7 +15,7 @@ import Vela
     exposing
         ( Build
         , BuildNumber
-            , FocusFragment
+        , FocusFragment
         , Logs
         , Org
         , Repo
