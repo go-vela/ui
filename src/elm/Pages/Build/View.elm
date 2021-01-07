@@ -109,12 +109,13 @@ import Vela
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel a -> Org -> Repo -> Html Msg
-viewBuild model org repo =
+viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
+viewBuild model msgs org repo =
     wrapWithBuildPreview model org repo <|
         case model.repo.build.steps.steps of
             RemoteData.Success steps_ ->
                 viewBuildSteps model
+                    msgs
                     model.repo
                     steps_
 
@@ -132,7 +133,7 @@ viewBuild model org repo =
 
 {-| wrapWithBuildPreview : takes html content and wraps it with the build preview
 -}
-wrapWithBuildPreview : PartialModel a -> Org -> Repo -> Html Msg -> Html Msg
+wrapWithBuildPreview : PartialModel a -> Org -> Repo -> Html msg -> Html msg
 wrapWithBuildPreview model org repo content =
     let
         rm =
@@ -162,7 +163,7 @@ wrapWithBuildPreview model org repo content =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html Msg
+viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html msg
 viewPreview now zone org repo build =
     let
         buildNumber =
@@ -253,8 +254,8 @@ viewPreview now zone org repo build =
 
 {-| viewBuildSteps : takes build/steps and renders pipeline
 -}
-viewBuildSteps : PartialModel a -> RepoModel -> Steps -> Html Msg
-viewBuildSteps model rm steps =
+viewBuildSteps : PartialModel a -> Msgs msg -> RepoModel -> Steps -> Html msg
+viewBuildSteps model msgs rm steps =
     let
         logActions =
             div
@@ -263,8 +264,8 @@ viewBuildSteps model rm steps =
                 , class "flowline-left"
                 , Util.testAttribute "log-actions"
                 ]
-                [ collapseAllButton
-                , expandAllButton rm.org rm.name rm.build.buildNumber
+                [ collapseAllButton msgs.collapseAllSteps
+                , expandAllButton msgs.expandAllSteps rm.org rm.name rm.build.buildNumber
                 ]
     in
     div []
@@ -272,35 +273,35 @@ viewBuildSteps model rm steps =
         , div [ class "steps" ]
             [ div [ class "-items", Util.testAttribute "steps" ] <|
                 if hasStages steps then
-                    viewStages model rm steps
+                    viewStages model msgs rm steps
 
                 else
-                    viewSteps model rm steps
+                    viewSteps model msgs rm steps
             ]
         ]
 
 
 {-| viewSteps : takes build/steps and renders steps
 -}
-viewSteps : PartialModel a -> RepoModel -> Steps -> List (Html Msg)
-viewSteps model rm steps =
-    List.map (\step -> viewStep model rm steps step) <| steps
+viewSteps : PartialModel a -> Msgs msg -> RepoModel -> Steps -> List (Html msg)
+viewSteps model msgs rm steps =
+    List.map (\step -> viewStep model msgs rm steps step) <| steps
 
 
 {-| viewStep : renders single build step
 -}
-viewStep : PartialModel a -> RepoModel -> Steps -> Step -> Html Msg
-viewStep model rm steps step =
+viewStep : PartialModel a -> Msgs msg -> RepoModel -> Steps -> Step -> Html msg
+viewStep model msgs rm steps step =
     div [ stepClasses steps step, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStatusIcon step.status ] ]
-        , viewStepDetails model rm step
+        , viewStepDetails model msgs rm step
         ]
 
 
 {-| stepClasses : returns css classes for a particular step
 -}
-stepClasses : Steps -> Step -> Html.Attribute Msg
+stepClasses : Steps -> Step -> Html.Attribute msg
 stepClasses steps step =
     let
         last =
@@ -316,8 +317,8 @@ stepClasses steps step =
 
 {-| viewStepDetails : renders build steps detailed information
 -}
-viewStepDetails : PartialModel a -> RepoModel -> Step -> Html Msg
-viewStepDetails model rm step =
+viewStepDetails : PartialModel a -> Msgs msg -> RepoModel -> Step -> Html msg
+viewStepDetails model msgs rm step =
     let
         stepNumber =
             String.fromInt step.number
@@ -326,7 +327,7 @@ viewStepDetails model rm step =
             [ summary
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
-                , onClick <| ExpandStep rm.org rm.name rm.build.buildNumber stepNumber
+                , onClick <| msgs.expandStep rm.org rm.name rm.build.buildNumber stepNumber
                 , id <| resourceToFocusId "step" stepNumber
                 ]
                 [ div
@@ -336,7 +337,7 @@ viewStepDetails model rm step =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ viewStepLogs model.shift rm step ]
+            , div [ class "logs-container" ] [ viewStepLogs msgs.logsMsgs model.shift rm step ]
             ]
     in
     details
@@ -352,8 +353,8 @@ viewStepDetails model rm step =
 
 {-| viewStages : takes model and build model and renders steps grouped by stages
 -}
-viewStages : PartialModel a -> RepoModel -> Steps -> List (Html Msg)
-viewStages model rm steps =
+viewStages : PartialModel a -> Msgs msg -> RepoModel -> Steps -> List (Html msg)
+viewStages model msgs rm steps =
     steps
         |> List.map .stage
         |> unique
@@ -361,19 +362,19 @@ viewStages model rm steps =
             (\stage ->
                 steps
                     |> List.filter (\step -> step.stage == stage)
-                    |> viewStage model rm stage
+                    |> viewStage model msgs rm stage
             )
 
 
 {-| viewStage : takes model, build model and stage and renders the stage steps
 -}
-viewStage : PartialModel a -> RepoModel -> String -> Steps -> Html Msg
-viewStage model rm stage steps =
+viewStage : PartialModel a -> Msgs msg -> RepoModel -> String -> Steps -> Html msg
+viewStage model msgs rm stage steps =
     div
         [ class "stage", Util.testAttribute <| "stage" ]
         [ viewStageDivider model stage
         , steps
-            |> List.map (\step -> viewStep model rm steps step)
+            |> List.map (\step -> viewStep model msgs rm steps step)
             |> div [ Util.testAttribute <| "stage-" ++ stage ]
         ]
 
@@ -403,8 +404,8 @@ hasStages steps =
 
 {-| viewStepLogs : takes step and logs and renders step logs or step error
 -}
-viewStepLogs : Bool -> RepoModel -> Step -> Html Msg
-viewStepLogs shift rm step =
+viewStepLogs : LogsMsgs msg -> Bool -> RepoModel -> Step -> Html msg
+viewStepLogs msgs shift rm step =
     case step.status of
         Vela.Error ->
             viewResourceError step
@@ -414,7 +415,8 @@ viewStepLogs shift rm step =
                 [ text "step was skipped" ]
 
         _ ->
-            viewLogLines
+            viewLogLines msgs
+                msgs.followStep
                 rm.org
                 rm.name
                 rm.build.buildNumber
@@ -432,8 +434,8 @@ viewStepLogs shift rm step =
 
 {-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource
 -}
-viewLogLines : Org -> Repo -> BuildNumber -> String -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html Msg
-viewLogLines org repo buildNumber resource resourceID logFocus maybeLog following shiftDown =
+viewLogLines : LogsMsgs msg -> FollowResource msg -> Org -> Repo -> BuildNumber -> String -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
+viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus maybeLog following shiftDown =
     let
         decodedLog =
             toString maybeLog
@@ -454,10 +456,10 @@ viewLogLines org repo buildNumber resource resourceID logFocus maybeLog followin
                 else
                     let
                         ( logs, numLines ) =
-                            viewLines resource resourceID logFocus decodedLog shiftDown
+                            viewLines msgs.focusLine resource resourceID logFocus decodedLog shiftDown
                     in
-                    [ logsHeader resource resourceID fileName decodedLog
-                    , logsSidebar resource resourceID following numLines
+                    [ logsHeader msgs resource resourceID fileName decodedLog
+                    , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
                     , logs
                     ]
 
@@ -470,8 +472,8 @@ viewLogLines org repo buildNumber resource resourceID logFocus maybeLog followin
 
 {-| viewLines : takes number, line focus information and click action and renders logs
 -}
-viewLines : Resource -> ResourceID -> LogFocus -> String -> Bool -> ( Html Msg, Int )
-viewLines resource resourceID logFocus decodedLog shiftDown =
+viewLines : FocusLine msg -> Resource -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
+viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
     let
         lines =
             if not <| logEmpty decodedLog then
@@ -480,7 +482,7 @@ viewLines resource resourceID logFocus decodedLog shiftDown =
                     |> Array.indexedMap
                         (\idx line ->
                             Just <|
-                                viewLine
+                                viewLine focusLine
                                     resource
                                     resourceID
                                     (idx + 1)
@@ -492,7 +494,7 @@ viewLines resource resourceID logFocus decodedLog shiftDown =
 
             else
                 [ Just <|
-                    viewLine
+                    viewLine focusLine
                         resource
                         resourceID
                         1
@@ -538,8 +540,8 @@ viewLines resource resourceID logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : Resource -> ResourceID -> Int -> Maybe Ansi.Log.Line -> LogFocus -> Bool -> Html Msg
-viewLine resource resourceID lineNumber line logFocus shiftDown =
+viewLine : FocusLine msg -> Resource -> ResourceID -> Int -> Maybe Ansi.Log.Line -> LogFocus -> Bool -> Html msg
+viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             resourceID
@@ -555,7 +557,7 @@ viewLine resource resourceID lineNumber line logFocus shiftDown =
                     , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton resource resourceID logFocus lineNumber shiftDown ]
+                        [ lineFocusButton focusLine resource resourceID logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
                         [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, resourceID, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
@@ -570,11 +572,11 @@ viewLine resource resourceID lineNumber line logFocus shiftDown =
 
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
-lineFocusButton : Resource -> ResourceID -> LogFocus -> Int -> Bool -> Html Msg
-lineFocusButton resource resourceID logFocus lineNumber shiftDown =
+lineFocusButton : (String -> msg) -> Resource -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
+lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
-            FocusLogs <|
+            focusLogs <|
                 lineRangeId resource resourceID lineNumber logFocus shiftDown
         , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, resourceID, String.fromInt lineNumber ]
         , id <| resourceAndLineToFocusId resource resourceID lineNumber
@@ -588,12 +590,12 @@ lineFocusButton resource resourceID logFocus lineNumber shiftDown =
 
 {-| collapseAllButton : renders a button for collapsing all resources
 -}
-collapseAllButton : Html Msg
-collapseAllButton =
+collapseAllButton : msg -> Html msg
+collapseAllButton collapseAllSteps =
     Html.button
         [ class "button"
         , class "-link"
-        , onClick CollapseAllSteps
+        , onClick collapseAllSteps
         , Util.testAttribute "collapse-all"
         ]
         [ small [] [ text "collapse all" ] ]
@@ -601,12 +603,12 @@ collapseAllButton =
 
 {-| expandAllButton : renders a button for expanding all resources
 -}
-expandAllButton : Org -> Repo -> BuildNumber -> Html Msg
-expandAllButton org repo buildNumber =
+expandAllButton : ExpandAll msg -> Org -> Repo -> BuildNumber -> Html msg
+expandAllButton expandAll org repo buildNumber =
     Html.button
         [ class "button"
         , class "-link"
-        , onClick <| ExpandAllSteps org repo buildNumber
+        , onClick <| expandAll org repo buildNumber
         , Util.testAttribute "expand-all"
         ]
         [ small [] [ text "expand all" ] ]
@@ -614,16 +616,16 @@ expandAllButton org repo buildNumber =
 
 {-| logsHeader : takes number, filename and decoded log and renders logs header
 -}
-logsHeader : String -> String -> String -> String -> Html Msg
-logsHeader resource number fileName decodedLog =
+logsHeader : LogsMsgs msg -> String -> String -> String -> String -> Html msg
+logsHeader msgs resource number fileName decodedLog =
     div [ class "logs-header", class "buttons", Util.testAttribute <| "logs-header-actions-" ++ number ]
-        [ downloadLogsButton resource number fileName decodedLog ]
+        [ downloadLogsButton msgs.download resource number fileName decodedLog ]
 
 
 {-| logsSidebar : takes number/following and renders the logs sidebar
 -}
-logsSidebar : String -> String -> Int -> Int -> Html Msg
-logsSidebar resource number following numLines =
+logsSidebar : FocusOn msg -> FollowResource msg -> String -> String -> Int -> Int -> Html msg
+logsSidebar focusOn followMsg resource number following numLines =
     let
         long =
             numLines > 25
@@ -636,29 +638,29 @@ logsSidebar resource number following numLines =
                 ]
               <|
                 (if long then
-                    [ jumpToTopButton resource number
-                    , jumpToBottomButton resource number
+                    [ jumpToTopButton focusOn resource number
+                    , jumpToBottomButton focusOn resource number
                     ]
 
                  else
                     []
                 )
-                    ++ [ followButton resource number following ]
+                    ++ [ followButton followMsg resource number following ]
             ]
         ]
 
 
 {-| jumpToBottomButton : renders action button for jumping to the bottom of a log
 -}
-jumpToBottomButton : String -> String -> Html Msg
-jumpToBottomButton resource number =
+jumpToBottomButton : FocusOn msg -> String -> String -> Html msg
+jumpToBottomButton focusOn resource number =
     button
         [ class "button"
         , class "-icon"
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ number
-        , onClick <| FocusOn <| bottomTrackerFocusId resource number
+        , onClick <| focusOn <| bottomTrackerFocusId resource number
         , attribute "aria-label" <| "jump to bottom of logs for " ++ resource ++ " " ++ number
         ]
         [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -666,15 +668,15 @@ jumpToBottomButton resource number =
 
 {-| jumpToTopButton : renders action button for jumping to the top of a log
 -}
-jumpToTopButton : String -> String -> Html Msg
-jumpToTopButton resource number =
+jumpToTopButton : FocusOn msg -> String -> String -> Html msg
+jumpToTopButton focusOn resource number =
     button
         [ class "button"
         , class "-icon"
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ number
-        , onClick <| FocusOn <| topTrackerFocusId resource number
+        , onClick <| focusOn <| topTrackerFocusId resource number
         , attribute "aria-label" <| "jump to top of logs for " ++ resource ++ " " ++ number
         ]
         [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
@@ -682,13 +684,13 @@ jumpToTopButton resource number =
 
 {-| downloadLogsButton : renders action button for downloading a log
 -}
-downloadLogsButton : String -> String -> String -> String -> Html Msg
-downloadLogsButton resource number fileName logs =
+downloadLogsButton : Download msg -> String -> String -> String -> String -> Html msg
+downloadLogsButton download resource number fileName logs =
     button
         [ class "button"
         , class "-link"
         , Util.testAttribute <| "download-logs-" ++ number
-        , onClick <| DownloadFile "text" fileName logs
+        , onClick <| download fileName logs
         , attribute "aria-label" <| "download logs for " ++ resource ++ " " ++ number
         ]
         [ text <| "download " ++ resource ++ " logs" ]
@@ -696,8 +698,8 @@ downloadLogsButton resource number fileName logs =
 
 {-| followButton : renders button for following logs
 -}
-followButton : String -> String -> Int -> Html Msg
-followButton resource number following =
+followButton : FollowResource msg -> String -> String -> Int -> Html msg
+followButton followStep resource number following =
     let
         num =
             Maybe.withDefault 0 <| String.toInt number
@@ -718,7 +720,7 @@ followButton resource number following =
         , class "tooltip-left"
         , attribute "data-tooltip" tooltip
         , Util.testAttribute <| "follow-logs-" ++ number
-        , onClick <| FollowStep toFollow
+        , onClick <| followStep toFollow
         , attribute "aria-label" <| tooltip ++ " for " ++ resource ++ " " ++ number
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
