@@ -55,7 +55,7 @@ context('Source Repositories', () => {
       });
 
       cy.get('[data-test=source-org-cat]').click();
-      cy.get('[data-test=enable-cat-purr]').click();
+      cy.get('[data-test=enable-cat-purr').click();
 
       cy.get('[data-test=enabled-cat-purr]').should('not.be.visible');
 
