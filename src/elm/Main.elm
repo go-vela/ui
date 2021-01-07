@@ -69,11 +69,14 @@ import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
+        , clickResource
+        , expandActive
         , focusAndClear
         , getCurrentResource
+        , isViewing
+        , setAllViews
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (clickResource, expandActive, isViewing, setAllViews)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -173,6 +176,7 @@ import Vela
         , defaultRepoModel
         , defaultRepository
         , defaultSession
+        , defaultStepsModel
         , encodeEnableRepository
         , encodeSession
         , encodeTheme
@@ -352,6 +356,7 @@ type Msg
     | ExpandService Org Repo BuildNumber ServiceNumber
     | FollowService Int
     | ShowHideTemplates
+    | FocusPipelineConfigLineNumber Int
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -365,8 +370,8 @@ type Msg
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
-    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) FocusFragment Bool
-    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) FocusFragment Bool
+    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
+    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
@@ -382,7 +387,7 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | StepsResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
+    | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
@@ -781,6 +786,20 @@ update msg model =
             in
             ( { model | templates = { templates | show = not templates.show } }, Cmd.none )
 
+        FocusPipelineConfigLineNumber line ->
+            let
+                url =
+                    lineRangeId "config" "0" line pipeline.lineFocus model.shift
+            in
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | lineFocus = pipeline.lineFocus
+                    }
+              }
+            , Navigation.pushUrl model.navigationKey <| url
+            )
+
         -- Outgoing HTTP requests
         SignInRequested ->
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
@@ -1164,7 +1183,7 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.merge logFocus refresh rm.build.steps.steps
+                                |> Pages.Build.Logs.merge logFocus refresh rm.build.steps.steps
 
                         updatedModel =
                             { model | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm }
@@ -1230,7 +1249,7 @@ update msg model =
                         mergedServices =
                             services
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.merge logFocus refresh rm.build.services.services
+                                |> Pages.Build.Logs.merge logFocus refresh rm.build.services.services
 
                         updatedModel =
                             { model | repo = updateBuildServices (RemoteData.succeed mergedServices) rm }
@@ -2913,9 +2932,9 @@ loadBuildPage model org repo buildNumber lineFocus =
         pageSet =
             { model | page = Pages.Build org repo buildNumber lineFocus }
     in
-    -- Fetch build from Api
+    -- load page depending on build change
     ( if not sameBuild then
-        resetBuild org repo buildNumber pageSet
+        setBuild org repo buildNumber pageSet
 
       else
         { pageSet
@@ -2952,6 +2971,7 @@ loadBuildPage model org repo buildNumber lineFocus =
 loadPipelinePage : Model -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
 loadPipelinePage model org repo ref expand lineFocus =
     let
+        -- get or expand the pipeline depending on expand query parameter
         getPipeline =
             case expand of
                 Just e ->
@@ -2979,6 +2999,7 @@ loadPipelinePage model org repo ref expand lineFocus =
         sameRef =
             isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page
     in
+    -- load page depending on ref change
     ( { model
         | page = Pages.Pipeline org repo ref expand lineFocus
         , pipeline =
@@ -3018,6 +3039,8 @@ loadPipelinePage model org repo ref expand lineFocus =
     )
 
 
+{-| isSameBuild : takes build identifier and current page and returns true if the build has not changed
+-}
 isSameBuild : RepoResourceIdentifier -> Page -> Bool
 isSameBuild id currentPage =
     case currentPage of
@@ -3028,6 +3051,8 @@ isSameBuild id currentPage =
             False
 
 
+{-| isSamePipelineRef : takes pipeline ref identifier and current page and returns true if the pipeline ref has not changed
+-}
 isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
 isSamePipelineRef id currentPage =
     case currentPage of
@@ -3038,8 +3063,10 @@ isSamePipelineRef id currentPage =
             False
 
 
-resetBuild : Org -> Repo -> BuildNumber -> Model -> Model
-resetBuild org repo buildNumber model =
+{-| setBuild : takes new build information and sets the appropriate model state
+-}
+setBuild : Org -> Repo -> BuildNumber -> Model -> Model
+setBuild org repo buildNumber model =
     let
         rm =
             model.repo
@@ -3392,7 +3419,7 @@ pipelineMsgs : Pages.Pipeline.Model.Msgs Msg
 pipelineMsgs =
     { get = GetPipelineConfig
     , expand = ExpandPipelineConfig
-    , focusLineNumber = FocusLineNumber
+    , focusLineNumber = FocusPipelineConfigLineNumber
     , showHideTemplates = ShowHideTemplates
     , download = DownloadFile "text"
     }

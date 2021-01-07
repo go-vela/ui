@@ -94,15 +94,3 @@ type alias Download msg =
 
 type alias FocusOn msg =
     String -> msg
-
-
-type alias GetLogs a msg =
-    ( GetStepLogs a msg, GetStepsLogs a msg )
-
-
-type alias GetStepLogs a msg =
-    PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd msg
-
-
-type alias GetStepsLogs a msg =
-    PartialModel a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg

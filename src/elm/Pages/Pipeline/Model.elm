@@ -4,9 +4,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel, ShowHideTemplates)
+module Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 
 import Alerts exposing (Alert)
+import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Errors exposing (Error)
 import Focus exposing (FocusLineNumber)
@@ -60,7 +61,7 @@ type alias PartialModel a =
 type alias Msgs msg =
     { get : Get msg
     , expand : Expand msg
-    , focusLineNumber : FocusLineNumber msg
+    , focusLineNumber : Int -> msg
     , showHideTemplates : msg
     , download : Download msg
     }
@@ -72,10 +73,6 @@ type alias Get msg =
 
 type alias Expand msg =
     Org -> Repo -> Maybe BuildNumber -> Maybe String -> FocusFragment -> Bool -> msg
-
-
-type alias ShowHideTemplates msg =
-    msg
 
 
 type alias Download msg =

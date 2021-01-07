@@ -34,13 +34,9 @@ import Html.Events exposing (onClick)
 import List.Extra
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
-import Pages.Build.Model
-import Pages.Build.View exposing (viewLine, wrapWithBuildPreview)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import SvgBuilder exposing (buildStatusToIcon)
-import Time exposing (Posix, Zone)
 import Util
 import Vela
     exposing
@@ -236,10 +232,6 @@ wrapPipelineConfigurationContent model { get, expand, download } ref cls content
         body
 
 
-velaYmlFileName =
-    "vela.yml"
-
-
 {-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
 -}
 viewPipelineActions : PartialModel a -> Get msg -> Expand msg -> Download msg -> Html msg
@@ -280,6 +272,10 @@ viewPipelineActions model get expand download =
                 ]
     in
     div [ class "actions" ] [ t, d ]
+
+
+velaYmlFileName =
+    "vela.yml"
 
 
 {-| expandTemplatesToggleIcon : takes pipeline and renders icon for toggling templates expansion.
@@ -342,7 +338,7 @@ expandTemplatesTip =
     returns a list of rendered data lines with focusable line numbers.
 
 -}
-viewLines : PipelineConfig -> LogFocus -> Bool -> FocusLineNumber msg -> List (Html msg)
+viewLines : PipelineConfig -> LogFocus -> Bool -> (Int -> msg) -> List (Html msg)
 viewLines config lineFocus shift focusLineNumber =
     config.data
         |> decodeAnsi
@@ -365,7 +361,7 @@ viewLines config lineFocus shift focusLineNumber =
 
 {-| viewLine : takes line and focus information and renders line number button and data.
 -}
-viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> FocusLineNumber msg -> Html msg
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> (Int -> msg) -> Html msg
 viewLine id lineNumber line resource lineFocus shiftDown focus =
     tr
         [ Html.Attributes.id <|
@@ -397,12 +393,11 @@ viewLine id lineNumber line resource lineFocus shiftDown focus =
 
 {-| lineFocusButton : renders button for focusing log line ranges.
 -}
-lineFocusButton : Resource -> LogFocus -> Int -> Bool -> FocusLineNumber msg -> Html msg
+lineFocusButton : Resource -> LogFocus -> Int -> Bool -> (Int -> msg) -> Html msg
 lineFocusButton resource logFocus lineNumber shiftDown focus =
     button
         [ Util.onClickPreventDefault <|
-            focus <|
-                lineNumber
+            focus lineNumber
         , Util.testAttribute <| String.join "-" [ "config", "line", "num", resource, String.fromInt lineNumber ]
         , Html.Attributes.id <| resourceAndLineToFocusId "config" resource lineNumber
         , class "line-number"

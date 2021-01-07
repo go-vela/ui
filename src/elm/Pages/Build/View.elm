@@ -477,6 +477,10 @@ viewBuildServices model msgs org repo =
                     Util.smallLoader
 
 
+
+-- LOGS
+
+
 {-| viewService : renders single build service
 -}
 viewService : PartialModel a -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
