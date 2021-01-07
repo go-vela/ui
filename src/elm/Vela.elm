@@ -36,8 +36,8 @@ module Vela exposing
     , Logs
     , Name
     , Org
-    , Pipeline
     , PipelineConfig
+    , PipelineModel
     , PipelineTemplates
     , Ref
     , RepairRepo
@@ -47,6 +47,8 @@ module Vela exposing
     , RepoSearchFilters
     , Repositories
     , Repository
+    , Resource
+    , Resources
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -105,6 +107,7 @@ module Vela exposing
     , defaultRepository
     , defaultSession
     , defaultStep
+    , defaultStepsModel
     , defaultUpdateRepositoryPayload
     , defaultUser
     , encodeEnableRepository
@@ -123,9 +126,11 @@ module Vela exposing
     , toMaybeSecretType
     , toSecretType
     , updateBuild
-    , updateBuildLogs
-    , updateBuildStepFollowing
+    , updateBuildNumber
     , updateBuildSteps
+    , updateBuildStepsFocusFragment
+    , updateBuildStepsFollowing
+    , updateBuildStepsLogs
     , updateBuilds
     , updateBuildsEvent
     , updateBuildsModel
@@ -141,6 +146,7 @@ module Vela exposing
     , updateRepo
     , updateRepoEnabling
     , updateRepoInitialized
+    , updateRepoModel
     , updateRepoTimeout
     )
 
@@ -388,20 +394,40 @@ type alias RepoModel =
 type alias BuildModel =
     { buildNumber : BuildNumber
     , build : WebData Build
-    , steps : WebData Steps
+    , steps : StepsModel
+    }
+
+
+type alias StepsModel =
+    { steps : WebData Steps
     , logs : Logs
+    , focusFragment : FocusFragment
     , followingStep : Int
     }
 
 
 defaultBuildModel : BuildModel
 defaultBuildModel =
-    BuildModel "" NotAsked NotAsked [] 0
+    BuildModel "" NotAsked defaultStepsModel
 
 
 defaultRepoModel : RepoModel
 defaultRepoModel =
     RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
+
+
+defaultStepsModel : StepsModel
+defaultStepsModel =
+    StepsModel NotAsked [] Nothing 0
+
+
+updateRepoModel : RepoModel -> { a | repo : RepoModel } -> { a | repo : RepoModel }
+updateRepoModel update m =
+    let
+        rm =
+            m.repo
+    in
+    { m | repo = rm }
 
 
 updateRepoInitialized : Bool -> RepoModel -> RepoModel
@@ -459,13 +485,49 @@ updateBuild update rm =
     { rm | build = { b | build = update } }
 
 
-updateBuildStepFollowing : Int -> RepoModel -> RepoModel
-updateBuildStepFollowing update rm =
+updateBuildNumber : BuildNumber -> RepoModel -> RepoModel
+updateBuildNumber update rm =
     let
         b =
             rm.build
     in
-    { rm | build = { b | followingStep = update } }
+    { rm | build = { b | buildNumber = update } }
+
+
+updateBuildStepsFocusFragment : FocusFragment -> RepoModel -> RepoModel
+updateBuildStepsFocusFragment update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | focusFragment = update } } }
+
+
+updateBuildStepsFollowing : Int -> RepoModel -> RepoModel
+updateBuildStepsFollowing update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | followingStep = update } } }
+
+
+updateBuildStepsLogs : Logs -> RepoModel -> RepoModel
+updateBuildStepsLogs update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | logs = update } } }
 
 
 updateBuilds : WebData Builds -> RepoModel -> RepoModel
@@ -526,17 +588,11 @@ updateBuildSteps update rm =
     let
         b =
             rm.build
-    in
-    { rm | build = { b | steps = update } }
 
-
-updateBuildLogs : Logs -> RepoModel -> RepoModel
-updateBuildLogs update rm =
-    let
-        b =
-            rm.build
+        s =
+            b.steps
     in
-    { rm | build = { b | logs = update } }
+    { rm | build = { b | steps = { s | steps = update } } }
 
 
 updateHooksModel : HooksModel -> RepoModel -> RepoModel
@@ -865,21 +921,23 @@ buildUpdateRepoIntPayload field value =
 -- PIPELINE
 
 
-type alias Pipeline =
+type alias PipelineModel =
     { config : ( WebData PipelineConfig, Error )
     , expanded : Bool
     , expanding : Bool
     , org : Org
-    , repo : Org
+    , repo : Repo
+    , buildNumber : Maybe BuildNumber
     , ref : Maybe Ref
     , expand : Maybe String
     , lineFocus : LogFocus
+    , focusFragment : FocusFragment
     }
 
 
-defaultPipeline : Pipeline
+defaultPipeline : PipelineModel
 defaultPipeline =
-    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing ( Nothing, Nothing )
+    PipelineModel ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =
@@ -888,7 +946,10 @@ type alias PipelineConfig =
 
 
 type alias PipelineTemplates =
-    ( WebData Templates, Error )
+    { data : WebData Templates
+    , error : Error
+    , show : Bool
+    }
 
 
 type alias Template =
@@ -905,7 +966,7 @@ type alias Templates =
 
 defaultPipelineTemplates : PipelineTemplates
 defaultPipelineTemplates =
-    ( NotAsked, "" )
+    PipelineTemplates NotAsked "" True
 
 
 decodePipelineConfig : Decode.Decoder String
@@ -1154,7 +1215,7 @@ type alias Step =
     , distribution : String
     , image : String
     , viewing : Bool
-    , logFocus : ( Maybe Int, Maybe Int )
+    , logFocus : LogFocus
     }
 
 
@@ -1224,7 +1285,7 @@ type alias Service =
     , distribution : String
     , image : String
     , viewing : Bool
-    , logFocus : ( Maybe Int, Maybe Int )
+    , logFocus : LogFocus
     }
 
 
@@ -1274,6 +1335,18 @@ type alias Services =
 
 type alias LogFocus =
     ( Maybe Int, Maybe Int )
+
+
+
+-- RESOURCE
+
+
+type alias Resource a =
+    { a | id : Int, number : Int, status : Status, viewing : Bool, logFocus : LogFocus, error : String }
+
+
+type alias Resources a =
+    List (Resource a)
 
 
 

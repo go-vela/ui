@@ -8,19 +8,23 @@ module Pages.Pipeline.Update exposing (load, update)
 
 import Alerts exposing (Alert)
 import Api
+import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Errors exposing (addError, detailedErrorToString, toFailure)
+import File.Download as Download
 import Focus exposing (..)
 import Http
 import Http.Detailed
-import Pages
+import Pages exposing (Page)
 import Pages.Pipeline.Api exposing (expandPipelineConfig, getPipelineConfig, getPipelineTemplates)
 import Pages.Pipeline.Model exposing (Msg(..), PartialModel)
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg exposing (line)
+import Task
 import Toasty as Alerting exposing (Stack)
-import Vela exposing (LogFocus, Org, Repo, Templates)
+import Util
+import Vela exposing (LogFocus, Org, Repo, RepoResourceIdentifier, Templates)
 
 
 
@@ -46,11 +50,19 @@ load model org repo ref expand lineFocus =
 
         parsed =
             parseFocusFragment lineFocus
+
+        sameRef =
+            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page
     in
     ( { model
         | page = Pages.Pipeline org repo ref expand lineFocus
         , pipeline =
-            { config = ( Loading, "" )
+            { config =
+                if sameRef then
+                    model.pipeline.config
+
+                else
+                    ( Loading, "" )
             , expanded = False
             , expanding = True
             , org = org
@@ -58,12 +70,25 @@ load model org repo ref expand lineFocus =
             , ref = ref
             , expand = expand
             , lineFocus = ( parsed.lineA, parsed.lineB )
+            , focusFragment =
+                case lineFocus of
+                    Just l ->
+                        Just <| "#" ++ l
+
+                    Nothing ->
+                        Nothing
+            , buildNumber = Nothing
             }
-        , templates = ( Loading, "" )
+        , templates =
+            if sameRef then
+                model.templates
+
+            else
+                { data = Loading, error = "", show = True }
       }
     , Cmd.batch
         [ getPipelineConfigAction
-        , getPipelineTemplates model org repo ref
+        , getPipelineTemplates model org repo ref lineFocus
         ]
     )
 
@@ -157,17 +182,17 @@ update model msg =
                     , addError error Error
                     )
 
-        PipelineTemplatesResponse org repo response ->
+        GetPipelineTemplatesResponse org repo lineFocus response ->
             case response of
                 Ok ( meta, templates ) ->
                     ( { model
-                        | templates = ( RemoteData.succeed templates, "" )
+                        | templates = { data = RemoteData.succeed templates, error = "", show = model.templates.show }
                       }
-                    , Cmd.none
+                    , Util.dispatch <| FocusOn <| Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
                     )
 
                 Err error ->
-                    ( { model | templates = ( toFailure error, detailedErrorToString error ) }, addError error Error )
+                    ( { model | templates = { data = toFailure error, error = detailedErrorToString error, show = model.templates.show } }, addError error Error )
 
         FocusLine line ->
             let
@@ -189,3 +214,41 @@ update model msg =
 
         AlertsUpdate subMsg ->
             Alerting.update Alerts.successConfig AlertsUpdate subMsg model
+
+        DownloadLogs filename logs ->
+            ( model
+            , Download.string filename "text" logs
+            )
+
+        FocusOn id ->
+            ( model, Dom.focus id |> Task.attempt FocusResult )
+
+        FocusResult result ->
+            -- handle success or failure here
+            case result of
+                Err (Dom.NotFound id) ->
+                    -- unable to find dom 'id'
+                    ( model, Cmd.none )
+
+                Ok ok ->
+                    -- successfully focus the dom
+                    ( model, Cmd.none )
+
+
+{-| resourceChanged : takes two repo resource identifiers and returns if the build has changed
+-}
+resourceChanged : RepoResourceIdentifier -> RepoResourceIdentifier -> Bool
+resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
+    not <| orgA == orgB && repoA == repoB && idA == idB
+
+
+{-| isSamePipelineRef : takes two pipeline resource identifiers and returns if the pipeline ref has changed
+-}
+isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
+isSamePipelineRef id currentPage =
+    case currentPage of
+        Pages.Pipeline o r rf _ _ ->
+            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
+
+        _ ->
+            False

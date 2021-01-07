@@ -4,15 +4,15 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Update exposing (expandActiveStep, mergeSteps, update)
+module Pages.Build.Update exposing (update)
 
 import Api
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import File.Download as Download
-import Focus exposing (resourceFocusFragment)
+import Focus exposing (Resource, ResourceID, resourceFocusFragment)
 import List.Extra
-import Pages.Build.Logs exposing (focusStep)
+import Pages.Build.Logs exposing (..)
 import Pages.Build.Model
     exposing
         ( GetLogs
@@ -25,13 +25,15 @@ import Util exposing (overwriteById)
 import Vela
     exposing
         ( BuildNumber
+        , LogFocus
         , Org
         , Repo
+        , Resources
         , StepNumber
         , Steps
         , updateBuild
-        , updateBuildStepFollowing
         , updateBuildSteps
+        , updateBuildStepsFollowing
         )
 
 
@@ -52,7 +54,7 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
         ExpandStep org repo buildNumber stepNumber ->
             let
                 ( steps, fetchStepLogs ) =
-                    clickStep build.steps stepNumber
+                    clickResource build.steps.steps stepNumber
 
                 action =
                     if fetchStepLogs then
@@ -62,11 +64,11 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         Cmd.none
 
                 stepOpened =
-                    isViewingStep steps stepNumber
+                    isViewing steps stepNumber
 
                 -- step clicked is step being followed
                 onFollowedStep =
-                    build.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
+                    build.steps.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
 
                 follow =
                     if onFollowedStep && not stepOpened then
@@ -74,14 +76,9 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
                         0
 
                     else
-                        build.followingStep
+                        build.steps.followingStep
             in
-            ( { model
-                | repo =
-                    rm
-                        |> updateBuildSteps steps
-                        |> updateBuildStepFollowing follow
-              }
+            ( { model | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing follow }
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
@@ -97,38 +94,33 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
             , Navigation.pushUrl model.navigationKey url
             )
 
-        DownloadLogs filename logs ->
+        DownloadFile ext filename content ->
             ( model
-            , Download.string filename "text" logs
+            , Download.string filename ext content
             )
 
-        FollowStep step ->
-            ( { model | repo = updateBuildStepFollowing step rm }
+        FollowStep follow ->
+            ( { model | repo = updateBuildStepsFollowing follow rm }
             , Cmd.none
             )
 
         CollapseAllSteps ->
             let
                 steps =
-                    build.steps
-                        |> RemoteData.unwrap build.steps
-                            (\steps_ -> steps_ |> setAllStepViews False |> RemoteData.succeed)
+                    build.steps.steps
+                        |> RemoteData.unwrap build.steps.steps
+                            (\steps_ -> steps_ |> setAllViews False |> RemoteData.succeed)
             in
-            ( { model
-                | repo =
-                    rm
-                        |> updateBuildSteps steps
-                        |> updateBuildStepFollowing 0
-              }
+            ( { model | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing 0 }
             , Cmd.none
             )
 
         ExpandAllSteps org repo buildNumber ->
             let
                 steps =
-                    RemoteData.unwrap build.steps
-                        (\steps_ -> steps_ |> setAllStepViews True |> RemoteData.succeed)
-                        build.steps
+                    RemoteData.unwrap build.steps.steps
+                        (\steps_ -> steps_ |> setAllViews True |> RemoteData.succeed)
+                        build.steps.steps
 
                 -- refresh logs for expanded steps
                 action =
@@ -140,105 +132,3 @@ update model msg ( getBuildStepLogs, getBuildStepsLogs ) focusResult =
 
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt focusResult )
-
-
-{-| clickStep : takes steps and step number, toggles step view state, and returns whether or not to fetch logs
--}
-clickStep : WebData Steps -> StepNumber -> ( WebData Steps, Bool )
-clickStep steps stepNumber =
-    let
-        ( stepsOut, action ) =
-            RemoteData.unwrap ( steps, False )
-                (\steps_ ->
-                    ( toggleStepView stepNumber steps_ |> RemoteData.succeed
-                    , True
-                    )
-                )
-                steps
-    in
-    ( stepsOut
-    , action
-    )
-
-
-{-| mergeSteps : takes takes current steps and incoming step information and merges them, updating old logs and retaining previous state.
--}
-mergeSteps : Maybe String -> Bool -> WebData Steps -> Steps -> Steps
-mergeSteps logFocus refresh currentSteps incomingSteps =
-    let
-        updatedSteps =
-            currentSteps
-                |> RemoteData.unwrap incomingSteps
-                    (\steps ->
-                        incomingSteps
-                            |> List.map
-                                (\incomingStep ->
-                                    let
-                                        ( viewing, focus ) =
-                                            getStepInfo steps incomingStep.number
-                                    in
-                                    overwriteById
-                                        { incomingStep
-                                            | viewing = viewing
-                                            , logFocus = focus
-                                        }
-                                        steps
-                                )
-                            |> List.filterMap identity
-                    )
-    in
-    -- when not an automatic refresh, respect the url focus
-    if not refresh then
-        focusStep logFocus updatedSteps
-
-    else
-        updatedSteps
-
-
-{-| isViewingStep : takes steps and step number and returns the step viewing state
--}
-isViewingStep : WebData Steps -> StepNumber -> Bool
-isViewingStep steps stepNumber =
-    steps
-        |> RemoteData.withDefault []
-        |> List.filter (\step -> String.fromInt step.number == stepNumber)
-        |> List.map .viewing
-        |> List.head
-        |> Maybe.withDefault False
-
-
-{-| toggleStepView : takes steps and step number and toggles that steps viewing state
--}
-toggleStepView : String -> Steps -> Steps
-toggleStepView stepNumber =
-    List.Extra.updateIf
-        (\step -> String.fromInt step.number == stepNumber)
-        (\step -> { step | viewing = not step.viewing })
-
-
-{-| setAllStepViews : takes steps and value and sets all steps viewing state
--}
-setAllStepViews : Bool -> Steps -> Steps
-setAllStepViews value =
-    List.map (\step -> { step | viewing = value })
-
-
-{-| expandActiveStep : takes steps and sets step viewing state if the step is active
--}
-expandActiveStep : StepNumber -> Steps -> Steps
-expandActiveStep stepNumber steps =
-    List.Extra.updateIf
-        (\step -> (String.fromInt step.number == stepNumber) && (step.status /= Vela.Pending))
-        (\step -> { step | viewing = True })
-        steps
-
-
-{-| getStepInfo : takes steps and step number and returns the step update information
--}
-getStepInfo : Steps -> Int -> ( Bool, ( Maybe Int, Maybe Int ) )
-getStepInfo steps stepNumber =
-    steps
-        |> List.filter (\step -> step.number == stepNumber)
-        |> List.map (\step -> ( step.viewing, step.logFocus ))
-        |> List.head
-        |> Maybe.withDefault ( False, ( Nothing, Nothing ) )

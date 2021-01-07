@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Pipeline.Model exposing (Msg(..), PartialModel)
 
 import Alerts exposing (Alert)
+import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Errors exposing (Error)
 import Http
@@ -18,8 +19,10 @@ import Toasty as Alerting exposing (Stack)
 import Vela
     exposing
         ( Build
+        , FocusFragment
         , Org
-        , Pipeline
+        , PipelineModel
+        , PipelineTemplates
         , Repo
         , RepoModel
         , Session
@@ -42,8 +45,8 @@ type alias PartialModel a =
         , time : Posix
         , repo : RepoModel
         , shift : Bool
-        , templates : ( WebData Templates, Error )
-        , pipeline : Pipeline
+        , templates : PipelineTemplates
+        , pipeline : PipelineModel
         , page : Page
         , toasties : Stack Alert
     }
@@ -58,7 +61,10 @@ type Msg
     | ExpandPipelineConfig Org Repo (Maybe String) Bool
     | GetPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ExpandPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | PipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
+    | GetPipelineTemplatesResponse Org Repo FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | FocusLine Int
     | Error Error
     | AlertsUpdate (Alerting.Msg Alert)
+    | DownloadLogs String String
+    | FocusOn String
+    | FocusResult (Result Dom.Error ())
