@@ -550,7 +550,7 @@ update msg model =
                                                     [ redirectPage ]
 
                                                 Authenticated _ ->
-                                                    [ addErrorString "Session expired, please try logging in again." HandleError
+                                                    [ addErrorString "Your session has expired or you logged in somewhere else, please log in again." HandleError
                                                     , redirectPage
                                                     ]
                                     in
