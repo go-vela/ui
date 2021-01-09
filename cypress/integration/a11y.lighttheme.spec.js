@@ -77,7 +77,7 @@ context('Accessibility (a11y)', () => {
     });
 
     it.skip('repo page', () => {
-      cy.checkA11yForPage('/someorg/somerepo', A11Y_OPTS);
+      cy.checkA11yForPage('/github/octocat', A11Y_OPTS);
     });
 
     it.skip('hooks page', () => {
@@ -89,7 +89,7 @@ context('Accessibility (a11y)', () => {
     });
 
     it.skip('build page', () => {
-      cy.login('/someorg/somerepo/1');
+      cy.login('/github/octocat/1');
       cy.injectAxe();
       cy.wait(500);
       cy.clickSteps();

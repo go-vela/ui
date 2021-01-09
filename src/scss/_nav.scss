@@ -1,0 +1,59 @@
+// Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// ┌┐┌┌─┐┬  ┬
+// │││├─┤└┐┌┘
+// ┘└┘┴ ┴ └┘
+
+// style for application nav
+.button-with-icon {
+  padding-right: 0.4rem;
+}
+
+.button-icon {
+  margin-left: 0.6rem;
+}
+
+.jump-bar {
+  display: flex;
+  width: 100%;
+  padding: 1rem 0;
+}
+
+.jump-bar .jump {
+  padding: 1rem;
+
+  color: var(--color-text);
+  text-decoration: none;
+
+  border-bottom: 3px solid var(--color-bg-light);
+
+  &.current {
+    font-weight: bold;
+
+    border-color: var(--color-primary);
+  }
+
+  &.spacer {
+    width: 2rem;
+  }
+
+  &.fill {
+    flex: 1;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .jump-bar {
+    flex-direction: column;
+  }
+
+  .jump-bar .jump {
+    &.fill,
+    &.spacer {
+      width: 0;
+      padding: 0;
+    }
+  }
+}

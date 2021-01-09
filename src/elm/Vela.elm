@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Vela exposing
     ( AuthParams
     , Build
+    , BuildModel
     , BuildNumber
     , Builds
     , BuildsModel
@@ -35,20 +36,26 @@ module Vela exposing
     , Logs
     , Name
     , Org
-    , Pipeline
     , PipelineConfig
+    , PipelineModel
     , PipelineTemplates
     , Ref
     , RepairRepo
     , Repo
+    , RepoModel
     , RepoResourceIdentifier
     , RepoSearchFilters
     , Repositories
     , Repository
+    , Resource
+    , Resources
     , SearchFilter
     , Secret
     , SecretType(..)
     , Secrets
+    , Service
+    , ServiceNumber
+    , Services
     , SourceRepositories
     , Status(..)
     , Step
@@ -80,6 +87,8 @@ module Vela exposing
     , decodeRepository
     , decodeSecret
     , decodeSecrets
+    , decodeService
+    , decodeServices
     , decodeSourceRepositories
     , decodeStep
     , decodeSteps
@@ -91,8 +100,10 @@ module Vela exposing
     , defaultHooks
     , defaultPipeline
     , defaultPipelineTemplates
+    , defaultRepoModel
     , defaultRepository
     , defaultStep
+    , defaultStepsModel
     , defaultUpdateRepositoryPayload
     , encodeEnableRepository
     , encodeTheme
@@ -108,8 +119,32 @@ module Vela exposing
     , stringToTheme
     , toMaybeSecretType
     , toSecretType
+    , updateBuild
+    , updateBuildNumber
+    , updateBuildSteps
+    , updateBuildStepsFocusFragment
+    , updateBuildStepsFollowing
+    , updateBuildStepsLogs
+    , updateBuilds
+    , updateBuildsEvent
+    , updateBuildsModel
+    , updateBuildsPage
+    , updateBuildsPager
+    , updateBuildsPerPage
+    , updateHooks
+    , updateHooksModel
+    , updateHooksPage
+    , updateHooksPager
+    , updateHooksPerPage
+    , updateOrgRepo
+    , updateRepo
+    , updateRepoEnabling
+    , updateRepoInitialized
+    , updateRepoModel
+    , updateRepoTimeout
     )
 
+import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Errors exposing (Error)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, field, int, string, succeed)
@@ -162,6 +197,10 @@ type alias Commit =
 
 
 type alias StepNumber =
+    String
+
+
+type alias ServiceNumber =
     String
 
 
@@ -279,6 +318,266 @@ type alias AuthParams =
 -- REPOSITORY
 
 
+{-| RepoModel : model to contain repository information that is crucial for rendering repo pages
+-}
+type alias RepoModel =
+    { org : Org
+    , name : Repo
+    , repo : WebData Repository
+    , hooks : HooksModel
+    , builds : BuildsModel
+    , build : BuildModel
+    , initialized : Bool
+    }
+
+
+{-| BuildModel : model to contain build information that is crucial for rendering a pipeline
+-}
+type alias BuildModel =
+    { buildNumber : BuildNumber
+    , build : WebData Build
+    , steps : StepsModel
+    }
+
+
+type alias StepsModel =
+    { steps : WebData Steps
+    , logs : Logs
+    , focusFragment : FocusFragment
+    , followingStep : Int
+    }
+
+
+defaultBuildModel : BuildModel
+defaultBuildModel =
+    BuildModel "" NotAsked defaultStepsModel
+
+
+defaultRepoModel : RepoModel
+defaultRepoModel =
+    RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
+
+
+defaultStepsModel : StepsModel
+defaultStepsModel =
+    StepsModel NotAsked [] Nothing 0
+
+
+updateRepoModel : RepoModel -> { a | repo : RepoModel } -> { a | repo : RepoModel }
+updateRepoModel update m =
+    let
+        rm =
+            m.repo
+    in
+    { m | repo = rm }
+
+
+updateRepoInitialized : Bool -> RepoModel -> RepoModel
+updateRepoInitialized update rm =
+    { rm | initialized = update }
+
+
+updateOrgRepo : Org -> Repo -> RepoModel -> RepoModel
+updateOrgRepo org repo rm =
+    { rm | org = org, name = repo }
+
+
+updateRepo : WebData Repository -> RepoModel -> RepoModel
+updateRepo update rm =
+    { rm | repo = update }
+
+
+updateRepoTimeout : Maybe Int -> RepoModel -> RepoModel
+updateRepoTimeout update rm =
+    let
+        repo =
+            rm.repo
+    in
+    { rm
+        | repo =
+            case repo of
+                RemoteData.Success r ->
+                    RemoteData.succeed { r | inTimeout = update }
+
+                _ ->
+                    repo
+    }
+
+
+updateRepoEnabling : Enabling -> RepoModel -> RepoModel
+updateRepoEnabling update rm =
+    let
+        repo =
+            rm.repo
+    in
+    case repo of
+        RemoteData.Success r ->
+            { rm | repo = RemoteData.succeed { r | enabling = update } }
+
+        _ ->
+            rm
+
+
+updateBuild : WebData Build -> RepoModel -> RepoModel
+updateBuild update rm =
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | build = update } }
+
+
+updateBuildNumber : BuildNumber -> RepoModel -> RepoModel
+updateBuildNumber update rm =
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | buildNumber = update } }
+
+
+updateBuildStepsFocusFragment : FocusFragment -> RepoModel -> RepoModel
+updateBuildStepsFocusFragment update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | focusFragment = update } } }
+
+
+updateBuildStepsFollowing : Int -> RepoModel -> RepoModel
+updateBuildStepsFollowing update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | followingStep = update } } }
+
+
+updateBuildStepsLogs : Logs -> RepoModel -> RepoModel
+updateBuildStepsLogs update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | logs = update } } }
+
+
+updateBuilds : WebData Builds -> RepoModel -> RepoModel
+updateBuilds update rm =
+    let
+        bm =
+            rm.builds
+
+        builds =
+            bm.builds
+    in
+    { rm | builds = { bm | builds = update } }
+
+
+updateBuildsPager : List WebLink -> RepoModel -> RepoModel
+updateBuildsPager update rm =
+    let
+        bm =
+            rm.builds
+    in
+    { rm | builds = { bm | pager = update } }
+
+
+updateBuildsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
+updateBuildsPage maybePage rm =
+    let
+        bm =
+            rm.builds
+    in
+    { rm | builds = { bm | maybePage = maybePage } }
+
+
+updateBuildsPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
+updateBuildsPerPage maybePerPage rm =
+    let
+        bm =
+            rm.builds
+    in
+    { rm | builds = { bm | maybePerPage = maybePerPage } }
+
+
+updateBuildsEvent : Maybe Event -> RepoModel -> RepoModel
+updateBuildsEvent maybeEvent rm =
+    let
+        bm =
+            rm.builds
+    in
+    { rm | builds = { bm | maybeEvent = maybeEvent } }
+
+
+updateBuildsModel : BuildsModel -> RepoModel -> RepoModel
+updateBuildsModel update rm =
+    { rm | builds = update }
+
+
+updateBuildSteps : WebData Steps -> RepoModel -> RepoModel
+updateBuildSteps update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+    in
+    { rm | build = { b | steps = { s | steps = update } } }
+
+
+updateHooksModel : HooksModel -> RepoModel -> RepoModel
+updateHooksModel update rm =
+    { rm | hooks = update }
+
+
+updateHooks : WebData Hooks -> RepoModel -> RepoModel
+updateHooks update rm =
+    let
+        h =
+            rm.hooks
+    in
+    { rm | hooks = { h | hooks = update } }
+
+
+updateHooksPager : List WebLink -> RepoModel -> RepoModel
+updateHooksPager update rm =
+    let
+        h =
+            rm.hooks
+    in
+    { rm | hooks = { h | pager = update } }
+
+
+updateHooksPage : Maybe Pagination.Page -> RepoModel -> RepoModel
+updateHooksPage maybePage rm =
+    let
+        h =
+            rm.hooks
+    in
+    { rm | hooks = { h | maybePage = maybePage } }
+
+
+updateHooksPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
+updateHooksPerPage maybePerPage rm =
+    let
+        h =
+            rm.hooks
+    in
+    { rm | hooks = { h | maybePerPage = maybePerPage } }
+
+
 type alias Repository =
     { id : Int
     , user_id : Int
@@ -300,6 +599,7 @@ type alias Repository =
     , allow_comment : Bool
     , enabled : Enabled
     , enabling : Enabling
+    , inTimeout : Maybe Int
     }
 
 
@@ -318,7 +618,7 @@ type Enabling
 
 defaultRepository : Repository
 defaultRepository =
-    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False False NotAsked NotAsked_
+    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False False NotAsked NotAsked_ Nothing
 
 
 decodeRepository : Decoder Repository
@@ -346,6 +646,8 @@ decodeRepository =
         |> optional "active" enabledDecoder NotAsked
         -- "enabling"
         |> optional "active" enablingDecoder NotAsked_
+        -- "inTimeout"
+        |> hardcoded Nothing
 
 
 {-| enabledDecoder : decodes string field "status" to the union type Enabled
@@ -561,21 +863,23 @@ buildUpdateRepoIntPayload field value =
 -- PIPELINE
 
 
-type alias Pipeline =
+type alias PipelineModel =
     { config : ( WebData PipelineConfig, Error )
     , expanded : Bool
     , expanding : Bool
     , org : Org
-    , repo : Org
+    , repo : Repo
+    , buildNumber : Maybe BuildNumber
     , ref : Maybe Ref
     , expand : Maybe String
     , lineFocus : LogFocus
+    , focusFragment : FocusFragment
     }
 
 
-defaultPipeline : Pipeline
+defaultPipeline : PipelineModel
 defaultPipeline =
-    Pipeline ( NotAsked, "" ) False False "" "" Nothing Nothing ( Nothing, Nothing )
+    PipelineModel ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =
@@ -584,7 +888,10 @@ type alias PipelineConfig =
 
 
 type alias PipelineTemplates =
-    ( WebData Templates, Error )
+    { data : WebData Templates
+    , error : Error
+    , show : Bool
+    }
 
 
 type alias Template =
@@ -601,7 +908,7 @@ type alias Templates =
 
 defaultPipelineTemplates : PipelineTemplates
 defaultPipelineTemplates =
-    ( NotAsked, "" )
+    PipelineTemplates NotAsked "" True
 
 
 decodePipelineConfig : Decode.Decoder String
@@ -634,10 +941,11 @@ decodeTemplate =
 
 
 type alias BuildsModel =
-    { org : Org
-    , repo : Repo
-    , builds : WebData Builds
+    { builds : WebData Builds
     , pager : List WebLink
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
+    , maybeEvent : Maybe Event
     }
 
 
@@ -718,7 +1026,7 @@ buildStatusDecoder =
 
 defaultBuilds : BuildsModel
 defaultBuilds =
-    BuildsModel "" "" RemoteData.NotAsked []
+    BuildsModel RemoteData.NotAsked [] Nothing Nothing Nothing
 
 
 type alias Builds =
@@ -849,7 +1157,7 @@ type alias Step =
     , distribution : String
     , image : String
     , viewing : Bool
-    , logFocus : ( Maybe Int, Maybe Int )
+    , logFocus : LogFocus
     }
 
 
@@ -898,8 +1206,89 @@ type alias Steps =
     List Step
 
 
+
+-- SERVICE
+
+
+type alias Service =
+    { id : Int
+    , build_id : Int
+    , repo_id : Int
+    , number : Int
+    , name : String
+    , status : Status
+    , error : String
+    , exit_code : Int
+    , created : Int
+    , started : Int
+    , finished : Int
+    , host : String
+    , runtime : String
+    , distribution : String
+    , image : String
+    , viewing : Bool
+    , logFocus : LogFocus
+    }
+
+
+{-| defaultService : returns default, empty service
+-}
+defaultService : Service
+defaultService =
+    Service 0 0 0 0 "" Pending "" 0 0 0 0 "" "" "" "" False ( Nothing, Nothing )
+
+
+{-| decodeService : decodes json from vela into service
+-}
+decodeService : Decoder Service
+decodeService =
+    Decode.succeed Service
+        |> optional "id" int -1
+        |> optional "build_id" int -1
+        |> optional "repo_id" int -1
+        |> optional "number" int -1
+        |> optional "name" string ""
+        |> optional "status" buildStatusDecoder Pending
+        |> optional "error" string ""
+        |> optional "exit_code" int -1
+        |> optional "created" int -1
+        |> optional "started" int -1
+        |> optional "finished" int -1
+        |> optional "host" string ""
+        |> optional "runtime" string ""
+        |> optional "distribution" string ""
+        |> optional "image" string ""
+        -- "viewing"
+        |> hardcoded False
+        -- "logFocus"
+        |> hardcoded ( Nothing, Nothing )
+
+
+{-| decodeServices : decodes json from vela into list of services
+-}
+decodeServices : Decoder Services
+decodeServices =
+    Decode.list decodeService
+
+
+type alias Services =
+    List Service
+
+
 type alias LogFocus =
     ( Maybe Int, Maybe Int )
+
+
+
+-- RESOURCE
+
+
+type alias Resource a =
+    { a | id : Int, number : Int, status : Status, viewing : Bool, logFocus : LogFocus, error : String }
+
+
+type alias Resources a =
+    List (Resource a)
 
 
 
@@ -945,12 +1334,14 @@ type alias FocusFragment =
 type alias HooksModel =
     { hooks : WebData Hooks
     , pager : List WebLink
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
     }
 
 
 defaultHooks : HooksModel
 defaultHooks =
-    HooksModel RemoteData.NotAsked []
+    HooksModel RemoteData.NotAsked [] Nothing Nothing
 
 
 {-| Hook : record type for vela repo hooks

@@ -10,6 +10,7 @@ module Pages.Secrets.Form exposing
     , viewHelp
     , viewImagesInput
     , viewNameInput
+    , viewSubmitButtons
     , viewValueInput
     )
 
@@ -46,7 +47,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick, onInput)
 import Pages.RepoSettings exposing (checkbox)
-import Pages.Secrets.Model exposing (Msg(..), SecretForm)
+import Pages.Secrets.Model exposing (DeleteSecretState(..), Model, Msg(..), SecretForm)
 import Util
 import Vela exposing (Field)
 
@@ -259,6 +260,73 @@ allowCommandCheckbox secretUpdate =
             , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
             ]
         ]
+
+
+viewSubmitButtons : Model msg -> Html Msg
+viewSubmitButtons secretsModel =
+    div [ class "buttons" ]
+        [ viewUpdateButton secretsModel
+        , viewCancelButton secretsModel
+        , viewDeleteButton secretsModel
+        ]
+
+
+viewUpdateButton : Model msg -> Html Msg
+viewUpdateButton secretsModel =
+    button
+        [ class "button"
+        , onClick <| Pages.Secrets.Model.UpdateSecret secretsModel.engine
+        ]
+        [ text "Update" ]
+
+
+viewDeleteButton : Model msg -> Html Msg
+viewDeleteButton secretsModel =
+    let
+        secretDeleteConfirm =
+            "-secret-delete-confirm"
+
+        secretDeleteLoading =
+            "-loading"
+
+        ( deleteButtonText, deleteButtonClass ) =
+            case secretsModel.deleteState of
+                NotAsked_ ->
+                    ( "Remove", "" )
+
+                Confirm ->
+                    ( "Confirm", secretDeleteConfirm )
+
+                Deleting ->
+                    ( "Removing", secretDeleteLoading )
+    in
+    button
+        [ class "button"
+        , class "-outline"
+        , class deleteButtonClass
+        , Util.testAttribute "secret-delete-button"
+        , onClick <| Pages.Secrets.Model.DeleteSecret secretsModel.engine
+        ]
+        [ text deleteButtonText ]
+
+
+viewCancelButton : Model msg -> Html Msg
+viewCancelButton secretsModel =
+    case secretsModel.deleteState of
+        NotAsked_ ->
+            text ""
+
+        Confirm ->
+            button
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "secret-cancel-button"
+                , onClick <| Pages.Secrets.Model.CancelDeleteSecret
+                ]
+                [ text "Cancel" ]
+
+        Deleting ->
+            text ""
 
 
 

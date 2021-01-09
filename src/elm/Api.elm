@@ -9,11 +9,13 @@ module Api exposing
     , addSecret
     , chownRepo
     , deleteRepo
+    , deleteSecret
     , enableRepository
     , expandPipelineConfig
     , getAllBuilds
     , getAllHooks
     , getAllRepositories
+    , getAllSecrets
     , getAllSteps
     , getBuild
     , getBuilds
@@ -65,13 +67,15 @@ import Vela
         , Log
         , Name
         , Org
-        , Pipeline
         , PipelineConfig
         , Repo
         , Repositories
         , Repository
         , Secret
         , Secrets
+        , Service
+        , ServiceNumber
+        , Services
         , SourceRepositories
         , Step
         , StepNumber
@@ -90,6 +94,8 @@ import Vela
         , decodeRepository
         , decodeSecret
         , decodeSecrets
+        , decodeService
+        , decodeServices
         , decodeSourceRepositories
         , decodeStep
         , decodeSteps
@@ -383,11 +389,13 @@ tryAll msg request_ =
         |> Task.attempt msg
 
 
-{-| tryString : default way to request information from and endpoint
 
-    example usage:
-        Api.tryString UserResponse <| Api.getUser model authParams
+-- ENTRYPOINT
 
+
+{-| try : default way to request information from and endpoint
+example usage:
+Api.try UserResponse <| Api.getUser model authParams
 -}
 tryString : (Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg) -> Request String -> Cmd msg
 tryString msg request_ =
@@ -607,6 +615,38 @@ getStepLogs model org repository buildNumber stepNumber =
         |> withAuth model.session
 
 
+{-| getServices : fetches vela build services by repository and build number
+-}
+getServices : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> BuildNumber -> Request Services
+getServices model maybePage maybePerPage org repository buildNumber =
+    get model.velaAPI (Endpoint.Services maybePage maybePerPage org repository buildNumber) decodeServices
+        |> withAuth model.session
+
+
+{-| getAllServices : used in conjuction with 'tryAll', it retrieves all pages for a build service
+-}
+getAllServices : PartialModel a -> Org -> Repo -> BuildNumber -> Request Service
+getAllServices model org repository buildNumber =
+    get model.velaAPI (Endpoint.Services (Just 1) (Just 100) org repository buildNumber) decodeService
+        |> withAuth model.session
+
+
+{-| getService : fetches vela build services by repository, build number and step number
+-}
+getService : PartialModel a -> Org -> Repo -> BuildNumber -> ServiceNumber -> Request Service
+getService model org repository buildNumber serviceNumber =
+    get model.velaAPI (Endpoint.Service org repository buildNumber serviceNumber) decodeService
+        |> withAuth model.session
+
+
+{-| getServiceLogs : fetches vela build service log by repository, build number and service number
+-}
+getServiceLogs : PartialModel a -> Org -> Repo -> BuildNumber -> ServiceNumber -> Request Log
+getServiceLogs model org repository buildNumber serviceNumber =
+    get model.velaAPI (Endpoint.ServiceLogs org repository buildNumber serviceNumber) decodeLog
+        |> withAuth model.session
+
+
 {-| getHooks : fetches hooks for the given repository
 -}
 getHooks : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Hooks
@@ -624,6 +664,14 @@ getAllHooks : PartialModel a -> Org -> Repo -> Request Hook
 getAllHooks model org repository =
     -- we are using the max perPage setting of 100 to reduce the number of calls
     get model.velaAPI (Endpoint.Hooks (Just 1) (Just 100) org repository) decodeHook
+        |> withAuth model.session
+
+
+{-| getAllSecrets : fetches secrets for the given type org and key
+-}
+getAllSecrets : PartialModel a -> Engine -> Type -> Org -> Key -> Request Secret
+getAllSecrets model engine type_ org key =
+    get model.velaAPI (Endpoint.Secrets (Just 1) (Just 100) engine type_ org key) decodeSecret
         |> withAuth model.session
 
 
@@ -656,4 +704,12 @@ updateSecret model engine type_ org key name body =
 addSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Http.Body -> Request Secret
 addSecret model engine type_ org key body =
     post model.velaAPI (Endpoint.Secrets Nothing Nothing engine type_ org key) body decodeSecret
+        |> withAuth model.session
+
+
+{-| deleteSecret : deletes a secret
+-}
+deleteSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Request String
+deleteSecret model engine type_ org key name =
+    delete model.velaAPI (Endpoint.Secret engine type_ org key name)
         |> withAuth model.session

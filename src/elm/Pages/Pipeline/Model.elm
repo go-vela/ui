@@ -4,10 +4,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.Model exposing (Msg(..), PartialModel)
+module Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 
 import Alerts exposing (Alert)
 import Auth.Session exposing (Session(..))
+import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Errors exposing (Error)
 import Http
@@ -19,11 +20,14 @@ import Toasty as Alerting exposing (Stack)
 import Vela
     exposing
         ( Build
+        , BuildNumber
+        , FocusFragment
         , Org
-        , Pipeline
+        , PipelineModel
+        , PipelineTemplates
         , Repo
+        , RepoModel
         , Steps
-        , Templates
         )
 
 
@@ -39,26 +43,31 @@ type alias PartialModel a =
         , session : Session
         , navigationKey : Navigation.Key
         , time : Posix
-        , build : WebData Build
-        , steps : WebData Steps
+        , repo : RepoModel
         , shift : Bool
-        , templates : ( WebData Templates, Error )
-        , pipeline : Pipeline
+        , templates : PipelineTemplates
+        , pipeline : PipelineModel
         , page : Page
         , toasties : Stack Alert
     }
 
 
+type alias Msgs msg =
+    { get : Get msg
+    , expand : Expand msg
+    , focusLineNumber : Int -> msg
+    , showHideTemplates : msg
+    , download : Download msg
+    }
 
--- MSG
+
+type alias Get msg =
+    Org -> Repo -> Maybe BuildNumber -> Maybe String -> FocusFragment -> Bool -> msg
 
 
-type Msg
-    = GetPipelineConfig Org Repo (Maybe String) Bool
-    | ExpandPipelineConfig Org Repo (Maybe String) Bool
-    | GetPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | ExpandPipelineConfigResponse Org Repo (Maybe String) (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | PipelineTemplatesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
-    | FocusLine Int
-    | Error Error
-    | AlertsUpdate (Alerting.Msg Alert)
+type alias Expand msg =
+    Org -> Repo -> Maybe BuildNumber -> Maybe String -> FocusFragment -> Bool -> msg
+
+
+type alias Download msg =
+    String -> String -> msg

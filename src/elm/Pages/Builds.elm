@@ -22,7 +22,6 @@ import Html
         , text
         )
 import Html.Attributes exposing (class, href)
-import Pages.Build.Model exposing (Msg)
 import Pages.Build.View exposing (viewPreview)
 import RemoteData exposing (RemoteData(..))
 import Time exposing (Posix, Zone)
@@ -32,7 +31,7 @@ import Vela exposing (BuildsModel, Event, Org, Repo)
 
 {-| view : takes org and repo and renders build previews
 -}
-view : BuildsModel -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Html Msg
+view : BuildsModel -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Html msg
 view buildsModel now zone org repo maybeEvent =
     let
         settingsLink : String
@@ -58,7 +57,7 @@ view buildsModel now zone org repo maybeEvent =
                                 , text "."
                                 ]
                             , li []
-                                [ text "Triggered one of the "
+                                [ text "Trigger one of the "
                                 , a [ href settingsLink ] [ text "configured webhook events" ]
                                 , text " by performing the respective action via "
                                 , em [] [ text "Git" ]

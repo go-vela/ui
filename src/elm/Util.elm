@@ -10,6 +10,7 @@ module Util exposing
     , ariaHidden
     , base64Decode
     , boolToYesNo
+    , buildBranchUrl
     , dateToHumanReadable
     , dispatch
     , extractFocusIdFromRange
@@ -32,7 +33,9 @@ module Util exposing
     , oneSecondMillis
     , open
     , overwriteById
+    , pageToString
     , pluralize
+    , refToString
     , relativeTimeNoSeconds
     , secondsToMillis
     , smallLoader
@@ -41,6 +44,7 @@ module Util exposing
     , successful
     , testAttribute
     , toTwoDigits
+    , trimCommitHash
     , yesNoToBool
     )
 
@@ -483,3 +487,49 @@ base64Decode inStr =
                     bytes
             )
         |> Maybe.withDefault ""
+
+
+{-| pageToString : small helper to turn page number to a string to display in crumbs
+-}
+pageToString : Maybe Int -> String
+pageToString maybePage =
+    case maybePage of
+        Nothing ->
+            ""
+
+        Just num ->
+            if num > 1 then
+                " (page " ++ String.fromInt num ++ ")"
+
+            else
+                ""
+
+
+{-| refToString : small helper to turn ref to a string to display in crumbs
+-}
+refToString : Maybe String -> String
+refToString maybeRef =
+    case maybeRef of
+        Nothing ->
+            "(default branch)"
+
+        Just ref ->
+            if String.length ref > 0 then
+                ref
+
+            else
+                "(default branch)"
+
+
+{-| buildBranchUrl : drops '.git' off the clone url and concatenates tree + branch ref
+-}
+buildBranchUrl : String -> String -> String
+buildBranchUrl clone branch =
+    String.dropRight 4 clone ++ "/tree/" ++ branch
+
+
+{-| trimCommitHash : takes the first 7 characters of the full commit hash
+-}
+trimCommitHash : String -> String
+trimCommitHash commit =
+    String.left 7 commit

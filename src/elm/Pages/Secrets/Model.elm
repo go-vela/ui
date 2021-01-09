@@ -6,6 +6,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Secrets.Model exposing
     ( AddSecretResponse
+    , DeleteSecretResponse
+    , DeleteSecretState(..)
     , ManageSecretState(..)
     , Model
     , Msg(..)
@@ -22,6 +24,7 @@ import Auth.Session exposing (Session(..))
 import Http
 import Http.Detailed
 import LinkHeader exposing (WebLink)
+import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Vela
     exposing
@@ -45,6 +48,7 @@ type alias PartialModel a msg =
     { a
         | velaAPI : String
         , session : Session
+        , page : Page
         , secretsModel : Model msg
     }
 
@@ -57,14 +61,23 @@ type alias Model msg =
     , team : Team
     , engine : Engine
     , type_ : SecretType
-    , secrets : WebData Secrets
+    , repoSecrets : WebData Secrets
+    , repoSecretsPager : List WebLink
+    , orgSecrets : WebData Secrets
+    , orgSecretsPager : List WebLink
+    , sharedSecrets : WebData Secrets
+    , sharedSecretsPager : List WebLink
     , secret : WebData Secret
     , form : SecretForm
     , secretResponse : SecretResponse msg
-    , secretsResponse : SecretsResponse msg
+    , repoSecretsResponse : SecretsResponse msg
+    , orgSecretsResponse : SecretsResponse msg
+    , sharedSecretsResponse : SecretsResponse msg
     , addSecretResponse : AddSecretResponse msg
+    , deleteSecretResponse : DeleteSecretResponse msg
     , updateSecretResponse : AddSecretResponse msg
     , pager : List WebLink
+    , deleteState : DeleteSecretState
     }
 
 
@@ -120,6 +133,10 @@ type alias UpdateSecretResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Secret ) -> msg
 
 
+type alias DeleteSecretResponse msg =
+    Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+
+
 type Msg
     = OnChangeStringField String String
     | OnChangeEvent String Bool
@@ -128,6 +145,14 @@ type Msg
     | OnChangeAllowCommand String
     | AddSecret Engine
     | UpdateSecret Engine
+    | DeleteSecret Engine
+    | CancelDeleteSecret
+
+
+type DeleteSecretState
+    = NotAsked_
+    | Confirm
+    | Deleting
 
 
 type ManageSecretState

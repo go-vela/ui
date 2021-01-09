@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages exposing (Page(..), toRoute)
+module Pages exposing (Page(..), strip, toRoute)
 
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
@@ -108,3 +108,72 @@ toRoute page =
 
         NotFound ->
             Routes.NotFound
+
+
+{-| strip : maps a Page to itself with optional parameters stripped
+-}
+strip : Page -> Page
+strip page =
+    case page of
+        Overview ->
+            Overview
+
+        SourceRepositories ->
+            SourceRepositories
+
+        Hooks org repo _ _ ->
+            Hooks org repo Nothing Nothing
+
+        RepoSettings org repo ->
+            RepoSettings org repo
+
+        OrgSecrets engine org _ _ ->
+            OrgSecrets engine org Nothing Nothing
+
+        RepoSecrets engine org repo _ _ ->
+            RepoSecrets engine org repo Nothing Nothing
+
+        SharedSecrets engine org repo _ _ ->
+            SharedSecrets engine org repo Nothing Nothing
+
+        AddOrgSecret engine org ->
+            AddOrgSecret engine org
+
+        AddRepoSecret engine org repo ->
+            AddRepoSecret engine org repo
+
+        AddSharedSecret engine org team ->
+            AddSharedSecret engine org team
+
+        OrgSecret engine org name ->
+            OrgSecret engine org name
+
+        RepoSecret engine org repo name ->
+            RepoSecret engine org repo name
+
+        SharedSecret engine org team name ->
+            SharedSecret engine org team name
+
+        RepositoryBuilds org repo _ _ _ ->
+            RepositoryBuilds org repo Nothing Nothing Nothing
+
+        Build org repo buildNumber _ ->
+            Build org repo buildNumber Nothing
+
+        Pipeline org repo _ _ _ ->
+            Pipeline org repo Nothing Nothing Nothing
+
+        Settings ->
+            Settings
+
+        Login ->
+            Login
+
+        Logout ->
+            Logout
+
+        Authenticate ->
+            Authenticate
+
+        NotFound ->
+            NotFound

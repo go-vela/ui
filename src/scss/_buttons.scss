@@ -223,6 +223,11 @@
   }
 }
 
+// to fix multiple-button misalignment
+.buttons {
+  display: flex;
+}
+
 // deal with button groupings
 .buttons .button:not(:last-child) {
   margin-right: 0.5rem;

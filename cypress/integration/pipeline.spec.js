@@ -11,7 +11,7 @@ context('Pipeline', () => {
         cy.server();
         cy.stubPipelineErrors();
         cy.stubPipelineTemplatesErrors();
-        cy.login('/someorg/somerepo/pipeline');
+        cy.login('/github/octocat/pipeline');
       });
       it('pipeline configuration error should show', () => {
         cy.get('[data-test=pipeline-configuration-error]').should('be.visible');
@@ -34,7 +34,7 @@ context('Pipeline', () => {
       cy.server();
       cy.stubPipelineConfiguration();
       cy.stubPipelineTemplatesEmpty();
-      cy.login('/someorg/somerepo/pipeline');
+      cy.login('/github/octocat/pipeline');
     });
     it('templates should not show', () => {
       cy.get('[data-test=pipeline-templates]').should('not.be.visible');
@@ -60,7 +60,7 @@ context('Pipeline', () => {
         cy.stubPipelineConfiguration();
         cy.stubPipelineConfigurationExpand();
         cy.stubPipelineTemplates();
-        cy.login('/someorg/somerepo/pipeline');
+        cy.login('/github/octocat/pipeline');
       });
 
       it('should show 3 templates', () => {
@@ -76,11 +76,11 @@ context('Pipeline', () => {
         );
         cy.get('[data-test=pipeline-template-template1_name]').should(
           'contain',
-          'github.com/someorg/somerepo/template1.yml',
+          'github.com/github/octocat/template1.yml',
         );
         cy.get('[data-test=pipeline-template-template1_name]').should(
           'contain',
-          'https://github.com/someorg/somerepo/blob/master/template1.yml',
+          'https://github.com/github/octocat/blob/master/template1.yml',
         );
       });
 
@@ -253,7 +253,7 @@ context('Pipeline', () => {
         cy.stubPipelineConfiguration();
         cy.stubPipelineConfigurationExpandErrors();
         cy.stubPipelineTemplates();
-        cy.login('/someorg/somerepo/pipeline');
+        cy.login('/github/octocat/pipeline');
       });
 
       it('should show 3 templates', () => {
