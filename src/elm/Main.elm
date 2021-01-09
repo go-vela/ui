@@ -441,12 +441,6 @@ update msg model =
         NewRoute route ->
             setNewPage route model
 
-        LogoutResponse _ ->
-            -- ignoring outcome of request and proceeding to logout
-            ( { model | session = Unauthenticated }
-            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
-            )
-
         ClickedLink urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
@@ -719,6 +713,9 @@ update msg model =
             )
 
         -- Outgoing HTTP requests
+        RefreshAccessToken ->
+            ( model, getToken model )
+
         SignInRequested ->
             -- Login on server needs to accept redirect URL and pass it along to as part of 'state' encoded as base64
             -- so we can parse it when the source provider redirects back to the API
@@ -882,8 +879,11 @@ update msg model =
             )
 
         -- Inbound HTTP responses
-        RefreshAccessToken ->
-            ( model, getToken model )
+        LogoutResponse _ ->
+            -- ignoring outcome of request and proceeding to logout
+            ( { model | session = Unauthenticated }
+            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
+            )
 
         TokenResponse response ->
             case response of
