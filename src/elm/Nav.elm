@@ -43,7 +43,6 @@ import Vela
     exposing
         ( Build
         , BuildNumber
-        , Builds
         , CurrentUser
         , Engine
         , Org
