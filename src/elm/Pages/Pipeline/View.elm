@@ -8,7 +8,6 @@ module Pages.Pipeline.View exposing (viewPipeline)
 
 import Ansi.Log
 import Array
-import DateFormat.Relative exposing (relativeTime)
 import Dict
 import Dict.Extra
 import Errors exposing (Error, detailedErrorToString)
@@ -34,18 +33,13 @@ import Html.Events exposing (onClick)
 import List.Extra
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
-import Pages.Build.Model
-import Pages.Build.View exposing (viewLine, wrapWithBuildPreview)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import SvgBuilder exposing (buildStatusToIcon)
-import Time exposing (Posix, Zone)
 import Util
 import Vela
     exposing
         ( Build
-        , BuildNumber
         , LogFocus
         , Org
         , PipelineConfig
@@ -53,7 +47,6 @@ import Vela
         , PipelineTemplates
         , Ref
         , Repo
-        , Status
         , Step
         , Steps
         , Template
