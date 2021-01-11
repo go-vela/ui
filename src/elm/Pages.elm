@@ -8,10 +8,8 @@ module Pages exposing (Page(..), strip, toRoute)
 
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
-import Html
-import Html.Attributes exposing (class)
 import Routes exposing (Route(..))
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
 
 type Page
@@ -31,8 +29,8 @@ type Page
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
-    | BuildPipeline Org Repo BuildNumber (Maybe Ref) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
-    | Pipeline Org Repo (Maybe Ref) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
+    | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
+    | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
     | Login
     | Logout

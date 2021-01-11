@@ -827,9 +827,6 @@ update msg model =
                 body : Http.Body
                 body =
                     Http.jsonBody <| encodeEnableRepository payload
-
-                currentRepo =
-                    RemoteData.withDefault defaultRepository rm.repo
             in
             ( { model
                 | sourceRepos = enableUpdate repo Loading model.sourceRepos

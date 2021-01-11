@@ -14,8 +14,7 @@ import Http
 import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
-import Routes exposing (Route)
-import Time exposing (Posix, Zone)
+import Time exposing (Posix)
 import Toasty as Alerting exposing (Stack)
 import Vela
     exposing
@@ -44,6 +43,8 @@ type alias PartialModel a =
     { a
         | velaAPI : String
         , session : Maybe Session
+        , user : WebData CurrentUser
+        , sourceRepos : WebData SourceRepositories
         , navigationKey : Navigation.Key
         , time : Posix
         , repo : RepoModel
@@ -52,8 +53,6 @@ type alias PartialModel a =
         , pipeline : PipelineModel
         , page : Page
         , toasties : Stack Alert
-        , sourceRepos : WebData SourceRepositories
-        , user : WebData CurrentUser
     }
 
 

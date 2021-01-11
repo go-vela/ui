@@ -93,7 +93,7 @@ commands page =
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
 
         Pages.BuildServices org repo buildNumber _ ->
-            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
+            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
 
         Pages.BuildPipeline org repo buildNumber _ _ _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
