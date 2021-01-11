@@ -139,7 +139,6 @@ context('Crumbs', () => {
     it('should show appropriate pipeline crumbs', () => {
       cy.get('[data-test=crumb-github]').should('exist');
       cy.get('[data-test=crumb-octocat]').should('exist');
-      cy.get('[data-test=crumb-somebranch]').should('exist');
     });
   });
 });
