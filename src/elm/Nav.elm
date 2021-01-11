@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, viewBuildHistory, viewNav, viewUtil)
+module Nav exposing (Msgs, viewNav, viewUtil)
 
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
@@ -33,6 +33,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Pages exposing (Page(..))
+import Pages.Build.History
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import SvgBuilder exposing (recentBuildStatusToIcon)
@@ -173,9 +174,6 @@ viewUtil model =
     in
     div [ class "util" ]
         [ case model.page of
-            Pages.Build _ _ _ _ ->
-                viewBuildHistory model.time model.zone model.page 10 rm
-
             Pages.RepositoryBuilds org repo _ _ _ ->
                 viewRepoTabs rm model.page
 
@@ -187,6 +185,12 @@ viewUtil model =
 
             Pages.RepoSettings org repo ->
                 viewRepoTabs rm model.page
+
+            Pages.Build _ _ _ _ ->
+                Pages.Build.History.view model.time model.zone model.page 10 model.repo
+
+            Pages.BuildServices _ _ _ _ ->
+                Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
             _ ->
                 text ""
