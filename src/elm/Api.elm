@@ -67,7 +67,6 @@ import Vela
         , Name
         , Org
         , PipelineConfig
-        , PipelineModel
         , Repo
         , Repositories
         , Repository

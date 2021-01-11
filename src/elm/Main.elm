@@ -339,7 +339,6 @@ type Msg
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
-    | FocusLineNumber Int
     | FilterBuildEventBy (Maybe Event) Org Repo
     | SetTheme Theme
     | GotoPage Pagination.Page
@@ -508,20 +507,6 @@ update msg model =
                         |> updateBuildsPager []
               }
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
-            )
-
-        FocusLineNumber line ->
-            let
-                url =
-                    lineRangeId "config" "0" line pipeline.lineFocus model.shift
-            in
-            ( { model
-                | pipeline =
-                    { pipeline
-                        | lineFocus = pipeline.lineFocus
-                    }
-              }
-            , Navigation.pushUrl model.navigationKey <| url
             )
 
         SetTheme theme ->
