@@ -195,9 +195,6 @@ viewUtil model =
             Pages.BuildServices _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
-            Pages.BuildPipeline _ _ _ _ _ _ ->
-                Pages.Build.History.view model.time model.zone model.page 10 model.repo
-
             _ ->
                 text ""
         ]
