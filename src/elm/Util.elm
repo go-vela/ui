@@ -521,15 +521,15 @@ refToString maybeRef =
                 "(default branch)"
 
 
-{-| trimCommitHash : takes the first 7 characters of the full commit hash
--}
-trimCommitHash : String -> String
-trimCommitHash commit =
-    String.left 7 commit
-
-
 {-| buildBranchUrl : drops '.git' off the clone url and concatenates tree + branch ref
 -}
 buildBranchUrl : String -> String -> String
 buildBranchUrl clone branch =
     String.dropRight 4 clone ++ "/tree/" ++ branch
+
+
+{-| trimCommitHash : takes the first 7 characters of the full commit hash
+-}
+trimCommitHash : String -> String
+trimCommitHash commit =
+    String.left 7 commit

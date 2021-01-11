@@ -52,15 +52,15 @@ header {
   border-left-width: 0;
   border-image-source: linear-gradient(
     to right,
-    var(--color-primary) 55%,
+    var(--color-secondary) 55%,
     transparent 55%,
     transparent 58%,
-    var(--color-primary) 58%,
-    var(--color-primary) 69%,
+    var(--color-secondary) 58%,
+    var(--color-secondary) 69%,
     transparent 69%,
     transparent 75%,
-    var(--color-secondary) 75%,
-    var(--color-secondary) 76%,
+    var(--color-primary) 75%,
+    var(--color-primary) 76%,
     transparent 76%
   );
   border-image-slice: 1;
@@ -182,28 +182,66 @@ nav {
     }
 
     &:last-child {
-      font-weight: bold;
       text-decoration: none;
     }
   }
 }
 
 .navigation {
-  padding: 0 var(--horizontal-pad);
+  padding: 0 var(--horizontal-pad) 0 0;
 
-  border-top-width: 0;
-  border-bottom: var(--line-width) solid;
-  border-left-width: 0;
-  border-image-source: linear-gradient(
-    to right,
-    var(--color-bg-light) 15%,
-    transparent 15%,
-    transparent 18%,
-    var(--color-bg-light) 18%,
-    var(--color-bg-light) 18.8%,
-    transparent 18.8%
-  );
-  border-image-slice: 1;
+  ol {
+    background-color: var(--color-bg-dark);
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+    list-style-type: none;
+    width: auto;
+  }
+
+  li {
+    position: relative;
+    // inline-table corrects pixel overflow on the last child skewed shapes
+    display: inline-table;
+    padding: 1rem 1rem;
+
+    &:first-child {
+      padding-left: var(--horizontal-pad);
+    }
+
+    &:nth-last-child(2)::after {
+      content: '';
+    }
+
+    &:last-child {
+      color: var(--color-bg-dark);
+      font-weight: bold;
+      background-color: var(--color-lavender);
+    }
+
+    &:last-child::before,
+    &:last-child::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1rem;
+      background: var(--color-lavender);
+      transform: skew(-15deg);
+    }
+
+    &:last-child::before {
+      left: -0.5rem;
+    }
+
+    &:last-child::after {
+      right: -0.5rem;
+    }
+
+    &:only-child::before {
+      content: '';
+    }
+  }
 }
 
 .item {
@@ -808,6 +846,12 @@ nav {
 .step .-info .-duration,
 .service .-info .-duration {
   font-family: var(--font-code);
+}
+
+.no-services {
+  padding: 1rem 1rem;
+
+  background-color: var(--color-bg-dark);
 }
 
 .logs-container {

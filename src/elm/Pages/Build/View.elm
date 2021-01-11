@@ -490,7 +490,7 @@ viewBuildServices model msgs org repo =
                     Util.smallLoader
 
 
-{-| viewService : renders single build step
+{-| viewService : renders single build service
 -}
 viewService : PartialModel a -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
 viewService model msgs rm services service =
@@ -520,7 +520,7 @@ serviceClasses services service =
     classList [ ( "service", True ) ]
 
 
-{-| viewServiceDetails : renders build steps detailed information
+{-| viewServiceDetails : renders build services detailed information
 -}
 viewServiceDetails : PartialModel a -> Msgs msg -> RepoModel -> Service -> Html msg
 viewServiceDetails model msgs rm service =
@@ -531,7 +531,7 @@ viewServiceDetails model msgs rm service =
         serviceSummary =
             [ summary
                 [ class "summary"
-                , Util.testAttribute <| "step-header-" ++ serviceNumber
+                , Util.testAttribute <| "service-header-" ++ serviceNumber
                 , onClick <| msgs.expandService rm.org rm.name rm.build.buildNumber serviceNumber
                 , id <| resourceToFocusId "service" serviceNumber
                 ]
@@ -542,7 +542,7 @@ viewServiceDetails model msgs rm service =
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]
-            , div [ class "logs-container" ] [ lazy4 viewServiceLogs msgs.logsMsgs model.shift rm service ]
+            , div [ class "logs-container" ] [ viewServiceLogs msgs.logsMsgs model.shift rm service ]
             ]
     in
     details
@@ -556,7 +556,7 @@ viewServiceDetails model msgs rm service =
         serviceSummary
 
 
-{-| viewServiceLogs : takes service and logs and renders step logs or step error
+{-| viewServiceLogs : renders service logs
 -}
 viewServiceLogs : LogsMsgs msg -> Bool -> RepoModel -> Service -> Html msg
 viewServiceLogs msgs shift rm service =
@@ -707,13 +707,13 @@ viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
             Just l ->
                 div
                     [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, String.fromInt lineNumber ]
+                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, resourceID, String.fromInt lineNumber ]
                     , class <| lineFocusStyles logFocus lineNumber
                     ]
                     [ td []
                         [ lineFocusButton focusLine resource resourceID logFocus lineNumber shiftDown ]
                     , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, String.fromInt lineNumber ] ]
+                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, resourceID, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
                             ]
                         ]
@@ -732,7 +732,7 @@ lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
         [ Util.onClickPreventDefault <|
             focusLogs <|
                 lineRangeId resource resourceID lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resourceID, String.fromInt lineNumber ]
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, resourceID, String.fromInt lineNumber ]
         , id <| resourceAndLineToFocusId resource resourceID lineNumber
         , class "line-number"
         , class "button"
@@ -886,11 +886,13 @@ viewResourceError : Vela.Resource a -> Html msg
 viewResourceError resource =
     div [ class "message", class "error", Util.testAttribute "resource-error" ]
         [ text <|
-            if String.isEmpty resource.error then
-                "null"
+            "error: "
+                ++ (if String.isEmpty resource.error then
+                        "null"
 
-            else
-                resource.error
+                    else
+                        resource.error
+                   )
         ]
 
 

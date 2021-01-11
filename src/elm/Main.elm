@@ -69,11 +69,14 @@ import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
+        , clickResource
+        , expandActive
         , focusAndClear
         , getCurrentResource
+        , isViewing
+        , setAllViews
         )
 import Pages.Build.Model
-import Pages.Build.Update exposing (clickResource, expandActive, isViewing, setAllViews)
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
@@ -173,6 +176,7 @@ import Vela
         , defaultRepoModel
         , defaultRepository
         , defaultSession
+        , defaultStepsModel
         , encodeEnableRepository
         , encodeSession
         , encodeTheme
@@ -351,8 +355,8 @@ type Msg
     | CollapseAllServices
     | ExpandService Org Repo BuildNumber ServiceNumber
     | FollowService Int
-    | ClickBuildNavTab Route
     | ShowHideTemplates
+    | FocusPipelineConfigLineNumber Int
       -- Outgoing HTTP requests
     | SignInRequested
     | FetchSourceRepositories
@@ -366,8 +370,8 @@ type Msg
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
-    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) FocusFragment Bool
-    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe String) FocusFragment Bool
+    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
+    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
       -- Inbound HTTP responses
     | UserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, User ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
@@ -383,7 +387,7 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | StepsResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
+    | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
@@ -618,6 +622,7 @@ update msg model =
             , Download.string filename ext content
             )
 
+        -- steps
         ExpandAllSteps org repo buildNumber ->
             let
                 build =
@@ -707,7 +712,7 @@ update msg model =
                         (\services_ -> services_ |> setAllViews True |> RemoteData.succeed)
                         build.services.services
 
-                -- refresh logs for expanded steps
+                -- refresh logs for expanded services
                 action =
                     getBuildServicesLogs model org repo buildNumber (RemoteData.withDefault [] services) Nothing True
             in
@@ -747,13 +752,13 @@ update msg model =
                 serviceOpened =
                     isViewing services serviceNumber
 
-                -- step clicked is step being followed
+                -- step clicked is service being followed
                 onFollowedService =
                     build.services.followingService == (Maybe.withDefault -1 <| String.toInt serviceNumber)
 
                 follow =
                     if onFollowedService && not serviceOpened then
-                        -- stop following a step when collapsed
+                        -- stop following a service when collapsed
                         0
 
                     else
@@ -775,24 +780,26 @@ update msg model =
             , Cmd.none
             )
 
-        ClickBuildNavTab route ->
-            case route of
-                Routes.Build o r b l ->
-                    let
-                        rt =
-                            Routes.Build o r b l
-                    in
-                    ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl rt )
-
-                _ ->
-                    ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl route )
-
         ShowHideTemplates ->
             let
                 templates =
                     model.templates
             in
             ( { model | templates = { templates | show = not templates.show } }, Cmd.none )
+
+        FocusPipelineConfigLineNumber line ->
+            let
+                url =
+                    lineRangeId "config" "0" line pipeline.lineFocus model.shift
+            in
+            ( { model
+                | pipeline =
+                    { pipeline
+                        | lineFocus = pipeline.lineFocus
+                    }
+              }
+            , Navigation.pushUrl model.navigationKey <| url
+            )
 
         -- Outgoing HTTP requests
         SignInRequested ->
@@ -951,10 +958,6 @@ update msg model =
             )
 
         ExpandPipelineConfig org repo buildNumber ref lineFocus refresh ->
-            let
-                _ =
-                    Debug.log "ref" ref
-            in
             ( { model
                 | pipeline =
                     { pipeline
@@ -1191,7 +1194,7 @@ update msg model =
                         mergedSteps =
                             steps
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.merge logFocus refresh rm.build.steps.steps
+                                |> Pages.Build.Logs.merge logFocus refresh rm.build.steps.steps
 
                         updatedModel =
                             { model | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm }
@@ -1257,7 +1260,7 @@ update msg model =
                         mergedServices =
                             services
                                 |> List.sortBy .number
-                                |> Pages.Build.Update.merge logFocus refresh rm.build.services.services
+                                |> Pages.Build.Logs.merge logFocus refresh rm.build.services.services
 
                         updatedModel =
                             { model | repo = updateBuildServices (RemoteData.succeed mergedServices) rm }
@@ -2257,36 +2260,6 @@ viewBuildsFilter shouldRender org repo maybeEvent =
         text ""
 
 
-buildMsgs : Pages.Build.Model.Msgs Msg
-buildMsgs =
-    { clickBuildNavTab = ClickBuildNavTab
-    , collapseAllSteps = CollapseAllSteps
-    , expandAllSteps = ExpandAllSteps
-    , expandStep = ExpandStep
-    , collapseAllServices = CollapseAllServices
-    , expandAllServices = ExpandAllServices
-    , expandService = ExpandService
-    , logsMsgs =
-        { focusLine = PushUrl
-        , download = DownloadFile "text"
-        , focusOn = FocusOn
-        , followStep = FollowStep
-        , followService = FollowService
-        }
-    }
-
-
-pipelineMsgs : Pages.Pipeline.Model.Msgs Msg
-pipelineMsgs =
-    { get = GetPipelineConfig
-    , expand = ExpandPipelineConfig
-    , focusLineNumber = FocusLineNumber
-    , clickNavTab = ClickBuildNavTab
-    , showHideTemplates = ShowHideTemplates
-    , download = DownloadFile "text"
-    }
-
-
 viewLogin : Html Msg
 viewLogin =
     div []
@@ -3011,9 +2984,9 @@ loadBuildPage model org repo buildNumber lineFocus =
         pageSet =
             { model | page = Pages.Build org repo buildNumber lineFocus }
     in
-    -- Fetch build from Api
+    -- load page depending on build change
     ( if not sameBuild then
-        resetBuild org repo buildNumber pageSet
+        setBuild org repo buildNumber pageSet
 
       else
         { pageSet
@@ -3026,7 +2999,6 @@ loadBuildPage model org repo buildNumber lineFocus =
                             )
                             rm.build.steps.steps
                         )
-                    |> updateBuildStepsFollowing 0
                     |> updateBuildStepsFocusFragment
                         (case lineFocus of
                             Just l ->
@@ -3060,7 +3032,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
             { model | page = Pages.BuildServices org repo buildNumber lineFocus }
     in
     ( if not sameBuild then
-        resetBuild org repo buildNumber pageSet
+        setBuild org repo buildNumber pageSet
 
       else
         { pageSet
@@ -3073,7 +3045,6 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                             )
                             rm.build.services.services
                         )
-                    |> updateBuildServicesFollowing 0
                     |> updateBuildServicesFocusFragment
                         (case lineFocus of
                             Just l ->
@@ -3124,7 +3095,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
     ( if not sameBuild then
         let
             r =
-                resetBuild org repo buildNumber pageSet
+                setBuild org repo buildNumber pageSet
         in
         { r
             | pipeline =
@@ -3187,75 +3158,12 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
     )
 
 
-isSameBuild : RepoResourceIdentifier -> Page -> Bool
-isSameBuild id currentPage =
-    case currentPage of
-        Pages.BuildServices o r b _ ->
-            not <| resourceChanged id ( o, r, b )
-
-        Pages.Build o r b _ ->
-            not <| resourceChanged id ( o, r, b )
-
-        Pages.BuildPipeline o r b _ _ _ ->
-            not <| resourceChanged id ( o, r, b )
-
-        _ ->
-            False
-
-
-isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
-isSamePipelineRef id currentPage =
-    case currentPage of
-        Pages.Pipeline o r rf _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
-
-        _ ->
-            False
-
-
-resetBuild : Org -> Repo -> BuildNumber -> Model -> Model
-resetBuild org repo buildNumber model =
-    let
-        rm =
-            model.repo
-
-        pipeline =
-            model.pipeline
-    in
-    { model
-        | pipeline =
-            { pipeline
-                | focusFragment = Nothing
-                , config = ( NotAsked, "" )
-                , expand = Nothing
-                , expanding = False
-                , expanded = False
-                , org = org
-                , repo = repo
-                , buildNumber = Just buildNumber
-            }
-        , templates = { data = NotAsked, error = "", show = True }
-        , repo =
-            rm
-                |> updateBuild Loading
-                |> updateOrgRepo org repo
-                |> updateBuildNumber buildNumber
-                |> updateBuildSteps NotAsked
-                |> updateBuildStepsFollowing 0
-                |> updateBuildStepsLogs []
-                |> updateBuildStepsFocusFragment Nothing
-                |> updateBuildServices NotAsked
-                |> updateBuildServicesFollowing 0
-                |> updateBuildServicesFocusFragment Nothing
-                |> updateBuildServicesLogs []
-    }
-
-
 {-| loadPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
 loadPipelinePage : Model -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
 loadPipelinePage model org repo ref expand lineFocus =
     let
+        -- get or expand the pipeline depending on expand query parameter
         getPipeline =
             case expand of
                 Just e ->
@@ -3283,6 +3191,7 @@ loadPipelinePage model org repo ref expand lineFocus =
         sameRef =
             isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page
     in
+    -- load page depending on ref change
     ( { model
         | page = Pages.Pipeline org repo ref expand lineFocus
         , pipeline =
@@ -3320,6 +3229,69 @@ loadPipelinePage model org repo ref expand lineFocus =
         , getPipelineTemplates model org repo ref lineFocus
         ]
     )
+
+
+{-| isSameBuild : takes build identifier and current page and returns true if the build has not changed
+-}
+isSameBuild : RepoResourceIdentifier -> Page -> Bool
+isSameBuild id currentPage =
+    case currentPage of
+        Pages.Build o r b _ ->
+            not <| resourceChanged id ( o, r, b )
+
+        Pages.BuildServices o r b _ ->
+            not <| resourceChanged id ( o, r, b )
+
+        _ ->
+            False
+
+
+{-| isSamePipelineRef : takes pipeline ref identifier and current page and returns true if the pipeline ref has not changed
+-}
+isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
+isSamePipelineRef id currentPage =
+    case currentPage of
+        Pages.Pipeline o r rf _ _ ->
+            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
+
+        _ ->
+            False
+
+
+{-| setBuild : takes new build information and sets the appropriate model state
+-}
+setBuild : Org -> Repo -> BuildNumber -> Model -> Model
+setBuild org repo buildNumber model =
+    let
+        rm =
+            model.repo
+
+        pipeline =
+            model.pipeline
+    in
+    { model
+        | pipeline =
+            { pipeline
+                | focusFragment = Nothing
+                , config = ( NotAsked, "" )
+                , expand = Nothing
+                , expanding = False
+                , expanded = False
+                , org = org
+                , repo = repo
+                , buildNumber = Just buildNumber
+            }
+        , templates = { data = NotAsked, error = "", show = True }
+        , repo =
+            rm
+                |> updateBuild Loading
+                |> updateOrgRepo org repo
+                |> updateBuildNumber buildNumber
+                |> updateBuildSteps NotAsked
+                |> updateBuildStepsFollowing 0
+                |> updateBuildStepsLogs []
+                |> updateBuildStepsFocusFragment Nothing
+    }
 
 
 {-| repoEnabledError : takes model repo and error and updates the source repos within the model
@@ -3616,6 +3588,38 @@ repoSettingsMsgs =
     Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
 
 
+{-| buildMsgs : prepares the input record required for the Build pages to route Msgs back to Main.elm
+-}
+buildMsgs : Pages.Build.Model.Msgs Msg
+buildMsgs =
+    { collapseAllSteps = CollapseAllSteps
+    , expandAllSteps = ExpandAllSteps
+    , expandStep = ExpandStep
+    , collapseAllServices = CollapseAllServices
+    , expandAllServices = ExpandAllServices
+    , expandService = ExpandService
+    , logsMsgs =
+        { focusLine = PushUrl
+        , download = DownloadFile "text"
+        , focusOn = FocusOn
+        , followStep = FollowStep
+        , followService = FollowService
+        }
+    }
+
+
+{-| pipelineMsgs : prepares the input record required for the Pipeline pages to route Msgs back to Main.elm
+-}
+pipelineMsgs : Pages.Pipeline.Model.Msgs Msg
+pipelineMsgs =
+    { get = GetPipelineConfig
+    , expand = ExpandPipelineConfig
+    , focusLineNumber = FocusPipelineConfigLineNumber
+    , showHideTemplates = ShowHideTemplates
+    , download = DownloadFile "text"
+    }
+
+
 initSecretsModel : Pages.Secrets.Model.Model Msg
 initSecretsModel =
     Pages.Secrets.Update.init SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
@@ -3679,9 +3683,9 @@ getAllBuildServices model org repo buildNumber logFocus refresh =
     Api.tryAll (ServicesResponse org repo buildNumber logFocus refresh) <| Api.getAllServices model org repo buildNumber
 
 
-getBuildServiceLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg
-getBuildServiceLogs model org repo buildNumber stepNumber logFocus refresh =
-    Api.try (ServiceLogResponse stepNumber logFocus refresh) <| Api.getServiceLogs model org repo buildNumber stepNumber
+getBuildServiceLogs : Model -> Org -> Repo -> BuildNumber -> ServiceNumber -> FocusFragment -> Bool -> Cmd Msg
+getBuildServiceLogs model org repo buildNumber serviceNumber logFocus refresh =
+    Api.try (ServiceLogResponse serviceNumber logFocus refresh) <| Api.getServiceLogs model org repo buildNumber serviceNumber
 
 
 getBuildServicesLogs : Model -> Org -> Repo -> BuildNumber -> Services -> FocusFragment -> Bool -> Cmd Msg

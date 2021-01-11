@@ -23,10 +23,6 @@ type alias ResourceID =
     String
 
 
-type alias FocusLineNumber msg =
-    Int -> msg
-
-
 type alias FocusTarget =
     { target : Maybe String, resourceID : Maybe Int, lineA : Maybe Int, lineB : Maybe Int }
 

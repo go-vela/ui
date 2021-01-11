@@ -53,12 +53,11 @@ type alias PartialModel a =
 
 
 type alias Msgs msg =
-    { clickBuildNavTab : Route -> msg
-    , collapseAllSteps : msg
-    , collapseAllServices : msg
+    { collapseAllSteps : msg
     , expandAllSteps : ExpandAll msg
-    , expandAllServices : ExpandAll msg
     , expandStep : Expand msg
+    , collapseAllServices : msg
+    , expandAllServices : ExpandAll msg
     , expandService : Expand msg
     , logsMsgs : LogsMsgs msg
     }
@@ -95,15 +94,3 @@ type alias Download msg =
 
 type alias FocusOn msg =
     String -> msg
-
-
-type alias GetLogs a msg =
-    ( GetStepLogs a msg, GetStepsLogs a msg )
-
-
-type alias GetStepLogs a msg =
-    PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd msg
-
-
-type alias GetStepsLogs a msg =
-    PartialModel a -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd msg
