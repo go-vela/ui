@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, viewBuildNav, viewNav, viewUtil)
+module Nav exposing (Msgs, viewBuildTabs, viewNav, viewUtil)
 
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
@@ -202,16 +202,16 @@ viewUtil model =
     div [ class "util" ]
         [ case model.page of
             Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoNav rm model.page
+                viewRepoTabs rm model.page
 
             Pages.RepoSecrets engine org repo _ _ ->
-                viewRepoNav rm model.page
+                viewRepoTabs rm model.page
 
             Pages.Hooks org repo _ _ ->
-                viewRepoNav rm model.page
+                viewRepoTabs rm model.page
 
             Pages.RepoSettings org repo ->
-                viewRepoNav rm model.page
+                viewRepoTabs rm model.page
 
             Pages.Build _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
@@ -280,10 +280,10 @@ viewingTab p1 p2 =
 -- REPO
 
 
-{-| viewRepoNav : takes RepoModel and current page and renders navigation tabs
+{-| viewRepoTabs : takes RepoModel and current page and renders navigation tabs
 -}
-viewRepoNav : RepoModel -> Page -> Html msg
-viewRepoNav rm currentPage =
+viewRepoTabs : RepoModel -> Page -> Html msg
+viewRepoTabs rm currentPage =
     let
         org =
             rm.org
@@ -305,10 +305,10 @@ viewRepoNav rm currentPage =
 -- BUILD
 
 
-{-| viewBuildNav : takes model information and current page and renders build navigation tabs
+{-| viewBuildTabs : takes model information and current page and renders build navigation tabs
 -}
-viewBuildNav : PartialModel a -> Org -> Repo -> Build -> Page -> Html msg
-viewBuildNav model org repo build currentPage =
+viewBuildTabs : PartialModel a -> Org -> Repo -> Build -> Page -> Html msg
+viewBuildTabs model org repo build currentPage =
     let
         buildNumber =
             String.fromInt build.number

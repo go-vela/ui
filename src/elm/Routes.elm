@@ -14,7 +14,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
 
 
@@ -38,8 +38,8 @@ type Route
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
-    | BuildPipeline Org Repo BuildNumber (Maybe Ref) (Maybe ExpandTemplatesQuery) FocusFragment
-    | Pipeline Org Repo (Maybe Ref) (Maybe ExpandTemplatesQuery) FocusFragment
+    | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
+    | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
     | Settings
     | Login
     | Logout

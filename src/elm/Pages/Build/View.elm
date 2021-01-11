@@ -61,10 +61,9 @@ import Html.Attributes
         , title
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy4)
 import Http exposing (Error(..))
 import List.Extra exposing (unique)
-import Nav exposing (viewBuildNav)
+import Nav exposing (viewBuildTabs)
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
@@ -159,7 +158,7 @@ wrapWithBuildPreview model org repo content =
         navTabs =
             case build.build of
                 RemoteData.Success bld ->
-                    viewBuildNav model org repo bld model.page
+                    viewBuildTabs model org repo bld model.page
 
                 RemoteData.Loading ->
                     Util.largeLoader

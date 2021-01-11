@@ -1527,10 +1527,6 @@ update msg model =
             ( { model | session = newSession }, Cmd.none )
 
         FocusOn id ->
-            let
-                _ =
-                    Debug.log "focus" id
-            in
             ( model, Dom.focus id |> Task.attempt FocusResult )
 
         FocusResult result ->
@@ -2386,9 +2382,6 @@ setNewPage route model =
 
         rm =
             model.repo
-
-        build =
-            rm.build
     in
     case ( route, sessionHasToken ) of
         -- Logged in and on auth flow pages - what are you doing here?
@@ -2492,28 +2485,6 @@ setNewPage route model =
             ( { model | page = Pages.Login }
             , Interop.storeSession <| encodeSession <| Session "" "" <| Url.toString model.entryURL
             )
-
-
-setPipelineFocusFragment : FocusFragment -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-setPipelineFocusFragment logFocus ( model, c ) =
-    let
-        p =
-            model.pipeline
-    in
-    ( { model
-        | pipeline =
-            { p
-                | focusFragment =
-                    case logFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-            }
-      }
-    , c
-    )
 
 
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
