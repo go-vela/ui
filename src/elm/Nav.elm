@@ -174,9 +174,6 @@ viewUtil model =
     in
     div [ class "util" ]
         [ case model.page of
-            Pages.Build _ _ _ _ ->
-                Pages.Build.History.view model.time model.zone model.page 10 rm
-
             Pages.RepositoryBuilds org repo _ _ _ ->
                 viewRepoTabs rm model.page
 
