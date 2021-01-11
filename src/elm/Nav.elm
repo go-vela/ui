@@ -202,16 +202,16 @@ viewUtil model =
     div [ class "util" ]
         [ case model.page of
             Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoTabs rm model.page
+                viewRepoTabs rm org repo model.page
 
             Pages.RepoSecrets engine org repo _ _ ->
-                viewRepoTabs rm model.page
+                viewRepoTabs rm org repo model.page
 
             Pages.Hooks org repo _ _ ->
-                viewRepoTabs rm model.page
+                viewRepoTabs rm org repo model.page
 
             Pages.RepoSettings org repo ->
-                viewRepoTabs rm model.page
+                viewRepoTabs rm org repo model.page
 
             Pages.Build _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
@@ -282,15 +282,9 @@ viewingTab p1 p2 =
 
 {-| viewRepoTabs : takes RepoModel and current page and renders navigation tabs
 -}
-viewRepoTabs : RepoModel -> Page -> Html msg
-viewRepoTabs rm currentPage =
+viewRepoTabs : RepoModel -> Org -> Repo -> Page -> Html msg
+viewRepoTabs rm org repo currentPage =
     let
-        org =
-            rm.org
-
-        repo =
-            rm.name
-
         tabs =
             [ Tab "Builds" currentPage <| Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
             , Tab "Secrets" currentPage <| Pages.RepoSecrets "native" org repo Nothing Nothing
