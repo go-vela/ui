@@ -74,7 +74,7 @@ context('Authentication', () => {
   });
 
   // --- TODO: fix this test
-  // 
+  //
   // context('post-login redirect', () => {
   //   beforeEach(() => {
   //     cy.loggingIn('/Cookie/Cat');
