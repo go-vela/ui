@@ -156,7 +156,10 @@ wrapWithBuildPreview model org repo buildNumber content =
                     [ Util.largeLoader ]
 
                 _ ->
-                    [ div [ class "build-preview-error" ] [ text <| "Error loading " ++ String.join "/" [ org, repo, buildNumber ] ++ " ... Please try again" ] ]
+                    [ div
+                        [ class "build-preview-error" ]
+                        [ text <| "Error loading " ++ String.join "/" [ org, repo, buildNumber ] ++ " ... Please try again" ]
+                    ]
     in
     div [ Util.testAttribute "full-build" ] markdown
 

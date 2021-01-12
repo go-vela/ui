@@ -938,7 +938,8 @@ update msg model =
               }
             , Cmd.batch
                 [ getPipelineConfig model org repo ref lineFocus refresh
-                , case buildNumber of
+                , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
+                  case buildNumber of
                     Just b ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref Nothing lineFocus
 
@@ -956,7 +957,8 @@ update msg model =
               }
             , Cmd.batch
                 [ expandPipelineConfig model org repo ref lineFocus refresh
-                , case buildNumber of
+                , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
+                  case buildNumber of
                     Just b ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref (Just "true") lineFocus
 
@@ -2943,6 +2945,7 @@ loadUpdateSharedSecretPage model engine org team name =
 loadBuildPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
 loadBuildPage model org repo buildNumber lineFocus =
     let
+        -- get resource transition information
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
@@ -2954,6 +2957,7 @@ loadBuildPage model org repo buildNumber lineFocus =
                 _ ->
                     False
 
+        -- if build has changed, set build fields in the model
         m =
             if not sameBuild then
                 setBuild org repo buildNumber sameResource model
@@ -2967,8 +2971,11 @@ loadBuildPage model org repo buildNumber lineFocus =
     -- load page depending on build change
     ( { m
         | page = Pages.Build org repo buildNumber lineFocus
+
+        -- set repo fields
         , repo =
             rm
+                -- update steps using line focus
                 |> updateBuildSteps
                     (RemoteData.unwrap Loading
                         (\steps_ ->
@@ -2976,6 +2983,7 @@ loadBuildPage model org repo buildNumber lineFocus =
                         )
                         rm.build.steps.steps
                     )
+                -- update line focus in the model
                 |> updateBuildStepsFocusFragment
                     (case lineFocus of
                         Just l ->
@@ -2984,8 +2992,10 @@ loadBuildPage model org repo buildNumber lineFocus =
                         Nothing ->
                             Nothing
                     )
+                -- reset following service
                 |> updateBuildServicesFollowing 0
       }
+      -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
         Cmd.none
 
@@ -3003,6 +3013,7 @@ loadBuildPage model org repo buildNumber lineFocus =
 loadBuildServicesPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
 loadBuildServicesPage model org repo buildNumber lineFocus =
     let
+        -- get resource transition information
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
@@ -3014,6 +3025,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                 _ ->
                     False
 
+        -- if build has changed, set build fields in the model
         m =
             if not sameBuild then
                 setBuild org repo buildNumber sameResource model
@@ -3026,8 +3038,11 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
     in
     ( { m
         | page = Pages.BuildServices org repo buildNumber lineFocus
+
+        -- set repo fields
         , repo =
             rm
+                -- update services using line focus
                 |> updateBuildServices
                     (RemoteData.unwrap Loading
                         (\services ->
@@ -3035,6 +3050,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                         )
                         rm.build.services.services
                     )
+                -- update line focus in the model
                 |> updateBuildServicesFocusFragment
                     (case lineFocus of
                         Just l ->
@@ -3043,8 +3059,10 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                         Nothing ->
                             Nothing
                     )
+                -- reset following step
                 |> updateBuildStepsFollowing 0
       }
+      -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
         Cmd.none
 
@@ -3062,24 +3080,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
 loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
     let
-        getPipeline =
-            case expand of
-                Just e ->
-                    if e == "true" then
-                        expandPipelineConfig
-
-                    else
-                        getPipelineConfig
-
-                Nothing ->
-                    getPipelineConfig
-
-        parsed =
-            parseFocusFragment lineFocus
-
-        pipeline =
-            model.pipeline
-
+        -- get resource transition information
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
@@ -3094,15 +3095,38 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
         sameRef =
             isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
 
+        -- if build has changed, set build fields in the model
         m =
             if not sameBuild then
                 setBuild org repo buildNumber sameResource model
 
             else
                 model
+
+        -- set pipeline fetch api call based on ?expand= query
+        getPipeline =
+            case expand of
+                Just e ->
+                    if e == "true" then
+                        expandPipelineConfig
+
+                    else
+                        getPipelineConfig
+
+                Nothing ->
+                    getPipelineConfig
+
+        -- parse line range from line focus
+        parsed =
+            parseFocusFragment lineFocus
+
+        pipeline =
+            model.pipeline
     in
     ( { m
         | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus
+
+        -- set pipeline fields
         , pipeline =
             pipeline
                 |> updateBuildPipelineConfig
@@ -3130,6 +3154,8 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
                         Nothing ->
                             Nothing
                     )
+
+        -- reset templates if ref has changed
         , templates =
             if sameRef then
                 model.templates
@@ -3137,6 +3163,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             else
                 { data = Loading, error = "", show = True }
       }
+      -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
         Cmd.none
 
@@ -3155,6 +3182,10 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
 loadPipelinePage : Model -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
 loadPipelinePage model org repo ref expand lineFocus =
     let
+        -- get resource transition information
+        sameRef =
+            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
+
         -- get or expand the pipeline depending on expand query parameter
         getPipeline =
             case expand of
@@ -3179,13 +3210,12 @@ loadPipelinePage model org repo ref expand lineFocus =
 
         pipeline =
             model.pipeline
-
-        sameRef =
-            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
     in
     -- load page depending on ref change
     ( { model
         | page = Pages.Pipeline org repo ref expand lineFocus
+
+        -- set pipeline fields
         , pipeline =
             pipeline
                 |> updateBuildPipelineConfig
@@ -3227,7 +3257,7 @@ loadPipelinePage model org repo ref expand lineFocus =
     )
 
 
-{-| is : takes build identifier and current page and returns true if the build has not changed
+{-| isSameBuild : takes build identifier and current page and returns true if the build has not changed
 -}
 isSameBuild : RepoResourceIdentifier -> Page -> Bool
 isSameBuild id currentPage =
