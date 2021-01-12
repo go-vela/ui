@@ -148,17 +148,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
 
         Pages.Build org repo buildNumber _ ->
             div [ class "buttons" ]
-                [ button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| restartBuild org repo buildNumber
-                    , Util.testAttribute "restart-build"
-                    ]
-                    [ text "Restart"
-                    ]
-                , case model.repo.build.build of
+                [ case model.repo.build.build of
                     RemoteData.Success b ->
                         if b.status == Vela.Running then
                             button
@@ -177,6 +167,16 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
 
                     _ ->
                         text ""
+                , button
+                    [ classList
+                        [ ( "button", True )
+                        , ( "-outline", True )
+                        ]
+                    , onClick <| restartBuild org repo buildNumber
+                    , Util.testAttribute "restart-build"
+                    ]
+                    [ text "Restart"
+                    ]
                 ]
 
         Pages.Hooks org repo _ _ ->
