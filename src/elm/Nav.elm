@@ -158,16 +158,25 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
                     ]
                     [ text "Restart"
                     ]
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| cancelBuild org repo buildNumber
-                    , Util.testAttribute "cancel-build"
-                    ]
-                    [ text "Cancel"
-                    ]
+                , case model.repo.build.build of
+                    RemoteData.Success b ->
+                        if b.status == Vela.Running then
+                            button
+                                [ classList
+                                    [ ( "button", True )
+                                    , ( "-outline", True )
+                                    ]
+                                , onClick <| cancelBuild org repo buildNumber
+                                , Util.testAttribute "cancel-build"
+                                ]
+                                [ text "Cancel"
+                                ]
+
+                        else
+                            text ""
+
+                    _ ->
+                        text ""
                 ]
 
         Pages.Hooks org repo _ _ ->
