@@ -2982,11 +2982,15 @@ loadBuildPage model org repo buildNumber lineFocus =
                     )
                 |> updateBuildServicesFollowing 0
       }
-    , if sameBuild && sameResource then Cmd.none else Cmd.batch <|
-        [ getBuilds model org repo Nothing Nothing Nothing
-        , getBuild model org repo buildNumber
-        , getAllBuildSteps model org repo buildNumber lineFocus sameBuild
-        ]
+    , if sameBuild && sameResource then
+        Cmd.none
+
+      else
+        Cmd.batch <|
+            [ getBuilds model org repo Nothing Nothing Nothing
+            , getBuild model org repo buildNumber
+            , getAllBuildSteps model org repo buildNumber lineFocus sameBuild
+            ]
     )
 
 
@@ -3037,11 +3041,15 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                     )
                 |> updateBuildStepsFollowing 0
       }
-    , if sameBuild && sameResource then Cmd.none else Cmd.batch <|
-        [ getBuilds model org repo Nothing Nothing Nothing
-        , getBuild model org repo buildNumber
-        , getAllBuildServices model org repo buildNumber lineFocus sameBuild
-        ]
+    , if sameBuild && sameResource then
+        Cmd.none
+
+      else
+        Cmd.batch <|
+            [ getBuilds model org repo Nothing Nothing Nothing
+            , getBuild model org repo buildNumber
+            , getAllBuildServices model org repo buildNumber lineFocus sameBuild
+            ]
     )
 
 
@@ -3125,12 +3133,16 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             else
                 { data = Loading, error = "", show = True }
       }
-    , if sameBuild && sameResource then Cmd.none else Cmd.batch
-        [ getBuilds model org repo Nothing Nothing Nothing
-        , getBuild model org repo buildNumber
-        , getPipeline model org repo ref lineFocus sameBuild
-        , getPipelineTemplates model org repo ref lineFocus
-        ]
+    , if sameBuild && sameResource then
+        Cmd.none
+
+      else
+        Cmd.batch
+            [ getBuilds model org repo Nothing Nothing Nothing
+            , getBuild model org repo buildNumber
+            , getPipeline model org repo ref lineFocus sameBuild
+            , getPipelineTemplates model org repo ref lineFocus
+            ]
     )
 
 
