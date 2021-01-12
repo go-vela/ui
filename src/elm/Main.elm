@@ -2942,34 +2942,36 @@ loadBuildPage model org repo buildNumber lineFocus =
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
-        pageSet =
-            { model | page = Pages.Build org repo buildNumber lineFocus }
+        updateBuild =
+            if not sameBuild then
+                setBuild org repo buildNumber
+
+            else
+                identity
     in
     -- load page depending on build change
-    ( if not sameBuild then
-        setBuild org repo buildNumber pageSet
-
-      else
-        { pageSet
-            | repo =
-                rm
-                    |> updateBuildSteps
-                        (RemoteData.unwrap Loading
-                            (\steps_ ->
-                                RemoteData.succeed <| focusAndClear steps_ lineFocus
-                            )
-                            rm.build.steps.steps
+    ( { model
+        | page = Pages.Build org repo buildNumber lineFocus
+        , repo =
+            rm
+                |> updateBuildSteps
+                    (RemoteData.unwrap Loading
+                        (\steps_ ->
+                            RemoteData.succeed <| focusAndClear steps_ lineFocus
                         )
-                    |> updateBuildStepsFocusFragment
-                        (case lineFocus of
-                            Just l ->
-                                Just <| "#" ++ l
+                        rm.build.steps.steps
+                    )
+                |> updateBuildStepsFocusFragment
+                    (case lineFocus of
+                        Just l ->
+                            Just <| "#" ++ l
 
-                            Nothing ->
-                                Nothing
-                        )
-                    |> updateBuildServicesFollowing 0
-        }
+                        Nothing ->
+                            Nothing
+                    )
+                |> updateBuildServicesFollowing 0
+      }
+        |> updateBuild
     , Cmd.batch <|
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
@@ -2989,33 +2991,35 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
-        pageSet =
-            { model | page = Pages.BuildServices org repo buildNumber lineFocus }
+        updateBuild =
+            if not sameBuild then
+                setBuild org repo buildNumber
+
+            else
+                identity
     in
-    ( if not sameBuild then
-        setBuild org repo buildNumber pageSet
-
-      else
-        { pageSet
-            | repo =
-                rm
-                    |> updateBuildServices
-                        (RemoteData.unwrap Loading
-                            (\services ->
-                                RemoteData.succeed <| focusAndClear services lineFocus
-                            )
-                            rm.build.services.services
+    ( { model
+        | page = Pages.BuildServices org repo buildNumber lineFocus
+        , repo =
+            rm
+                |> updateBuildServices
+                    (RemoteData.unwrap Loading
+                        (\services ->
+                            RemoteData.succeed <| focusAndClear services lineFocus
                         )
-                    |> updateBuildServicesFocusFragment
-                        (case lineFocus of
-                            Just l ->
-                                Just <| "#" ++ l
+                        rm.build.services.services
+                    )
+                |> updateBuildServicesFocusFragment
+                    (case lineFocus of
+                        Just l ->
+                            Just <| "#" ++ l
 
-                            Nothing ->
-                                Nothing
-                        )
-                    |> updateBuildStepsFollowing 0
-        }
+                        Nothing ->
+                            Nothing
+                    )
+                |> updateBuildStepsFollowing 0
+      }
+        |> updateBuild
     , Cmd.batch <|
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
@@ -3029,9 +3033,6 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
 loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
     let
-        sameBuild =
-            isSameBuild ( org, repo, buildNumber ) model.page
-
         getPipeline =
             case expand of
                 Just e ->
@@ -3050,21 +3051,22 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
         pipeline =
             model.pipeline
 
+        sameBuild =
+            isSameBuild ( org, repo, buildNumber ) model.page
+
         sameRef =
             isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page
 
-        pageSet =
-            { model | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus }
-
-        m =
+        updateBuild =
             if not sameBuild then
-                setBuild org repo buildNumber pageSet
+                setBuild org repo buildNumber
 
             else
-                pageSet
+                identity
     in
-    ( { m
-        | pipeline =
+    ( { model
+        | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus
+        , pipeline =
             pipeline
                 |> updateBuildPipelineConfig
                     (if sameRef then
@@ -3098,6 +3100,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             else
                 { data = Loading, error = "", show = True }
       }
+        |> updateBuild
     , Cmd.batch
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
