@@ -127,6 +127,14 @@ module Vela exposing
     , toSecretType
     , updateBuild
     , updateBuildNumber
+    , updateBuildPipelineBuildNumber
+    , updateBuildPipelineConfig
+    , updateBuildPipelineExpand
+    , updateBuildPipelineExpanding
+    , updateBuildPipelineFocusFragment
+    , updateBuildPipelineLineFocus
+    , updateBuildPipelineOrgRepo
+    , updateBuildPipelineRef
     , updateBuildServices
     , updateBuildServicesFocusFragment
     , updateBuildServicesFollowing
@@ -659,6 +667,46 @@ updateBuildServicesLogs update rm =
             b.services
     in
     { rm | build = { b | services = { s | logs = update } } }
+
+
+updateBuildPipelineConfig : ( WebData PipelineConfig, Error ) -> PipelineModel -> PipelineModel
+updateBuildPipelineConfig update pipeline =
+    { pipeline | config = update }
+
+
+updateBuildPipelineOrgRepo : Org -> Repo -> PipelineModel -> PipelineModel
+updateBuildPipelineOrgRepo org repo pipeline =
+    { pipeline | org = org, repo = repo }
+
+
+updateBuildPipelineBuildNumber : Maybe BuildNumber -> PipelineModel -> PipelineModel
+updateBuildPipelineBuildNumber update pipeline =
+    { pipeline | buildNumber = update }
+
+
+updateBuildPipelineRef : Maybe Ref -> PipelineModel -> PipelineModel
+updateBuildPipelineRef update pipeline =
+    { pipeline | ref = update }
+
+
+updateBuildPipelineExpand : Maybe String -> PipelineModel -> PipelineModel
+updateBuildPipelineExpand update pipeline =
+    { pipeline | expand = update }
+
+
+updateBuildPipelineExpanding : Bool -> PipelineModel -> PipelineModel
+updateBuildPipelineExpanding update pipeline =
+    { pipeline | expanding = update }
+
+
+updateBuildPipelineLineFocus : LogFocus -> PipelineModel -> PipelineModel
+updateBuildPipelineLineFocus update pipeline =
+    { pipeline | lineFocus = update }
+
+
+updateBuildPipelineFocusFragment : FocusFragment -> PipelineModel -> PipelineModel
+updateBuildPipelineFocusFragment update pipeline =
+    { pipeline | focusFragment = update }
 
 
 updateHooksModel : HooksModel -> RepoModel -> RepoModel

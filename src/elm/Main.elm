@@ -188,6 +188,14 @@ import Vela
         , stringToTheme
         , updateBuild
         , updateBuildNumber
+        , updateBuildPipelineBuildNumber
+        , updateBuildPipelineConfig
+        , updateBuildPipelineExpand
+        , updateBuildPipelineExpanding
+        , updateBuildPipelineFocusFragment
+        , updateBuildPipelineLineFocus
+        , updateBuildPipelineOrgRepo
+        , updateBuildPipelineRef
         , updateBuildServices
         , updateBuildServicesFocusFragment
         , updateBuildServicesFollowing
@@ -3042,66 +3050,54 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
         pipeline =
             model.pipeline
 
+        sameRef =
+            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page
+
         pageSet =
             { model | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus }
-    in
-    ( if not sameBuild then
-        let
-            r =
+
+        m =
+            if not sameBuild then
                 setBuild org repo buildNumber pageSet
-        in
-        { r
-            | pipeline =
-                { pipeline
-                    | config =
+
+            else
+                pageSet
+    in
+    ( { m
+        | pipeline =
+            pipeline
+                |> updateBuildPipelineConfig
+                    (if sameRef then
                         case pipeline.config of
                             ( Success _, _ ) ->
                                 pipeline.config
 
                             _ ->
                                 ( Loading, "" )
-                    , org = org
-                    , repo = repo
-                    , buildNumber = Just buildNumber
-                    , ref = ref
-                    , expand = expand
-                    , lineFocus = ( parsed.lineA, parsed.lineB )
-                    , focusFragment =
-                        case lineFocus of
-                            Just l ->
-                                Just <| "#" ++ l
 
-                            Nothing ->
-                                Nothing
-                }
-        }
+                     else
+                        ( Loading, "" )
+                    )
+                |> updateBuildPipelineOrgRepo org repo
+                |> updateBuildPipelineBuildNumber (Just buildNumber)
+                |> updateBuildPipelineRef ref
+                |> updateBuildPipelineExpand expand
+                |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
+                |> updateBuildPipelineFocusFragment
+                    (case lineFocus of
+                        Just l ->
+                            Just <| "#" ++ l
 
-      else
-        { pageSet
-            | pipeline =
-                { pipeline
-                    | config =
-                        case pipeline.config of
-                            ( Success _, _ ) ->
-                                pipeline.config
+                        Nothing ->
+                            Nothing
+                    )
+        , templates =
+            if sameRef then
+                model.templates
 
-                            _ ->
-                                ( Loading, "" )
-                    , org = org
-                    , repo = repo
-                    , buildNumber = Just buildNumber
-                    , ref = ref
-                    , expand = expand
-                    , lineFocus = ( parsed.lineA, parsed.lineB )
-                    , focusFragment =
-                        case lineFocus of
-                            Just l ->
-                                Just <| "#" ++ l
-
-                            Nothing ->
-                                Nothing
-                }
-        }
+            else
+                { data = Loading, error = "", show = True }
+      }
     , Cmd.batch
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
@@ -3148,28 +3144,33 @@ loadPipelinePage model org repo ref expand lineFocus =
     ( { model
         | page = Pages.Pipeline org repo ref expand lineFocus
         , pipeline =
-            { config =
-                if sameRef then
-                    pipeline.config
+            pipeline
+                |> updateBuildPipelineConfig
+                    (if sameRef then
+                        case pipeline.config of
+                            ( Success _, _ ) ->
+                                pipeline.config
 
-                else
-                    ( Loading, "" )
-            , expanded = False
-            , expanding = True
-            , org = org
-            , repo = repo
-            , ref = ref
-            , expand = expand
-            , lineFocus = ( parsed.lineA, parsed.lineB )
-            , focusFragment =
-                case lineFocus of
-                    Just l ->
-                        Just <| "#" ++ l
+                            _ ->
+                                ( Loading, "" )
 
-                    Nothing ->
-                        Nothing
-            , buildNumber = Nothing
-            }
+                     else
+                        ( Loading, "" )
+                    )
+                |> updateBuildPipelineOrgRepo org repo
+                |> updateBuildPipelineBuildNumber Nothing
+                |> updateBuildPipelineRef ref
+                |> updateBuildPipelineExpand expand
+                |> updateBuildPipelineExpanding True
+                |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
+                |> updateBuildPipelineFocusFragment
+                    (case lineFocus of
+                        Just l ->
+                            Just <| "#" ++ l
+
+                        Nothing ->
+                            Nothing
+                    )
         , templates =
             if sameRef then
                 model.templates
