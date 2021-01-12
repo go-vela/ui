@@ -52,11 +52,11 @@ import Vela
 {-| clickResource : takes resources and resource number, toggles resource view state, and returns whether or not to fetch logs
 -}
 clickResource : WebData (Resources a) -> String -> ( WebData (Resources a), Bool )
-clickResource resources stepNumber =
+clickResource resources resourceID =
     resources
         |> RemoteData.unwrap ( resources, False )
             (\resources_ ->
-                ( toggleView stepNumber resources_ |> RemoteData.succeed
+                ( toggleView resourceID resources_ |> RemoteData.succeed
                 , True
                 )
             )

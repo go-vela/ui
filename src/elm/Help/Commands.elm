@@ -92,6 +92,9 @@ commands page =
         Pages.Build org repo buildNumber _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
 
+        Pages.BuildServices org repo buildNumber _ ->
+            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
+
         Pages.Pipeline _ _ _ _ _ ->
             []
 
@@ -260,6 +263,48 @@ viewStep org repo buildNumber =
 
         docs =
             Just "steps/get"
+    in
+    Command name content docs noIssue
+
+
+{-| listServices : returns cli command for listing services
+
+    eg.
+    vela get services --org octocat --repo hello-world --build 14
+
+-}
+listServices : Org -> Repo -> BuildNumber -> Command
+listServices org repo buildNumber =
+    let
+        name =
+            "List Services"
+
+        content =
+            Just <| "vela get service " ++ buildArgs org repo buildNumber
+
+        docs =
+            Just "service/get"
+    in
+    Command name content docs noIssue
+
+
+{-| viewService : returns cli command for viewing a service
+
+    eg.
+    vela view service --org octocat --repo hello-world --build 14 --service 1
+
+-}
+viewService : Org -> Repo -> BuildNumber -> Command
+viewService org repo buildNumber =
+    let
+        name =
+            "View Service"
+
+        content =
+            Just <| "vela view service " ++ buildArgs org repo buildNumber ++ " --service 1"
+
+        docs =
+            Just "service/view"
     in
     Command name content docs noIssue
 
@@ -604,6 +649,9 @@ resourceLoaded args =
         Pages.Build _ _ _ _ ->
             args.build.success
 
+        Pages.BuildServices _ _ _ _ ->
+            args.build.success
+
         Pages.Pipeline _ _ _ _ _ ->
             True
 
@@ -671,6 +719,9 @@ resourceLoading args =
             args.builds.loading
 
         Pages.Build _ _ _ _ ->
+            args.build.loading
+
+        Pages.BuildServices _ _ _ _ ->
             args.build.loading
 
         Pages.Pipeline _ _ _ _ _ ->

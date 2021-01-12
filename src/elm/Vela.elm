@@ -121,6 +121,10 @@ module Vela exposing
     , toSecretType
     , updateBuild
     , updateBuildNumber
+    , updateBuildServices
+    , updateBuildServicesFocusFragment
+    , updateBuildServicesFollowing
+    , updateBuildServicesLogs
     , updateBuildSteps
     , updateBuildStepsFocusFragment
     , updateBuildStepsFollowing
@@ -337,6 +341,7 @@ type alias BuildModel =
     { buildNumber : BuildNumber
     , build : WebData Build
     , steps : StepsModel
+    , services : ServicesModel
     }
 
 
@@ -348,9 +353,17 @@ type alias StepsModel =
     }
 
 
+type alias ServicesModel =
+    { services : WebData Services
+    , logs : Logs
+    , focusFragment : FocusFragment
+    , followingService : Int
+    }
+
+
 defaultBuildModel : BuildModel
 defaultBuildModel =
-    BuildModel "" NotAsked defaultStepsModel
+    BuildModel "" NotAsked defaultStepsModel defaultServicesModel
 
 
 defaultRepoModel : RepoModel
@@ -361,6 +374,11 @@ defaultRepoModel =
 defaultStepsModel : StepsModel
 defaultStepsModel =
     StepsModel NotAsked [] Nothing 0
+
+
+defaultServicesModel : ServicesModel
+defaultServicesModel =
+    ServicesModel NotAsked [] Nothing 0
 
 
 updateRepoModel : RepoModel -> { a | repo : RepoModel } -> { a | repo : RepoModel }
@@ -535,6 +553,54 @@ updateBuildSteps update rm =
             b.steps
     in
     { rm | build = { b | steps = { s | steps = update } } }
+
+
+updateBuildServices : WebData Services -> RepoModel -> RepoModel
+updateBuildServices update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.services
+    in
+    { rm | build = { b | services = { s | services = update } } }
+
+
+updateBuildServicesFocusFragment : FocusFragment -> RepoModel -> RepoModel
+updateBuildServicesFocusFragment update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.services
+    in
+    { rm | build = { b | services = { s | focusFragment = update } } }
+
+
+updateBuildServicesFollowing : Int -> RepoModel -> RepoModel
+updateBuildServicesFollowing update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.services
+    in
+    { rm | build = { b | services = { s | followingService = update } } }
+
+
+updateBuildServicesLogs : Logs -> RepoModel -> RepoModel
+updateBuildServicesLogs update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.services
+    in
+    { rm | build = { b | services = { s | logs = update } } }
 
 
 updateHooksModel : HooksModel -> RepoModel -> RepoModel
@@ -1298,6 +1364,7 @@ type alias Resources a =
 type alias Log =
     { id : Int
     , step_id : Int
+    , service_id : Int
     , build_id : Int
     , repository_id : Int
     , rawData : String
@@ -1312,6 +1379,7 @@ decodeLog =
     Decode.succeed Log
         |> optional "id" int -1
         |> optional "step_id" int -1
+        |> optional "service_id" int -1
         |> optional "build_id" int -1
         |> optional "repository_id" int -1
         |> optional "data" string ""
