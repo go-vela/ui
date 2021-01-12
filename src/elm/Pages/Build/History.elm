@@ -37,6 +37,9 @@ view now timezone page limit rm =
                 Pages.BuildServices _ _ b _ ->
                     Maybe.withDefault -1 <| String.toInt b
 
+                Pages.BuildPipeline _ _ b _ _ _ ->
+                    Maybe.withDefault -1 <| String.toInt b
+
                 _ ->
                     -1
     in
