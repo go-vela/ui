@@ -90,10 +90,10 @@ commands page =
             [ listBuilds org repo ]
 
         Pages.Build org repo buildNumber _ ->
-            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
+            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
 
         Pages.BuildServices org repo buildNumber _ ->
-            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
+            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
 
         Pages.Pipeline _ _ _ _ _ ->
             []
@@ -221,6 +221,27 @@ restartBuild org repo buildNumber =
 
         docs =
             Just "build/restart"
+    in
+    Command name content docs noIssue
+
+
+{-| cancelBuild : returns cli command for canceling a build
+
+    eg.
+    vela cancel build --org octocat --repo hello-world --build 14
+
+-}
+cancelBuild : Org -> Repo -> BuildNumber -> Command
+cancelBuild org repo buildNumber =
+    let
+        name =
+            "Cancel Build"
+
+        content =
+            Just <| "vela cancel build " ++ buildArgs org repo buildNumber
+
+        docs =
+            Just "build/cancel"
     in
     Command name content docs noIssue
 

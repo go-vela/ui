@@ -71,6 +71,7 @@ type alias Msgs msg =
     , refreshHooks : Org -> Repo -> msg
     , refreshSecrets : Engine -> SecretType -> Org -> Repo -> msg
     , restartBuild : Org -> Repo -> BuildNumber -> msg
+    , cancelBuild : Org -> Repo -> BuildNumber -> msg
     }
 
 
@@ -96,7 +97,7 @@ viewNav model msgs =
 {-| navButtons : uses current page to build the commonly used button on the right side of the nav
 -}
 navButtons : PartialModel a -> Msgs msg -> Html msg
-navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets, restartBuild } =
+navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets, restartBuild, cancelBuild } =
     case model.page of
         Pages.Overview ->
             a
@@ -146,15 +147,27 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
                 ]
 
         Pages.Build org repo buildNumber _ ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
+            div [ class "buttons" ]
+                [ button
+                    [ classList
+                        [ ( "button", True )
+                        , ( "-outline", True )
+                        ]
+                    , onClick <| restartBuild org repo buildNumber
+                    , Util.testAttribute "restart-build"
                     ]
-                , onClick <| restartBuild org repo buildNumber
-                , Util.testAttribute "restart-build"
-                ]
-                [ text "Restart Build"
+                    [ text "Restart"
+                    ]
+                , button
+                    [ classList
+                        [ ( "button", True )
+                        , ( "-outline", True )
+                        ]
+                    , onClick <| cancelBuild org repo buildNumber
+                    , Util.testAttribute "cancel-build"
+                    ]
+                    [ text "Cancel"
+                    ]
                 ]
 
         Pages.Hooks org repo _ _ ->
