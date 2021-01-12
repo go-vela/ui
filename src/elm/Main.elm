@@ -3188,7 +3188,7 @@ loadPipelinePage model org repo ref expand lineFocus =
     )
 
 
-{-| isSameBuild : takes build identifier and current page and returns true if the build has not changed
+{-| is : takes build identifier and current page and returns true if the build has not changed
 -}
 isSameBuild : RepoResourceIdentifier -> Page -> Bool
 isSameBuild id currentPage =
@@ -3197,6 +3197,9 @@ isSameBuild id currentPage =
             not <| resourceChanged id ( o, r, b )
 
         Pages.BuildServices o r b _ ->
+            not <| resourceChanged id ( o, r, b )
+
+        Pages.BuildPipeline o r b _ _ _ ->
             not <| resourceChanged id ( o, r, b )
 
         _ ->
@@ -3209,6 +3212,9 @@ isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
 isSamePipelineRef id currentPage =
     case currentPage of
         Pages.Pipeline o r rf _ _ ->
+            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
+
+        Pages.BuildPipeline o r b rf _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
 
         _ ->
