@@ -3,7 +3,7 @@
 // Use of this source code is governed by the LICENSE file in this repository.
 
 import ClipboardJS from 'clipboard';
-import { App, Config, Elm, Flags, Session, Theme } from '../elm/Main';
+import { App, Config, Elm, Flags, Theme } from '../elm/Main';
 import '../scss/style.scss';
 
 // Vela consts
@@ -11,12 +11,10 @@ const feedbackURL: string =
   'https://github.com/go-vela/community/issues/new/choose';
 const docsURL: string = 'https://go-vela.github.io/docs';
 
-// setup for session state
-const storageKey: string = 'vela';
-const storedSessionState: string | null = sessionStorage.getItem(storageKey);
-const currentSessionState: Session | null = storedSessionState
-  ? JSON.parse(storedSessionState)
-  : null;
+// setup for auth redirect
+const redirectKey: string = 'vela-redirect';
+const storedRedirectKey: string | null = localStorage.getItem(redirectKey);
+const currentRedirectKey: string | null = storedRedirectKey;
 
 // setup for stored theme
 const themeKey: string = 'vela-theme';
@@ -37,8 +35,8 @@ const flags: Flags = {
     process.env.VELA_DOCS_URL ||
     envOrNull('VELA_DOCS_URL', '$VELA_DOCS_URL') ||
     docsURL,
-  velaSession: currentSessionState || null,
   velaTheme: currentThemeState || (defaultTheme as Theme),
+  velaRedirect: currentRedirectKey || '',
 };
 
 // create the configuration object for Elm
@@ -50,17 +48,6 @@ const config: Config = {
 // bootstrap the app
 const app: App = Elm.Main.init(config);
 
-// subscribe to session events sent from Elm
-app.ports.storeSession.subscribe(sessionMessage => {
-  if (sessionMessage === null) {
-    sessionStorage.removeItem(storageKey);
-  } else {
-    sessionStorage.setItem(storageKey, JSON.stringify(sessionMessage));
-  }
-
-  setTimeout(() => app.ports.onSessionChange.send(sessionMessage), 0);
-});
-
 app.ports.setTheme.subscribe(theme => {
   let body: HTMLElement = document.getElementsByTagName('body')[0];
 
@@ -71,6 +58,14 @@ app.ports.setTheme.subscribe(theme => {
 
   localStorage.setItem(themeKey, theme);
   setTimeout(() => app.ports.onThemeChange.send(theme), 0);
+});
+
+app.ports.setRedirect.subscribe(redirectMessage => {
+  if (redirectMessage === null) {
+    localStorage.removeItem(redirectKey);
+  } else {
+    localStorage.setItem(redirectKey, redirectMessage);
+  }
 });
 
 app.ports.setFavicon.subscribe(function (url) {

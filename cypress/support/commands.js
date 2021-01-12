@@ -19,23 +19,39 @@ if (!Cypress.env('CI')) {
   });
 }
 
-// Login helper (accepts initial path to vist and sessionstorage fixture)
-Cypress.Commands.add('login', (path = '/', fixture = 'sessionstorage') => {
-  cy.fixture(fixture).then(sessionstorageSample => {
-    cy.visit(path, {
-      onBeforeLoad: win => {
-        const serialized = JSON.stringify(sessionstorageSample);
-        win.sessionStorage.setItem('vela', serialized);
-      },
-    });
+// Login helper (accepts initial path to vist)
+Cypress.Commands.add('login', (path = '/') => {
+  cy.server();
+  cy.route('/token-refresh', 'fixture:auth.json');
+  cy.visit(path);
+});
+
+// Faking the act of logging in helper
+Cypress.Commands.add('loggingIn', (path = '/') => {
+  cy.server();
+  cy.route('/token-refresh', 'fixture:auth.json');
+  cy.route('/authenticate*', 'fixture:auth.json');
+  cy.visit('/account/authenticate?code=deadbeef&state=1337', {
+    onBeforeLoad: win => {
+      win.localStorage.setItem(
+        'vela-redirect',
+        `${Cypress.config('baseUrl')}${path}`,
+      );
+    },
   });
 });
 
-// Clear session storage helper
-Cypress.Commands.add('clearSession', () => {
-  cy.window().then(win => {
-    win.sessionStorage.clear();
+// Logout helper, clears refresh cookie
+Cypress.Commands.add('loggedOut', (path = '/') => {
+  cy.server();
+  cy.route({
+    method: 'GET',
+    url: '/token-refresh',
+    status: 401,
+    response: { message: 'unauthorized' },
   });
+
+  cy.visit(path);
 });
 
 // Route stubbing helpers

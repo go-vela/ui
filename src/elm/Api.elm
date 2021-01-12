@@ -23,6 +23,8 @@ module Api exposing
     , getBuilds
     , getCurrentUser
     , getHooks
+    , getInitialToken
+    , getLogout
     , getPipelineConfig
     , getPipelineTemplates
     , getRepo
@@ -34,7 +36,7 @@ module Api exposing
     , getStep
     , getStepLogs
     , getSteps
-    , getUser
+    , getToken
     , repairRepo
     , restartBuild
     , try
@@ -47,10 +49,11 @@ module Api exposing
 
 import Api.Endpoint as Endpoint exposing (Endpoint(..))
 import Api.Pagination as Pagination
+import Auth.Jwt exposing (JwtAccessToken, decodeJwtAccessToken)
+import Auth.Session exposing (Session(..))
 import Http
 import Http.Detailed
 import Json.Decode exposing (Decoder)
-import RemoteData exposing (RemoteData(..))
 import Task exposing (Task)
 import Vela
     exposing
@@ -76,14 +79,12 @@ import Vela
         , Service
         , ServiceNumber
         , Services
-        , Session
         , SourceRepositories
         , Step
         , StepNumber
         , Steps
         , Templates
         , Type
-        , User
         , decodeBuild
         , decodeBuilds
         , decodeCurrentUser
@@ -101,8 +102,6 @@ import Vela
         , decodeSourceRepositories
         , decodeStep
         , decodeSteps
-        , decodeUser
-        , defaultSession
         )
 
 
@@ -142,7 +141,7 @@ type ListResponse a
 type alias PartialModel a =
     { a
         | velaAPI : String
-        , session : Maybe Session
+        , session : Session
     }
 
 
@@ -161,7 +160,7 @@ request =
 -}
 toTask : Request a -> Task (Http.Detailed.Error String) ( Http.Metadata, a )
 toTask (Request config) =
-    Http.task
+    Http.riskyTask
         { body = config.body
         , headers = config.headers
         , method = config.method
@@ -189,7 +188,7 @@ toStringTask (Request config) =
 -}
 toAllTask : Request a -> Task (Http.Detailed.Error String) ( Http.Metadata, ListResponse a )
 toAllTask (Request config) =
-    Http.task
+    Http.riskyTask
         { body = config.body
         , headers = config.headers
         , method = config.method
@@ -280,14 +279,19 @@ update old new =
 
 {-| withAuth : returns an auth header with given Bearer token
 -}
-withAuth : Maybe Session -> Request a -> Request a
-withAuth maybeSession (Request config) =
+withAuth : Session -> Request a -> Request a
+withAuth session (Request config) =
     let
-        session : Session
-        session =
-            Maybe.withDefault defaultSession maybeSession
+        token : String
+        token =
+            case session of
+                Unauthenticated ->
+                    ""
+
+                Authenticated auth ->
+                    auth.token
     in
-    request { config | headers = Http.header "authorization" ("Bearer " ++ session.token) :: config.headers }
+    request { config | headers = Http.header "authorization" ("Bearer " ++ token) :: config.headers }
 
 
 
@@ -406,11 +410,24 @@ tryString msg request_ =
 -- OPERATIONS
 
 
-{-| getUser : fetches a user and token from the authentication endpoint
+getLogout : PartialModel a -> Request String
+getLogout model =
+    get model.velaAPI Endpoint.Logout Json.Decode.string
+
+
+{-| getToken : gets a new token with refresh token in cookie
 -}
-getUser : PartialModel a -> AuthParams -> Request User
-getUser model { code, state } =
-    get model.velaAPI (Endpoint.Authenticate { code = code, state = state }) decodeUser
+getToken : PartialModel a -> Request JwtAccessToken
+getToken model =
+    get model.velaAPI Endpoint.Token decodeJwtAccessToken
+
+
+{-| getInitialToken : fetches a the initial token from the authentication endpoint
+which will also set the refresh token cookie
+-}
+getInitialToken : PartialModel a -> AuthParams -> Request JwtAccessToken
+getInitialToken model { code, state } =
+    get model.velaAPI (Endpoint.Authenticate { code = code, state = state }) decodeJwtAccessToken
 
 
 {-| getCurrentUser : fetches a user from the current user endpoint

@@ -31,9 +31,10 @@ context('Contextual Help', () => {
         cy.get('[data-test=help-tooltip]').should('be.visible');
       });
       it('dropdown should contain error msg', () => {
-        cy.get('[data-test=help-row] input')
-          .invoke('val')
-          .should('eq', 'something went wrong!');
+        cy.get('[data-test=help-row] input').should(
+          'have.value',
+          'something went wrong!',
+        );
       });
       it('dropdown footer should contain getting started docs', () => {
         cy.get('[data-test=help-footer]').contains('Getting Started Docs');
@@ -45,7 +46,7 @@ context('Contextual Help', () => {
     beforeEach(() => {
       cy.server();
       cy.route('GET', '*api/v1/user*', 'fixture:favorites_none.json');
-      cy.visit('/');
+      cy.login();
       cy.get('[data-test=help-trigger]').as('trigger');
     });
 
@@ -119,7 +120,7 @@ context('Contextual Help', () => {
   context('visit page with no resources (not found)', () => {
     beforeEach(() => {
       cy.server();
-      cy.visit('/notfound');
+      cy.login('/notfound');
       cy.get('[data-test=help-trigger]').as('trigger');
     });
 

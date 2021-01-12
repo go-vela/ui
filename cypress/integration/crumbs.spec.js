@@ -4,7 +4,7 @@
  */
 
 context('Crumbs', () => {
-  context('logged in - sessionstorage item exists', () => {
+  context('logged in', () => {
     beforeEach(() => {
       cy.login();
     });

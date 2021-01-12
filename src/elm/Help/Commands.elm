@@ -132,7 +132,7 @@ commands page =
             -- TODO: probably want this filled in
             []
 
-        Pages.Authenticate _ ->
+        Pages.Authenticate ->
             []
 
         Pages.Login ->
@@ -718,7 +718,7 @@ resourceLoaded args =
         Pages.Logout ->
             True
 
-        Pages.Authenticate _ ->
+        Pages.Authenticate ->
             True
 
         Pages.NotFound ->
@@ -790,7 +790,7 @@ resourceLoading args =
         Pages.Logout ->
             True
 
-        Pages.Authenticate _ ->
+        Pages.Authenticate ->
             True
 
         Pages.NotFound ->

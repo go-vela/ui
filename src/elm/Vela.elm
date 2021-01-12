@@ -56,7 +56,6 @@ module Vela exposing
     , Service
     , ServiceNumber
     , Services
-    , Session
     , SourceRepositories
     , Status(..)
     , Step
@@ -70,7 +69,6 @@ module Vela exposing
     , UpdateRepositoryPayload
     , UpdateSecretPayload
     , UpdateUserPayload
-    , User
     , Viewing
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
@@ -91,13 +89,12 @@ module Vela exposing
     , decodeSecrets
     , decodeService
     , decodeServices
-    , decodeSession
     , decodeSourceRepositories
     , decodeStep
     , decodeSteps
     , decodeTheme
-    , decodeUser
     , defaultBuilds
+    , defaultCurrentUser
     , defaultEnableRepositoryPayload
     , defaultFavicon
     , defaultHooks
@@ -105,13 +102,10 @@ module Vela exposing
     , defaultPipelineTemplates
     , defaultRepoModel
     , defaultRepository
-    , defaultSession
     , defaultStep
     , defaultStepsModel
     , defaultUpdateRepositoryPayload
-    , defaultUser
     , encodeEnableRepository
-    , encodeSession
     , encodeTheme
     , encodeUpdateRepository
     , encodeUpdateSecret
@@ -157,7 +151,7 @@ module Vela exposing
 import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Errors exposing (Error)
-import Json.Decode as Decode exposing (Decoder, andThen, bool, dict, int, list, string, succeed)
+import Json.Decode as Decode exposing (Decoder, andThen, bool, field, int, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
@@ -260,72 +254,21 @@ encodeTheme theme =
 
 
 
--- SESSION
-
-
-type alias Session =
-    { username : String
-    , token : String
-    , entrypoint : String
-    }
-
-
-defaultSession : Session
-defaultSession =
-    Session "" "" ""
-
-
-decodeSession : Decoder Session
-decodeSession =
-    Decode.succeed Session
-        |> required "username" string
-        |> required "token" string
-        |> required "entrypoint" string
-
-
-encodeSession : Session -> Encode.Value
-encodeSession session =
-    Encode.object
-        [ ( "username", Encode.string <| session.username )
-        , ( "token", Encode.string <| session.token )
-        , ( "entrypoint", Encode.string <| session.entrypoint )
-        ]
-
-
-
--- USER
-
-
-type alias User =
-    { username : String
-    , token : String
-    }
-
-
-defaultUser : User
-defaultUser =
-    User "" ""
-
-
-decodeUser : Decoder User
-decodeUser =
-    Decode.succeed User
-        |> required "username" string
-        |> required "token" string
-
-
-
 -- CURRENTUSER
 
 
 type alias CurrentUser =
     { id : Int
     , name : String
-    , token : String
     , favorites : Favorites
     , active : Bool
     , admin : Bool
     }
+
+
+defaultCurrentUser : CurrentUser
+defaultCurrentUser =
+    CurrentUser 0 "" [] False False
 
 
 type alias Favorites =
@@ -337,7 +280,6 @@ decodeCurrentUser =
     Decode.succeed CurrentUser
         |> required "id" int
         |> required "name" string
-        |> required "token" string
         |> optional "favorites" (Decode.list string) []
         |> required "active" bool
         |> required "admin" bool
