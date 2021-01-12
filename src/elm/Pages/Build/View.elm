@@ -144,22 +144,19 @@ wrapWithBuildPreview model org repo buildNumber content =
         build =
             rm.build
 
-        buildPreview =
+        markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    viewPreview model.time model.zone org repo bld
+                    [ viewPreview model.time model.zone org repo bld
+                    , viewBuildTabs model org repo buildNumber model.page
+                    , content
+                    ]
 
                 RemoteData.Loading ->
-                    Util.largeLoader
+                    [ Util.largeLoader ]
 
                 _ ->
-                    text ""
-
-        markdown =
-            [ buildPreview
-            , viewBuildTabs model org repo buildNumber model.page
-            , content
-            ]
+                    [ div [ class "build-preview-error" ] [ text <| "Error loading " ++ String.join "/" [ org, repo, buildNumber ] ++ " ... Please try again" ] ]
     in
     div [ Util.testAttribute "full-build" ] markdown
 

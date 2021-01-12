@@ -293,6 +293,7 @@ toPath page =
                     [ overviewPage
                     , organizationPage
                     , repoBuildsPage
+                    , ( "Pipeline", Nothing )
                     ]
 
                 Pages.Login ->

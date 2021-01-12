@@ -401,7 +401,7 @@ type Msg
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | GetPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | ExpandPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | GetPipelineTemplatesResponse Org Repo FocusFragment (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
+    | GetPipelineTemplatesResponse Org Repo FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -1381,13 +1381,17 @@ update msg model =
                     , addError error
                     )
 
-        GetPipelineTemplatesResponse org repo lineFocus response ->
+        GetPipelineTemplatesResponse org repo lineFocus refresh response ->
             case response of
                 Ok ( meta, templates ) ->
                     ( { model
                         | templates = { data = RemoteData.succeed templates, error = "", show = model.templates.show }
                       }
-                    , Util.dispatch <| FocusOn <| Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
+                    , if not refresh then
+                        Util.dispatch <| FocusOn <| Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
+
+                      else
+                        Cmd.none
                     )
 
                 Err error ->
@@ -3141,7 +3145,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             [ getBuilds model org repo Nothing Nothing Nothing
             , getBuild model org repo buildNumber
             , getPipeline model org repo ref lineFocus sameBuild
-            , getPipelineTemplates model org repo ref lineFocus
+            , getPipelineTemplates model org repo ref lineFocus sameBuild
             ]
     )
 
@@ -3200,7 +3204,6 @@ loadPipelinePage model org repo ref expand lineFocus =
                 |> updateBuildPipelineBuildNumber Nothing
                 |> updateBuildPipelineRef ref
                 |> updateBuildPipelineExpand expand
-                |> updateBuildPipelineExpanding True
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                 |> updateBuildPipelineFocusFragment
                     (case lineFocus of
@@ -3219,7 +3222,7 @@ loadPipelinePage model org repo ref expand lineFocus =
       }
     , Cmd.batch
         [ getPipeline model org repo ref lineFocus False
-        , getPipelineTemplates model org repo ref lineFocus
+        , getPipelineTemplates model org repo ref lineFocus False
         ]
     )
 
@@ -3797,9 +3800,9 @@ expandPipelineConfig model org repo ref lineFocus refresh =
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
 -}
-getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Cmd Msg
-getPipelineTemplates model org repo ref lineFocus =
-    Api.try (GetPipelineTemplatesResponse org repo lineFocus) <| Api.getPipelineTemplates model org repo ref
+getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+getPipelineTemplates model org repo ref lineFocus refresh =
+    Api.try (GetPipelineTemplatesResponse org repo lineFocus refresh) <| Api.getPipelineTemplates model org repo ref
 
 
 
