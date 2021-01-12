@@ -2939,18 +2939,26 @@ loadUpdateSharedSecretPage model engine org team name =
 loadBuildPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
 loadBuildPage model org repo buildNumber lineFocus =
     let
-        rm =
-            model.repo
-
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
+        sameResource =
+            case model.page of
+                Pages.Build _ _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
         m =
             if not sameBuild then
-                setBuild org repo buildNumber False model
+                setBuild org repo buildNumber sameResource model
 
             else
                 model
+
+        rm =
+            m.repo
     in
     -- load page depending on build change
     ( { m
@@ -2987,18 +2995,26 @@ loadBuildPage model org repo buildNumber lineFocus =
 loadBuildServicesPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
 loadBuildServicesPage model org repo buildNumber lineFocus =
     let
-        rm =
-            model.repo
-
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
+        sameResource =
+            case model.page of
+                Pages.BuildServices _ _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
         m =
             if not sameBuild then
-                setBuild org repo buildNumber False model
+                setBuild org repo buildNumber sameResource model
 
             else
                 model
+
+        rm =
+            m.repo
     in
     ( { m
         | page = Pages.BuildServices org repo buildNumber lineFocus
@@ -3055,12 +3071,20 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
+        sameResource =
+            case model.page of
+                Pages.BuildPipeline _ _ _ _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
         sameRef =
             isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
 
         m =
             if not sameBuild then
-                setBuild org repo buildNumber True model
+                setBuild org repo buildNumber sameResource model
 
             else
                 model
