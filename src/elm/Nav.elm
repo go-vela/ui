@@ -300,22 +300,27 @@ viewRepoTabs rm org repo currentPage =
 
 {-| viewBuildTabs : takes model information and current page and renders build navigation tabs
 -}
-viewBuildTabs : PartialModel a -> Org -> Repo -> Build -> Page -> Html msg
-viewBuildTabs model org repo build currentPage =
+viewBuildTabs : PartialModel a -> Org -> Repo -> BuildNumber -> Page -> Html msg
+viewBuildTabs model org repo buildNumber currentPage =
     let
-        buildNumber =
-            String.fromInt build.number
-
         bm =
             model.repo.build
 
         pipeline =
             model.pipeline
 
+        ref =
+            case bm.build of
+                RemoteData.Success build ->
+                    Just build.commit
+
+                _ ->
+                    Nothing
+
         tabs =
             [ Tab "Build" currentPage <| Pages.Build org repo buildNumber bm.steps.focusFragment
             , Tab "Services" currentPage <| Pages.BuildServices org repo buildNumber bm.services.focusFragment
-            , Tab "Pipeline" currentPage <| Pages.BuildPipeline org repo buildNumber (Just build.commit) pipeline.expand pipeline.focusFragment
+            , Tab "Pipeline" currentPage <| Pages.BuildPipeline org repo buildNumber ref pipeline.expand pipeline.focusFragment
             ]
     in
     viewTabs tabs "jump-bar-build"

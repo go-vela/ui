@@ -2143,6 +2143,7 @@ viewContent model =
                 buildMsgs
                 org
                 repo
+                buildNumber
             )
 
         Pages.BuildServices org repo buildNumber _ ->
@@ -2152,6 +2153,7 @@ viewContent model =
                 buildMsgs
                 org
                 repo
+                buildNumber
             )
 
         Pages.BuildPipeline org repo buildNumber ref expand lineFocus ->
@@ -2164,6 +2166,7 @@ viewContent model =
                     model
                     org
                     repo
+                    buildNumber
             )
 
         Pages.Pipeline org repo ref expand lineFocus ->
@@ -2942,15 +2945,15 @@ loadBuildPage model org repo buildNumber lineFocus =
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
-        updateBuild =
+        m =
             if not sameBuild then
-                setBuild org repo buildNumber
+                setBuild org repo buildNumber False model
 
             else
-                identity
+                model
     in
     -- load page depending on build change
-    ( { model
+    ( { m
         | page = Pages.Build org repo buildNumber lineFocus
         , repo =
             rm
@@ -2971,7 +2974,6 @@ loadBuildPage model org repo buildNumber lineFocus =
                     )
                 |> updateBuildServicesFollowing 0
       }
-        |> updateBuild
     , Cmd.batch <|
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
@@ -2991,14 +2993,14 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
 
-        updateBuild =
+        m =
             if not sameBuild then
-                setBuild org repo buildNumber
+                setBuild org repo buildNumber False model
 
             else
-                identity
+                model
     in
-    ( { model
+    ( { m
         | page = Pages.BuildServices org repo buildNumber lineFocus
         , repo =
             rm
@@ -3019,7 +3021,6 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                     )
                 |> updateBuildStepsFollowing 0
       }
-        |> updateBuild
     , Cmd.batch <|
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
@@ -3055,16 +3056,16 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             isSameBuild ( org, repo, buildNumber ) model.page
 
         sameRef =
-            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page
+            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
 
-        updateBuild =
+        m =
             if not sameBuild then
-                setBuild org repo buildNumber
+                setBuild org repo buildNumber True model
 
             else
-                identity
+                model
     in
-    ( { model
+    ( { m
         | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus
         , pipeline =
             pipeline
@@ -3100,7 +3101,6 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             else
                 { data = Loading, error = "", show = True }
       }
-        |> updateBuild
     , Cmd.batch
         [ getBuilds model org repo Nothing Nothing Nothing
         , getBuild model org repo buildNumber
@@ -3141,7 +3141,7 @@ loadPipelinePage model org repo ref expand lineFocus =
             model.pipeline
 
         sameRef =
-            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page
+            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
     in
     -- load page depending on ref change
     ( { model
@@ -3208,11 +3208,17 @@ isSameBuild id currentPage =
 
 {-| isSamePipelineRef : takes pipeline ref identifier and current page and returns true if the pipeline ref has not changed
 -}
-isSamePipelineRef : RepoResourceIdentifier -> Page -> Bool
-isSamePipelineRef id currentPage =
+isSamePipelineRef : RepoResourceIdentifier -> Page -> PipelineModel -> Bool
+isSamePipelineRef id currentPage pipeline =
     case currentPage of
         Pages.Pipeline o r rf _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
+
+        Pages.Build o r b _ ->
+            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
+
+        Pages.BuildServices o r b _ ->
+            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
 
         Pages.BuildPipeline o r b rf _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
@@ -3223,8 +3229,8 @@ isSamePipelineRef id currentPage =
 
 {-| setBuild : takes new build information and sets the appropriate model state
 -}
-setBuild : Org -> Repo -> BuildNumber -> Model -> Model
-setBuild org repo buildNumber model =
+setBuild : Org -> Repo -> BuildNumber -> Bool -> Model -> Model
+setBuild org repo buildNumber soft model =
     let
         rm =
             model.repo
@@ -3247,7 +3253,13 @@ setBuild org repo buildNumber model =
         , templates = { data = NotAsked, error = "", show = True }
         , repo =
             rm
-                |> updateBuild Loading
+                |> updateBuild
+                    (if soft then
+                        model.repo.build.build
+
+                     else
+                        Loading
+                    )
                 |> updateOrgRepo org repo
                 |> updateBuildNumber buildNumber
                 |> updateBuildSteps NotAsked

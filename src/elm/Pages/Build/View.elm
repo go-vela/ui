@@ -111,9 +111,9 @@ import Vela
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
-viewBuild model msgs org repo =
-    wrapWithBuildPreview model org repo <|
+viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
+viewBuild model msgs org repo buildNumber =
+    wrapWithBuildPreview model org repo buildNumber <|
         case model.repo.build.steps.steps of
             RemoteData.Success steps_ ->
                 viewBuildSteps model
@@ -135,8 +135,8 @@ viewBuild model msgs org repo =
 
 {-| wrapWithBuildPreview : takes html content and wraps it with the build preview
 -}
-wrapWithBuildPreview : PartialModel a -> Org -> Repo -> Html msg -> Html msg
-wrapWithBuildPreview model org repo content =
+wrapWithBuildPreview : PartialModel a -> Org -> Repo -> BuildNumber -> Html msg -> Html msg
+wrapWithBuildPreview model org repo buildNumber content =
     let
         rm =
             model.repo
@@ -144,21 +144,10 @@ wrapWithBuildPreview model org repo content =
         build =
             rm.build
 
-        ( buildPreview, buildNumber ) =
+        buildPreview =
             case build.build of
                 RemoteData.Success bld ->
-                    ( viewPreview model.time model.zone org repo bld, String.fromInt bld.number )
-
-                RemoteData.Loading ->
-                    ( Util.largeLoader, "" )
-
-                _ ->
-                    ( text "", "" )
-
-        navTabs =
-            case build.build of
-                RemoteData.Success bld ->
-                    viewBuildTabs model org repo bld model.page
+                    viewPreview model.time model.zone org repo bld
 
                 RemoteData.Loading ->
                     Util.largeLoader
@@ -168,7 +157,7 @@ wrapWithBuildPreview model org repo content =
 
         markdown =
             [ buildPreview
-            , navTabs
+            , viewBuildTabs model org repo buildNumber model.page
             , content
             ]
     in
@@ -448,9 +437,9 @@ viewStepLogs msgs shift rm step =
 
 {-| viewBuildServices : renders build services
 -}
-viewBuildServices : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
-viewBuildServices model msgs org repo =
-    wrapWithBuildPreview model org repo <|
+viewBuildServices : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
+viewBuildServices model msgs org repo buildNumber =
+    wrapWithBuildPreview model org repo buildNumber <|
         case model.repo.build.services.services of
             RemoteData.Success services ->
                 if List.isEmpty services then
