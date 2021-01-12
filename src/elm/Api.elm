@@ -412,6 +412,7 @@ tryString msg request_ =
 getLogout : PartialModel a -> Request String
 getLogout model =
     get model.velaAPI Endpoint.Logout Json.Decode.string
+      |> withAuth model.session
 
 
 {-| getToken : gets a new token with refresh token in cookie
