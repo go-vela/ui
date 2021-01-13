@@ -366,6 +366,15 @@ nav {
   overflow: hidden;
 }
 
+.build-preview-error {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 0.6rem 0.8rem;
+  background-color: var(--color-bg-dark);
+  color: var(--color-red-light);
+  font-size: 16px;
+}
+
 .build {
   position: relative;
 
@@ -779,7 +788,7 @@ nav {
   justify-content: flex-start;
 
   padding-right: 1rem;
-  padding-left: 2.6rem;
+  padding-left: 1.6rem;
   padding-top: 0.6rem;
 
   margin-top: 0.6rem;
@@ -794,9 +803,9 @@ nav {
 .flowline-left {
   background: linear-gradient(
     90deg,
-    hsla(0, 0, 0, 0) calc(3.25em - 1px),
-    var(--color-flowline) calc(3.25em),
-    hsla(0, 0, 0, 0) calc(3.25em + 1px)
+    hsla(0, 0, 0, 0) calc(2.25em - 1px),
+    var(--color-flowline) calc(2.25em),
+    hsla(0, 0, 0, 0) calc(2.25em + 1px)
   );
 }
 
@@ -809,7 +818,7 @@ nav {
 .service .-status {
   margin-top: 2rem;
   margin-right: 1rem;
-  margin-left: 2.6rem;
+  margin-left: 1.6rem;
 }
 
 .step .-icon-container,

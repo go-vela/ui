@@ -29,6 +29,7 @@ type Page
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
+    | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
     | Login
@@ -93,6 +94,9 @@ toRoute page =
 
         BuildServices org repo buildNumber logFocus ->
             Routes.BuildServices org repo buildNumber logFocus
+
+        BuildPipeline org repo buildNumber ref expanded lineFocus ->
+            Routes.BuildPipeline org repo buildNumber ref expanded lineFocus
 
         Pipeline org repo ref expanded lineFocus ->
             Routes.Pipeline org repo ref expanded lineFocus
@@ -166,6 +170,9 @@ strip page =
 
         BuildServices org repo buildNumber _ ->
             BuildServices org repo buildNumber Nothing
+
+        BuildPipeline org repo buildNumber _ _ _ ->
+            BuildPipeline org repo buildNumber Nothing Nothing Nothing
 
         Pipeline org repo _ _ _ ->
             Pipeline org repo Nothing Nothing Nothing

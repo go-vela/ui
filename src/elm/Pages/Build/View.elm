@@ -63,6 +63,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import List.Extra exposing (unique)
+import Nav exposing (viewBuildTabs)
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
@@ -110,9 +111,9 @@ import Vela
 
 {-| viewBuild : renders entire build based on current application time
 -}
-viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
-viewBuild model msgs org repo =
-    wrapWithBuildPreview model org repo <|
+viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
+viewBuild model msgs org repo buildNumber =
+    wrapWithBuildPreview model org repo buildNumber <|
         case model.repo.build.steps.steps of
             RemoteData.Success steps_ ->
                 viewBuildSteps model
@@ -134,8 +135,8 @@ viewBuild model msgs org repo =
 
 {-| wrapWithBuildPreview : takes html content and wraps it with the build preview
 -}
-wrapWithBuildPreview : PartialModel a -> Org -> Repo -> Html msg -> Html msg
-wrapWithBuildPreview model org repo content =
+wrapWithBuildPreview : PartialModel a -> Org -> Repo -> BuildNumber -> Html msg -> Html msg
+wrapWithBuildPreview model org repo buildNumber content =
     let
         rm =
             model.repo
@@ -143,21 +144,22 @@ wrapWithBuildPreview model org repo content =
         build =
             rm.build
 
-        ( buildPreview, buildNumber ) =
+        markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    ( viewPreview model.time model.zone org repo bld, String.fromInt bld.number )
+                    [ viewPreview model.time model.zone org repo bld
+                    , viewBuildTabs model org repo buildNumber model.page
+                    , content
+                    ]
 
                 RemoteData.Loading ->
-                    ( Util.largeLoader, "" )
+                    [ Util.largeLoader ]
 
                 _ ->
-                    ( text "", "" )
-
-        markdown =
-            [ buildPreview
-            , content
-            ]
+                    [ div
+                        [ class "build-preview-error" ]
+                        [ text <| "Error loading " ++ String.join "/" [ org, repo, buildNumber ] ++ " ... Please try again" ]
+                    ]
     in
     div [ Util.testAttribute "full-build" ] markdown
 
@@ -435,9 +437,9 @@ viewStepLogs msgs shift rm step =
 
 {-| viewBuildServices : renders build services
 -}
-viewBuildServices : PartialModel a -> Msgs msg -> Org -> Repo -> Html msg
-viewBuildServices model msgs org repo =
-    wrapWithBuildPreview model org repo <|
+viewBuildServices : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
+viewBuildServices model msgs org repo buildNumber =
+    wrapWithBuildPreview model org repo buildNumber <|
         case model.repo.build.services.services of
             RemoteData.Success services ->
                 if List.isEmpty services then
