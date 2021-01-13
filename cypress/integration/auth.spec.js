@@ -33,8 +33,8 @@ context('Authentication', () => {
         .and('equal', Cypress.config().baseUrl + '/account/logout');
     });
 
-    // -- need to dynamically change return from call to
-    // -- /refresh-token .. FIXTHIS
+    // TODO: need to dynamically change return from call to
+    // /refresh-token .. FIXTHIS
     //
     // it('logout redirects to login page', () => {
     //   cy.get('[data-test=identity]').click();
