@@ -1155,6 +1155,7 @@ type Status
     | Success
     | Failure
     | Killed
+    | Canceled
     | Error
 
 
@@ -1177,6 +1178,9 @@ toStatus status =
 
         "killed" ->
             succeed Killed
+
+        "canceled" ->
+            succeed Canceled
 
         "error" ->
             succeed Error
@@ -1228,13 +1232,16 @@ statusToFavicon status =
                         Success ->
                             "-success"
 
-                        Error ->
-                            "-failure"
-
                         Failure ->
                             "-failure"
 
                         Killed ->
+                            "-failure"
+
+                        Canceled ->
+                            "-failure"
+
+                        Error ->
                             "-failure"
                    )
                 ++ ".ico"

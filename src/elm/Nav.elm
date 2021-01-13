@@ -51,6 +51,7 @@ import Vela
         , RepoModel
         , SecretType
         , SourceRepositories
+        , Status(..)
         )
 
 
@@ -150,60 +151,15 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
 
         Pages.Build org repo buildNumber _ ->
             div [ class "buttons" ]
-                [ case model.repo.build.build of
-                    RemoteData.Success b ->
-                        if b.status == Vela.Running then
-                            button
-                                [ classList
-                                    [ ( "button", True )
-                                    , ( "-outline", True )
-                                    ]
-                                , onClick <| cancelBuild org repo buildNumber
-                                , Util.testAttribute "cancel-build"
-                                ]
-                                [ text "Cancel"
-                                ]
-
-                        else
-                            text ""
-
-                    _ ->
-                        text ""
-                , button
-                    [ classList
-                        [ ( "button", True )
-                        , ( "-outline", True )
-                        ]
-                    , onClick <| restartBuild org repo buildNumber
-                    , Util.testAttribute "restart-build"
-                    ]
-                    [ text "Restart"
-                    ]
+                [ cancelBuildButton org repo model.repo.build.build cancelBuild
+                , restartBuildButton org repo model.repo.build.build restartBuild
                 ]
 
         Pages.BuildServices org repo buildNumber _ ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick <| restartBuild org repo buildNumber
-                , Util.testAttribute "restart-build"
-                ]
-                [ text "Restart Build"
-                ]
+            restartBuildButton org repo model.repo.build.build restartBuild
 
         Pages.BuildPipeline org repo buildNumber _ _ _ ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick <| restartBuild org repo buildNumber
-                , Util.testAttribute "restart-build"
-                ]
-                [ text "Restart Build"
-                ]
+            restartBuildButton org repo model.repo.build.build restartBuild
 
         Pages.Hooks org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
@@ -346,3 +302,50 @@ viewBuildTabs model org repo buildNumber currentPage =
             ]
     in
     viewTabs tabs "jump-bar-build"
+
+
+{-| cancelBuildButton : takes org repo and build number and renders button to cancel a build
+-}
+cancelBuildButton : Org -> Repo -> WebData Build -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+cancelBuildButton org repo build cancelBuild =
+    case build of
+        RemoteData.Success b ->
+            case b.status of
+                Vela.Running ->
+                    button
+                        [ classList
+                            [ ( "button", True )
+                            , ( "-outline", True )
+                            ]
+                        , onClick <| cancelBuild org repo <| String.fromInt b.number
+                        , Util.testAttribute "cancel-build"
+                        ]
+                        [ text "Cancel Build"
+                        ]
+
+                _ ->
+                    text ""
+
+        _ ->
+            text ""
+
+
+{-| restartBuildButton : takes org repo and build number and renders button to restart a build
+-}
+restartBuildButton : Org -> Repo -> WebData Build -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+restartBuildButton org repo build restartBuild =
+    case build of
+        RemoteData.Success b ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick <| restartBuild org repo <| String.fromInt b.number
+                , Util.testAttribute "restart-build"
+                ]
+                [ text "Restart Build"
+                ]
+
+        _ ->
+            text ""
