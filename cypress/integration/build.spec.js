@@ -173,7 +173,7 @@ context('Build', () => {
           status: 200,
           response: 'build has been canceled',
         });
-        cy.visit('/github/octocat/1');
+        cy.login('/github/octocat/1');
         cy.get('[data-test=cancel-build]').as('cancelBuild');
       });
 
