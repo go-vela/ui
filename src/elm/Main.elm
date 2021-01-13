@@ -1213,15 +1213,11 @@ update msg model =
 
         CancelBuildResponse org repo buildNumber response ->
             case response of
-                Ok ( _, _ ) ->
-                    let
-                        canceledBuild =
-                            "Build " ++ String.join "/" [ org, repo, buildNumber ]
-                    in
+                Ok ( _, canceled ) ->
                     ( model
                     , Cmd.none
                     )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (canceledBuild ++ " canceled.") Nothing)
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" canceled Nothing)
 
                 Err error ->
                     ( model, addError error )
