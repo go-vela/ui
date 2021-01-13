@@ -160,7 +160,7 @@ context('Builds', () => {
 
   context('logged out and server returning 10 builds', () => {
     beforeEach(() => {
-      cy.clearSession();
+      cy.loggedOut();
       cy.server();
       cy.stubBuilds();
       cy.visit('/github/octocat');

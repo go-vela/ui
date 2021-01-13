@@ -29,7 +29,7 @@ context('Favorites', () => {
     beforeEach(() => {
       cy.server();
       cy.route('GET', '*api/v1/user*', 'fixture:favorites_none.json');
-      cy.visit('/');
+      cy.login();
     });
 
     it('should show how to add favorites', () => {

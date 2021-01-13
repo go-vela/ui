@@ -145,7 +145,6 @@ context('Steps', () => {
     });
     context('visit Build, then visit log line with fragment', () => {
       beforeEach(() => {
-        cy.visit('/github/octocat/1');
         cy.visit('/github/octocat/1#step:2:2');
         cy.reload();
       });
@@ -158,7 +157,6 @@ context('Steps', () => {
     });
     context('visit Build, with only step fragment', () => {
       beforeEach(() => {
-        cy.visit('/github/octocat/1');
         cy.visit('/github/octocat/1#step:2');
         cy.reload();
       });
@@ -210,7 +208,6 @@ context('Steps', () => {
     });
     context('visit Build, then visit log line range with fragment', () => {
       beforeEach(() => {
-        cy.visit('/github/octocat/1');
         cy.visit('/github/octocat/1#step:2:2:5');
         cy.reload();
         cy.wait('@getLogs-2');

@@ -20,6 +20,7 @@ module Pages.Secrets.Model exposing
     , secretsResourceKey
     )
 
+import Auth.Session exposing (Session(..))
 import Http
 import Http.Detailed
 import LinkHeader exposing (WebLink)
@@ -33,7 +34,6 @@ import Vela
         , Secret
         , SecretType
         , Secrets
-        , Session
         , Team
         )
 
@@ -47,7 +47,7 @@ import Vela
 type alias PartialModel a msg =
     { a
         | velaAPI : String
-        , session : Maybe Session
+        , session : Session
         , page : Page
         , secretsModel : Model msg
     }
@@ -81,10 +81,8 @@ type alias Model msg =
     }
 
 
-
-{- secretsResourceKey : takes Model returns maybe string for retrieving secrets based on type -}
-
-
+{-| secretsResourceKey : takes Model returns maybe string for retrieving secrets based on type
+-}
 secretsResourceKey : Model msg -> Maybe String
 secretsResourceKey secretsModel =
     case secretsModel.type_ of

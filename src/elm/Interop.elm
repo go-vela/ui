@@ -4,24 +4,19 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-port module Interop exposing (onSessionChange, onThemeChange, setFavicon, setTheme, storeSession)
+port module Interop exposing (onThemeChange, setFavicon, setRedirect, setTheme)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
 
 
 
--- SESSION
-
-
-{-| inbound
--}
-port onSessionChange : (Decode.Value -> msg) -> Sub msg
+-- AUTH REDIRECT
 
 
 {-| outbound
 -}
-port storeSession : Encode.Value -> Cmd msg
+port setRedirect : Encode.Value -> Cmd msg
 
 
 
@@ -36,6 +31,10 @@ port onThemeChange : (Decode.Value -> msg) -> Sub msg
 {-| outbound
 -}
 port setTheme : Encode.Value -> Cmd msg
+
+
+
+-- DYNAMIC FAVICON
 
 
 {-| outbound
