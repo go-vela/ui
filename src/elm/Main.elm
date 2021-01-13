@@ -11,7 +11,7 @@ import Api
 import Api.Endpoint
 import Api.Pagination as Pagination
 import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
-import Auth.Session exposing (Session(..), SessionDetails, defaultSessionDetails, refreshAccessToken)
+import Auth.Session exposing (Session(..), SessionDetails, refreshAccessToken)
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
@@ -237,6 +237,7 @@ type alias Model =
     , velaAPI : String
     , velaFeedbackURL : String
     , velaDocsURL : String
+    , velaRedirect : String
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
@@ -273,15 +274,6 @@ type alias RefreshData =
 init : Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
-        redirect : Url
-        redirect =
-            case Url.fromString flags.velaRedirect of
-                Just re ->
-                    re
-
-                Nothing ->
-                    url
-
         model : Model
         model =
             { page = Pages.Overview
@@ -291,6 +283,7 @@ init flags url navKey =
             , velaAPI = flags.velaAPI
             , velaFeedbackURL = flags.velaFeedbackURL
             , velaDocsURL = flags.velaDocsURL
+            , velaRedirect = flags.velaRedirect
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = utc
@@ -313,29 +306,27 @@ init flags url navKey =
         ( newModel, newPage ) =
             setNewPage (Routes.match url) model
 
+        setTimeZone : Cmd Msg
         setTimeZone =
             Task.perform AdjustTimeZone here
 
+        setTime : Cmd Msg
         setTime =
             Task.perform AdjustTime Time.now
 
         fetchToken : Cmd Msg
         fetchToken =
-            -- when redirect is set, we're in the
-            -- auth flow, skip fetching as it will
-            -- error anyway
-            if String.length flags.velaRedirect > 0 then
-                Cmd.none
+            case String.length model.velaRedirect of
+                0 ->
+                    getToken model
 
-            else
-                getToken model
+                _ ->
+                    Cmd.none
     in
     ( newModel
     , Cmd.batch
         [ fetchToken
         , newPage
-
-        -- for themes, we rely on ports to apply the class on <body>
         , Interop.setTheme <| encodeTheme model.theme
         , setTimeZone
         , setTime
@@ -994,21 +985,28 @@ update msg model =
                         newSessionDetails =
                             SessionDetails token payload.exp payload.sub
 
+                        redirectTo : String
+                        redirectTo =
+                            case model.velaRedirect of
+                                "" ->
+                                    Url.toString model.entryURL
+
+                                _ ->
+                                    model.velaRedirect
+
                         actions : List (Cmd Msg)
                         actions =
                             case currentSession of
                                 Unauthenticated ->
-                                    [ Navigation.pushUrl model.navigationKey <| Url.toString model.entryURL
-                                    , Interop.setRedirect Encode.null
+                                    [ Interop.setRedirect Encode.null
+                                    , Navigation.pushUrl model.navigationKey redirectTo
                                     ]
 
                                 Authenticated _ ->
                                     []
                     in
                     ( { model | session = Authenticated newSessionDetails }
-                    , Cmd.batch <|
-                        actions
-                            ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
+                    , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
                     )
 
                 Err error ->

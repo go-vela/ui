@@ -73,15 +73,13 @@ context('Authentication', () => {
     });
   });
 
-  // --- TODO: fix this test
-  //
-  // context('post-login redirect', () => {
-  //   beforeEach(() => {
-  //     cy.loggingIn('/Cookie/Cat');
-  //   });
+  context('post-login redirect', () => {
+    beforeEach(() => {
+      cy.loggingIn('/Cookie/Cat');
+    });
 
-  //   it('should go directly to page requested', () => {
-  //     cy.location('pathname').should('eq', '/Cookie/Cat');
-  //   });
-  // });
+    it('should go directly to page requested', () => {
+      cy.location('pathname').should('eq', '/Cookie/Cat');
+    });
+  });
 });
