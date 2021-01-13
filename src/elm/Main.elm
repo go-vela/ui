@@ -2504,7 +2504,7 @@ setNewPage route model =
         ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildServicesPage model org repo buildNumber lineFocus
 
-        ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, Authenticated _ ccccc ) ->
+        ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, Authenticated _ ) ->
             loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
 
         ( Routes.Pipeline org repo ref expand lineFocus, Authenticated _ ) ->

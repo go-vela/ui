@@ -28,7 +28,6 @@ import Vela
         , PipelineTemplates
         , Repo
         , RepoModel
-        , Session
         , SourceRepositories
         , Steps
         )
