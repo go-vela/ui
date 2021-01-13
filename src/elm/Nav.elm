@@ -51,7 +51,6 @@ import Vela
         , RepoModel
         , SecretType
         , SourceRepositories
-        , Status(..)
         )
 
 
