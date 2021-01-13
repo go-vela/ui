@@ -282,15 +282,6 @@ type alias RefreshData =
 init : Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
-        redirect : Url
-        redirect =
-            case Url.fromString flags.velaRedirect of
-                Just re ->
-                    re
-
-                Nothing ->
-                    url
-
         model : Model
         model =
             { page = Pages.Overview
