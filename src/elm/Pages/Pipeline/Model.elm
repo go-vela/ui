@@ -20,6 +20,7 @@ import Vela
     exposing
         ( Build
         , BuildNumber
+        , CurrentUser
         , FocusFragment
         , Org
         , PipelineModel
@@ -27,6 +28,7 @@ import Vela
         , Repo
         , RepoModel
         , Session
+        , SourceRepositories
         , Steps
         )
 
@@ -41,6 +43,8 @@ type alias PartialModel a =
     { a
         | velaAPI : String
         , session : Maybe Session
+        , user : WebData CurrentUser
+        , sourceRepos : WebData SourceRepositories
         , navigationKey : Navigation.Key
         , time : Posix
         , repo : RepoModel

@@ -318,6 +318,7 @@ context('Steps', () => {
   context('visit build/steps with stages', () => {
     beforeEach(() => {
       cy.server();
+      cy.stubBuild();
       cy.fixture('steps_stages.json').as('steps');
       cy.route({
         method: 'GET',

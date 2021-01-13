@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, viewNav, viewUtil)
+module Nav exposing (Msgs, viewBuildTabs, viewNav, viewUtil)
 
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
@@ -46,6 +46,7 @@ import Vela
         , CurrentUser
         , Engine
         , Org
+        , PipelineModel
         , Repo
         , RepoModel
         , SecretType
@@ -61,6 +62,7 @@ type alias PartialModel a =
         , repo : RepoModel
         , time : Posix
         , zone : Zone
+        , pipeline : PipelineModel
     }
 
 
@@ -157,6 +159,30 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
                 [ text "Restart Build"
                 ]
 
+        Pages.BuildServices org repo buildNumber _ ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick <| restartBuild org repo buildNumber
+                , Util.testAttribute "restart-build"
+                ]
+                [ text "Restart Build"
+                ]
+
+        Pages.BuildPipeline org repo buildNumber _ _ _ ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick <| restartBuild org repo buildNumber
+                , Util.testAttribute "restart-build"
+                ]
+                [ text "Restart Build"
+                ]
+
         Pages.Hooks org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
@@ -190,6 +216,9 @@ viewUtil model =
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
             Pages.BuildServices _ _ _ _ ->
+                Pages.Build.History.view model.time model.zone model.page 10 model.repo
+
+            Pages.BuildPipeline _ _ _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
             _ ->
@@ -266,13 +295,32 @@ viewRepoTabs rm org repo currentPage =
 
 
 
--- BUILD TODO
+-- BUILD
 
 
-viewBuildTabs : RepoModel -> Page -> Html msg
-viewBuildTabs rm currentPage =
+{-| viewBuildTabs : takes model information and current page and renders build navigation tabs
+-}
+viewBuildTabs : PartialModel a -> Org -> Repo -> BuildNumber -> Page -> Html msg
+viewBuildTabs model org repo buildNumber currentPage =
     let
+        bm =
+            model.repo.build
+
+        pipeline =
+            model.pipeline
+
+        ref =
+            case bm.build of
+                RemoteData.Success build ->
+                    Just build.commit
+
+                _ ->
+                    Nothing
+
         tabs =
-            []
+            [ Tab "Build" currentPage <| Pages.Build org repo buildNumber bm.steps.focusFragment
+            , Tab "Services" currentPage <| Pages.BuildServices org repo buildNumber bm.services.focusFragment
+            , Tab "Pipeline" currentPage <| Pages.BuildPipeline org repo buildNumber ref pipeline.expand pipeline.focusFragment
+            ]
     in
-    viewTabs tabs "build"
+    viewTabs tabs "jump-bar-build"
