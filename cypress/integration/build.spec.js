@@ -164,6 +164,46 @@ context('Build', () => {
       });
     });
 
+    context('server stubbed Cancel Build', () => {
+      beforeEach(() => {
+        cy.server();
+        cy.route({
+          method: 'DELETE',
+          url: 'api/v1/repos/*/*/builds/*/cancel',
+          status: 200,
+          response: 'build has been canceled',
+        });
+        cy.visit('/github/octocat/1');
+        cy.get('[data-test=cancel-build]').as('cancelBuild');
+      });
+
+      it('clicking cancel build should show alert', () => {
+        cy.get('@cancelBuild').click();
+        cy.get('[data-test=alert]').should(
+          'contain',
+          'github/octocat/1 canceled',
+        );
+      });
+    });
+
+    context('server failing to cancel build', () => {
+      beforeEach(() => {
+        cy.server();
+        cy.route({
+          method: 'DELETE',
+          url: 'api/v1/repos/*/*/builds/*/cancel',
+          status: 500,
+          response: 'server error',
+        });
+        cy.get('[data-test=cancel-build]').as('cancelBuild');
+      });
+
+      it('clicking cancel build should show error alert', () => {
+        cy.get('@cancelBuild').click();
+        cy.get('[data-test=alert]').should('contain', 'Error');
+      });
+    });
+
     context('visit running build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/1');
