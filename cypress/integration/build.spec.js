@@ -181,7 +181,7 @@ context('Build', () => {
         cy.get('@cancelBuild').click();
         cy.get('[data-test=alert]').should(
           'contain',
-          'github/octocat/1 canceled',
+          'canceled build github/octocat/1',
         );
       });
     });
