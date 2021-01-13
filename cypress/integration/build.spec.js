@@ -171,7 +171,7 @@ context('Build', () => {
           method: 'DELETE',
           url: 'api/v1/repos/*/*/builds/*/cancel',
           status: 200,
-          response: 'build has been canceled',
+          response: 'canceled build github/octocat/1',
         });
         cy.login('/github/octocat/1');
         cy.get('[data-test=cancel-build]').as('cancelBuild');
