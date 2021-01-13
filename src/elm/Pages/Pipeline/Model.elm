@@ -46,7 +46,7 @@ type alias PartialModel a =
         , session : Session
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
-cc        , navigationKey : Navigation.Key
+        , navigationKey : Navigation.Key
         , time : Posix
         , repo : RepoModel
         , shift : Bool
