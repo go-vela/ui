@@ -281,7 +281,8 @@ nav {
   padding-bottom: 0.3rem;
 }
 
-.overview .form-control:first-child {
+.overview .form-control:first-child,
+.source-repos .form-control:first-child {
   margin-top: 1rem;
 }
 
