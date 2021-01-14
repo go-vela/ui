@@ -925,6 +925,11 @@ viewError build =
                     ]
                 ]
 
+        Vela.Canceled ->
+            div [ class "error", Util.testAttribute "build-canceled" ]
+                [ text "build was canceled"
+                ]
+
         _ ->
             div [] []
 
@@ -953,6 +958,9 @@ statusToString status =
         Vela.Killed ->
             "killed"
 
+        Vela.Canceled ->
+            "canceled"
+
         Vela.Error ->
             "server error"
 
@@ -975,6 +983,9 @@ statusToClass status =
             class "-failure"
 
         Vela.Killed ->
+            class "-failure"
+
+        Vela.Canceled ->
             class "-failure"
 
         Vela.Error ->

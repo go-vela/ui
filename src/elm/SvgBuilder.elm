@@ -471,6 +471,9 @@ buildStatusToIcon status =
         Vela.Killed ->
             buildFailure
 
+        Vela.Canceled ->
+            buildFailure
+
         Vela.Error ->
             buildFailure
 
@@ -493,6 +496,9 @@ recentBuildStatusToIcon status index =
             buildHistoryFailure index
 
         Vela.Failure ->
+            buildHistoryFailure index
+
+        Vela.Canceled ->
             buildHistoryFailure index
 
         Vela.Error ->
@@ -518,6 +524,9 @@ stepStatusToIcon status =
 
         Vela.Killed ->
             stepSkipped
+
+        Vela.Canceled ->
+            stepFailure
 
         Vela.Error ->
             stepFailure

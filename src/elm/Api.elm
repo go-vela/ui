@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api exposing
     ( Request(..)
     , addSecret
+    , cancelBuild
     , chownRepo
     , deleteRepo
     , deleteSecret
@@ -551,6 +552,14 @@ getPipelineTemplates model org repository ref =
 restartBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Request Build
 restartBuild model org repository buildNumber =
     post model.velaAPI (Endpoint.Build org repository buildNumber) Http.emptyBody decodeBuild
+        |> withAuth model.session
+
+
+{-| cancelBuild : cancels a build
+-}
+cancelBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Request String
+cancelBuild model org repository buildNumber =
+    delete model.velaAPI (Endpoint.CancelBuild org repository buildNumber)
         |> withAuth model.session
 
 

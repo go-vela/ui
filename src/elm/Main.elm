@@ -387,6 +387,7 @@ type Msg
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
+    | CancelBuild Org Repo BuildNumber
     | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
     | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
       -- Inbound HTTP responses
@@ -402,6 +403,7 @@ type Msg
     | RepoChownedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RepoRepairedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
+    | CancelBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -944,6 +946,11 @@ update msg model =
             , restartBuild model org repo buildNumber
             )
 
+        CancelBuild org repo buildNumber ->
+            ( model
+            , cancelBuild model org repo buildNumber
+            )
+
         GetPipelineConfig org repo buildNumber ref lineFocus refresh ->
             ( { model
                 | pipeline =
@@ -1200,6 +1207,17 @@ update msg model =
                     , getBuilds model org repo Nothing Nothing Nothing
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
+
+                Err error ->
+                    ( model, addError error )
+
+        CancelBuildResponse org repo buildNumber response ->
+            case response of
+                Ok ( _, canceled ) ->
+                    ( model
+                    , Cmd.none
+                    )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" canceled Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -3649,7 +3667,7 @@ homeMsgs =
 -}
 navMsgs : Nav.Msgs Msg
 navMsgs =
-    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets RestartBuild
+    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets RestartBuild CancelBuild
 
 
 {-| sourceReposMsgs : prepares the input record required for the SourceRepos page to route Msgs back to Main.elm
@@ -3800,6 +3818,11 @@ getBuildServicesLogs model org repo buildNumber services logFocus refresh =
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 restartBuild model org repo buildNumber =
     Api.try (RestartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
+
+
+cancelBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+cancelBuild model org repo buildNumber =
+    Api.tryString (CancelBuildResponse org repo buildNumber) <| Api.cancelBuild model org repo buildNumber
 
 
 getRepoSecrets :
