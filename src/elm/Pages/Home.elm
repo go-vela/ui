@@ -72,7 +72,7 @@ view user filter { toggleFavorite, search } =
                 , a [ class "button", Routes.href Routes.SourceRepositories ] [ text "Source Repositories" ]
                 ]
     in
-    div [ Util.testAttribute "overview" ] <|
+    div [ class "overview", Util.testAttribute "overview" ] <|
         case user of
             Success u ->
                 if List.length u.favorites > 0 then
