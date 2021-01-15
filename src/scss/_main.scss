@@ -156,6 +156,7 @@ header {
 
 .content-wrap {
   margin: 0 var(--horizontal-pad) var(--horizontal-pad);
+  padding: 1rem 0;
 }
 
 nav {
@@ -279,11 +280,6 @@ nav {
 .util {
   display: flex;
   padding-bottom: 0.3rem;
-}
-
-.overview .form-control:first-child,
-.source-repos .form-control:first-child {
-  margin-top: 1rem;
 }
 
 .filtered-repos {
