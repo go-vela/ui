@@ -9,10 +9,9 @@ module Pages.Pipeline.View exposing (viewPipeline)
 import Ansi.Log
 import Array
 import Dict
-import Dict.Extra
-import Errors exposing (Error, detailedErrorToString)
+import Errors exposing (Error)
 import FeatherIcons exposing (Icon)
-import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
+import Focus exposing (Resource, ResourceID, lineFocusStyles, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html
@@ -23,32 +22,25 @@ import Html
         , small
         , span
         , strong
-        , table
         , td
         , text
         , tr
         )
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
-import List.Extra
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
 import Util
 import Vela
     exposing
-        ( Build
-        , LogFocus
-        , Org
+        ( LogFocus
         , PipelineConfig
         , PipelineModel
         , PipelineTemplates
         , Ref
-        , Repo
-        , Step
-        , Steps
         , Template
         , Templates
         )
@@ -118,19 +110,17 @@ viewTemplatesError err open showHide =
 viewTemplatesDetails : Html.Attribute msg -> Bool -> msg -> List (Html msg) -> Html msg
 viewTemplatesDetails cls open showHide content =
     Html.details
-        ([ class "details"
-         , class "templates"
-         , Util.testAttribute "pipeline-templates"
-         ]
-            ++ Util.open open
+        (class "details"
+            :: class "templates"
+            :: Util.testAttribute "pipeline-templates"
+            :: Util.open open
         )
-        ([ Html.summary [ class "summary", Util.onClickPreventDefault showHide ]
+        [ Html.summary [ class "summary", Util.onClickPreventDefault showHide ]
             [ div [] [ text "Templates" ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
-         ]
-            ++ [ div [ class "content", cls ] content ]
-        )
+        , div [ class "content", cls ] content
+        ]
 
 
 {-| viewTemplate : takes template and renders view with name, source and HTML url.
@@ -219,8 +209,8 @@ wrapPipelineConfigurationContent model { get, expand, download } ref cls content
                     ]
                 ]
             , viewPipelineActions model get expand download
+            , content
             ]
-                ++ [ content ]
     in
     Html.table
         [ class "logs-table"

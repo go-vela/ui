@@ -5,8 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Util exposing
-    ( addIfUniqueId
-    , anyBlank
+    ( anyBlank
     , ariaHidden
     , base64Decode
     , boolToYesNo
@@ -16,26 +15,20 @@ module Util exposing
     , extractFocusIdFromRange
     , filterEmptyList
     , filterEmptyLists
-    , filterEmptyStringLists
     , fiveSecondsMillis
     , formatRunTime
     , formatTestTag
-    , getById
     , humanReadableDateTimeFormatter
     , isLoading
     , isSuccess
     , largeLoader
     , mergeListsById
-    , millisToSeconds
     , noBlanks
     , onClickPreventDefault
-    , onClickStopPropogation
     , oneSecondMillis
     , open
     , overwriteById
     , pageToString
-    , pluralize
-    , refToString
     , relativeTimeNoSeconds
     , secondsToMillis
     , smallLoader
@@ -43,7 +36,6 @@ module Util exposing
     , stringToMaybe
     , successful
     , testAttribute
-    , toTwoDigits
     , trimCommitHash
     , yesNoToBool
     )
@@ -51,7 +43,7 @@ module Util exposing
 import Base64
 import Bytes
 import Bytes.Decode
-import DateFormat exposing (monthNameAbbreviated, monthNameFull)
+import DateFormat
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
@@ -225,13 +217,6 @@ filterEmptyLists =
     List.filter (\( _, list ) -> List.isEmpty list == False)
 
 
-{-| filterEmptyStringLists : filters out empties from list of (key, list)
--}
-filterEmptyStringLists : List ( String, List String ) -> List ( String, List String )
-filterEmptyStringLists =
-    List.filter (\( _, list ) -> List.isEmpty list == False)
-
-
 {-| anyBlank : takes list of strings, returns true if any are blank
 -}
 anyBlank : List String -> Bool
@@ -251,16 +236,6 @@ noBlanks strings =
     not <| anyBlank strings
 
 
-addIfUniqueId : { a | id : comparable } -> List { a | id : comparable } -> List { a | id : comparable }
-addIfUniqueId item list =
-    filterByUniqueId <| item :: list
-
-
-filterByUniqueId : List { a | id : comparable } -> List { a | id : comparable }
-filterByUniqueId list =
-    List.Extra.uniqueBy .id list
-
-
 {-| overwriteById : takes single item and list and updates the specific item by ID
 
     returns Nothing if no update was needed
@@ -274,13 +249,6 @@ overwriteById item list =
 existsById : { a | id : comparable } -> List { a | id : comparable } -> Bool
 existsById item list =
     List.length (List.filter (\a -> a.id == item.id) list) > 0
-
-
-{-| getById : takes item with id and list and extracts item
--}
-getById : comparable -> List { a | id : comparable } -> Maybe { a | id : comparable }
-getById item list =
-    List.head <| List.filter (\a -> a.id == item) list
 
 
 {-| mergeListsById : takes two lists and merges them by unique id
@@ -375,19 +343,6 @@ largeLoader =
     div [ class "large-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
 
 
-{-| pluralize : takes num and string and adds pluralize s if needed
--}
-pluralize : Int -> String -> String
-pluralize num str =
-    if num > 1 then
-        str ++ "s"
-
-    else
-        str
-
-
-{-| boolToYesNo : takes bool and converts to yes/no string
--}
 boolToYesNo : Bool -> String
 boolToYesNo bool =
     if bool then
@@ -424,13 +379,6 @@ stringToMaybe str =
 onClickPreventDefault : msg -> Html.Attribute msg
 onClickPreventDefault message =
     custom "click" (Decode.succeed { message = message, stopPropagation = False, preventDefault = True })
-
-
-{-| onClickStopPropogation : returns custom onClick handler for calling javascript function stopPropogation()
--}
-onClickStopPropogation : msg -> Html.Attribute msg
-onClickStopPropogation message =
-    custom "click" (Decode.succeed { message = message, stopPropagation = True, preventDefault = False })
 
 
 {-| successful : extracts successful items from list of WebData items and returns List item
@@ -505,24 +453,6 @@ pageToString maybePage =
                 ""
 
 
-{-| refToString : small helper to turn ref to a string to display in crumbs
--}
-refToString : Maybe String -> String
-refToString maybeRef =
-    case maybeRef of
-        Nothing ->
-            "(default branch)"
-
-        Just ref ->
-            if String.length ref > 0 then
-                ref
-
-            else
-                "(default branch)"
-
-
-{-| buildBranchUrl : drops '.git' off the clone url and concatenates tree + branch ref
--}
 buildBranchUrl : String -> String -> String
 buildBranchUrl clone branch =
     String.dropRight 4 clone ++ "/tree/" ++ branch

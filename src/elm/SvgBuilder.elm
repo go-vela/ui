@@ -5,33 +5,19 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module SvgBuilder exposing
-    ( buildFailure
-    , buildHistoryFailure
-    , buildHistoryPending
-    , buildHistoryRunning
-    , buildHistorySuccess
-    , buildPending
-    , buildRunning
-    , buildStatusAnimation
+    ( buildStatusAnimation
     , buildStatusToIcon
-    , buildSuccess
-    , checkbox
     , hookStatusToIcon
-    , radio
     , recentBuildStatusToIcon
     , star
-    , stepFailure
-    , stepPending
-    , stepRunning
     , stepStatusToIcon
-    , stepSuccess
     , terminal
     , velaLogo
     )
 
 import Html exposing (Html)
 import Html.Attributes exposing (attribute)
-import Svg exposing (circle, svg)
+import Svg exposing (svg)
 import Svg.Attributes
     exposing
         ( class
@@ -409,50 +395,6 @@ buildHistoryFailure _ =
         [ Svg.path [ d "M8 8l12 12M20 8L8 20" ] [] ]
 
 
-{-| radio : produces svg icon for input radio select
--}
-radio : Bool -> Html msg
-radio checked =
-    svg
-        [ class "-icon"
-        , class "-radio"
-        , strokeWidth "2"
-        , viewBox "0 0 30 30"
-        , width "22"
-        , height "22"
-        ]
-    <|
-        if checked then
-            [ Svg.circle [ cx "15", cy "15", r "13" ] []
-            , Svg.circle [ class "-inner", cx "15", cy "15", r "6" ] []
-            ]
-
-        else
-            [ Svg.circle [ cx "15", cy "15", r "13" ] []
-            ]
-
-
-{-| checkbox : produces svg icon for input checkbox select
--}
-checkbox : Bool -> Html msg
-checkbox checked =
-    svg
-        [ class "-icon -check"
-        , strokeWidth "2"
-        , viewBox "0 0 28 28"
-        , width "22"
-        , height "22"
-        ]
-    <|
-        if checked then
-            [ Svg.path [ class "-checked", strokeLinecap "square", d "M6 15.9227L10.1026 20 22 7" ] [] ]
-
-        else
-            []
-
-
-{-| statusToIcon : takes build status string and returns Icon from SvgBuilder
--}
 buildStatusToIcon : Status -> Html msg
 buildStatusToIcon status =
     case status of

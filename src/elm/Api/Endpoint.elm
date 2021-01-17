@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
-import Url.Builder as UB exposing (QueryParameter, string)
+import Url.Builder as UB exposing (QueryParameter)
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, Name, Org, Ref, Repo, ServiceNumber, StepNumber, Type)
 
 

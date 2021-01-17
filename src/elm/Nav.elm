@@ -8,20 +8,15 @@ module Nav exposing (Msgs, viewBuildTabs, viewNav, viewUtil)
 
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
-import FeatherIcons
 import Html
     exposing
         ( Html
         , a
         , button
         , div
-        , em
-        , li
         , nav
-        , p
         , span
         , text
-        , ul
         )
 import Html.Attributes
     exposing
@@ -29,14 +24,12 @@ import Html.Attributes
         , class
         , classList
         , disabled
-        , href
         )
 import Html.Events exposing (onClick)
 import Pages exposing (Page(..))
 import Pages.Build.History
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
-import SvgBuilder exposing (recentBuildStatusToIcon)
 import Time exposing (Posix, Zone)
 import Util
 import Vela
@@ -148,16 +141,16 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
                     [ text "Add Shared Secret" ]
                 ]
 
-        Pages.Build org repo buildNumber _ ->
+        Pages.Build org repo _ _ ->
             div [ class "buttons" ]
                 [ cancelBuildButton org repo model.repo.build.build cancelBuild
                 , restartBuildButton org repo model.repo.build.build restartBuild
                 ]
 
-        Pages.BuildServices org repo buildNumber _ ->
+        Pages.BuildServices org repo _ _ ->
             restartBuildButton org repo model.repo.build.build restartBuild
 
-        Pages.BuildPipeline org repo buildNumber _ _ _ ->
+        Pages.BuildPipeline org repo _ _ _ _ ->
             restartBuildButton org repo model.repo.build.build restartBuild
 
         Pages.Hooks org repo _ _ ->
@@ -180,7 +173,7 @@ viewUtil model =
             Pages.RepositoryBuilds org repo _ _ _ ->
                 viewRepoTabs rm org repo model.page
 
-            Pages.RepoSecrets engine org repo _ _ ->
+            Pages.RepoSecrets _ org repo _ _ ->
                 viewRepoTabs rm org repo model.page
 
             Pages.Hooks org repo _ _ ->

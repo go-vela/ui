@@ -5,14 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build.View exposing
-    ( buildStatusStyles
-    , statusToClass
-    , statusToString
-    , viewBuild
+    ( viewBuild
     , viewBuildServices
-    , viewBuildSteps
-    , viewError
-    , viewLine
     , viewPreview
     , wrapWithBuildPreview
     )
@@ -38,9 +32,6 @@ import Html
         , code
         , details
         , div
-        , em
-        , li
-        , p
         , small
         , span
         , strong
@@ -49,7 +40,6 @@ import Html
         , td
         , text
         , tr
-        , ul
         )
 import Html.Attributes
     exposing
@@ -80,26 +70,21 @@ import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
-import Time exposing (Posix, Zone, millisToPosix)
+import Time exposing (Posix, Zone)
 import Util
 import Vela
     exposing
         ( Build
-        , BuildModel
         , BuildNumber
-        , Builds
         , Log
         , LogFocus
-        , Logs
         , Org
         , Repo
         , RepoModel
         , Service
-        , ServiceNumber
         , Services
         , Status
         , Step
-        , StepNumber
         , Steps
         , defaultStep
         )
@@ -306,15 +291,6 @@ viewStep model msgs rm steps step =
 -}
 stepClasses : Steps -> Step -> Html.Attribute msg
 stepClasses steps step =
-    let
-        last =
-            case List.head <| List.reverse steps of
-                Just s ->
-                    s.number
-
-                Nothing ->
-                    -1
-    in
     classList [ ( "step", True ), ( "flowline-left", True ) ]
 
 
@@ -496,15 +472,6 @@ viewService model msgs rm services service =
 -}
 serviceClasses : Services -> Service -> Html.Attribute msg
 serviceClasses services service =
-    let
-        last =
-            case List.head <| List.reverse services of
-                Just s ->
-                    s.number
-
-                Nothing ->
-                    -1
-    in
     classList [ ( "service", True ) ]
 
 
@@ -605,7 +572,7 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
                     , logs
                     ]
 
-            RemoteData.Failure err ->
+            RemoteData.Failure _ ->
                 [ code [ Util.testAttribute "logs-error" ] [ text "error fetching logs" ] ]
 
             _ ->
@@ -936,33 +903,6 @@ viewError build =
 
 
 -- HELPERS
-
-
-{-| statusToString : takes build status and returns string
--}
-statusToString : Status -> String
-statusToString status =
-    case status of
-        Vela.Pending ->
-            "pending"
-
-        Vela.Running ->
-            "running"
-
-        Vela.Success ->
-            "success"
-
-        Vela.Failure ->
-            "failed"
-
-        Vela.Killed ->
-            "killed"
-
-        Vela.Canceled ->
-            "canceled"
-
-        Vela.Error ->
-            "server error"
 
 
 {-| statusToClass : takes build status and returns css class

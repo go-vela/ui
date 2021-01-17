@@ -10,25 +10,21 @@ module Pages.Build.Logs exposing
     , decodeAnsi
     , downloadFileName
     , expandActive
-    , focus
     , focusAndClear
     , getCurrentResource
-    , getInfo
     , getLog
     , isViewing
     , logEmpty
     , merge
     , setAllViews
     , toString
-    , toggleView
     , topTrackerFocusId
     )
 
 import Ansi.Log
 import Array
-import Focus exposing (FocusTarget, parseFocusFragment, resourceFocusFragment)
+import Focus exposing (FocusTarget, parseFocusFragment)
 import List.Extra exposing (updateIf)
-import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Util exposing (overwriteById)
 import Vela

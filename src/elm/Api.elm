@@ -13,9 +13,6 @@ module Api exposing
     , deleteSecret
     , enableRepository
     , expandPipelineConfig
-    , getAllBuilds
-    , getAllHooks
-    , getAllRepositories
     , getAllSecrets
     , getAllServices
     , getAllSteps
@@ -28,14 +25,11 @@ module Api exposing
     , getPipelineConfig
     , getPipelineTemplates
     , getRepo
-    , getRepositories
     , getSecret
     , getSecrets
     , getServiceLogs
     , getSourceRepositories
-    , getStep
     , getStepLogs
-    , getSteps
     , getToken
     , repairRepo
     , restartBuild
@@ -64,44 +58,35 @@ import Vela
         , CurrentUser
         , Engine
         , Event
-        , Hook
         , Hooks
         , Key
         , Log
         , Name
         , Org
-        , PipelineConfig
         , Repo
-        , Repositories
         , Repository
         , Secret
         , Secrets
         , Service
         , ServiceNumber
-        , Services
         , SourceRepositories
         , Step
         , StepNumber
-        , Steps
         , Templates
         , Type
         , decodeBuild
         , decodeBuilds
         , decodeCurrentUser
-        , decodeHook
         , decodeHooks
         , decodeLog
         , decodePipelineConfig
         , decodePipelineTemplates
-        , decodeRepositories
         , decodeRepository
         , decodeSecret
         , decodeSecrets
         , decodeService
-        , decodeServices
         , decodeSourceRepositories
         , decodeStep
-        , decodeSteps
         )
 
 
@@ -447,26 +432,6 @@ updateCurrentUser model body =
         |> withAuth model.session
 
 
-{-| getRepositories : fetches enabled repositories by user token
--}
-getRepositories : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Request Repositories
-getRepositories model maybePage maybePerPage =
-    get model.velaAPI (Endpoint.Repositories maybePage maybePerPage) decodeRepositories
-        |> withAuth model.session
-
-
-{-| getAllRepositories : used in conjuction with 'tryAll', it retrieves all pages of the resource
-
-    Note: the singular version of the type/decoder is needed in this case as it turns it into a list
-
--}
-getAllRepositories : PartialModel a -> Request Repository
-getAllRepositories model =
-    -- we using the max perPage setting of 100 to reduce the number of calls
-    get model.velaAPI (Endpoint.Repositories (Just 1) (Just 100)) decodeRepository
-        |> withAuth model.session
-
-
 {-| getRepo : fetches single repo by org and repo name
 -}
 getRepo : PartialModel a -> Org -> Repo -> Request Repository
@@ -571,31 +536,11 @@ getBuilds model maybePage maybePerPage maybeEvent org repository =
         |> withAuth model.session
 
 
-{-| getAllBuilds : used in conjuction with 'tryAll', it retrieves all pages of the resource
-
-    Note: the singular version of the type/decoder is needed in this case as it turns it into a list
-
--}
-getAllBuilds : PartialModel a -> Org -> Repo -> Request Build
-getAllBuilds model org repository =
-    -- we using the max perPage setting of 100 to reduce the number of calls
-    get model.velaAPI (Endpoint.Builds (Just 1) (Just 100) Nothing org repository) decodeBuild
-        |> withAuth model.session
-
-
 {-| getBuild : fetches vela build by repository and build number
 -}
 getBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Request Build
 getBuild model org repository buildNumber =
     get model.velaAPI (Endpoint.Build org repository buildNumber) decodeBuild
-        |> withAuth model.session
-
-
-{-| getSteps : fetches vela build steps by repository and build number
--}
-getSteps : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> BuildNumber -> Request Steps
-getSteps model maybePage maybePerPage org repository buildNumber =
-    get model.velaAPI (Endpoint.Steps maybePage maybePerPage org repository buildNumber) decodeSteps
         |> withAuth model.session
 
 
@@ -611,14 +556,6 @@ getAllSteps model org repository buildNumber =
         |> withAuth model.session
 
 
-{-| getStep : fetches vela build steps by repository, build number and step number
--}
-getStep : PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> Request Step
-getStep model org repository buildNumber stepNumber =
-    get model.velaAPI (Endpoint.Step org repository buildNumber stepNumber) decodeStep
-        |> withAuth model.session
-
-
 {-| getStepLogs : fetches vela build step log by repository, build number and step number
 -}
 getStepLogs : PartialModel a -> Org -> Repo -> BuildNumber -> StepNumber -> Request Log
@@ -627,27 +564,11 @@ getStepLogs model org repository buildNumber stepNumber =
         |> withAuth model.session
 
 
-{-| getServices : fetches vela build services by repository and build number
--}
-getServices : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> BuildNumber -> Request Services
-getServices model maybePage maybePerPage org repository buildNumber =
-    get model.velaAPI (Endpoint.Services maybePage maybePerPage org repository buildNumber) decodeServices
-        |> withAuth model.session
-
-
 {-| getAllServices : used in conjuction with 'tryAll', it retrieves all pages for a build service
 -}
 getAllServices : PartialModel a -> Org -> Repo -> BuildNumber -> Request Service
 getAllServices model org repository buildNumber =
     get model.velaAPI (Endpoint.Services (Just 1) (Just 100) org repository buildNumber) decodeService
-        |> withAuth model.session
-
-
-{-| getService : fetches vela build services by repository, build number and step number
--}
-getService : PartialModel a -> Org -> Repo -> BuildNumber -> ServiceNumber -> Request Service
-getService model org repository buildNumber serviceNumber =
-    get model.velaAPI (Endpoint.Service org repository buildNumber serviceNumber) decodeService
         |> withAuth model.session
 
 
@@ -664,18 +585,6 @@ getServiceLogs model org repository buildNumber serviceNumber =
 getHooks : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Hooks
 getHooks model maybePage maybePerPage org repository =
     get model.velaAPI (Endpoint.Hooks maybePage maybePerPage org repository) decodeHooks
-        |> withAuth model.session
-
-
-{-| getAllHooks : used in conjuction with 'tryAll', it retrieves all pages of the resource
-
-    Note: the singular version of the type/decoder is needed in this case as it turns it into a list
-
--}
-getAllHooks : PartialModel a -> Org -> Repo -> Request Hook
-getAllHooks model org repository =
-    -- we are using the max perPage setting of 100 to reduce the number of calls
-    get model.velaAPI (Endpoint.Hooks (Just 1) (Just 100) org repository) decodeHook
         |> withAuth model.session
 
 
