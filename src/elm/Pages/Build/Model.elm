@@ -12,18 +12,13 @@ import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
 import Vela
     exposing
-        ( Build
-        , BuildNumber
+        ( BuildNumber
         , CurrentUser
-        , FocusFragment
-        , Logs
         , Org
         , PipelineModel
         , Repo
         , RepoModel
         , SourceRepositories
-        , StepNumber
-        , Steps
         )
 
 

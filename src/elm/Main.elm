@@ -1198,7 +1198,7 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        CancelBuildResponse org repo buildNumber response ->
+        CancelBuildResponse _ _ _ response ->
             case response of
                 Ok ( _, canceled ) ->
                     ( model
@@ -1380,7 +1380,7 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        GetPipelineConfigResponse org repo ref lineFocus refresh response ->
+        GetPipelineConfigResponse _ _ _ lineFocus refresh response ->
             case response of
                 Ok ( _, config ) ->
                     let
@@ -1419,7 +1419,7 @@ update msg model =
                     , Errors.addError error HandleError
                     )
 
-        ExpandPipelineConfigResponse org repo ref lineFocus refresh response ->
+        ExpandPipelineConfigResponse _ _ _ lineFocus refresh response ->
             case response of
                 Ok ( _, config ) ->
                     let
@@ -1460,7 +1460,7 @@ update msg model =
                     , addError error
                     )
 
-        GetPipelineTemplatesResponse org repo lineFocus refresh response ->
+        GetPipelineTemplatesResponse _ _ lineFocus refresh response ->
             case response of
                 Ok ( _, templates ) ->
                     ( { model
@@ -1594,7 +1594,7 @@ update msg model =
                     ( model, refreshPageHidden model data )
 
         -- Components
-        AddSecretUpdate engine m ->
+        AddSecretUpdate _ m ->
             let
                 ( newModel, action ) =
                     Pages.Secrets.Update.update model m
@@ -2675,7 +2675,7 @@ loadRepoSubPage model org repo toPage =
                         , getBuilds model o r maybePage maybePerPage maybeEvent
                         )
 
-                    Pages.RepoSecrets _ o r maybePage maybePerPage ->
+                    Pages.RepoSecrets _ o r _ _ ->
                         ( model, fetchSecrets o r )
 
                     Pages.Hooks o r maybePage maybePerPage ->

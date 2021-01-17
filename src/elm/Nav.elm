@@ -92,7 +92,7 @@ viewNav model msgs =
 {-| navButtons : uses current page to build the commonly used button on the right side of the nav
 -}
 navButtons : PartialModel a -> Msgs msg -> Html msg
-navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHooks, refreshSecrets, restartBuild, cancelBuild } =
+navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild } =
     case model.page of
         Pages.Overview ->
             a
@@ -127,7 +127,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, refreshSettings, refreshHoo
         Pages.RepoSettings org repo ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
-        Pages.RepoSecrets engine org repo _ _ ->
+        Pages.RepoSecrets _ org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.SharedSecrets engine org team _ _ ->

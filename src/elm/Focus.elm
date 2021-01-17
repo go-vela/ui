@@ -1,4 +1,18 @@
-module Focus exposing (..)
+module Focus exposing
+    ( ExpandTemplatesQuery
+    , FocusTarget
+    , Fragment
+    , RefQuery
+    , Resource
+    , ResourceID
+    , focusFragmentToFocusId
+    , lineFocusStyles
+    , lineRangeId
+    , parseFocusFragment
+    , resourceAndLineToFocusId
+    , resourceFocusFragment
+    , resourceToFocusId
+    )
 
 import Vela exposing (FocusFragment, LogFocus)
 

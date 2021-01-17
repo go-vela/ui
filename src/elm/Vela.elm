@@ -139,7 +139,7 @@ module Vela exposing
 import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Errors exposing (Error)
-import Json.Decode as Decode exposing (Decoder, andThen, bool, field, int, string, succeed)
+import Json.Decode as Decode exposing (Decoder, andThen, bool, int, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
@@ -1312,7 +1312,14 @@ type alias LogFocus =
 
 
 type alias Resource a =
-    { a | id : Int, number : Int, status : Status, viewing : Bool, logFocus : LogFocus, error : String }
+    { a
+        | id : Int
+        , number : Int
+        , status : Status
+        , viewing : Bool
+        , logFocus : LogFocus
+        , error : String
+    }
 
 
 type alias Resources a =
