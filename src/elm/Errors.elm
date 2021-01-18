@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Errors exposing (Error, addError, addErrorString, detailedErrorToError, detailedErrorToString, toFailure, viewResourceError)
+module Errors exposing (Error, addError, addErrorString, detailedErrorToString, toFailure, viewResourceError)
 
 import Html exposing (Html, div, p, text)
 import Http exposing (Error(..))

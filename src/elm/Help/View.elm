@@ -18,7 +18,7 @@ import Help.Commands
         , resourceLoading
         , usageDocsUrl
         )
-import Html exposing (Html, a, button, details, div, input, label, li, span, strong, summary, text)
+import Html exposing (Html, a, button, details, div, label, li, span, strong, summary, text)
 import Html.Attributes exposing (attribute, class, for, href, id, size, value)
 import Html.Events
 import Pages exposing (Page(..))
@@ -36,12 +36,11 @@ help args =
         , attribute "aria-label" "toggle contextual help for this page"
         ]
         [ details
-            ([ class "details"
-             , class "help"
-             , class "-no-pad"
-             , attribute "role" "button"
-             ]
-                ++ Util.open args.show
+            (class "details"
+                :: class "help"
+                :: class "-no-pad"
+                :: attribute "role" "button"
+                :: Util.open args.show
             )
             [ summary
                 [ class "summary"
@@ -61,9 +60,8 @@ help args =
 tooltip : Model msg -> Html msg
 tooltip args =
     div [ class "tooltip", Util.testAttribute "help-tooltip" ] <|
-        [ strong [] [ text "Manage Vela resources using the CLI" ]
-        ]
-            ++ body args
+        strong [] [ text "Manage Vela resources using the CLI" ]
+            :: body args
             ++ [ footer args ]
 
 

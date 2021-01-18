@@ -1,7 +1,7 @@
 module RoutesTest exposing (testHref, testMatch, testRouteToUrl)
 
 import Expect
-import Routes exposing (Route(..), match, routeToUrl)
+import Routes exposing (Route(..), routeToUrl)
 import Test exposing (..)
 import Url exposing (Url)
 

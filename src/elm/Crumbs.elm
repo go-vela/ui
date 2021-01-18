@@ -12,8 +12,7 @@ import Pages exposing (Page(..), toRoute)
 import Routes exposing (Route(..))
 import Tuple exposing (first, second)
 import Url exposing (percentDecode)
-import Util exposing (pageToString, refToString)
-import Vela exposing (Ref)
+import Util exposing (pageToString)
 
 
 
@@ -91,9 +90,6 @@ toPath page =
         notFoundPage =
             ( "Not Found", Nothing )
 
-        repoSettings =
-            ( "Settings", Nothing )
-
         pages =
             case page of
                 Pages.Overview ->
@@ -145,9 +141,6 @@ toPath page =
 
                         currentRepo =
                             ( repo, Nothing )
-
-                        repoSecrets =
-                            ( "Repo Secrets", Nothing )
                     in
                     [ overviewPage, orgPage, currentRepo ]
 
@@ -246,7 +239,7 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
 
-                Pages.Build org repo buildNumber logFocus ->
+                Pages.Build org repo buildNumber _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -257,7 +250,7 @@ toPath page =
                     , ( "#" ++ buildNumber, Nothing )
                     ]
 
-                Pages.BuildServices org repo buildNumber logFocus ->
+                Pages.BuildServices org repo buildNumber _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -268,7 +261,7 @@ toPath page =
                     , ( "#" ++ buildNumber, Nothing )
                     ]
 
-                Pages.BuildPipeline org repo buildNumber ref expand _ ->
+                Pages.BuildPipeline org repo buildNumber _ _ _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -282,7 +275,7 @@ toPath page =
                     , ( "#" ++ buildNumber, Nothing )
                     ]
 
-                Pages.Pipeline org repo ref expand _ ->
+                Pages.Pipeline org repo _ _ _ ->
                     let
                         organizationPage =
                             ( org, Nothing )

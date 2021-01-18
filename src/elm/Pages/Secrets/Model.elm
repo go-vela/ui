@@ -17,7 +17,6 @@ module Pages.Secrets.Model exposing
     , SecretsResponse
     , UpdateSecretResponse
     , defaultSecretUpdate
-    , secretsResourceKey
     )
 
 import Auth.Session exposing (Session(..))
@@ -79,21 +78,6 @@ type alias Model msg =
     , pager : List WebLink
     , deleteState : DeleteSecretState
     }
-
-
-{-| secretsResourceKey : takes Model returns maybe string for retrieving secrets based on type
--}
-secretsResourceKey : Model msg -> Maybe String
-secretsResourceKey secretsModel =
-    case secretsModel.type_ of
-        Vela.OrgSecret ->
-            Nothing
-
-        Vela.RepoSecret ->
-            Just secretsModel.repo
-
-        Vela.SharedSecret ->
-            Just secretsModel.team
 
 
 {-| SecretForm : record to hold potential add/update secret fields

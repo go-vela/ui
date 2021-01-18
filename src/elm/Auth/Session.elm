@@ -7,7 +7,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Auth.Session exposing
     ( Session(..)
     , SessionDetails
-    , defaultSessionDetails
     , refreshAccessToken
     )
 
@@ -24,11 +23,6 @@ type alias SessionDetails =
     , expiresAt : Posix
     , userName : String
     }
-
-
-defaultSessionDetails : SessionDetails
-defaultSessionDetails =
-    SessionDetails "" (Time.millisToPosix 0) ""
 
 
 {-| Session represents the possible

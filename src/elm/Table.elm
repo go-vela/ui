@@ -17,7 +17,6 @@ import Html
     exposing
         ( Html
         , div
-        , table
         , tbody
         , td
         , text

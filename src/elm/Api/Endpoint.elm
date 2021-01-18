@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
-import Url.Builder as UB exposing (QueryParameter, string)
+import Url.Builder as UB exposing (QueryParameter)
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, Name, Org, Ref, Repo, ServiceNumber, StepNumber, Type)
 
 
@@ -36,10 +36,8 @@ type Endpoint
     | Build Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
     | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
-    | Service Org Repo BuildNumber ServiceNumber
     | ServiceLogs Org Repo BuildNumber ServiceNumber
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
-    | Step Org Repo BuildNumber StepNumber
     | StepLogs Org Repo BuildNumber StepNumber
     | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
     | Secret Engine Type Org String Name
@@ -98,17 +96,11 @@ toUrl api endpoint =
         Services maybePage maybePerPage org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "services" ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        Service org repo buildNumber serviceNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "services", serviceNumber ] []
-
         ServiceLogs org repo buildNumber serviceNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "services", serviceNumber, "logs" ] []
 
         Steps maybePage maybePerPage org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "steps" ] <| Pagination.toQueryParams maybePage maybePerPage
-
-        Step org repo buildNumber stepNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "steps", stepNumber ] []
 
         StepLogs org repo buildNumber stepNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "steps", stepNumber, "logs" ] []

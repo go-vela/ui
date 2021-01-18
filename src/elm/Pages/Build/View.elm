@@ -5,14 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build.View exposing
-    ( buildStatusStyles
-    , statusToClass
-    , statusToString
-    , viewBuild
+    ( viewBuild
     , viewBuildServices
-    , viewBuildSteps
-    , viewError
-    , viewLine
     , viewPreview
     , wrapWithBuildPreview
     )
@@ -38,9 +32,6 @@ import Html
         , code
         , details
         , div
-        , em
-        , li
-        , p
         , small
         , span
         , strong
@@ -49,7 +40,6 @@ import Html
         , td
         , text
         , tr
-        , ul
         )
 import Html.Attributes
     exposing
@@ -75,31 +65,35 @@ import Pages.Build.Logs
         , toString
         , topTrackerFocusId
         )
-import Pages.Build.Model exposing (..)
+import Pages.Build.Model
+    exposing
+        ( Download
+        , ExpandAll
+        , FocusLine
+        , FocusOn
+        , FollowResource
+        , LogsMsgs
+        , Msgs
+        , PartialModel
+        )
 import RemoteData exposing (WebData)
 import Routes exposing (Route(..))
 import String
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
-import Time exposing (Posix, Zone, millisToPosix)
+import Time exposing (Posix, Zone)
 import Util
 import Vela
     exposing
         ( Build
-        , BuildModel
         , BuildNumber
-        , Builds
         , Log
         , LogFocus
-        , Logs
         , Org
         , Repo
         , RepoModel
         , Service
-        , ServiceNumber
-        , Services
         , Status
         , Step
-        , StepNumber
         , Steps
         , defaultStep
         )
@@ -288,14 +282,14 @@ viewBuildSteps model msgs rm steps =
 -}
 viewSteps : PartialModel a -> Msgs msg -> RepoModel -> Steps -> List (Html msg)
 viewSteps model msgs rm steps =
-    List.map (\step -> viewStep model msgs rm steps step) <| steps
+    List.map (\step -> viewStep model msgs rm step) <| steps
 
 
 {-| viewStep : renders single build step
 -}
-viewStep : PartialModel a -> Msgs msg -> RepoModel -> Steps -> Step -> Html msg
-viewStep model msgs rm steps step =
-    div [ stepClasses steps step, Util.testAttribute "step" ]
+viewStep : PartialModel a -> Msgs msg -> RepoModel -> Step -> Html msg
+viewStep model msgs rm step =
+    div [ stepClasses, Util.testAttribute "step" ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStatusIcon step.status ] ]
         , viewStepDetails model msgs rm step
@@ -304,17 +298,8 @@ viewStep model msgs rm steps step =
 
 {-| stepClasses : returns css classes for a particular step
 -}
-stepClasses : Steps -> Step -> Html.Attribute msg
-stepClasses steps step =
-    let
-        last =
-            case List.head <| List.reverse steps of
-                Just s ->
-                    s.number
-
-                Nothing ->
-                    -1
-    in
+stepClasses : Html.Attribute msg
+stepClasses =
     classList [ ( "step", True ), ( "flowline-left", True ) ]
 
 
@@ -375,17 +360,17 @@ viewStage : PartialModel a -> Msgs msg -> RepoModel -> String -> Steps -> Html m
 viewStage model msgs rm stage steps =
     div
         [ class "stage", Util.testAttribute <| "stage" ]
-        [ viewStageDivider model stage
+        [ viewStageDivider stage
         , steps
-            |> List.map (\step -> viewStep model msgs rm steps step)
+            |> List.map (\step -> viewStep model msgs rm step)
             |> div [ Util.testAttribute <| "stage-" ++ stage ]
         ]
 
 
 {-| viewStageDivider : renders divider between stage
 -}
-viewStageDivider : PartialModel a -> String -> Html msg
-viewStageDivider model stage =
+viewStageDivider : String -> Html msg
+viewStageDivider stage =
     if stage /= "init" && stage /= "clone" then
         div [ class "divider", Util.testAttribute <| "stage-divider-" ++ stage ]
             [ div [] [ text stage ] ]
@@ -461,7 +446,7 @@ viewBuildServices model msgs org repo buildNumber =
                         [ logActions
                         , div [ class "steps" ]
                             [ div [ class "-items", Util.testAttribute "services" ] <|
-                                List.map (\service -> viewService model msgs model.repo services service) <|
+                                List.map (\service -> viewService model msgs model.repo service) <|
                                     services
                             ]
                         ]
@@ -480,10 +465,10 @@ viewBuildServices model msgs org repo buildNumber =
 
 {-| viewService : renders single build service
 -}
-viewService : PartialModel a -> Msgs msg -> RepoModel -> Services -> Service -> Html msg
-viewService model msgs rm services service =
+viewService : PartialModel a -> Msgs msg -> RepoModel -> Service -> Html msg
+viewService model msgs rm service =
     div
-        [ serviceClasses services service
+        [ serviceClasses
         , Util.testAttribute "service"
         ]
         [ div [ class "-status" ]
@@ -494,17 +479,8 @@ viewService model msgs rm services service =
 
 {-| serviceClasses : returns css classes for a particular service
 -}
-serviceClasses : Services -> Service -> Html.Attribute msg
-serviceClasses services service =
-    let
-        last =
-            case List.head <| List.reverse services of
-                Just s ->
-                    s.number
-
-                Nothing ->
-                    -1
-    in
+serviceClasses : Html.Attribute msg
+serviceClasses =
     classList [ ( "service", True ) ]
 
 
@@ -605,7 +581,7 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
                     , logs
                     ]
 
-            RemoteData.Failure err ->
+            RemoteData.Failure _ ->
                 [ code [ Util.testAttribute "logs-error" ] [ text "error fetching logs" ] ]
 
             _ ->
@@ -936,33 +912,6 @@ viewError build =
 
 
 -- HELPERS
-
-
-{-| statusToString : takes build status and returns string
--}
-statusToString : Status -> String
-statusToString status =
-    case status of
-        Vela.Pending ->
-            "pending"
-
-        Vela.Running ->
-            "running"
-
-        Vela.Success ->
-            "success"
-
-        Vela.Failure ->
-            "failed"
-
-        Vela.Killed ->
-            "killed"
-
-        Vela.Canceled ->
-            "canceled"
-
-        Vela.Error ->
-            "server error"
 
 
 {-| statusToClass : takes build status and returns css class

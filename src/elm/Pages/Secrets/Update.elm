@@ -7,11 +7,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Secrets.Update exposing
     ( deleteSecretRedirect
     , init
-    , onChangeStringField
     , reinitializeSecretAdd
     , reinitializeSecretUpdate
     , update
-    , updateSecretModel
     )
 
 import Api

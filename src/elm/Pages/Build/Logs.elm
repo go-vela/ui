@@ -10,25 +10,20 @@ module Pages.Build.Logs exposing
     , decodeAnsi
     , downloadFileName
     , expandActive
-    , focus
     , focusAndClear
-    , getCurrentResource
-    , getInfo
     , getLog
     , isViewing
     , logEmpty
     , merge
     , setAllViews
     , toString
-    , toggleView
     , topTrackerFocusId
     )
 
 import Ansi.Log
 import Array
-import Focus exposing (FocusTarget, parseFocusFragment, resourceFocusFragment)
+import Focus exposing (FocusTarget, parseFocusFragment)
 import List.Extra exposing (updateIf)
-import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Util exposing (overwriteById)
 import Vela
@@ -144,22 +139,6 @@ getInfo resources number =
         |> List.map (\resource -> ( resource.viewing, resource.logFocus ))
         |> List.head
         |> Maybe.withDefault ( False, ( Nothing, Nothing ) )
-
-
-{-| getCurrentResource : takes resources and returns the newest running or pending resource
--}
-getCurrentResource : Resources a -> Int
-getCurrentResource resources =
-    let
-        resource =
-            resources
-                |> List.filter (\s -> s.status == Vela.Pending || s.status == Vela.Running)
-                |> List.map .number
-                |> List.sort
-                |> List.head
-                |> Maybe.withDefault 0
-    in
-    resource
 
 
 {-| getLog : takes resource and logs and returns the log corresponding to that resource
