@@ -13,6 +13,7 @@ module Api exposing
     , deleteSecret
     , enableRepository
     , expandPipelineConfig
+    , getAllRepositories
     , getAllSecrets
     , getAllServices
     , getAllSteps
@@ -429,6 +430,16 @@ getCurrentUser model =
 updateCurrentUser : PartialModel a -> Http.Body -> Request CurrentUser
 updateCurrentUser model body =
     put model.velaAPI Endpoint.CurrentUser body decodeCurrentUser
+        |> withAuth model.session
+
+
+{-| getAllRepositories : used in conjuction with 'tryAll', it retrieves all pages of the resource
+Note: the singular version of the type/decoder is needed in this case as it turns it into a list
+-}
+getAllRepositories : PartialModel a -> Request Repository
+getAllRepositories model =
+    -- we using the max perPage setting of 100 to reduce the number of calls
+    get model.velaAPI (Endpoint.Repositories (Just 1) (Just 100)) decodeRepository
         |> withAuth model.session
 
 
