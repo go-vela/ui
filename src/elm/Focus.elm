@@ -1,4 +1,18 @@
-module Focus exposing (..)
+module Focus exposing
+    ( ExpandTemplatesQuery
+    , FocusTarget
+    , Fragment
+    , RefQuery
+    , Resource
+    , ResourceID
+    , focusFragmentToFocusId
+    , lineFocusStyles
+    , lineRangeId
+    , parseFocusFragment
+    , resourceAndLineToFocusId
+    , resourceFocusFragment
+    , resourceToFocusId
+    )
 
 import Vela exposing (FocusFragment, LogFocus)
 
@@ -24,14 +38,18 @@ type alias ResourceID =
 
 
 type alias FocusTarget =
-    { target : Maybe String, resourceID : Maybe Int, lineA : Maybe Int, lineB : Maybe Int }
+    { target : Maybe String
+    , resourceID : Maybe Int
+    , lineA : Maybe Int
+    , lineB : Maybe Int
+    }
 
 
 {-| resourceFocusFragment : takes resource tag and maybe line numbers and produces URL fragment for focusing line ranges
 -}
 resourceFocusFragment : Resource -> ResourceID -> List String -> String
 resourceFocusFragment resource resourceId args =
-    String.join ":" <| [ "#" ++ resource, resourceId ] ++ args
+    String.join ":" <| ("#" ++ resource) :: resourceId :: args
 
 
 {-| resourceToFocusId : takes resource and id and returns the resource focus id for auto focusing on page load

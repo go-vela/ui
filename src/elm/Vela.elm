@@ -12,7 +12,6 @@ module Vela exposing
     , Builds
     , BuildsModel
     , ChownRepo
-    , Commit
     , Copy
     , CurrentUser
     , DisableRepo
@@ -69,7 +68,6 @@ module Vela exposing
     , UpdateRepositoryPayload
     , UpdateSecretPayload
     , UpdateUserPayload
-    , Viewing
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
@@ -78,53 +76,38 @@ module Vela exposing
     , decodeBuild
     , decodeBuilds
     , decodeCurrentUser
-    , decodeHook
     , decodeHooks
     , decodeLog
     , decodePipelineConfig
     , decodePipelineTemplates
-    , decodeRepositories
     , decodeRepository
     , decodeSecret
     , decodeSecrets
     , decodeService
-    , decodeServices
     , decodeSourceRepositories
     , decodeStep
-    , decodeSteps
     , decodeTheme
-    , defaultBuilds
-    , defaultCurrentUser
     , defaultEnableRepositoryPayload
     , defaultFavicon
-    , defaultHooks
     , defaultPipeline
     , defaultPipelineTemplates
     , defaultRepoModel
-    , defaultRepository
     , defaultStep
-    , defaultStepsModel
-    , defaultUpdateRepositoryPayload
     , encodeEnableRepository
     , encodeTheme
     , encodeUpdateRepository
     , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
-    , nullSecret
-    , secretErrorLabel
     , secretTypeToString
     , secretsErrorLabel
     , statusToFavicon
     , stringToTheme
-    , toMaybeSecretType
-    , toSecretType
     , updateBuild
     , updateBuildNumber
     , updateBuildPipelineBuildNumber
     , updateBuildPipelineConfig
     , updateBuildPipelineExpand
-    , updateBuildPipelineExpanding
     , updateBuildPipelineFocusFragment
     , updateBuildPipelineLineFocus
     , updateBuildPipelineOrgRepo
@@ -139,12 +122,10 @@ module Vela exposing
     , updateBuildStepsLogs
     , updateBuilds
     , updateBuildsEvent
-    , updateBuildsModel
     , updateBuildsPage
     , updateBuildsPager
     , updateBuildsPerPage
     , updateHooks
-    , updateHooksModel
     , updateHooksPage
     , updateHooksPager
     , updateHooksPerPage
@@ -152,14 +133,13 @@ module Vela exposing
     , updateRepo
     , updateRepoEnabling
     , updateRepoInitialized
-    , updateRepoModel
     , updateRepoTimeout
     )
 
 import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Errors exposing (Error)
-import Json.Decode as Decode exposing (Decoder, andThen, bool, field, int, string, succeed)
+import Json.Decode as Decode exposing (Decoder, andThen, bool, int, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
@@ -201,10 +181,6 @@ type alias Event =
 
 
 type alias BuildNumber =
-    String
-
-
-type alias Commit =
     String
 
 
@@ -272,11 +248,6 @@ type alias CurrentUser =
     , active : Bool
     , admin : Bool
     }
-
-
-defaultCurrentUser : CurrentUser
-defaultCurrentUser =
-    CurrentUser 0 "" [] False False
 
 
 type alias Favorites =
@@ -389,15 +360,6 @@ defaultServicesModel =
     ServicesModel NotAsked [] Nothing 0
 
 
-updateRepoModel : RepoModel -> { a | repo : RepoModel } -> { a | repo : RepoModel }
-updateRepoModel update m =
-    let
-        rm =
-            m.repo
-    in
-    { m | repo = rm }
-
-
 updateRepoInitialized : Bool -> RepoModel -> RepoModel
 updateRepoInitialized update rm =
     { rm | initialized = update }
@@ -503,9 +465,6 @@ updateBuilds update rm =
     let
         bm =
             rm.builds
-
-        builds =
-            bm.builds
     in
     { rm | builds = { bm | builds = update } }
 
@@ -544,11 +503,6 @@ updateBuildsEvent maybeEvent rm =
             rm.builds
     in
     { rm | builds = { bm | maybeEvent = maybeEvent } }
-
-
-updateBuildsModel : BuildsModel -> RepoModel -> RepoModel
-updateBuildsModel update rm =
-    { rm | builds = update }
 
 
 updateBuildSteps : WebData Steps -> RepoModel -> RepoModel
@@ -636,11 +590,6 @@ updateBuildPipelineExpand update pipeline =
     { pipeline | expand = update }
 
 
-updateBuildPipelineExpanding : Bool -> PipelineModel -> PipelineModel
-updateBuildPipelineExpanding update pipeline =
-    { pipeline | expanding = update }
-
-
 updateBuildPipelineLineFocus : LogFocus -> PipelineModel -> PipelineModel
 updateBuildPipelineLineFocus update pipeline =
     { pipeline | lineFocus = update }
@@ -649,11 +598,6 @@ updateBuildPipelineLineFocus update pipeline =
 updateBuildPipelineFocusFragment : FocusFragment -> PipelineModel -> PipelineModel
 updateBuildPipelineFocusFragment update pipeline =
     { pipeline | focusFragment = update }
-
-
-updateHooksModel : HooksModel -> RepoModel -> RepoModel
-updateHooksModel update rm =
-    { rm | hooks = update }
 
 
 updateHooks : WebData Hooks -> RepoModel -> RepoModel
@@ -730,11 +674,6 @@ type Enabling
     | NotAsked_
 
 
-defaultRepository : Repository
-defaultRepository =
-    Repository -1 -1 "" "" "" "" "" "" 0 "" False False False False False False False False NotAsked NotAsked_ Nothing
-
-
 decodeRepository : Decoder Repository
 decodeRepository =
     Decode.succeed Repository
@@ -798,11 +737,6 @@ toEnabling active =
 
     else
         succeed Disabled
-
-
-decodeRepositories : Decoder Repositories
-decodeRepositories =
-    Decode.list decodeRepository
 
 
 decodeSourceRepositories : Decoder SourceRepositories
@@ -1028,12 +962,6 @@ defaultPipelineTemplates =
 decodePipelineConfig : Decode.Decoder String
 decodePipelineConfig =
     Decode.string
-
-
-decodePipeline : Decode.Decoder PipelineConfig
-decodePipeline =
-    Decode.succeed PipelineConfig
-        |> optional "config" string ""
 
 
 decodePipelineTemplates : Decode.Decoder Templates
@@ -1316,13 +1244,6 @@ decodeStep =
         |> hardcoded ( Nothing, Nothing )
 
 
-{-| decodeSteps : decodes json from vela into list of steps
--}
-decodeSteps : Decoder Steps
-decodeSteps =
-    Decode.list decodeStep
-
-
 type alias Steps =
     List Step
 
@@ -1352,13 +1273,6 @@ type alias Service =
     }
 
 
-{-| defaultService : returns default, empty service
--}
-defaultService : Service
-defaultService =
-    Service 0 0 0 0 "" Pending "" 0 0 0 0 "" "" "" "" False ( Nothing, Nothing )
-
-
 {-| decodeService : decodes json from vela into service
 -}
 decodeService : Decoder Service
@@ -1385,13 +1299,6 @@ decodeService =
         |> hardcoded ( Nothing, Nothing )
 
 
-{-| decodeServices : decodes json from vela into list of services
--}
-decodeServices : Decoder Services
-decodeServices =
-    Decode.list decodeService
-
-
 type alias Services =
     List Service
 
@@ -1405,7 +1312,14 @@ type alias LogFocus =
 
 
 type alias Resource a =
-    { a | id : Int, number : Int, status : Status, viewing : Bool, logFocus : LogFocus, error : String }
+    { a
+        | id : Int
+        , number : Int
+        , status : Status
+        , viewing : Bool
+        , logFocus : LogFocus
+        , error : String
+    }
 
 
 type alias Resources a =
@@ -1511,10 +1425,6 @@ type alias Hooks =
     List Hook
 
 
-type alias Viewing =
-    Bool
-
-
 type alias RepoResourceIdentifier =
     ( Org, Repo, String )
 
@@ -1544,11 +1454,6 @@ type SecretType
     | RepoSecret
 
 
-nullSecret : Secret
-nullSecret =
-    Secret 0 "" "" "" "" OrgSecret [] [] False
-
-
 {-| secretTypeDecoder : decodes string field "type" to the union type SecretType
 -}
 secretTypeDecoder : Decoder SecretType
@@ -1572,42 +1477,6 @@ toSecretTypeDecoder type_ =
 
         _ ->
             Decode.fail "unrecognized secret type"
-
-
-{-| toSecretType : helper to decode string to SecretType
--}
-toSecretType : String -> SecretType
-toSecretType type_ =
-    case type_ of
-        "shared" ->
-            SharedSecret
-
-        "org" ->
-            OrgSecret
-
-        "repo" ->
-            RepoSecret
-
-        _ ->
-            RepoSecret
-
-
-{-| toMaybeSecretType : helper to decode string to Maybe SecretType
--}
-toMaybeSecretType : String -> Maybe SecretType
-toMaybeSecretType type_ =
-    case type_ of
-        "shared" ->
-            Just SharedSecret
-
-        "org" ->
-            Just OrgSecret
-
-        "repo" ->
-            Just RepoSecret
-
-        _ ->
-            Nothing
 
 
 {-| secretTypeToString : helper to convert SecretType to string
@@ -1638,30 +1507,6 @@ secretsErrorLabel type_ org key =
 
         SharedSecret ->
             "shared secrets for " ++ org ++ "/" ++ Maybe.withDefault "" key
-
-
-{-| secretErrorLabel : helper to convert SecretType to string for printing GET secret resource errors
--}
-secretErrorLabel : Secret -> String
-secretErrorLabel secret =
-    "secret " ++ secretKey secret
-
-
-secretKey : Secret -> String
-secretKey { type_, org, repo, team, name } =
-    let
-        args =
-            case type_ of
-                OrgSecret ->
-                    [ org ]
-
-                RepoSecret ->
-                    [ org, repo ]
-
-                SharedSecret ->
-                    [ org, team ]
-    in
-    String.join "/" <| args ++ [ name ]
 
 
 {-| maybeSecretTypeToMaybeString : helper to convert Maybe SecretType to Maybe string

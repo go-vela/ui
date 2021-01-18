@@ -9,10 +9,9 @@ module Pages.Pipeline.View exposing (viewPipeline)
 import Ansi.Log
 import Array
 import Dict
-import Dict.Extra
-import Errors exposing (Error, detailedErrorToString)
+import Errors exposing (Error)
 import FeatherIcons exposing (Icon)
-import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery, Resource, ResourceID, lineFocusStyles, lineRangeId, resourceAndLineToFocusId)
+import Focus exposing (Resource, ResourceID, lineFocusStyles, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html
@@ -23,32 +22,25 @@ import Html
         , small
         , span
         , strong
-        , table
         , td
         , text
         , tr
         )
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
-import List.Extra
 import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
 import Util
 import Vela
     exposing
-        ( Build
-        , LogFocus
-        , Org
+        ( LogFocus
         , PipelineConfig
         , PipelineModel
         , PipelineTemplates
         , Ref
-        , Repo
-        , Step
-        , Steps
         , Template
         , Templates
         )
@@ -118,19 +110,17 @@ viewTemplatesError err open showHide =
 viewTemplatesDetails : Html.Attribute msg -> Bool -> msg -> List (Html msg) -> Html msg
 viewTemplatesDetails cls open showHide content =
     Html.details
-        ([ class "details"
-         , class "templates"
-         , Util.testAttribute "pipeline-templates"
-         ]
-            ++ Util.open open
+        (class "details"
+            :: class "templates"
+            :: Util.testAttribute "pipeline-templates"
+            :: Util.open open
         )
-        ([ Html.summary [ class "summary", Util.onClickPreventDefault showHide ]
+        [ Html.summary [ class "summary", Util.onClickPreventDefault showHide ]
             [ div [] [ text "Templates" ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
-         ]
-            ++ [ div [ class "content", cls ] content ]
-        )
+        , div [ class "content", cls ] content
+        ]
 
 
 {-| viewTemplate : takes template and renders view with name, source and HTML url.
@@ -189,7 +179,7 @@ viewPipelineConfigurationData : PartialModel a -> Msgs msg -> Maybe Ref -> Pipel
 viewPipelineConfigurationData model msgs ref config =
     wrapPipelineConfigurationContent model msgs ref (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-            viewLines config model.pipeline.lineFocus model.shift msgs.focusLineNumber
+            viewLines config model.pipeline.lineFocus msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
@@ -219,8 +209,8 @@ wrapPipelineConfigurationContent model { get, expand, download } ref cls content
                     ]
                 ]
             , viewPipelineActions model get expand download
+            , content
             ]
-                ++ [ content ]
     in
     Html.table
         [ class "logs-table"
@@ -271,6 +261,7 @@ viewPipelineActions model get expand download =
     div [ class "actions" ] [ t, d ]
 
 
+velaYmlFileName : String
 velaYmlFileName =
     "vela.yml"
 
@@ -335,8 +326,8 @@ expandTemplatesTip =
     returns a list of rendered data lines with focusable line numbers.
 
 -}
-viewLines : PipelineConfig -> LogFocus -> Bool -> (Int -> msg) -> List (Html msg)
-viewLines config lineFocus shift focusLineNumber =
+viewLines : PipelineConfig -> LogFocus -> (Int -> msg) -> List (Html msg)
+viewLines config lineFocus focusLineNumber =
     config.data
         |> decodeAnsi
         |> Array.indexedMap
@@ -347,7 +338,6 @@ viewLines config lineFocus shift focusLineNumber =
                         (Just line)
                         "0"
                         lineFocus
-                        shift
                         focusLineNumber
             )
         |> Array.toList
@@ -358,8 +348,8 @@ viewLines config lineFocus shift focusLineNumber =
 
 {-| viewLine : takes line and focus information and renders line number button and data.
 -}
-viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> Bool -> (Int -> msg) -> Html msg
-viewLine id lineNumber line resource lineFocus shiftDown focus =
+viewLine : ResourceID -> Int -> Maybe Ansi.Log.Line -> String -> LogFocus -> (Int -> msg) -> Html msg
+viewLine id lineNumber line resource lineFocus focus =
     tr
         [ Html.Attributes.id <|
             id
@@ -375,7 +365,7 @@ viewLine id lineNumber line resource lineFocus shiftDown focus =
                     , class <| lineFocusStyles lineFocus lineNumber
                     ]
                     [ td []
-                        [ lineFocusButton resource lineFocus lineNumber shiftDown focus ]
+                        [ lineFocusButton resource lineNumber focus ]
                     , td [ class "break-text", class "overflow-auto" ]
                         [ code [ Util.testAttribute <| String.join "-" [ "config", "data", resource, String.fromInt lineNumber ] ]
                             [ Ansi.Log.viewLine l
@@ -390,8 +380,8 @@ viewLine id lineNumber line resource lineFocus shiftDown focus =
 
 {-| lineFocusButton : renders button for focusing log line ranges.
 -}
-lineFocusButton : Resource -> LogFocus -> Int -> Bool -> (Int -> msg) -> Html msg
-lineFocusButton resource logFocus lineNumber shiftDown focus =
+lineFocusButton : Resource -> Int -> (Int -> msg) -> Html msg
+lineFocusButton resource lineNumber focus =
     button
         [ Util.onClickPreventDefault <|
             focus lineNumber

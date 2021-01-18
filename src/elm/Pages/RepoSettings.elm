@@ -6,16 +6,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.RepoSettings exposing
     ( Msgs
-    , access
     , alert
     , checkbox
     , enableUpdate
-    , enableable
-    , events
-    , radio
-    , timeout
-    , timeoutInput
-    , timeoutWarning
     , validAccessUpdate
     , validEventsUpdate
     , view
@@ -720,13 +713,6 @@ disableable status =
 
         Vela.NotAsked_ ->
             False
-
-
-{-| enableable : takes enabling status and returns if the repo is enableable.
--}
-enableable : Enabling -> Bool
-enableable status =
-    not <| disableable status
 
 
 {-| enableUpdate : takes repo, enabled status and source repos and sets enabled status of the specified repo

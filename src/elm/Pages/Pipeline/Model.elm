@@ -8,19 +8,14 @@ module Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 
 import Alerts exposing (Alert)
 import Auth.Session exposing (Session(..))
-import Browser.Dom as Dom
 import Browser.Navigation as Navigation
-import Errors exposing (Error)
-import Http
-import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Time exposing (Posix)
-import Toasty as Alerting exposing (Stack)
+import Toasty exposing (Stack)
 import Vela
     exposing
-        ( Build
-        , BuildNumber
+        ( BuildNumber
         , CurrentUser
         , FocusFragment
         , Org
@@ -29,7 +24,6 @@ import Vela
         , Repo
         , RepoModel
         , SourceRepositories
-        , Steps
         )
 
 

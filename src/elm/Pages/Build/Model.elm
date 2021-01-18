@@ -4,7 +4,17 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Build.Model exposing (..)
+module Pages.Build.Model exposing
+    ( Download
+    , Expand
+    , ExpandAll
+    , FocusLine
+    , FocusOn
+    , FollowResource
+    , LogsMsgs
+    , Msgs
+    , PartialModel
+    )
 
 import Browser.Navigation as Navigation
 import Pages exposing (Page(..))
@@ -12,18 +22,13 @@ import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
 import Vela
     exposing
-        ( Build
-        , BuildNumber
+        ( BuildNumber
         , CurrentUser
-        , FocusFragment
-        , Logs
         , Org
         , PipelineModel
         , Repo
         , RepoModel
         , SourceRepositories
-        , StepNumber
-        , Steps
         )
 
 

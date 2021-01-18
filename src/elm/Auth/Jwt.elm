@@ -8,8 +8,6 @@ module Auth.Jwt exposing
     ( JwtAccessToken
     , JwtAccessTokenClaims
     , decodeJwtAccessToken
-    , decodeJwtAccessTokenClaims
-    , defaultJwtAccessTokenClaims
     , extractJwtClaims
     )
 

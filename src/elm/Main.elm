@@ -57,7 +57,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy6, lazy7)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy6)
 import Http
 import Http.Detailed
 import Interop
@@ -65,7 +65,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import List.Extra exposing (updateIf)
 import Maybe
-import Nav exposing (viewNav, viewUtil)
+import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page(..))
 import Pages.Build.Logs
@@ -74,7 +74,6 @@ import Pages.Build.Logs
         , clickResource
         , expandActive
         , focusAndClear
-        , getCurrentResource
         , isViewing
         , setAllViews
         )
@@ -95,7 +94,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Routes exposing (Route(..))
 import String.Extra
 import SvgBuilder exposing (velaLogo)
-import Task exposing (perform, succeed)
+import Task
 import Time
     exposing
         ( Posix
@@ -107,7 +106,6 @@ import Time
         )
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
-import Url.Builder as UB exposing (QueryParameter)
 import Util
 import Vela
     exposing
@@ -115,7 +113,6 @@ import Vela
         , Build
         , BuildNumber
         , Builds
-        , BuildsModel
         , ChownRepo
         , CurrentUser
         , EnableRepo
@@ -128,13 +125,11 @@ import Vela
         , Field
         , FocusFragment
         , Hooks
-        , HooksModel
         , Key
         , Log
         , Logs
         , Name
         , Org
-        , PipelineConfig
         , PipelineModel
         , PipelineTemplates
         , Ref
@@ -148,11 +143,9 @@ import Vela
         , Secret
         , SecretType(..)
         , Secrets
-        , Service
         , ServiceNumber
         , Services
         , SourceRepositories
-        , Step
         , StepNumber
         , Steps
         , Team
@@ -166,15 +159,11 @@ import Vela
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
         , decodeTheme
-        , defaultBuilds
         , defaultEnableRepositoryPayload
         , defaultFavicon
-        , defaultHooks
         , defaultPipeline
         , defaultPipelineTemplates
         , defaultRepoModel
-        , defaultRepository
-        , defaultStepsModel
         , encodeEnableRepository
         , encodeTheme
         , encodeUpdateRepository
@@ -188,7 +177,6 @@ import Vela
         , updateBuildPipelineBuildNumber
         , updateBuildPipelineConfig
         , updateBuildPipelineExpand
-        , updateBuildPipelineExpanding
         , updateBuildPipelineFocusFragment
         , updateBuildPipelineLineFocus
         , updateBuildPipelineOrgRepo
@@ -203,12 +191,10 @@ import Vela
         , updateBuildStepsLogs
         , updateBuilds
         , updateBuildsEvent
-        , updateBuildsModel
         , updateBuildsPage
         , updateBuildsPager
         , updateBuildsPerPage
         , updateHooks
-        , updateHooksModel
         , updateHooksPage
         , updateHooksPager
         , updateHooksPerPage
@@ -216,7 +202,6 @@ import Vela
         , updateRepo
         , updateRepoEnabling
         , updateRepoInitialized
-        , updateRepoModel
         , updateRepoTimeout
         )
 
@@ -408,7 +393,6 @@ type Msg
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
-    | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
@@ -1178,7 +1162,6 @@ update msg model =
         RepoRepairedResponse repo response ->
             case response of
                 Ok _ ->
-                    -- TODO: could 'refresh' settings page instead
                     ( { model
                         | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
                         , repo = updateRepoEnabling Vela.Enabled rm
@@ -1211,7 +1194,7 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        CancelBuildResponse org repo buildNumber response ->
+        CancelBuildResponse _ _ _ response ->
             case response of
                 Ok ( _, canceled ) ->
                     ( model
@@ -1285,14 +1268,6 @@ update msg model =
                             getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
                     in
                     ( updatedModel, cmd )
-
-                Err error ->
-                    ( model, addError error )
-
-        StepResponse _ _ _ _ response ->
-            case response of
-                Ok ( _, step ) ->
-                    ( updateStep model step, Cmd.none )
 
                 Err error ->
                     ( model, addError error )
@@ -1393,9 +1368,9 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        GetPipelineConfigResponse org repo ref lineFocus refresh response ->
+        GetPipelineConfigResponse _ _ _ lineFocus refresh response ->
             case response of
-                Ok ( meta, config ) ->
+                Ok ( _, config ) ->
                     let
                         focusId =
                             Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
@@ -1432,7 +1407,7 @@ update msg model =
                     , Errors.addError error HandleError
                     )
 
-        ExpandPipelineConfigResponse org repo ref lineFocus refresh response ->
+        ExpandPipelineConfigResponse _ _ _ lineFocus refresh response ->
             case response of
                 Ok ( _, config ) ->
                     let
@@ -1473,9 +1448,9 @@ update msg model =
                     , addError error
                     )
 
-        GetPipelineTemplatesResponse org repo lineFocus refresh response ->
+        GetPipelineTemplatesResponse _ _ lineFocus refresh response ->
             case response of
-                Ok ( meta, templates ) ->
+                Ok ( _, templates ) ->
                     ( { model
                         | templates = { data = RemoteData.succeed templates, error = "", show = model.templates.show }
                       }
@@ -1553,7 +1528,7 @@ update msg model =
 
         DeleteSecretResponse response ->
             case response of
-                Ok ( _, r_string ) ->
+                Ok _ ->
                     let
                         secretsModel =
                             model.secretsModel
@@ -1607,7 +1582,7 @@ update msg model =
                     ( model, refreshPageHidden model data )
 
         -- Components
-        AddSecretUpdate engine m ->
+        AddSecretUpdate _ m ->
             let
                 ( newModel, action ) =
                     Pages.Secrets.Update.update model m
@@ -1630,11 +1605,11 @@ update msg model =
         FocusResult result ->
             -- handle success or failure here
             case result of
-                Err (Dom.NotFound id) ->
+                Err (Dom.NotFound _) ->
                     -- unable to find dom 'id'
                     ( model, Cmd.none )
 
-                Ok ok ->
+                Ok _ ->
                     -- successfully focus the dom
                     ( model, Cmd.none )
 
@@ -2178,7 +2153,7 @@ viewContent model =
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
-        Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
+        Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
             let
                 page : String
                 page =
@@ -2233,7 +2208,7 @@ viewContent model =
                 buildNumber
             )
 
-        Pages.BuildPipeline org repo buildNumber ref expand lineFocus ->
+        Pages.BuildPipeline org repo buildNumber ref _ _ ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Pages.Pipeline.View.viewPipeline
                 model
@@ -2246,7 +2221,7 @@ viewContent model =
                     buildNumber
             )
 
-        Pages.Pipeline org repo ref expand lineFocus ->
+        Pages.Pipeline org repo ref _ _ ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Pages.Pipeline.View.viewPipeline
                 model
@@ -2275,7 +2250,6 @@ viewContent model =
             )
 
         Pages.NotFound ->
-            -- TODO: make this page more helpful
             ( "404"
             , h1 [] [ text "Not Found" ]
             )
@@ -2444,17 +2418,8 @@ viewThemeToggle theme =
 -- HELPERS
 
 
-buildUrl : String -> List String -> List QueryParameter -> String
-buildUrl base paths params =
-    UB.crossOrigin base paths params
-
-
 setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
 setNewPage route model =
-    let
-        rm =
-            model.repo
-    in
     case ( route, model.session ) of
         -- Logged in and on auth flow pages - what are you doing here?
         ( Routes.Login, Authenticated _ ) ->
@@ -2602,12 +2567,6 @@ loadRepoSubPage model org repo toPage =
         builds =
             rm.builds
 
-        hooks =
-            rm.hooks
-
-        build =
-            rm.build
-
         secretsModel =
             model.secretsModel
 
@@ -2639,7 +2598,7 @@ loadRepoSubPage model org repo toPage =
                             -- update builds pagination
                             |> (\rm_ ->
                                     case toPage of
-                                        Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
+                                        Pages.RepositoryBuilds _ _ maybePage maybePerPage maybeEvent ->
                                             rm_
                                                 |> updateBuildsPage maybePage
                                                 |> updateBuildsPerPage maybePerPage
@@ -2654,7 +2613,7 @@ loadRepoSubPage model org repo toPage =
                             -- update hooks pagination
                             |> (\rm_ ->
                                     case toPage of
-                                        Pages.Hooks o r maybePage maybePerPage ->
+                                        Pages.Hooks _ _ maybePage maybePerPage ->
                                             rm_
                                                 |> updateHooksPage maybePage
                                                 |> updateHooksPerPage maybePerPage
@@ -2681,7 +2640,7 @@ loadRepoSubPage model org repo toPage =
                         _ ->
                             getHooks model org repo Nothing Nothing
                     , case toPage of
-                        Pages.RepoSecrets engine o r maybePage maybePerPage ->
+                        Pages.RepoSecrets _ o r _ _ ->
                             fetchSecrets o r
 
                         _ ->
@@ -2703,7 +2662,7 @@ loadRepoSubPage model org repo toPage =
                         , getBuilds model o r maybePage maybePerPage maybeEvent
                         )
 
-                    Pages.RepoSecrets engine o r maybePage maybePerPage ->
+                    Pages.RepoSecrets _ o r _ _ ->
                         ( model, fetchSecrets o r )
 
                     Pages.Hooks o r maybePage maybePerPage ->
@@ -3032,14 +2991,7 @@ loadBuildPage model org repo buildNumber lineFocus =
                         rm.build.steps.steps
                     )
                 -- update line focus in the model
-                |> updateBuildStepsFocusFragment
-                    (case lineFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-                    )
+                |> updateBuildStepsFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
                 -- reset following service
                 |> updateBuildServicesFollowing 0
       }
@@ -3099,14 +3051,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                         rm.build.services.services
                     )
                 -- update line focus in the model
-                |> updateBuildServicesFocusFragment
-                    (case lineFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-                    )
+                |> updateBuildServicesFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
                 -- reset following step
                 |> updateBuildStepsFollowing 0
       }
@@ -3194,14 +3139,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
                 |> updateBuildPipelineRef ref
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
-                |> updateBuildPipelineFocusFragment
-                    (case lineFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-                    )
+                |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
 
         -- reset templates if ref has changed
         , templates =
@@ -3250,12 +3188,6 @@ loadPipelinePage model org repo ref expand lineFocus =
         parsed =
             parseFocusFragment lineFocus
 
-        rm =
-            model.repo
-
-        build =
-            rm.build
-
         pipeline =
             model.pipeline
     in
@@ -3283,14 +3215,7 @@ loadPipelinePage model org repo ref expand lineFocus =
                 |> updateBuildPipelineRef ref
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
-                |> updateBuildPipelineFocusFragment
-                    (case lineFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-                    )
+                |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
         , templates =
             if sameRef then
                 model.templates
@@ -3331,13 +3256,13 @@ isSamePipelineRef id currentPage pipeline =
         Pages.Pipeline o r rf _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
 
-        Pages.Build o r b _ ->
+        Pages.Build o r _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
 
-        Pages.BuildServices o r b _ ->
+        Pages.BuildServices o r _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
 
-        Pages.BuildPipeline o r b rf _ _ ->
+        Pages.BuildPipeline o r _ rf _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
 
         _ ->
@@ -3436,66 +3361,11 @@ addError error =
     Errors.addError error HandleError
 
 
-{-| stepsIds : extracts Ids from list of steps and returns List Int
--}
-stepsIds : Steps -> List Int
-stepsIds steps =
-    List.map (\step -> step.number) steps
-
-
 {-| logIds : extracts Ids from list of logs and returns List Int
 -}
 logIds : Logs -> List Int
 logIds logs =
     List.map (\log -> log.id) <| Util.successful logs
-
-
-{-| updateStep : takes model and incoming step and updates the list of steps if necessary
--}
-updateStep : Model -> Step -> Model
-updateStep model incomingStep =
-    let
-        rm =
-            model.repo
-
-        steps =
-            case rm.build.steps.steps of
-                Success s ->
-                    s
-
-                _ ->
-                    []
-
-        stepExists =
-            List.member incomingStep.number <| stepsIds steps
-
-        following =
-            rm.build.steps.followingStep /= 0
-    in
-    if stepExists then
-        { model
-            | repo =
-                updateBuildSteps
-                    (steps
-                        |> updateIf (\step -> incomingStep.number == step.number)
-                            (\step ->
-                                let
-                                    shouldView =
-                                        following
-                                            && (step.status /= Vela.Pending)
-                                            && (step.number == getCurrentResource steps)
-                                in
-                                { incomingStep
-                                    | viewing = step.viewing || shouldView
-                                }
-                            )
-                        |> RemoteData.succeed
-                    )
-                    rm
-        }
-
-    else
-        { model | repo = updateBuildSteps (RemoteData.succeed <| incomingStep :: steps) rm }
 
 
 {-| updateStepLogs : takes model and incoming log and updates the list of step logs if necessary
@@ -3565,7 +3435,7 @@ updateLog incomingLog logs =
                 _ ->
                     True
         )
-        (\log -> RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData })
+        (\_ -> RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData })
         logs
 
 

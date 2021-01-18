@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Alerts exposing (Alert(..), config, errorConfig, successConfig, view)
+module Alerts exposing (Alert(..), errorConfig, successConfig, view)
 
 import FeatherIcons
 import Html exposing (Html, a, button, div, h1, p, text)

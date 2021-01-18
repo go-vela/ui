@@ -7,8 +7,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api.Pagination exposing
     ( Page
     , PerPage
-    , defaultPage
-    , defaultPerPage
     , get
     , maybeNextLink
     , toQueryParams
@@ -17,7 +15,7 @@ module Api.Pagination exposing
 import Api.Header as Header
 import Dict exposing (Dict)
 import LinkHeader exposing (WebLink, parse)
-import Url.Builder as UB exposing (QueryParameter, string)
+import Url.Builder as UB exposing (QueryParameter)
 
 
 type alias Page =

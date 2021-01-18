@@ -132,7 +132,6 @@ commands page =
             [ viewSecret secretEngine Vela.SharedSecret org (Just team) name, updateSecret secretEngine Vela.SharedSecret org (Just team) name ]
 
         Pages.Settings ->
-            -- TODO: probably want this filled in
             []
 
         Pages.Authenticate ->

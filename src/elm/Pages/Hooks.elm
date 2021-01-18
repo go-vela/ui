@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Hooks exposing (hookStatus, view)
+module Pages.Hooks exposing (view)
 
 import Errors exposing (viewResourceError)
 import Html
@@ -157,18 +157,6 @@ hookErrorRow hook =
 renderHookError : Hook -> Html msg
 renderHookError hook =
     tr [ class "error-data", Util.testAttribute "hooks-error" ] [ td [ attribute "colspan" "6" ] [ small [ class "error-content" ] [ text hook.error ] ] ]
-
-
-{-| hookStatus : takes hook status and maps it to a string, for strict typing.
--}
-hookStatus : String -> String
-hookStatus status =
-    case status of
-        "success" ->
-            "success"
-
-        _ ->
-            "failure"
 
 
 {-| hookStatusToRowClass : takes hook status string and returns style class

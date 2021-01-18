@@ -24,11 +24,9 @@ import Html.Attributes
     exposing
         ( attribute
         , class
-        , href
         , scope
         )
 import Html.Events exposing (onClick)
-import Pages
 import Pages.Secrets.Form
     exposing
         ( viewEventsSelect
@@ -44,7 +42,6 @@ import Pages.Secrets.Model
         , Model
         , Msg(..)
         , PartialModel
-        , secretsResourceKey
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
