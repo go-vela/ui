@@ -1509,6 +1509,8 @@ secretsErrorLabel type_ org key =
             "shared secrets for " ++ org ++ "/" ++ Maybe.withDefault "" key
 
 
+{-| maybeSecretTypeToMaybeString : helper to convert Maybe SecretType to Maybe string
+-}
 maybeSecretTypeToMaybeString : Maybe SecretType -> Maybe String
 maybeSecretTypeToMaybeString type_ =
     case type_ of

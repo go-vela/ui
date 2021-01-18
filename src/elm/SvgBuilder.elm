@@ -395,6 +395,8 @@ buildHistoryFailure _ =
         [ Svg.path [ d "M8 8l12 12M20 8L8 20" ] [] ]
 
 
+{-| buildStatusToIcon : takes build status and returns Icon from SvgBuilder
+-}
 buildStatusToIcon : Status -> Html msg
 buildStatusToIcon status =
     case status of

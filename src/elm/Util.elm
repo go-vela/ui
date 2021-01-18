@@ -343,6 +343,8 @@ largeLoader =
     div [ class "large-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
 
 
+{-| boolToYesNo : takes bool and converts to yes/no string
+-}
 boolToYesNo : Bool -> String
 boolToYesNo bool =
     if bool then
@@ -453,6 +455,8 @@ pageToString maybePage =
                 ""
 
 
+{-| buildBranchUrl : drops '.git' off the clone url and concatenates tree + branch ref
+-}
 buildBranchUrl : String -> String -> String
 buildBranchUrl clone branch =
     String.dropRight 4 clone ++ "/tree/" ++ branch
