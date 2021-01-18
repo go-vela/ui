@@ -2256,7 +2256,7 @@ viewContent model =
 
         Pages.Settings ->
             ( "Settings"
-            , Pages.Settings.view model.session (Pages.Settings.Msgs Copy)
+            , Pages.Settings.view model.session model.time (Pages.Settings.Msgs Copy)
             )
 
         Pages.Login ->
