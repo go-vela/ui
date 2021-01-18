@@ -434,7 +434,9 @@ updateCurrentUser model body =
 
 
 {-| getAllRepositories : used in conjuction with 'tryAll', it retrieves all pages of the resource
-Note: the singular version of the type/decoder is needed in this case as it turns it into a list
+
+    Note: the singular version of the type/decoder is needed in this case as it turns it into a list
+
 -}
 getAllRepositories : PartialModel a -> Request Repository
 getAllRepositories model =
