@@ -1,4 +1,4 @@
-module Pages.Build.History exposing (..)
+module Pages.Build.History exposing (view)
 
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
 import Html.Attributes exposing (attribute, class)

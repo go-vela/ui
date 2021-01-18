@@ -11,7 +11,6 @@ module Pages.Build.Logs exposing
     , downloadFileName
     , expandActive
     , focusAndClear
-    , getCurrentResource
     , getLog
     , isViewing
     , logEmpty
@@ -140,22 +139,6 @@ getInfo resources number =
         |> List.map (\resource -> ( resource.viewing, resource.logFocus ))
         |> List.head
         |> Maybe.withDefault ( False, ( Nothing, Nothing ) )
-
-
-{-| getCurrentResource : takes resources and returns the newest running or pending resource
--}
-getCurrentResource : Resources a -> Int
-getCurrentResource resources =
-    let
-        resource =
-            resources
-                |> List.filter (\s -> s.status == Vela.Pending || s.status == Vela.Running)
-                |> List.map .number
-                |> List.sort
-                |> List.head
-                |> Maybe.withDefault 0
-    in
-    resource
 
 
 {-| getLog : takes resource and logs and returns the log corresponding to that resource

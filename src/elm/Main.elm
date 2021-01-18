@@ -74,7 +74,6 @@ import Pages.Build.Logs
         , clickResource
         , expandActive
         , focusAndClear
-        , getCurrentResource
         , isViewing
         , setAllViews
         )
@@ -147,7 +146,6 @@ import Vela
         , ServiceNumber
         , Services
         , SourceRepositories
-        , Step
         , StepNumber
         , Steps
         , Team
@@ -395,7 +393,6 @@ type Msg
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
-    | StepResponse Org Repo BuildNumber StepNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Step ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
@@ -1165,7 +1162,6 @@ update msg model =
         RepoRepairedResponse repo response ->
             case response of
                 Ok _ ->
-                    -- TODO: could 'refresh' settings page instead
                     ( { model
                         | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
                         , repo = updateRepoEnabling Vela.Enabled rm
@@ -1272,14 +1268,6 @@ update msg model =
                             getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
                     in
                     ( updatedModel, cmd )
-
-                Err error ->
-                    ( model, addError error )
-
-        StepResponse _ _ _ _ response ->
-            case response of
-                Ok ( _, step ) ->
-                    ( updateStep model step, Cmd.none )
 
                 Err error ->
                     ( model, addError error )
@@ -2262,7 +2250,6 @@ viewContent model =
             )
 
         Pages.NotFound ->
-            -- TODO: make this page more helpful
             ( "404"
             , h1 [] [ text "Not Found" ]
             )
@@ -3004,14 +2991,7 @@ loadBuildPage model org repo buildNumber lineFocus =
                         rm.build.steps.steps
                     )
                 -- update line focus in the model
-                |> updateBuildStepsFocusFragment
-                    (case lineFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-                    )
+                |> updateBuildStepsFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
                 -- reset following service
                 |> updateBuildServicesFollowing 0
       }
@@ -3071,14 +3051,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                         rm.build.services.services
                     )
                 -- update line focus in the model
-                |> updateBuildServicesFocusFragment
-                    (case lineFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-                    )
+                |> updateBuildServicesFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
                 -- reset following step
                 |> updateBuildStepsFollowing 0
       }
@@ -3166,14 +3139,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
                 |> updateBuildPipelineRef ref
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
-                |> updateBuildPipelineFocusFragment
-                    (case lineFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-                    )
+                |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
 
         -- reset templates if ref has changed
         , templates =
@@ -3249,14 +3215,7 @@ loadPipelinePage model org repo ref expand lineFocus =
                 |> updateBuildPipelineRef ref
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
-                |> updateBuildPipelineFocusFragment
-                    (case lineFocus of
-                        Just l ->
-                            Just <| "#" ++ l
-
-                        Nothing ->
-                            Nothing
-                    )
+                |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
         , templates =
             if sameRef then
                 model.templates
@@ -3402,66 +3361,11 @@ addError error =
     Errors.addError error HandleError
 
 
-{-| stepsIds : extracts Ids from list of steps and returns List Int
--}
-stepsIds : Steps -> List Int
-stepsIds steps =
-    List.map (\step -> step.number) steps
-
-
 {-| logIds : extracts Ids from list of logs and returns List Int
 -}
 logIds : Logs -> List Int
 logIds logs =
     List.map (\log -> log.id) <| Util.successful logs
-
-
-{-| updateStep : takes model and incoming step and updates the list of steps if necessary
--}
-updateStep : Model -> Step -> Model
-updateStep model incomingStep =
-    let
-        rm =
-            model.repo
-
-        steps =
-            case rm.build.steps.steps of
-                Success s ->
-                    s
-
-                _ ->
-                    []
-
-        stepExists =
-            List.member incomingStep.number <| stepsIds steps
-
-        following =
-            rm.build.steps.followingStep /= 0
-    in
-    if stepExists then
-        { model
-            | repo =
-                updateBuildSteps
-                    (steps
-                        |> updateIf (\step -> incomingStep.number == step.number)
-                            (\step ->
-                                let
-                                    shouldView =
-                                        following
-                                            && (step.status /= Vela.Pending)
-                                            && (step.number == getCurrentResource steps)
-                                in
-                                { incomingStep
-                                    | viewing = step.viewing || shouldView
-                                }
-                            )
-                        |> RemoteData.succeed
-                    )
-                    rm
-        }
-
-    else
-        { model | repo = updateBuildSteps (RemoteData.succeed <| incomingStep :: steps) rm }
 
 
 {-| updateStepLogs : takes model and incoming log and updates the list of step logs if necessary
