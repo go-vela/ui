@@ -421,6 +421,9 @@ type Msg
     | OnKeyUp String
     | VisibilityChanged Visibility
     | PushUrl String
+    | GetViewportOf String
+    | ReceiveViewportOf  (Result Dom.Error Dom.Viewport)
+
       -- NoOp
     | NoOp
 
@@ -1652,6 +1655,21 @@ update msg model =
             , Navigation.pushUrl model.navigationKey url
             )
 
+        GetViewportOf id ->
+            ( model
+            , Task.attempt ReceiveViewportOf (Dom.getViewportOf id)
+            )
+        ReceiveViewportOf v ->
+                case v of 
+                    Ok viewport ->
+                        let
+                            _ = Debug.log "viewport" viewport
+                        in
+                        ( model, Cmd.none )
+
+                    Err _ ->
+                        ( model, Cmd.none )
+  
         -- NoOp
         NoOp ->
             ( model, Cmd.none )
