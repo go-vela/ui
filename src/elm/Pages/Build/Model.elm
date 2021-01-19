@@ -15,7 +15,7 @@ module Pages.Build.Model exposing
     , Msgs
     , PartialModel
     )
-
+import Scroll exposing (ScrollInfo)
 import Browser.Navigation as Navigation
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
@@ -73,6 +73,7 @@ type alias LogsMsgs msg =
     , focusOn : FocusOn msg
     , followStep : FollowResource msg
     , followService : FollowResource msg
+    , scrollEvent : String  -> ScrollInfo -> msg
     }
 
 

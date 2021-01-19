@@ -9,7 +9,7 @@ module Pages.Build.Logs exposing
     , clickResource
     , decodeAnsi
     , downloadFileName
-    , expandActive
+    , expandActive,toAnsi
     , focusAndClear
     , getLog
     , isViewing
@@ -343,3 +343,20 @@ see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 decodeAnsi : String -> Array.Array Ansi.Log.Line
 decodeAnsi log =
     .lines <| Ansi.Log.update log defaultLogModel
+
+{-| toAnsi : returns a string from a Maybe Log
+-}
+toAnsi : Maybe (WebData Log) -> Array.Array Ansi.Log.Line
+toAnsi log =
+    case log of
+        Just log_ ->
+            case log_ of
+                RemoteData.Success l ->
+                    l.ansiLines
+
+                _ ->
+                    Array.empty
+
+        Nothing ->
+            Array.empty
+

@@ -648,7 +648,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
                     []
                 ]
     in
-    ( table [ class "logs-table", class "scrollable" ] <|
+    ( table [ class "logs-table", class "scrollable", id <| "scrollable-" ++ resource ++ "-" ++ resourceID ] <|
         topTracker
             :: logs
             ++ [ bottomTracker ]

@@ -135,7 +135,8 @@ module Vela exposing
     , updateRepoInitialized
     , updateRepoTimeout
     )
-
+import Array
+import Ansi.Log
 import Api.Pagination as Pagination
 import Dict exposing (Dict)
 import Errors exposing (Error)
@@ -1338,6 +1339,7 @@ type alias Log =
     , repository_id : Int
     , rawData : String
     , decodedLogs : String
+    , ansiLines : Array.Array Ansi.Log.Line 
     }
 
 
@@ -1354,6 +1356,8 @@ decodeLog =
         |> optional "data" string ""
         -- "decodedLogs"
         |> hardcoded ""
+        -- "ansiLines"
+        |> hardcoded Array.empty
 
 
 type alias Logs =

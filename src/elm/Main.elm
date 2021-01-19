@@ -75,7 +75,9 @@ import Pages.Build.Logs
         , expandActive
         , focusAndClear
         , isViewing
+        ,getLog
         , setAllViews
+        , toAnsi
         )
 import Pages.Build.Model
 import Pages.Build.View
@@ -205,8 +207,8 @@ import Vela
         , updateRepoTimeout
         )
 
-
-
+import Scroll exposing (ScrollInfo)
+import Array
 -- TYPES
 
 
@@ -423,6 +425,7 @@ type Msg
     | PushUrl String
     | GetViewportOf String
     | ReceiveViewportOf  (Result Dom.Error Dom.Viewport)
+    | StepLogScrollEvent String ScrollInfo
 
       -- NoOp
     | NoOp
@@ -1667,9 +1670,56 @@ update msg model =
                         in
                         ( model, Cmd.none )
 
-                    Err _ ->
+                    Err e ->
+                        let
+                            _ = Debug.log "err" e
+                        in
                         ( model, Cmd.none )
-  
+        StepLogScrollEvent stepNumber { scrollHeight, scrollTop, offsetHeight } ->
+            (model, Task.attempt ReceiveViewportOf (Dom.getViewportOf <| "scrollable-step-" ++ stepNumber))
+            -- let
+            --     steps =
+            --         RemoteData.withDefault [] rm.build.steps.steps
+            -- in
+            -- if (scrollHeight - scrollTop) <= offsetHeight then
+            --     ( { model
+            --         | repo =
+            --             updateBuildSteps
+            --                 (steps
+            --                     |> updateIf (\step -> stepNumber == String.fromInt step.number)
+            --                         (\step ->
+            --                             { step
+            --                                 | viewRange = min (List.length <| List.Extra.groupsOf 25 <| Array.toList <| toAnsi <| getLog step .step_id rm.build.steps.logs) <| step.viewRange + 1
+            --                             }
+            --                         )
+            --                     |> RemoteData.succeed
+            --                 )
+            --                 rm
+            --       }
+            --     , Cmd.none
+            --     )
+
+            -- else if scrollTop <= 150 then
+            --     ( { model
+            --         | repo =
+            --             updateBuildSteps
+            --                 (steps
+            --                     |> updateIf (\step -> stepNumber == String.fromInt step.number)
+            --                         (\step ->
+            --                             { step
+            --                                 | viewRange = max 0 <| step.viewRange - 1
+            --                             }
+            --                         )
+            --                     |> RemoteData.succeed
+            --                 )
+            --                 rm
+            --       }
+            --     , Cmd.none
+            --     )
+
+            -- else
+            --     ( model, Cmd.none )
+
         -- NoOp
         NoOp ->
             ( model, Cmd.none )
@@ -3588,6 +3638,7 @@ buildMsgs =
         , focusOn = FocusOn
         , followStep = FollowStep
         , followService = FollowService
+        , scrollEvent = StepLogScrollEvent
         }
     }
 
