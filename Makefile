@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Target Brands, Inc. All rights reserved.
+# Copyright (c) 2021 Target Brands, Inc. All rights reserved.
 #
 # Use of this source code is governed by the LICENSE file in this repository.
 
@@ -222,4 +222,3 @@ bump-deps: clean bump-deps-npm bump-deps-elm ## Bump NPM and Elm dependencies
 # Usage: `make bump-deps-test`
 .PHONY: bump-deps-test
 bump-deps-test: bump-deps test-cypress ## Bump dependencies and run Cypress tests
-
