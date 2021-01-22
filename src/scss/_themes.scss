@@ -152,4 +152,8 @@ body.theme-light {
     border-color: var(--color-bg-light);
     border-top-color: var(--color-bg);
   }
+
+  .table-base .error-content {
+    color: var(--color-red);
+  }
 }

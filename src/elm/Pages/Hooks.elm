@@ -156,7 +156,7 @@ hookErrorRow hook =
 
 renderHookError : Hook -> Html msg
 renderHookError hook =
-    tr [ class "error-data", Util.testAttribute "hooks-error" ] [ td [ attribute "colspan" "6" ] [ small [ class "error-content" ] [ text hook.error ] ] ]
+    tr [ class "error-data", Util.testAttribute "hooks-error" ] [ td [ attribute "colspan" "6" ] [ code [ class "error-content" ] [ text hook.error ] ] ]
 
 
 {-| hookStatusToRowClass : takes hook status string and returns style class
