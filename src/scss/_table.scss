@@ -84,10 +84,12 @@
 .table-base tr.-error {
   border-bottom: none;
   border-left: 2px solid var(--color-red);
+}
 
-  .error-content {
-    color: var(--color-red-light);
-  }
+.table-base .error-content {
+  color: var(--color-red-light);
+  font-size: 0.8em;
+  white-space: pre-wrap;
 }
 
 .hook-status {
