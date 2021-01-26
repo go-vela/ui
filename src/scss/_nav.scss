@@ -42,12 +42,31 @@
 
 .jump-bar .jump,
 .jump-bar .jump-button {
+  position: relative;
+
   padding: 1rem;
 
   color: var(--color-text);
   text-decoration: none;
 
   border-bottom: 3px solid var(--color-bg-light);
+
+  &.alerting::after {
+    position: absolute;
+
+    top: 0.8rem;
+    right: 0.2rem;
+
+    display: block;
+
+    width: 0.4rem;
+    height: 0.4rem;
+
+    background-color: var(--color-red);
+    border-radius: 50%;
+
+    content: '';
+  }
 
   &.current {
     font-weight: bold;
