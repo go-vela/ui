@@ -6,6 +6,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Hooks exposing (view)
 
+import Ansi.Log
+import Array
 import Errors exposing (viewResourceError)
 import Html
     exposing
@@ -23,6 +25,7 @@ import Html.Attributes
         , class
         , scope
         )
+import Pages.Build.Logs exposing (decodeAnsi)
 import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
 import SvgBuilder exposing (hookStatusToIcon)
@@ -156,7 +159,23 @@ hookErrorRow hook =
 
 renderHookError : Hook -> Html msg
 renderHookError hook =
-    tr [ class "error-data", Util.testAttribute "hooks-error" ] [ td [ attribute "colspan" "6" ] [ code [ class "error-content" ] [ text hook.error ] ] ]
+    let
+        lines =
+            decodeAnsi hook.error
+                |> Array.map
+                    (\line ->
+                        Just <|
+                            Ansi.Log.viewLine line
+                    )
+                |> Array.toList
+                |> List.filterMap identity
+    in
+    tr [ class "error-data", Util.testAttribute "hooks-error" ]
+        [ td [ attribute "colspan" "6" ]
+            [ code [ class "error-content" ]
+                lines
+            ]
+        ]
 
 
 {-| hookStatusToRowClass : takes hook status string and returns style class
