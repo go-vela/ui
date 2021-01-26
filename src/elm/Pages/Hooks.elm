@@ -162,8 +162,8 @@ renderHookError hook =
     let
         lines =
             decodeAnsi hook.error
-                |> Array.indexedMap
-                    (\_ line ->
+                |> Array.map
+                    (\line ->
                         Just <|
                             Ansi.Log.viewLine line
                     )
