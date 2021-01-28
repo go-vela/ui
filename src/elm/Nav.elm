@@ -76,6 +76,7 @@ type alias Tab =
     { name : String
     , currentPage : Page
     , toPage : Page
+    , isAlerting : Bool
     }
 
 
@@ -210,9 +211,12 @@ viewTabs tabs testLabel =
 {-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style
 -}
 viewTab : Tab -> Html msg
-viewTab { name, currentPage, toPage } =
+viewTab { name, currentPage, toPage, isAlerting } =
     a
-        [ class "jump"
+        [ classList
+            [ ( "jump", True )
+            , ( "alerting", isAlerting )
+            ]
         , viewingTab currentPage toPage
         , Routes.href <| Pages.toRoute toPage
         , Util.testAttribute <| "jump-" ++ name
@@ -254,11 +258,40 @@ viewingTab p1 p2 =
 viewRepoTabs : RepoModel -> Org -> Repo -> Page -> Html msg
 viewRepoTabs rm org repo currentPage =
     let
+        lastHook =
+            case rm.hooks.hooks of
+                RemoteData.Success hooks ->
+                    List.head hooks
+
+                _ ->
+                    Nothing
+
+        lastBuild =
+            case rm.builds.builds of
+                RemoteData.Success builds ->
+                    List.head builds
+
+                _ ->
+                    Nothing
+
+        isAlerting =
+            case ( lastHook, lastBuild ) of
+                ( Just hook, Just build ) ->
+                    case hook.status of
+                        "success" ->
+                            False
+
+                        _ ->
+                            hook.created > build.created
+
+                _ ->
+                    False
+
         tabs =
-            [ Tab "Builds" currentPage <| Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent
-            , Tab "Secrets" currentPage <| Pages.RepoSecrets "native" org repo Nothing Nothing
-            , Tab "Audit" currentPage <| Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage
-            , Tab "Settings" currentPage <| Pages.RepoSettings org repo
+            [ Tab "Builds" currentPage (Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
+            , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False
+            , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting
+            , Tab "Settings" currentPage (Pages.RepoSettings org repo) False
             ]
     in
     viewTabs tabs "jump-bar-repo"
@@ -288,9 +321,9 @@ viewBuildTabs model org repo buildNumber currentPage =
                     Nothing
 
         tabs =
-            [ Tab "Build" currentPage <| Pages.Build org repo buildNumber bm.steps.focusFragment
-            , Tab "Services" currentPage <| Pages.BuildServices org repo buildNumber bm.services.focusFragment
-            , Tab "Pipeline" currentPage <| Pages.BuildPipeline org repo buildNumber ref pipeline.expand pipeline.focusFragment
+            [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False
+            , Tab "Services" currentPage (Pages.BuildServices org repo buildNumber bm.services.focusFragment) False
+            , Tab "Pipeline" currentPage (Pages.BuildPipeline org repo buildNumber ref pipeline.expand pipeline.focusFragment) False
             ]
     in
     viewTabs tabs "jump-bar-build"
