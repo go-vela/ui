@@ -2383,6 +2383,10 @@ helpArgs model =
     , copy = Copy
     , noOp = NoOp
     , page = model.page
+
+    -- TODO: use env flag velaDocsURL
+    -- , velaDocsURL = model.velaDocsURL
+    , velaDocsURL = "https://go-vela.github.io/docs"
     }
 
 
