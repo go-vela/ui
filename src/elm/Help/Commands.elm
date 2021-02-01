@@ -30,6 +30,7 @@ import Vela
         , Org
         , Repo
         , SecretType(..)
+        , StepNumber
         , secretTypeToString
         )
 
@@ -49,6 +50,7 @@ type alias Model msg =
     , copy : Copy msg
     , noOp : msg
     , page : Page
+    , velaDocsURL : String
     }
 
 
@@ -84,7 +86,7 @@ commands page =
             [ listFavorites ]
 
         Pages.Hooks org repo _ _ ->
-            [ validate, listHooks org repo ]
+            [ validate, listHooks org repo, viewHook org repo ]
 
         Pages.RepositoryBuilds org repo _ _ _ ->
             [ listBuilds org repo ]
@@ -159,7 +161,7 @@ listFavorites =
             "List Favorites"
 
         issue =
-            Just "53"
+            Just "17"
     in
     Command name noCmd noDocs issue
 
@@ -180,7 +182,7 @@ listBuilds org repo =
             Just <| "vela get builds " ++ repoArgs org repo
 
         docs =
-            Just "build/get"
+            Just "/build/get"
     in
     Command name content docs noIssue
 
@@ -188,7 +190,7 @@ listBuilds org repo =
 {-| viewBuild : returns cli command for viewing a build
 
     eg.
-    vela get builds --org octocat --repo hello-world
+    vela view build --org octocat --repo hello-world --build 1
 
 -}
 viewBuild : Org -> Repo -> BuildNumber -> Command
@@ -201,7 +203,7 @@ viewBuild org repo buildNumber =
             Just <| "vela view build " ++ buildArgs org repo buildNumber
 
         docs =
-            Just "build/view"
+            Just "/build/view"
     in
     Command name content docs noIssue
 
@@ -209,7 +211,7 @@ viewBuild org repo buildNumber =
 {-| restartBuild : returns cli command for restarting a build
 
     eg.
-    vela restart build --org octocat --repo hello-world --build 14
+    vela restart build --org octocat --repo hello-world --build 1
 
 -}
 restartBuild : Org -> Repo -> BuildNumber -> Command
@@ -222,7 +224,7 @@ restartBuild org repo buildNumber =
             Just <| "vela restart build " ++ buildArgs org repo buildNumber
 
         docs =
-            Just "build/restart"
+            Just "/build/restart"
     in
     Command name content docs noIssue
 
@@ -230,7 +232,7 @@ restartBuild org repo buildNumber =
 {-| cancelBuild : returns cli command for canceling a build
 
     eg.
-    vela cancel build --org octocat --repo hello-world --build 14
+    vela cancel build --org octocat --repo hello-world --build 1
 
 -}
 cancelBuild : Org -> Repo -> BuildNumber -> Command
@@ -243,7 +245,7 @@ cancelBuild org repo buildNumber =
             Just <| "vela cancel build " ++ buildArgs org repo buildNumber
 
         docs =
-            Just "build/cancel"
+            Just "/build/cancel"
     in
     Command name content docs noIssue
 
@@ -251,7 +253,7 @@ cancelBuild org repo buildNumber =
 {-| listSteps : returns cli command for listing steps
 
     eg.
-    vela get steps --org octocat --repo hello-world --build 14
+    vela get steps --org octocat --repo hello-world --build 1
 
 -}
 listSteps : Org -> Repo -> BuildNumber -> Command
@@ -264,7 +266,7 @@ listSteps org repo buildNumber =
             Just <| "vela get steps " ++ buildArgs org repo buildNumber
 
         docs =
-            Just "steps/get"
+            Just "/step/get"
     in
     Command name content docs noIssue
 
@@ -272,7 +274,7 @@ listSteps org repo buildNumber =
 {-| viewStep : returns cli command for viewing a step
 
     eg.
-    vela view step --org octocat --repo hello-world --build 14 --step-number 1
+    vela view step --org octocat --repo hello-world --build 1 --step 1
 
 -}
 viewStep : Org -> Repo -> BuildNumber -> Command
@@ -282,10 +284,10 @@ viewStep org repo buildNumber =
             "View Step"
 
         content =
-            Just <| "vela view step " ++ buildArgs org repo buildNumber ++ " --step-number 1"
+            Just <| "vela view step " ++ stepArgs org repo buildNumber "1"
 
         docs =
-            Just "steps/get"
+            Just "/step/view"
     in
     Command name content docs noIssue
 
@@ -293,7 +295,7 @@ viewStep org repo buildNumber =
 {-| listServices : returns cli command for listing services
 
     eg.
-    vela get services --org octocat --repo hello-world --build 14
+    vela get services --org octocat --repo hello-world --build 1
 
 -}
 listServices : Org -> Repo -> BuildNumber -> Command
@@ -303,10 +305,10 @@ listServices org repo buildNumber =
             "List Services"
 
         content =
-            Just <| "vela get service " ++ buildArgs org repo buildNumber
+            Just <| "vela get services " ++ buildArgs org repo buildNumber
 
         docs =
-            Just "service/get"
+            Just "/service/get"
     in
     Command name content docs noIssue
 
@@ -324,10 +326,10 @@ viewService org repo buildNumber =
             "View Service"
 
         content =
-            Just <| "vela view service " ++ buildArgs org repo buildNumber ++ " --service 1"
+            Just <| "vela view service " ++ serviceArgs org repo buildNumber "1"
 
         docs =
-            Just "service/view"
+            Just "/service/view"
     in
     Command name content docs noIssue
 
@@ -348,7 +350,7 @@ viewRepo org repo =
             Just <| "vela view repo " ++ repoArgs org repo
 
         docs =
-            Just "repo/view"
+            Just "/repo/view"
     in
     Command name content docs noIssue
 
@@ -369,7 +371,7 @@ repairRepo org repo =
             Just <| "vela repair repo " ++ repoArgs org repo
 
         docs =
-            Just "repo/repair"
+            Just "/repo/repair"
     in
     Command name content docs noIssue
 
@@ -390,7 +392,7 @@ chownRepo org repo =
             Just <| "vela chown repo " ++ repoArgs org repo
 
         docs =
-            Just "repo/chown"
+            Just "/repo/chown"
     in
     Command name content docs noIssue
 
@@ -418,19 +420,44 @@ validate =
 
 {-| listHooks : returns cli command for listing hooks
 
-    not yet supported
+    eg.
+    vela get hooks --org octocat --repo hello-world
 
 -}
 listHooks : Org -> Repo -> Command
-listHooks _ _ =
+listHooks org repo =
     let
         name =
             "List Hooks"
 
-        issue =
-            Just "52"
+        content =
+            Just <| "vela get hooks " ++ repoArgs org repo
+
+        docs =
+            Just "/hook/get"
     in
-    Command name noCmd noDocs issue
+    Command name content docs noIssue
+
+
+{-| viewHook : returns cli command for viewing a build
+
+    eg.
+    vela view hook --org octocat --repo hello-world --hook 1
+
+-}
+viewHook : Org -> Repo -> Command
+viewHook org repo =
+    let
+        name =
+            "View Hook"
+
+        content =
+            Just <| "vela view hook " ++ hookArgs org repo "1"
+
+        docs =
+            Just "/hook/view"
+    in
+    Command name content docs noIssue
 
 
 {-| listSecrets : returns cli command for listing secrets
@@ -449,7 +476,7 @@ listSecrets secretEngine secretType org key =
             Just <| "vela get secrets " ++ secretBaseArgs secretEngine secretType org key
 
         docs =
-            Just "secret/get"
+            Just "/secret/get"
     in
     Command name content docs noIssue
 
@@ -470,7 +497,7 @@ addSecret secretEngine secretType org key =
             Just <| "vela add secret " ++ secretBaseArgs secretEngine secretType org key ++ addSecretArgs
 
         docs =
-            Just "secret/add"
+            Just "/secret/add"
     in
     Command name content docs noIssue
 
@@ -493,7 +520,7 @@ viewSecret secretEngine secretType org key name_ =
             Just <| "vela view secret " ++ secretBaseArgs secretEngine secretType org key ++ " --name " ++ name_
 
         docs =
-            Just "secret/view"
+            Just "/secret/view"
     in
     Command name content docs noIssue
 
@@ -516,7 +543,7 @@ updateSecret secretEngine secretType org key name_ =
             Just <| "vela update secret " ++ secretBaseArgs secretEngine secretType org key ++ " --name " ++ name_ ++ " --value new_value"
 
         docs =
-            Just "secret/update"
+            Just "/secret/update"
     in
     Command name content docs noIssue
 
@@ -537,7 +564,7 @@ authenticate =
             Just "vela login"
 
         docs =
-            Just "authentication"
+            Just "/authentication"
     in
     Command name content docs noIssue
 
@@ -551,6 +578,50 @@ authenticate =
 repoArgs : Org -> Repo -> String
 repoArgs org repo =
     "--org " ++ org ++ " --repo " ++ repo
+
+
+{-| buildArgs : returns cli args for requesting build resources
+
+    eg.
+    --org octocat --repo hello-world --build 1
+
+-}
+buildArgs : Org -> Repo -> BuildNumber -> String
+buildArgs org repo buildNumber =
+    repoArgs org repo ++ " --build " ++ buildNumber
+
+
+{-| stepArgs : returns cli args for requesting a step resource
+
+    eg.
+    --org octocat --repo hello-world --build 1 --step 1
+
+-}
+stepArgs : Org -> Repo -> BuildNumber -> StepNumber -> String
+stepArgs org repo buildNumber stepNumber =
+    buildArgs org repo buildNumber ++ " --step " ++ stepNumber
+
+
+{-| serviceArgs : returns cli args for requesting a service resource
+
+    eg.
+    --org octocat --repo hello-world --build 1 --service 1
+
+-}
+serviceArgs : Org -> Repo -> BuildNumber -> StepNumber -> String
+serviceArgs org repo buildNumber stepNumber =
+    buildArgs org repo buildNumber ++ " --service " ++ stepNumber
+
+
+{-| hookArgs : returns cli args for requesting a hook resource
+
+    eg.
+    --org octocat --repo hello-world --build 1 --hook 1
+
+-}
+hookArgs : Org -> Repo -> String -> String
+hookArgs org repo hookNumber =
+    repoArgs org repo ++ " --hook " ++ hookNumber
 
 
 {-| secretBaseArgs : returns cli args for requesting secrets
@@ -589,17 +660,6 @@ addSecretArgs =
     " --name password --value vela --event push"
 
 
-{-| buildArgs : returns cli args for requesting build resources
-
-    eg.
-    --org octocat --repo hello-world --build 14
-
--}
-buildArgs : Org -> Repo -> BuildNumber -> String
-buildArgs org repo buildNumber =
-    repoArgs org repo ++ " --build " ++ buildNumber
-
-
 noCmd : Maybe String
 noCmd =
     Nothing
@@ -617,42 +677,37 @@ noIssue =
 
 {-| cliDocsUrl : takes page and returns cli docs url
 -}
-cliDocsUrl : String -> String
-cliDocsUrl page =
-    cliDocsBase ++ page
+cliDocsUrl : String -> String -> String
+cliDocsUrl docsBase page =
+    cliDocsBaseUrl docsBase ++ page
 
 
 {-| usageDocsUrl : takes page and returns usage docs url
 -}
-usageDocsUrl : String -> String
-usageDocsUrl page =
-    usageDocsBase ++ page
+usageDocsUrl : String -> String -> String
+usageDocsUrl docsBase page =
+    usageDocsBase docsBase ++ page
 
 
-docsBase : String
-docsBase =
-    "https://go-vela.github.io/docs/"
-
-
-{-| cliDocsBase : returns base url for cli docs
+{-| cliDocsBaseUrl : returns base url for cli docs
 -}
-cliDocsBase : String
-cliDocsBase =
-    docsBase ++ "cli/"
+cliDocsBaseUrl : String -> String
+cliDocsBaseUrl docsBase =
+    docsBase ++ "/reference/cli"
 
 
 {-| usageDocsBase : returns base url for usage docs
 -}
-usageDocsBase : String
-usageDocsBase =
-    docsBase ++ "usage/"
+usageDocsBase : String -> String
+usageDocsBase docsBase =
+    docsBase ++ "/usage"
 
 
 {-| usageDocsBase : returns base url for cli issues
 -}
 issuesBaseUrl : String
 issuesBaseUrl =
-    "https://github.com/go-vela/community/issues/"
+    "https://github.com/go-vela/community/issues"
 
 
 {-| resourceLoaded : takes help args and returns if the resource has been successfully loaded

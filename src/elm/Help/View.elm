@@ -83,7 +83,7 @@ body args =
         [ row "resources on this page not yet supported via the CLI" "" Nothing ]
 
     else
-        List.map (contents copy) cmds
+        List.map (contents args copy) cmds
 
 
 {-| footer : takes args, (page, cli commands) and renders dropdown footer
@@ -100,25 +100,27 @@ footer args =
         div [ class "help-footer", Util.testAttribute "help-footer" ] <| cliDocs args
 
 
+{-| notLoadedDocs : takes args and renders docs for getting started when page resources are not loaded
+-}
 notLoadedDocs : Model msg -> List (Html msg)
-notLoadedDocs _ =
-    [ a [ href <| usageDocsUrl "getting-started/start_build/" ] [ text "Getting Started Docs" ]
+notLoadedDocs args =
+    [ a [ href <| usageDocsUrl args.velaDocsURL "/start_build" ] [ text "Getting Started Docs" ]
     ]
 
 
 {-| cliDocs : takes help args and renders footer docs links for commands
 -}
 cliDocs : Model msg -> List (Html msg)
-cliDocs _ =
-    [ a [ href <| cliDocsUrl "install" ] [ text "CLI Installation Docs" ]
-    , a [ href <| cliDocsUrl "authentication" ] [ text "CLI Authentication Docs" ]
+cliDocs args =
+    [ a [ href <| cliDocsUrl args.velaDocsURL "/install" ] [ text "CLI Installation Docs" ]
+    , a [ href <| cliDocsUrl args.velaDocsURL "/authentication" ] [ text "CLI Authentication Docs" ]
     ]
 
 
 {-| contents : takes help args and renders body content for command
 -}
-contents : Copy msg -> Command -> Html msg
-contents copyMsg command =
+contents : Model msg -> Copy msg -> Command -> Html msg
+contents args copyMsg command =
     case ( command.content, command.issue ) of
         ( Just content, _ ) ->
             let
@@ -127,7 +129,7 @@ contents copyMsg command =
                     command.name |> String.toLower |> String.replace " " "-"
             in
             div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
-                [ span [] [ label [ class "form-label", for forName ] [ text <| command.name ++ " " ], docsLink command ], row content forName <| Just copyMsg ]
+                [ span [] [ label [ class "form-label", for forName ] [ text <| command.name ++ " " ], docsLink args command ], row content forName <| Just copyMsg ]
 
         ( Nothing, Just issue ) ->
             div [ class "form-controls", class "-stack", Util.testAttribute "help-cmd-header" ]
@@ -188,13 +190,13 @@ notSupported =
 
 {-| docsLink : takes command and returns docs link if appropriate
 -}
-docsLink : Command -> Html msg
-docsLink command =
+docsLink : Model msg -> Command -> Html msg
+docsLink args command =
     case command.docs of
         Just docs ->
             a
                 [ class "cmd-link"
-                , href <| cliDocsUrl docs
+                , href <| cliDocsUrl args.velaDocsURL docs
                 , attribute "aria-label" <| "go to cli docs page for " ++ docs
                 ]
                 [ text "(docs)"
@@ -208,7 +210,7 @@ docsLink command =
 -}
 upvoteFeatureLink : String -> Html msg
 upvoteFeatureLink issue =
-    a [ class "cmd-link", href <| issuesBaseUrl ++ issue ]
+    a [ class "cmd-link", href <| issuesBaseUrl ++ "/" ++ issue ]
         [ text "(upvote feature)"
         ]
 
