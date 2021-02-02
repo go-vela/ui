@@ -353,7 +353,7 @@ patch api endpoint =
 -- ENTRYPOINT
 
 
-{-| try : default way to request information from and endpoint
+{-| try : default way to request information from an endpoint
 
     example usage:
         Api.try UserResponse <| Api.getUser model authParams
@@ -382,7 +382,7 @@ tryAll msg request_ =
 -- ENTRYPOINT
 
 
-{-| try : default way to request information from and endpoint
+{-| try : default way to request information from an endpoint
 example usage:
 Api.try UserResponse <| Api.getUser model authParams
 -}
