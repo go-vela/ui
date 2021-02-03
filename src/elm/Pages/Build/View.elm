@@ -349,7 +349,11 @@ viewStages model msgs rm steps =
         |> List.map
             (\stage ->
                 steps
-                    |> List.filter (\step -> step.stage == stage)
+                    |> List.filter
+                        (\step ->
+                            (stage == "init" && (step.stage == "init" || step.stage == "clone"))
+                                || (stage /= "clone" && step.stage == stage)
+                        )
                     |> viewStage model msgs rm stage
             )
 
