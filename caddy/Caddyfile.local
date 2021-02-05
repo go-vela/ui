@@ -1,0 +1,83 @@
+# global options
+{
+    # enable debugging
+    debug
+    # disable auto https features
+    auto_https off
+    # disable admin endpoint
+    admin off
+}
+
+# port the site is served from
+:80
+
+# location where vela static files live
+root * /srv
+
+# setting global headers
+header {
+    # don't disclose server info
+    -Server
+    
+    # prevent browsers from mime-sniffing
+    X-Content-Type-Options "nosniff"
+
+    # prevent resources to load within a (i)frame
+    X-Frame-Options "DENY"
+
+    # enable cross site scripting filter and block detected attacks
+    X-XSS-Protection "1; mode=block"
+
+    # don't send referrer info to site's that are less secure
+    Referrer-Policy "strict-origin-when-cross-origin"
+
+    # enable a strict content security policy
+    Content-Security-Policy "default-src 'none'; script-src 'self'; connect-src 'self' {$VELA_API} ws://localhost:*; img-src 'self' {$VELA_API}; style-src 'self'; frame-ancestors 'none'; form-action 'self'"
+
+    # the following header will break things unless you are running behind a secured (ssl/tls) load balancer or proxy
+    # Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+}
+
+
+# defines paths that should be proxied to backend
+@api {
+    path /login
+    path /authenticate
+    path /api/*
+}
+
+# proxy above paths to backend
+handle @api {
+    reverse_proxy server:8080
+}
+
+# health handler
+handle /health {
+    respond 204
+}
+
+# server our single page application
+handle {
+    try_files {path} {path}/ index.html
+    file_server
+}
+
+# handle errors
+handle_errors {
+    rewrite * /{http.error.status_code}
+}
+
+# enable compression; default gzip level is 5
+encode gzip zstd
+
+# enable logging
+log {
+    level debug
+    format filter {
+        wrap console
+        fields {
+            # filter out cookie values from logs
+            request>headers>Cookie delete
+        }
+    }
+}
