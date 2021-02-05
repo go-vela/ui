@@ -56,7 +56,7 @@ handle /health {
     respond 204
 }
 
-# server our single page application
+# serve our single page application
 handle {
     try_files {path} {path}/ index.html
     file_server
