@@ -1,16 +1,16 @@
-FROM caddy:2.3.0-alpine
+FROM fholzer/nginx-brotli
 
 RUN apk update && \
-    apk add --no-cache gettext ca-certificates && \
+    apk add --no-cache ca-certificates && \
     rm -rf /var/cache/apk/*
 
-COPY dist /srv
+COPY dist /usr/share/nginx/html
 
-COPY caddy/Caddyfile /etc/caddy/Caddyfile
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 COPY docker-entrypoint.sh /usr/local/bin
 RUN ln -s /usr/local/bin/docker-entrypoint.sh /
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 80
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+CMD ["nginx", "-g", "daemon off;"]
