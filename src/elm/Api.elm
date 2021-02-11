@@ -325,14 +325,14 @@ put api endpoint body decoder =
 
 {-| delete : creates a DELETE request configuration
 -}
-delete : String -> Endpoint -> Request String
-delete api endpoint =
+delete : String -> Endpoint -> Decoder b -> Request b
+delete api endpoint decoder =
     request
         { method = "DELETE"
         , headers = []
         , url = Endpoint.toUrl api endpoint
         , body = Http.emptyBody
-        , decoder = Json.Decode.string
+        , decoder = decoder
         }
 
 
@@ -465,7 +465,7 @@ getSourceRepositories model =
 -}
 deleteRepo : PartialModel a -> Repository -> Request String
 deleteRepo model repository =
-    delete model.velaAPI (Endpoint.Repository repository.org repository.name)
+    delete model.velaAPI (Endpoint.Repository repository.org repository.name) Json.Decode.string
         |> withAuth model.session
 
 
@@ -535,9 +535,9 @@ restartBuild model org repository buildNumber =
 
 {-| cancelBuild : cancels a build
 -}
-cancelBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Request String
+cancelBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Request Build
 cancelBuild model org repository buildNumber =
-    delete model.velaAPI (Endpoint.CancelBuild org repository buildNumber)
+    delete model.velaAPI (Endpoint.CancelBuild org repository buildNumber) decodeBuild
         |> withAuth model.session
 
 
@@ -645,5 +645,5 @@ addSecret model engine type_ org key body =
 -}
 deleteSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Request String
 deleteSecret model engine type_ org key name =
-    delete model.velaAPI (Endpoint.Secret engine type_ org key name)
+    delete model.velaAPI (Endpoint.Secret engine type_ org key name) Json.Decode.string
         |> withAuth model.session
