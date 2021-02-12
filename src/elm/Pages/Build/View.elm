@@ -202,8 +202,22 @@ viewPreview now zone org repo build =
         timestamp =
             Util.humanReadableDateTimeFormatter zone buildCreatedPosix
 
+        -- calculate build runtime
+        runtime =
+            Util.formatRunTime now build.started build.finished
+
+        -- mask completed/pending builds that have not finished
         duration =
-            [ text <| Util.formatRunTime now build.started build.finished ]
+            case build.status of
+                Vela.Running ->
+                    runtime
+
+                _ ->
+                    if build.finished /= 0 then
+                        runtime
+
+                    else
+                        "--:--"
 
         statusClass =
             statusToClass build.status
@@ -230,7 +244,7 @@ viewPreview now zone org repo build =
                             ]
                             age
                         , span [ class "delimiter" ] [ text "/" ]
-                        , div [ class "duration" ] duration
+                        , div [ class "duration" ] [ text duration ]
                         ]
                     ]
                 , div [ class "row" ]
