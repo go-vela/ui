@@ -1128,7 +1128,19 @@ isComplete status =
         Running ->
             False
 
-        _ ->
+        Success ->
+            True
+
+        Failure ->
+            True
+
+        Killed ->
+            True
+
+        Canceled ->
+            True
+
+        Error ->
             True
 
 
