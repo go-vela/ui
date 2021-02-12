@@ -1134,13 +1134,13 @@ isComplete status =
         Failure ->
             True
 
-        Killed ->
+        Error ->
             True
 
         Canceled ->
             True
 
-        Error ->
+        Killed ->
             True
 
 
