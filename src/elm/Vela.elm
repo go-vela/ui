@@ -1122,6 +1122,12 @@ toStatus status =
 isComplete : Status -> Bool
 isComplete status =
     case status of
+        Pending ->
+            False
+
+        Running ->
+            False
+
         Success ->
             True
 
@@ -1131,8 +1137,11 @@ isComplete status =
         Error ->
             True
 
-        _ ->
-            False
+        Canceled ->
+            True
+
+        Killed ->
+            True
 
 
 
