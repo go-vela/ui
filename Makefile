@@ -44,7 +44,7 @@ restart: down up ## Restart the local docker-compose stack
 #
 # Usage: `make up`
 .PHONY: up
-up: pull build compose-up ## Create the local docker-compose stack
+up: build compose-up ## Create the local docker-compose stack
 
 # The `up-prod` target is intended to create
 # the local Docker compose stack with the UI compiled
