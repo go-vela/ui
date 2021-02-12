@@ -388,7 +388,7 @@ type Msg
     | RepoChownedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RepoRepairedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | CancelBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | CancelBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -1194,13 +1194,30 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        CancelBuildResponse _ _ _ response ->
+        CancelBuildResponse org repo buildNumber response ->
             case response of
-                Ok ( _, canceled ) ->
-                    ( model
+                Ok ( _, build ) ->
+                    let
+                        canceledBuild =
+                            "Build " ++ String.join "/" [ org, repo, buildNumber ]
+                    in
+                    ( { model
+                        | repo =
+                            -- update the build if necessary
+                            case rm.build.build of
+                                Success b ->
+                                    if b.id == build.id then
+                                        updateBuild (RemoteData.succeed build) rm
+
+                                    else
+                                        rm
+
+                                _ ->
+                                    rm
+                      }
                     , Cmd.none
                     )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" canceled Nothing)
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (canceledBuild ++ " canceled.") Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -3696,7 +3713,7 @@ restartBuild model org repo buildNumber =
 
 cancelBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 cancelBuild model org repo buildNumber =
-    Api.tryString (CancelBuildResponse org repo buildNumber) <| Api.cancelBuild model org repo buildNumber
+    Api.try (CancelBuildResponse org repo buildNumber) <| Api.cancelBuild model org repo buildNumber
 
 
 getRepoSecrets :
