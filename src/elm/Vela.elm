@@ -98,6 +98,7 @@ module Vela exposing
     , encodeUpdateRepository
     , encodeUpdateSecret
     , encodeUpdateUser
+    , isComplete
     , secretTypeToString
     , secretsErrorLabel
     , statusToFavicon
@@ -1114,6 +1115,21 @@ toStatus status =
 
         _ ->
             succeed Error
+
+
+{-| isComplete : helper to determine if status is 'complete'
+-}
+isComplete : Status -> Bool
+isComplete status =
+    case status of
+        Pending ->
+            False
+
+        Running ->
+            False
+
+        _ ->
+            True
 
 
 
