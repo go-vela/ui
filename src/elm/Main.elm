@@ -168,6 +168,7 @@ import Vela
         , encodeTheme
         , encodeUpdateRepository
         , encodeUpdateUser
+        , isComplete
         , secretTypeToString
         , statusToFavicon
         , stringToTheme
@@ -1923,15 +1924,7 @@ shouldRefresh : WebData Build -> Bool
 shouldRefresh build =
     case build of
         Success bld ->
-            case bld.status of
-                Vela.Pending ->
-                    True
-
-                Vela.Running ->
-                    True
-
-                _ ->
-                    False
+            not <| isComplete bld.status
 
         NotAsked ->
             True
