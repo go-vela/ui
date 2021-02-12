@@ -2665,7 +2665,7 @@ loadRepoSubPage model org repo toPage =
                             fetchSecrets o r
 
                         _ ->
-                            fetchSecrets org repo
+                            Cmd.none
                     ]
                 )
 
