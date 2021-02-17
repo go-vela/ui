@@ -18,7 +18,7 @@ jobs:
   publish:
     runs-on: ubuntu-16.04
     container:
-      image: golang:latest
+      image: golang:1.15
     steps:
       - name: clone
         uses: actions/checkout@v2
