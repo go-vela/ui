@@ -90,7 +90,7 @@ jobs:
       - name: install dependencies
         run: npm ci --prefer-offline --no-audit
       - name: install elm-test
-        run: npm i elm-test
+        run: npm i elm-test@0.19.1-revision6
       - name: run elm-test
         run: npm run test
 
