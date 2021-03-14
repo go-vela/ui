@@ -40,7 +40,7 @@
     "prestart": "npm run clean",
     "start": "npm run copy:static && parcel src/static/index.html --port 8888",
     "prebuild": "npm run clean",
-    "build": "parcel build src/static/index.html --no-optimize",
+    "build": "parcel build src/static/index.html --no-optimize --detailed-report",
     "postbuild": "npm run copy:static",
     "prebuild:prod": "npm run clean",
     "build:prod": "parcel build src/static/index.html --no-cache --detailed-report",
