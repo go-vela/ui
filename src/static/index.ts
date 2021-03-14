@@ -2,9 +2,11 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-import ClipboardJS from 'clipboard';
+// import types
+import { App, Config, Flags, Theme } from './index.d';
 import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
+import * as ClipboardJS from 'clipboard';
 
 // Vela consts
 const feedbackURL: string =
@@ -20,11 +22,11 @@ const currentRedirectKey: string | null = storedRedirectKey;
 const themeKey: string = 'vela-theme';
 const defaultTheme: string = 'theme-dark';
 const storedThemeState: string | null = localStorage.getItem(themeKey);
-const currentThemeState =
-  storedThemeState || defaultTheme;
+const currentThemeState: Theme =
+  (storedThemeState as Theme) || (defaultTheme as Theme);
 
 // Vela flags; configuration for bootstrapping Vela Elm UI
-const flags = {
+const flags: Flags = {
   isDev: process.env.NODE_ENV === 'development',
   velaAPI: process.env.VELA_API || '$VELA_API',
   velaFeedbackURL:
@@ -35,18 +37,18 @@ const flags = {
     process.env.VELA_DOCS_URL ||
     envOrNull('VELA_DOCS_URL', '$VELA_DOCS_URL') ||
     docsURL,
-  velaTheme: currentThemeState || defaultTheme,
+  velaTheme: currentThemeState || (defaultTheme as Theme),
   velaRedirect: currentRedirectKey || '',
 };
 
 // create the configuration object for Elm
-const config = {
+const config: Config = {
   node: null, // not passing an HTML node will let Elm take over the whole page
   flags: flags,
 };
 
 // bootstrap the app
-const app = Elm.Main.init(config);
+const app: App = Elm.Main.init(config);
 
 app.ports.setTheme.subscribe(theme => {
   let body: HTMLElement = document.getElementsByTagName('body')[0];

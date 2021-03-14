@@ -12,7 +12,6 @@ on:
   pull_request:
 
 env:
-  NODE_ENV: development
   USE_NODE_VER: '14.16.0'
   ELM_HOME: '${GITHUB_WORKSPACE}'
   CI: 1
@@ -51,7 +50,7 @@ jobs:
           node-version: ${{ env.USE_NODE_VER }}
 
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: install elm-format
         run: npm i elm-format@0.8.3
       - name: run elm-format
@@ -89,7 +88,7 @@ jobs:
           node-version: ${{ env.USE_NODE_VER }}
 
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: install elm-test
         run: npm i elm-test
       - name: run elm-test
@@ -127,7 +126,7 @@ jobs:
           node-version: ${{ env.USE_NODE_VER }}
 
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: run linter
         run: npm run lint
 
@@ -166,7 +165,7 @@ jobs:
           node-version: ${{ env.USE_NODE_VER }}
 
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: run cypress tests
         run: npm run test:cy
 
@@ -201,7 +200,7 @@ jobs:
       # ├┴┐│ │││   ││
       # └─┘└─┘┴┴─┘─┴┘
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: run development build
         run: npm run build
 

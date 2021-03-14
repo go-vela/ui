@@ -12,7 +12,6 @@ on:
       - 'v*'
 
 env:
-  NODE_ENV: production
   USE_NODE_VER: '14.16.0'
 
 # pipeline to execute
@@ -43,9 +42,9 @@ jobs:
       # ├┴┐│ │││   ││
       # └─┘└─┘┴┴─┘─┴┘
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: run production build
-        run: npm run build-prod
+        run: npm run build:prod
 
       # ┌┬┐┌─┐┌─┐┬┌─┌─┐┬─┐
       #  │││ ││  ├┴┐├┤ ├┬┘
