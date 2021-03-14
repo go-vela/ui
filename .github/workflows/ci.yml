@@ -13,7 +13,6 @@ on:
 
 env:
   NODE_VERSION: '14.16.0'
-  ELM_VERSION: '0.19.1-5'
   ELM_HOME: '${GITHUB_WORKSPACE}'
   CI: 1
 
@@ -52,8 +51,6 @@ jobs:
 
       - name: install dependencies
         run: npm ci --prefer-offline --no-audit
-      - name: install elm
-        run: npm i elm@${{ env.ELM_VERSION }}
       - name: install elm-format
         run: npm i elm-format@0.8.5
       - name: run elm-format
@@ -92,8 +89,6 @@ jobs:
 
       - name: install dependencies
         run: npm ci --prefer-offline --no-audit
-      - name: install elm
-        run: npm i elm@${{ env.ELM_VERSION }}
       - name: install elm-test
         run: npm i elm-test@0.19.1-revision6
       - name: run elm-test
