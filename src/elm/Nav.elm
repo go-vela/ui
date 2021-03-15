@@ -149,10 +149,16 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
                 ]
 
         Pages.BuildServices org repo _ _ ->
-            restartBuildButton org repo model.repo.build.build restartBuild
+            div [ class "buttons" ]
+                [ cancelBuildButton org repo model.repo.build.build cancelBuild
+                , restartBuildButton org repo model.repo.build.build restartBuild
+                ]
 
         Pages.BuildPipeline org repo _ _ _ _ ->
-            restartBuildButton org repo model.repo.build.build restartBuild
+            div [ class "buttons" ]
+                [ cancelBuildButton org repo model.repo.build.build cancelBuild
+                , restartBuildButton org repo model.repo.build.build restartBuild
+                ]
 
         Pages.Hooks org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
