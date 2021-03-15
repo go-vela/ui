@@ -5,7 +5,7 @@
   "dependencies": {
     "direct": {
       "NoRedInk/elm-json-decode-pipeline": "1.0.0",
-      "danfishgold/base64-bytes": "1.0.3",
+      "danfishgold/base64-bytes": "1.1.0",
       "elm/browser": "1.0.2",
       "elm/bytes": "1.0.8",
       "elm/core": "1.0.5",
@@ -16,7 +16,7 @@
       "elm/svg": "1.0.1",
       "elm/time": "1.0.0",
       "elm/url": "1.0.0",
-      "elm-community/list-extra": "8.2.4",
+      "elm-community/list-extra": "8.3.0",
       "elm-community/string-extra": "4.0.1",
       "feathericons/elm-feather": "1.5.0",
       "jackfranklin/elm-parse-link-header": "2.0.2",
@@ -24,7 +24,7 @@
       "krisajenkins/remotedata": "6.0.1",
       "pablen/toasty": "1.2.0",
       "ryannhg/date-format": "2.3.0",
-      "vito/elm-ansi": "9.0.1"
+      "vito/elm-ansi": "9.0.2"
     },
     "indirect": {
       "elm/parser": "1.1.0",

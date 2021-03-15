@@ -137,7 +137,7 @@ clean: ## Clean local NPM and Elm dependencies
 .PHONY: build
 build: ## Build the UI in development mode
 	@echo -e "\n### Building UI for development"
-	NODE_ENV=development npm run build
+	@npm run build
 
 # The `build-prod` target is intended to build
 # the UI in production mode.
@@ -146,7 +146,7 @@ build: ## Build the UI in development mode
 .PHONY: build-prod
 build-prod: ## Build the UI in production mode
 	@echo -e "\n### Building UI for production"
-	NODE_ENV=production npm run build-prod
+	@npm run build:prod
 
 # The `test` target is intended to run
 # the tests for the Elm source code.

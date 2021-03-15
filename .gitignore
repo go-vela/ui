@@ -279,3 +279,6 @@ cypress/screenshots
 
 # Secrets environment file
 secrets.env
+
+# Parcel v2 cache
+.parcel-cache/

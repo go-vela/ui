@@ -12,8 +12,7 @@ on:
   pull_request:
 
 env:
-  NODE_ENV: development
-  USE_NODE_VER: '12.14.1'
+  NODE_VERSION: '14.16.0'
   ELM_HOME: '${GITHUB_WORKSPACE}'
   CI: 1
 
@@ -48,12 +47,12 @@ jobs:
             cypress-${{ runner.os }}-bin-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.USE_NODE_VER }}
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: install elm-format
-        run: npm i elm-format@0.8.3
+        run: npm i elm-format@0.8.5
       - name: run elm-format
         run: npm run lint:elm
 
@@ -86,12 +85,12 @@ jobs:
             cypress-${{ runner.os }}-bin-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.USE_NODE_VER }}
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: install elm-test
-        run: npm i elm-test
+        run: npm i elm-test@0.19.1-revision6
       - name: run elm-test
         run: npm run test
 
@@ -124,10 +123,10 @@ jobs:
             cypress-${{ runner.os }}-bin-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.USE_NODE_VER }}
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: run linter
         run: npm run lint
 
@@ -163,10 +162,10 @@ jobs:
             cypress-${{ runner.os }}-bin-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.USE_NODE_VER }}
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: run cypress tests
         run: npm run test:cy
 
@@ -195,13 +194,13 @@ jobs:
             ${{ runner.os }}-modules-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.USE_NODE_VER }}
+          node-version: ${{ env.NODE_VERSION }}
 
       # ┌┐ ┬ ┬┬┬  ┌┬┐
       # ├┴┐│ │││   ││
       # └─┘└─┘┴┴─┘─┴┘
       - name: install dependencies
-        run: npm i --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
       - name: run development build
         run: npm run build
 

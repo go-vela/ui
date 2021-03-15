@@ -2,9 +2,11 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-import ClipboardJS from 'clipboard';
-import { App, Config, Elm, Flags, Theme } from '../elm/Main';
+// import types
+import { App, Config, Flags, Theme } from './index.d';
+import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
+import * as ClipboardJS from 'clipboard';
 
 // Vela consts
 const feedbackURL: string =
