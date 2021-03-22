@@ -10,7 +10,7 @@
     "clipboard": "2.0.8"
   },
   "devDependencies": {
-    "@fullhuman/postcss-purgecss": "4.0.2",
+    "@fullhuman/postcss-purgecss": "4.0.3",
     "@parcel/transformer-elm": "2.0.0-beta.2",
     "@parcel/transformer-sass": "2.0.0-beta.2",
     "axe-core": "4.1.3",
