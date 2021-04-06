@@ -3,7 +3,7 @@
   "extends": ["local>go-vela/renovate-config"],
   "packageRules": [
     {
-      "excludePackageNames": ["nightly\\.\\d$"]
+      "excludePackageNames": ["nightly\\.\\d+$"]
     }
   ]
 }
