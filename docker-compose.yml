@@ -1,4 +1,5 @@
 version: '3'
+
 services:
   # The `ui` compose service hosts the Vela UI.
   #
@@ -35,20 +36,21 @@ services:
     networks:
       - vela
     environment:
+      QUEUE_DRIVER: redis
+      QUEUE_ADDR: 'redis://redis:6379'
+      QUEUE_ROUTES: 'docker,local,docker:local'
+      SOURCE_DRIVER: github
+      SOURCE_CONTEXT: 'continuous-integration/vela'
+      SECRET_VAULT: 'true'
+      SECRET_VAULT_ADDR: 'http://vault:8200'
+      SECRET_VAULT_TOKEN: vela
       VELA_ADDR: 'http://localhost:8080'
       VELA_WEBUI_ADDR: 'http://localhost:8888'
       VELA_DATABASE_DRIVER: postgres
       VELA_DATABASE_CONFIG: 'postgres://vela:zB7mrKDTZqNeNTD8z47yG4DHywspAh@postgres:5432/vela?sslmode=disable'
+      VELA_DATABASE_ENCRYPTION_KEY: 'C639A572E14D5075C526FDDD43E4ECF6'
       VELA_LOG_LEVEL: trace
-      VELA_QUEUE_DRIVER: redis
-      VELA_QUEUE_CONFIG: 'redis://redis:6379'
-      VELA_QUEUE_WORKER_ROUTES: 'docker,local,docker:local'
       VELA_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
-      VELA_SOURCE_DRIVER: github
-      VELA_SECRET_NATIVE_KEY: 'C639A572E14D5075C526FDDD43E4ECF6'
-      VELA_SECRET_VAULT: 'true'
-      VELA_SECRET_VAULT_ADDR: 'http://vault:8200'
-      VELA_SECRET_VAULT_TOKEN: vela
       VELA_REFRESH_TOKEN_DURATION: 5m
       VELA_ACCESS_TOKEN_DURATION: 1m
       VELA_DISABLE_WEBHOOK_VALIDATION: 'true'
@@ -75,17 +77,17 @@ services:
     networks:
       - vela
     environment:
+      QUEUE_DRIVER: redis
+      QUEUE_ADDR: 'redis://redis:6379'
+      QUEUE_ROUTES: 'docker,local,docker:local'
       VELA_BUILD_LIMIT: 1
       VELA_BUILD_TIMEOUT: 30m
       VELA_LOG_LEVEL: trace
-      VELA_QUEUE_DRIVER: redis
-      VELA_QUEUE_CONFIG: 'redis://redis:6379'
-      VELA_QUEUE_WORKER_ROUTES: 'docker,local,docker:local'
       VELA_RUNTIME_DRIVER: docker
       VELA_SERVER_ADDR: 'http://server:8080'
       VELA_SERVER_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
       WORKER_ADDR: http://worker:8080
-      WORKER_CHECK_IN: 15m
+      WORKER_CHECK_IN: 1m
     restart: always
     ports:
       - '8081:8080'
