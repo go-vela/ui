@@ -19,6 +19,7 @@ module Util exposing
     , formatRunTime
     , formatTestTag
     , humanReadableDateTimeFormatter
+    , humanReadableWithDefault
     , isLoading
     , isSuccess
     , largeLoader
@@ -82,6 +83,17 @@ millisToSeconds millis =
 dateToHumanReadable : Zone -> Int -> String
 dateToHumanReadable timezone time =
     humanReadableDateFormatter timezone <| Time.millisToPosix <| secondsToMillis time
+
+
+{-| humanReadableWithDefault : takes timezone and posix timestamp and returns human readable date string with a default value for 0
+-}
+humanReadableWithDefault : Zone -> Int -> String
+humanReadableWithDefault timezone t =
+    if t == 0 then
+        "-"
+
+    else
+        dateToHumanReadable timezone t
 
 
 {-| humanReadableDateFormatter : formats a zone and date into human readable chunks
