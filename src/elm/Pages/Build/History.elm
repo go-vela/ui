@@ -135,8 +135,8 @@ recentBuildTooltip now timezone build =
                 [ span [ class "number" ] [ text <| String.fromInt build.number ]
                 , em [] [ text build.event ]
                 ]
-            , viewTooltipField "started:" <| Util.dateToHumanReadable timezone build.started
-            , viewTooltipField "finished:" <| Util.dateToHumanReadable timezone build.finished
+            , viewTooltipField "started:" <| Util.humanReadableWithDefault timezone build.started
+            , viewTooltipField "finished:" <| Util.humanReadableWithDefault timezone build.finished
             , viewTooltipField "duration:" <| Util.formatRunTime now build.started build.finished
             , viewTooltipField "worker:" build.host
             , viewTooltipField "commit:" <| Util.trimCommitHash build.commit
