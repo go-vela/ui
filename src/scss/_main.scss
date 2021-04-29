@@ -753,6 +753,10 @@ nav {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+
+  span:last-child {
+    text-align: right;
+  }
 }
 
 .recent-build-tooltip .number {
