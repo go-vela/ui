@@ -149,4 +149,7 @@ recentBuildTooltip now timezone build =
 -}
 viewTooltipField : String -> String -> Html msg
 viewTooltipField key value =
-    li [ class "line" ] [ span [] [ text key ], text value ]
+    li [ class "line" ]
+        [ span [] [ text key ]
+        , span [] [ text value ]
+        ]
