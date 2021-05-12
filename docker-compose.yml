@@ -103,7 +103,7 @@ services:
   # https://redis.io/
   redis:
     container_name: redis
-    image: redis:5-alpine
+    image: redis:6-alpine
     networks:
       - vela
     ports:
@@ -116,7 +116,7 @@ services:
   # https://www.postgresql.org/
   postgres:
     container_name: postgres
-    image: postgres:12-alpine
+    image: postgres:13-alpine
     networks:
       - vela
     environment:
