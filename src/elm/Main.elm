@@ -2047,7 +2047,7 @@ view model =
         ( title, content ) =
             viewContent model
     in
-    { title = "Vela - " ++ title
+    { title = title ++ " - Vela"
     , body =
         [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
         , lazy2 Nav.viewNav model navMsgs
