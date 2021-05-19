@@ -39,7 +39,7 @@ cd $HOME/go-vela/ui
 
 ```bash
 # add Github Enterprise Web URL to local secrets file for `docker-compose`
-echo "VELA_SOURCE_URL=<GitHub Enterprise Web URL>" >> .env
+echo "VELA_SOURCE_ADDR=<GitHub Enterprise Web URL>" >> .env
 ```
 
 * Create an [OAuth App](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/) and obtain secrets for local development:
