@@ -200,6 +200,7 @@ import Vela
         , updateHooksPerPage
         , updateOrgRepo
         , updateRepo
+        , updateRepoCounter
         , updateRepoEnabling
         , updateRepoInitialized
         , updateRepoTimeout
@@ -338,6 +339,7 @@ type Msg
     | SearchSourceRepos Org String
     | SearchFavorites String
     | ChangeRepoTimeout String
+    | ChangeRepoCounter String
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
@@ -371,6 +373,7 @@ type Msg
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
+    | UpdateRepoCounter Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
     | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
@@ -469,11 +472,24 @@ update msg model =
             in
             ( { model | repo = updateRepoTimeout newTimeout rm }, Cmd.none )
 
+        ChangeRepoCounter counter ->
+            let
+                newCounter =
+                    case String.toInt counter of
+                        Just t ->
+                            Just t
+
+                        Nothing ->
+                            Just 0
+            in
+            ( { model | repo = updateRepoCounter newCounter rm }, Cmd.none )
+
         RefreshSettings org repo ->
             ( { model
                 | repo =
                     rm
                         |> updateRepoTimeout Nothing
+                        |> updateRepoCounter Nothing
                         |> updateRepo Loading
               }
             , Api.try RepoResponse <| Api.getRepo model org repo
@@ -912,6 +928,20 @@ update msg model =
             )
 
         UpdateRepoTimeout org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoIntPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+            in
+            ( model
+            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            )
+
+        UpdateRepoCounter org repo field value ->
             let
                 payload : UpdateRepositoryPayload
                 payload =
@@ -3572,7 +3602,7 @@ sourceReposMsgs =
 -}
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
-    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout DisableRepo EnableRepo Copy ChownRepo RepairRepo
+    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo
 
 
 {-| buildMsgs : prepares the input record required for the Build pages to route Msgs back to Main.elm

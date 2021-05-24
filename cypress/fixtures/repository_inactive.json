@@ -8,6 +8,7 @@
   "clone": "",
   "branch": "master",
   "timeout": 30,
+  "counter": 0,
   "visibility": "public",
   "private": false,
   "trusted": true,

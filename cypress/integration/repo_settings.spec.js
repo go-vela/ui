@@ -40,6 +40,10 @@ context('Repo Settings', () => {
       cy.get('[data-test=repo-timeout]').should('be.visible');
     });
 
+    it('build counter input should show', () => {
+      cy.get('[data-test=repo-counter]').should('be.visible');
+    });
+
     it('webhook event category should show', () => {
       cy.get('[data-test=repo-settings-events]').should('be.visible');
     });
@@ -89,6 +93,33 @@ context('Repo Settings', () => {
         .should('be.visible')
         .click({ force: true });
       cy.get('[data-test=repo-timeout] + button').should('be.disabled');
+    });
+
+    it('build counter input should allow number input', () => {
+      cy.get('[data-test=repo-counter]').as('repoCounter');
+      cy.get('[data-test=repo-counter] input').as('repoCounterInput');
+      cy.get('@repoCounterInput').should('be.visible').type('123');
+      cy.get('@repoCounterInput').should('have.value', '123');
+    });
+
+    it('build counter input should not allow letter/character input', () => {
+      cy.get('[data-test=repo-counter]').as('repoCounter');
+      cy.get('[data-test=repo-counter] input').as('repoCounterInput');
+      cy.get('@repoCounterInput').should('be.visible').type('cat');
+      cy.get('@repoCounterInput').should('not.have.value', 'cat');
+      cy.get('@repoCounterInput').type('12cat34');
+      cy.get('@repoCounterInput').should('have.value', '1234');
+    });
+
+    it('clicking update on build counter should update counter and hide button', () => {
+      cy.get('[data-test=repo-counter]').as('repoCounter');
+      cy.get('[data-test=repo-counter] input').as('repoCounterInput');
+      cy.get('@repoCounterInput').should('be.visible').clear();
+      cy.get('@repoCounterInput').type('80');
+      cy.get('[data-test=repo-counter] + button')
+        .should('be.visible')
+        .click({ force: true });
+      cy.get('[data-test=repo-counter] + button').should('be.disabled');
     });
 
     it('Disable button should exist', () => {
