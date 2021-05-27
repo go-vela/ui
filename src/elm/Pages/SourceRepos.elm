@@ -103,7 +103,7 @@ view model actions =
                     ]
                 , p []
                     [ text <|
-                        "Hang tight while we grab the list of repositories that you have access to from Github. If you have access to a lot of organizations and repositories this might take a little while."
+                        "Hang tight while we grab the list of repositories that you have access to from GitHub. If you have access to a lot of organizations and repositories this might take a little while."
                     ]
                 ]
     in

@@ -2358,7 +2358,7 @@ viewLogin =
                 |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
             , text "GitHub"
             ]
-        , p [] [ text "You will be taken to Github to authenticate." ]
+        , p [] [ text "You will be taken to GitHub to authenticate." ]
         ]
 
 
