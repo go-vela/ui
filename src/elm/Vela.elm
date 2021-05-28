@@ -131,6 +131,7 @@ module Vela exposing
     , updateHooksPerPage
     , updateOrgRepo
     , updateRepo
+    , updateRepoCounter
     , updateRepoEnabling
     , updateRepoInitialized
     , updateRepoTimeout
@@ -392,6 +393,23 @@ updateRepoTimeout update rm =
     }
 
 
+updateRepoCounter : Maybe Int -> RepoModel -> RepoModel
+updateRepoCounter update rm =
+    let
+        repo =
+            rm.repo
+    in
+    { rm
+        | repo =
+            case repo of
+                RemoteData.Success r ->
+                    RemoteData.succeed { r | inCounter = update }
+
+                _ ->
+                    repo
+    }
+
+
 updateRepoEnabling : Enabling -> RepoModel -> RepoModel
 updateRepoEnabling update rm =
     let
@@ -646,6 +664,7 @@ type alias Repository =
     , clone : String
     , branch : String
     , timeout : Int
+    , counter : Int
     , visibility : String
     , private : Bool
     , trusted : Bool
@@ -658,6 +677,7 @@ type alias Repository =
     , enabled : Enabled
     , enabling : Enabling
     , inTimeout : Maybe Int
+    , inCounter : Maybe Int
     }
 
 
@@ -686,6 +706,7 @@ decodeRepository =
         |> optional "clone" string ""
         |> optional "branch" string ""
         |> optional "timeout" int 0
+        |> optional "counter" int 0
         |> optional "visibility" string ""
         |> optional "private" bool False
         |> optional "trusted" bool False
@@ -700,6 +721,8 @@ decodeRepository =
         -- "enabling"
         |> optional "active" enablingDecoder NotAsked_
         -- "inTimeout"
+        |> hardcoded Nothing
+        -- "inCounter"
         |> hardcoded Nothing
 
 
@@ -808,6 +831,7 @@ type alias UpdateRepositoryPayload =
     , allow_comment : Maybe Bool
     , visibility : Maybe String
     , timeout : Maybe Int
+    , counter : Maybe Int
     }
 
 
@@ -817,7 +841,7 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -833,6 +857,7 @@ encodeUpdateRepository repo =
         , ( "allow_comment", encodeOptional Encode.bool repo.allow_comment )
         , ( "visibility", encodeOptional Encode.string repo.visibility )
         , ( "timeout", encodeOptional Encode.int repo.timeout )
+        , ( "counter", encodeOptional Encode.int repo.counter )
         ]
 
 
@@ -902,6 +927,9 @@ buildUpdateRepoIntPayload field value =
     case field of
         "timeout" ->
             { defaultUpdateRepositoryPayload | timeout = Just value }
+
+        "counter" ->
+            { defaultUpdateRepositoryPayload | counter = Just value }
 
         _ ->
             defaultUpdateRepositoryPayload
