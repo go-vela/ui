@@ -110,6 +110,8 @@ type alias Msgs msg =
     , accessUpdate : RadioUpdate msg
     , timeoutUpdate : NumberInputChange msg
     , inTimeoutChange : StringInputChange msg
+    , counterUpdate : NumberInputChange msg
+    , inCounterChange : StringInputChange msg
     , disableRepo : DisableRepo msg
     , enableRepo : EnableRepo msg
     , copy : Copy msg
@@ -130,6 +132,9 @@ view repo actions velaAPI velaURL =
         ( accessUpdate, timeoutUpdate, inTimeoutChange ) =
             ( actions.accessUpdate, actions.timeoutUpdate, actions.inTimeoutChange )
 
+        ( counterUpdate, inCounterChange ) =
+            ( actions.counterUpdate, actions.inCounterChange )
+
         ( eventsUpdate, disableRepo, enableRepo ) =
             ( actions.eventsUpdate, actions.disableRepo, actions.enableRepo )
 
@@ -142,6 +147,7 @@ view repo actions velaAPI velaURL =
                 [ events repo_ eventsUpdate
                 , access repo_ accessUpdate
                 , timeout repo_.inTimeout repo_ timeoutUpdate inTimeoutChange
+                , counter repo_.inCounter repo_ counterUpdate inCounterChange
                 , badge repo_ velaAPI velaURL actions.copy
                 , admin disableRepo enableRepo chownRepo repairRepo repo_
                 ]
@@ -299,6 +305,21 @@ timeout inTimeout repo clickMsg inputMsg =
         ]
 
 
+{-| counter : takes model and repo and renders the settings category for updating repo build counter
+-}
+counter : Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) -> Html msg
+counter inCounter repo clickMsg inputMsg =
+    section [ class "settings", Util.testAttribute "repo-settings-counter" ]
+        [ h2 [ class "settings-title" ] [ text "Build Counter" ]
+        , p [ class "settings-description" ] [ text "Builds increment based off this number." ]
+        , div [ class "form-controls" ]
+            [ counterInput repo inCounter inputMsg
+            , updateCounter inCounter repo repo.counter <| clickMsg repo.org repo.name "counter" <| Maybe.withDefault 0 inCounter
+            ]
+        , counterWarning inCounter
+        ]
+
+
 {-| checkbox : takes field name, id, state and click action, and renders an input checkbox.
 -}
 checkbox : String -> Field -> Bool -> (Bool -> msg) -> Html msg
@@ -377,6 +398,57 @@ timeoutWarning inTimeout =
         Just _ ->
             p [ class "notice" ]
                 [ text "Disclaimer: if you are experiencing build timeouts, it is highly recommended to optimize your pipeline before increasing this value. Timeouts must also lie between 1 and 90 minutes."
+                ]
+
+        Nothing ->
+            text ""
+
+
+{-| counterInput : takes repo, user input, and button action and renders the text input for updating build counter.
+-}
+counterInput : Repository -> Maybe Int -> (String -> msg) -> Html msg
+counterInput repo inCounter inputMsg =
+    div [ class "form-control", Util.testAttribute "repo-counter" ]
+        [ input
+            [ id <| "repo-counter"
+            , onInput inputMsg
+            , type_ "number"
+            , Html.Attributes.min <| String.fromInt <| repo.counter
+            , value <| String.fromInt <| Maybe.withDefault repo.counter inCounter
+            ]
+            []
+        , label [ class "form-label", for "repo-counter" ] [ text "count" ]
+        ]
+
+
+{-| updateCounter : takes maybe int of user entered counter and current repo counter and renders the button to submit the update.
+-}
+updateCounter : Maybe Int -> Repository -> Int -> msg -> Html msg
+updateCounter inCounter repo repoCounter msg =
+    case inCounter of
+        Just _ ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick msg
+                , disabled <| not <| validCounter inCounter repo <| Just repoCounter
+                ]
+                [ text "update" ]
+
+        Nothing ->
+            text ""
+
+
+{-| counterWarning : takes maybe string of user entered counter and renders a disclaimer on updating the build counter.
+-}
+counterWarning : Maybe Int -> Html msg
+counterWarning inCounter =
+    case inCounter of
+        Just _ ->
+            p [ class "notice" ]
+                [ text "Disclaimer: Incrementing the build counter can not be reversed. Updating this value will start future builds from this value as the build number"
                 ]
 
         Nothing ->
@@ -551,6 +623,27 @@ validTimeout inTimeout repoTimeout =
             True
 
 
+{-| validCounter : takes maybe string of user entered timeout and returns whether or not it is a valid update.
+-}
+validCounter : Maybe Int -> Repository -> Maybe Int -> Bool
+validCounter inCounter repo repoCounter =
+    case inCounter of
+        Just t ->
+            if t >= repo.counter then
+                case repoCounter of
+                    Just ti ->
+                        t /= ti
+
+                    Nothing ->
+                        True
+
+            else
+                False
+
+        Nothing ->
+            True
+
+
 {-| validAccessUpdate : takes model webdata repo and repo visibility update and determines if an update is necessary
 -}
 validAccessUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
@@ -631,6 +724,9 @@ msgPrefix field =
         "timeout" ->
             "Build timeout for $ "
 
+        "counter" ->
+            "Build counter for $ "
+
         _ ->
             "Unrecognized update made to $."
 
@@ -663,6 +759,9 @@ msgSuffix field repo =
 
         "timeout" ->
             "set to " ++ String.fromInt repo.timeout ++ " minute(s)."
+
+        "counter" ->
+            "set to " ++ String.fromInt repo.counter
 
         _ ->
             ""
