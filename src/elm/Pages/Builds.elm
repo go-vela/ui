@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Builds exposing (view)
 
 import Errors exposing (viewResourceError)
+import FeatherIcons
 import Html
     exposing
         ( Html
@@ -24,6 +25,8 @@ import Html
 import Html.Attributes exposing (class, href)
 import Pages.Build.View exposing (viewPreview)
 import RemoteData exposing (RemoteData(..))
+import Routes
+import Svg.Attributes
 import Time exposing (Posix, Zone)
 import Util exposing (largeLoader)
 import Vela exposing (BuildsModel, Event, Org, Repo)
@@ -37,7 +40,6 @@ view buildsModel now zone org repo maybeEvent =
         settingsLink : String
         settingsLink =
             "/" ++ String.join "/" [ org, repo ] ++ "/settings"
-
         none : Html msg
         none =
             case maybeEvent of
@@ -65,6 +67,21 @@ view buildsModel now zone org repo maybeEvent =
                                 ]
                             ]
                         , p [] [ text "Happy building!" ]
+                        , div [ class "buttons" ]
+                             [ a
+                                 [ class "button"
+                                 , class "button-with-icon"
+                                 , class "-outline"
+                                 , Util.testAttribute "add-repo-secret"
+                                 , Routes.href <|
+                                     Routes.AddDeploymentRoute org repo
+                                 ]
+                                 [ text "Add Deployment"
+                                 , FeatherIcons.plus
+                                     |> FeatherIcons.withSize 18
+                                     |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                                 ]
+                             ]
                         ]
 
                 Just event ->

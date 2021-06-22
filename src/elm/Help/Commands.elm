@@ -18,6 +18,7 @@ module Help.Commands exposing
     )
 
 import Pages exposing (Page(..))
+import Pages.Deployments.View exposing (addDeployment)
 import String.Extra
 import Util exposing (anyBlank, noBlanks)
 import Vela
@@ -120,6 +121,9 @@ commands page =
 
         Pages.AddRepoSecret secretEngine org repo ->
             [ addSecret secretEngine Vela.RepoSecret org <| Just repo ]
+
+        Pages.AddDeployment _ _ ->
+            Debug.todo "Do this later"
 
         Pages.AddSharedSecret secretEngine org team ->
             [ addSecret secretEngine Vela.SharedSecret org <| Just team ]
@@ -745,6 +749,9 @@ resourceLoaded args =
         Pages.AddSharedSecret secretEngine org team ->
             noBlanks [ secretEngine, org, team ]
 
+        Pages.AddDeployment _ _ ->
+            Debug.todo "Figure this out"
+
         Pages.OrgSecrets secretEngine org _ _ ->
             noBlanks [ secretEngine, org ]
 
@@ -825,6 +832,9 @@ resourceLoading args =
 
         Pages.AddRepoSecret secretEngine org repo ->
             anyBlank [ secretEngine, org, repo ]
+
+        Pages.AddDeployment _ _ ->
+            Debug.todo "Figure This Out"
 
         Pages.AddSharedSecret secretEngine org team ->
             anyBlank [ secretEngine, org, team ]

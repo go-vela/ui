@@ -14,6 +14,7 @@ module Vela exposing
     , ChownRepo
     , Copy
     , CurrentUser
+    , Deployment
     , DisableRepo
     , EnableRepo
     , EnableRepos
@@ -145,6 +146,7 @@ import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
+import Set exposing (Set)
 import Url.Builder as UB
 
 
@@ -653,6 +655,19 @@ updateHooksPerPage maybePerPage rm =
     in
     { rm | hooks = { h | maybePerPage = maybePerPage } }
 
+
+type alias Deployment =
+  { id: Int
+  , repo_id: Int
+  , url: String
+  , user: String
+  , commit: String
+  , ref: String
+  , task: String
+  , target: String
+  , description: String
+  , payload: Maybe (List (Dict String String))
+  }
 
 type alias Repository =
     { id : Int
