@@ -246,14 +246,16 @@ viewAllowCommandCheckbox : SecretForm -> Html Msg
 viewAllowCommandCheckbox secretUpdate =
     section [ Util.testAttribute "" ]
         [ div [ class "form-control" ]
-            [ strong [] [ text "Allow Commands"
-            , span [ class "field-description" ]
-                [ text "( "
-                , em [] [ text "\"No\" will disable this secret in " ]
-                , code [] [ text "commands" ]
-                , text " )"
+            [ strong []
+                [ text "Allow Commands"
+                , span [ class "field-description" ]
+                    [ text "( "
+                    , em [] [ text "\"No\" will disable this secret in " ]
+                    , code [] [ text "commands" ]
+                    , text " )"
+                    ]
                 ]
-            ]]
+            ]
         , div
             [ class "form-controls", class "-stack" ]
             [ radio (Util.boolToYesNo secretUpdate.allowCommand) "yes" "Yes" <| OnChangeAllowCommand "yes"
