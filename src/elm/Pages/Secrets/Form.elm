@@ -244,18 +244,18 @@ radio value field title msg =
 -}
 viewAllowCommandCheckbox : SecretForm -> Html Msg
 viewAllowCommandCheckbox secretUpdate =
-    section [ class "type", Util.testAttribute "" ]
-        [ h4 [ class "field-header" ]
-            [ text "Allow Commands"
+    section [ Util.testAttribute "" ]
+        [ div [ class "form-control" ]
+            [ strong [] [ text "Allow Commands"
             , span [ class "field-description" ]
                 [ text "( "
                 , em [] [ text "\"No\" will disable this secret in " ]
                 , code [] [ text "commands" ]
                 , text " )"
                 ]
-            ]
+            ]]
         , div
-            [ class "form-controls", class "-row" ]
+            [ class "form-controls", class "-stack" ]
             [ radio (Util.boolToYesNo secretUpdate.allowCommand) "yes" "Yes" <| OnChangeAllowCommand "yes"
             , radio (Util.boolToYesNo secretUpdate.allowCommand) "no" "No" <| OnChangeAllowCommand "no"
             ]
