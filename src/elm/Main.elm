@@ -324,7 +324,7 @@ type Msg
     | Tick Interval Posix
       -- Components
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
-    | AddDeploymentComponent Pages.Deployments.Model.Msg
+    | AddDeploymentUpdate Pages.Deployments.Model.Msg
       -- Other
     | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
@@ -351,9 +351,6 @@ update msg model =
 
         AddDeploymentResponse _ ->
           Debug.todo "Something"
-
-        AddDeploymentComponent _ ->
-          Debug.todo "More"
 
         -- User events
         NewRoute route ->
@@ -1555,6 +1552,14 @@ update msg model =
             , action
             )
 
+        AddDeploymentUpdate m ->
+            let
+                ( newModel, action ) =
+                    Pages.Deployments.Update.update model m
+            in
+            ( newModel
+            , action
+            )
         -- Other
         HandleError error ->
             ( model, Cmd.none )
@@ -2114,7 +2119,7 @@ viewContent model =
 
         Pages.AddDeployment org repo ->
             ( String.join "/" [ org, repo ] ++ " add deployment"
-            , Html.map (\m -> AddDeploymentComponent m) <| lazy Pages.Deployments.View.addDeployment model
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
             )
 
         Pages.SharedSecret engine org team name ->

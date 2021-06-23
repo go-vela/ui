@@ -31,6 +31,7 @@ module Vela exposing
     , Hooks
     , HooksModel
     , Key
+    , KeyValuePair
     , Log
     , LogFocus
     , Logs
@@ -146,7 +147,6 @@ import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
-import Set exposing (Set)
 import Url.Builder as UB
 
 
@@ -655,6 +655,10 @@ updateHooksPerPage maybePerPage rm =
     in
     { rm | hooks = { h | maybePerPage = maybePerPage } }
 
+type alias KeyValuePair =
+  { key: String
+  , value: String
+  }
 
 type alias Deployment =
   { id: Int
@@ -666,7 +670,7 @@ type alias Deployment =
   , task: String
   , target: String
   , description: String
-  , payload: Maybe (List (Dict String String))
+  , payload: Maybe (List KeyValuePair)
   }
 
 type alias Repository =

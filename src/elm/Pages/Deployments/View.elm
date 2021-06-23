@@ -6,8 +6,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Deployments.View exposing (addDeployment, addForm)
 
-import Errors exposing (viewResourceError)
-import FeatherIcons
 import Html
     exposing
         ( Html
@@ -27,23 +25,15 @@ import Html.Attributes
         , scope
         )
 import Html.Events exposing (onClick)
-import Pages.Deployments.Form exposing (viewAddedParameters, viewHelp, viewNameInput, viewParameterInput, viewSubmitButtons, viewValueInput)
+import Pages.Deployments.Form exposing (viewHelp, viewTargetInput, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
     exposing
         ( Model
         , Msg(..)
         , PartialModel
         )
-import RemoteData exposing (RemoteData(..))
-import Routes
-import Svg.Attributes
-import Table
-import Url exposing (percentEncode)
+
 import Util exposing (largeLoader)
-import Vela
-    exposing
-        ( Deployment
-        )
 
 
 -- ADD SECRET
@@ -66,12 +56,10 @@ addForm deploymentModel =
             deploymentModel.form
     in
     div [ class "secret-form" ]
-        [ viewNameInput deployment.description False
-        , viewValueInput deployment.ref "Secret Value"
-        , viewParameterInput deployment deployment.parameterInput
+        [ viewTargetInput deployment.target False
+        , viewValueInput "Ref" deployment.ref "provide the reference to deploy - this can be a branch, commit (SHA) or tag (default: \"refs/heads/master\")"
+        , viewValueInput "Description" deployment.description "provide the description for the deployment (default: \"Deployment request from Vela\")"
+        , viewParameterInput deployment
         , viewSubmitButtons deploymentModel
         , viewHelp
-        , div [ class "form-action" ]
-            [ button [ class "button", class "-outline", onClick <| Pages.Deployments.Model.AddDeployment deploymentModel.engine ] [ text "Add" ]
-            ]
         ]

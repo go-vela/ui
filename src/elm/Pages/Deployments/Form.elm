@@ -8,7 +8,7 @@ module Pages.Deployments.Form exposing
     ( viewHelp
     , viewParameterInput
     , viewAddedParameters
-    , viewNameInput
+    , viewTargetInput
     , viewSubmitButtons
     , viewValueInput
     )
@@ -42,9 +42,8 @@ import Html.Attributes
         , wrap
         )
 import Html.Events exposing (onClick, onInput)
-import Pages.RepoSettings exposing (checkbox)
-import Pages.Deployments.Model exposing (DeploymentForm, KeyValuePair, Model, Msg(..))
-import Util
+import Pages.Deployments.Model exposing (DeploymentForm, Model, Msg(..))
+import Vela exposing (KeyValuePair)
 
 
 {-| viewAddedImages : renders added images
@@ -83,7 +82,7 @@ noParameters =
 addedParameter : KeyValuePair -> Html Msg
 addedParameter parameter =
     div [ class "added-image", class "chevron" ]
-        [ div [ class "name" ] [ text parameter.key ]
+        [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value)  ]
         , button
             [ class "button"
             , class "-outline"
@@ -103,17 +102,16 @@ viewHelp =
 
 {-| viewNameInput : renders name input box
 -}
-viewNameInput : String -> Bool -> Html Msg
-viewNameInput val disable =
+viewTargetInput : String -> Bool -> Html Msg
+viewTargetInput val disable =
     section [ class "form-control", class "-stack" ]
-        [ label [ class "form-label", for <| "secret-name" ] [ strong [] [ text "Name" ] ]
+        [ label [ class "form-label", for <| "secret-name" ] [ strong [] [ text "Target" ] ]
         , input
             [ disabled disable
             , value val
-            , onInput <|
-                OnChangeStringField "name"
+            , onInput <| OnChangeStringField "target"
             , class "secret-name"
-            , placeholder "Secret Name"
+            , placeholder "production"
             , id "secret-name"
             ]
             []
@@ -122,13 +120,13 @@ viewNameInput val disable =
 
 {-| viewValueInput : renders value input box
 -}
-viewValueInput : String -> String -> Html Msg
-viewValueInput val placeholder_ =
+viewValueInput : String -> String -> String -> Html Msg
+viewValueInput name val placeholder_ =
     section [ class "form-control", class "-stack" ]
-        [ label [ class "form-label", for <| "secret-value" ] [ strong [] [ text "Value" ] ]
+        [ label [ class "form-label", for <| "secret-value" ] [ strong [] [ text name ] ]
         , textarea
             [ value val
-            , onInput <| OnChangeStringField "value"
+            , onInput <| OnChangeStringField name
             , class "secret-value"
             , class "form-control"
             , rows 2
@@ -141,37 +139,37 @@ viewValueInput val placeholder_ =
 
 {-| viewImagesInput : renders images input box and images
 -}
-viewParameterInput : DeploymentForm -> KeyValuePair -> Html Msg
-viewParameterInput deployment parameterInput =
+viewParameterInput : DeploymentForm -> Html Msg
+viewParameterInput deployment =
     section [ class "image" ]
         [ div [ id "images-select", class "form-control", class "-stack" ]
             [ label [ for "images-select", class "form-label" ]
-                [ strong [] [ text "Limit to Docker Images" ]
+                [ strong [] [ text "Add Parameters" ]
                 , span
                     [ class "field-description" ]
-                    [ em [] [ text "(Leave blank to enable this secret for all images)" ]
+                    [ em [] [ text "(Optional)" ]
                     ]
                 ]
             , input
                 [ placeholder "Key"
-                , onInput <| OnChangeStringField "keyInput"
-                , value parameterInput.key
+                , onInput <| OnChangeStringField "parameterInputKey"
+                , value deployment.parameterInputKey
                 ]
                 []
             , input
                 [ placeholder "Value"
-                , onInput <| OnChangeStringField "valueInput"
-                , value parameterInput.value
+                , onInput <| OnChangeStringField "parameterInputValue"
+                , value deployment.parameterInputValue
                 ]
                 []
             , button
                 [ class "button"
                 , class "-outline"
                 , class "add-image"
-                , onClick <| AddParameter <| parameterInput
-                , disabled <| String.length parameterInput.key * String.length parameterInput.value == 0
+                , onClick <| AddParameter <| deployment
+                , disabled <| String.length deployment.parameterInputKey * String.length deployment.parameterInputValue == 0
                 ]
-                [ text "Add Paramters"
+                [ text "Add"
                 ]
             ]
         , div [ class "images" ] <| viewAddedParameters deployment.payload
@@ -179,9 +177,9 @@ viewParameterInput deployment parameterInput =
 
 
 viewSubmitButtons : Model msg -> Html Msg
-viewSubmitButtons secretsModel =
+viewSubmitButtons deploymentsModel =
     div [ class "buttons" ]
-        [ viewUpdateButton secretsModel
+        [ viewUpdateButton deploymentsModel
         ]
 
 
@@ -191,7 +189,7 @@ viewUpdateButton deploymentsModel =
         [ class "button"
         , onClick <| Pages.Deployments.Model.AddDeployment deploymentsModel.engine
         ]
-        [ text "Update" ]
+        [ text "Add Deployment" ]
 
 
 -- HELPERS

@@ -122,8 +122,8 @@ commands page =
         Pages.AddRepoSecret secretEngine org repo ->
             [ addSecret secretEngine Vela.RepoSecret org <| Just repo ]
 
-        Pages.AddDeployment _ _ ->
-            Debug.todo "Do this later"
+        Pages.AddDeployment org repo ->
+            [ addDeployment org repo ]
 
         Pages.AddSharedSecret secretEngine org team ->
             [ addSecret secretEngine Vela.SharedSecret org <| Just team ]
@@ -506,6 +506,26 @@ addSecret secretEngine secretType org key =
     Command name content docs noIssue
 
 
+{-| Deployment : returns cli command for adding a deployment
+    TODO: add deployment
+    eg.
+    vela add deployment vela add deployment --repo some-repp --org some-org
+
+-}
+addDeployment : Org -> Repo -> Command
+addDeployment org repo =
+    let
+        name =
+            "Add Deployment"
+
+        content =
+            Just <| "vela add deployment --org" ++  org ++ " --repo " ++ repo
+
+        docs =
+            Just "/secret/add"
+    in
+    Command name content docs noIssue
+
 {-| viewSecret : returns cli command for viewing a secret
 
     eg.
@@ -652,7 +672,6 @@ secretBaseArgs secretEngine secretType org key =
     in
     "--secret.engine " ++ secretEngine ++ " --secret.type " ++ secretTypeToString secretType ++ " --org " ++ org ++ keyFlag
 
-
 {-| addSecretArgs : returns cli args for adding a secret
 
     eg.
@@ -749,8 +768,8 @@ resourceLoaded args =
         Pages.AddSharedSecret secretEngine org team ->
             noBlanks [ secretEngine, org, team ]
 
-        Pages.AddDeployment _ _ ->
-            Debug.todo "Figure this out"
+        Pages.AddDeployment org repo ->
+            noBlanks [ org, repo ]
 
         Pages.OrgSecrets secretEngine org _ _ ->
             noBlanks [ secretEngine, org ]
@@ -833,8 +852,8 @@ resourceLoading args =
         Pages.AddRepoSecret secretEngine org repo ->
             anyBlank [ secretEngine, org, repo ]
 
-        Pages.AddDeployment _ _ ->
-            Debug.todo "Figure This Out"
+        Pages.AddDeployment org repo ->
+            anyBlank [ org, repo ]
 
         Pages.AddSharedSecret secretEngine org team ->
             anyBlank [ secretEngine, org, team ]

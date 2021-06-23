@@ -177,8 +177,15 @@ toPath page =
                     in
                     [ overviewPage, orgPage, currentRepo, ( "Add", Nothing ) ]
 
-                Pages.AddDeployment _ _ ->
-                    Debug.todo "Figure this out"
+                Pages.AddDeployment org repo ->
+                    let
+                        orgPage =
+                          ( org, Nothing )
+
+                        currentRepo =
+                          ( repo, Just <| Pages.AddDeployment org repo )
+                    in
+                    [ overviewPage, orgPage, currentRepo, ( "Deployment", Nothing )]
 
                 Pages.AddSharedSecret engine org team ->
                     let

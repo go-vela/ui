@@ -7,7 +7,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Deployments.Model exposing
     ( Model
     , Msg(..)
-    , KeyValuePair
     , PartialModel
     , DeploymentForm
     , DeploymentResponse
@@ -18,15 +17,10 @@ import Auth.Session exposing (Session(..))
 import Http
 import Http.Detailed
 import Pages exposing (Page(..))
-import Vela exposing (Deployment, Engine, Org, Repo, Team)
+import Vela exposing (Deployment, Engine, KeyValuePair, Org, Repo, Team)
 
 
 -- TYPES
-
-type alias KeyValuePair =
-  { key: String
-  , value: String
-  }
 
 {-| PartialModel : an abbreviated version of the main model
 -}
@@ -59,13 +53,14 @@ type alias DeploymentForm =
     , ref : String
     , target : String
     , task : String
-    , parameterInput: KeyValuePair
+    , parameterInputKey: String
+    , parameterInputValue: String
     }
 
 
 defaultDeploymentForm : DeploymentForm
 defaultDeploymentForm =
-    DeploymentForm "" "" [] "" "" "" {key="",value=""}
+    DeploymentForm "" "" [] "" "" "" "" ""
 
 
 
@@ -77,8 +72,6 @@ type alias DeploymentResponse msg =
 
 type Msg
     = OnChangeStringField String String
-    | OnChangeEvent String Bool
-    | AddParameter KeyValuePair
+    | AddParameter DeploymentForm
     | RemoveParameter KeyValuePair
     | AddDeployment Engine
-    | CancelDeployment
