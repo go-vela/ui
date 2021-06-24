@@ -275,7 +275,7 @@ toAddSecretPayload secretsModel secret =
         (stringToMaybe secret.value)
         (Just secret.events)
         (Just secret.images)
-        Nothing
+        (Just secret.allowCommand)
 
 
 {-| toUpdateSecretPayload : builds payload for updating secret

@@ -29,7 +29,8 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Pages.Secrets.Form
     exposing
-        ( viewEventsSelect
+        ( viewAllowCommandCheckbox
+        , viewEventsSelect
         , viewHelp
         , viewImagesInput
         , viewNameInput
@@ -385,6 +386,7 @@ addForm secretsModel =
         , viewValueInput secretUpdate.value "Secret Value"
         , viewEventsSelect secretUpdate
         , viewImagesInput secretUpdate secretUpdate.imageInput
+        , viewAllowCommandCheckbox secretUpdate
         , viewHelp
         , div [ class "form-action" ]
             [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.AddSecret secretsModel.engine ] [ text "Add" ]
@@ -444,8 +446,7 @@ editForm secretsModel =
         , viewValueInput secretUpdate.value "Secret Value (leave blank to make no change)"
         , viewEventsSelect secretUpdate
         , viewImagesInput secretUpdate secretUpdate.imageInput
-
-        -- , allowCommandCheckbox secretUpdate
+        , viewAllowCommandCheckbox secretUpdate
         , viewHelp
         , viewSubmitButtons secretsModel
         ]
