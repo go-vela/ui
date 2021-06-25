@@ -148,7 +148,7 @@ import Dict exposing (Dict)
 import Errors exposing (Error)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, int, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
-import Json.Encode as Encode
+import Json.Encode as Encode exposing (Value)
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
@@ -1685,16 +1685,15 @@ decodeDeployment =
         {- payload -}
 
 
-encodeKeyValuePair : KeyValuePair -> Encode.Value
+encodeKeyValuePair : KeyValuePair -> (String, Value)
 encodeKeyValuePair kvp =
-    Encode.object
-        [ ( kvp.key, Encode.string kvp.value ) ]
+    ( kvp.key, Encode.string kvp.value )
 
 encodeOptionalKeyValuePairList : Maybe (List KeyValuePair) -> Encode.Value
 encodeOptionalKeyValuePairList value =
     case value of
         Just value_ ->
-            Encode.list encodeKeyValuePair value_
+            Encode.object (List.map encodeKeyValuePair value_)
 
         Nothing ->
             Encode.null
