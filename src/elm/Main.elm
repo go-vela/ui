@@ -349,9 +349,6 @@ update msg model =
     in
     case msg of
 
-        AddDeploymentResponse _ ->
-          ( model, Cmd.none )
-
         -- User events
         NewRoute route ->
             setNewPage route model
@@ -1460,6 +1457,24 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
+        AddDeploymentResponse response ->
+            case response of
+                Ok ( _, deployment ) ->
+                    let
+                        deploymentModel =
+                            model.deploymentModel
+
+                        updatedDeploymentModel =
+                            Pages.Deployments.Update.reinitializeDeployment deploymentModel
+                    in
+                    ( { model | deploymentModel = updatedDeploymentModel }
+                    , Cmd.none
+                    )
+                        |> addDeploymentResponseAlert deployment
+
+                Err error ->
+                    ( model, addError error )
+
         UpdateSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
@@ -1625,6 +1640,19 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+
+{-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
+-}
+addDeploymentResponseAlert :
+    Deployment
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+addDeploymentResponseAlert deployment =
+    let
+        msg =
+            deployment.description ++ " submitted."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
 {-| addSecretResponseAlert : takes secret and produces Toasty alert for when adding a secret
 -}

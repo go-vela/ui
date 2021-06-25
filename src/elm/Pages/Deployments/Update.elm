@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Deployments.Update exposing
     ( init
     , update
+    , reinitializeDeployment
     )
 
 import Api
@@ -29,6 +30,13 @@ init deploymentResponse =
         ""
         defaultDeploymentForm
         deploymentResponse
+
+{-| reinitializeDeployment : takes an incoming deployment and reinitialized page input arguments
+-}
+reinitializeDeployment : Model msg -> Model msg
+reinitializeDeployment deploymentModel =
+    { deploymentModel | form = defaultDeploymentForm }
+
 
 {-| updateSecretField : takes field and value and updates the secret update field
 -}
