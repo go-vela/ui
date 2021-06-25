@@ -16,6 +16,10 @@ module Vela exposing
     , CurrentUser
     , Deployment
     , DisableRepo
+    , DeploymentPayload
+    , buildDeploymentPayload
+    , encodeDeploymentPayload
+    , decodeDeployment
     , EnableRepo
     , EnableRepos
     , EnableRepositoryPayload
@@ -206,6 +210,20 @@ type alias Key =
 type alias Ref =
     String
 
+type alias Task =
+    String
+
+type alias Commit =
+    String
+
+type alias Description =
+    String
+
+type alias Payload =
+    List KeyValuePair
+
+type alias Target =
+    String
 
 
 -- THEME
@@ -670,7 +688,7 @@ type alias Deployment =
   , task: String
   , target: String
   , description: String
-  , payload: Maybe (List KeyValuePair)
+  {- , payload: Maybe (List KeyValuePair) -}
   }
 
 type alias Repository =
@@ -1650,7 +1668,78 @@ buildUpdateSecretPayload :
 buildUpdateSecretPayload type_ org repo team name value events images allowCommand =
     UpdateSecretPayload type_ org repo team name value events images allowCommand
 
+-- DEPLOYMENT
 
+decodeDeployment : Decoder Deployment
+decodeDeployment =
+    Decode.succeed Deployment
+        |> optional "id" int -1
+        |> optional "repo_id" int -1
+        |> optional "url" string ""
+        |> optional "user" string ""
+        |> optional "commit" string ""
+        |> optional "ref" string ""
+        |> optional "task" string ""
+        |> optional "target" string ""
+        |> optional "description" string ""
+        {- payload -}
+
+
+encodeKeyValuePair : KeyValuePair -> Encode.Value
+encodeKeyValuePair kvp =
+    Encode.object
+        [ ( kvp.key, Encode.string kvp.value ) ]
+
+encodeOptionalKeyValuePairList : Maybe (List KeyValuePair) -> Encode.Value
+encodeOptionalKeyValuePairList value =
+    case value of
+        Just value_ ->
+            Encode.list encodeKeyValuePair value_
+
+        Nothing ->
+            Encode.null
+
+decodeKeyValuePair : (String, String) -> KeyValuePair
+decodeKeyValuePair (k, v) =
+    ( KeyValuePair k v )
+
+type alias DeploymentPayload =
+    { org : Maybe String
+    , repo : Maybe String
+    , commit : Maybe String
+    , description : Maybe String
+    , ref : Maybe String
+    , target : Maybe String
+    , task : Maybe String
+    , payload : Maybe (List KeyValuePair)
+    }
+
+encodeDeploymentPayload : DeploymentPayload -> Encode.Value
+encodeDeploymentPayload deployment =
+    Encode.object
+        [ ( "org", encodeOptional Encode.string deployment.org )
+        , ( "repo", encodeOptional Encode.string deployment.repo )
+        , ( "commit", encodeOptional Encode.string deployment.commit )
+        , ( "description", encodeOptional Encode.string deployment.description )
+        , ( "ref", encodeOptional Encode.string deployment.ref )
+        , ( "target", encodeOptional Encode.string deployment.target )
+        , ( "task", encodeOptional Encode.string deployment.task )
+        , ( "payload", encodeOptionalKeyValuePairList deployment.payload )
+        ]
+
+
+buildDeploymentPayload :
+    Maybe Org
+    -> Maybe Repo
+    -> Maybe Commit
+    -> Maybe Description
+    -> Maybe Ref
+    -> Maybe Target
+    -> Maybe Task
+    -> Maybe Payload
+    -> DeploymentPayload
+buildDeploymentPayload org rep commit description  ref target task payload =
+    DeploymentPayload org rep commit description ref target task payload
 
 -- SEARCH
 

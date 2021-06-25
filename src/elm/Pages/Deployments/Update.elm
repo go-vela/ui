@@ -9,10 +9,13 @@ module Pages.Deployments.Update exposing
     , update
     )
 
+import Api
+import Http
 import List.Extra
 import Pages.Deployments.Model exposing (DeploymentForm, DeploymentResponse, Model, Msg(..), PartialModel, defaultDeploymentForm)
-import Util
-import Vela exposing (KeyValuePair)
+import RemoteData exposing (RemoteData(..))
+import Util exposing (stringToMaybe)
+import Vela exposing (DeploymentPayload, KeyValuePair, buildDeploymentPayload, encodeDeploymentPayload)
 
 
 -- INIT
@@ -21,12 +24,11 @@ import Vela exposing (KeyValuePair)
 -}
 init : DeploymentResponse msg -> Model msg
 init deploymentResponse =
-    Model "native"
-        ""
+    Model ""
         ""
         ""
         defaultDeploymentForm
-        Nothing
+        deploymentResponse
 
 {-| updateSecretField : takes field and value and updates the secret update field
 -}
@@ -121,6 +123,19 @@ removeParameter image parameter =
 
 -- UPDATE
 
+{-| toAddSecretPayload : builds payload for adding secret
+-}
+toDeploymentPayload : Model msg -> DeploymentForm -> DeploymentPayload
+toDeploymentPayload deploymentModel deployment =
+    buildDeploymentPayload
+        (Just deploymentModel.org)
+        (Just deploymentModel.repo)
+        (stringToMaybe deployment.commit)
+        (stringToMaybe deployment.description)
+        (stringToMaybe deployment.ref)
+        (stringToMaybe deployment.target)
+        (stringToMaybe deployment.task)
+        (Just deployment.payload)
 
 update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
 update model msg =
@@ -139,8 +154,26 @@ update model msg =
                 RemoveParameter keyValuePair ->
                   ( onRemoveParameter keyValuePair deploymentModel, Cmd.none )
 
-                AddDeployment engine ->
-                  Debug.todo "Not Implemented"
+                AddDeployment ->
+                  let
+                      deployment =
+                          deploymentModel.form
+
+                      payload : DeploymentPayload
+                      payload =
+                          toDeploymentPayload deploymentModel deployment
+
+                      body : Http.Body
+                      body =
+                          Http.jsonBody <| encodeDeploymentPayload payload
+                  in
+                  ( deploymentModel
+                  , Api.try deploymentModel.deploymentResponse <|
+                      Api.addDeployment model
+                          deploymentModel.org
+                          deploymentModel.repo
+                          body
+                  )
 
 
     in

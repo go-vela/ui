@@ -25,6 +25,7 @@ type Endpoint
     | Login
     | Logout
     | CurrentUser
+    | Deployment Org Repo
     | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Repository Org Repo
@@ -119,6 +120,9 @@ toUrl api endpoint =
 
         PipelineTemplates org repo ref ->
             url api [ "pipelines", org, repo, "templates" ] [ UB.string "output" "json", UB.string "ref" <| Maybe.withDefault "" ref ]
+
+        Deployment org repo ->
+            url api [ "deployments", org, repo ] []
 
 
 {-| url : creates a URL string with the given path segments and query parameters

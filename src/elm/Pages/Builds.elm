@@ -67,21 +67,6 @@ view buildsModel now zone org repo maybeEvent =
                                 ]
                             ]
                         , p [] [ text "Happy building!" ]
-                        , div [ class "buttons" ]
-                             [ a
-                                 [ class "button"
-                                 , class "button-with-icon"
-                                 , class "-outline"
-                                 , Util.testAttribute "add-repo-secret"
-                                 , Routes.href <|
-                                     Routes.AddDeploymentRoute org repo
-                                 ]
-                                 [ text "Add Deployment"
-                                 , FeatherIcons.plus
-                                     |> FeatherIcons.withSize 18
-                                     |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-                                 ]
-                             ]
                         ]
 
                 Just event ->

@@ -298,6 +298,7 @@ viewRepoTabs rm org repo currentPage =
             , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False
             , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting
             , Tab "Settings" currentPage (Pages.RepoSettings org repo) False
+            , Tab "Deployments" currentPage (Pages.AddDeployment org repo) False
             ]
     in
     viewTabs tabs "jump-bar-repo"

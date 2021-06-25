@@ -187,7 +187,7 @@ viewUpdateButton : Model msg -> Html Msg
 viewUpdateButton deploymentsModel =
     button
         [ class "button"
-        , onClick <| Pages.Deployments.Model.AddDeployment deploymentsModel.engine
+        , onClick <| Pages.Deployments.Model.AddDeployment
         ]
         [ text "Add Deployment" ]
 

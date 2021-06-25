@@ -39,9 +39,8 @@ type alias Model msg =
     { org : Org
     , repo : Repo
     , team : Team
-    , engine : Engine
     , form : DeploymentForm
-    , deploymentResponse : Maybe (DeploymentResponse msg)
+    , deploymentResponse : DeploymentResponse msg
     }
 
 {-| SecretForm : record to hold potential add/update secret fields
@@ -74,4 +73,4 @@ type Msg
     = OnChangeStringField String String
     | AddParameter DeploymentForm
     | RemoveParameter KeyValuePair
-    | AddDeployment Engine
+    | AddDeployment

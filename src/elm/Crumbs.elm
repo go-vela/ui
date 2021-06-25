@@ -183,7 +183,7 @@ toPath page =
                           ( org, Nothing )
 
                         currentRepo =
-                          ( repo, Just <| Pages.AddDeployment org repo )
+                          ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                     in
                     [ overviewPage, orgPage, currentRepo, ( "Deployment", Nothing )]
 

@@ -350,7 +350,7 @@ update msg model =
     case msg of
 
         AddDeploymentResponse _ ->
-          Debug.todo "Something"
+          ( model, Cmd.none )
 
         -- User events
         NewRoute route ->
@@ -2551,6 +2551,9 @@ loadRepoSubPage model org repo toPage =
         secretsModel =
             model.secretsModel
 
+        dm =
+            model.deploymentModel
+
         fetchSecrets : Org -> Repo -> Cmd Msg
         fetchSecrets o r =
             Cmd.batch [ getAllRepoSecrets model "native" o r, getAllOrgSecrets model "native" o ]
@@ -2569,6 +2572,11 @@ loadRepoSubPage model org repo toPage =
                             , engine = "native"
                             , type_ = Vela.RepoSecret
                         }
+                    , deploymentModel =
+                        { dm
+                            | org = org
+                            , repo = repo
+                       }
                     , repo =
                         rm
                             |> updateOrgRepo org repo
