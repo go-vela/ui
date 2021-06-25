@@ -1737,8 +1737,16 @@ buildDeploymentPayload :
     -> Maybe Task
     -> Maybe Payload
     -> DeploymentPayload
-buildDeploymentPayload org rep commit description  ref target task payload =
-    DeploymentPayload org rep commit description ref target task payload
+buildDeploymentPayload org rep commit description ref target task payload =
+    DeploymentPayload
+        org
+        rep
+        commit
+        description
+        ref
+        target
+        task
+        payload
 
 -- SEARCH
 

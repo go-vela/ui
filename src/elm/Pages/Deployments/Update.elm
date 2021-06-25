@@ -35,14 +35,17 @@ init deploymentResponse =
 updateDeploymentField : String -> String -> DeploymentForm -> DeploymentForm
 updateDeploymentField field value form =
     case field of
-        "target" ->
+        "Target" ->
             { form | target = String.replace " " "" value }
+
+        "Task" ->
+            { form | task = String.replace " " "" value }
 
         "Ref" ->
             { form | ref = String.replace " " "" value }
 
         "Description" ->
-            { form | description = String.replace " " "" value }
+            { form | description = value }
 
         "parameterInputKey" ->
             { form | parameterInputKey = String.replace " " "" value }
@@ -137,6 +140,19 @@ toDeploymentPayload deploymentModel deployment =
         (stringToMaybe deployment.task)
         (Just deployment.payload)
 
+applyDefaults : DeploymentForm -> DeploymentForm
+applyDefaults form =
+    DeploymentForm
+      form.commit
+      (if form.description == "" then "Deployment request from Vela" else form.description)
+      form.payload
+      (if form.ref == "" then "refs/heads/master" else form.ref)
+      (if form.target == "" then "production" else form.target)
+      (if form.task == "" then "deploy:vela" else form.task)
+      ""
+      ""
+
+
 update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
 update model msg =
     let
@@ -161,7 +177,7 @@ update model msg =
 
                       payload : DeploymentPayload
                       payload =
-                          toDeploymentPayload deploymentModel deployment
+                          toDeploymentPayload deploymentModel (applyDefaults deployment)
 
                       body : Http.Body
                       body =

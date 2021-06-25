@@ -9,23 +9,13 @@ module Pages.Deployments.View exposing (addDeployment, addForm)
 import Html
     exposing
         ( Html
-        , a
-        , button
         , div
-        , h2
-        , span
-        , td
-        , text
-        , tr
         )
 import Html.Attributes
     exposing
-        ( attribute
-        , class
-        , scope
+        ( class
         )
-import Html.Events exposing (onClick)
-import Pages.Deployments.Form exposing (viewHelp, viewTargetInput, viewParameterInput, viewSubmitButtons, viewValueInput)
+import Pages.Deployments.Form exposing (viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
     exposing
         ( Model
@@ -33,7 +23,7 @@ import Pages.Deployments.Model
         , PartialModel
         )
 
-import Util exposing (largeLoader)
+import Util exposing (testAttribute)
 
 
 -- ADD SECRET
@@ -41,13 +31,13 @@ import Util exposing (largeLoader)
 -}
 addDeployment : PartialModel a msg -> Html Msg
 addDeployment model =
-    div [ class "manage-secret", Util.testAttribute "manage-secret" ]
+    div [ class "manage-deployment", Util.testAttribute "add-deployment" ]
         [ div []
             [ addForm model.deploymentModel
             ]
         ]
 
-{-| addForm : renders secret update form for adding a new secret
+{-| addForm : renders deployment form for adding a new deployment
 -}
 addForm : Model msg -> Html Msg
 addForm deploymentModel =
@@ -55,10 +45,11 @@ addForm deploymentModel =
         deployment =
             deploymentModel.form
     in
-    div [ class "secret-form" ]
-        [ viewTargetInput deployment.target False
+    div [ class "deployment-form" ]
+        [ viewValueInput "Target" deployment.target "provide the name for the target deployment environment (default: \"production\")"
         , viewValueInput "Ref" deployment.ref "provide the reference to deploy - this can be a branch, commit (SHA) or tag (default: \"refs/heads/master\")"
         , viewValueInput "Description" deployment.description "provide the description for the deployment (default: \"Deployment request from Vela\")"
+        , viewValueInput "Task" deployment.task "Provide the task for the deployment (default: \"deploy:vela\")"
         , viewParameterInput deployment
         , viewSubmitButtons deploymentModel
         , viewHelp

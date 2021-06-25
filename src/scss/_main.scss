@@ -1364,7 +1364,8 @@ nav {
   font-size: 1.2rem;
 }
 
-.manage-secret .header {
+.manage-secret .header,
+.manage-deployment .header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -1373,36 +1374,43 @@ nav {
   border-bottom: 2px solid var(--color-secondary);
 }
 
-.manage-secret h2 {
+.manage-secret h2,
+.manage-deployment h2 {
   margin: 0;
   border-bottom: 2px solid var(--color-secondary);
 }
 
-.secret-form {
+.secret-form,
+.deployment-form {
   margin-bottom: 0.5rem;
   padding-top: 1rem;
 }
 
-.secret-form section {
+.secret-form section,
+.deployment-form section {
   justify-content: flex-start;
   margin-bottom: 1rem;
 }
 
-.secret-form .events {
+.secret-form .events,
+.deployment-form .events{
   padding-left: 1rem;
 }
 
-.images {
+.images,
+.parameters {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.add-image {
+.add-image,
+.add-parameter {
   margin-left: 1rem;
 }
 
-.added-image {
+.added-image,
+.added-parameter {
   margin: 0.2rem 1rem;
   display: flex;
   padding: 0.3rem 1rem;
@@ -1411,22 +1419,25 @@ nav {
   position: relative;
 }
 
-.added-image .name {
+.added-image .name,
+.added-parameter .name{
   flex: 1;
   word-wrap: break-word;
   font-family: var(--font-code);
   font-size: 0.9rem;
 }
 
-.images .added-image .button {
+.images .added-image .button,
+.parameters .added-parameter .button {
   margin-left: 1rem;
 }
 
-.added-image.chevron {
+.added-image.chevron, .added-parameter.chevron {
   margin-left: 2rem;
 }
 
-.added-image.chevron:before {
+.added-image.chevron:before,
+.added-parameter.chevron:before {
   content: '';
   border-style: solid;
   border-width: 0.1rem 1rem 0.1rem 0.2rem;
@@ -1439,14 +1450,16 @@ nav {
   padding: 1rem;
 }
 
-.manage-secret .subheader {
+.manage-secret .subheader,
+.manage-deployment .subheader {
   margin-top: 1rem;
   border-bottom: 2px solid var(--color-primary);
   width: 80%;
 }
 
 .manage-secret textarea,
-.update-secret textarea {
+.update-secret textarea,
+.manage-deployment textarea {
   width: 70%;
   border: none;
   box-shadow: none;
@@ -1458,11 +1471,13 @@ nav {
   padding: 0.5rem;
 }
 
-.manage-secret input {
+.manage-secret input,
+.manage-deployment input {
   max-width: 400px;
 }
 
-.manage-secret textarea {
+.manage-secret textarea,
+.manage-deployment textarea {
   max-width: 70%;
 }
 

@@ -8,7 +8,6 @@ module Pages.Deployments.Form exposing
     ( viewHelp
     , viewParameterInput
     , viewAddedParameters
-    , viewTargetInput
     , viewSubmitButtons
     , viewValueInput
     )
@@ -61,7 +60,7 @@ viewAddedParameters parameters =
 -}
 noParameters : List (Html Msg)
 noParameters =
-    [ div [ class "added-image" ]
+    [ div [ class "added-parameter" ]
         [ div [ class "name" ] [ code [] [ text "No Parameters defined" ] ]
 
         -- add button to match style
@@ -81,7 +80,7 @@ noParameters =
 -}
 addedParameter : KeyValuePair -> Html Msg
 addedParameter parameter =
-    div [ class "added-image", class "chevron" ]
+    div [ class "added-parameter", class "chevron" ]
         [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value)  ]
         , button
             [ class "button"
@@ -100,39 +99,21 @@ viewHelp =
     div [ class "help" ] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
 
 
-{-| viewNameInput : renders name input box
--}
-viewTargetInput : String -> Bool -> Html Msg
-viewTargetInput val disable =
-    section [ class "form-control", class "-stack" ]
-        [ label [ class "form-label", for <| "secret-name" ] [ strong [] [ text "Target" ] ]
-        , input
-            [ disabled disable
-            , value val
-            , onInput <| OnChangeStringField "target"
-            , class "secret-name"
-            , placeholder "production"
-            , id "secret-name"
-            ]
-            []
-        ]
-
-
 {-| viewValueInput : renders value input box
 -}
 viewValueInput : String -> String -> String -> Html Msg
 viewValueInput name val placeholder_ =
     section [ class "form-control", class "-stack" ]
-        [ label [ class "form-label", for <| "secret-value" ] [ strong [] [ text name ] ]
+        [ label [ class "form-label", for <| name ] [ strong [] [ text name ] ]
         , textarea
             [ value val
             , onInput <| OnChangeStringField name
-            , class "secret-value"
+            , class "parameter-value"
             , class "form-control"
             , rows 2
             , wrap "soft"
             , placeholder placeholder_
-            , id "secret-value"
+            , id name
             ]
             []
         ]
@@ -142,8 +123,8 @@ viewValueInput name val placeholder_ =
 viewParameterInput : DeploymentForm -> Html Msg
 viewParameterInput deployment =
     section [ class "image" ]
-        [ div [ id "images-select", class "form-control", class "-stack" ]
-            [ label [ for "images-select", class "form-label" ]
+        [ div [ id "parameter-select", class "form-control", class "-stack" ]
+            [ label [ for "parameter-select", class "form-label" ]
                 [ strong [] [ text "Add Parameters" ]
                 , span
                     [ class "field-description" ]
@@ -165,14 +146,14 @@ viewParameterInput deployment =
             , button
                 [ class "button"
                 , class "-outline"
-                , class "add-image"
+                , class "add-paramter"
                 , onClick <| AddParameter <| deployment
                 , disabled <| String.length deployment.parameterInputKey * String.length deployment.parameterInputValue == 0
                 ]
                 [ text "Add"
                 ]
             ]
-        , div [ class "images" ] <| viewAddedParameters deployment.payload
+        , div [ class "parameters" ] <| viewAddedParameters deployment.payload
         ]
 
 

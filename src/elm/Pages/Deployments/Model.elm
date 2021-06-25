@@ -61,8 +61,6 @@ defaultDeploymentForm : DeploymentForm
 defaultDeploymentForm =
     DeploymentForm "" "" [] "" "" "" "" ""
 
-
-
 -- MSG
 
 

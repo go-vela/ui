@@ -18,7 +18,6 @@ module Help.Commands exposing
     )
 
 import Pages exposing (Page(..))
-import Pages.Deployments.View exposing (addDeployment)
 import String.Extra
 import Util exposing (anyBlank, noBlanks)
 import Vela
