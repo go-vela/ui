@@ -1393,7 +1393,7 @@ nav {
 }
 
 .secret-form .events,
-.deployment-form .events{
+.deployment-form .events {
   padding-left: 1rem;
 }
 
@@ -1420,7 +1420,7 @@ nav {
 }
 
 .added-image .name,
-.added-parameter .name{
+.added-parameter .name {
   flex: 1;
   word-wrap: break-word;
   font-family: var(--font-code);
@@ -1432,7 +1432,8 @@ nav {
   margin-left: 1rem;
 }
 
-.added-image.chevron, .added-parameter.chevron {
+.added-image.chevron,
+.added-parameter.chevron {
   margin-left: 2rem;
 }
 
