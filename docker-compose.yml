@@ -10,15 +10,13 @@ services:
   ui:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.local
     container_name: ui
     image: ui:local
     networks:
       - vela
     env_file:
       - .env
-    environment:
-      VELA_API: http://localhost:8080
     restart: always
     ports:
       - '8888:80'
