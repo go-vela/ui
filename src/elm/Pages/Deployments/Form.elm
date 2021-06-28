@@ -120,6 +120,7 @@ viewValueInput name val placeholder_ =
             []
         ]
 
+
 {-| viewDeployEnabled : displays a message to enable Deploy webhook if it is not enabled
 -}
 viewDeployEnabled : WebData Repository -> Html Msg
@@ -192,6 +193,8 @@ viewUpdateButton deploymentsModel =
         , onClick <| Pages.Deployments.Model.AddDeployment
         ]
         [ text "Add Deployment" ]
+
+
 
 -- HELPERS
 
