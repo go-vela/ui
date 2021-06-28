@@ -40,6 +40,7 @@ view buildsModel now zone org repo maybeEvent =
         settingsLink : String
         settingsLink =
             "/" ++ String.join "/" [ org, repo ] ++ "/settings"
+
         none : Html msg
         none =
             case maybeEvent of

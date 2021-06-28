@@ -6,8 +6,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Deployments.Update exposing
     ( init
-    , update
     , reinitializeDeployment
+    , update
     )
 
 import Api
@@ -19,7 +19,9 @@ import Util exposing (stringToMaybe)
 import Vela exposing (DeploymentPayload, KeyValuePair, buildDeploymentPayload, encodeDeploymentPayload)
 
 
+
 -- INIT
+
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
@@ -31,6 +33,7 @@ init deploymentResponse =
         defaultDeploymentForm
         NotAsked
         deploymentResponse
+
 
 {-| reinitializeDeployment : takes an incoming deployment and reinitialized page input arguments
 -}
@@ -65,12 +68,12 @@ updateDeploymentField field value form =
         _ ->
             form
 
+
 {-| updateDeploymentModel : makes an update to the appropriate secret update
 -}
 updateDeploymentModel : DeploymentForm -> Model msg -> Model msg
 updateDeploymentModel value form =
     { form | form = value }
-
 
 
 {-| onChangeStringField : takes field and value and updates the secrets model
@@ -88,6 +91,7 @@ onChangeStringField field value deploymentModel =
         Nothing ->
             deploymentModel
 
+
 {-| onAddImage : takes image and updates secret update images
 -}
 onAddParamter : DeploymentForm -> Model msg -> Model msg
@@ -96,18 +100,21 @@ onAddParamter deploymentUpdate deploymentModel =
         s ->
             updateDeploymentModel (addParameter s) deploymentModel
 
+
 toKeyValue : String -> String -> KeyValuePair
 toKeyValue key value =
-    {key=key, value=value}
+    { key = key, value = value }
+
 
 {-| addImage : takes image and adds it to secret update images
 -}
 addParameter : DeploymentForm -> DeploymentForm
 addParameter form =
-    { form |
-    parameterInputValue = "",
-    parameterInputKey = "",
-    payload = (toKeyValue form.parameterInputKey form.parameterInputValue) :: form.payload }
+    { form
+        | parameterInputValue = ""
+        , parameterInputKey = ""
+        , payload = toKeyValue form.parameterInputKey form.parameterInputValue :: form.payload
+    }
 
 
 {-| onRemoveImage : takes image and removes it to from secret update images
@@ -133,7 +140,9 @@ removeParameter image parameter =
     { parameter | payload = List.Extra.remove image parameter.payload }
 
 
+
 -- UPDATE
+
 
 {-| toAddSecretPayload : builds payload for adding secret
 -}
@@ -149,17 +158,38 @@ toDeploymentPayload deploymentModel deployment =
         (stringToMaybe deployment.task)
         (Just deployment.payload)
 
+
 applyDefaults : DeploymentForm -> DeploymentForm
 applyDefaults form =
     DeploymentForm
-      form.commit
-      (if form.description == "" then "Deployment request from Vela" else form.description)
-      form.payload
-      (if form.ref == "" then "refs/heads/master" else form.ref)
-      (if form.target == "" then "production" else form.target)
-      (if form.task == "" then "deploy:vela" else form.task)
-      ""
-      ""
+        form.commit
+        (if form.description == "" then
+            "Deployment request from Vela"
+
+         else
+            form.description
+        )
+        form.payload
+        (if form.ref == "" then
+            "refs/heads/master"
+
+         else
+            form.ref
+        )
+        (if form.target == "" then
+            "production"
+
+         else
+            form.target
+        )
+        (if form.task == "" then
+            "deploy:vela"
+
+         else
+            form.task
+        )
+        ""
+        ""
 
 
 update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
@@ -167,38 +197,37 @@ update model msg =
     let
         deploymentModel =
             model.deploymentModel
+
         ( sm, action ) =
             case msg of
                 OnChangeStringField field value ->
                     ( onChangeStringField field value deploymentModel, Cmd.none )
 
                 AddParameter deploymentForm ->
-                  ( onAddParamter deploymentForm deploymentModel, Cmd.none )
+                    ( onAddParamter deploymentForm deploymentModel, Cmd.none )
 
                 RemoveParameter keyValuePair ->
-                  ( onRemoveParameter keyValuePair deploymentModel, Cmd.none )
+                    ( onRemoveParameter keyValuePair deploymentModel, Cmd.none )
 
                 AddDeployment ->
-                  let
-                      deployment =
-                          deploymentModel.form
+                    let
+                        deployment =
+                            deploymentModel.form
 
-                      payload : DeploymentPayload
-                      payload =
-                          toDeploymentPayload deploymentModel (applyDefaults deployment)
+                        payload : DeploymentPayload
+                        payload =
+                            toDeploymentPayload deploymentModel (applyDefaults deployment)
 
-                      body : Http.Body
-                      body =
-                          Http.jsonBody <| encodeDeploymentPayload payload
-                  in
-                  ( deploymentModel
-                  , Api.try deploymentModel.deploymentResponse <|
-                      Api.addDeployment model
-                          deploymentModel.org
-                          deploymentModel.repo
-                          body
-                  )
-
-
+                        body : Http.Body
+                        body =
+                            Http.jsonBody <| encodeDeploymentPayload payload
+                    in
+                    ( deploymentModel
+                    , Api.try deploymentModel.deploymentResponse <|
+                        Api.addDeployment model
+                            deploymentModel.org
+                            deploymentModel.repo
+                            body
+                    )
     in
     ( { model | deploymentModel = sm }, action )

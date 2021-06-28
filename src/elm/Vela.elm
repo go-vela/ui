@@ -15,11 +15,8 @@ module Vela exposing
     , Copy
     , CurrentUser
     , Deployment
-    , DisableRepo
     , DeploymentPayload
-    , buildDeploymentPayload
-    , encodeDeploymentPayload
-    , decodeDeployment
+    , DisableRepo
     , EnableRepo
     , EnableRepos
     , EnableRepositoryPayload
@@ -74,6 +71,7 @@ module Vela exposing
     , UpdateRepositoryPayload
     , UpdateSecretPayload
     , UpdateUserPayload
+    , buildDeploymentPayload
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
@@ -82,6 +80,7 @@ module Vela exposing
     , decodeBuild
     , decodeBuilds
     , decodeCurrentUser
+    , decodeDeployment
     , decodeHooks
     , decodeLog
     , decodePipelineConfig
@@ -99,6 +98,7 @@ module Vela exposing
     , defaultPipelineTemplates
     , defaultRepoModel
     , defaultStep
+    , encodeDeploymentPayload
     , encodeEnableRepository
     , encodeTheme
     , encodeUpdateRepository
@@ -210,20 +210,26 @@ type alias Key =
 type alias Ref =
     String
 
+
 type alias Task =
     String
+
 
 type alias Commit =
     String
 
+
 type alias Description =
     String
+
 
 type alias Payload =
     List KeyValuePair
 
+
 type alias Target =
     String
+
 
 
 -- THEME
@@ -673,23 +679,27 @@ updateHooksPerPage maybePerPage rm =
     in
     { rm | hooks = { h | maybePerPage = maybePerPage } }
 
+
 type alias KeyValuePair =
-  { key: String
-  , value: String
-  }
+    { key : String
+    , value : String
+    }
+
 
 type alias Deployment =
-  { id: Int
-  , repo_id: Int
-  , url: String
-  , user: String
-  , commit: String
-  , ref: String
-  , task: String
-  , target: String
-  , description: String
-  {- , payload: Maybe (List KeyValuePair) -}
-  }
+    { id : Int
+    , repo_id : Int
+    , url : String
+    , user : String
+    , commit : String
+    , ref : String
+    , task : String
+    , target : String
+    , description : String
+
+    {- , payload: Maybe (List KeyValuePair) -}
+    }
+
 
 type alias Repository =
     { id : Int
@@ -1668,7 +1678,10 @@ buildUpdateSecretPayload :
 buildUpdateSecretPayload type_ org repo team name value events images allowCommand =
     UpdateSecretPayload type_ org repo team name value events images allowCommand
 
+
+
 -- DEPLOYMENT
+
 
 decodeDeployment : Decoder Deployment
 decodeDeployment =
@@ -1682,12 +1695,16 @@ decodeDeployment =
         |> optional "task" string ""
         |> optional "target" string ""
         |> optional "description" string ""
-        {- payload -}
 
 
-encodeKeyValuePair : KeyValuePair -> (String, Value)
+
+{- payload -}
+
+
+encodeKeyValuePair : KeyValuePair -> ( String, Value )
 encodeKeyValuePair kvp =
     ( kvp.key, Encode.string kvp.value )
+
 
 encodeOptionalKeyValuePairList : Maybe (List KeyValuePair) -> Encode.Value
 encodeOptionalKeyValuePairList value =
@@ -1698,9 +1715,11 @@ encodeOptionalKeyValuePairList value =
         Nothing ->
             Encode.null
 
-decodeKeyValuePair : (String, String) -> KeyValuePair
-decodeKeyValuePair (k, v) =
-    ( KeyValuePair k v )
+
+decodeKeyValuePair : ( String, String ) -> KeyValuePair
+decodeKeyValuePair ( k, v ) =
+    KeyValuePair k v
+
 
 type alias DeploymentPayload =
     { org : Maybe String
@@ -1712,6 +1731,7 @@ type alias DeploymentPayload =
     , task : Maybe String
     , payload : Maybe (List KeyValuePair)
     }
+
 
 encodeDeploymentPayload : DeploymentPayload -> Encode.Value
 encodeDeploymentPayload deployment =
@@ -1747,6 +1767,8 @@ buildDeploymentPayload org rep commit description ref target task payload =
         target
         task
         payload
+
+
 
 -- SEARCH
 

@@ -180,12 +180,12 @@ toPath page =
                 Pages.AddDeployment org repo ->
                     let
                         orgPage =
-                          ( org, Nothing )
+                            ( org, Nothing )
 
                         currentRepo =
-                          ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
                     in
-                    [ overviewPage, orgPage, currentRepo, ( "Deployment", Nothing )]
+                    [ overviewPage, orgPage, currentRepo, ( "Deployment", Nothing ) ]
 
                 Pages.AddSharedSecret engine org team ->
                     let

@@ -5,11 +5,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Deployments.Model exposing
-    ( Model
+    ( DeploymentForm
+    , DeploymentResponse
+    , Model
     , Msg(..)
     , PartialModel
-    , DeploymentForm
-    , DeploymentResponse
     , defaultDeploymentForm
     )
 
@@ -21,7 +21,9 @@ import RemoteData exposing (WebData)
 import Vela exposing (Deployment, Engine, KeyValuePair, Org, Repo, Repository, Team)
 
 
+
 -- TYPES
+
 
 {-| PartialModel : an abbreviated version of the main model
 -}
@@ -45,6 +47,7 @@ type alias Model msg =
     , deploymentResponse : DeploymentResponse msg
     }
 
+
 {-| SecretForm : record to hold potential add/update secret fields
 -}
 type alias DeploymentForm =
@@ -54,8 +57,8 @@ type alias DeploymentForm =
     , ref : String
     , target : String
     , task : String
-    , parameterInputKey: String
-    , parameterInputValue: String
+    , parameterInputKey : String
+    , parameterInputValue : String
     }
 
 
@@ -63,11 +66,14 @@ defaultDeploymentForm : DeploymentForm
 defaultDeploymentForm =
     DeploymentForm "" "" [] "" "" "" "" ""
 
+
+
 -- MSG
 
 
 type alias DeploymentResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ) -> msg
+
 
 type Msg
     = OnChangeStringField String String

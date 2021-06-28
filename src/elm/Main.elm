@@ -80,9 +80,9 @@ import Pages.Build.Logs
 import Pages.Build.Model
 import Pages.Build.View
 import Pages.Builds exposing (view)
+import Pages.Deployments.Model
 import Pages.Deployments.Update
 import Pages.Deployments.View
-import Pages.Deployments.Model
 import Pages.Home
 import Pages.Hooks
 import Pages.Pipeline.Model
@@ -151,7 +151,7 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
-    , deploymentModel: Pages.Deployments.Model.Model Msg
+    , deploymentModel : Pages.Deployments.Model.Model Msg
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     }
@@ -348,7 +348,6 @@ update msg model =
             model.pipeline
     in
     case msg of
-
         -- User events
         NewRoute route ->
             setNewPage route model
@@ -1575,6 +1574,7 @@ update msg model =
             ( newModel
             , action
             )
+
         -- Other
         HandleError error ->
             ( model, Cmd.none )
@@ -1653,6 +1653,7 @@ addDeploymentResponseAlert deployment =
             deployment.description ++ " submitted."
     in
     Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
 
 {-| addSecretResponseAlert : takes secret and produces Toasty alert for when adding a secret
 -}
@@ -2605,7 +2606,7 @@ loadRepoSubPage model org repo toPage =
                             | org = org
                             , repo = repo
                             , repo_settings = rm.repo
-                       }
+                        }
                     , repo =
                         rm
                             |> updateOrgRepo org repo
@@ -2726,6 +2727,7 @@ loadRepoSecretsPage :
 loadRepoSecretsPage model maybePage maybePerPage engine org repo =
     loadRepoSubPage model org repo <| Pages.RepoSecrets engine org repo maybePage maybePerPage
 
+
 {-| loadAddDeploymentPage : takes model org and repo and loads the page for managing deployments
 -}
 loadAddDeploymentPage :
@@ -2735,7 +2737,6 @@ loadAddDeploymentPage :
     -> ( Model, Cmd Msg )
 loadAddDeploymentPage model org repo =
     loadRepoSubPage model org repo <| Pages.AddDeployment org repo
-
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.
@@ -3618,6 +3619,7 @@ pipelineMsgs =
 initSecretsModel : Pages.Secrets.Model.Model Msg
 initSecretsModel =
     Pages.Secrets.Update.init SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
+
 
 initDeploymentsModel : Pages.Deployments.Model.Model Msg
 initDeploymentsModel =

@@ -6,8 +6,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Api exposing
     ( Request(..)
-    , addSecret
     , addDeployment
+    , addSecret
     , cancelBuild
     , chownRepo
     , deleteRepo
@@ -602,6 +602,7 @@ addSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Http.Body -> Reque
 addSecret model engine type_ org key body =
     post model.velaAPI (Endpoint.Secrets Nothing Nothing engine type_ org key) body decodeSecret
         |> withAuth model.session
+
 
 {-| addSecret : adds a secret
 -}

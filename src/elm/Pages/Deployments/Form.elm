@@ -5,12 +5,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Deployments.Form exposing
-    ( viewHelp
+    ( viewAddedParameters
+    , viewDeployEnabled
+    , viewHelp
     , viewParameterInput
-    , viewAddedParameters
     , viewSubmitButtons
     , viewValueInput
-    , viewDeployEnabled
     )
 
 import Html
@@ -83,7 +83,7 @@ noParameters =
 addedParameter : KeyValuePair -> Html Msg
 addedParameter parameter =
     div [ class "added-parameter", class "chevron" ]
-        [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value)  ]
+        [ div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
         , button
             [ class "button"
             , class "-outline"
@@ -120,17 +120,20 @@ viewValueInput name val placeholder_ =
             []
         ]
 
+
 viewDeployEnabled : WebData Repository -> Html Msg
 viewDeployEnabled repo_settings =
     case repo_settings of
         RemoteData.Success repo ->
             if repo.allow_deploy then
                 section []
-                []
+                    []
+
             else
                 section [ class "notice" ]
-                  [ strong [] [ text "Deploy webhook for this repo must be enabled in settings" ]
-                  ]
+                    [ strong [] [ text "Deploy webhook for this repo must be enabled in settings" ]
+                    ]
+
         _ ->
             section [] []
 
@@ -188,6 +191,7 @@ viewUpdateButton deploymentsModel =
         , onClick <| Pages.Deployments.Model.AddDeployment
         ]
         [ text "Add Deployment" ]
+
 
 
 -- HELPERS

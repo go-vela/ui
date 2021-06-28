@@ -506,10 +506,9 @@ addSecret secretEngine secretType org key =
 
 
 {-| Deployment : returns cli command for adding a deployment
-    TODO: add deployment
-    eg.
-    vela add deployment vela add deployment --repo some-repp --org some-org
-
+TODO: add deployment
+eg.
+vela add deployment vela add deployment --repo some-repp --org some-org
 -}
 addDeployment : Org -> Repo -> Command
 addDeployment org repo =
@@ -518,12 +517,13 @@ addDeployment org repo =
             "Add Deployment"
 
         content =
-            Just <| "vela add deployment --org" ++  org ++ " --repo " ++ repo
+            Just <| "vela add deployment --org" ++ org ++ " --repo " ++ repo
 
         docs =
             Just "/secret/add"
     in
     Command name content docs noIssue
+
 
 {-| viewSecret : returns cli command for viewing a secret
 
@@ -670,6 +670,7 @@ secretBaseArgs secretEngine secretType org key =
                     " --team " ++ Maybe.withDefault "" key
     in
     "--secret.engine " ++ secretEngine ++ " --secret.type " ++ secretTypeToString secretType ++ " --org " ++ org ++ keyFlag
+
 
 {-| addSecretArgs : returns cli args for adding a secret
 
