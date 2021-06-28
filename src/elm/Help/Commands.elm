@@ -506,9 +506,10 @@ addSecret secretEngine secretType org key =
 
 
 {-| Deployment : returns cli command for adding a deployment
-TODO: add deployment
-eg.
-vela add deployment vela add deployment --repo some-repp --org some-org
+
+    eg.
+    vela add deployment vela add deployment --repo some-repp --org some-org
+
 -}
 addDeployment : Org -> Repo -> Command
 addDeployment org repo =

@@ -604,7 +604,7 @@ addSecret model engine type_ org key body =
         |> withAuth model.session
 
 
-{-| addSecret : adds a secret
+{-| addDeployment : adds a deployment
 -}
 addDeployment : PartialModel a -> Org -> Key -> Http.Body -> Request Deployment
 addDeployment model org key body =

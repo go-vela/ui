@@ -23,7 +23,7 @@ import Vela exposing (DeploymentPayload, KeyValuePair, buildDeploymentPayload, e
 -- INIT
 
 
-{-| init : takes msg updates from Main.elm and initializes secrets page input arguments
+{-| init : takes msg updates from Main.elm and initializes deployment page input arguments
 -}
 init : DeploymentResponse msg -> Model msg
 init deploymentResponse =
@@ -42,7 +42,7 @@ reinitializeDeployment deploymentModel =
     { deploymentModel | form = defaultDeploymentForm }
 
 
-{-| updateSecretField : takes field and value and updates the secret update field
+{-| updateDeploymentField : takes field and value and updates the deployment field
 -}
 updateDeploymentField : String -> String -> DeploymentForm -> DeploymentForm
 updateDeploymentField field value form =
@@ -69,14 +69,14 @@ updateDeploymentField field value form =
             form
 
 
-{-| updateDeploymentModel : makes an update to the appropriate secret update
+{-| updateDeploymentModel : makes an update to the appropriate deployment update
 -}
 updateDeploymentModel : DeploymentForm -> Model msg -> Model msg
 updateDeploymentModel value form =
     { form | form = value }
 
 
-{-| onChangeStringField : takes field and value and updates the secrets model
+{-| onChangeStringField : takes field and value and updates the deployment model
 -}
 onChangeStringField : String -> String -> Model msg -> Model msg
 onChangeStringField field value deploymentModel =
@@ -92,21 +92,22 @@ onChangeStringField field value deploymentModel =
             deploymentModel
 
 
-{-| onAddImage : takes image and updates secret update images
+{-| onAddParameter : takes parameter and updates the list of parameters
 -}
-onAddParamter : DeploymentForm -> Model msg -> Model msg
-onAddParamter deploymentUpdate deploymentModel =
+onAddParameter : DeploymentForm -> Model msg -> Model msg
+onAddParameter deploymentUpdate deploymentModel =
     case deploymentUpdate of
         s ->
             updateDeploymentModel (addParameter s) deploymentModel
 
-
+{-| toKeyValue : creates a keyValuePair from form input
+-}
 toKeyValue : String -> String -> KeyValuePair
 toKeyValue key value =
     { key = key, value = value }
 
 
-{-| addImage : takes image and adds it to secret update images
+{-| addParameter : takes parameter from the form and adds it to deployment parameter list
 -}
 addParameter : DeploymentForm -> DeploymentForm
 addParameter form =
@@ -204,7 +205,7 @@ update model msg =
                     ( onChangeStringField field value deploymentModel, Cmd.none )
 
                 AddParameter deploymentForm ->
-                    ( onAddParamter deploymentForm deploymentModel, Cmd.none )
+                    ( onAddParameter deploymentForm deploymentModel, Cmd.none )
 
                 RemoveParameter keyValuePair ->
                     ( onRemoveParameter keyValuePair deploymentModel, Cmd.none )

@@ -26,7 +26,7 @@ import Util exposing (testAttribute)
 
 
 
--- ADD SECRET
+-- ADD DEPLOYMENT
 
 
 {-| addDeployment : takes partial model and renders the Add Deployment form

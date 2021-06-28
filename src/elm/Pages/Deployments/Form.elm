@@ -47,7 +47,7 @@ import RemoteData exposing (WebData)
 import Vela exposing (KeyValuePair, Repo, Repository)
 
 
-{-| viewAddedImages : renders added images
+{-| viewAddedParameters : renders added parameters
 -}
 viewAddedParameters : List KeyValuePair -> List (Html Msg)
 viewAddedParameters parameters =
@@ -58,7 +58,7 @@ viewAddedParameters parameters =
         noParameters
 
 
-{-| noImages : renders when no images have been added
+{-| noParameters : renders when no parameters have been added
 -}
 noParameters : List (Html Msg)
 noParameters =
@@ -78,7 +78,7 @@ noParameters =
     ]
 
 
-{-| addedImage : renders added image
+{-| addedParameter : renders added parameter
 -}
 addedParameter : KeyValuePair -> Html Msg
 addedParameter parameter =
@@ -98,7 +98,7 @@ addedParameter parameter =
 -}
 viewHelp : Html Msg
 viewHelp =
-    div [ class "help" ] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
+    div [ class "help" ] [ text "Need help? Visit our ", a [ href deploymentDocsURL ] [ text "docs" ], text "!" ]
 
 
 {-| viewValueInput : renders value input box
@@ -120,7 +120,8 @@ viewValueInput name val placeholder_ =
             []
         ]
 
-
+{-| viewDeployEnabled : displays a message to enable Deploy webhook if it is not enabled
+-}
 viewDeployEnabled : WebData Repository -> Html Msg
 viewDeployEnabled repo_settings =
     case repo_settings of
@@ -138,7 +139,7 @@ viewDeployEnabled repo_settings =
             section [] []
 
 
-{-| viewImagesInput : renders images input box and images
+{-| viewParameterInput : renders parameters input box and parameters
 -}
 viewParameterInput : DeploymentForm -> Html Msg
 viewParameterInput deployment =
@@ -192,18 +193,9 @@ viewUpdateButton deploymentsModel =
         ]
         [ text "Add Deployment" ]
 
-
-
 -- HELPERS
 
 
-{-| eventEnabled : takes event and returns if it is enabled
--}
-eventEnabled : String -> List String -> Bool
-eventEnabled event =
-    List.member event
-
-
-secretsDocsURL : String
-secretsDocsURL =
-    "https://go-vela.github.io/docs/concepts/pipeline/secrets/"
+deploymentDocsURL : String
+deploymentDocsURL =
+    "https://go-vela.github.io/docs/usage/deployments/"

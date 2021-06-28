@@ -48,7 +48,7 @@ type alias Model msg =
     }
 
 
-{-| SecretForm : record to hold potential add/update secret fields
+{-| DeploymentForm : record to hold potential deployment fields
 -}
 type alias DeploymentForm =
     { commit : String
