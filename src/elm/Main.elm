@@ -2604,6 +2604,7 @@ loadRepoSubPage model org repo toPage =
                         { dm
                             | org = org
                             , repo = repo
+                            , repo_settings = rm.repo
                        }
                     , repo =
                         rm

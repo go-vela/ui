@@ -15,7 +15,7 @@ import Html.Attributes
     exposing
         ( class
         )
-import Pages.Deployments.Form exposing (viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
+import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
     exposing
         ( Model
@@ -46,7 +46,8 @@ addForm deploymentModel =
             deploymentModel.form
     in
     div [ class "deployment-form" ]
-        [ viewValueInput "Target" deployment.target "provide the name for the target deployment environment (default: \"production\")"
+        [ viewDeployEnabled deploymentModel.repo_settings
+        , viewValueInput "Target" deployment.target "provide the name for the target deployment environment (default: \"production\")"
         , viewValueInput "Ref" deployment.ref "provide the reference to deploy - this can be a branch, commit (SHA) or tag (default: \"refs/heads/master\")"
         , viewValueInput "Description" deployment.description "provide the description for the deployment (default: \"Deployment request from Vela\")"
         , viewValueInput "Task" deployment.task "Provide the task for the deployment (default: \"deploy:vela\")"

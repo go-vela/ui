@@ -29,6 +29,7 @@ init deploymentResponse =
         ""
         ""
         defaultDeploymentForm
+        NotAsked
         deploymentResponse
 
 {-| reinitializeDeployment : takes an incoming deployment and reinitialized page input arguments
@@ -166,7 +167,6 @@ update model msg =
     let
         deploymentModel =
             model.deploymentModel
-
         ( sm, action ) =
             case msg of
                 OnChangeStringField field value ->

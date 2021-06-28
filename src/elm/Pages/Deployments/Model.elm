@@ -17,7 +17,8 @@ import Auth.Session exposing (Session(..))
 import Http
 import Http.Detailed
 import Pages exposing (Page(..))
-import Vela exposing (Deployment, Engine, KeyValuePair, Org, Repo, Team)
+import RemoteData exposing (WebData)
+import Vela exposing (Deployment, Engine, KeyValuePair, Org, Repo, Repository, Team)
 
 
 -- TYPES
@@ -40,6 +41,7 @@ type alias Model msg =
     , repo : Repo
     , team : Team
     , form : DeploymentForm
+    , repo_settings : WebData Repository
     , deploymentResponse : DeploymentResponse msg
     }
 

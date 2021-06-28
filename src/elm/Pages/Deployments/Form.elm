@@ -10,6 +10,7 @@ module Pages.Deployments.Form exposing
     , viewAddedParameters
     , viewSubmitButtons
     , viewValueInput
+    , viewDeployEnabled
     )
 
 import Html
@@ -42,7 +43,8 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick, onInput)
 import Pages.Deployments.Model exposing (DeploymentForm, Model, Msg(..))
-import Vela exposing (KeyValuePair)
+import RemoteData exposing (WebData)
+import Vela exposing (KeyValuePair, Repo, Repository)
 
 
 {-| viewAddedImages : renders added images
@@ -117,6 +119,21 @@ viewValueInput name val placeholder_ =
             ]
             []
         ]
+
+viewDeployEnabled : WebData Repository -> Html Msg
+viewDeployEnabled repo_settings =
+    case repo_settings of
+        RemoteData.Success repo ->
+            if repo.allow_deploy then
+                section []
+                []
+            else
+                section [ class "notice" ]
+                  [ strong [] [ text "Deploy webhook for this repo must be enabled in settings" ]
+                  ]
+        _ ->
+            section [] []
+
 
 {-| viewImagesInput : renders images input box and images
 -}
