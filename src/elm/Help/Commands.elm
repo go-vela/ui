@@ -121,6 +121,9 @@ commands page =
         Pages.AddRepoSecret secretEngine org repo ->
             [ addSecret secretEngine Vela.RepoSecret org <| Just repo ]
 
+        Pages.AddDeployment org repo ->
+            [ addDeployment org repo ]
+
         Pages.AddSharedSecret secretEngine org team ->
             [ addSecret secretEngine Vela.SharedSecret org <| Just team ]
 
@@ -502,6 +505,27 @@ addSecret secretEngine secretType org key =
     Command name content docs noIssue
 
 
+{-| Deployment : returns cli command for adding a deployment
+
+    eg.
+    vela add deployment vela add deployment --repo some-repp --org some-org
+
+-}
+addDeployment : Org -> Repo -> Command
+addDeployment org repo =
+    let
+        name =
+            "Add Deployment"
+
+        content =
+            Just <| "vela add deployment --org" ++ org ++ " --repo " ++ repo
+
+        docs =
+            Just "/secret/add"
+    in
+    Command name content docs noIssue
+
+
 {-| viewSecret : returns cli command for viewing a secret
 
     eg.
@@ -745,6 +769,9 @@ resourceLoaded args =
         Pages.AddSharedSecret secretEngine org team ->
             noBlanks [ secretEngine, org, team ]
 
+        Pages.AddDeployment org repo ->
+            noBlanks [ org, repo ]
+
         Pages.OrgSecrets secretEngine org _ _ ->
             noBlanks [ secretEngine, org ]
 
@@ -825,6 +852,9 @@ resourceLoading args =
 
         Pages.AddRepoSecret secretEngine org repo ->
             anyBlank [ secretEngine, org, repo ]
+
+        Pages.AddDeployment org repo ->
+            anyBlank [ org, repo ]
 
         Pages.AddSharedSecret secretEngine org team ->
             anyBlank [ secretEngine, org, team ]

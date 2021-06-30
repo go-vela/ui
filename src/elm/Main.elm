@@ -80,6 +80,9 @@ import Pages.Build.Logs
 import Pages.Build.Model
 import Pages.Build.View
 import Pages.Builds exposing (view)
+import Pages.Deployments.Model
+import Pages.Deployments.Update
+import Pages.Deployments.View
 import Pages.Home
 import Pages.Hooks
 import Pages.Pipeline.Model
@@ -107,104 +110,7 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela
-    exposing
-        ( AuthParams
-        , Build
-        , BuildNumber
-        , Builds
-        , ChownRepo
-        , CurrentUser
-        , EnableRepo
-        , EnableRepos
-        , EnableRepositoryPayload
-        , Enabling(..)
-        , Engine
-        , Event
-        , Favicon
-        , Field
-        , FocusFragment
-        , Hooks
-        , Key
-        , Log
-        , Logs
-        , Name
-        , Org
-        , PipelineModel
-        , PipelineTemplates
-        , Ref
-        , RepairRepo
-        , Repo
-        , RepoModel
-        , RepoResourceIdentifier
-        , RepoSearchFilters
-        , Repositories
-        , Repository
-        , Secret
-        , SecretType(..)
-        , Secrets
-        , ServiceNumber
-        , Services
-        , SourceRepositories
-        , StepNumber
-        , Steps
-        , Team
-        , Templates
-        , Theme(..)
-        , Type
-        , UpdateRepositoryPayload
-        , UpdateUserPayload
-        , buildUpdateFavoritesPayload
-        , buildUpdateRepoBoolPayload
-        , buildUpdateRepoIntPayload
-        , buildUpdateRepoStringPayload
-        , decodeTheme
-        , defaultEnableRepositoryPayload
-        , defaultFavicon
-        , defaultPipeline
-        , defaultPipelineTemplates
-        , defaultRepoModel
-        , encodeEnableRepository
-        , encodeTheme
-        , encodeUpdateRepository
-        , encodeUpdateUser
-        , isComplete
-        , secretTypeToString
-        , statusToFavicon
-        , stringToTheme
-        , updateBuild
-        , updateBuildNumber
-        , updateBuildPipelineBuildNumber
-        , updateBuildPipelineConfig
-        , updateBuildPipelineExpand
-        , updateBuildPipelineFocusFragment
-        , updateBuildPipelineLineFocus
-        , updateBuildPipelineOrgRepo
-        , updateBuildPipelineRef
-        , updateBuildServices
-        , updateBuildServicesFocusFragment
-        , updateBuildServicesFollowing
-        , updateBuildServicesLogs
-        , updateBuildSteps
-        , updateBuildStepsFocusFragment
-        , updateBuildStepsFollowing
-        , updateBuildStepsLogs
-        , updateBuilds
-        , updateBuildsEvent
-        , updateBuildsPage
-        , updateBuildsPager
-        , updateBuildsPerPage
-        , updateHooks
-        , updateHooksPage
-        , updateHooksPager
-        , updateHooksPerPage
-        , updateOrgRepo
-        , updateRepo
-        , updateRepoCounter
-        , updateRepoEnabling
-        , updateRepoInitialized
-        , updateRepoTimeout
-        )
+import Vela exposing (AuthParams, Build, BuildNumber, Builds, ChownRepo, CurrentUser, Deployment, EnableRepo, EnableRepos, EnableRepositoryPayload, Enabling(..), Engine, Event, Favicon, Field, FocusFragment, Hooks, Key, Log, Logs, Name, Org, PipelineModel, PipelineTemplates, Ref, RepairRepo, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Secret, SecretType(..), Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildPipelineOrgRepo, updateBuildPipelineRef, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoTimeout)
 
 
 
@@ -245,6 +151,7 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
+    , deploymentModel : Pages.Deployments.Model.Model Msg
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     }
@@ -293,6 +200,7 @@ init flags url navKey =
             , showIdentity = False
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
+            , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
             }
@@ -404,6 +312,7 @@ type Msg
     | GetPipelineTemplatesResponse Org Repo FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
+    | AddDeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | RepoSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | OrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
@@ -415,6 +324,7 @@ type Msg
     | Tick Interval Posix
       -- Components
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
+    | AddDeploymentUpdate Pages.Deployments.Model.Msg
       -- Other
     | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
@@ -1546,6 +1456,24 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
+        AddDeploymentResponse response ->
+            case response of
+                Ok ( _, deployment ) ->
+                    let
+                        deploymentModel =
+                            model.deploymentModel
+
+                        updatedDeploymentModel =
+                            Pages.Deployments.Update.reinitializeDeployment deploymentModel
+                    in
+                    ( { model | deploymentModel = updatedDeploymentModel }
+                    , Cmd.none
+                    )
+                        |> addDeploymentResponseAlert deployment
+
+                Err error ->
+                    ( model, addError error )
+
         UpdateSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
@@ -1638,6 +1566,15 @@ update msg model =
             , action
             )
 
+        AddDeploymentUpdate m ->
+            let
+                ( newModel, action ) =
+                    Pages.Deployments.Update.update model m
+            in
+            ( newModel
+            , action
+            )
+
         -- Other
         HandleError error ->
             ( model, Cmd.none )
@@ -1702,6 +1639,20 @@ update msg model =
         -- NoOp
         NoOp ->
             ( model, Cmd.none )
+
+
+{-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
+-}
+addDeploymentResponseAlert :
+    Deployment
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+addDeploymentResponseAlert deployment =
+    let
+        msg =
+            deployment.description ++ " submitted."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
 
 {-| addSecretResponseAlert : takes secret and produces Toasty alert for when adding a secret
@@ -2195,6 +2146,11 @@ viewContent model =
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
+        Pages.AddDeployment org repo ->
+            ( String.join "/" [ org, repo ] ++ " add deployment"
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
+            )
+
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
@@ -2535,6 +2491,9 @@ setNewPage route model =
         ( Routes.Build org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildPage model org repo buildNumber lineFocus
 
+        ( Routes.AddDeploymentRoute org repo, Authenticated _ ) ->
+            loadAddDeploymentPage model org repo
+
         ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildServicesPage model org repo buildNumber lineFocus
 
@@ -2621,6 +2580,9 @@ loadRepoSubPage model org repo toPage =
         secretsModel =
             model.secretsModel
 
+        dm =
+            model.deploymentModel
+
         fetchSecrets : Org -> Repo -> Cmd Msg
         fetchSecrets o r =
             Cmd.batch [ getAllRepoSecrets model "native" o r, getAllOrgSecrets model "native" o ]
@@ -2638,6 +2600,12 @@ loadRepoSubPage model org repo toPage =
                             , repo = repo
                             , engine = "native"
                             , type_ = Vela.RepoSecret
+                        }
+                    , deploymentModel =
+                        { dm
+                            | org = org
+                            , repo = repo
+                            , repo_settings = rm.repo
                         }
                     , repo =
                         rm
@@ -2758,6 +2726,17 @@ loadRepoSecretsPage :
     -> ( Model, Cmd Msg )
 loadRepoSecretsPage model maybePage maybePerPage engine org repo =
     loadRepoSubPage model org repo <| Pages.RepoSecrets engine org repo maybePage maybePerPage
+
+
+{-| loadAddDeploymentPage : takes model org and repo and loads the page for managing deployments
+-}
+loadAddDeploymentPage :
+    Model
+    -> Org
+    -> Repo
+    -> ( Model, Cmd Msg )
+loadAddDeploymentPage model org repo =
+    loadRepoSubPage model org repo <| Pages.AddDeployment org repo
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.
@@ -3640,6 +3619,11 @@ pipelineMsgs =
 initSecretsModel : Pages.Secrets.Model.Model Msg
 initSecretsModel =
     Pages.Secrets.Update.init SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
+
+
+initDeploymentsModel : Pages.Deployments.Model.Model Msg
+initDeploymentsModel =
+    Pages.Deployments.Update.init AddDeploymentResponse
 
 
 

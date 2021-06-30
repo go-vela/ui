@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Api exposing
     ( Request(..)
+    , addDeployment
     , addSecret
     , cancelBuild
     , chownRepo
@@ -50,45 +51,7 @@ import Http
 import Http.Detailed
 import Json.Decode exposing (Decoder)
 import Task exposing (Task)
-import Vela
-    exposing
-        ( AuthParams
-        , Build
-        , BuildNumber
-        , Builds
-        , CurrentUser
-        , Engine
-        , Event
-        , Hooks
-        , Key
-        , Log
-        , Name
-        , Org
-        , Repo
-        , Repository
-        , Secret
-        , Secrets
-        , Service
-        , ServiceNumber
-        , SourceRepositories
-        , Step
-        , StepNumber
-        , Templates
-        , Type
-        , decodeBuild
-        , decodeBuilds
-        , decodeCurrentUser
-        , decodeHooks
-        , decodeLog
-        , decodePipelineConfig
-        , decodePipelineTemplates
-        , decodeRepository
-        , decodeSecret
-        , decodeSecrets
-        , decodeService
-        , decodeSourceRepositories
-        , decodeStep
-        )
+import Vela exposing (AuthParams, Build, BuildNumber, Builds, CurrentUser, Deployment, Engine, Event, Hooks, Key, Log, Name, Org, Repo, Repository, Secret, Secrets, Service, ServiceNumber, SourceRepositories, Step, StepNumber, Templates, Type, decodeBuild, decodeBuilds, decodeCurrentUser, decodeDeployment, decodeHooks, decodeLog, decodePipelineConfig, decodePipelineTemplates, decodeRepository, decodeSecret, decodeSecrets, decodeService, decodeSourceRepositories, decodeStep)
 
 
 
@@ -638,6 +601,14 @@ updateSecret model engine type_ org key name body =
 addSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Http.Body -> Request Secret
 addSecret model engine type_ org key body =
     post model.velaAPI (Endpoint.Secrets Nothing Nothing engine type_ org key) body decodeSecret
+        |> withAuth model.session
+
+
+{-| addDeployment : adds a deployment
+-}
+addDeployment : PartialModel a -> Org -> Key -> Http.Body -> Request Deployment
+addDeployment model org key body =
+    post model.velaAPI (Endpoint.Deployment org key) body decodeDeployment
         |> withAuth model.session
 
 
