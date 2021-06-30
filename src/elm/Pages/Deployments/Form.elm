@@ -44,6 +44,7 @@ import Html.Attributes
 import Html.Events exposing (onClick, onInput)
 import Pages.Deployments.Model exposing (DeploymentForm, Model, Msg(..))
 import RemoteData exposing (WebData)
+import Util
 import Vela exposing (KeyValuePair, Repo, Repository)
 
 
@@ -144,7 +145,7 @@ viewDeployEnabled repo_settings =
 -}
 viewParameterInput : DeploymentForm -> Html Msg
 viewParameterInput deployment =
-    section [ class "image" ]
+    section [ class "parameter" ]
         [ div [ id "parameter-select", class "form-control", class "-stack" ]
             [ label [ for "parameter-select", class "form-label" ]
                 [ strong [] [ text "Add Parameters" ]
@@ -155,18 +156,21 @@ viewParameterInput deployment =
                 ]
             , input
                 [ placeholder "Key"
+                , Util.testAttribute "parameter-key-input"
                 , onInput <| OnChangeStringField "parameterInputKey"
                 , value deployment.parameterInputKey
                 ]
                 []
             , input
                 [ placeholder "Value"
+                , Util.testAttribute "parameter-value-input"
                 , onInput <| OnChangeStringField "parameterInputValue"
                 , value deployment.parameterInputValue
                 ]
                 []
             , button
                 [ class "button"
+                , Util.testAttribute "add-parameter-button"
                 , class "-outline"
                 , class "add-paramter"
                 , onClick <| AddParameter <| deployment
@@ -175,7 +179,7 @@ viewParameterInput deployment =
                 [ text "Add"
                 ]
             ]
-        , div [ class "parameters" ] <| viewAddedParameters deployment.payload
+        , div [ class "parameters", Util.testAttribute "parameters-list" ] <| viewAddedParameters deployment.payload
         ]
 
 
