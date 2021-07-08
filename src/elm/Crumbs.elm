@@ -111,6 +111,19 @@ toPath page =
                     , currentRepo
                     ]
 
+                Pages.RepoInsights org repo ->
+                    let
+                        organizationPage =
+                            ( org, Nothing )
+
+                        currentRepo =
+                            ( repo, Nothing )
+                    in
+                    [ overviewPage
+                    , organizationPage
+                    , currentRepo
+                    ]
+
                 Pages.RepoSettings org repo ->
                     let
                         organizationPage =

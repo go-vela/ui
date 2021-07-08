@@ -34,6 +34,7 @@ type Route
     | OrgSecret Engine Org Name
     | RepoSecret Engine Org Repo Name
     | SharedSecret Engine Org Team Name
+    | RepoInsights Org Repo
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
@@ -70,6 +71,7 @@ routes =
         , map OrgSecret (s "-" </> s "secrets" </> string </> s "org" </> string </> string)
         , map RepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> string)
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
+        , map RepoInsights (string </> string </> s "insights")
         , map RepoSettings (string </> string </> s "settings")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
@@ -110,6 +112,9 @@ routeToUrl route =
 
         SourceRepositories ->
             "/account/source-repos"
+
+        RepoInsights org repo ->
+            "/" ++ org ++ "/" ++ repo ++ "/insights"
 
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"

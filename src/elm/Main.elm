@@ -85,6 +85,7 @@ import Pages.Hooks
 import Pages.Pipeline.Model
 import Pages.Pipeline.View
 import Pages.RepoSettings exposing (enableUpdate)
+import Pages.RepoInsights
 import Pages.Secrets.Model
 import Pages.Secrets.Update
 import Pages.Secrets.View
@@ -2130,6 +2131,11 @@ viewContent model =
                 ]
             )
 
+        Pages.RepoInsights org repo ->
+            ( String.join "/" [ org, repo ] ++ " insights"
+            , lazy4 Pages.RepoInsights.view model.repo.repo repoInsightsMsgs model.velaAPI (Url.toString model.entryURL)
+            )
+
         Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
             , lazy4 Pages.RepoSettings.view model.repo.repo repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
@@ -2499,6 +2505,9 @@ setNewPage route model =
         ( Routes.Hooks org repo maybePage maybePerPage, Authenticated _ ) ->
             loadHooksPage model org repo maybePage maybePerPage
 
+        ( Routes.RepoInsights org repo, Authenticated _ ) ->
+            loadRepoInsightsPage model org repo
+
         ( Routes.RepoSettings org repo, Authenticated _ ) ->
             loadRepoSettingsPage model org repo
 
@@ -2726,6 +2735,9 @@ loadRepoSubPage model org repo toPage =
                         , getHooks model o r maybePage maybePerPage
                         )
 
+                    Pages.RepoInsights o r ->
+                        ( model, getRepo model o r )
+
                     Pages.RepoSettings o r ->
                         ( model, getRepo model o r )
 
@@ -2766,6 +2778,12 @@ loadHooksPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Paginatio
 loadHooksPage model org repo maybePage maybePerPage =
     loadRepoSubPage model org repo <| Pages.Hooks org repo maybePage maybePerPage
 
+
+{-| loadInsightsPage : takes model org and repo and loads the page for displaying repo insights
+-}
+loadRepoInsightsPage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadRepoInsightsPage model org repo =
+    loadRepoSubPage model org repo <| Pages.RepoInsights org repo
 
 {-| loadSettingsPage : takes model org and repo and loads the page for updating repo configurations
 -}
@@ -3597,6 +3615,12 @@ sourceReposMsgs : Pages.SourceRepos.Msgs Msg
 sourceReposMsgs =
     Pages.SourceRepos.Msgs SearchSourceRepos EnableRepo EnableRepos ToggleFavorite
 
+
+{-| repoInsightsMsgs : prepares the input record required for the Insights page to route Msgs back to Main.elm
+-}
+repoInsightsMsgs : Pages.RepoInsights.Msgs Msg
+repoInsightsMsgs =
+    Pages.RepoInsights.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo
 
 {-| repoSettingsMsgs : prepares the input record required for the Settings page to route Msgs back to Main.elm
 -}

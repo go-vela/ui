@@ -25,6 +25,7 @@ type Page
     | OrgSecret Engine Org Name
     | RepoSecret Engine Org Repo Name
     | SharedSecret Engine Org Team Name
+    | RepoInsights Org Repo
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
@@ -55,6 +56,9 @@ toRoute page =
 
         Hooks org repo maybePage maybePerPage ->
             Routes.Hooks org repo maybePage maybePerPage
+
+        RepoInsights org repo ->
+            Routes.RepoInsights org repo
 
         RepoSettings org repo ->
             Routes.RepoSettings org repo
@@ -131,6 +135,9 @@ strip page =
 
         Hooks org repo _ _ ->
             Hooks org repo Nothing Nothing
+
+        RepoInsights org repo ->
+            RepoInsights org repo
 
         RepoSettings org repo ->
             RepoSettings org repo

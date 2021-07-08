@@ -103,6 +103,9 @@ commands page =
         Pages.Pipeline _ _ _ _ _ ->
             []
 
+        Pages.RepoInsights org repo ->
+            [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
+
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
@@ -763,6 +766,9 @@ resourceLoaded args =
         Pages.SharedSecret secretEngine org team name ->
             noBlanks [ secretEngine, org, team, name ]
 
+        Pages.RepoInsights _ _ ->
+            args.repo.success
+
         Pages.RepoSettings _ _ ->
             args.repo.success
 
@@ -837,6 +843,9 @@ resourceLoading args =
 
         Pages.SharedSecret secretEngine org team name ->
             anyBlank [ secretEngine, org, team, name ]
+
+        Pages.RepoInsights _ _ ->
+            args.repo.loading
 
         Pages.RepoSettings _ _ ->
             args.repo.loading

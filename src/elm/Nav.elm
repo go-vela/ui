@@ -125,6 +125,9 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
         Pages.RepositoryBuilds org repo _ _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
+        Pages.RepoInsights org repo ->
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+
         Pages.RepoSettings org repo ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
@@ -184,6 +187,9 @@ viewUtil model =
                 viewRepoTabs rm org repo model.page
 
             Pages.Hooks org repo _ _ ->
+                viewRepoTabs rm org repo model.page
+
+            Pages.RepoInsights org repo ->
                 viewRepoTabs rm org repo model.page
 
             Pages.RepoSettings org repo ->
@@ -297,6 +303,7 @@ viewRepoTabs rm org repo currentPage =
             [ Tab "Builds" currentPage (Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
             , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False
             , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting
+            , Tab "Insights" currentPage (Pages.RepoInsights org repo) False
             , Tab "Settings" currentPage (Pages.RepoSettings org repo) False
             ]
     in
