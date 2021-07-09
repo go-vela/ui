@@ -2336,9 +2336,7 @@ viewBuildsFilter shouldRender org repo maybeEvent maybeStatus =
         -- maybeStatusToString : Maybe StatusFilter -> String
         -- maybeStatusToString maybeStatus =
         --     case m
-    in
-    if shouldRender then
-        div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
+        filterByEventDivs = 
             div [] [ text "Filter by Event:" ]
                 :: List.map
                     (\e ->
@@ -2361,7 +2359,9 @@ viewBuildsFilter shouldRender org repo maybeEvent maybeStatus =
                             ]
                     )
                     eventEnum
-            ++ div [] [ text "Filter by Status:" ]
+
+        filterByStatusDivs = 
+            div [] [ text "Filter by Status:" ]
                 :: List.map
                     (\s ->
                         div [ class "form-control" ]
@@ -2383,6 +2383,12 @@ viewBuildsFilter shouldRender org repo maybeEvent maybeStatus =
                             ]
                     )
                     statusEnum
+        divChildren = [div [] filterByEventDivs,  div [] filterByStatusDivs]
+
+    in
+    if shouldRender then
+        div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] 
+        divChildren
     else
         text ""
 
