@@ -57,7 +57,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy6)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy7)
 import Http
 import Http.Detailed
 import Interop
@@ -121,6 +121,8 @@ import Vela
         , Enabling(..)
         , Engine
         , Event
+        , Status
+        , StatusFilter
         , Favicon
         , Field
         , FocusFragment
@@ -172,6 +174,7 @@ import Vela
         , secretTypeToString
         , statusToFavicon
         , stringToTheme
+        , toStatus
         , updateBuild
         , updateBuildNumber
         , updateBuildPipelineBuildNumber
@@ -343,7 +346,7 @@ type Msg
     | RefreshSettings Org Repo
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
-    | FilterBuildEventBy (Maybe Event) Org Repo
+    | FilterBuildEventBy (Maybe Event) (Maybe StatusFilter) Org Repo
     | SetTheme Theme
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
@@ -519,14 +522,14 @@ update msg model =
                     , getSharedSecrets model Nothing Nothing engine org key
                     )
 
-        FilterBuildEventBy maybeEvent org repo ->
+        FilterBuildEventBy maybeEvent maybeStatus org repo ->
             ( { model
                 | repo =
                     rm
                         |> updateBuilds Loading
                         |> updateBuildsPager []
               }
-            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
+            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent maybeStatus
             )
 
         SetTheme theme ->
@@ -538,9 +541,9 @@ update msg model =
 
         GotoPage pageNumber ->
             case model.page of
-                Pages.RepositoryBuilds org repo _ maybePerPage maybeEvent ->
+                Pages.RepositoryBuilds org repo _ maybePerPage maybeEvent maybeStatus ->
                     ( { model | repo = updateBuilds Loading rm }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent maybeStatus
                     )
 
                 Pages.Hooks org repo _ maybePerPage ->
@@ -1217,7 +1220,7 @@ update msg model =
                             String.join "/" [ "", org, repo, newBuildNumber ]
                     in
                     ( model
-                    , getBuilds model org repo Nothing Nothing Nothing
+                    , getBuilds model org repo Nothing Nothing Nothing Nothing
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
 
@@ -1825,12 +1828,12 @@ refreshPage model =
             model.page
     in
     case page of
-        Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
-            getBuilds model org repo maybePage maybePerPage maybeEvent
+        Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent maybeStatus ->
+            getBuilds model org repo maybePage maybePerPage maybeEvent maybeStatus
 
         Pages.Build org repo buildNumber focusFragment ->
             Cmd.batch
-                [ getBuilds model org repo Nothing Nothing Nothing
+                [ getBuilds model org repo Nothing Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber focusFragment
                 , refreshStepLogs model org repo buildNumber model.repo.build.steps.steps Nothing
@@ -1838,7 +1841,7 @@ refreshPage model =
 
         Pages.BuildServices org repo buildNumber focusFragment ->
             Cmd.batch
-                [ getBuilds model org repo Nothing Nothing Nothing
+                [ getBuilds model org repo Nothing Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildServices model org repo buildNumber focusFragment
                 , refreshServiceLogs model org repo buildNumber model.repo.build.services.services Nothing
@@ -1846,7 +1849,7 @@ refreshPage model =
 
         Pages.BuildPipeline org repo buildNumber _ _ _ ->
             Cmd.batch
-                [ getBuilds model org repo Nothing Nothing Nothing
+                [ getBuilds model org repo Nothing Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 ]
 
@@ -2200,7 +2203,7 @@ viewContent model =
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
-        Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
+        Pages.RepositoryBuilds org repo maybePage _ maybeEvent maybeStatus ->
             let
                 page : String
                 page =
@@ -2228,9 +2231,9 @@ viewContent model =
             in
             ( String.join "/" [ org, repo ] ++ " builds" ++ page
             , div []
-                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent maybeStatus
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy6 Pages.Builds.view model.repo.builds model.time model.zone org repo maybeEvent
+                , lazy7 Pages.Builds.view model.repo.builds model.time model.zone org repo maybeEvent maybeStatus
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -2302,13 +2305,16 @@ viewContent model =
             )
 
 
-viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
-viewBuildsFilter shouldRender org repo maybeEvent =
+viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Maybe StatusFilter -> Html Msg
+viewBuildsFilter shouldRender org repo maybeEvent maybeStatus =
     let
         eventEnum : List String
         eventEnum =
             [ "all", "push", "pull_request", "tag", "deployment", "comment" ]
 
+        statusEnum: List String
+        statusEnum =
+            [ "all", "success", "failure", "error", "killed", "pending", "running" ]
         eventToMaybe : String -> Maybe Event
         eventToMaybe event =
             case event of
@@ -2317,6 +2323,19 @@ viewBuildsFilter shouldRender org repo maybeEvent =
 
                 _ ->
                     Just event
+
+        statusToMaybe : String -> Maybe StatusFilter
+        statusToMaybe status =
+            case status of
+                "all" ->
+                    Nothing
+
+                _ ->
+                    Just status
+
+        -- maybeStatusToString : Maybe StatusFilter -> String
+        -- maybeStatusToString maybeStatus =
+        --     case m
     in
     if shouldRender then
         div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
@@ -2330,7 +2349,7 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                                 , name "build-filter"
                                 , Util.testAttribute <| "build-filter-" ++ e
                                 , checked <| maybeEvent == eventToMaybe e
-                                , onClick <| FilterBuildEventBy (eventToMaybe e) org repo
+                                , onClick <| FilterBuildEventBy (eventToMaybe e) maybeStatus org repo
                                 , attribute "aria-label" <| "filter to show " ++ e ++ " events"
                                 ]
                                 []
@@ -2342,7 +2361,28 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                             ]
                     )
                     eventEnum
-
+            ++ div [] [ text "Filter by Status:" ]
+                :: List.map
+                    (\s ->
+                        div [ class "form-control" ]
+                            [ input
+                                [ type_ "radio"
+                                , id <| "filter-" ++ s
+                                , name "build-filter"
+                                , Util.testAttribute <| "build-filter-" ++ s
+                                , checked <| maybeStatus == statusToMaybe s
+                                , onClick <| FilterBuildEventBy maybeEvent (eventToMaybe s) org repo
+                                , attribute "aria-label" <| "filter to show " ++ s ++ " status"
+                                ]
+                                []
+                            , label
+                                [ class "form-label"
+                                , for <| "filter-" ++ s
+                                ]
+                                [ text <| String.replace "_" " " s ]
+                            ]
+                    )
+                    statusEnum
     else
         text ""
 
@@ -2529,8 +2569,8 @@ setNewPage route model =
         ( Routes.SharedSecret engine org team name, Authenticated _ ) ->
             loadUpdateSharedSecretPage model engine org team name
 
-        ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
-            loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent
+        ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent maybeStatus, Authenticated _ ) ->
+            loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent maybeStatus
 
         ( Routes.Build org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildPage model org repo buildNumber lineFocus
@@ -2649,7 +2689,7 @@ loadRepoSubPage model org repo toPage =
                             -- update builds pagination
                             |> (\rm_ ->
                                     case toPage of
-                                        Pages.RepositoryBuilds _ _ maybePage maybePerPage maybeEvent ->
+                                        Pages.RepositoryBuilds _ _ maybePage maybePerPage maybeEvent maybeStatus ->
                                             rm_
                                                 |> updateBuildsPage maybePage
                                                 |> updateBuildsPerPage maybePerPage
@@ -2679,11 +2719,11 @@ loadRepoSubPage model org repo toPage =
                     [ getCurrentUser model
                     , getRepo model org repo
                     , case toPage of
-                        Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
-                            getBuilds model o r maybePage maybePerPage maybeEvent
+                        Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent maybeStatus ->
+                            getBuilds model o r maybePage maybePerPage maybeEvent maybeStatus
 
                         _ ->
-                            getBuilds model org repo Nothing Nothing Nothing
+                            getBuilds model org repo Nothing Nothing Nothing Nothing
                     , case toPage of
                         Pages.Hooks o r maybePage maybePerPage ->
                             getHooks model o r maybePage maybePerPage
@@ -2702,15 +2742,15 @@ loadRepoSubPage model org repo toPage =
             else
                 -- repo data has already been initialized and org/repo has not changed, aka tab switch
                 case toPage of
-                    Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
+                    Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent maybeStatus ->
                         ( { model
                             | repo =
                                 { rm
                                     | builds =
-                                        { builds | maybePage = maybePage, maybePerPage = maybePerPage, maybeEvent = maybeEvent }
+                                        { builds | maybePage = maybePage, maybePerPage = maybePerPage, maybeEvent = maybeEvent, maybeStatus = maybeStatus }
                                 }
                           }
-                        , getBuilds model o r maybePage maybePerPage maybeEvent
+                        , getBuilds model o r maybePage maybePerPage maybeEvent maybeStatus
                         )
 
                     Pages.RepoSecrets _ o r _ _ ->
@@ -2741,9 +2781,9 @@ loadRepoSubPage model org repo toPage =
     loadRepoBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
 -}
-loadRepoBuildsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
-loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
-    loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
+loadRepoBuildsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Maybe StatusFilter -> ( Model, Cmd Msg )
+loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent maybeStatus =
+    loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent maybeStatus
 
 
 {-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
@@ -3052,7 +3092,7 @@ loadBuildPage model org repo buildNumber lineFocus =
 
       else
         Cmd.batch <|
-            [ getBuilds model org repo Nothing Nothing Nothing
+            [ getBuilds model org repo Nothing Nothing Nothing Nothing
             , getBuild model org repo buildNumber
             , getAllBuildSteps model org repo buildNumber lineFocus sameBuild
             ]
@@ -3112,7 +3152,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 
       else
         Cmd.batch <|
-            [ getBuilds model org repo Nothing Nothing Nothing
+            [ getBuilds model org repo Nothing Nothing Nothing Nothing
             , getBuild model org repo buildNumber
             , getAllBuildServices model org repo buildNumber lineFocus sameBuild
             ]
@@ -3206,7 +3246,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
 
       else
         Cmd.batch
-            [ getBuilds model org repo Nothing Nothing Nothing
+            [ getBuilds model org repo Nothing Nothing Nothing Nothing
             , getBuild model org repo buildNumber
             , getPipeline model org repo ref lineFocus sameBuild
             , getPipelineTemplates model org repo ref lineFocus sameBuild
@@ -3678,9 +3718,9 @@ getRepo model org repo =
     Api.try RepoResponse <| Api.getRepo model org repo
 
 
-getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
-getBuilds model org repo maybePage maybePerPage maybeEvent =
-    Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
+getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Maybe StatusFilter -> Cmd Msg
+getBuilds model org repo maybePage maybePerPage maybeEvent maybeStatus =
+    Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent maybeStatus org repo
 
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg

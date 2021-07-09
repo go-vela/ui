@@ -27,12 +27,13 @@ import RemoteData exposing (RemoteData(..))
 import Time exposing (Posix, Zone)
 import Util exposing (largeLoader)
 import Vela exposing (BuildsModel, Event, Org, Repo)
+import Vela exposing (StatusFilter)
 
 
 {-| view : takes org and repo and renders build previews
 -}
-view : BuildsModel -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Html msg
-view buildsModel now zone org repo maybeEvent =
+view : BuildsModel -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Maybe StatusFilter -> Html msg
+view buildsModel now zone org repo maybeEvent maybeStatus =
     let
         settingsLink : String
         settingsLink =

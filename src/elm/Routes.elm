@@ -15,6 +15,7 @@ import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (StatusFilter)
 
 
 
@@ -35,7 +36,7 @@ type Route
     | RepoSecret Engine Org Repo Name
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
-    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
+    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) (Maybe StatusFilter)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
@@ -71,7 +72,7 @@ routes =
         , map RepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> string)
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
-        , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
+        , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event" <?> Query.string "status")
         , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
@@ -141,8 +142,8 @@ routeToUrl route =
         SharedSecret engine org team name ->
             "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team ++ "/" ++ name
 
-        RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
-            "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
+        RepositoryBuilds org repo maybePage maybePerPage maybeEvent maybeStatus ->
+            "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent ++ statusToQueryParam maybeStatus)
 
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
@@ -199,6 +200,13 @@ eventToQueryParam maybeEvent =
     else
         []
 
+statusToQueryParam : Maybe StatusFilter -> List UB.QueryParameter
+statusToQueryParam maybeStatus =
+    if maybeStatus /= Nothing then
+        [ UB.string "status" <| Maybe.withDefault "" maybeStatus ]
+
+    else
+        []
 
 maybeToQueryParam : Maybe String -> String -> Maybe UB.QueryParameter
 maybeToQueryParam maybeStr key =

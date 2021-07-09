@@ -122,7 +122,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
                         text "Refresh List"
                 ]
 
-        Pages.RepositoryBuilds org repo _ _ _ ->
+        Pages.RepositoryBuilds org repo _ _ _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.RepoSettings org repo ->
@@ -177,7 +177,7 @@ viewUtil model =
     in
     div [ class "util" ]
         [ case model.page of
-            Pages.RepositoryBuilds org repo _ _ _ ->
+            Pages.RepositoryBuilds org repo _ _ _ _ ->
                 viewRepoTabs rm org repo model.page
 
             Pages.RepoSecrets _ org repo _ _ ->
@@ -294,7 +294,7 @@ viewRepoTabs rm org repo currentPage =
                     False
 
         tabs =
-            [ Tab "Builds" currentPage (Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
+            [ Tab "Builds" currentPage (Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent rm.builds.maybeStatus) False
             , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False
             , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting
             , Tab "Settings" currentPage (Pages.RepoSettings org repo) False

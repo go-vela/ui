@@ -286,7 +286,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
                     , a
                         [ class "button"
                         , Util.testAttribute <| String.join "-" [ "view", repo.org, repo.name ]
-                        , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing Nothing
+                        , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing Nothing Nothing
                         ]
                         [ text "View" ]
                     ]

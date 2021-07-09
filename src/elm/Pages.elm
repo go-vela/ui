@@ -9,7 +9,7 @@ module Pages exposing (Page(..), strip, toRoute)
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Routes exposing (Route(..))
-import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, StatusFilter, Team)
 
 
 type Page
@@ -26,7 +26,7 @@ type Page
     | RepoSecret Engine Org Repo Name
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
-    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
+    | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) (Maybe StatusFilter)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
@@ -86,8 +86,8 @@ toRoute page =
         SharedSecret engine org team name ->
             Routes.SharedSecret engine org team name
 
-        RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
-            Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
+        RepositoryBuilds org repo maybePage maybePerPage maybeEvent maybeStatus ->
+            Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent maybeStatus
 
         Build org repo buildNumber logFocus ->
             Routes.Build org repo buildNumber logFocus
@@ -162,8 +162,8 @@ strip page =
         SharedSecret engine org team name ->
             SharedSecret engine org team name
 
-        RepositoryBuilds org repo _ _ _ ->
-            RepositoryBuilds org repo Nothing Nothing Nothing
+        RepositoryBuilds org repo _ _ _ _ ->
+            RepositoryBuilds org repo Nothing Nothing Nothing Nothing
 
         Build org repo buildNumber _ ->
             Build org repo buildNumber Nothing

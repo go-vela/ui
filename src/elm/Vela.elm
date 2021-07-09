@@ -48,6 +48,7 @@ module Vela exposing
     , Repository
     , Resource
     , Resources
+    , StatusFilter
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -103,6 +104,7 @@ module Vela exposing
     , secretsErrorLabel
     , statusToFavicon
     , stringToTheme
+    , toStatus
     , updateBuild
     , updateBuildNumber
     , updateBuildPipelineBuildNumber
@@ -180,6 +182,8 @@ type alias Name =
 type alias Event =
     String
 
+type alias StatusFilter =
+    String
 
 type alias BuildNumber =
     String
@@ -1016,6 +1020,7 @@ type alias BuildsModel =
     , maybePage : Maybe Pagination.Page
     , maybePerPage : Maybe Pagination.PerPage
     , maybeEvent : Maybe Event
+    , maybeStatus : Maybe StatusFilter
     }
 
 
@@ -1096,7 +1101,7 @@ buildStatusDecoder =
 
 defaultBuilds : BuildsModel
 defaultBuilds =
-    BuildsModel RemoteData.NotAsked [] Nothing Nothing Nothing
+    BuildsModel RemoteData.NotAsked [] Nothing Nothing Nothing Nothing
 
 
 type alias Builds =

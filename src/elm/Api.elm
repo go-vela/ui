@@ -89,6 +89,7 @@ import Vela
         , decodeSourceRepositories
         , decodeStep
         )
+import Vela exposing (StatusFilter)
 
 
 
@@ -543,9 +544,9 @@ cancelBuild model org repository buildNumber =
 
 {-| getBuilds : fetches vela builds by repository
 -}
-getBuilds : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Org -> Repo -> Request Builds
-getBuilds model maybePage maybePerPage maybeEvent org repository =
-    get model.velaAPI (Endpoint.Builds maybePage maybePerPage maybeEvent org repository) decodeBuilds
+getBuilds : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Maybe StatusFilter -> Org -> Repo -> Request Builds
+getBuilds model maybePage maybePerPage maybeEvent maybeStatus org repository =
+    get model.velaAPI (Endpoint.Builds maybePage maybePerPage maybeEvent maybeStatus org repository) decodeBuilds
         |> withAuth model.session
 
 

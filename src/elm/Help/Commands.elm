@@ -88,7 +88,7 @@ commands page =
         Pages.Hooks org repo _ _ ->
             [ validate, listHooks org repo, viewHook org repo ]
 
-        Pages.RepositoryBuilds org repo _ _ _ ->
+        Pages.RepositoryBuilds org repo _ _ _ _ ->
             [ listBuilds org repo ]
 
         Pages.Build org repo buildNumber _ ->
@@ -721,7 +721,7 @@ resourceLoaded args =
         Pages.SourceRepositories ->
             args.sourceRepos.success
 
-        Pages.RepositoryBuilds _ _ _ _ _ ->
+        Pages.RepositoryBuilds _ _ _ _ _ _ ->
             args.builds.success
 
         Pages.Build _ _ _ _ ->
@@ -796,7 +796,7 @@ resourceLoading args =
         Pages.SourceRepositories ->
             args.sourceRepos.loading
 
-        Pages.RepositoryBuilds _ _ _ _ _ ->
+        Pages.RepositoryBuilds _ _ _ _ _ _ ->
             args.builds.loading
 
         Pages.Build _ _ _ _ ->

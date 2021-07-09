@@ -232,12 +232,12 @@ toPath page =
                     in
                     [ overviewPage, orgPage, teamPage, sharedSecrets, nameCrumb ]
 
-                Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
+                Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent maybeStatus ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent maybeStatus ) ]
 
                 Pages.Build org repo buildNumber _ ->
                     let
@@ -246,7 +246,7 @@ toPath page =
                     in
                     [ overviewPage
                     , organizationPage
-                    , ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                    , ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing Nothing )
                     , ( "#" ++ buildNumber, Nothing )
                     ]
 
@@ -257,7 +257,7 @@ toPath page =
                     in
                     [ overviewPage
                     , organizationPage
-                    , ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                    , ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing Nothing )
                     , ( "#" ++ buildNumber, Nothing )
                     ]
 
@@ -267,7 +267,7 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuildsPage =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing Nothing )
                     in
                     [ overviewPage
                     , organizationPage
@@ -281,7 +281,7 @@ toPath page =
                             ( org, Nothing )
 
                         repoBuildsPage =
-                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing Nothing)
                     in
                     [ overviewPage
                     , organizationPage

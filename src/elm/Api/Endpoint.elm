@@ -9,6 +9,7 @@ module Api.Endpoint exposing (Endpoint(..), toUrl)
 import Api.Pagination as Pagination
 import Url.Builder as UB exposing (QueryParameter)
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, Name, Org, Ref, Repo, ServiceNumber, StepNumber, Type)
+import Vela exposing (StatusFilter)
 
 
 {-| apiBase : is the versioned base of all API paths
@@ -32,7 +33,7 @@ type Endpoint
     | RepositoryRepair Org Repo
     | UserSourceRepositories
     | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
-    | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
+    | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) (Maybe StatusFilter) Org Repo
     | Build Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
     | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
@@ -84,8 +85,8 @@ toUrl api endpoint =
         Hooks maybePage maybePerPage org repo ->
             url api [ "hooks", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        Builds maybePage maybePerPage maybeEvent org repo ->
-            url api [ "repos", org, repo, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
+        Builds maybePage maybePerPage maybeEvent maybeStatus org repo ->
+            url api [ "repos", org, repo, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent , UB.string "status" <| Maybe.withDefault "" maybeStatus ]
 
         Build org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber ] []
