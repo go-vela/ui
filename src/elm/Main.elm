@@ -57,7 +57,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy6)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy6)
 import Http
 import Http.Detailed
 import Interop
@@ -2133,7 +2133,7 @@ viewContent model =
 
         Pages.RepoInsights org repo ->
             ( String.join "/" [ org, repo ] ++ " insights"
-            , lazy4 Pages.RepoInsights.view model.repo.repo repoInsightsMsgs model.velaAPI (Url.toString model.entryURL)
+            , lazy6 Pages.RepoInsights.view model.repo.repo model.repo.builds model.zone repoInsightsMsgs model.velaAPI (Url.toString model.entryURL)
             )
 
         Pages.RepoSettings org repo ->

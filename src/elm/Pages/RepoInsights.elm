@@ -14,6 +14,21 @@ module Pages.RepoInsights exposing
     , view
     )
 
+
+import Axis
+import Color exposing (Color)
+import Example
+import Html exposing (a, div, p)
+import Path exposing (Path)
+import Scale exposing (ContinuousScale)
+import Scale.Color
+import Shape
+import SubPath exposing (SubPath)
+import TypedSvg exposing (g, line, rect, svg, text_)
+import TypedSvg.Attributes as Explicit exposing (fill, fontFamily, stroke, transform, viewBox)
+import TypedSvg.Attributes.InPx exposing (fontSize, height, strokeWidth, width, x, x1, x2, y, y1, y2)
+import TypedSvg.Core exposing (Svg)
+import TypedSvg.Types exposing (Paint(..), Transform(..), percent)
 import Dict exposing (Dict)
 import Errors exposing (viewResourceError)
 import FeatherIcons
@@ -63,7 +78,7 @@ import Vela
         ( ChownRepo
         , Copy
         , DisableRepo
-        , EnableRepo
+        , EnableRepo,Builds,Build
         , Enabled
         , Enabling
         , Field
@@ -71,9 +86,18 @@ import Vela
         , Repositories
         , Repository
         , SourceRepositories
+        , BuildsModel
         , UpdateRepositoryPayload
         )
-
+import Time
+    exposing
+        ( Posix
+        , Zone
+        , every
+        , here
+        , millisToPosix
+        , utc
+        )
 
 
 -- TYPES
@@ -126,8 +150,44 @@ type alias Msgs msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Msgs msg -> String -> String -> Html msg
-view repo actions velaAPI velaURL =
+view : WebData Repository -> BuildsModel -> Zone -> Msgs msg -> String -> String -> Html msg
+view repo buildsModel zone actions velaAPI velaURL =
+    let 
+        someVar = "asfasdf"
+
+        _ = Debug.log "some debug" "vader is cool"
+
+
+
+        buildsWebData = buildsModel.builds
+
+        extractedBuilds =
+            case buildsWebData of
+                NotAsked ->
+                    []
+                Loading ->
+                    []
+                Failure err ->
+                    []
+                Success builds ->
+                    builds
+
+
+
+        buildPoints = buildsToPoints extractedBuilds
+
+        _ = Debug.log "buildPoints" buildPoints
+
+        myChartRender = 
+            viewChart buildPoints
+    in
+    div []  [ text someVar, myChartRender ]
+
+
+{-| view : takes model, org and repo and renders page for updating repo settings
+-}
+viewNew : WebData Repository -> Msgs msg -> String -> String -> Html msg
+viewNew repo actions velaAPI velaURL =
     let
         ( accessUpdate, timeoutUpdate, inTimeoutChange ) =
             ( actions.accessUpdate, actions.timeoutUpdate, actions.inTimeoutChange )
@@ -851,3 +911,187 @@ enableRepoList repo status orgRepos =
                 sourceRepo
         )
         orgRepos
+
+
+
+-- CHART SIZE
+
+w : Float
+w =
+    990
+
+
+h : Float
+h =
+    450
+
+
+
+padding : Float
+padding =
+    60
+
+xScale : ContinuousScale Float
+xScale =
+    Scale.linear ( padding, w - padding ) ( 0, 2 )
+
+
+yScale : ContinuousScale Float
+yScale =
+    Scale.linear ( h - padding, padding ) ( 0, 1 )
+
+
+
+-- CHART BACKGROUND
+
+xGridLine : Int -> Float -> Svg msg
+xGridLine index tick =
+    line
+        [ y1 0
+        , Explicit.y2 (percent 100)
+        , x1 (Scale.convert xScale tick)
+        , x2 (Scale.convert xScale tick)
+        , stroke <| Paint Color.white
+        , strokeWidth (Basics.max (toFloat (modBy 2 index)) 0.5)
+        ]
+        []
+
+
+yGridLine : Int -> Float -> Svg msg
+yGridLine index tick =
+    line
+        [ x1 0
+        , Explicit.x2 (percent 100)
+        , y1 (Scale.convert yScale tick)
+        , y2 (Scale.convert yScale tick)
+        , stroke <| Paint Color.white
+        , strokeWidth (Basics.max (toFloat (modBy 2 index)) 0.5)
+        ]
+        []
+
+
+
+
+-- CHART HELPERS
+
+type alias Curve =
+    List ( Float, Float ) -> SubPath
+
+
+drawCurve : ( String, Path, Color ) -> Svg msg
+drawCurve ( name, path, color ) =
+    Path.element path [ stroke (Paint color), fill PaintNone, strokeWidth 2 ]
+
+circle : Path
+circle =
+    Shape.arc
+        { innerRadius = 0
+        , outerRadius = 3
+        , cornerRadius = 0
+        , startAngle = 0
+        , endAngle = 2 * pi
+        , padAngle = 0
+        , padRadius = 0
+        }
+
+
+
+-- CHART DATA
+
+preparedPoints : List ( Float, Float )
+preparedPoints =
+    List.map (\( x, y ) -> ( Scale.convert xScale x, Scale.convert yScale y )) points
+
+
+points : List ( Float, Float )
+points =
+    [ ( 0.1, 0.1 )
+    , ( 0.2, 0.6 )
+    , ( 0.35, 0.3 )
+    , ( 0.45, 0.3 )
+    , ( 0.6, 0.2 )
+    , ( 0.9, 0.8 )
+    , ( 1.2, 0.6 )
+    , ( 1.5, 0.9 )
+    , ( 1.7, 0.2 )
+    , ( 1.9, 0.1 )
+    ]
+
+-- TODO: convert builds to usable data points 
+buildsToPoints : Builds -> List ( Float, Float )
+buildsToPoints builds =
+    List.indexedMap (\i -> \build -> buildToXYCoordinates build ) builds
+
+-- TODO: finish
+
+--todo skip in progress/never finished?
+-- duration = end time - start time
+
+buildToXYCoordinates : Build -> (Float, Float)
+buildToXYCoordinates build =
+    if build.started == 0 || build.finished == 0 then
+        ( toFloat build.number * 20, 1 * 10 )
+    else
+        ( toFloat build.number * 20, toFloat ( ( build.finished - build.started ) * 10 ) )
+
+    -- [ ( 0.1, 0.1 )
+    -- , ( 0.2, 0.6 )
+    -- , ( 0.35, 0.3 )
+    -- , ( 0.45, 0.3 )
+    -- , ( 0.6, 0.2 )
+    -- , ( 0.9, 0.8 )
+    -- , ( 1.2, 0.6 )
+    -- , ( 1.5, 0.9 )
+    -- , ( 1.7, 0.2 )
+    -- , ( 1.9, 0.1 )
+    -- ]
+
+
+-- CHART VIEW
+
+viewChart : List(Float, Float) -> Svg msg
+viewChart buildPoints =
+    let
+        -- curve function between points
+        curveFn = Shape.linearCurve
+    in
+    svg [ viewBox 0 0 w h ]
+        [ 
+        -- render background    
+        rect [ width w, height h, fill <| Paint <| Color.rgb255 223 223 223 ] []
+
+        , g [ transform [ Translate (0) (h - padding) ] ]
+            [ Axis.bottom [ Axis.tickCount 20 ] xScale
+            , text_ [ fontFamily [ "sans-serif" ], fontSize 10, x 450, y 30 ] [ text "Number" ]
+            ]
+        , g [ transform [ Translate (padding) 0 ] ]
+            [ Axis.left [ Axis.tickCount 10 ] yScale
+            , text_ [ fontFamily [ "sans-serif" ], fontSize 10, x 0, y 50 ] [ text "Seconds" ]
+            ]
+        -- , g [ transform [ Translate padding padding ], class [ "series" ] ]
+        --     (List.map
+        --         (\{ accessor, label } ->
+        --             Path.element (line accessor)
+        --                 [ stroke <| Paint <| color label
+        --                 , strokeWidth 3
+        --                 , fill PaintNone
+        --                 ]
+        --         )
+        --         series
+        --     )
+        -- , g [ fontFamily [ "sans-serif" ], fontSize 10 ]
+
+        -- render grid -- todo make dynamic sized
+        , g [] <| List.indexedMap yGridLine <| Scale.ticks yScale 10
+        , g [] <| List.indexedMap xGridLine <| Scale.ticks xScale 20
+
+
+        -- render points on graph
+        , g [] <| List.map (\( dx, dy ) -> Path.element circle [ fill (Paint Color.white), stroke (Paint Color.red), transform [ Translate dx dy ] ]) buildPoints
+
+
+        -- render curve between points
+        , g [] [ drawCurve ( "graph-prefix", [ curveFn buildPoints ], Color.black ) ]
+
+
+        ]

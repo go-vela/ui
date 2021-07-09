@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Util exposing
     ( anyBlank
     , ariaHidden
+    , posixToDayFormatter
     , base64Decode
     , boolToYesNo
     , buildBranchUrl
@@ -95,6 +96,15 @@ humanReadableWithDefault timezone t =
     else
         dateToHumanReadable timezone t
 
+{-| posixToDayFormatter : formats a zone and date into human readable chunks
+-}
+posixToDayFormatter : Zone -> Posix -> String
+posixToDayFormatter =
+    DateFormat.format
+        [ DateFormat.yearNumber
+        , DateFormat.monthNumber
+        , DateFormat.dayOfMonthNumber
+        ]
 
 {-| humanReadableDateFormatter : formats a zone and date into human readable chunks
 -}
