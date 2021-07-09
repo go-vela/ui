@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Vela exposing
     ( AuthParams
+    , OrgTab
     , Build
     , BuildModel
     , BuildNumber
@@ -297,6 +298,12 @@ type alias AuthParams =
     , state : Maybe String
     }
 
+
+-- ORGANIZATION
+
+
+type alias OrgTab =
+    String
 
 
 -- REPOSITORY

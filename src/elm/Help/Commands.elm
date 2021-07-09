@@ -148,6 +148,9 @@ commands page =
         Pages.NotFound ->
             []
 
+        Pages.OrgOverview _ ->
+            []
+
 
 {-| listFavorites : returns cli command for listing favorites
 
@@ -785,6 +788,10 @@ resourceLoaded args =
             False
 
 
+        Pages.OrgOverview _ ->
+            False
+
+
 {-| resourceLoading : takes help args and returns if the resource is loading
 -}
 resourceLoading : Model msg -> Bool
@@ -857,4 +864,7 @@ resourceLoading args =
             True
 
         Pages.NotFound ->
+            False
+
+        Pages.OrgOverview _ ->
             False

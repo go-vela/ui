@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Nav exposing (Msgs, viewBuildTabs, viewNav, viewUtil)
+module Nav exposing (Msgs, viewBuildTabs, viewNav, viewUtil, viewOrgTabs)
 
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
@@ -301,6 +301,65 @@ viewRepoTabs rm org repo currentPage =
             ]
     in
     viewTabs tabs "jump-bar-repo"
+
+-- ORG
+
+
+{-| viewOrgTabs : INSERT COMMENT
+-}
+viewOrgTabs : Html msg
+viewOrgTabs  =
+    let
+        -- lastHook =
+        --     case rm.hooks.hooks of
+        --         RemoteData.Success hooks ->
+        --             List.head hooks
+
+        --         _ ->
+        --             Nothing
+
+        -- lastBuild =
+        --     case rm.builds.builds of
+        --         RemoteData.Success builds ->
+        --             List.head builds
+
+        --         _ ->
+        --             Nothing
+
+        -- isAlerting =
+        --     case ( lastHook, lastBuild ) of
+        --         ( Just hook, Just build ) ->
+        --             case hook.status of
+        --                 "success" ->
+        --                     False
+
+        --                 _ ->
+        --                     hook.created > build.created
+
+        --         _ ->
+        --             False
+        currentPage =  (Pages.OrgOverview "yolo")
+
+        -- repos
+        -- secrets
+        -- audit log
+        -- builds ?
+        --
+
+        tabs =
+            [
+                Tab "Repos"  currentPage Pages.NotFound False
+                , Tab "Secrets" currentPage (Pages.OrgSecrets "native" "davidvader" Nothing Nothing) False
+                , Tab "Audit Log" currentPage (Pages.OrgOverview "audit") False
+                , Tab "Interwoven repo builds?" currentPage (Pages.OrgOverview "yolo") False
+            ]
+            -- [ Tab "Builds" currentPage (Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
+            -- , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False
+            -- , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting
+            -- , Tab "Settings" currentPage (Pages.RepoSettings org repo) False
+            -- ]
+    in
+    viewTabs tabs "jump-bar-org"
 
 
 

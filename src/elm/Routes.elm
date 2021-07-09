@@ -14,7 +14,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, OrgTab, Repo, Team)
 
 
 
@@ -45,6 +45,7 @@ type Route
     | Logout
     | Authenticate AuthParams
     | NotFound
+    | OrgOverview (Maybe OrgTab)
 
 
 
@@ -77,6 +78,7 @@ routes =
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
         , map NotFound (s "404")
+        , map OrgOverview (s "org-overview" <?> Query.string "orgtab")
         ]
 
 
@@ -173,6 +175,8 @@ routeToUrl route =
 
         NotFound ->
             "/404"
+        OrgOverview orgtab ->
+            "/org-overview" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam orgtab "orgtab" ])
 
 
 paramsToQueryString : AuthParams -> String

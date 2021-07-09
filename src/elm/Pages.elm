@@ -10,6 +10,7 @@ import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Routes exposing (Route(..))
 import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (OrgTab)
 
 
 type Page
@@ -36,8 +37,7 @@ type Page
     | Logout
     | Authenticate
     | NotFound
-
-
+    | OrgOverview (Maybe OrgTab)
 
 -- HELPERS
 
@@ -118,6 +118,10 @@ toRoute page =
             Routes.NotFound
 
 
+        OrgOverview orgtab ->
+            Routes.OrgOverview orgtab
+
+
 {-| strip : maps a Page to itself with optional parameters stripped
 -}
 strip : Page -> Page
@@ -191,3 +195,6 @@ strip page =
 
         NotFound ->
             NotFound
+
+        OrgOverview orgtab ->
+            OrgOverview orgtab

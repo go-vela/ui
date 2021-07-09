@@ -303,5 +303,7 @@ toPath page =
 
                 Pages.Authenticate ->
                     []
+                Pages.OrgOverview _ ->
+                    [overviewPage, ( "Org Overview", Nothing )]
     in
     pages

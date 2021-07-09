@@ -88,6 +88,7 @@ import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.Model
 import Pages.Secrets.Update
 import Pages.Secrets.View
+import Pages.OrgOverview
 import Pages.Settings
 import Pages.SourceRepos
 import RemoteData exposing (RemoteData(..), WebData)
@@ -2302,6 +2303,12 @@ viewContent model =
             )
 
 
+        Pages.OrgOverview ->
+            ( "Org Overview"
+            , Pages.OrgOverview.view
+            )
+
+
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
 viewBuildsFilter shouldRender org repo maybeEvent =
     let
@@ -2553,6 +2560,9 @@ setNewPage route model =
         -- Not found page handling
         ( Routes.NotFound, Authenticated _ ) ->
             ( { model | page = Pages.NotFound }, Cmd.none )
+        -- Org Overview page
+        ( Routes.OrgOverview, Authenticated _ ) ->
+            ( { model | page = Pages.OrgOverview }, Cmd.none )
 
         {--Hitting any page and not being logged in will load the login page content
 
