@@ -505,7 +505,7 @@ addSecret secretEngine secretType org key =
     Command name content docs noIssue
 
 
-{-| Deployment : returns cli command for adding a deployment
+{-| addDeployment : returns cli command for adding a deployment
 
     eg.
     vela add deployment vela add deployment --repo some-repp --org some-org
@@ -521,7 +521,7 @@ addDeployment org repo =
             Just <| "vela add deployment --org" ++ org ++ " --repo " ++ repo
 
         docs =
-            Just "/secret/add"
+            Just "/deployment/add"
     in
     Command name content docs noIssue
 

@@ -7,7 +7,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Builds exposing (view)
 
 import Errors exposing (viewResourceError)
-import FeatherIcons
 import Html
     exposing
         ( Html
@@ -25,8 +24,6 @@ import Html
 import Html.Attributes exposing (class, href)
 import Pages.Build.View exposing (viewPreview)
 import RemoteData exposing (RemoteData(..))
-import Routes
-import Svg.Attributes
 import Time exposing (Posix, Zone)
 import Util exposing (largeLoader)
 import Vela exposing (BuildsModel, Event, Org, Repo)

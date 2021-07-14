@@ -119,15 +119,15 @@ addParameter form =
     }
 
 
-{-| onRemoveImage : takes image and removes it to from secret update images
+{-| onRemoveParameter : takes parameter and removes it to from deployment parameters
 -}
 onRemoveParameter : KeyValuePair -> Model msg -> Model msg
 onRemoveParameter parameter deploymentModel =
     let
-        secretUpdate =
+        deploymentUpdate =
             Just deploymentModel.form
     in
-    case secretUpdate of
+    case deploymentUpdate of
         Just s ->
             updateDeploymentModel (removeParameter parameter s) deploymentModel
 
@@ -135,18 +135,18 @@ onRemoveParameter parameter deploymentModel =
             deploymentModel
 
 
-{-| removeImage : takes image and removes it to from secret update images
+{-| removeParameter : takes parameter and removes it to from deployment parameters
 -}
 removeParameter : KeyValuePair -> DeploymentForm -> DeploymentForm
-removeParameter image parameter =
-    { parameter | payload = List.Extra.remove image parameter.payload }
+removeParameter param parameter =
+    { parameter | payload = List.Extra.remove param parameter.payload }
 
 
 
 -- UPDATE
 
 
-{-| toAddSecretPayload : builds payload for adding secret
+{-| toDeploymentPayload : builds payload for adding a deployment
 -}
 toDeploymentPayload : Model msg -> DeploymentForm -> DeploymentPayload
 toDeploymentPayload deploymentModel deployment =

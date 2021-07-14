@@ -110,7 +110,103 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela exposing (AuthParams, Build, BuildNumber, Builds, ChownRepo, CurrentUser, Deployment, EnableRepo, EnableRepos, EnableRepositoryPayload, Enabling(..), Engine, Event, Favicon, Field, FocusFragment, Hooks, Key, Log, Logs, Name, Org, PipelineModel, PipelineTemplates, Ref, RepairRepo, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Secret, SecretType(..), Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildPipelineOrgRepo, updateBuildPipelineRef, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoTimeout)
+import Vela
+    exposing (AuthParams,
+              Build,
+              BuildNumber,
+              Builds,
+              ChownRepo,
+              CurrentUser,
+              Deployment,
+              EnableRepo,
+              EnableRepos,
+              EnableRepositoryPayload,
+              Enabling(..),
+              Engine,
+              Event,
+              Favicon,
+              Field,
+              FocusFragment,
+              Hooks,
+              Key,
+              Log,
+              Logs,
+              Name,
+              Org,
+              PipelineModel,
+              PipelineTemplates,
+              Ref,
+              RepairRepo,
+              Repo,
+              RepoModel,
+              RepoResourceIdentifier,
+              RepoSearchFilters,
+              Repositories,
+              Repository,
+              Secret,
+              SecretType(..),
+              Secrets,
+              ServiceNumber,
+              Services,
+              SourceRepositories,
+              StepNumber,
+              Steps,
+              Team,
+              Templates,
+              Theme(..),
+              Type,
+              UpdateRepositoryPayload,
+              UpdateUserPayload,
+              buildUpdateFavoritesPayload,
+              buildUpdateRepoBoolPayload,
+              buildUpdateRepoIntPayload,
+              buildUpdateRepoStringPayload,
+              decodeTheme,
+              defaultEnableRepositoryPayload,
+              defaultFavicon,
+              defaultPipeline,
+              defaultPipelineTemplates,
+              defaultRepoModel,
+              encodeEnableRepository,
+              encodeTheme,
+              encodeUpdateRepository,
+              encodeUpdateUser,
+              isComplete,
+              secretTypeToString,
+              statusToFavicon,
+              stringToTheme,
+              updateBuild,
+              updateBuildNumber,
+              updateBuildPipelineBuildNumber,
+              updateBuildPipelineConfig,
+              updateBuildPipelineExpand,
+              updateBuildPipelineFocusFragment,
+              updateBuildPipelineLineFocus,
+              updateBuildPipelineOrgRepo,
+              updateBuildPipelineRef,
+              updateBuildServices,
+              updateBuildServicesFocusFragment,
+              updateBuildServicesFollowing,
+              updateBuildServicesLogs,
+              updateBuildSteps,
+              updateBuildStepsFocusFragment,
+              updateBuildStepsFollowing,
+              updateBuildStepsLogs,
+              updateBuilds,
+              updateBuildsEvent,
+              updateBuildsPage,
+              updateBuildsPager,
+              updateBuildsPerPage,
+              updateHooks,
+              updateHooksPage,
+              updateHooksPager,
+              updateHooksPerPage,
+              updateOrgRepo,
+              updateRepo,
+              updateRepoCounter,
+              updateRepoEnabling,
+              updateRepoInitialized,
+              updateRepoTimeout)
 
 
 
@@ -2146,14 +2242,14 @@ viewContent model =
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
-        Pages.AddDeployment org repo ->
-            ( String.join "/" [ org, repo ] ++ " add deployment"
-            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
-            )
-
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
+            )
+
+        Pages.AddDeployment org repo ->
+            ( String.join "/" [ org, repo ] ++ " add deployment"
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
             )
 
         Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
