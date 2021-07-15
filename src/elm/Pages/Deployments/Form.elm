@@ -144,14 +144,16 @@ viewParameterInput deployment =
                     ]
                 ]
             , input
-                [ placeholder "Key", class "parameter-input"
+                [ placeholder "Key"
+                , class "parameter-input"
                 , Util.testAttribute "parameter-key-input"
                 , onInput <| OnChangeStringField "parameterInputKey"
                 , value deployment.parameterInputKey
                 ]
                 []
             , input
-                [ placeholder "Value", class "parameter-input"
+                [ placeholder "Value"
+                , class "parameter-input"
                 , Util.testAttribute "parameter-value-input"
                 , onInput <| OnChangeStringField "parameterInputValue"
                 , value deployment.parameterInputValue

@@ -45,7 +45,7 @@ addForm deploymentModel =
             deploymentModel.form
     in
     div [ class "deployment-form" ]
-        [ h2 [class "deployment-header"] [(text "Add Deployment")]
+        [ h2 [ class "deployment-header" ] [ text "Add Deployment" ]
         , viewDeployEnabled deploymentModel.repo_settings
         , viewValueInput "Target" deployment.target "provide the name for the target deployment environment (default: \"production\")"
         , viewValueInput "Ref" deployment.ref "provide the reference to deploy - this can be a branch, commit (SHA) or tag (default: \"refs/heads/master\")"
@@ -54,5 +54,4 @@ addForm deploymentModel =
         , viewParameterInput deployment
         , viewHelp
         , viewSubmitButtons deploymentModel
-
         ]
