@@ -1409,6 +1409,10 @@ nav {
   margin-left: 1rem;
 }
 
+.parameter-input {
+  margin: 0 1rem 1rem 0;
+}
+
 .added-image,
 .added-parameter {
   margin: 0.2rem 1rem;
@@ -1482,12 +1486,16 @@ nav {
   max-width: 70%;
 }
 
-.secret-form .help {
+.secret-form .help, .deployment-form .help {
   padding-bottom: 1rem;
 }
 
-.secret-form .form-action {
+.secret-form .form-action, .deployment-form .form-action {
   padding-left: 1rem;
+}
+
+.deployment-form h2.deployment-header {
+  margin-bottom: 1rem;
 }
 
 .button.-secret-delete-confirm {

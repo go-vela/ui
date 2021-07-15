@@ -29,18 +29,7 @@ import Html
         , text
         , textarea
         )
-import Html.Attributes
-    exposing
-        ( class
-        , disabled
-        , for
-        , href
-        , id
-        , placeholder
-        , rows
-        , value
-        , wrap
-        )
+import Html.Attributes exposing (class, disabled, for, href, id, placeholder, rows, target, value, wrap)
 import Html.Events exposing (onClick, onInput)
 import Pages.Deployments.Model exposing (DeploymentForm, Model, Msg(..))
 import RemoteData exposing (WebData)
@@ -99,7 +88,7 @@ addedParameter parameter =
 -}
 viewHelp : Html Msg
 viewHelp =
-    div [ class "help" ] [ text "Need help? Visit our ", a [ href deploymentDocsURL ] [ text "docs" ], text "!" ]
+    div [ class "help" ] [ text "Need help? Visit our ", a [ href deploymentDocsURL, target "_blank" ] [ text "docs" ], text "!" ]
 
 
 {-| viewValueInput : renders value input box
@@ -155,14 +144,14 @@ viewParameterInput deployment =
                     ]
                 ]
             , input
-                [ placeholder "Key"
+                [ placeholder "Key", class "parameter-input"
                 , Util.testAttribute "parameter-key-input"
                 , onInput <| OnChangeStringField "parameterInputKey"
                 , value deployment.parameterInputKey
                 ]
                 []
             , input
-                [ placeholder "Value"
+                [ placeholder "Value", class "parameter-input"
                 , Util.testAttribute "parameter-value-input"
                 , onInput <| OnChangeStringField "parameterInputValue"
                 , value deployment.parameterInputValue
