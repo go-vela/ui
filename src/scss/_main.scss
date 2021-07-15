@@ -1486,11 +1486,13 @@ nav {
   max-width: 70%;
 }
 
-.secret-form .help, .deployment-form .help {
+.secret-form .help,
+.deployment-form .help {
   padding-bottom: 1rem;
 }
 
-.secret-form .form-action, .deployment-form .form-action {
+.secret-form .form-action,
+.deployment-form .form-action {
   padding-left: 1rem;
 }
 
