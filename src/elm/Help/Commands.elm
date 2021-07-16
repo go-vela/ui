@@ -91,6 +91,9 @@ commands page =
         Pages.RepositoryBuilds org repo _ _ _ ->
             [ listBuilds org repo ]
 
+        Pages.RepositoryDeployments org repo _ _ _ ->
+            [ listBuilds org repo ]
+
         Pages.Build org repo buildNumber _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
 
@@ -748,6 +751,9 @@ resourceLoaded args =
         Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.success
 
+        Pages.RepositoryDeployments _ _ _ _ _ ->
+            args.builds.success
+
         Pages.Build _ _ _ _ ->
             args.build.success
 
@@ -824,6 +830,9 @@ resourceLoading args =
             args.sourceRepos.loading
 
         Pages.RepositoryBuilds _ _ _ _ _ ->
+            args.builds.loading
+
+        Pages.RepositoryDeployments _ _ _ _ _ ->
             args.builds.loading
 
         Pages.Build _ _ _ _ ->

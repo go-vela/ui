@@ -551,6 +551,11 @@ update msg model =
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent
                     )
 
+                Pages.RepositoryDeployments org repo _ maybePerPage maybeEvent ->
+                    ( { model | repo = updateBuilds Loading rm }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryDeployments org repo (Just pageNumber) maybePerPage maybeEvent
+                    )
+
                 Pages.Hooks org repo _ maybePerPage ->
                     ( { model | repo = updateHooks Loading rm }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage
@@ -1877,6 +1882,9 @@ refreshPage model =
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             getBuilds model org repo maybePage maybePerPage maybeEvent
 
+        Pages.RepositoryDeployments org repo maybePage maybePerPage maybeEvent ->
+            getBuilds model org repo maybePage maybePerPage maybeEvent
+
         Pages.Build org repo buildNumber focusFragment ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
@@ -2254,6 +2262,25 @@ viewContent model =
             , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
             )
 
+        Pages.RepositoryDeployments org repo maybePage _ maybeEvent ->
+            let
+                page : String
+                page =
+                    case maybePage of
+                        Nothing ->
+                            ""
+
+                        Just p ->
+                            " (page " ++ String.fromInt p ++ ")"
+            in
+            ( String.join "/" [ org, repo ] ++ " builds" ++ page
+            , div []
+                [ Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy6 Pages.Deployments.View.viewDeployments model.repo.builds model.time model.zone org repo maybeEvent
+                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
         Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
             let
                 page : String
@@ -2586,6 +2613,9 @@ setNewPage route model =
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
             loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent
 
+        ( Routes.RepositoryDeployments org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
+            loadRepoDeploymentsPage model org repo maybePage maybePerPage maybeEvent
+
         ( Routes.Build org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildPage model org repo buildNumber lineFocus
 
@@ -2811,6 +2841,9 @@ loadRepoBuildsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagi
 loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
     loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
+loadRepoDeploymentsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
+loadRepoDeploymentsPage model org repo maybePage maybePerPage maybeEvent =
+    loadRepoSubPage model org repo <| Pages.RepositoryDeployments org repo maybePage maybePerPage (Just "deployment")
 
 {-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
 -}
