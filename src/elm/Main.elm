@@ -81,7 +81,7 @@ import Pages.Build.Model
 import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Deployments.Model
-import Pages.Deployments.Update
+import Pages.Deployments.Update exposing (initializeFormFromDeployment)
 import Pages.Deployments.View
 import Pages.Home
 import Pages.Hooks
@@ -2257,10 +2257,24 @@ viewContent model =
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
-        Pages.AddDeployment org repo _ ->
+        Pages.AddDeployment org repo build ->
+            let newModel : Model
+                newModel =
+                    case build of
+                        Nothing ->
+                            model
+                        Just b ->
+                            let
+                                df = initializeFormFromDeployment b.message b.ref b.deploy ""
+                                dm = model.deploymentModel
+                                promote = {model | deploymentModel = {dm | form = df}}
+                            in
+                            promote
+            in
             ( String.join "/" [ org, repo ] ++ " add deployment"
-            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment newModel
             )
+
 
         Pages.RepositoryDeployments org repo maybePage _ maybeEvent ->
             let

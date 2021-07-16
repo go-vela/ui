@@ -18,7 +18,7 @@ import Http
 import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
-import Vela exposing (Deployment, Engine, KeyValuePair, Org, Repo, Repository, Team)
+import Vela exposing (Build, Deployment, Engine, KeyValuePair, Org, Repo, Repository, Team)
 
 
 
@@ -79,4 +79,5 @@ type Msg
     = OnChangeStringField String String
     | AddParameter DeploymentForm
     | RemoveParameter KeyValuePair
+    | PromoteDeployment Build
     | AddDeployment

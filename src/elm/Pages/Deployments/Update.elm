@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Deployments.Update exposing
     ( init
     , reinitializeDeployment
+    , initializeFormFromDeployment
     , update
     )
 
@@ -41,6 +42,16 @@ reinitializeDeployment : Model msg -> Model msg
 reinitializeDeployment deploymentModel =
     { deploymentModel | form = defaultDeploymentForm }
 
+initializeFormFromDeployment : String -> String -> String -> String -> DeploymentForm
+initializeFormFromDeployment description ref target task =
+    DeploymentForm ""
+        description
+        []
+        ref
+        target
+        task
+        ""
+        ""
 
 {-| updateDeploymentField : takes field and value and updates the deployment field
 -}
@@ -210,6 +221,14 @@ update model msg =
 
                 RemoveParameter keyValuePair ->
                     ( onRemoveParameter keyValuePair deploymentModel, Cmd.none )
+
+                PromoteDeployment b ->
+                    let
+                        df = initializeFormFromDeployment b.message b.ref b.deploy ""
+                        dm = model.deploymentModel
+                        promotedDeploymentModel = {dm | form = df}
+                    in
+                        (promotedDeploymentModel, Cmd.none)
 
                 AddDeployment ->
                     let

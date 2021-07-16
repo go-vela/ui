@@ -222,6 +222,13 @@ viewPreview now zone org repo build =
         statusClass =
             statusToClass build.status
 
+        promoteDeployment =
+            if build.event == "deployment" then
+                Pages.AddDeployment org repo (Just build)
+            else
+                Pages.AddDeployment org repo Nothing
+
+
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
