@@ -177,7 +177,7 @@ toPath page =
                     in
                     [ overviewPage, orgPage, currentRepo, ( "Add", Nothing ) ]
 
-                Pages.AddDeployment org repo ->
+                Pages.AddDeployment org repo _->
                     let
                         orgPage =
                             ( org, Nothing )

@@ -9,7 +9,7 @@ module Pages exposing (Page(..), strip, toRoute)
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Routes exposing (Route(..))
-import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (Build, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
 
 type Page
@@ -21,7 +21,7 @@ type Page
     | SharedSecrets Engine Org Team (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | AddOrgSecret Engine Org
     | AddRepoSecret Engine Org Repo
-    | AddDeployment Org Repo
+    | AddDeployment Org Repo (Maybe Build)
     | AddSharedSecret Engine Org Team
     | OrgSecret Engine Org Name
     | RepoSecret Engine Org Repo Name
@@ -79,7 +79,7 @@ toRoute page =
         AddSharedSecret engine org team ->
             Routes.AddSharedSecret engine org team
 
-        AddDeployment org repo ->
+        AddDeployment org repo _ ->
             Routes.AddDeploymentRoute org repo
 
         OrgSecret engine org name ->
@@ -158,8 +158,8 @@ strip page =
         AddRepoSecret engine org repo ->
             AddRepoSecret engine org repo
 
-        AddDeployment org repo ->
-            AddDeployment org repo
+        AddDeployment org repo build ->
+            AddDeployment org repo build
 
         AddSharedSecret engine org team ->
             AddSharedSecret engine org team

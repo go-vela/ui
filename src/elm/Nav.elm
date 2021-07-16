@@ -204,7 +204,7 @@ viewUtil model =
             Pages.BuildPipeline _ _ _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
-            Pages.AddDeployment org repo ->
+            Pages.AddDeployment org repo _ ->
                 viewRepoTabs rm org repo model.page
 
             _ ->

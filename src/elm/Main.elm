@@ -2257,7 +2257,7 @@ viewContent model =
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
-        Pages.AddDeployment org repo ->
+        Pages.AddDeployment org repo _ ->
             ( String.join "/" [ org, repo ] ++ " add deployment"
             , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
             )
@@ -2273,7 +2273,7 @@ viewContent model =
                         Just p ->
                             " (page " ++ String.fromInt p ++ ")"
             in
-            ( String.join "/" [ org, repo ] ++ " builds" ++ page
+            ( String.join "/" [ org, repo ] ++ " deployments" ++ page
             , div []
                 [ Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 , lazy6 Pages.Deployments.View.viewDeployments model.repo.builds model.time model.zone org repo maybeEvent
@@ -2867,7 +2867,7 @@ loadAddDeploymentPage :
     -> Repo
     -> ( Model, Cmd Msg )
 loadAddDeploymentPage model org repo =
-    loadRepoSubPage model org repo <| Pages.AddDeployment org repo
+    loadRepoSubPage model org repo <| Pages.AddDeployment org repo Nothing
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.

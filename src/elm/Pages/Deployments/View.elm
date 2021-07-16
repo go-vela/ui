@@ -75,41 +75,16 @@ addForm deploymentModel =
 viewDeployments : BuildsModel -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Html msg
 viewDeployments buildsModel now zone org repo maybeEvent =
                     let
-                        settingsLink : String
-                        settingsLink =
-                            "/" ++ String.join "/" [ org, repo ] ++ "/settings"
-
                         none : Html msg
                         none =
                             case maybeEvent of
                                 Nothing ->
-                                    div []
-                                        [ p [] [ text "Builds will show up here once you have:" ]
-                                        , ol [ class "list" ]
-                                            [ li []
-                                                [ text "A "
-                                                , code [] [ text ".vela.yml" ]
-                                                , text " file that describes your build pipeline in the root of your repository."
-                                                , br [] []
-                                                , a [ href "https://go-vela.github.io/docs/usage/" ] [ text "Review the documentation" ]
-                                                , text " for help or "
-                                                , a [ href "https://go-vela.github.io/docs/usage/examples/" ] [ text "check some of the pipeline examples" ]
-                                                , text "."
-                                                ]
-                                            , li []
-                                                [ text "Trigger one of the "
-                                                , a [ href settingsLink ] [ text "configured webhook events" ]
-                                                , text " by performing the respective action via "
-                                                , em [] [ text "Git" ]
-                                                , text "."
-                                                ]
-                                            ]
-                                        , p [] [ text "Happy building!" ]
-                                        ]
+                                    div [] []
+                                    -- Maybe Event will always be "deployment" for this component
 
-                                Just event ->
+                                Just _ ->
                                     div []
-                                        [ h1 [] [ text <| "No builds for \"" ++ event ++ "\" event found." ] ]
+                                        [ h1 [] [ text <| "No deployments found." ] ]
                     in
                     case buildsModel.builds of
                         RemoteData.Success builds ->
@@ -126,4 +101,4 @@ viewDeployments buildsModel now zone org repo maybeEvent =
                             largeLoader
 
                         RemoteData.Failure _ ->
-                            viewResourceError { resourceLabel = "builds for this repository", testLabel = "builds" }
+                            viewResourceError { resourceLabel = "deployments for this repository", testLabel = "deployments" }
