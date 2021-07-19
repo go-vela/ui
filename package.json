@@ -13,7 +13,7 @@
     "@fullhuman/postcss-purgecss": "4.0.3",
     "@parcel/transformer-elm": "2.0.0-beta.3.1",
     "@parcel/transformer-sass": "2.0.0-beta.3.1",
-    "axe-core": "4.2.3",
+    "axe-core": "4.3.1",
     "cypress": "5.6.0",
     "cypress-axe": "0.12.2",
     "elm": "0.19.1-5",
@@ -29,11 +29,11 @@
     "stylelint-config-prettier": "8.0.2",
     "stylelint-config-rational-order": "0.1.2",
     "stylelint-config-recommended-scss": "4.2.0",
-    "stylelint-declaration-block-no-ignored-properties": "2.3.0",
+    "stylelint-declaration-block-no-ignored-properties": "2.4.0",
     "stylelint-declaration-strict-value": "1.7.12",
     "stylelint-high-performance-animation": "1.5.2",
     "stylelint-order": "4.1.0",
-    "stylelint-scss": "3.19.0"
+    "stylelint-scss": "3.20.1"
   },
   "scripts": {
     "predev": "npm run clean",
