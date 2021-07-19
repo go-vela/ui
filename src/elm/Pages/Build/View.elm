@@ -224,9 +224,9 @@ viewPreview now zone org repo build =
 
         promoteDeployment =
             if build.event == "deployment" then
-                Pages.AddDeployment org repo (Just build)
+                a [ Routes.href <| Routes.PromoteDeployment org repo buildNumber ] [ text "Promote" ]
             else
-                Pages.AddDeployment org repo Nothing
+                text ""
 
 
         markdown =
@@ -243,6 +243,7 @@ viewPreview now zone org repo build =
                         , div [ class "branch" ] branch
                         , text "by"
                         , div [ class "sender" ] sender
+                        , promoteDeployment
                         ]
                     , div [ class "time-info" ]
                         [ div

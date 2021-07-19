@@ -1299,12 +1299,18 @@ update msg model =
         BuildResponse org repo _ response ->
             case response of
                 Ok ( _, build ) ->
+                    let
+                        dm = model.deploymentModel
+                        form = initializeFormFromDeployment build.message build.ref build.deploy ""
+                        promoted = { dm | form = form }
+                    in
                     ( { model
                         | repo =
                             rm
                                 |> updateOrgRepo org repo
                                 |> updateBuild (RemoteData.succeed build)
                         , favicon = statusToFavicon build.status
+                        , deploymentModel = promoted
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
@@ -2257,22 +2263,14 @@ viewContent model =
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
-        Pages.AddDeployment org repo build ->
-            let newModel : Model
-                newModel =
-                    case build of
-                        Nothing ->
-                            model
-                        Just b ->
-                            let
-                                df = initializeFormFromDeployment b.message b.ref b.deploy ""
-                                dm = model.deploymentModel
-                                promote = {model | deploymentModel = {dm | form = df}}
-                            in
-                            promote
-            in
+        Pages.AddDeployment org repo ->
             ( String.join "/" [ org, repo ] ++ " add deployment"
-            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment newModel
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
+            )
+
+        Pages.PromoteDeployment org repo buildNumber ->
+            ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.promoteDeployment model
             )
 
 
@@ -2636,6 +2634,9 @@ setNewPage route model =
         ( Routes.AddDeploymentRoute org repo, Authenticated _ ) ->
             loadAddDeploymentPage model org repo
 
+        ( Routes.PromoteDeployment org repo deploymentNumber, Authenticated _ ) ->
+            loadPromoteDeploymentPage model org repo deploymentNumber
+
         ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildServicesPage model org repo buildNumber lineFocus
 
@@ -2806,6 +2807,13 @@ loadRepoSubPage model org repo toPage =
 
                         _ ->
                             Cmd.none
+
+                    , case toPage of
+                        Pages.PromoteDeployment _ _ buildNumber ->
+                            getBuild model org repo buildNumber
+
+                        _ ->
+                            Cmd.none
                     ]
                 )
 
@@ -2881,7 +2889,18 @@ loadAddDeploymentPage :
     -> Repo
     -> ( Model, Cmd Msg )
 loadAddDeploymentPage model org repo =
-    loadRepoSubPage model org repo <| Pages.AddDeployment org repo Nothing
+    loadRepoSubPage model org repo <| Pages.AddDeployment org repo
+
+{-| loadAddDeploymentPage : takes model org and repo and loads the page for managing deployments
+-}
+loadPromoteDeploymentPage :
+    Model
+    -> Org
+    -> Repo
+    -> BuildNumber
+    -> ( Model, Cmd Msg )
+loadPromoteDeploymentPage model org repo buildNumber =
+    loadRepoSubPage model org repo <| Pages.PromoteDeployment org repo buildNumber
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.

@@ -21,7 +21,8 @@ type Page
     | SharedSecrets Engine Org Team (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | AddOrgSecret Engine Org
     | AddRepoSecret Engine Org Repo
-    | AddDeployment Org Repo (Maybe Build)
+    | AddDeployment Org Repo
+    | PromoteDeployment Org Repo BuildNumber
     | AddSharedSecret Engine Org Team
     | OrgSecret Engine Org Name
     | RepoSecret Engine Org Repo Name
@@ -79,8 +80,11 @@ toRoute page =
         AddSharedSecret engine org team ->
             Routes.AddSharedSecret engine org team
 
-        AddDeployment org repo _ ->
+        AddDeployment org repo ->
             Routes.AddDeploymentRoute org repo
+
+        PromoteDeployment org repo buildNumber ->
+            Routes.PromoteDeployment org repo buildNumber
 
         OrgSecret engine org name ->
             Routes.OrgSecret engine org name
@@ -158,8 +162,11 @@ strip page =
         AddRepoSecret engine org repo ->
             AddRepoSecret engine org repo
 
-        AddDeployment org repo build ->
-            AddDeployment org repo build
+        AddDeployment org repo ->
+            AddDeployment org repo
+
+        PromoteDeployment org repo buildNumber ->
+            PromoteDeployment org repo buildNumber
 
         AddSharedSecret engine org team ->
             AddSharedSecret engine org team

@@ -38,6 +38,7 @@ type Route
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | AddDeploymentRoute Org Repo
+    | PromoteDeployment Org Repo BuildNumber
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
@@ -74,6 +75,7 @@ routes =
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
         , map AddDeploymentRoute (string </> string </> s "deployment")
+        , map PromoteDeployment (string </> string </> s "deployment" </> string)
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
@@ -159,6 +161,9 @@ routeToUrl route =
 
         AddDeploymentRoute org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/deployment"
+
+        PromoteDeployment org repo buildNumber ->
+                    "/" ++ org ++ "/" ++ repo ++ "/deployment/" ++ buildNumber
 
         BuildServices org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/services" ++ Maybe.withDefault "" lineFocus

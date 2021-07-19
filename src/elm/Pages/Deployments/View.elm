@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Deployments.View exposing (addDeployment, addForm, viewDeployments)
+module Pages.Deployments.View exposing (addDeployment, addForm, viewDeployments, promoteDeployment)
 
 import Errors exposing (viewResourceError)
 import Html exposing (Html, div, h2, text)
@@ -23,6 +23,7 @@ import Html
         , text
         )
 import Html.Attributes exposing (class, href)
+import Http.Extras exposing (State(..))
 import Pages.Build.View exposing (viewPreview)
 import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
@@ -31,7 +32,8 @@ import Pages.Deployments.Model
         , Msg(..)
         , PartialModel
         )
-import RemoteData
+import Pages.Deployments.Update exposing (initializeFormFromDeployment)
+import RemoteData exposing (RemoteData(..))
 import Util exposing (largeLoader, testAttribute)
 import Time exposing (Posix, Zone)
 import Vela exposing (BuildsModel, Event, Org, Repo)
@@ -102,3 +104,16 @@ viewDeployments buildsModel now zone org repo maybeEvent =
 
                         RemoteData.Failure _ ->
                             viewResourceError { resourceLabel = "deployments for this repository", testLabel = "deployments" }
+
+
+-- Promote Deployment
+
+{-| editSecret : takes partial model and renders secret update form for editing a secret
+-}
+promoteDeployment : PartialModel a msg -> Html Msg
+promoteDeployment model =
+    div [ class "manage-deployment", Util.testAttribute "add-deployment" ]
+            [ div []
+                [ addForm model.deploymentModel
+                ]
+            ]

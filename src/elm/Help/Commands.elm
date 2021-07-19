@@ -124,7 +124,10 @@ commands page =
         Pages.AddRepoSecret secretEngine org repo ->
             [ addSecret secretEngine Vela.RepoSecret org <| Just repo ]
 
-        Pages.AddDeployment org repo _ ->
+        Pages.AddDeployment org repo ->
+            [ addDeployment org repo ]
+
+        Pages.PromoteDeployment org repo _ ->
             [ addDeployment org repo ]
 
         Pages.AddSharedSecret secretEngine org team ->
@@ -775,7 +778,10 @@ resourceLoaded args =
         Pages.AddSharedSecret secretEngine org team ->
             noBlanks [ secretEngine, org, team ]
 
-        Pages.AddDeployment org repo _ ->
+        Pages.AddDeployment org repo ->
+            noBlanks [ org, repo ]
+
+        Pages.PromoteDeployment org repo _ ->
             noBlanks [ org, repo ]
 
         Pages.OrgSecrets secretEngine org _ _ ->
@@ -862,7 +868,10 @@ resourceLoading args =
         Pages.AddRepoSecret secretEngine org repo ->
             anyBlank [ secretEngine, org, repo ]
 
-        Pages.AddDeployment org repo _ ->
+        Pages.AddDeployment org repo ->
+            anyBlank [ org, repo ]
+
+        Pages.PromoteDeployment org repo _ ->
             anyBlank [ org, repo ]
 
         Pages.AddSharedSecret secretEngine org team ->

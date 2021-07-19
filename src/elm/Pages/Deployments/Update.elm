@@ -14,7 +14,7 @@ module Pages.Deployments.Update exposing
 import Api
 import Http
 import List.Extra
-import Pages.Deployments.Model exposing (DeploymentForm, DeploymentResponse, Model, Msg(..), PartialModel, defaultDeploymentForm)
+import Pages.Deployments.Model exposing (DeploymentForm, DeploymentResponse, Model, Msg(..), PartialModel, PromoteDeploymentResponse, defaultDeploymentForm)
 import RemoteData exposing (RemoteData(..))
 import Util exposing (stringToMaybe)
 import Vela exposing (DeploymentPayload, KeyValuePair, buildDeploymentPayload, encodeDeploymentPayload)
