@@ -222,14 +222,6 @@ update model msg =
                 RemoveParameter keyValuePair ->
                     ( onRemoveParameter keyValuePair deploymentModel, Cmd.none )
 
-                PromoteDeployment b ->
-                    let
-                        df = initializeFormFromDeployment b.message b.ref b.deploy ""
-                        dm = model.deploymentModel
-                        promotedDeploymentModel = {dm | form = df}
-                    in
-                        (promotedDeploymentModel, Cmd.none)
-
                 AddDeployment ->
                     let
                         deployment =

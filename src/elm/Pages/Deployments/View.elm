@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Deployments.View exposing (addDeployment, addForm, viewDeployments, promoteDeployment)
 
 import Errors exposing (viewResourceError)
+import FeatherIcons
 import Html exposing (Html, div, h2, text)
 import Html
     exposing
@@ -34,6 +35,8 @@ import Pages.Deployments.Model
         )
 import Pages.Deployments.Update exposing (initializeFormFromDeployment)
 import RemoteData exposing (RemoteData(..))
+import Routes
+import Svg.Attributes
 import Util exposing (largeLoader, testAttribute)
 import Time exposing (Posix, Zone)
 import Vela exposing (BuildsModel, Event, Org, Repo)
@@ -77,6 +80,20 @@ addForm deploymentModel =
 viewDeployments : BuildsModel -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Html msg
 viewDeployments buildsModel now zone org repo maybeEvent =
                     let
+                        addButton =
+                            a
+                                [ class "button"
+                                , class "-outline"
+                                , class "button-with-icon"
+                                , Util.testAttribute "add-deployment"
+                                , Routes.href <|
+                                    Routes.AddDeploymentRoute org repo
+                                ]
+                                [ text "Add Deployment"
+                                , FeatherIcons.plus
+                                    |> FeatherIcons.withSize 18
+                                    |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                                ]
                         none : Html msg
                         none =
                             case maybeEvent of
@@ -85,8 +102,11 @@ viewDeployments buildsModel now zone org repo maybeEvent =
                                     -- Maybe Event will always be "deployment" for this component
 
                                 Just _ ->
-                                    div []
-                                        [ h1 [] [ text <| "No deployments found." ] ]
+                                    div [] [
+                                    div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
+                                    , h2 [] [ text "No deployments found." ]
+                                     ]
+
                     in
                     case buildsModel.builds of
                         RemoteData.Success builds ->
@@ -94,7 +114,13 @@ viewDeployments buildsModel now zone org repo maybeEvent =
                                 none
 
                             else
-                                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now zone org repo) builds
+                                let
+                                    buildList = div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now zone org repo) builds
+                                in
+                                    div [] [
+                                    div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
+                                    , buildList
+                                    ]
 
                         RemoteData.Loading ->
                             largeLoader

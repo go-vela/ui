@@ -1500,6 +1500,10 @@ nav {
   margin-bottom: 1rem;
 }
 
+.add-deployment-buttons {
+  justify-content: flex-end;
+}
+
 .button.-secret-delete-confirm {
   background-color: var(--color-bg);
   color: var(--color-red);

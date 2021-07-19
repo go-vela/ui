@@ -82,5 +82,4 @@ type Msg
     = OnChangeStringField String String
     | AddParameter DeploymentForm
     | RemoveParameter KeyValuePair
-    | PromoteDeployment Build
     | AddDeployment
