@@ -151,7 +151,7 @@ routeToUrl route =
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
 
         RepositoryDeployments org repo maybePage maybePerPage maybeEvent ->
-          "/" ++ org ++ "/" ++ repo ++ "/deployments" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
+            "/" ++ org ++ "/" ++ repo ++ "/deployments" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
 
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
@@ -163,7 +163,7 @@ routeToUrl route =
             "/" ++ org ++ "/" ++ repo ++ "/deployment"
 
         PromoteDeployment org repo buildNumber ->
-                    "/" ++ org ++ "/" ++ repo ++ "/deployment/" ++ buildNumber
+            "/" ++ org ++ "/" ++ repo ++ "/deployment/" ++ buildNumber
 
         BuildServices org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/services" ++ Maybe.withDefault "" lineFocus

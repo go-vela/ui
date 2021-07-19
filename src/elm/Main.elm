@@ -1300,9 +1300,14 @@ update msg model =
             case response of
                 Ok ( _, build ) ->
                     let
-                        dm = model.deploymentModel
-                        form = initializeFormFromDeployment build.message build.ref build.deploy ""
-                        promoted = { dm | form = form }
+                        dm =
+                            model.deploymentModel
+
+                        form =
+                            initializeFormFromDeployment build.message build.ref build.deploy ""
+
+                        promoted =
+                            { dm | form = form }
                     in
                     ( { model
                         | repo =
@@ -2273,7 +2278,6 @@ viewContent model =
             , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.promoteDeployment model
             )
 
-
         Pages.RepositoryDeployments org repo maybePage _ maybeEvent ->
             let
                 page : String
@@ -2807,7 +2811,6 @@ loadRepoSubPage model org repo toPage =
 
                         _ ->
                             Cmd.none
-
                     , case toPage of
                         Pages.PromoteDeployment _ _ buildNumber ->
                             getBuild model org repo buildNumber
@@ -2863,9 +2866,11 @@ loadRepoBuildsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagi
 loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
     loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
+
 loadRepoDeploymentsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
 loadRepoDeploymentsPage model org repo maybePage maybePerPage maybeEvent =
     loadRepoSubPage model org repo <| Pages.RepositoryDeployments org repo maybePage maybePerPage (Just "deployment")
+
 
 {-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
 -}
@@ -2890,6 +2895,7 @@ loadAddDeploymentPage :
     -> ( Model, Cmd Msg )
 loadAddDeploymentPage model org repo =
     loadRepoSubPage model org repo <| Pages.AddDeployment org repo
+
 
 {-| loadAddDeploymentPage : takes model org and repo and loads the page for managing deployments
 -}

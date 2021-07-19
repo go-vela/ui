@@ -225,9 +225,9 @@ viewPreview now zone org repo build =
         promoteDeployment =
             if build.event == "deployment" then
                 a [ Routes.href <| Routes.PromoteDeployment org repo buildNumber ] [ text "Promote" ]
+
             else
                 text ""
-
 
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status

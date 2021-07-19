@@ -6,8 +6,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Deployments.Update exposing
     ( init
-    , reinitializeDeployment
     , initializeFormFromDeployment
+    , reinitializeDeployment
     , update
     )
 
@@ -42,6 +42,7 @@ reinitializeDeployment : Model msg -> Model msg
 reinitializeDeployment deploymentModel =
     { deploymentModel | form = defaultDeploymentForm }
 
+
 initializeFormFromDeployment : String -> String -> String -> String -> DeploymentForm
 initializeFormFromDeployment description ref target task =
     DeploymentForm ""
@@ -52,6 +53,7 @@ initializeFormFromDeployment description ref target task =
         task
         ""
         ""
+
 
 {-| updateDeploymentField : takes field and value and updates the deployment field
 -}

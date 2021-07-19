@@ -7,10 +7,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Deployments.Model exposing
     ( DeploymentForm
     , DeploymentResponse
-    , PromoteDeploymentResponse
     , Model
     , Msg(..)
     , PartialModel
+    , PromoteDeploymentResponse
     , defaultDeploymentForm
     )
 
@@ -75,8 +75,10 @@ defaultDeploymentForm =
 type alias DeploymentResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ) -> msg
 
+
 type alias PromoteDeploymentResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Build ) -> msg
+
 
 type Msg
     = OnChangeStringField String String
