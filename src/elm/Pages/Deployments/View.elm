@@ -88,6 +88,9 @@ viewPreview org repo deployment =
                 , message
                 , commit
                 , promoteDeploymentLink
+                , text ( " Task: " ++ deployment.task)
+                , text ( " Ref: " ++ deployment.ref)
+                , text ( " User: " ++ deployment.user)
                 ]
             ]
 
