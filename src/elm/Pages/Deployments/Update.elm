@@ -43,17 +43,27 @@ reinitializeDeployment deploymentModel =
     { deploymentModel | form = defaultDeploymentForm }
 
 
-initializeFormFromDeployment : String -> String -> String -> String -> DeploymentForm
-initializeFormFromDeployment description ref target task =
-    DeploymentForm ""
-        description
-        []
-        ref
-        target
-        task
-        ""
-        ""
-
+initializeFormFromDeployment : String -> Maybe (List KeyValuePair) -> String -> String -> String -> DeploymentForm
+initializeFormFromDeployment description params ref target task =
+    case params of
+        Just p ->
+            DeploymentForm ""
+                description
+                p
+                ref
+                target
+                task
+                ""
+                ""
+        Nothing ->
+            DeploymentForm ""
+                description
+                []
+                ref
+                target
+                task
+                ""
+                ""
 
 {-| updateDeploymentField : takes field and value and updates the deployment field
 -}

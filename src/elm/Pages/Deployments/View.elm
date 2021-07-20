@@ -81,7 +81,6 @@ viewPreview org repo deployment =
         promoteDeploymentLink =
              a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Promote" ]
 
-
         markdown =
             [ div [ class "info" ] [
                 text ("Deployment: " ++ deploymentId)
@@ -93,10 +92,6 @@ viewPreview org repo deployment =
                 , text ( " User: " ++ deployment.user)
                 ]
             ]
-
-
-
-
     in
     div [ class "build-container", Util.testAttribute "build" ]
         [ div [ class "build" ] <|

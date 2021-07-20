@@ -1219,23 +1219,12 @@ update msg model =
         BuildResponse org repo _ response ->
             case response of
                 Ok ( _, build ) ->
-                    let
-                        dm =
-                            model.deploymentModel
-
-                        form =
-                            initializeFormFromDeployment build.message build.ref build.deploy ""
-
-                        promoted =
-                            { dm | form = form }
-                    in
                     ( { model
                         | repo =
                             rm
                                 |> updateOrgRepo org repo
                                 |> updateBuild (RemoteData.succeed build)
                         , favicon = statusToFavicon build.status
-                        , deploymentModel = promoted
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
@@ -1251,7 +1240,7 @@ update msg model =
                                     model.deploymentModel
 
                                 form =
-                                    initializeFormFromDeployment deployment.description deployment.ref deployment.target deployment.task
+                                    initializeFormFromDeployment deployment.description deployment.payload deployment.ref deployment.target deployment.task
 
                                 promoted =
                                     { dm | form = form }
@@ -2210,8 +2199,13 @@ viewContent model =
             )
 
         Pages.AddDeployment org repo ->
+            let
+                dm =  model.deploymentModel
+                newDm = Pages.Deployments.Update.reinitializeDeployment dm
+                newModel = { model | deploymentModel = newDm}
+            in
             ( String.join "/" [ org, repo ] ++ " add deployment"
-            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment newModel
             )
 
         Pages.PromoteDeployment org repo buildNumber ->
