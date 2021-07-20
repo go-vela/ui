@@ -15,6 +15,7 @@ module Vela exposing
     , Copy
     , CurrentUser
     , Deployment
+    , DeploymentNumber
     , DeploymentPayload
     , DisableRepo
     , EnableRepo
@@ -81,6 +82,7 @@ module Vela exposing
     , decodeBuilds
     , decodeCurrentUser
     , decodeDeployment
+    , decodeDeployments
     , decodeHooks
     , decodeLog
     , decodePipelineConfig
@@ -190,6 +192,8 @@ type alias Event =
 type alias BuildNumber =
     String
 
+type alias DeploymentNumber =
+    String
 
 type alias StepNumber =
     String
@@ -696,10 +700,8 @@ type alias Deployment =
     , task : String
     , target : String
     , description : String
-
-    {- , payload: Maybe (List KeyValuePair) -}
+    , payload: Maybe (List KeyValuePair)
     }
-
 
 type alias Repository =
     { id : Int
@@ -1094,6 +1096,7 @@ type alias Build =
     , host : String
     , runtime : String
     , distribution : String
+    , deploy_payload: Maybe (List KeyValuePair)
     }
 
 
@@ -1125,6 +1128,7 @@ decodeBuild =
         |> optional "host" string ""
         |> optional "runtime" string ""
         |> optional "distribution" string ""
+        |> optional "deploy_payload" decodeDeploymentParameters Nothing
 
 
 {-| decodeBuilds : decodes json from vela into list of builds
@@ -1695,8 +1699,11 @@ decodeDeployment =
         |> optional "task" string ""
         |> optional "target" string ""
         |> optional "description" string ""
+        |> optional "payload" decodeDeploymentParameters Nothing
 
-
+decodeDeployments : Decoder (List Deployment)
+decodeDeployments =
+    Decode.list decodeDeployment
 
 {- payload -}
 
@@ -1720,6 +1727,20 @@ decodeKeyValuePair : ( String, String ) -> KeyValuePair
 decodeKeyValuePair ( k, v ) =
     KeyValuePair k v
 
+decodeKeyValuePairs : (List ( String, String )) -> Maybe (List KeyValuePair)
+decodeKeyValuePairs o =
+    if List.isEmpty o then
+        Nothing
+    else
+        Just <| List.map decodeKeyValuePair <| o
+
+type alias ParameterMap =
+    Dict String String
+
+
+decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
+decodeDeploymentParameters =
+    Decode.map decodeKeyValuePairs <| Decode.keyValuePairs Decode.string
 
 type alias DeploymentPayload =
     { org : Maybe String
