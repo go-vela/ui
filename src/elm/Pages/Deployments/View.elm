@@ -69,17 +69,14 @@ viewPreview org repo deployment =
             String.fromInt deployment.id
 
         commit =
-            [ text "deployment"
-            , text " ("
-            , a [ href deployment.ref ] [ text <| Util.trimCommitHash deployment.commit ]
-            , text <| ")"
+            div [] [ text " Commit: ("
+            , a [ href deployment.url ] [ text <| Util.trimCommitHash deployment.commit ]
+            , text <| ") to Target: "
+            , text deployment.target
             ]
 
-        sender =
-            [ text deployment.target ]
-
         message =
-            [ text <| "- " ++ deployment.description ]
+            strong [] [ text <| "Description: " ++ deployment.description ]
 
         promoteDeploymentLink =
              a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Promote" ]
@@ -87,26 +84,15 @@ viewPreview org repo deployment =
 
         markdown =
             [ div [ class "info" ] [
-                div [ class "row -left" ] [
-                    div [ class "id" ] [
-                        text deploymentId
-                        , div [ class "commit-msg" ] [
-                            strong [] message ]
-                        ]
-                        , div [ class "row" ] [
-                            div [ class "git-info" ] [
-                                div [ class "commit" ]
-                                commit
-                                , text "on"
-                                , text "by"
-                                , div [ class "sender" ]
-                                    sender
-                                    , promoteDeploymentLink
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
+                text ("Deployment: " ++ deploymentId)
+                , message
+                , commit
+                , promoteDeploymentLink
+                ]
+            ]
+
+
+
 
     in
     div [ class "build-container", Util.testAttribute "build" ]
