@@ -15,6 +15,7 @@ module Vela exposing
     , Copy
     , CurrentUser
     , Deployment
+    , DeploymentsModel
     , DeploymentNumber
     , DeploymentPayload
     , DisableRepo
@@ -99,6 +100,7 @@ module Vela exposing
     , defaultPipeline
     , defaultPipelineTemplates
     , defaultRepoModel
+    , defaultDeployments
     , defaultStep
     , encodeDeploymentPayload
     , encodeEnableRepository
@@ -133,6 +135,8 @@ module Vela exposing
     , updateBuildsPage
     , updateBuildsPager
     , updateBuildsPerPage
+    , updateDeployments
+    , updateDeploymentsPager
     , updateHooks
     , updateHooksPage
     , updateHooksPager
@@ -340,6 +344,7 @@ type alias RepoModel =
     , repo : WebData Repository
     , hooks : HooksModel
     , builds : BuildsModel
+    , deployments: DeploymentsModel
     , build : BuildModel
     , initialized : Bool
     }
@@ -378,7 +383,7 @@ defaultBuildModel =
 
 defaultRepoModel : RepoModel
 defaultRepoModel =
-    RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
+    RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultDeployments defaultBuildModel False
 
 
 defaultStepsModel : StepsModel
@@ -516,7 +521,6 @@ updateBuilds update rm =
     in
     { rm | builds = { bm | builds = update } }
 
-
 updateBuildsPager : List WebLink -> RepoModel -> RepoModel
 updateBuildsPager update rm =
     let
@@ -525,6 +529,21 @@ updateBuildsPager update rm =
     in
     { rm | builds = { bm | pager = update } }
 
+updateDeployments : WebData (List Deployment) -> RepoModel -> RepoModel
+updateDeployments update rm =
+    let
+        dm =
+            rm.deployments
+    in
+    { rm | deployments = { dm | deployments = update } }
+
+updateDeploymentsPager : List WebLink -> RepoModel -> RepoModel
+updateDeploymentsPager update rm =
+    let
+        dm =
+            rm.deployments
+    in
+    { rm | deployments = { dm | pager = update } }
 
 updateBuildsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
 updateBuildsPage maybePage rm =
@@ -1149,6 +1168,9 @@ defaultBuilds : BuildsModel
 defaultBuilds =
     BuildsModel RemoteData.NotAsked [] Nothing Nothing Nothing
 
+defaultDeployments : DeploymentsModel
+defaultDeployments =
+    DeploymentsModel RemoteData.NotAsked [] Nothing Nothing
 
 type alias Builds =
     List Build
@@ -1686,6 +1708,12 @@ buildUpdateSecretPayload type_ org repo team name value events images allowComma
 
 -- DEPLOYMENT
 
+type alias DeploymentsModel =
+    { deployments : WebData (List Deployment)
+    , pager : List WebLink
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
+    }
 
 decodeDeployment : Decoder Deployment
 decodeDeployment =

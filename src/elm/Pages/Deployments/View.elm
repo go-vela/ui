@@ -8,24 +8,8 @@ module Pages.Deployments.View exposing (addDeployment, addForm, promoteDeploymen
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html
-    exposing
-        ( Html
-        , a
-        , br
-        , code
-        , div
-        , em
-        , h1
-        , h2
-        , li
-        , ol
-        , p
-        , text
-        )
+import Html exposing (Html, a, br, code, div, em, h1, h2, li, ol, p, strong, text)
 import Html.Attributes exposing (class, href)
-import Http.Extras exposing (State(..))
-import Pages.Build.View exposing (viewPreview)
 import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
     exposing
@@ -33,13 +17,12 @@ import Pages.Deployments.Model
         , Msg(..)
         , PartialModel
         )
-import Pages.Deployments.Update exposing (initializeFormFromDeployment)
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
 import Time exposing (Posix, Zone)
 import Util exposing (largeLoader, testAttribute)
-import Vela exposing (BuildsModel, Event, Org, Repo)
+import Vela exposing (BuildsModel, Deployment, DeploymentsModel, Event, Org, Repo)
 
 
 
@@ -77,9 +60,62 @@ addForm deploymentModel =
         , viewSubmitButtons deploymentModel
         ]
 
+{-| viewPreview : renders single build item preview based on current application time
+-}
+viewPreview : Org -> Repo -> Deployment -> Html msg
+viewPreview org repo deployment =
+    let
+        deploymentId =
+            String.fromInt deployment.id
 
-viewDeployments : BuildsModel -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Html msg
-viewDeployments buildsModel now zone org repo maybeEvent =
+        commit =
+            [ text "deployment"
+            , text " ("
+            , a [ href deployment.ref ] [ text <| Util.trimCommitHash deployment.commit ]
+            , text <| ")"
+            ]
+
+        sender =
+            [ text deployment.target ]
+
+        message =
+            [ text <| "- " ++ deployment.description ]
+
+        promoteDeploymentLink =
+             a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Promote" ]
+
+
+        markdown =
+            [ div [ class "info" ] [
+                div [ class "row -left" ] [
+                    div [ class "id" ] [
+                        text deploymentId
+                        , div [ class "commit-msg" ] [
+                            strong [] message ]
+                        ]
+                        , div [ class "row" ] [
+                            div [ class "git-info" ] [
+                                div [ class "commit" ]
+                                commit
+                                , text "on"
+                                , text "by"
+                                , div [ class "sender" ]
+                                    sender
+                                    , promoteDeploymentLink
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+
+    in
+    div [ class "build-container", Util.testAttribute "build" ]
+        [ div [ class "build" ] <|
+            markdown
+        ]
+
+viewDeployments : DeploymentsModel -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Html msg
+viewDeployments deploymentsModel now zone org repo maybeEvent =
     let
         addButton =
             a
@@ -109,19 +145,19 @@ viewDeployments buildsModel now zone org repo maybeEvent =
                         , h2 [] [ text "No deployments found." ]
                         ]
     in
-    case buildsModel.builds of
-        RemoteData.Success builds ->
-            if List.length builds == 0 then
+    case deploymentsModel.deployments of
+        RemoteData.Success deployments ->
+            if List.length deployments == 0 then
                 none
 
             else
                 let
-                    buildList =
-                        div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now zone org repo) builds
+                    deploymentList =
+                        div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview org repo) deployments
                 in
                 div []
                     [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
-                    , buildList
+                    , deploymentList
                     ]
 
         RemoteData.Loading ->

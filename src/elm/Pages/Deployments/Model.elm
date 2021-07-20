@@ -19,7 +19,7 @@ import Http
 import Http.Detailed
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
-import Vela exposing (Build, Deployment, Engine, KeyValuePair, Org, Repo, Repository, Team)
+import Vela exposing (Build, Deployment, DeploymentsModel, Engine, KeyValuePair, Org, Repo, Repository, Team)
 
 
 
