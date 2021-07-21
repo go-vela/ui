@@ -98,8 +98,8 @@ viewPreview org repo deployment =
             markdown
         ]
 
-viewDeployments : DeploymentsModel -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Html msg
-viewDeployments deploymentsModel now zone org repo maybeEvent =
+viewDeployments : DeploymentsModel -> Posix -> Zone -> Org -> Repo -> Html msg
+viewDeployments deploymentsModel now zone org repo =
     let
         addButton =
             a
@@ -118,16 +118,10 @@ viewDeployments deploymentsModel now zone org repo maybeEvent =
 
         none : Html msg
         none =
-            case maybeEvent of
-                Nothing ->
-                    div [] []
-
-                -- Maybe Event will always be "deployment" for this component
-                Just _ ->
-                    div []
-                        [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
-                        , h2 [] [ text "No deployments found." ]
-                        ]
+            div []
+                [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
+                , h2 [] [ text "No deployments found." ]
+                ]
     in
     case deploymentsModel.deployments of
         RemoteData.Success deployments ->

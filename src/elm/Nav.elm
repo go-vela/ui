@@ -125,7 +125,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
         Pages.RepositoryBuilds org repo _ _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
-        Pages.RepositoryDeployments org repo _ _ _ ->
+        Pages.RepositoryDeployments org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
         Pages.RepoSettings org repo ->
@@ -183,7 +183,7 @@ viewUtil model =
             Pages.RepositoryBuilds org repo _ _ _ ->
                 viewRepoTabs rm org repo model.page
 
-            Pages.RepositoryDeployments org repo _ _ _ ->
+            Pages.RepositoryDeployments org repo _ _ ->
                 viewRepoTabs rm org repo model.page
 
             Pages.RepoSecrets _ org repo _ _ ->
@@ -307,7 +307,7 @@ viewRepoTabs rm org repo currentPage =
             , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False
             , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting
             , Tab "Settings" currentPage (Pages.RepoSettings org repo) False
-            , Tab "Deployments" currentPage (Pages.RepositoryDeployments org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
+            , Tab "Deployments" currentPage (Pages.RepositoryDeployments org repo rm.builds.maybePage rm.builds.maybePerPage) False
             ]
     in
     viewTabs tabs "jump-bar-repo"

@@ -57,7 +57,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy6)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy6)
 import Http
 import Http.Detailed
 import Interop
@@ -110,7 +110,7 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela exposing (AuthParams, Build, BuildNumber, Builds, ChownRepo, CurrentUser, Deployment, DeploymentNumber, EnableRepo, EnableRepos, EnableRepositoryPayload, Enabling(..), Engine, Event, Favicon, Field, FocusFragment, Hooks, Key, Log, Logs, Name, Org, PipelineModel, PipelineTemplates, Ref, RepairRepo, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Secret, SecretType(..), Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildPipelineOrgRepo, updateBuildPipelineRef, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateDeployments, updateDeploymentsPager, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoTimeout)
+import Vela exposing (AuthParams, Build, BuildNumber, Builds, ChownRepo, CurrentUser, Deployment, DeploymentNumber, EnableRepo, EnableRepos, EnableRepositoryPayload, Enabling(..), Engine, Event, Favicon, Field, FocusFragment, Hooks, Key, Log, Logs, Name, Org, PipelineModel, PipelineTemplates, Ref, RepairRepo, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Secret, SecretType(..), Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildPipelineOrgRepo, updateBuildPipelineRef, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoTimeout)
 
 
 
@@ -455,9 +455,9 @@ update msg model =
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent
                     )
 
-                Pages.RepositoryDeployments org repo _ maybePerPage maybeEvent ->
+                Pages.RepositoryDeployments org repo _ maybePerPage ->
                     ( { model | repo = updateBuilds Loading rm }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryDeployments org repo (Just pageNumber) maybePerPage maybeEvent
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryDeployments org repo (Just pageNumber) maybePerPage
                     )
 
                 Pages.Hooks org repo _ maybePerPage ->
@@ -1823,7 +1823,7 @@ refreshPage model =
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             getBuilds model org repo maybePage maybePerPage maybeEvent
 
-        Pages.RepositoryDeployments org repo maybePage maybePerPage maybeEvent ->
+        Pages.RepositoryDeployments org repo maybePage maybePerPage ->
             getDeployments model org repo maybePage maybePerPage
 
         Pages.Build org repo buildNumber focusFragment ->
@@ -2213,7 +2213,7 @@ viewContent model =
             , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.promoteDeployment model
             )
 
-        Pages.RepositoryDeployments org repo maybePage _ maybeEvent ->
+        Pages.RepositoryDeployments org repo maybePage _ ->
             let
                 page : String
                 page =
@@ -2227,7 +2227,7 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " deployments" ++ page
             , div []
                 [ Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy6 Pages.Deployments.View.viewDeployments model.repo.deployments model.time model.zone org repo maybeEvent
+                , lazy5 Pages.Deployments.View.viewDeployments model.repo.deployments model.time model.zone org repo
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -2564,8 +2564,8 @@ setNewPage route model =
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
             loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent
 
-        ( Routes.RepositoryDeployments org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
-            loadRepoDeploymentsPage model org repo maybePage maybePerPage maybeEvent
+        ( Routes.RepositoryDeployments org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoDeploymentsPage model org repo maybePage maybePerPage
 
         ( Routes.Build org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildPage model org repo buildNumber lineFocus
@@ -2696,6 +2696,7 @@ loadRepoSubPage model org repo toPage =
                             |> updateRepo Loading
                             |> updateBuilds Loading
                             |> updateBuildSteps NotAsked
+                            |> updateDeployments Loading
                             -- update builds pagination
                             |> (\rm_ ->
                                     case toPage of
@@ -2711,6 +2712,19 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateBuildsPerPage Nothing
                                                 |> updateBuildsEvent Nothing
                                )
+                            -- update deployments pagination
+                                |> (\rm_ ->
+                                        case toPage of
+                                            Pages.RepositoryDeployments _ _ maybePage maybePerPage ->
+                                                rm_
+                                                    |> updateDeploymentsPage maybePage
+                                                    |> updateDeploymentsPerPage maybePerPage
+
+                                            _ ->
+                                                rm
+                                                    |> updateDeploymentsPage Nothing
+                                                    |> updateDeploymentsPerPage Nothing
+                                   )
                             -- update hooks pagination
                             |> (\rm_ ->
                                     case toPage of
@@ -2734,6 +2748,12 @@ loadRepoSubPage model org repo toPage =
 
                         _ ->
                             getBuilds model org repo Nothing Nothing Nothing
+                    , case toPage of
+                            Pages.RepositoryDeployments o r maybePage maybePerPage ->
+                                getDeployments model o r maybePage maybePerPage
+
+                            _ ->
+                                getDeployments model org repo Nothing Nothing
                     , case toPage of
                         Pages.Hooks o r maybePage maybePerPage ->
                             getHooks model o r maybePage maybePerPage
@@ -2802,9 +2822,9 @@ loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
     loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
 
-loadRepoDeploymentsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
-loadRepoDeploymentsPage model org repo maybePage maybePerPage maybeEvent =
-    loadRepoSubPage model org repo <| Pages.RepositoryDeployments org repo maybePage maybePerPage (Just "deployment")
+loadRepoDeploymentsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadRepoDeploymentsPage model org repo maybePage maybePerPage =
+    loadRepoSubPage model org repo <| Pages.RepositoryDeployments org repo maybePage maybePerPage
 
 
 {-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets

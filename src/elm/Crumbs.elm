@@ -183,7 +183,7 @@ toPath page =
                             ( org, Nothing )
 
                         currentRepo =
-                            ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing (Just "deployment") )
+                            ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
                     in
                     [ overviewPage, orgPage, currentRepo, ( "Add Deployment", Nothing ) ]
 
@@ -193,7 +193,7 @@ toPath page =
                             ( org, Nothing )
 
                         currentRepo =
-                            ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing (Just "deployment") )
+                            ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
                     in
                     [ overviewPage, orgPage, currentRepo, ( "Add Deployment", Nothing ) ]
 
@@ -259,12 +259,12 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
 
-                Pages.RepositoryDeployments org repo maybePage maybePerPage maybeEvent ->
+                Pages.RepositoryDeployments org repo maybePage maybePerPage ->
                     let
                         organizationPage =
                             ( org, Nothing )
                     in
-                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryDeployments org repo maybePage maybePerPage maybeEvent ) ]
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryDeployments org repo maybePage maybePerPage ) ]
 
                 Pages.Build org repo buildNumber _ ->
                     let

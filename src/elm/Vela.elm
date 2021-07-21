@@ -137,6 +137,8 @@ module Vela exposing
     , updateBuildsPerPage
     , updateDeployments
     , updateDeploymentsPager
+    , updateDeploymentsPage
+    , updateDeploymentsPerPage
     , updateHooks
     , updateHooksPage
     , updateHooksPager
@@ -544,6 +546,22 @@ updateDeploymentsPager update rm =
             rm.deployments
     in
     { rm | deployments = { dm | pager = update } }
+
+updateDeploymentsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
+updateDeploymentsPage maybePage rm =
+    let
+        dm =
+            rm.deployments
+    in
+    { rm | deployments = { dm | maybePage = maybePage } }
+
+updateDeploymentsPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
+updateDeploymentsPerPage maybePerPage rm =
+    let
+        dm =
+            rm.deployments
+    in
+    { rm | deployments = { dm | maybePerPage = maybePerPage } }
 
 updateBuildsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
 updateBuildsPage maybePage rm =
