@@ -60,7 +60,7 @@ addForm deploymentModel =
         , viewSubmitButtons deploymentModel
         ]
 
-{-| viewPreview : renders single build item preview based on current application time
+{-| viewPreview : renders single deployment item preview
 -}
 viewPreview : Org -> Repo -> Deployment -> Html msg
 viewPreview org repo deployment =
@@ -68,33 +68,31 @@ viewPreview org repo deployment =
         deploymentId =
             String.fromInt deployment.id
 
-        commit =
-            div [] [ text " Commit: ("
-            , a [ href deployment.url ] [ text <| Util.trimCommitHash deployment.commit ]
-            , text <| ") to Target: "
-            , text deployment.target
+        info =
+            div [class "deployment-info"] [
+            p [] [ text (deployment.target ++ " at (" ++ (Util.trimCommitHash deployment.commit) ++ ")") ]
+            , p [] [ text ( " Deployed by: " ++ deployment.user) ]
             ]
-
-        message =
-            strong [] [ text <| "Description: " ++ deployment.description ]
 
         promoteDeploymentLink =
-             a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Promote" ]
+             div [ class "deployment-link" ] [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Promote" ] ]
+
+        deploymentDetails =
+            div [ class "deployment-details" ] [
+                p [] [ text ( " Task: " ++ deployment.task) ]
+                , p [] [ text ( " Ref: " ++ deployment.ref) ]
+                , p [] [ text <| " Description: " ++ deployment.description ]
+            ]
 
         markdown =
-            [ div [ class "info" ] [
-                text ("Deployment: " ++ deploymentId)
-                , message
-                , commit
+            [
+                info
+                --, deploymentDetails
                 , promoteDeploymentLink
-                , text ( " Task: " ++ deployment.task)
-                , text ( " Ref: " ++ deployment.ref)
-                , text ( " User: " ++ deployment.user)
-                ]
             ]
     in
-    div [ class "build-container", Util.testAttribute "build" ]
-        [ div [ class "build" ] <|
+    div [ class "deployment-container", Util.testAttribute "deployment" ]
+        [ div [ class "deployment" ] <|
             markdown
         ]
 
@@ -131,7 +129,7 @@ viewDeployments deploymentsModel now zone org repo =
             else
                 let
                     deploymentList =
-                        div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview org repo) deployments
+                        div [ class "deployments", Util.testAttribute "deployments" ] <| List.map (viewPreview org repo) deployments
                 in
                 div []
                     [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]

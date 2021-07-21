@@ -2226,9 +2226,8 @@ viewContent model =
             in
             ( String.join "/" [ org, repo ] ++ " deployments" ++ page
             , div []
-                [ Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy5 Pages.Deployments.View.viewDeployments model.repo.deployments model.time model.zone org repo
-                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                [ lazy5 Pages.Deployments.View.viewDeployments model.repo.deployments model.time model.zone org repo
+                , Pager.view model.repo.deployments.pager Pager.defaultLabels GotoPage
                 ]
             )
 

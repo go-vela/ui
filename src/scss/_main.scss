@@ -313,6 +313,37 @@ nav {
   font-weight: 300;
 }
 
+// deployments
+.deployment-container {
+  width: 100%;
+  margin: 12px 0;
+  overflow: hidden;
+}
+
+.deployment {
+  position: relative;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  font-weight: 300;
+  font-size: 18px;
+
+  border: 2px solid var(--color-bg-dark);
+  border-right: 0;
+  border-left: 0;
+}
+
+.deployment div {
+  display: flex;
+  flex-direction: column;
+}
+
+.deployment div p {
+  margin: 0;
+}
+
 // builds styles for /:org/:repo/:build_number
 .builds {
   display: flex;
