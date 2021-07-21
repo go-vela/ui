@@ -10,6 +10,7 @@ module Pages.RepoSettings exposing
     , checkbox
     , enableUpdate
     , validAccessUpdate
+    , validPipelineTypeUpdate
     , validEventsUpdate
     , view
     )
@@ -117,6 +118,7 @@ type alias Msgs msg =
     , copy : Copy msg
     , chownRepo : ChownRepo msg
     , repairRepo : RepairRepo msg
+    , pipelineTypeUpdate : RadioUpdate msg
     }
 
 
@@ -129,8 +131,11 @@ type alias Msgs msg =
 view : WebData Repository -> Msgs msg -> String -> String -> Html msg
 view repo actions velaAPI velaURL =
     let
-        ( accessUpdate, timeoutUpdate, inTimeoutChange ) =
-            ( actions.accessUpdate, actions.timeoutUpdate, actions.inTimeoutChange )
+        ( accessUpdate, pipelineTypeUpdate ) =
+            ( actions.accessUpdate, actions.pipelineTypeUpdate )
+
+        ( timeoutUpdate, inTimeoutChange ) =
+            ( actions.timeoutUpdate, actions.inTimeoutChange )
 
         ( counterUpdate, inCounterChange ) =
             ( actions.counterUpdate, actions.inCounterChange )
@@ -150,6 +155,7 @@ view repo actions velaAPI velaURL =
                 , counter repo_.inCounter repo_ counterUpdate inCounterChange
                 , badge repo_ velaAPI velaURL actions.copy
                 , admin disableRepo enableRepo chownRepo repairRepo repo_
+                , pipelineType repo_ pipelineTypeUpdate
                 ]
 
         Loading ->
@@ -176,6 +182,20 @@ access repo msg =
         , div [ class "form-controls", class "-stack" ]
             [ radio repo.visibility "private" "Private" <| msg repo.org repo.name "visibility" "private"
             , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
+            ]
+        ]
+
+{-| pipelineType : takes model and repo and renders the settings category for updating repo pipeline type
+-}
+pipelineType : Repository -> RadioUpdate msg -> Html msg
+pipelineType repo msg =
+    section [ class "settings", Util.testAttribute "repo-settings-pipeline-type" ]
+        [ h2 [ class "settings-title" ] [ text "Pipeline Type" ]
+        , p [ class "settings-description" ] [ text "Change how the compiler treats the base vela config." ]
+        , div [ class "form-controls", class "-stack" ]
+            [ radio repo.pipeline_type "yaml" "YAML" <| msg repo.org repo.name "pipeline_type" "yaml"
+            , radio repo.pipeline_type "go" "Go" <| msg repo.org repo.name "pipeline_type" "go"
+            , radio repo.pipeline_type "starlark" "Starlark" <| msg repo.org repo.name "pipeline_type" "starlark"
             ]
         ]
 
@@ -348,7 +368,7 @@ radio value field title msg =
             , onClick msg
             ]
             []
-        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], updateTip field ]
+        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], updateAccessTip field ]
         ]
 
 
@@ -660,6 +680,22 @@ validAccessUpdate originalRepo repoUpdate =
         _ ->
             False
 
+{-| validPipelineTypeUpdate : takes model webdata repo and repo pipeline type update and determines if an update is necessary
+-}
+validPipelineTypeUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
+validPipelineTypeUpdate originalRepo repoUpdate =
+    case originalRepo of
+        RemoteData.Success repo ->
+            case repoUpdate.pipeline_type of
+                Just pipeline_type ->
+                    repo.pipeline_type /= pipeline_type
+
+                Nothing ->
+                    False
+
+        _ ->
+            False
+
 
 {-| validEventsUpdate : takes model webdata repo and repo events update and determines if an update is necessary
 -}
@@ -677,10 +713,10 @@ validEventsUpdate originalRepo repoUpdate =
             False
 
 
-{-| updateTip : takes field and returns the tip to display after the label.
+{-| updateAccessTip : takes field and returns the tip to display after the label.
 -}
-updateTip : Field -> Html msg
-updateTip field =
+updateAccessTip : Field -> Html msg
+updateAccessTip field =
     case field of
         "private" ->
             text " (restricted to those with repository access)"
@@ -691,6 +727,22 @@ updateTip field =
         _ ->
             text ""
 
+{-| updatePipelineTypeTip : takes field and returns the tip to display after the label.
+-}
+updatePipelineTypeTip : Field -> Html msg
+updatePipelineTypeTip field =
+    case field of
+        "yaml" ->
+            text " (base pipeline will be as a YAML file)"
+
+        "go" ->
+            text " (base pipeline will be as a Go template file)"
+
+        "starlark" ->
+            text " (base pipeline will be as a Starlark file)"
+
+        _ ->
+            text ""
 
 {-| msgPrefix : takes update field and returns alert prefix.
 -}
@@ -727,6 +779,9 @@ msgPrefix field =
         "counter" ->
             "Build counter for $ "
 
+        "pipeline_type" ->
+            "$ pipeline type set to "
+
         _ ->
             "Unrecognized update made to $."
 
@@ -762,6 +817,9 @@ msgSuffix field repo =
 
         "counter" ->
             "set to " ++ String.fromInt repo.counter
+
+        "pipeline_type" ->
+            repo.pipeline_type ++ "."
 
         _ ->
             ""
