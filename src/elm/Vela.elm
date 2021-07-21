@@ -15,9 +15,9 @@ module Vela exposing
     , Copy
     , CurrentUser
     , Deployment
-    , DeploymentsModel
     , DeploymentNumber
     , DeploymentPayload
+    , DeploymentsModel
     , DisableRepo
     , EnableRepo
     , EnableRepos
@@ -95,12 +95,12 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeTheme
+    , defaultDeployments
     , defaultEnableRepositoryPayload
     , defaultFavicon
     , defaultPipeline
     , defaultPipelineTemplates
     , defaultRepoModel
-    , defaultDeployments
     , defaultStep
     , encodeDeploymentPayload
     , encodeEnableRepository
@@ -136,8 +136,8 @@ module Vela exposing
     , updateBuildsPager
     , updateBuildsPerPage
     , updateDeployments
-    , updateDeploymentsPager
     , updateDeploymentsPage
+    , updateDeploymentsPager
     , updateDeploymentsPerPage
     , updateHooks
     , updateHooksPage
@@ -198,8 +198,10 @@ type alias Event =
 type alias BuildNumber =
     String
 
+
 type alias DeploymentNumber =
     String
+
 
 type alias StepNumber =
     String
@@ -346,7 +348,7 @@ type alias RepoModel =
     , repo : WebData Repository
     , hooks : HooksModel
     , builds : BuildsModel
-    , deployments: DeploymentsModel
+    , deployments : DeploymentsModel
     , build : BuildModel
     , initialized : Bool
     }
@@ -523,6 +525,7 @@ updateBuilds update rm =
     in
     { rm | builds = { bm | builds = update } }
 
+
 updateBuildsPager : List WebLink -> RepoModel -> RepoModel
 updateBuildsPager update rm =
     let
@@ -530,6 +533,7 @@ updateBuildsPager update rm =
             rm.builds
     in
     { rm | builds = { bm | pager = update } }
+
 
 updateDeployments : WebData (List Deployment) -> RepoModel -> RepoModel
 updateDeployments update rm =
@@ -539,6 +543,7 @@ updateDeployments update rm =
     in
     { rm | deployments = { dm | deployments = update } }
 
+
 updateDeploymentsPager : List WebLink -> RepoModel -> RepoModel
 updateDeploymentsPager update rm =
     let
@@ -546,6 +551,7 @@ updateDeploymentsPager update rm =
             rm.deployments
     in
     { rm | deployments = { dm | pager = update } }
+
 
 updateDeploymentsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
 updateDeploymentsPage maybePage rm =
@@ -555,6 +561,7 @@ updateDeploymentsPage maybePage rm =
     in
     { rm | deployments = { dm | maybePage = maybePage } }
 
+
 updateDeploymentsPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
 updateDeploymentsPerPage maybePerPage rm =
     let
@@ -562,6 +569,7 @@ updateDeploymentsPerPage maybePerPage rm =
             rm.deployments
     in
     { rm | deployments = { dm | maybePerPage = maybePerPage } }
+
 
 updateBuildsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
 updateBuildsPage maybePage rm =
@@ -737,8 +745,9 @@ type alias Deployment =
     , task : String
     , target : String
     , description : String
-    , payload: Maybe (List KeyValuePair)
+    , payload : Maybe (List KeyValuePair)
     }
+
 
 type alias Repository =
     { id : Int
@@ -1133,7 +1142,7 @@ type alias Build =
     , host : String
     , runtime : String
     , distribution : String
-    , deploy_payload: Maybe (List KeyValuePair)
+    , deploy_payload : Maybe (List KeyValuePair)
     }
 
 
@@ -1186,9 +1195,11 @@ defaultBuilds : BuildsModel
 defaultBuilds =
     BuildsModel RemoteData.NotAsked [] Nothing Nothing Nothing
 
+
 defaultDeployments : DeploymentsModel
 defaultDeployments =
     DeploymentsModel RemoteData.NotAsked [] Nothing Nothing
+
 
 type alias Builds =
     List Build
@@ -1726,12 +1737,14 @@ buildUpdateSecretPayload type_ org repo team name value events images allowComma
 
 -- DEPLOYMENT
 
+
 type alias DeploymentsModel =
     { deployments : WebData (List Deployment)
     , pager : List WebLink
     , maybePage : Maybe Pagination.Page
     , maybePerPage : Maybe Pagination.PerPage
     }
+
 
 decodeDeployment : Decoder Deployment
 decodeDeployment =
@@ -1747,9 +1760,12 @@ decodeDeployment =
         |> optional "description" string ""
         |> optional "payload" decodeDeploymentParameters Nothing
 
+
 decodeDeployments : Decoder (List Deployment)
 decodeDeployments =
     Decode.list decodeDeployment
+
+
 
 {- payload -}
 
@@ -1773,12 +1789,15 @@ decodeKeyValuePair : ( String, String ) -> KeyValuePair
 decodeKeyValuePair ( k, v ) =
     KeyValuePair k v
 
-decodeKeyValuePairs : (List ( String, String )) -> Maybe (List KeyValuePair)
+
+decodeKeyValuePairs : List ( String, String ) -> Maybe (List KeyValuePair)
 decodeKeyValuePairs o =
     if List.isEmpty o then
         Nothing
+
     else
         Just <| List.map decodeKeyValuePair <| o
+
 
 type alias ParameterMap =
     Dict String String
@@ -1787,6 +1806,7 @@ type alias ParameterMap =
 decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
     Decode.map decodeKeyValuePairs <| Decode.keyValuePairs Decode.string
+
 
 type alias DeploymentPayload =
     { org : Maybe String

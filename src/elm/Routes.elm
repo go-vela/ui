@@ -74,7 +74,7 @@ routes =
         , map RepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> string)
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
-        , map AddDeploymentRoute (string </> string </> s "deployment")
+        , map AddDeploymentRoute (string </> string </> s "add-deployment")
         , map PromoteDeployment (string </> string </> s "deployment" </> string)
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
@@ -160,10 +160,10 @@ routeToUrl route =
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" lineFocus
 
         AddDeploymentRoute org repo ->
-            "/" ++ org ++ "/" ++ repo ++ "/deployment"
+            "/" ++ org ++ "/" ++ repo ++ "/add-deployment"
 
-        PromoteDeployment org repo buildNumber ->
-            "/" ++ org ++ "/" ++ repo ++ "/deployment/" ++ buildNumber
+        PromoteDeployment org repo deploymentId ->
+            "/" ++ org ++ "/" ++ repo ++ "/deployment/" ++ deploymentId
 
         BuildServices org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/services" ++ Maybe.withDefault "" lineFocus

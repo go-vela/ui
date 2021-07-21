@@ -33,7 +33,7 @@ import Html.Attributes exposing (class, disabled, for, href, id, placeholder, ro
 import Html.Events exposing (onClick, onInput)
 import Pages.Deployments.Model exposing (DeploymentForm, Model, Msg(..))
 import RemoteData exposing (WebData)
-import Util
+import Util exposing (testAttribute)
 import Vela exposing (KeyValuePair, Repo, Repository)
 
 
@@ -185,6 +185,7 @@ viewUpdateButton : Model msg -> Html Msg
 viewUpdateButton deploymentsModel =
     button
         [ class "button"
+        , Util.testAttribute "add-deployment-button"
         , onClick <| Pages.Deployments.Model.AddDeployment
         ]
         [ text "Add Deployment" ]

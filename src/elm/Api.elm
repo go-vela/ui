@@ -605,6 +605,7 @@ addSecret model engine type_ org key body =
     post model.velaAPI (Endpoint.Secrets Nothing Nothing engine type_ org key) body decodeSecret
         |> withAuth model.session
 
+
 {-| getBuilds : fetches vela builds by repository
 -}
 getDeployments : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request (List Deployment)
@@ -612,12 +613,14 @@ getDeployments model maybePage maybePerPage org repository =
     get model.velaAPI (Endpoint.Deployments maybePage maybePerPage org repository) decodeDeployments
         |> withAuth model.session
 
+
 {-| getBuild : fetches vela build by repository and build number
 -}
 getDeployment : PartialModel a -> Org -> Repo -> Maybe DeploymentNumber -> Request Deployment
 getDeployment model org repo deploymentNumber =
     get model.velaAPI (Endpoint.Deployment org repo deploymentNumber) decodeDeployment
         |> withAuth model.session
+
 
 {-| addDeployment : adds a deployment
 -}

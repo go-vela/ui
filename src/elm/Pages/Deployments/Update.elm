@@ -55,6 +55,7 @@ initializeFormFromDeployment description params ref target task =
                 task
                 ""
                 ""
+
         Nothing ->
             DeploymentForm ""
                 description
@@ -64,6 +65,7 @@ initializeFormFromDeployment description params ref target task =
                 task
                 ""
                 ""
+
 
 {-| updateDeploymentField : takes field and value and updates the deployment field
 -}

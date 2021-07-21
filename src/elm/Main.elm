@@ -301,7 +301,7 @@ type Msg
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | CancelBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
-    | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, (List Deployment) ))
+    | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, List Deployment ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | DeploymentResponse Org Repo DeploymentNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
@@ -1233,25 +1233,26 @@ update msg model =
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
         DeploymentResponse _ _ _ response ->
-                    case response of
-                        Ok ( _, deployment ) ->
-                            let
-                                dm =
-                                    model.deploymentModel
+            case response of
+                Ok ( _, deployment ) ->
+                    let
+                        dm =
+                            model.deploymentModel
 
-                                form =
-                                    initializeFormFromDeployment deployment.description deployment.payload deployment.ref deployment.target deployment.task
+                        form =
+                            initializeFormFromDeployment deployment.description deployment.payload deployment.ref deployment.target deployment.task
 
-                                promoted =
-                                    { dm | form = form }
-                            in
-                            ( { model
-                                | deploymentModel = promoted
-                              }, Cmd.none
-                            )
+                        promoted =
+                            { dm | form = form }
+                    in
+                    ( { model
+                        | deploymentModel = promoted
+                      }
+                    , Cmd.none
+                    )
 
-                        Err error ->
-                            ( { model | repo = updateBuild (toFailure error) rm }, addError error )
+                Err error ->
+                    ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
         StepsResponse org repo buildNumber logFocus refresh response ->
             case response of
@@ -2199,13 +2200,8 @@ viewContent model =
             )
 
         Pages.AddDeployment org repo ->
-            let
-                dm =  model.deploymentModel
-                newDm = Pages.Deployments.Update.reinitializeDeployment dm
-                newModel = { model | deploymentModel = newDm}
-            in
             ( String.join "/" [ org, repo ] ++ " add deployment"
-            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment newModel
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
             )
 
         Pages.PromoteDeployment org repo buildNumber ->
@@ -2683,10 +2679,20 @@ loadRepoSubPage model org repo toPage =
                             , type_ = Vela.RepoSecret
                         }
                     , deploymentModel =
+                        let
+                            form =
+                                case toPage of
+                                    Pages.AddDeployment _ _ ->
+                                        Pages.Deployments.Update.initializeFormFromDeployment "" Nothing "" "" ""
+
+                                    _ ->
+                                        dm.form
+                        in
                         { dm
                             | org = org
                             , repo = repo
                             , repo_settings = rm.repo
+                            , form = form
                         }
                     , repo =
                         rm
@@ -2712,18 +2718,18 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateBuildsEvent Nothing
                                )
                             -- update deployments pagination
-                                |> (\rm_ ->
-                                        case toPage of
-                                            Pages.RepositoryDeployments _ _ maybePage maybePerPage ->
-                                                rm_
-                                                    |> updateDeploymentsPage maybePage
-                                                    |> updateDeploymentsPerPage maybePerPage
+                            |> (\rm_ ->
+                                    case toPage of
+                                        Pages.RepositoryDeployments _ _ maybePage maybePerPage ->
+                                            rm_
+                                                |> updateDeploymentsPage maybePage
+                                                |> updateDeploymentsPerPage maybePerPage
 
-                                            _ ->
-                                                rm
-                                                    |> updateDeploymentsPage Nothing
-                                                    |> updateDeploymentsPerPage Nothing
-                                   )
+                                        _ ->
+                                            rm
+                                                |> updateDeploymentsPage Nothing
+                                                |> updateDeploymentsPerPage Nothing
+                               )
                             -- update hooks pagination
                             |> (\rm_ ->
                                     case toPage of
@@ -2748,11 +2754,11 @@ loadRepoSubPage model org repo toPage =
                         _ ->
                             getBuilds model org repo Nothing Nothing Nothing
                     , case toPage of
-                            Pages.RepositoryDeployments o r maybePage maybePerPage ->
-                                getDeployments model o r maybePage maybePerPage
+                        Pages.RepositoryDeployments o r maybePage maybePerPage ->
+                            getDeployments model o r maybePage maybePerPage
 
-                            _ ->
-                                getDeployments model org repo Nothing Nothing
+                        _ ->
+                            getDeployments model org repo Nothing Nothing
                     , case toPage of
                         Pages.Hooks o r maybePage maybePerPage ->
                             getHooks model o r maybePage maybePerPage
@@ -2851,7 +2857,7 @@ loadAddDeploymentPage model org repo =
     loadRepoSubPage model org repo <| Pages.AddDeployment org repo
 
 
-{-| loadAddDeploymentPage : takes model org and repo and loads the page for managing deployments
+{-| loadPromoteDeploymentPage : takes model org and repo and loads the page for managing deployments
 -}
 loadPromoteDeploymentPage :
     Model
@@ -3795,13 +3801,16 @@ getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =
     Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
 
+
 getDeployment : Model -> Org -> Repo -> DeploymentNumber -> Cmd Msg
 getDeployment model org repo deploymentNumber =
     Api.try (DeploymentResponse org repo deploymentNumber) <| Api.getDeployment model org repo <| Just deploymentNumber
 
+
 getDeployments : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getDeployments model org repo maybePage maybePerPage =
-   Api.try (DeploymentsResponse org repo) <| Api.getDeployments model maybePage maybePerPage org repo
+    Api.try (DeploymentsResponse org repo) <| Api.getDeployments model maybePage maybePerPage org repo
+
 
 getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
 getAllBuildSteps model org repo buildNumber logFocus refresh =

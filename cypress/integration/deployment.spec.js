@@ -17,7 +17,7 @@ context('Deployment', () => {
         '*api/v1/deployments/github/octocat',
         'fixture:deployment.json',
       );
-      cy.login('/github/octocat/deployment');
+      cy.login('/github/octocat/add-deployment');
     });
 
     it('Add Parameter button should be disabled', () => {

@@ -60,6 +60,7 @@ addForm deploymentModel =
         , viewSubmitButtons deploymentModel
         ]
 
+
 {-| viewPreview : renders single deployment item preview
 -}
 viewPreview : Org -> Repo -> Deployment -> Html msg
@@ -69,32 +70,33 @@ viewPreview org repo deployment =
             String.fromInt deployment.id
 
         info =
-            div [class "deployment-info"] [
-            p [] [ text (deployment.target ++ " at (" ++ (Util.trimCommitHash deployment.commit) ++ ")") ]
-            , p [] [ text ( " Deployed by: " ++ deployment.user) ]
-            ]
+            div [ class "deployment-info" ]
+                [ p [] [ text (deployment.target ++ " at (" ++ Util.trimCommitHash deployment.commit ++ ")") ]
+                , p [] [ text (" Deployed by: " ++ deployment.user) ]
+                ]
 
         promoteDeploymentLink =
-             div [ class "deployment-link" ] [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Promote" ] ]
+            div [ class "deployment-link" ] [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Promote" ] ]
 
         deploymentDetails =
-            div [ class "deployment-details" ] [
-                p [] [ text ( " Task: " ++ deployment.task) ]
-                , p [] [ text ( " Ref: " ++ deployment.ref) ]
+            div [ class "deployment-details" ]
+                [ p [] [ text (" Task: " ++ deployment.task) ]
+                , p [] [ text (" Ref: " ++ deployment.ref) ]
                 , p [] [ text <| " Description: " ++ deployment.description ]
-            ]
+                ]
 
         markdown =
-            [
-                info
-                --, deploymentDetails
-                , promoteDeploymentLink
+            [ info
+
+            --, deploymentDetails
+            , promoteDeploymentLink
             ]
     in
     div [ class "deployment-container", Util.testAttribute "deployment" ]
         [ div [ class "deployment" ] <|
             markdown
         ]
+
 
 viewDeployments : DeploymentsModel -> Posix -> Zone -> Org -> Repo -> Html msg
 viewDeployments deploymentsModel now zone org repo =

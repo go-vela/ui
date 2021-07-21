@@ -126,12 +126,12 @@ toUrl api endpoint =
             case deploymentNumber of
                 Just id ->
                     url api [ "deployments", org, repo, id ] []
+
                 Nothing ->
                     url api [ "deployments", org, repo ] []
 
         Deployments maybePage maybePerPage org repo ->
             url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
-
 
 
 {-| url : creates a URL string with the given path segments and query parameters
