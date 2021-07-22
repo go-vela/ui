@@ -43,6 +43,8 @@ reinitializeDeployment deploymentModel =
     { deploymentModel | form = defaultDeploymentForm }
 
 
+{-| initializeFormFromDeployment : takes an existing deployment and initializes form input arguments
+-}
 initializeFormFromDeployment : String -> Maybe (List KeyValuePair) -> String -> String -> String -> DeploymentForm
 initializeFormFromDeployment description params ref target task =
     case params of
@@ -186,6 +188,8 @@ toDeploymentPayload deploymentModel deployment =
         (Just deployment.payload)
 
 
+{-| applyDefaults : adds default values to empty form fields
+-}
 applyDefaults : DeploymentForm -> DeploymentForm
 applyDefaults form =
     DeploymentForm
@@ -219,6 +223,8 @@ applyDefaults form =
         ""
 
 
+{-| update : perform functions based on incoming messages
+-}
 update : PartialModel a msg -> Msg -> ( PartialModel a msg, Cmd msg )
 update model msg =
     let

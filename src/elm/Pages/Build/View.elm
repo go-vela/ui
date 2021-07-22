@@ -51,10 +51,8 @@ import Html.Attributes
         , title
         )
 import Html.Events exposing (onClick)
-import Http exposing (Error(..))
 import List.Extra exposing (unique)
 import Nav exposing (viewBuildTabs)
-import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
@@ -222,13 +220,6 @@ viewPreview now zone org repo build =
         statusClass =
             statusToClass build.status
 
-        promoteDeployment =
-            if build.event == "deployment" then
-                a [ Routes.href <| Routes.PromoteDeployment org repo buildNumber ] [ text "Promote" ]
-
-            else
-                text ""
-
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
@@ -243,7 +234,6 @@ viewPreview now zone org repo build =
                         , div [ class "branch" ] branch
                         , text "by"
                         , div [ class "sender" ] sender
-                        , promoteDeployment
                         ]
                     , div [ class "time-info" ]
                         [ div

@@ -20,7 +20,7 @@ import Pages.Deployments.Model
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg exposing (svg)
-import Svg.Attributes exposing (d, strokeWidth, viewBox, width, height)
+import Svg.Attributes exposing (d, height, strokeWidth, viewBox, width)
 import Time exposing (Posix, Zone)
 import Util exposing (ariaHidden, largeLoader, testAttribute)
 import Vela exposing (BuildsModel, Deployment, DeploymentsModel, Event, Org, Repo)
@@ -71,13 +71,13 @@ viewPreview org repo deployment =
             String.fromInt deployment.id
 
         info =
-            div [ class "deployment-info" ] [
-                div [] [
-                    p [] [text ("#" ++ deploymentId)]
+            div [ class "deployment-info" ]
+                [ div []
+                    [ p [] [ text ("#" ++ deploymentId) ]
                     , p [] [ text deployment.task ]
                     ]
-                , div [] [
-                    p [] [ text (deployment.target ++ " at (" ++ Util.trimCommitHash deployment.commit ++ ")") ]
+                , div []
+                    [ p [] [ text (deployment.target ++ " at (" ++ Util.trimCommitHash deployment.commit ++ ")") ]
                     , p [] [ text (" Deployed by " ++ deployment.user) ]
                     ]
                 ]
@@ -93,34 +93,36 @@ viewPreview org repo deployment =
                 ]
 
         status =
-            div [ class "deployment-icon" , Util.testAttribute "build-status" ] [
-                svg
-                      [ class "build-icon -success"
-                      , strokeWidth "2"
-                      , viewBox "0 0 44 44"
-                      , width "44"
-                      , height "44"
-                      , ariaHidden
-                      ]
-                      [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-                      , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
-                      ]
-                  ]
+            div [ class "deployment-icon", Util.testAttribute "build-status" ]
+                [ svg
+                    [ class "build-icon -success"
+                    , strokeWidth "2"
+                    , viewBox "0 0 44 44"
+                    , width "44"
+                    , height "44"
+                    , ariaHidden
+                    ]
+                    [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
+                    , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+                    ]
+                ]
 
         markdown =
-            [
-            info
+            [ info
+
             --, deploymentDetails
             , promoteDeploymentLink
             ]
     in
     div [ class "deployment-container", Util.testAttribute "deployment" ]
-        [ status,
-            div [ class "deployment" ] <|
+        [ status
+        , div [ class "deployment" ] <|
             markdown
         ]
 
 
+{-| viewDeployments : renders a list of deployments
+-}
 viewDeployments : DeploymentsModel -> Posix -> Zone -> Org -> Repo -> Html msg
 viewDeployments deploymentsModel now zone org repo =
     let
@@ -175,7 +177,7 @@ viewDeployments deploymentsModel now zone org repo =
 -- Promote Deployment
 
 
-{-| editSecret : takes partial model and renders secret update form for editing a secret
+{-| promoteDeployment : takes partial model and renders deployment form for promoting a deployment
 -}
 promoteDeployment : PartialModel a msg -> Html Msg
 promoteDeployment model =

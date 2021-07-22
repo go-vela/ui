@@ -31,7 +31,21 @@ import Html
         , text
         , textarea
         )
-import Html.Attributes exposing (checked, class, disabled, for, href, id, placeholder, rows, target, type_, value, wrap)
+import Html.Attributes
+    exposing
+        ( checked
+        , class
+        , disabled
+        , for
+        , href
+        , id
+        , placeholder
+        , rows
+        , target
+        , type_
+        , value
+        , wrap
+        )
 import Html.Events exposing (onClick, onInput)
 import Pages.RepoSettings exposing (checkbox)
 import Pages.Secrets.Model exposing (DeleteSecretState(..), Model, Msg(..), SecretForm)

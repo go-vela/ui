@@ -53,7 +53,49 @@ import Http
 import Http.Detailed
 import Json.Decode exposing (Decoder)
 import Task exposing (Task)
-import Vela exposing (AuthParams, Build, BuildNumber, Builds, CurrentUser, Deployment, DeploymentNumber, Engine, Event, Hooks, Key, Log, Name, Org, Repo, Repository, Secret, Secrets, Service, ServiceNumber, SourceRepositories, Step, StepNumber, Templates, Type, decodeBuild, decodeBuilds, decodeCurrentUser, decodeDeployment, decodeDeployments, decodeHooks, decodeLog, decodePipelineConfig, decodePipelineTemplates, decodeRepository, decodeSecret, decodeSecrets, decodeService, decodeSourceRepositories, decodeStep)
+import Vela
+    exposing
+        ( AuthParams
+        , Build
+        , BuildNumber
+        , Builds
+        , CurrentUser
+        , Deployment
+        , DeploymentId
+        , Engine
+        , Event
+        , Hooks
+        , Key
+        , Log
+        , Name
+        , Org
+        , Repo
+        , Repository
+        , Secret
+        , Secrets
+        , Service
+        , ServiceNumber
+        , SourceRepositories
+        , Step
+        , StepNumber
+        , Templates
+        , Type
+        , decodeBuild
+        , decodeBuilds
+        , decodeCurrentUser
+        , decodeDeployment
+        , decodeDeployments
+        , decodeHooks
+        , decodeLog
+        , decodePipelineConfig
+        , decodePipelineTemplates
+        , decodeRepository
+        , decodeSecret
+        , decodeSecrets
+        , decodeService
+        , decodeSourceRepositories
+        , decodeStep
+        )
 
 
 
@@ -606,7 +648,7 @@ addSecret model engine type_ org key body =
         |> withAuth model.session
 
 
-{-| getBuilds : fetches vela builds by repository
+{-| getDeployments : fetches vela deployments by repository
 -}
 getDeployments : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request (List Deployment)
 getDeployments model maybePage maybePerPage org repository =
@@ -614,11 +656,11 @@ getDeployments model maybePage maybePerPage org repository =
         |> withAuth model.session
 
 
-{-| getBuild : fetches vela build by repository and build number
+{-| getDeployment : fetches vela deployments by repository and deploymentId
 -}
-getDeployment : PartialModel a -> Org -> Repo -> Maybe DeploymentNumber -> Request Deployment
-getDeployment model org repo deploymentNumber =
-    get model.velaAPI (Endpoint.Deployment org repo deploymentNumber) decodeDeployment
+getDeployment : PartialModel a -> Org -> Repo -> Maybe DeploymentId -> Request Deployment
+getDeployment model org repo deploymentId =
+    get model.velaAPI (Endpoint.Deployment org repo deploymentId) decodeDeployment
         |> withAuth model.session
 
 

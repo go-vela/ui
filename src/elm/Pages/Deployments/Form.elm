@@ -146,7 +146,7 @@ viewParameterInput deployment =
             , input
                 [ placeholder "Key"
                 , class "parameter-input"
-                , Util.testAttribute "parameter-key-input"
+                , testAttribute "parameter-key-input"
                 , onInput <| OnChangeStringField "parameterInputKey"
                 , value deployment.parameterInputKey
                 ]
@@ -154,14 +154,14 @@ viewParameterInput deployment =
             , input
                 [ placeholder "Value"
                 , class "parameter-input"
-                , Util.testAttribute "parameter-value-input"
+                , testAttribute "parameter-value-input"
                 , onInput <| OnChangeStringField "parameterInputValue"
                 , value deployment.parameterInputValue
                 ]
                 []
             , button
                 [ class "button"
-                , Util.testAttribute "add-parameter-button"
+                , testAttribute "add-parameter-button"
                 , class "-outline"
                 , class "add-paramter"
                 , onClick <| AddParameter <| deployment
@@ -170,7 +170,7 @@ viewParameterInput deployment =
                 [ text "Add"
                 ]
             ]
-        , div [ class "parameters", Util.testAttribute "parameters-list" ] <| viewAddedParameters deployment.payload
+        , div [ class "parameters", testAttribute "parameters-list" ] <| viewAddedParameters deployment.payload
         ]
 
 

@@ -755,7 +755,7 @@ resourceLoaded args =
             args.builds.success
 
         Pages.RepositoryDeployments _ _ _ _ ->
-            args.builds.success
+            args.build.success
 
         Pages.Build _ _ _ _ ->
             args.build.success

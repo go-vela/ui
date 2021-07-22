@@ -15,7 +15,7 @@ module Vela exposing
     , Copy
     , CurrentUser
     , Deployment
-    , DeploymentNumber
+    , DeploymentId
     , DeploymentPayload
     , DeploymentsModel
     , DisableRepo
@@ -199,7 +199,7 @@ type alias BuildNumber =
     String
 
 
-type alias DeploymentNumber =
+type alias DeploymentId =
     String
 
 

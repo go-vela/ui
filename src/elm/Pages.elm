@@ -83,8 +83,8 @@ toRoute page =
         AddDeployment org repo ->
             Routes.AddDeploymentRoute org repo
 
-        PromoteDeployment org repo buildNumber ->
-            Routes.PromoteDeployment org repo buildNumber
+        PromoteDeployment org repo deploymentId ->
+            Routes.PromoteDeployment org repo deploymentId
 
         OrgSecret engine org name ->
             Routes.OrgSecret engine org name
@@ -165,8 +165,8 @@ strip page =
         AddDeployment org repo ->
             AddDeployment org repo
 
-        PromoteDeployment org repo buildNumber ->
-            PromoteDeployment org repo buildNumber
+        PromoteDeployment org repo deploymentId ->
+            PromoteDeployment org repo deploymentId
 
         AddSharedSecret engine org team ->
             AddSharedSecret engine org team

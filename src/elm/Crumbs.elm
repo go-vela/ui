@@ -187,7 +187,7 @@ toPath page =
                     in
                     [ overviewPage, orgPage, currentRepo, ( "Add Deployment", Nothing ) ]
 
-                Pages.PromoteDeployment org repo buildNumber ->
+                Pages.PromoteDeployment org repo _ ->
                     let
                         orgPage =
                             ( org, Nothing )

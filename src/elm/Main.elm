@@ -110,7 +110,110 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela exposing (AuthParams, Build, BuildNumber, Builds, ChownRepo, CurrentUser, Deployment, DeploymentNumber, EnableRepo, EnableRepos, EnableRepositoryPayload, Enabling(..), Engine, Event, Favicon, Field, FocusFragment, Hooks, Key, Log, Logs, Name, Org, PipelineModel, PipelineTemplates, Ref, RepairRepo, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Secret, SecretType(..), Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildPipelineOrgRepo, updateBuildPipelineRef, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoTimeout)
+import Vela
+    exposing
+        ( AuthParams
+        , Build
+        , BuildNumber
+        , Builds
+        , ChownRepo
+        , CurrentUser
+        , Deployment
+        , DeploymentId
+        , EnableRepo
+        , EnableRepos
+        , EnableRepositoryPayload
+        , Enabling(..)
+        , Engine
+        , Event
+        , Favicon
+        , Field
+        , FocusFragment
+        , Hooks
+        , Key
+        , Log
+        , Logs
+        , Name
+        , Org
+        , PipelineModel
+        , PipelineTemplates
+        , Ref
+        , RepairRepo
+        , Repo
+        , RepoModel
+        , RepoResourceIdentifier
+        , RepoSearchFilters
+        , Repositories
+        , Repository
+        , Secret
+        , SecretType(..)
+        , Secrets
+        , ServiceNumber
+        , Services
+        , SourceRepositories
+        , StepNumber
+        , Steps
+        , Team
+        , Templates
+        , Theme(..)
+        , Type
+        , UpdateRepositoryPayload
+        , UpdateUserPayload
+        , buildUpdateFavoritesPayload
+        , buildUpdateRepoBoolPayload
+        , buildUpdateRepoIntPayload
+        , buildUpdateRepoStringPayload
+        , decodeTheme
+        , defaultEnableRepositoryPayload
+        , defaultFavicon
+        , defaultPipeline
+        , defaultPipelineTemplates
+        , defaultRepoModel
+        , encodeEnableRepository
+        , encodeTheme
+        , encodeUpdateRepository
+        , encodeUpdateUser
+        , isComplete
+        , secretTypeToString
+        , statusToFavicon
+        , stringToTheme
+        , updateBuild
+        , updateBuildNumber
+        , updateBuildPipelineBuildNumber
+        , updateBuildPipelineConfig
+        , updateBuildPipelineExpand
+        , updateBuildPipelineFocusFragment
+        , updateBuildPipelineLineFocus
+        , updateBuildPipelineOrgRepo
+        , updateBuildPipelineRef
+        , updateBuildServices
+        , updateBuildServicesFocusFragment
+        , updateBuildServicesFollowing
+        , updateBuildServicesLogs
+        , updateBuildSteps
+        , updateBuildStepsFocusFragment
+        , updateBuildStepsFollowing
+        , updateBuildStepsLogs
+        , updateBuilds
+        , updateBuildsEvent
+        , updateBuildsPage
+        , updateBuildsPager
+        , updateBuildsPerPage
+        , updateDeployments
+        , updateDeploymentsPage
+        , updateDeploymentsPager
+        , updateDeploymentsPerPage
+        , updateHooks
+        , updateHooksPage
+        , updateHooksPager
+        , updateHooksPerPage
+        , updateOrgRepo
+        , updateRepo
+        , updateRepoCounter
+        , updateRepoEnabling
+        , updateRepoInitialized
+        , updateRepoTimeout
+        )
 
 
 
@@ -304,7 +407,7 @@ type Msg
     | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, List Deployment ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | DeploymentResponse Org Repo DeploymentNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
+    | DeploymentResponse Org Repo DeploymentId (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
@@ -456,7 +559,7 @@ update msg model =
                     )
 
                 Pages.RepositoryDeployments org repo _ maybePerPage ->
-                    ( { model | repo = updateBuilds Loading rm }
+                    ( { model | repo = updateDeployments Loading rm }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryDeployments org repo (Just pageNumber) maybePerPage
                     )
 
@@ -3802,7 +3905,7 @@ getBuild model org repo buildNumber =
     Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
 
 
-getDeployment : Model -> Org -> Repo -> DeploymentNumber -> Cmd Msg
+getDeployment : Model -> Org -> Repo -> DeploymentId -> Cmd Msg
 getDeployment model org repo deploymentNumber =
     Api.try (DeploymentResponse org repo deploymentNumber) <| Api.getDeployment model org repo <| Just deploymentNumber
 
