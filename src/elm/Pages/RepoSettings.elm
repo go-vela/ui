@@ -10,8 +10,8 @@ module Pages.RepoSettings exposing
     , checkbox
     , enableUpdate
     , validAccessUpdate
-    , validPipelineTypeUpdate
     , validEventsUpdate
+    , validPipelineTypeUpdate
     , view
     )
 
@@ -184,6 +184,7 @@ access repo msg =
             , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
             ]
         ]
+
 
 {-| pipelineType : takes model and repo and renders the settings category for updating repo pipeline type
 -}
@@ -680,6 +681,7 @@ validAccessUpdate originalRepo repoUpdate =
         _ ->
             False
 
+
 {-| validPipelineTypeUpdate : takes model webdata repo and repo pipeline type update and determines if an update is necessary
 -}
 validPipelineTypeUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
@@ -727,6 +729,7 @@ updateAccessTip field =
         _ ->
             text ""
 
+
 {-| updatePipelineTypeTip : takes field and returns the tip to display after the label.
 -}
 updatePipelineTypeTip : Field -> Html msg
@@ -743,6 +746,7 @@ updatePipelineTypeTip field =
 
         _ ->
             text ""
+
 
 {-| msgPrefix : takes update field and returns alert prefix.
 -}
