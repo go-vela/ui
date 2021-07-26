@@ -57,7 +57,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy6)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy6)
 import Http
 import Http.Detailed
 import Interop
@@ -82,6 +82,7 @@ import Pages.Build.View
 import Pages.Builds exposing (view)
 import Pages.Home
 import Pages.Hooks
+import Pages.Organization
 import Pages.Pipeline.Model
 import Pages.Pipeline.View
 import Pages.RepoSettings exposing (enableUpdate)
@@ -107,104 +108,7 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela
-    exposing
-        ( AuthParams
-        , Build
-        , BuildNumber
-        , Builds
-        , ChownRepo
-        , CurrentUser
-        , EnableRepo
-        , EnableRepos
-        , EnableRepositoryPayload
-        , Enabling(..)
-        , Engine
-        , Event
-        , Favicon
-        , Field
-        , FocusFragment
-        , Hooks
-        , Key
-        , Log
-        , Logs
-        , Name
-        , Org
-        , PipelineModel
-        , PipelineTemplates
-        , Ref
-        , RepairRepo
-        , Repo
-        , RepoModel
-        , RepoResourceIdentifier
-        , RepoSearchFilters
-        , Repositories
-        , Repository
-        , Secret
-        , SecretType(..)
-        , Secrets
-        , ServiceNumber
-        , Services
-        , SourceRepositories
-        , StepNumber
-        , Steps
-        , Team
-        , Templates
-        , Theme(..)
-        , Type
-        , UpdateRepositoryPayload
-        , UpdateUserPayload
-        , buildUpdateFavoritesPayload
-        , buildUpdateRepoBoolPayload
-        , buildUpdateRepoIntPayload
-        , buildUpdateRepoStringPayload
-        , decodeTheme
-        , defaultEnableRepositoryPayload
-        , defaultFavicon
-        , defaultPipeline
-        , defaultPipelineTemplates
-        , defaultRepoModel
-        , encodeEnableRepository
-        , encodeTheme
-        , encodeUpdateRepository
-        , encodeUpdateUser
-        , isComplete
-        , secretTypeToString
-        , statusToFavicon
-        , stringToTheme
-        , updateBuild
-        , updateBuildNumber
-        , updateBuildPipelineBuildNumber
-        , updateBuildPipelineConfig
-        , updateBuildPipelineExpand
-        , updateBuildPipelineFocusFragment
-        , updateBuildPipelineLineFocus
-        , updateBuildPipelineOrgRepo
-        , updateBuildPipelineRef
-        , updateBuildServices
-        , updateBuildServicesFocusFragment
-        , updateBuildServicesFollowing
-        , updateBuildServicesLogs
-        , updateBuildSteps
-        , updateBuildStepsFocusFragment
-        , updateBuildStepsFollowing
-        , updateBuildStepsLogs
-        , updateBuilds
-        , updateBuildsEvent
-        , updateBuildsPage
-        , updateBuildsPager
-        , updateBuildsPerPage
-        , updateHooks
-        , updateHooksPage
-        , updateHooksPager
-        , updateHooksPerPage
-        , updateOrgRepo
-        , updateRepo
-        , updateRepoCounter
-        , updateRepoEnabling
-        , updateRepoInitialized
-        , updateRepoTimeout
-        )
+import Vela exposing (AuthParams, Build, BuildNumber, Builds, ChownRepo, CurrentUser, EnableRepo, EnableRepos, EnableRepositoryPayload, Enabling(..), Engine, Event, Favicon, Field, FocusFragment, Hooks, Key, Log, Logs, Name, Org, PipelineModel, PipelineTemplates, Ref, RepairRepo, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Secret, SecretType(..), Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildPipelineOrgRepo, updateBuildPipelineRef, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoTimeout)
 
 
 
@@ -385,6 +289,7 @@ type Msg
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoFavoritedResponse String Bool (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
+    | OrgRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Repository ))
     | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoDisabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
@@ -392,6 +297,7 @@ type Msg
     | RepoRepairedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | CancelBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
+    | OrgBuildsResponse Org (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
@@ -520,14 +426,26 @@ update msg model =
                     )
 
         FilterBuildEventBy maybeEvent org repo ->
-            ( { model
-                | repo =
-                    rm
-                        |> updateBuilds Loading
-                        |> updateBuildsPager []
-              }
-            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
-            )
+            case repo of
+                "" ->
+                    ( { model
+                        | repo =
+                            rm
+                                |> updateBuilds Loading
+                                |> updateBuildsPager []
+                      }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgBuilds org Nothing Nothing maybeEvent
+                    )
+
+                _ ->
+                    ( { model
+                        | repo =
+                            rm
+                                |> updateBuilds Loading
+                                |> updateBuildsPager []
+                      }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
+                    )
 
         SetTheme theme ->
             if theme == model.theme then
@@ -538,6 +456,11 @@ update msg model =
 
         GotoPage pageNumber ->
             case model.page of
+                Pages.OrgBuilds org _ maybePerPage maybeEvent ->
+                    ( { model | repo = updateBuilds Loading rm }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgBuilds org (Just pageNumber) maybePerPage maybeEvent
+                    )
+
                 Pages.RepositoryBuilds org repo _ maybePerPage maybeEvent ->
                     ( { model | repo = updateBuilds Loading rm }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent
@@ -1139,6 +1062,14 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateRepo (toFailure error) rm }, addError error )
 
+        OrgRepositoriesResponse response ->
+            case response of
+                Ok ( _, repoResponse ) ->
+                    ( { model | repo = updateOrgRepositories (RemoteData.succeed repoResponse) rm }, Cmd.none )
+
+                Err error ->
+                    ( { model | repo = updateOrgRepositories (toFailure error) rm }, addError error )
+
         RepoEnabledResponse repo response ->
             case response of
                 Ok ( _, enabledRepo ) ->
@@ -1259,6 +1190,22 @@ update msg model =
                         | repo =
                             rm
                                 |> updateOrgRepo org repo
+                                |> updateBuilds (RemoteData.succeed builds)
+                                |> updateBuildsPager (Pagination.get meta.headers)
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | repo = updateBuilds (toFailure error) rm }, addError error )
+
+        OrgBuildsResponse org response ->
+            case response of
+                Ok ( meta, builds ) ->
+                    ( { model
+                        | repo =
+                            rm
+                                |> updateOrgRepo org ""
                                 |> updateBuilds (RemoteData.succeed builds)
                                 |> updateBuildsPager (Pagination.get meta.headers)
                       }
@@ -1825,6 +1772,9 @@ refreshPage model =
             model.page
     in
     case page of
+        Pages.OrgBuilds org maybePage maybePerPage maybeEvent ->
+            getOrgBuilds model org maybePage maybePerPage maybeEvent
+
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             getBuilds model org repo maybePage maybePerPage maybeEvent
 
@@ -2108,6 +2058,11 @@ viewContent model =
                 sourceReposMsgs
             )
 
+        Pages.OrgRepositories org ->
+            ( "Org Repositories"
+            , lazy2 Pages.Organization.viewOrgRepos org model.repo.orgRepos
+            )
+
         Pages.Hooks org repo maybePage _ ->
             let
                 page : String
@@ -2198,6 +2153,44 @@ viewContent model =
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
+            )
+
+        Pages.OrgBuilds org maybePage _ maybeEvent ->
+            let
+                repo =
+                    ""
+
+                page : String
+                page =
+                    case maybePage of
+                        Nothing ->
+                            ""
+
+                        Just p ->
+                            " (page " ++ String.fromInt p ++ ")"
+
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.repo.builds.builds, maybeEvent ) of
+                        ( Success result, Nothing ) ->
+                            not <| List.length result == 0
+
+                        ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
+                            True
+
+                        _ ->
+                            False
+            in
+            ( String.join "/" [ org ] ++ " builds" ++ page
+            , div []
+                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy5 Pages.Organization.viewBuilds model.repo.builds model.time model.zone org maybeEvent
+                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                ]
             )
 
         Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
@@ -2496,6 +2489,9 @@ setNewPage route model =
         ( Routes.SourceRepositories, Authenticated _ ) ->
             loadSourceReposPage model
 
+        ( Routes.OrgRepositories org, Authenticated _ ) ->
+            loadOrgReposPage model org
+
         ( Routes.Hooks org repo maybePage maybePerPage, Authenticated _ ) ->
             loadHooksPage model org repo maybePage maybePerPage
 
@@ -2528,6 +2524,9 @@ setNewPage route model =
 
         ( Routes.SharedSecret engine org team name, Authenticated _ ) ->
             loadUpdateSharedSecretPage model engine org team name
+
+        ( Routes.OrgBuilds org maybePage maybePerPage maybeEvent, Authenticated _ ) ->
+            loadOrgBuildsPage model org maybePage maybePerPage maybeEvent
 
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
             loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent
@@ -2588,6 +2587,25 @@ loadSourceReposPage model =
             ( { model | page = Pages.SourceRepositories }, getCurrentUser model )
 
 
+loadOrgReposPage : Model -> Org -> ( Model, Cmd Msg )
+loadOrgReposPage model org =
+    case model.repo.orgRepos of
+        NotAsked ->
+            ( { model | page = Pages.OrgRepositories org }
+            , Cmd.batch
+                [ Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model org ]
+            )
+
+        Failure _ ->
+            ( { model | page = Pages.OrgRepositories org }
+            , Cmd.batch
+                [ Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model org ]
+            )
+
+        _ ->
+            ( { model | page = Pages.OrgRepositories org }, getCurrentUser model )
+
+
 loadOverviewPage : Model -> ( Model, Cmd Msg )
 loadOverviewPage model =
     ( { model | page = Pages.Overview }
@@ -2602,6 +2620,99 @@ loadOverviewPage model =
 resourceChanged : RepoResourceIdentifier -> RepoResourceIdentifier -> Bool
 resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
     not <| orgA == orgB && repoA == repoB && idA == idB
+
+
+{-| loadOrgSubPage : takes model org and page destination
+
+    updates the model based on app initialization state and loads org page resources
+
+-}
+loadOrgSubPage : Model -> Org -> Page -> ( Model, Cmd Msg )
+loadOrgSubPage model org toPage =
+    let
+        rm =
+            model.repo
+
+        builds =
+            rm.builds
+
+        secretsModel =
+            model.secretsModel
+
+        fetchSecrets : Org -> Cmd Msg
+        fetchSecrets o =
+            Cmd.batch [ getAllOrgSecrets model "native" o ]
+
+        -- update model and dispatch cmds depending on initialization state and destination
+        ( loadModel, loadCmd ) =
+            -- repo data has not been initialized or org/repo has changed
+            if not rm.initialized || resourceChanged ( rm.org, rm.name, "" ) ( org, "", "" ) then
+                ( { model
+                    | secretsModel =
+                        { secretsModel
+                            | repoSecrets = Loading
+                            , orgSecrets = Loading
+                            , org = org
+                            , repo = ""
+                            , engine = "native"
+                            , type_ = Vela.RepoSecret
+                        }
+                    , repo =
+                        rm
+                            |> updateOrgRepo org ""
+                            |> updateRepoInitialized True
+                            |> updateRepo Loading
+                            |> updateBuilds Loading
+                            |> updateBuildSteps NotAsked
+                            -- update builds pagination
+                            |> (\rm_ ->
+                                    case toPage of
+                                        Pages.OrgBuilds _ maybePage maybePerPage maybeEvent ->
+                                            rm_
+                                                |> updateBuildsPage maybePage
+                                                |> updateBuildsPerPage maybePerPage
+                                                |> updateBuildsEvent maybeEvent
+
+                                        _ ->
+                                            rm
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                               )
+                  }
+                , Cmd.batch
+                    [ getCurrentUser model
+                    , getOrgRepos model org
+                    , case toPage of
+                        Pages.OrgBuilds o maybePage maybePerPage maybeEvent ->
+                            getOrgBuilds model o maybePage maybePerPage maybeEvent
+
+                        _ ->
+                            getOrgBuilds model org Nothing Nothing Nothing
+                    ]
+                )
+
+            else
+                -- repo data has already been initialized and org/repo has not changed, aka tab switch
+                case toPage of
+                    Pages.OrgBuilds o maybePage maybePerPage maybeEvent ->
+                        ( { model
+                            | repo =
+                                { rm
+                                    | builds =
+                                        { builds | maybePage = maybePage, maybePerPage = maybePerPage, maybeEvent = maybeEvent }
+                                }
+                          }
+                        , getOrgBuilds model o maybePage maybePerPage maybeEvent
+                        )
+
+                    Pages.OrgSecrets _ o _ _ ->
+                        ( model, fetchSecrets o )
+
+                    _ ->
+                        ( model, Cmd.none )
+    in
+    ( { loadModel | page = toPage }, loadCmd )
 
 
 {-| loadRepoSubPage : takes model org repo and page destination
@@ -2734,6 +2845,16 @@ loadRepoSubPage model org repo toPage =
                         ( model, Cmd.none )
     in
     ( { loadModel | page = toPage }, loadCmd )
+
+
+{-| loadOrgBuildsPage : takes model org and repo and loads the appropriate builds.
+
+    loadOrgBuildsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
+
+-}
+loadOrgBuildsPage : Model -> Org -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> ( Model, Cmd Msg )
+loadOrgBuildsPage model org maybePage maybePerPage maybeEvent =
+    loadOrgSubPage model org <| Pages.OrgBuilds org maybePage maybePerPage maybeEvent
 
 
 {-| loadRepoBuildsPage : takes model org and repo and loads the appropriate builds.
@@ -3676,6 +3797,16 @@ getHooks model org repo maybePage maybePerPage =
 getRepo : Model -> Org -> Repo -> Cmd Msg
 getRepo model org repo =
     Api.try RepoResponse <| Api.getRepo model org repo
+
+
+getOrgRepos : Model -> Org -> Cmd Msg
+getOrgRepos model org =
+    Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model org
+
+
+getOrgBuilds : Model -> Org -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
+getOrgBuilds model org maybePage maybePerPage maybeEvent =
+    Api.try (OrgBuildsResponse org) <| Api.getOrgBuilds model maybePage maybePerPage maybeEvent org
 
 
 getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg

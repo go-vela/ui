@@ -23,6 +23,8 @@ module Api exposing
     , getHooks
     , getInitialToken
     , getLogout
+    , getOrgBuilds
+    , getOrgRepositories
     , getPipelineConfig
     , getPipelineTemplates
     , getRepo
@@ -50,45 +52,7 @@ import Http
 import Http.Detailed
 import Json.Decode exposing (Decoder)
 import Task exposing (Task)
-import Vela
-    exposing
-        ( AuthParams
-        , Build
-        , BuildNumber
-        , Builds
-        , CurrentUser
-        , Engine
-        , Event
-        , Hooks
-        , Key
-        , Log
-        , Name
-        , Org
-        , Repo
-        , Repository
-        , Secret
-        , Secrets
-        , Service
-        , ServiceNumber
-        , SourceRepositories
-        , Step
-        , StepNumber
-        , Templates
-        , Type
-        , decodeBuild
-        , decodeBuilds
-        , decodeCurrentUser
-        , decodeHooks
-        , decodeLog
-        , decodePipelineConfig
-        , decodePipelineTemplates
-        , decodeRepository
-        , decodeSecret
-        , decodeSecrets
-        , decodeService
-        , decodeSourceRepositories
-        , decodeStep
-        )
+import Vela exposing (AuthParams, Build, BuildNumber, Builds, CurrentUser, Engine, Event, Hooks, Key, Log, Name, Org, Repo, Repository, Secret, Secrets, Service, ServiceNumber, SourceRepositories, Step, StepNumber, Templates, Type, decodeBuild, decodeBuilds, decodeCurrentUser, decodeHooks, decodeLog, decodePipelineConfig, decodePipelineTemplates, decodeRepositories, decodeRepository, decodeSecret, decodeSecrets, decodeService, decodeSourceRepositories, decodeStep)
 
 
 
@@ -453,6 +417,14 @@ getRepo model org repo =
         |> withAuth model.session
 
 
+{-| getOrgRepositories : fetches single repo by org and repo name
+-}
+getOrgRepositories : PartialModel a -> Org -> Request (List Repository)
+getOrgRepositories model org =
+    get model.velaAPI (Endpoint.OrgRepositories org) decodeRepositories
+        |> withAuth model.session
+
+
 {-| getSourceRepositories : fetches source repositories by username for creating them via api
 -}
 getSourceRepositories : PartialModel a -> Request SourceRepositories
@@ -538,6 +510,14 @@ restartBuild model org repository buildNumber =
 cancelBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Request Build
 cancelBuild model org repository buildNumber =
     delete model.velaAPI (Endpoint.CancelBuild org repository buildNumber) decodeBuild
+        |> withAuth model.session
+
+
+{-| getOrgBuilds : fetches vela builds by org
+-}
+getOrgBuilds : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Org -> Request Builds
+getOrgBuilds model maybePage maybePerPage maybeEvent org =
+    get model.velaAPI (Endpoint.OrgBuilds maybePage maybePerPage maybeEvent org) decodeBuilds
         |> withAuth model.session
 
 

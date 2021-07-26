@@ -188,7 +188,7 @@ viewPreview now zone org repo build =
         id =
             [ a
                 [ Util.testAttribute "build-number"
-                , Routes.href <| Routes.Build org repo buildNumber Nothing
+                , href build.link
                 ]
                 [ text <| "#" ++ buildNumber ]
             ]

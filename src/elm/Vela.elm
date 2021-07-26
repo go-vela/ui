@@ -80,6 +80,7 @@ module Vela exposing
     , decodeLog
     , decodePipelineConfig
     , decodePipelineTemplates
+    , decodeRepositories
     , decodeRepository
     , decodeSecret
     , decodeSecrets
@@ -130,6 +131,7 @@ module Vela exposing
     , updateHooksPager
     , updateHooksPerPage
     , updateOrgRepo
+    , updateOrgRepositories
     , updateRepo
     , updateRepoCounter
     , updateRepoEnabling
@@ -308,6 +310,7 @@ type alias RepoModel =
     { org : Org
     , name : Repo
     , repo : WebData Repository
+    , orgRepos : WebData (List Repository)
     , hooks : HooksModel
     , builds : BuildsModel
     , build : BuildModel
@@ -348,7 +351,7 @@ defaultBuildModel =
 
 defaultRepoModel : RepoModel
 defaultRepoModel =
-    RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultBuildModel False
+    RepoModel "" "" NotAsked NotAsked defaultHooks defaultBuilds defaultBuildModel False
 
 
 defaultStepsModel : StepsModel
@@ -374,6 +377,11 @@ updateOrgRepo org repo rm =
 updateRepo : WebData Repository -> RepoModel -> RepoModel
 updateRepo update rm =
     { rm | repo = update }
+
+
+updateOrgRepositories : WebData (List Repository) -> RepoModel -> RepoModel
+updateOrgRepositories update rm =
+    { rm | orgRepos = update }
 
 
 updateRepoTimeout : Maybe Int -> RepoModel -> RepoModel
@@ -692,6 +700,11 @@ type Enabling
     | Enabling
     | Enabled
     | NotAsked_
+
+
+decodeRepositories : Decoder (List Repository)
+decodeRepositories =
+    Decode.list decodeRepository
 
 
 decodeRepository : Decoder Repository
@@ -1042,6 +1055,7 @@ type alias Build =
     , sender : String
     , author : String
     , branch : String
+    , link : String
     , ref : Ref
     , base_ref : Ref
     , host : String
@@ -1073,6 +1087,7 @@ decodeBuild =
         |> optional "sender" string ""
         |> optional "author" string ""
         |> optional "branch" string ""
+        |> optional "link" string ""
         |> optional "ref" string ""
         |> optional "base_ref" string ""
         |> optional "host" string ""

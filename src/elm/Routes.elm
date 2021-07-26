@@ -24,6 +24,7 @@ import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Nam
 type Route
     = Overview
     | SourceRepositories
+    | OrgRepositories Org
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | RepoSecrets Engine Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -36,6 +37,7 @@ type Route
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
+    | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
@@ -56,6 +58,7 @@ routes =
     oneOf
         [ map Overview top
         , map SourceRepositories (s "account" </> s "source-repos")
+        , map OrgRepositories (string </> s "repos")
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , map Settings (s "account" </> s "settings")
@@ -71,6 +74,7 @@ routes =
         , map RepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> string)
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
+        , map OrgBuilds (string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
         , map Build (string </> string </> string </> fragment identity)
@@ -111,6 +115,9 @@ routeToUrl route =
         SourceRepositories ->
             "/account/source-repos"
 
+        OrgRepositories org ->
+            "/" ++ org ++ "/repos"
+
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
@@ -140,6 +147,9 @@ routeToUrl route =
 
         SharedSecret engine org team name ->
             "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team ++ "/" ++ name
+
+        OrgBuilds org maybePage maybePerPage maybeEvent ->
+            "/" ++ org ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
