@@ -41,7 +41,7 @@ viewBuilds buildsModel now zone org maybeEvent =
             case maybeEvent of
                 Nothing ->
                     div []
-                        [ h1 [] [ text "Your organization has been enabled!" ]
+                        [ h1 [] [ text "No builds were found for this Organization!" ]
                         , p [] [ text "Builds will show up here once you have:" ]
                         , ol [ class "list" ]
                             [ li []
@@ -92,10 +92,34 @@ viewOrgRepos : Org -> WebData (List Repository) -> Html msg
 viewOrgRepos org repos =
     case repos of
         Success r ->
-            div [] (List.map (viewOrgRepo org) r)
+            if List.length r == 0 then
+                div []
+                    [ h1 [] [ text "No Repositories are enabled for this Organization!" ]
+                    , p [] [ text "Enable repositories" ]
+                    , a
+                        [ class "button"
+                        , class "-outline"
+                        , Util.testAttribute "source-repos"
+                        , Routes.href <| Routes.SourceRepositories
+                        ]
+                        [ text "Source Repositories" ]
+                    ]
+
+            else
+                div [] (List.map (viewOrgRepo org) r)
 
         _ ->
-            div [] []
+            div []
+                [ h1 [] [ text "No Repositories are enabled for this Organization!" ]
+                , p [] [ text "Enable repositories" ]
+                , a
+                    [ class "button"
+                    , class "-outline"
+                    , Util.testAttribute "source-repos"
+                    , Routes.href <| Routes.SourceRepositories
+                    ]
+                    [ text "Source Repositories" ]
+                ]
 
 
 {-| viewOrgRepo : takes favorites and favorite action and renders single favorite

@@ -104,6 +104,15 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
                 ]
                 [ text "Source Repositories" ]
 
+        Pages.OrgRepositories _ ->
+            a
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "source-repos"
+                , Routes.href <| Routes.SourceRepositories
+                ]
+                [ text "Source Repositories" ]
+
         Pages.SourceRepositories ->
             button
                 [ classList
