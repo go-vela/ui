@@ -163,6 +163,25 @@ wrapWithBuildPreview model org repo buildNumber content =
 viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html msg
 viewPreview now zone org repo build =
     let
+        repoName =
+            case repo of
+                "" ->
+                    List.head (List.drop 4 (String.split "/" build.link))
+
+                _ ->
+                    Nothing
+
+        repoLink =
+            case repoName of
+                Just name ->
+                    span []
+                        [ a [ Routes.href <| Routes.RepositoryBuilds org name Nothing Nothing Nothing ] [ text name ]
+                        , text ": "
+                        ]
+
+                _ ->
+                    text ""
+
         buildNumber =
             String.fromInt build.number
 
@@ -170,7 +189,8 @@ viewPreview now zone org repo build =
             [ buildStatusToIcon build.status ]
 
         commit =
-            [ text <| String.replace "_" " " build.event
+            [ repoLink
+            , text <| String.replace "_" " " build.event
             , text " ("
             , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
             , text <| ")"

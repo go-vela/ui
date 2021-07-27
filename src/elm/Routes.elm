@@ -58,7 +58,7 @@ routes =
     oneOf
         [ map Overview top
         , map SourceRepositories (s "account" </> s "source-repos")
-        , map OrgRepositories (string </> s "repos")
+        , map OrgRepositories string
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , map Settings (s "account" </> s "settings")
@@ -74,7 +74,7 @@ routes =
         , map RepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> string)
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
-        , map OrgBuilds (string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
+        , map OrgBuilds (string </> s "builds" <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
         , map Build (string </> string </> string </> fragment identity)
@@ -116,7 +116,7 @@ routeToUrl route =
             "/account/source-repos"
 
         OrgRepositories org ->
-            "/" ++ org ++ "/repos"
+            "/" ++ org
 
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
@@ -149,7 +149,7 @@ routeToUrl route =
             "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team ++ "/" ++ name
 
         OrgBuilds org maybePage maybePerPage maybeEvent ->
-            "/" ++ org ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
+            "/" ++ org ++ "/builds" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)

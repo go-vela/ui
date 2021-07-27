@@ -281,9 +281,9 @@ viewOrgTabs : RepoModel -> Org -> Page -> Html msg
 viewOrgTabs rm org currentPage =
     let
         tabs =
-            [ Tab "Builds" currentPage (Pages.OrgBuilds org rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
+            [ Tab "Repositories" currentPage (Pages.OrgRepositories org) False
+            , Tab "Builds" currentPage (Pages.OrgBuilds org rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
             , Tab "Secrets" currentPage (Pages.OrgSecrets "native" org Nothing Nothing) False
-            , Tab "Repositories" currentPage (Pages.OrgRepositories org) False
             ]
     in
     viewTabs tabs "jump-bar-repo"
