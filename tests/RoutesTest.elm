@@ -26,7 +26,7 @@ testMatch : Test
 testMatch =
     describe "route gets matched as intended for given url"
         [ testUrl "/account/login" Login
-        , testUrl "/asdf" (OrgBuilds "asdf" Nothing Nothing Nothing)
+        , testUrl "/asdf" (OrgRepositories "asdf")
         , testUrl "/" Overview
         ]
 
