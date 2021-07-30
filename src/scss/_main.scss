@@ -42,26 +42,26 @@ header {
   padding: 1em var(--horizontal-pad);
 
   background: radial-gradient(
-      circle at 50% -200%,
-      var(--color-bg-light) -7%,
-      transparent 50%
+    circle at 50% -200%,
+    var(--color-bg-light) -7%,
+    transparent 50%
   );
 
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
   border-image-source: linear-gradient(
-      to right,
-      var(--color-secondary) 55%,
-      transparent 55%,
-      transparent 58%,
-      var(--color-secondary) 58%,
-      var(--color-secondary) 69%,
-      transparent 69%,
-      transparent 75%,
-      var(--color-primary) 75%,
-      var(--color-primary) 76%,
-      transparent 76%
+    to right,
+    var(--color-secondary) 55%,
+    transparent 55%,
+    transparent 58%,
+    var(--color-secondary) 58%,
+    var(--color-secondary) 69%,
+    transparent 69%,
+    transparent 75%,
+    var(--color-primary) 75%,
+    var(--color-primary) 76%,
+    transparent 76%
   );
   border-image-slice: 1;
 }
@@ -192,7 +192,6 @@ nav {
   padding: 0 var(--horizontal-pad) 0 0;
 
   ol {
-
     display: inline-block;
     width: auto;
     margin: 0;
@@ -547,7 +546,6 @@ details.build-toggle {
   color: var(--color-red-light);
 
   font-size: 16px;
-
 }
 
 .build .error .message {
@@ -639,12 +637,12 @@ details.build-toggle {
 
 .build-animation.-bottom.-running {
   animation: build-status-parallax-running 26s linear 26s infinite,
-  build-status-parallax-start 26s linear none;
+    build-status-parallax-start 26s linear none;
 }
 
 .build-animation.-top.-running {
   animation: build-status-parallax-running 22s linear 22s infinite,
-  build-status-parallax-start 22s linear none;
+    build-status-parallax-start 22s linear none;
 }
 
 .build-animation.-bottom.-start {
@@ -719,7 +717,6 @@ details.build-toggle {
   padding: 0.4rem 0 0.4rem 0.4rem;
 
   font-size: 0.8em;
-
 }
 
 .recent-build {
@@ -871,7 +868,6 @@ details.build-toggle {
   padding-right: 1rem;
   padding-left: 1.6rem;
 
-
   div {
     padding: 0.2rem 1.2rem;
 
@@ -883,10 +879,10 @@ details.build-toggle {
 
 .flowline-left {
   background: linear-gradient(
-      90deg,
-      hsla(0, 0%, 0%, 0) calc(2.25em - 1px),
-      var(--color-flowline) calc(2.25em),
-      hsla(0, 0%, 0%, 0) calc(2.25em + 1px)
+    90deg,
+    hsla(0, 0%, 0%, 0) calc(2.25em - 1px),
+    var(--color-flowline) calc(2.25em),
+    hsla(0, 0%, 0%, 0) calc(2.25em + 1px)
   );
 }
 
@@ -1131,7 +1127,6 @@ details.build-toggle {
     color: var(--color-offwhite);
 
     background: var(--color-coal-light);
-
   }
 }
 
