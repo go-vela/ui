@@ -114,14 +114,14 @@ body.theme-light {
 
     border: 2px solid var(--color-bg);
 
-    border-bottom: 3px solid var(--color-bg-light);
     border-right: 3px solid var(--color-bg-light);
+    border-bottom: 3px solid var(--color-bg-light);
   }
 
   .logs-table::-webkit-scrollbar-thumb {
     background-color: var(--color-bg-light);
-    border-radius: 1rem;
     border: 2px solid var(--color-bg);
+    border-radius: 1rem;
   }
 
   .step-error,
