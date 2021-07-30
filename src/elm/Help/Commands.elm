@@ -41,6 +41,7 @@ type alias Model msg =
     { user : Arg
     , sourceRepos : Arg
     , builds : Arg
+    , deployments : Arg
     , build : Arg
     , repo : Arg
     , hooks : Arg
@@ -92,7 +93,7 @@ commands page =
             [ listBuilds org repo ]
 
         Pages.RepositoryDeployments org repo _ _ ->
-            [ listBuilds org repo ]
+            [ listDeployments org repo ]
 
         Pages.Build org repo buildNumber _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
@@ -192,6 +193,27 @@ listBuilds org repo =
 
         docs =
             Just "/build/get"
+    in
+    Command name content docs noIssue
+
+
+{-| listDeployments : returns cli command for listing deployments
+
+    eg.
+    vela get builds --org octocat --repo hello-world
+
+-}
+listDeployments : Org -> Repo -> Command
+listDeployments org repo =
+    let
+        name =
+            "List Deployments"
+
+        content =
+            Just <| "vela get deployments " ++ repoArgs org repo
+
+        docs =
+            Just "/deployment/get"
     in
     Command name content docs noIssue
 
@@ -755,7 +777,7 @@ resourceLoaded args =
             args.builds.success
 
         Pages.RepositoryDeployments _ _ _ _ ->
-            args.build.success
+            args.deployments.success
 
         Pages.Build _ _ _ _ ->
             args.build.success
@@ -839,7 +861,7 @@ resourceLoading args =
             args.builds.loading
 
         Pages.RepositoryDeployments _ _ _ _ ->
-            args.builds.loading
+            args.deployments.loading
 
         Pages.Build _ _ _ _ ->
             args.build.loading

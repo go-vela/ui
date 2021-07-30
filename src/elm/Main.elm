@@ -2551,6 +2551,7 @@ helpArgs model =
     { user = helpArg model.user
     , sourceRepos = helpArg model.sourceRepos
     , builds = helpArg model.repo.builds.builds
+    , deployments = helpArg model.repo.deployments.deployments
     , build = helpArg model.repo.build.build
     , repo = helpArg model.repo.repo
     , hooks = helpArg model.repo.hooks.hooks
