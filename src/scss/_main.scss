@@ -349,7 +349,6 @@ details.build-toggle {
     padding: 1em;
   }
 
-
   @supports (clip-path: inset(50%)) {
     &::after {
       position: absolute;
@@ -373,7 +372,6 @@ details.build-toggle {
     }
   }
 }
-
 
 .builds {
   display: flex;
