@@ -40,6 +40,7 @@ import Vela
 type alias Model msg =
     { user : Arg
     , sourceRepos : Arg
+    , orgRepos : Arg
     , builds : Arg
     , build : Arg
     , repo : Arg
@@ -729,11 +730,9 @@ resourceLoaded args =
             args.sourceRepos.success
 
         Pages.OrgRepositories _ ->
-            -- TODO: What should this be
-            args.sourceRepos.success
+            args.orgRepos.success
 
         Pages.OrgBuilds _ _ _ _ ->
-            -- TODO: What should this be
             args.builds.success
 
         Pages.RepositoryBuilds _ _ _ _ _ ->

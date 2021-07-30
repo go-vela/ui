@@ -108,7 +108,105 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela exposing (AuthParams, Build, BuildNumber, Builds, ChownRepo, CurrentUser, EnableRepo, EnableRepos, EnableRepositoryPayload, Enabling(..), Engine, Event, Favicon, Field, FocusFragment, Hooks, Key, Log, Logs, Name, Org, PipelineModel, PipelineTemplates, Ref, RepairRepo, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Secret, SecretType(..), Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildPipelineOrgRepo, updateBuildPipelineRef, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoTimeout)
+import Vela
+    exposing
+        ( AuthParams
+        , Build
+        , BuildNumber
+        , Builds
+        , ChownRepo
+        , CurrentUser
+        , EnableRepo
+        , EnableRepos
+        , EnableRepositoryPayload
+        , Enabling(..)
+        , Engine
+        , Event
+        , Favicon
+        , Field
+        , FocusFragment
+        , Hooks
+        , Key
+        , Log
+        , Logs
+        , Name
+        , Org
+        , PipelineModel
+        , PipelineTemplates
+        , Ref
+        , RepairRepo
+        , Repo
+        , RepoModel
+        , RepoResourceIdentifier
+        , RepoSearchFilters
+        , Repositories
+        , Repository
+        , Secret
+        , SecretType(..)
+        , Secrets
+        , ServiceNumber
+        , Services
+        , SourceRepositories
+        , StepNumber
+        , Steps
+        , Team
+        , Templates
+        , Theme(..)
+        , Type
+        , UpdateRepositoryPayload
+        , UpdateUserPayload
+        , buildUpdateFavoritesPayload
+        , buildUpdateRepoBoolPayload
+        , buildUpdateRepoIntPayload
+        , buildUpdateRepoStringPayload
+        , decodeTheme
+        , defaultEnableRepositoryPayload
+        , defaultFavicon
+        , defaultPipeline
+        , defaultPipelineTemplates
+        , defaultRepoModel
+        , encodeEnableRepository
+        , encodeTheme
+        , encodeUpdateRepository
+        , encodeUpdateUser
+        , isComplete
+        , secretTypeToString
+        , statusToFavicon
+        , stringToTheme
+        , updateBuild
+        , updateBuildNumber
+        , updateBuildPipelineBuildNumber
+        , updateBuildPipelineConfig
+        , updateBuildPipelineExpand
+        , updateBuildPipelineFocusFragment
+        , updateBuildPipelineLineFocus
+        , updateBuildPipelineOrgRepo
+        , updateBuildPipelineRef
+        , updateBuildServices
+        , updateBuildServicesFocusFragment
+        , updateBuildServicesFollowing
+        , updateBuildServicesLogs
+        , updateBuildSteps
+        , updateBuildStepsFocusFragment
+        , updateBuildStepsFollowing
+        , updateBuildStepsLogs
+        , updateBuilds
+        , updateBuildsEvent
+        , updateBuildsPage
+        , updateBuildsPager
+        , updateBuildsPerPage
+        , updateHooks
+        , updateHooksPage
+        , updateHooksPager
+        , updateHooksPerPage
+        , updateOrgRepo
+        , updateOrgRepositories
+        , updateRepo
+        , updateRepoCounter
+        , updateRepoEnabling
+        , updateRepoInitialized
+        , updateRepoTimeout
+        )
 
 
 
@@ -426,26 +524,23 @@ update msg model =
                     )
 
         FilterBuildEventBy maybeEvent org repo ->
-            case repo of
-                "" ->
-                    ( { model
-                        | repo =
-                            rm
-                                |> updateBuilds Loading
-                                |> updateBuildsPager []
-                      }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgBuilds org Nothing Nothing maybeEvent
-                    )
+            let
+                route =
+                    case repo of
+                        "" ->
+                            Routes.OrgBuilds org Nothing Nothing maybeEvent
 
-                _ ->
-                    ( { model
-                        | repo =
-                            rm
-                                |> updateBuilds Loading
-                                |> updateBuildsPager []
-                      }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
-                    )
+                        _ ->
+                            Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
+            in
+            ( { model
+                | repo =
+                    rm
+                        |> updateBuilds Loading
+                        |> updateBuildsPager []
+              }
+            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| route
+            )
 
         SetTheme theme ->
             if theme == model.theme then
@@ -2413,6 +2508,7 @@ helpArgs : Model -> Help.Commands.Model Msg
 helpArgs model =
     { user = helpArg model.user
     , sourceRepos = helpArg model.sourceRepos
+    , orgRepos = helpArg model.repo.orgRepos
     , builds = helpArg model.repo.builds.builds
     , build = helpArg model.repo.build.build
     , repo = helpArg model.repo.repo
@@ -2592,14 +2688,12 @@ loadOrgReposPage model org =
     case model.repo.orgRepos of
         NotAsked ->
             ( { model | page = Pages.OrgRepositories org }
-            , Cmd.batch
-                [ Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model org ]
+            , Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model org
             )
 
         Failure _ ->
             ( { model | page = Pages.OrgRepositories org }
-            , Cmd.batch
-                [ Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model org ]
+            , Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model org
             )
 
         _ ->

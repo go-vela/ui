@@ -52,7 +52,46 @@ import Http
 import Http.Detailed
 import Json.Decode exposing (Decoder)
 import Task exposing (Task)
-import Vela exposing (AuthParams, Build, BuildNumber, Builds, CurrentUser, Engine, Event, Hooks, Key, Log, Name, Org, Repo, Repository, Secret, Secrets, Service, ServiceNumber, SourceRepositories, Step, StepNumber, Templates, Type, decodeBuild, decodeBuilds, decodeCurrentUser, decodeHooks, decodeLog, decodePipelineConfig, decodePipelineTemplates, decodeRepositories, decodeRepository, decodeSecret, decodeSecrets, decodeService, decodeSourceRepositories, decodeStep)
+import Vela
+    exposing
+        ( AuthParams
+        , Build
+        , BuildNumber
+        , Builds
+        , CurrentUser
+        , Engine
+        , Event
+        , Hooks
+        , Key
+        , Log
+        , Name
+        , Org
+        , Repo
+        , Repository
+        , Secret
+        , Secrets
+        , Service
+        , ServiceNumber
+        , SourceRepositories
+        , Step
+        , StepNumber
+        , Templates
+        , Type
+        , decodeBuild
+        , decodeBuilds
+        , decodeCurrentUser
+        , decodeHooks
+        , decodeLog
+        , decodePipelineConfig
+        , decodePipelineTemplates
+        , decodeRepositories
+        , decodeRepository
+        , decodeSecret
+        , decodeSecrets
+        , decodeService
+        , decodeSourceRepositories
+        , decodeStep
+        )
 
 
 
