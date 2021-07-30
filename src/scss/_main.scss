@@ -314,6 +314,67 @@ nav {
 }
 
 // builds styles for /:org/:repo/:build_number
+
+details.build-toggle {
+  z-index: 9999;
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  flex: 0;
+  -webkit-flex: 0;
+}
+
+.build-toggle .summary {
+  position: initial;
+}
+
+.build-menu {
+  position: absolute;
+  top: 0.5em;
+  right: 0;
+
+  width: max-content;
+  min-width: 100%;
+  padding: 0;
+
+  font-size: 80%;
+
+  list-style: none;
+  background-color: var(--color-bg-dark);
+
+  border: 1px solid var(--color-bg-light);
+  box-shadow: 0 0 2px var(--color-black);
+
+  .build-menu-item button {
+    padding: 1em;
+  }
+
+
+  @supports (clip-path: inset(50%)) {
+    &::after {
+      position: absolute;
+      top: -5px;
+      right: 0;
+
+      display: block;
+
+      width: 10px;
+      height: 10px;
+
+      background-color: inherit;
+
+      border: inherit;
+      border-radius: 0 0 0 0.25em;
+      transform: rotate(135deg);
+
+      content: '';
+
+      clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
+    }
+  }
+}
+
+
 .builds {
   display: flex;
   flex-direction: column;

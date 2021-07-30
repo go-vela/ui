@@ -20,16 +20,7 @@ import Browser.Navigation as Navigation
 import Pages exposing (Page(..))
 import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
-import Vela
-    exposing
-        ( BuildNumber
-        , CurrentUser
-        , Org
-        , PipelineModel
-        , Repo
-        , RepoModel
-        , SourceRepositories
-        )
+import Vela exposing (Build, BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoModel, SourceRepositories)
 
 
 
@@ -48,6 +39,7 @@ type alias PartialModel a =
         , zone : Zone
         , repo : RepoModel
         , shift : Bool
+        , buildMenuOpen : List Int
         , pipeline : PipelineModel
     }
 
@@ -64,6 +56,9 @@ type alias Msgs msg =
     , expandAllServices : ExpandAll msg
     , expandService : Expand msg
     , logsMsgs : LogsMsgs msg
+    , restartBuild : RestartBuild msg
+    , cancelBuild : CancelBuild msg
+    , toggle : Int -> Maybe Bool -> msg
     }
 
 
@@ -74,6 +69,14 @@ type alias LogsMsgs msg =
     , followStep : FollowResource msg
     , followService : FollowResource msg
     }
+
+
+type alias RestartBuild msg =
+    Org -> Repo -> BuildNumber -> msg
+
+
+type alias CancelBuild msg =
+    Org -> Repo -> BuildNumber -> msg
 
 
 type alias ExpandAll msg =

@@ -57,7 +57,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy6)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy6, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
@@ -247,6 +247,7 @@ type alias Model =
     , secretsModel : Pages.Secrets.Model.Model Msg
     , pipeline : PipelineModel
     , templates : PipelineTemplates
+    , buildMenuOpen : List Int
     }
 
 
@@ -291,6 +292,7 @@ init flags url navKey =
             , visibility = Visible
             , showHelp = False
             , showIdentity = False
+            , buildMenuOpen = []
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
             , pipeline = defaultPipeline
@@ -347,6 +349,7 @@ type Msg
     | SetTheme Theme
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
+    | ShowHideBuildMenu Int (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
     | Copy String
     | DownloadFile String String String
@@ -596,6 +599,34 @@ update msg model =
 
                         Nothing ->
                             not model.showHelp
+              }
+            , Cmd.none
+            )
+
+        ShowHideBuildMenu build show ->
+            let
+                buildsOpen =
+                    model.buildMenuOpen
+
+                replaceList : Int -> List Int -> List Int
+                replaceList id buildList =
+                    if List.member id buildList then
+                        []
+
+                    else
+                        [ id ]
+
+                updatedOpen : List Int
+                updatedOpen =
+                    case show of
+                        Just _ ->
+                            buildsOpen
+
+                        Nothing ->
+                            replaceList build buildsOpen
+            in
+            ( { model
+                | buildMenuOpen = updatedOpen
               }
             , Cmd.none
             )
@@ -2230,7 +2261,7 @@ viewContent model =
             , div []
                 [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy6 Pages.Builds.view model.repo.builds model.time model.zone org repo maybeEvent
+                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -2263,6 +2294,7 @@ viewContent model =
                 ref
                 |> Pages.Build.View.wrapWithBuildPreview
                     model
+                    buildMsgs
                     org
                     repo
                     buildNumber
@@ -3615,6 +3647,9 @@ buildMsgs =
     , collapseAllServices = CollapseAllServices
     , expandAllServices = ExpandAllServices
     , expandService = ExpandService
+    , restartBuild = RestartBuild
+    , cancelBuild = CancelBuild
+    , toggle = ShowHideBuildMenu
     , logsMsgs =
         { focusLine = PushUrl
         , download = DownloadFile "text"
