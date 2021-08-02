@@ -987,7 +987,11 @@ update msg model =
             )
 
         RestartBuild org repo buildNumber ->
-            ( model
+            let
+                newModel =
+                    { model | buildMenuOpen = [] }
+            in
+            ( newModel
             , restartBuild model org repo buildNumber
             )
 

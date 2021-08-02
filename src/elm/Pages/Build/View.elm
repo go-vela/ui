@@ -176,19 +176,17 @@ viewPreview msgs openMenu now zone org repo build =
         buildMenuAttributeList =
             attribute "role" "navigation" :: Util.open (List.member build.id openMenu)
 
-        restartBuild =
+        actionsMenu =
             details (buildMenuBaseClassList :: buildMenuAttributeList)
                 [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle build.id Nothing), Util.testAttribute "build-menu" ]
                     [ FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                     ]
                 , ul [ class "build-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                     [ li [ class "build-menu-item" ]
-                        [ button
-                            [ classList
-                                [ ( "button", True )
-                                , ( "-outline", True )
-                                ]
-                            , onClick <| msgs.restartBuild org repo <| String.fromInt build.number
+                        [ a
+                            [ href "#"
+                            , class "menu-item"
+                            , Util.onClickPreventDefault <| msgs.restartBuild org repo <| String.fromInt build.number
                             , Util.testAttribute "restart-build"
                             ]
                             [ text "Restart Build"
@@ -275,7 +273,7 @@ viewPreview msgs openMenu now zone org repo build =
                         [ div [ class "age", title timestamp ] age
                         , span [ class "delimiter" ] [ text "/" ]
                         , div [ class "duration" ] [ text duration ]
-                        , restartBuild
+                        , actionsMenu
                         ]
                     ]
                 , div [ class "row" ]

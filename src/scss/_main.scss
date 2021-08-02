@@ -352,8 +352,12 @@ details.build-toggle {
   border: 1px solid var(--color-bg-light);
   box-shadow: 0 0 2px var(--color-black);
 
-  .build-menu-item button {
-    padding: 1em;
+  .build-menu-item {
+    padding: 0.5rem 1rem;
+  }
+
+  .build-menu-item a {
+    cursor: pointer;
   }
 
   @supports (clip-path: inset(50%)) {
