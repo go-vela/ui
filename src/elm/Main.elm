@@ -996,7 +996,11 @@ update msg model =
             )
 
         CancelBuild org repo buildNumber ->
-            ( model
+            let
+                newModel =
+                    { model | buildMenuOpen = [] }
+            in
+            ( newModel
             , cancelBuild model org repo buildNumber
             )
 

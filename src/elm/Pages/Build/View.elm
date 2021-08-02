@@ -176,6 +176,37 @@ viewPreview msgs openMenu now zone org repo build =
         buildMenuAttributeList =
             attribute "role" "navigation" :: Util.open (List.member build.id openMenu)
 
+        restartBuild : Html msgs
+        restartBuild =
+            li [ class "build-menu-item" ]
+                [ a
+                    [ href "#"
+                    , class "menu-item"
+                    , Util.onClickPreventDefault <| msgs.restartBuild org repo <| String.fromInt build.number
+                    , Util.testAttribute "restart-build"
+                    ]
+                    [ text "Restart Build"
+                    ]
+                ]
+
+        cancelBuild : Html msgs
+        cancelBuild =
+            case build.status of
+                Vela.Running ->
+                    li [ class "build-menu-item" ]
+                        [ a
+                            [ href "#"
+                            , class "menu-item"
+                            , Util.onClickPreventDefault <| msgs.cancelBuild org repo <| String.fromInt build.number
+                            , Util.testAttribute "cancel-build"
+                            ]
+                            [ text "Cancel Build"
+                            ]
+                        ]
+
+                _ ->
+                    text ""
+
         actionsMenu =
             details (buildMenuBaseClassList :: buildMenuAttributeList)
                 [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle build.id Nothing), Util.testAttribute "build-menu" ]
@@ -183,16 +214,8 @@ viewPreview msgs openMenu now zone org repo build =
                     , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                     ]
                 , ul [ class "build-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
-                    [ li [ class "build-menu-item" ]
-                        [ a
-                            [ href "#"
-                            , class "menu-item"
-                            , Util.onClickPreventDefault <| msgs.restartBuild org repo <| String.fromInt build.number
-                            , Util.testAttribute "restart-build"
-                            ]
-                            [ text "Restart Build"
-                            ]
-                        ]
+                    [ restartBuild
+                    , cancelBuild
                     ]
                 ]
 
