@@ -123,7 +123,7 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
         markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    [ viewPreview msgs model.buildMenuOpen model.time model.zone org repo bld
+                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo bld
                     , viewBuildTabs model org repo buildNumber model.page
                     , content
                     ]
@@ -158,8 +158,8 @@ restartBuildButton org repo build restartBuild =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Msgs msgs -> List Int -> Posix -> Zone -> Org -> Repo -> Build -> Html msgs
-viewPreview msgs openMenu now zone org repo build =
+viewPreview : Msgs msgs -> List Int -> Bool -> Posix -> Zone -> Org -> Repo -> Build -> Html msgs
+viewPreview msgs openMenu showMenu now zone org repo build =
     let
         buildMenuBaseClassList : Html.Attribute msg
         buildMenuBaseClassList =
@@ -206,16 +206,20 @@ viewPreview msgs openMenu now zone org repo build =
                     text ""
 
         actionsMenu =
-            details (buildMenuBaseClassList :: buildMenuAttributeList)
-                [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle build.id Nothing), Util.testAttribute "build-menu" ]
-                    [ text "Actions"
-                    , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+            if showMenu then
+                details (buildMenuBaseClassList :: buildMenuAttributeList)
+                    [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle build.id Nothing), Util.testAttribute "build-menu" ]
+                        [ text "Actions"
+                        , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+                        ]
+                    , ul [ class "build-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
+                        [ restartBuild
+                        , cancelBuild
+                        ]
                     ]
-                , ul [ class "build-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
-                    [ restartBuild
-                    , cancelBuild
-                    ]
-                ]
+
+            else
+                div [] []
 
         buildNumber =
             String.fromInt build.number
