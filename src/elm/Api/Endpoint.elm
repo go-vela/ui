@@ -8,7 +8,21 @@ module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
 import Url.Builder as UB exposing (QueryParameter)
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, Name, Org, Ref, Repo, ServiceNumber, StepNumber, Type)
+import Vela
+    exposing
+        ( AuthParams
+        , BuildNumber
+        , DeploymentId
+        , Engine
+        , Event
+        , Name
+        , Org
+        , Ref
+        , Repo
+        , ServiceNumber
+        , StepNumber
+        , Type
+        )
 
 
 {-| apiBase : is the versioned base of all API paths
@@ -25,6 +39,8 @@ type Endpoint
     | Login
     | Logout
     | CurrentUser
+    | Deployment Org Repo (Maybe DeploymentId)
+    | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
     | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Repository Org Repo
@@ -119,6 +135,17 @@ toUrl api endpoint =
 
         PipelineTemplates org repo ref ->
             url api [ "pipelines", org, repo, "templates" ] [ UB.string "output" "json", UB.string "ref" <| Maybe.withDefault "" ref ]
+
+        Deployment org repo deploymentNumber ->
+            case deploymentNumber of
+                Just id ->
+                    url api [ "deployments", org, repo, id ] []
+
+                Nothing ->
+                    url api [ "deployments", org, repo ] []
+
+        Deployments maybePage maybePerPage org repo ->
+            url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
 
 {-| url : creates a URL string with the given path segments and query parameters

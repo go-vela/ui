@@ -57,7 +57,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy6, lazy7, lazy8)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy6, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
@@ -80,6 +80,9 @@ import Pages.Build.Logs
 import Pages.Build.Model
 import Pages.Build.View
 import Pages.Builds exposing (view)
+import Pages.Deployments.Model
+import Pages.Deployments.Update exposing (initializeFormFromDeployment)
+import Pages.Deployments.View
 import Pages.Home
 import Pages.Hooks
 import Pages.Pipeline.Model
@@ -115,6 +118,8 @@ import Vela
         , Builds
         , ChownRepo
         , CurrentUser
+        , Deployment
+        , DeploymentId
         , EnableRepo
         , EnableRepos
         , EnableRepositoryPayload
@@ -194,6 +199,10 @@ import Vela
         , updateBuildsPage
         , updateBuildsPager
         , updateBuildsPerPage
+        , updateDeployments
+        , updateDeploymentsPage
+        , updateDeploymentsPager
+        , updateDeploymentsPerPage
         , updateHooks
         , updateHooksPage
         , updateHooksPager
@@ -245,6 +254,7 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
+    , deploymentModel : Pages.Deployments.Model.Model Msg
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int
@@ -295,6 +305,7 @@ init flags url navKey =
             , buildMenuOpen = []
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
+            , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
             }
@@ -396,8 +407,10 @@ type Msg
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | CancelBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
+    | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, List Deployment ))
     | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
+    | DeploymentResponse Org Repo DeploymentId (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
@@ -407,6 +420,7 @@ type Msg
     | GetPipelineTemplatesResponse Org Repo FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
+    | AddDeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | RepoSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | OrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
@@ -418,6 +432,7 @@ type Msg
     | Tick Interval Posix
       -- Components
     | AddSecretUpdate Engine Pages.Secrets.Model.Msg
+    | AddDeploymentUpdate Pages.Deployments.Model.Msg
       -- Other
     | HandleError Error
     | AlertsUpdate (Alerting.Msg Alert)
@@ -544,6 +559,11 @@ update msg model =
                 Pages.RepositoryBuilds org repo _ maybePerPage maybeEvent ->
                     ( { model | repo = updateBuilds Loading rm }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent
+                    )
+
+                Pages.RepositoryDeployments org repo _ maybePerPage ->
+                    ( { model | repo = updateDeployments Loading rm }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryDeployments org repo (Just pageNumber) maybePerPage
                     )
 
                 Pages.Hooks org repo _ maybePerPage ->
@@ -1307,6 +1327,22 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateBuilds (toFailure error) rm }, addError error )
 
+        DeploymentsResponse org repo response ->
+            case response of
+                Ok ( meta, deployments ) ->
+                    ( { model
+                        | repo =
+                            rm
+                                |> updateOrgRepo org repo
+                                |> updateDeployments (RemoteData.succeed deployments)
+                                |> updateDeploymentsPager (Pagination.get meta.headers)
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | repo = updateBuilds (toFailure error) rm }, addError error )
+
         HooksResponse _ _ response ->
             case response of
                 Ok ( meta, hooks ) ->
@@ -1333,6 +1369,28 @@ update msg model =
                         , favicon = statusToFavicon build.status
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
+                    )
+
+                Err error ->
+                    ( { model | repo = updateBuild (toFailure error) rm }, addError error )
+
+        DeploymentResponse _ _ _ response ->
+            case response of
+                Ok ( _, deployment ) ->
+                    let
+                        dm =
+                            model.deploymentModel
+
+                        form =
+                            initializeFormFromDeployment deployment.description deployment.payload deployment.ref deployment.target deployment.task
+
+                        promoted =
+                            { dm | form = form }
+                    in
+                    ( { model
+                        | deploymentModel = promoted
+                      }
+                    , Cmd.none
                     )
 
                 Err error ->
@@ -1585,6 +1643,24 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
+        AddDeploymentResponse response ->
+            case response of
+                Ok ( _, deployment ) ->
+                    let
+                        deploymentModel =
+                            model.deploymentModel
+
+                        updatedDeploymentModel =
+                            Pages.Deployments.Update.reinitializeDeployment deploymentModel
+                    in
+                    ( { model | deploymentModel = updatedDeploymentModel }
+                    , Cmd.none
+                    )
+                        |> addDeploymentResponseAlert deployment
+
+                Err error ->
+                    ( model, addError error )
+
         UpdateSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
@@ -1677,6 +1753,15 @@ update msg model =
             , action
             )
 
+        AddDeploymentUpdate m ->
+            let
+                ( newModel, action ) =
+                    Pages.Deployments.Update.update model m
+            in
+            ( newModel
+            , action
+            )
+
         -- Other
         HandleError error ->
             ( model, Cmd.none )
@@ -1741,6 +1826,20 @@ update msg model =
         -- NoOp
         NoOp ->
             ( model, Cmd.none )
+
+
+{-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
+-}
+addDeploymentResponseAlert :
+    Deployment
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+addDeploymentResponseAlert deployment =
+    let
+        msg =
+            deployment.description ++ " submitted."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
 
 {-| addSecretResponseAlert : takes secret and produces Toasty alert for when adding a secret
@@ -1866,6 +1965,9 @@ refreshPage model =
     case page of
         Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             getBuilds model org repo maybePage maybePerPage maybeEvent
+
+        Pages.RepositoryDeployments org repo maybePage maybePerPage ->
+            getDeployments model org repo maybePage maybePerPage
 
         Pages.Build org repo buildNumber focusFragment ->
             Cmd.batch
@@ -2239,6 +2341,34 @@ viewContent model =
             , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
             )
 
+        Pages.AddDeployment org repo ->
+            ( String.join "/" [ org, repo ] ++ " add deployment"
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
+            )
+
+        Pages.PromoteDeployment org repo buildNumber ->
+            ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
+            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.promoteDeployment model
+            )
+
+        Pages.RepositoryDeployments org repo maybePage _ ->
+            let
+                page : String
+                page =
+                    case maybePage of
+                        Nothing ->
+                            ""
+
+                        Just p ->
+                            " (page " ++ String.fromInt p ++ ")"
+            in
+            ( String.join "/" [ org, repo ] ++ " deployments" ++ page
+            , div []
+                [ lazy5 Pages.Deployments.View.viewDeployments model.repo.deployments model.time model.zone org repo
+                , Pager.view model.repo.deployments.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
         Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
             let
                 page : String
@@ -2461,6 +2591,7 @@ helpArgs model =
     { user = helpArg model.user
     , sourceRepos = helpArg model.sourceRepos
     , builds = helpArg model.repo.builds.builds
+    , deployments = helpArg model.repo.deployments.deployments
     , build = helpArg model.repo.build.build
     , repo = helpArg model.repo.repo
     , hooks = helpArg model.repo.hooks.hooks
@@ -2572,8 +2703,17 @@ setNewPage route model =
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
             loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent
 
+        ( Routes.RepositoryDeployments org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoDeploymentsPage model org repo maybePage maybePerPage
+
         ( Routes.Build org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildPage model org repo buildNumber lineFocus
+
+        ( Routes.AddDeploymentRoute org repo, Authenticated _ ) ->
+            loadAddDeploymentPage model org repo
+
+        ( Routes.PromoteDeployment org repo deploymentNumber, Authenticated _ ) ->
+            loadPromoteDeploymentPage model org repo deploymentNumber
 
         ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildServicesPage model org repo buildNumber lineFocus
@@ -2661,6 +2801,9 @@ loadRepoSubPage model org repo toPage =
         secretsModel =
             model.secretsModel
 
+        dm =
+            model.deploymentModel
+
         fetchSecrets : Org -> Repo -> Cmd Msg
         fetchSecrets o r =
             Cmd.batch [ getAllRepoSecrets model "native" o r, getAllOrgSecrets model "native" o ]
@@ -2679,6 +2822,22 @@ loadRepoSubPage model org repo toPage =
                             , engine = "native"
                             , type_ = Vela.RepoSecret
                         }
+                    , deploymentModel =
+                        let
+                            form =
+                                case toPage of
+                                    Pages.AddDeployment _ _ ->
+                                        Pages.Deployments.Update.initializeFormFromDeployment "" Nothing "" "" ""
+
+                                    _ ->
+                                        dm.form
+                        in
+                        { dm
+                            | org = org
+                            , repo = repo
+                            , repo_settings = rm.repo
+                            , form = form
+                        }
                     , repo =
                         rm
                             |> updateOrgRepo org repo
@@ -2686,6 +2845,7 @@ loadRepoSubPage model org repo toPage =
                             |> updateRepo Loading
                             |> updateBuilds Loading
                             |> updateBuildSteps NotAsked
+                            |> updateDeployments Loading
                             -- update builds pagination
                             |> (\rm_ ->
                                     case toPage of
@@ -2700,6 +2860,19 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateBuildsPage Nothing
                                                 |> updateBuildsPerPage Nothing
                                                 |> updateBuildsEvent Nothing
+                               )
+                            -- update deployments pagination
+                            |> (\rm_ ->
+                                    case toPage of
+                                        Pages.RepositoryDeployments _ _ maybePage maybePerPage ->
+                                            rm_
+                                                |> updateDeploymentsPage maybePage
+                                                |> updateDeploymentsPerPage maybePerPage
+
+                                        _ ->
+                                            rm
+                                                |> updateDeploymentsPage Nothing
+                                                |> updateDeploymentsPerPage Nothing
                                )
                             -- update hooks pagination
                             |> (\rm_ ->
@@ -2725,6 +2898,12 @@ loadRepoSubPage model org repo toPage =
                         _ ->
                             getBuilds model org repo Nothing Nothing Nothing
                     , case toPage of
+                        Pages.RepositoryDeployments o r maybePage maybePerPage ->
+                            getDeployments model o r maybePage maybePerPage
+
+                        _ ->
+                            getDeployments model org repo Nothing Nothing
+                    , case toPage of
                         Pages.Hooks o r maybePage maybePerPage ->
                             getHooks model o r maybePage maybePerPage
 
@@ -2733,6 +2912,12 @@ loadRepoSubPage model org repo toPage =
                     , case toPage of
                         Pages.RepoSecrets _ o r _ _ ->
                             fetchSecrets o r
+
+                        _ ->
+                            Cmd.none
+                    , case toPage of
+                        Pages.PromoteDeployment _ _ deploymentNumber ->
+                            getDeployment model org repo deploymentNumber
 
                         _ ->
                             Cmd.none
@@ -2786,6 +2971,11 @@ loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
     loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
 
+loadRepoDeploymentsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadRepoDeploymentsPage model org repo maybePage maybePerPage =
+    loadRepoSubPage model org repo <| Pages.RepositoryDeployments org repo maybePage maybePerPage
+
+
 {-| loadRepoSecretsPage : takes model org and repo and loads the page for managing repo secrets
 -}
 loadRepoSecretsPage :
@@ -2798,6 +2988,29 @@ loadRepoSecretsPage :
     -> ( Model, Cmd Msg )
 loadRepoSecretsPage model maybePage maybePerPage engine org repo =
     loadRepoSubPage model org repo <| Pages.RepoSecrets engine org repo maybePage maybePerPage
+
+
+{-| loadAddDeploymentPage : takes model org and repo and loads the page for managing deployments
+-}
+loadAddDeploymentPage :
+    Model
+    -> Org
+    -> Repo
+    -> ( Model, Cmd Msg )
+loadAddDeploymentPage model org repo =
+    loadRepoSubPage model org repo <| Pages.AddDeployment org repo
+
+
+{-| loadPromoteDeploymentPage : takes model org and repo and loads the page for managing deployments
+-}
+loadPromoteDeploymentPage :
+    Model
+    -> Org
+    -> Repo
+    -> BuildNumber
+    -> ( Model, Cmd Msg )
+loadPromoteDeploymentPage model org repo buildNumber =
+    loadRepoSubPage model org repo <| Pages.PromoteDeployment org repo buildNumber
 
 
 {-| loadHooksPage : takes model org and repo and loads the hooks page.
@@ -3685,6 +3898,11 @@ initSecretsModel =
     Pages.Secrets.Update.init SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
 
 
+initDeploymentsModel : Pages.Deployments.Model.Model Msg
+initDeploymentsModel =
+    Pages.Deployments.Update.init AddDeploymentResponse
+
+
 
 -- API HELPERS
 
@@ -3729,6 +3947,16 @@ getBuilds model org repo maybePage maybePerPage maybeEvent =
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =
     Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
+
+
+getDeployment : Model -> Org -> Repo -> DeploymentId -> Cmd Msg
+getDeployment model org repo deploymentNumber =
+    Api.try (DeploymentResponse org repo deploymentNumber) <| Api.getDeployment model org repo <| Just deploymentNumber
+
+
+getDeployments : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
+getDeployments model org repo maybePage maybePerPage =
+    Api.try (DeploymentsResponse org repo) <| Api.getDeployments model maybePage maybePerPage org repo
 
 
 getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
