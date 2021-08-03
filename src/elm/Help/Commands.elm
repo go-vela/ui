@@ -42,6 +42,7 @@ type alias Model msg =
     , sourceRepos : Arg
     , orgRepos : Arg
     , builds : Arg
+    , deployments : Arg
     , build : Arg
     , repo : Arg
     , hooks : Arg
@@ -99,6 +100,9 @@ commands page =
         Pages.RepositoryBuilds org repo _ _ _ ->
             [ listBuilds org repo ]
 
+        Pages.RepositoryDeployments org repo _ _ ->
+            [ listDeployments org repo ]
+
         Pages.Build org repo buildNumber _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
 
@@ -128,6 +132,12 @@ commands page =
 
         Pages.AddRepoSecret secretEngine org repo ->
             [ addSecret secretEngine Vela.RepoSecret org <| Just repo ]
+
+        Pages.AddDeployment org repo ->
+            [ addDeployment org repo ]
+
+        Pages.PromoteDeployment org repo _ ->
+            [ addDeployment org repo ]
 
         Pages.AddSharedSecret secretEngine org team ->
             [ addSecret secretEngine Vela.SharedSecret org <| Just team ]
@@ -191,6 +201,27 @@ listBuilds org repo =
 
         docs =
             Just "/build/get"
+    in
+    Command name content docs noIssue
+
+
+{-| listDeployments : returns cli command for listing deployments
+
+    eg.
+    vela get builds --org octocat --repo hello-world
+
+-}
+listDeployments : Org -> Repo -> Command
+listDeployments org repo =
+    let
+        name =
+            "List Deployments"
+
+        content =
+            Just <| "vela get deployments " ++ repoArgs org repo
+
+        docs =
+            Just "/deployment/get"
     in
     Command name content docs noIssue
 
@@ -510,6 +541,27 @@ addSecret secretEngine secretType org key =
     Command name content docs noIssue
 
 
+{-| addDeployment : returns cli command for adding a deployment
+
+    eg.
+    vela add deployment vela add deployment --repo some-repp --org some-org
+
+-}
+addDeployment : Org -> Repo -> Command
+addDeployment org repo =
+    let
+        name =
+            "Add Deployment"
+
+        content =
+            Just <| "vela add deployment --org" ++ org ++ " --repo " ++ repo
+
+        docs =
+            Just "/deployment/add"
+    in
+    Command name content docs noIssue
+
+
 {-| viewSecret : returns cli command for viewing a secret
 
     eg.
@@ -738,6 +790,9 @@ resourceLoaded args =
         Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.success
 
+        Pages.RepositoryDeployments _ _ _ _ ->
+            args.deployments.success
+
         Pages.Build _ _ _ _ ->
             args.build.success
 
@@ -758,6 +813,12 @@ resourceLoaded args =
 
         Pages.AddSharedSecret secretEngine org team ->
             noBlanks [ secretEngine, org, team ]
+
+        Pages.AddDeployment org repo ->
+            noBlanks [ org, repo ]
+
+        Pages.PromoteDeployment org repo _ ->
+            noBlanks [ org, repo ]
 
         Pages.OrgSecrets secretEngine org _ _ ->
             noBlanks [ secretEngine, org ]
@@ -819,6 +880,9 @@ resourceLoading args =
         Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.loading
 
+        Pages.RepositoryDeployments _ _ _ _ ->
+            args.deployments.loading
+
         Pages.Build _ _ _ _ ->
             args.build.loading
 
@@ -845,6 +909,12 @@ resourceLoading args =
 
         Pages.AddRepoSecret secretEngine org repo ->
             anyBlank [ secretEngine, org, repo ]
+
+        Pages.AddDeployment org repo ->
+            anyBlank [ org, repo ]
+
+        Pages.PromoteDeployment org repo _ ->
+            anyBlank [ org, repo ]
 
         Pages.AddSharedSecret secretEngine org team ->
             anyBlank [ secretEngine, org, team ]

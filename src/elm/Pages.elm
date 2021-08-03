@@ -9,7 +9,7 @@ module Pages exposing (Page(..), strip, toRoute)
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Routes exposing (Route(..))
-import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (Build, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
 
 type Page
@@ -22,6 +22,8 @@ type Page
     | SharedSecrets Engine Org Team (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | AddOrgSecret Engine Org
     | AddRepoSecret Engine Org Repo
+    | AddDeployment Org Repo
+    | PromoteDeployment Org Repo BuildNumber
     | AddSharedSecret Engine Org Team
     | OrgSecret Engine Org Name
     | RepoSecret Engine Org Repo Name
@@ -29,6 +31,7 @@ type Page
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
+    | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
@@ -82,6 +85,12 @@ toRoute page =
         AddSharedSecret engine org team ->
             Routes.AddSharedSecret engine org team
 
+        AddDeployment org repo ->
+            Routes.AddDeploymentRoute org repo
+
+        PromoteDeployment org repo deploymentId ->
+            Routes.PromoteDeployment org repo deploymentId
+
         OrgSecret engine org name ->
             Routes.OrgSecret engine org name
 
@@ -96,6 +105,9 @@ toRoute page =
 
         OrgBuilds org maybePage maybePerPage maybeEvent ->
             Routes.OrgBuilds org maybePage maybePerPage maybeEvent
+
+        RepositoryDeployments org repo maybePage maybePerPage ->
+            Routes.RepositoryDeployments org repo maybePage maybePerPage
 
         Build org repo buildNumber logFocus ->
             Routes.Build org repo buildNumber logFocus
@@ -161,6 +173,12 @@ strip page =
         AddRepoSecret engine org repo ->
             AddRepoSecret engine org repo
 
+        AddDeployment org repo ->
+            AddDeployment org repo
+
+        PromoteDeployment org repo deploymentId ->
+            PromoteDeployment org repo deploymentId
+
         AddSharedSecret engine org team ->
             AddSharedSecret engine org team
 
@@ -178,6 +196,9 @@ strip page =
 
         RepositoryBuilds org repo _ _ _ ->
             RepositoryBuilds org repo Nothing Nothing Nothing
+
+        RepositoryDeployments org repo _ _ ->
+            RepositoryDeployments org repo Nothing Nothing
 
         Build org repo buildNumber _ ->
             Build org repo buildNumber Nothing

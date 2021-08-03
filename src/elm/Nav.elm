@@ -134,6 +134,9 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
         Pages.RepositoryBuilds org repo _ _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
+        Pages.RepositoryDeployments org repo _ _ ->
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+
         Pages.RepoSettings org repo ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
@@ -198,6 +201,9 @@ viewUtil model =
             Pages.RepositoryBuilds org repo _ _ _ ->
                 viewRepoTabs rm org repo model.page
 
+            Pages.RepositoryDeployments org repo _ _ ->
+                viewRepoTabs rm org repo model.page
+
             Pages.RepoSecrets _ org repo _ _ ->
                 viewRepoTabs rm org repo model.page
 
@@ -215,6 +221,9 @@ viewUtil model =
 
             Pages.BuildPipeline _ _ _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
+
+            Pages.AddDeployment org repo ->
+                viewRepoTabs rm org repo model.page
 
             _ ->
                 text ""
@@ -329,6 +338,7 @@ viewRepoTabs rm org repo currentPage =
 
         tabs =
             [ Tab "Builds" currentPage (Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
+            , Tab "Deployments" currentPage (Pages.RepositoryDeployments org repo rm.builds.maybePage rm.builds.maybePerPage) False
             , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False
             , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting
             , Tab "Settings" currentPage (Pages.RepoSettings org repo) False

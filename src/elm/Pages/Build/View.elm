@@ -51,10 +51,8 @@ import Html.Attributes
         , title
         )
 import Html.Events exposing (onClick)
-import Http exposing (Error(..))
 import List.Extra exposing (unique)
 import Nav exposing (viewBuildTabs)
-import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId

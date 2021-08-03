@@ -37,6 +37,9 @@ type Route
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
+    | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | AddDeploymentRoute Org Repo
+    | PromoteDeployment Org Repo BuildNumber
     | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
@@ -74,8 +77,11 @@ routes =
         , map RepoSecret (s "-" </> s "secrets" </> string </> s "repo" </> string </> string </> string)
         , map SharedSecret (s "-" </> s "secrets" </> string </> s "shared" </> string </> string </> string)
         , map RepoSettings (string </> string </> s "settings")
+        , map AddDeploymentRoute (string </> string </> s "add-deployment")
+        , map PromoteDeployment (string </> string </> s "deployment" </> string)
         , map OrgBuilds (string </> s "builds" <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
+        , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
         , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
@@ -154,11 +160,20 @@ routeToUrl route =
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
 
+        RepositoryDeployments org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/deployments" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
+
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         Build org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" lineFocus
+
+        AddDeploymentRoute org repo ->
+            "/" ++ org ++ "/" ++ repo ++ "/add-deployment"
+
+        PromoteDeployment org repo deploymentId ->
+            "/" ++ org ++ "/" ++ repo ++ "/deployment/" ++ deploymentId
 
         BuildServices org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/services" ++ Maybe.withDefault "" lineFocus

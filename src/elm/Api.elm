@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Api exposing
     ( Request(..)
+    , addDeployment
     , addSecret
     , cancelBuild
     , chownRepo
@@ -20,6 +21,8 @@ module Api exposing
     , getBuild
     , getBuilds
     , getCurrentUser
+    , getDeployment
+    , getDeployments
     , getHooks
     , getInitialToken
     , getLogout
@@ -59,6 +62,8 @@ import Vela
         , BuildNumber
         , Builds
         , CurrentUser
+        , Deployment
+        , DeploymentId
         , Engine
         , Event
         , Hooks
@@ -80,6 +85,8 @@ import Vela
         , decodeBuild
         , decodeBuilds
         , decodeCurrentUser
+        , decodeDeployment
+        , decodeDeployments
         , decodeHooks
         , decodeLog
         , decodePipelineConfig
@@ -657,6 +664,30 @@ updateSecret model engine type_ org key name body =
 addSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Http.Body -> Request Secret
 addSecret model engine type_ org key body =
     post model.velaAPI (Endpoint.Secrets Nothing Nothing engine type_ org key) body decodeSecret
+        |> withAuth model.session
+
+
+{-| getDeployments : fetches vela deployments by repository
+-}
+getDeployments : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request (List Deployment)
+getDeployments model maybePage maybePerPage org repository =
+    get model.velaAPI (Endpoint.Deployments maybePage maybePerPage org repository) decodeDeployments
+        |> withAuth model.session
+
+
+{-| getDeployment : fetches vela deployments by repository and deploymentId
+-}
+getDeployment : PartialModel a -> Org -> Repo -> Maybe DeploymentId -> Request Deployment
+getDeployment model org repo deploymentId =
+    get model.velaAPI (Endpoint.Deployment org repo deploymentId) decodeDeployment
+        |> withAuth model.session
+
+
+{-| addDeployment : adds a deployment
+-}
+addDeployment : PartialModel a -> Org -> Repo -> Http.Body -> Request Deployment
+addDeployment model org key body =
+    post model.velaAPI (Endpoint.Deployment org key Nothing) body decodeDeployment
         |> withAuth model.session
 
 

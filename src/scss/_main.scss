@@ -313,6 +313,70 @@ nav {
   font-weight: 300;
 }
 
+// deployments
+.deployment-container {
+  display: flex;
+  width: 100%;
+  margin: 12px 0;
+  overflow: hidden;
+
+  border-top: 2px solid var(--color-green);
+  border-bottom: 2px solid var(--color-green);
+}
+
+.deployment-icon {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  margin-top: -2px;
+  margin-bottom: -2px;
+  padding: 1em;
+
+  background: var(--color-green);
+}
+
+.deployment-icon svg {
+  fill: none;
+  stroke: var(--color-bg);
+}
+
+.deployment {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1em;
+
+  font-weight: 300;
+  font-size: 18px;
+
+  border: 2px solid var(--color-bg-dark);
+  border-right: 0;
+  border-left: 0;
+}
+
+.deployment .deployment-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  padding-right: 1em;
+}
+
+.deployment div.deployment-info {
+  display: flex;
+  flex-direction: row;
+}
+
+.deployment div.deployment-info div {
+  min-width: 10em;
+}
+
+.deployment div p {
+  margin: 0;
+}
+
 // builds styles for /:org/:repo/:build_number
 .builds {
   display: flex;
@@ -1364,7 +1428,8 @@ nav {
   font-size: 1.2rem;
 }
 
-.manage-secret .header {
+.manage-secret .header,
+.manage-deployment .header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -1373,36 +1438,47 @@ nav {
   border-bottom: 2px solid var(--color-secondary);
 }
 
-.manage-secret h2 {
+.manage-secret h2,
+.manage-deployment h2 {
   margin: 0;
   border-bottom: 2px solid var(--color-secondary);
 }
 
-.secret-form {
+.secret-form,
+.deployment-form {
   margin-bottom: 0.5rem;
   padding-top: 1rem;
 }
 
-.secret-form section {
+.secret-form section,
+.deployment-form section {
   justify-content: flex-start;
   margin-bottom: 1rem;
 }
 
-.secret-form .events {
+.secret-form .events,
+.deployment-form .events {
   padding-left: 1rem;
 }
 
-.images {
+.images,
+.parameters {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.add-image {
+.add-image,
+.add-parameter {
   margin-left: 1rem;
 }
 
-.added-image {
+.parameter-input {
+  margin: 0 1rem 1rem 0;
+}
+
+.added-image,
+.added-parameter {
   margin: 0.2rem 1rem;
   display: flex;
   padding: 0.3rem 1rem;
@@ -1411,22 +1487,26 @@ nav {
   position: relative;
 }
 
-.added-image .name {
+.added-image .name,
+.added-parameter .name {
   flex: 1;
   word-wrap: break-word;
   font-family: var(--font-code);
   font-size: 0.9rem;
 }
 
-.images .added-image .button {
+.images .added-image .button,
+.parameters .added-parameter .button {
   margin-left: 1rem;
 }
 
-.added-image.chevron {
+.added-image.chevron,
+.added-parameter.chevron {
   margin-left: 2rem;
 }
 
-.added-image.chevron:before {
+.added-image.chevron:before,
+.added-parameter.chevron:before {
   content: '';
   border-style: solid;
   border-width: 0.1rem 1rem 0.1rem 0.2rem;
@@ -1439,14 +1519,16 @@ nav {
   padding: 1rem;
 }
 
-.manage-secret .subheader {
+.manage-secret .subheader,
+.manage-deployment .subheader {
   margin-top: 1rem;
   border-bottom: 2px solid var(--color-primary);
   width: 80%;
 }
 
 .manage-secret textarea,
-.update-secret textarea {
+.update-secret textarea,
+.manage-deployment textarea {
   width: 70%;
   border: none;
   box-shadow: none;
@@ -1458,20 +1540,32 @@ nav {
   padding: 0.5rem;
 }
 
-.manage-secret input {
+.manage-secret input,
+.manage-deployment input {
   max-width: 400px;
 }
 
-.manage-secret textarea {
+.manage-secret textarea,
+.manage-deployment textarea {
   max-width: 70%;
 }
 
-.secret-form .help {
+.secret-form .help,
+.deployment-form .help {
   padding-bottom: 1rem;
 }
 
-.secret-form .form-action {
+.secret-form .form-action,
+.deployment-form .form-action {
   padding-left: 1rem;
+}
+
+.deployment-form h2.deployment-header {
+  margin-bottom: 1rem;
+}
+
+.add-deployment-buttons {
+  justify-content: flex-end;
 }
 
 .button.-secret-delete-confirm {
