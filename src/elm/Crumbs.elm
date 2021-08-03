@@ -177,6 +177,26 @@ toPath page =
                     in
                     [ overviewPage, orgPage, currentRepo, ( "Add", Nothing ) ]
 
+                Pages.AddDeployment org repo ->
+                    let
+                        orgPage =
+                            ( org, Nothing )
+
+                        currentRepo =
+                            ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
+                    in
+                    [ overviewPage, orgPage, currentRepo, ( "Add Deployment", Nothing ) ]
+
+                Pages.PromoteDeployment org repo _ ->
+                    let
+                        orgPage =
+                            ( org, Nothing )
+
+                        currentRepo =
+                            ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
+                    in
+                    [ overviewPage, orgPage, currentRepo, ( "Add Deployment", Nothing ) ]
+
                 Pages.AddSharedSecret engine org team ->
                     let
                         orgPage =
@@ -238,6 +258,13 @@ toPath page =
                             ( org, Nothing )
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ) ]
+
+                Pages.RepositoryDeployments org repo maybePage maybePerPage ->
+                    let
+                        organizationPage =
+                            ( org, Nothing )
+                    in
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryDeployments org repo maybePage maybePerPage ) ]
 
                 Pages.Build org repo buildNumber _ ->
                     let

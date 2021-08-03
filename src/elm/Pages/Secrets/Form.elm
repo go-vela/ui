@@ -41,6 +41,7 @@ import Html.Attributes
         , id
         , placeholder
         , rows
+        , target
         , type_
         , value
         , wrap
@@ -103,7 +104,7 @@ addedImage image =
 -}
 viewHelp : Html Msg
 viewHelp =
-    div [ class "help" ] [ text "Need help? Visit our ", a [ href secretsDocsURL ] [ text "docs" ], text "!" ]
+    div [ class "help" ] [ text "Need help? Visit our ", a [ href secretsDocsURL, target "_blank" ] [ text "docs" ], text "!" ]
 
 
 {-| viewNameInput : renders name input box
@@ -344,4 +345,4 @@ eventEnabled event =
 
 secretsDocsURL : String
 secretsDocsURL =
-    "https://go-vela.github.io/docs/concepts/pipeline/secrets/"
+    "https://go-vela.github.io/docs/tour/secrets/"

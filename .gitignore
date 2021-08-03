@@ -282,3 +282,6 @@ secrets.env
 
 # Parcel v2 cache
 .parcel-cache/
+
+# Idea
+.idea/
