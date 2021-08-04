@@ -18,7 +18,8 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
-    "allow_comment": false
+    "allow_comment": false,
+    "pipeline_type": "yaml"
   },
   {
     "id": 18,
@@ -39,7 +40,8 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
-    "allow_comment": false
+    "allow_comment": false,
+    "pipeline_type": "yaml"
   },
   {
     "id": 17,
@@ -81,6 +83,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
-    "allow_comment": false
+    "allow_comment": false,
+    "pipeline_type": "yaml"
   }
 ]
