@@ -68,6 +68,13 @@ context('Repo Settings', () => {
       cy.get('@accessRadio').should('have.checked');
     });
 
+    it('clicking pipeline type radio should toggle all values', () => {
+      cy.get('[data-test=repo-radio-private] input').as('pipelineTypeRadio');
+      cy.get('@pipelineTypeRadio').should('not.have.checked');
+      cy.get('@pipelineTypeRadio').click({ force: true });
+      cy.get('@pipelineTypeRadio').should('have.checked');
+    });
+
     it('build timeout input should allow number input', () => {
       cy.get('[data-test=repo-timeout]').as('repoTimeout');
       cy.get('[data-test=repo-timeout] input').as('repoTimeoutInput');
