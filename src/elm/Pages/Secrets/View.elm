@@ -27,16 +27,7 @@ import Html.Attributes
         , scope
         )
 import Html.Events exposing (onClick)
-import Pages.Secrets.Form
-    exposing
-        ( viewAllowCommandCheckbox
-        , viewEventsSelect
-        , viewHelp
-        , viewImagesInput
-        , viewNameInput
-        , viewSubmitButtons
-        , viewValueInput
-        )
+import Pages.Secrets.Form exposing (viewAllowCommandCheckbox, viewEventsSelect, viewHelp, viewImagesInput, viewInput, viewNameInput, viewSubmitButtons, viewValueInput)
 import Pages.Secrets.Model
     exposing
         ( ManageSecretState(..)
@@ -196,14 +187,51 @@ viewOrgSecrets model showManage showAdd =
 
 {-| viewSharedSecrets : takes secrets model and renders table for viewing shared secrets
 -}
-viewSharedSecrets : PartialModel a msg -> Html Msg
-viewSharedSecrets model =
+viewSharedSecrets : PartialModel a msg -> Bool -> Bool -> Html Msg
+viewSharedSecrets model showManage showAdd =
     let
         secretsModel =
             model.secretsModel
 
+        manageButton =
+            if showManage then
+                a
+                    [ class "button"
+                    , class "-outline"
+                    , Routes.href <|
+                        Routes.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
+                    , Util.testAttribute "manage-shared-secrets"
+                    ]
+                    [ text "Manage Org Secrets" ]
+
+            else
+                text ""
+
+        addButton =
+            if showAdd then
+                a
+                    [ class "button"
+                    , class "-outline"
+                    , class "button-with-icon"
+                    , Util.testAttribute "add-shared-secret"
+                    , Routes.href <|
+                        Routes.AddSharedSecret secretsModel.engine secretsModel.org "*"
+                    ]
+                    [ text "Add Shared Secret"
+                    , FeatherIcons.plus
+                        |> FeatherIcons.withSize 18
+                        |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                    ]
+
+            else
+                text ""
+
         actions =
-            Nothing
+            Just <|
+                div [ class "buttons" ]
+                    [ manageButton
+                    , addButton
+                    ]
     in
     case secretsModel.sharedSecrets of
         Success s ->
@@ -213,8 +241,8 @@ viewSharedSecrets model =
                         "Shared Secrets"
                         "shared-secrets"
                         "No secrets found for this org/team"
-                        tableHeaders
-                        (secretsToRows Vela.SharedSecret s)
+                        tableHeadersForSharedSecrets
+                        (secretsToRowsForSharedSecrets Vela.SharedSecret s)
                         actions
                     )
                 ]
@@ -240,11 +268,31 @@ secretsToRows type_ secrets =
     List.map (\secret -> Table.Row secret (renderSecret type_)) secrets
 
 
+{-| secretsToRows : takes list of secrets and produces list of Table rows
+-}
+secretsToRowsForSharedSecrets : SecretType -> Secrets -> Table.Rows Secret Msg
+secretsToRowsForSharedSecrets type_ secrets =
+    List.map (\secret -> Table.Row secret (renderSharedSecret type_)) secrets
+
+
 {-| tableHeaders : returns table headers for secrets table
 -}
 tableHeaders : Table.Columns
 tableHeaders =
     [ ( Nothing, "name" )
+    , ( Nothing, "type" )
+    , ( Nothing, "events" )
+    , ( Nothing, "images" )
+    , ( Nothing, "allow command" )
+    ]
+
+
+{-| tableHeadersForSharedSecrets : returns table headers for secrets table
+-}
+tableHeadersForSharedSecrets : Table.Columns
+tableHeadersForSharedSecrets =
+    [ ( Nothing, "name" )
+    , ( Nothing, "team" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
@@ -264,6 +312,54 @@ renderSecret type_ secret =
             , Util.testAttribute <| "secrets-row-name"
             ]
             [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
+        , td
+            [ attribute "data-label" "type"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| secretTypeToString secret.type_ ]
+        , td
+            [ attribute "data-label" "events"
+            , scope "row"
+            , class "break-word"
+            ]
+          <|
+            renderListCell secret.events "no events" "secret-event"
+        , td
+            [ attribute "data-label" "images"
+            , scope "row"
+            , class "break-word"
+            ]
+          <|
+            renderListCell secret.images "no images" "secret-image"
+        , td
+            [ attribute "data-label" "allow command"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| Util.boolToYesNo secret.allowCommand ]
+        ]
+
+
+{-| renderSecret : takes secret and secret type and renders a table row
+-}
+renderSharedSecret : SecretType -> Secret -> Html msg
+renderSharedSecret type_ secret =
+    tr [ Util.testAttribute <| "secrets-row" ]
+        [ td
+            [ attribute "data-label" "name"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "secrets-row-name"
+            ]
+            [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
+        , td
+            [ attribute "data-label" "team"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "secrets-row-team"
+            ]
+            [ a [ Routes.href <| Routes.SharedSecrets "native" (percentEncode secret.org) (percentEncode secret.team) Nothing Nothing ] [ text secret.team ] ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
@@ -380,9 +476,17 @@ addForm secretsModel =
     let
         secretUpdate =
             secretsModel.form
+
+        teamForm =
+            if secretsModel.team == "*" then
+                viewInput "Team" secretUpdate.team "Team Name"
+
+            else
+                text ""
     in
     div [ class "secret-form" ]
-        [ viewNameInput secretUpdate.name False
+        [ teamForm
+        , viewNameInput secretUpdate.name False
         , viewValueInput secretUpdate.value "Secret Value"
         , viewEventsSelect secretUpdate
         , viewImagesInput secretUpdate secretUpdate.imageInput

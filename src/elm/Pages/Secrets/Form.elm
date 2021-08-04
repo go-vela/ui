@@ -9,6 +9,7 @@ module Pages.Secrets.Form exposing
     , viewEventsSelect
     , viewHelp
     , viewImagesInput
+    , viewInput
     , viewNameInput
     , viewSubmitButtons
     , viewValueInput
@@ -121,6 +122,23 @@ viewNameInput val disable =
             , class "secret-name"
             , placeholder "Secret Name"
             , id "secret-name"
+            ]
+            []
+        ]
+
+
+{-| viewValueInput : renders value input box
+-}
+viewInput : String -> String -> String -> Html Msg
+viewInput name val placeholder_ =
+    section [ class "form-control", class "-stack" ]
+        [ label [ class "form-label", for <| name ] [ strong [] [ text name ] ]
+        , input
+            [ value val
+            , onInput <| OnChangeStringField name
+            , class "secret-name"
+            , placeholder placeholder_
+            , id name
             ]
             []
         ]

@@ -529,8 +529,11 @@ update msg model =
                     )
 
                 Vela.OrgSecret ->
-                    ( { model | secretsModel = { secretsModel | orgSecrets = Loading } }
-                    , getOrgSecrets model Nothing Nothing engine org
+                    ( { model | secretsModel = { secretsModel | orgSecrets = Loading, sharedSecrets = Loading } }
+                    , Cmd.batch
+                        [ getOrgSecrets model Nothing Nothing engine org
+                        , getSharedSecrets model Nothing Nothing engine org "*"
+                        ]
                     )
 
                 Vela.SharedSecret ->
@@ -2005,6 +2008,7 @@ refreshPage model =
         Pages.OrgSecrets engine org maybePage maybePerPage ->
             Cmd.batch
                 [ getOrgSecrets model maybePage maybePerPage engine org
+                , getSharedSecrets model Nothing Nothing engine org "*"
                 ]
 
         Pages.RepoSecrets engine org repo maybePage maybePerPage ->
@@ -2310,6 +2314,8 @@ viewContent model =
             , div []
                 [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
                 , Pager.view model.secretsModel.orgSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
+                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
+                , Pager.view model.secretsModel.sharedSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 ]
             )
 
@@ -2317,7 +2323,7 @@ viewContent model =
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
                 [ Pager.view model.secretsModel.sharedSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
-                , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.viewSharedSecrets model
+                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
                 , Pager.view model.secretsModel.sharedSecretsPager { previousLabel = "prev", nextLabel = "next" } GotoPage
                 ]
             )
@@ -2886,6 +2892,7 @@ loadOrgSubPage model org toPage =
                         { secretsModel
                             | repoSecrets = Loading
                             , orgSecrets = Loading
+                            , sharedSecrets = Loading
                             , org = org
                             , repo = ""
                             , engine = "native"
@@ -3223,6 +3230,7 @@ loadOrgSecretsPage model maybePage maybePerPage engine org =
         , secretsModel =
             { secretsModel
                 | orgSecrets = Loading
+                , sharedSecrets = Loading
                 , org = org
                 , engine = engine
                 , type_ = Vela.OrgSecret
@@ -3231,6 +3239,7 @@ loadOrgSecretsPage model maybePage maybePerPage engine org =
     , Cmd.batch
         [ getCurrentUser model
         , getOrgSecrets model maybePage maybePerPage engine org
+        , getSharedSecrets model Nothing Nothing engine org "*"
         ]
     )
 
@@ -3257,6 +3266,7 @@ loadSharedSecretsPage model maybePage maybePerPage engine org team =
         , secretsModel =
             { secretsModel
                 | repoSecrets = Loading
+                , sharedSecrets = Loading
                 , org = org
                 , team = team
                 , engine = engine
