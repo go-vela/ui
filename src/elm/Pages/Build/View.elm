@@ -79,7 +79,7 @@ import Routes exposing (Route(..))
 import String
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone)
-import Util
+import Util exposing (getNameFromRef)
 import Vela
     exposing
         ( Build
@@ -168,11 +168,34 @@ viewPreview now zone org repo build =
             [ buildStatusToIcon build.status ]
 
         commit =
-            [ text <| String.replace "_" " " build.event
-            , text " ("
-            , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
-            , text <| ")"
-            ]
+            case build.event of
+                "pull_request" ->
+                    [ text <| String.replace "_" " " build.event
+                    , text " "
+                    , a [ href build.source ]
+                        [ text "#"
+                        , text (getNameFromRef build.ref)
+                        ]
+                    , text " ("
+                    , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                    , text <| ")"
+                    ]
+
+                "tag" ->
+                    [ text <| String.replace "_" " " build.event
+                    , text " "
+                    , a [ href build.source ] [ text (getNameFromRef build.ref) ]
+                    , text " ("
+                    , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                    , text <| ")"
+                    ]
+
+                _ ->
+                    [ text <| String.replace "_" " " build.event
+                    , text " ("
+                    , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                    , text <| ")"
+                    ]
 
         branch =
             [ a [ href <| Util.buildBranchUrl build.clone build.branch ] [ text build.branch ] ]

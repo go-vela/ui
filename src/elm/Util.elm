@@ -18,6 +18,7 @@ module Util exposing
     , fiveSecondsMillis
     , formatRunTime
     , formatTestTag
+    , getNameFromRef
     , humanReadableDateTimeFormatter
     , humanReadableWithDefault
     , isLoading
@@ -46,6 +47,7 @@ import Bytes
 import Bytes.Decode
 import DateFormat
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
+import Dict exposing (Dict)
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (custom)
@@ -479,3 +481,22 @@ buildBranchUrl clone branch =
 trimCommitHash : String -> String
 trimCommitHash commit =
     String.left 7 commit
+
+
+{-| parseGitRef : parses the ref from git for easy consumption
+-}
+getNameFromRef : String -> String
+getNameFromRef s =
+    let
+        sp =
+            String.split "/" s
+
+        n =
+            List.head (List.drop 2 sp)
+    in
+    case n of
+        Just name ->
+            name
+
+        _ ->
+            ""
