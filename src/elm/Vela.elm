@@ -773,6 +773,7 @@ type alias Repository =
     , enabling : Enabling
     , inTimeout : Maybe Int
     , inCounter : Maybe Int
+    , pipeline_type : String
     }
 
 
@@ -819,6 +820,7 @@ decodeRepository =
         |> hardcoded Nothing
         -- "inCounter"
         |> hardcoded Nothing
+        |> optional "pipeline_type" string ""
 
 
 {-| enabledDecoder : decodes string field "status" to the union type Enabled
@@ -927,6 +929,7 @@ type alias UpdateRepositoryPayload =
     , visibility : Maybe String
     , timeout : Maybe Int
     , counter : Maybe Int
+    , pipeline_type : Maybe String
     }
 
 
@@ -936,7 +939,7 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -953,6 +956,7 @@ encodeUpdateRepository repo =
         , ( "visibility", encodeOptional Encode.string repo.visibility )
         , ( "timeout", encodeOptional Encode.int repo.timeout )
         , ( "counter", encodeOptional Encode.int repo.counter )
+        , ( "pipeline_type", encodeOptional Encode.string repo.pipeline_type )
         ]
 
 
@@ -1012,6 +1016,9 @@ buildUpdateRepoStringPayload field value =
     case field of
         "visibility" ->
             { defaultUpdateRepositoryPayload | visibility = Just value }
+
+        "pipeline_type" ->
+            { defaultUpdateRepositoryPayload | pipeline_type = Just value }
 
         _ ->
             defaultUpdateRepositoryPayload
