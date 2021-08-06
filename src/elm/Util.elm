@@ -18,6 +18,7 @@ module Util exposing
     , fiveSecondsMillis
     , formatRunTime
     , formatTestTag
+    , getNameFromRef
     , humanReadableDateTimeFormatter
     , humanReadableWithDefault
     , isLoading
@@ -479,3 +480,22 @@ buildBranchUrl clone branch =
 trimCommitHash : String -> String
 trimCommitHash commit =
     String.left 7 commit
+
+
+{-| getNameFromRef : parses the name from git for easy consumption
+-}
+getNameFromRef : String -> String
+getNameFromRef s =
+    let
+        sp =
+            String.split "/" s
+
+        n =
+            List.head (List.drop 2 sp)
+    in
+    case n of
+        Just name ->
+            name
+
+        _ ->
+            ""
