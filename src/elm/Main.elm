@@ -385,6 +385,7 @@ type Msg
     | RepairRepo Repository
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
+    | UpdateRepoPipelineType Org Repo Field String
     | UpdateRepoTimeout Org Repo Field Int
     | UpdateRepoCounter Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
@@ -959,6 +960,27 @@ update msg model =
 
                 cmd =
                     if Pages.RepoSettings.validAccessUpdate rm.repo payload then
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        Cmd.none
+            in
+            ( model
+            , cmd
+            )
+
+        UpdateRepoPipelineType org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoStringPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+
+                cmd =
+                    if Pages.RepoSettings.validPipelineTypeUpdate rm.repo payload then
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -4040,7 +4062,7 @@ sourceReposMsgs =
 -}
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
-    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo
+    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo UpdateRepoPipelineType
 
 
 {-| buildMsgs : prepares the input record required for the Build pages to route Msgs back to Main.elm
