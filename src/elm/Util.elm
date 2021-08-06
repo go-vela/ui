@@ -47,7 +47,6 @@ import Bytes
 import Bytes.Decode
 import DateFormat
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
-import Dict exposing (Dict)
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (custom)
@@ -483,7 +482,7 @@ trimCommitHash commit =
     String.left 7 commit
 
 
-{-| parseGitRef : parses the ref from git for easy consumption
+{-| getNameFromRef : parses the name from git for easy consumption
 -}
 getNameFromRef : String -> String
 getNameFromRef s =
