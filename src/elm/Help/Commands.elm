@@ -40,6 +40,7 @@ import Vela
 type alias Model msg =
     { user : Arg
     , sourceRepos : Arg
+    , orgRepos : Arg
     , builds : Arg
     , deployments : Arg
     , build : Arg
@@ -86,8 +87,15 @@ commands page =
         Pages.SourceRepositories ->
             [ listFavorites ]
 
+        Pages.OrgRepositories _ ->
+            [ listFavorites ]
+
         Pages.Hooks org repo _ _ ->
             [ validate, listHooks org repo, viewHook org repo ]
+
+        Pages.OrgBuilds _ _ _ _ ->
+            -- TODO: any way to do this in the cli?
+            []
 
         Pages.RepositoryBuilds org repo _ _ _ ->
             [ listBuilds org repo ]
@@ -773,6 +781,12 @@ resourceLoaded args =
         Pages.SourceRepositories ->
             args.sourceRepos.success
 
+        Pages.OrgRepositories _ ->
+            args.orgRepos.success
+
+        Pages.OrgBuilds _ _ _ _ ->
+            args.builds.success
+
         Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.success
 
@@ -856,6 +870,12 @@ resourceLoading args =
 
         Pages.SourceRepositories ->
             args.sourceRepos.loading
+
+        Pages.OrgRepositories _ ->
+            args.sourceRepos.loading
+
+        Pages.OrgBuilds _ _ _ _ ->
+            args.builds.loading
 
         Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.loading
