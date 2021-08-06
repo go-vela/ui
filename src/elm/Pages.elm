@@ -15,6 +15,7 @@ import Vela exposing (Build, BuildNumber, Engine, Event, FocusFragment, Name, Or
 type Page
     = Overview
     | SourceRepositories
+    | OrgRepositories Org
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | RepoSecrets Engine Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -29,6 +30,7 @@ type Page
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
+    | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
@@ -55,6 +57,9 @@ toRoute page =
 
         SourceRepositories ->
             Routes.SourceRepositories
+
+        OrgRepositories org ->
+            Routes.OrgRepositories org
 
         Hooks org repo maybePage maybePerPage ->
             Routes.Hooks org repo maybePage maybePerPage
@@ -97,6 +102,9 @@ toRoute page =
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
+
+        OrgBuilds org maybePage maybePerPage maybeEvent ->
+            Routes.OrgBuilds org maybePage maybePerPage maybeEvent
 
         RepositoryDeployments org repo maybePage maybePerPage ->
             Routes.RepositoryDeployments org repo maybePage maybePerPage
@@ -141,6 +149,9 @@ strip page =
         SourceRepositories ->
             SourceRepositories
 
+        OrgRepositories org ->
+            OrgRepositories org
+
         Hooks org repo _ _ ->
             Hooks org repo Nothing Nothing
 
@@ -179,6 +190,9 @@ strip page =
 
         SharedSecret engine org team name ->
             SharedSecret engine org team name
+
+        OrgBuilds org _ _ _ ->
+            OrgBuilds org Nothing Nothing Nothing
 
         RepositoryBuilds org repo _ _ _ ->
             RepositoryBuilds org repo Nothing Nothing Nothing

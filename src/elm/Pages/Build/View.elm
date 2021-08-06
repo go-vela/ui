@@ -161,6 +161,25 @@ wrapWithBuildPreview model org repo buildNumber content =
 viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html msg
 viewPreview now zone org repo build =
     let
+        repoName =
+            case repo of
+                "" ->
+                    List.head (List.drop 4 (String.split "/" build.link))
+
+                _ ->
+                    Nothing
+
+        repoLink =
+            case repoName of
+                Just name ->
+                    span []
+                        [ a [ Routes.href <| Routes.RepositoryBuilds org name Nothing Nothing Nothing ] [ text name ]
+                        , text ": "
+                        ]
+
+                _ ->
+                    text ""
+
         buildNumber =
             String.fromInt build.number
 
@@ -170,7 +189,8 @@ viewPreview now zone org repo build =
         commit =
             case build.event of
                 "pull_request" ->
-                    [ text <| String.replace "_" " " build.event
+                    [ repoLink
+                    , text <| String.replace "_" " " build.event
                     , text " "
                     , a [ href build.source ]
                         [ text "#"
@@ -182,7 +202,8 @@ viewPreview now zone org repo build =
                     ]
 
                 "tag" ->
-                    [ text <| String.replace "_" " " build.event
+                    [ repoLink
+                    , text <| String.replace "_" " " build.event
                     , text " "
                     , a [ href build.source ] [ text (getNameFromRef build.ref) ]
                     , text " ("
@@ -191,7 +212,8 @@ viewPreview now zone org repo build =
                     ]
 
                 _ ->
-                    [ text <| String.replace "_" " " build.event
+                    [ repoLink
+                    , text <| String.replace "_" " " build.event
                     , text " ("
                     , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
                     , text <| ")"
@@ -209,7 +231,7 @@ viewPreview now zone org repo build =
         id =
             [ a
                 [ Util.testAttribute "build-number"
-                , Routes.href <| Routes.Build org repo buildNumber Nothing
+                , href build.link
                 ]
                 [ text <| "#" ++ buildNumber ]
             ]
