@@ -63,7 +63,7 @@ import Routes exposing (Route(..))
 import String
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone)
-import Util
+import Util exposing (getNameFromRef)
 import Vela
     exposing
         ( Build
@@ -221,6 +221,25 @@ viewPreview msgs openMenu showMenu now zone org repo build =
             else
                 div [] []
 
+        repoName =
+            case repo of
+                "" ->
+                    List.head (List.drop 4 (String.split "/" build.link))
+
+                _ ->
+                    Nothing
+
+        repoLink =
+            case repoName of
+                Just name ->
+                    span []
+                        [ a [ Routes.href <| Routes.RepositoryBuilds org name Nothing Nothing Nothing ] [ text name ]
+                        , text ": "
+                        ]
+
+                _ ->
+                    text ""
+
         buildNumber =
             String.fromInt build.number
 
@@ -228,11 +247,37 @@ viewPreview msgs openMenu showMenu now zone org repo build =
             [ buildStatusToIcon build.status ]
 
         commit =
-            [ text <| String.replace "_" " " build.event
-            , text " ("
-            , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
-            , text <| ")"
-            ]
+            case build.event of
+                "pull_request" ->
+                    [ repoLink
+                    , text <| String.replace "_" " " build.event
+                    , text " "
+                    , a [ href build.source ]
+                        [ text "#"
+                        , text (getNameFromRef build.ref)
+                        ]
+                    , text " ("
+                    , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                    , text <| ")"
+                    ]
+
+                "tag" ->
+                    [ repoLink
+                    , text <| String.replace "_" " " build.event
+                    , text " "
+                    , a [ href build.source ] [ text (getNameFromRef build.ref) ]
+                    , text " ("
+                    , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                    , text <| ")"
+                    ]
+
+                _ ->
+                    [ repoLink
+                    , text <| String.replace "_" " " build.event
+                    , text " ("
+                    , a [ href build.source ] [ text <| Util.trimCommitHash build.commit ]
+                    , text <| ")"
+                    ]
 
         branch =
             [ a [ href <| Util.buildBranchUrl build.clone build.branch ] [ text build.branch ] ]
@@ -246,7 +291,7 @@ viewPreview msgs openMenu showMenu now zone org repo build =
         id =
             [ a
                 [ Util.testAttribute "build-number"
-                , Routes.href <| Routes.Build org repo buildNumber Nothing
+                , href build.link
                 ]
                 [ text <| "#" ++ buildNumber ]
             ]
