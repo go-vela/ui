@@ -75,7 +75,7 @@ viewBuilds buildsModel msgs openMenus now zone org maybeEvent =
                 none
 
             else
-                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview msgs openMenus True now zone org "") builds
+                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview msgs openMenus False now zone org "") builds
 
         RemoteData.Loading ->
             largeLoader
