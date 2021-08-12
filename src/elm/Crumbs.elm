@@ -184,7 +184,7 @@ toPath page =
                 Pages.AddDeployment org repo ->
                     let
                         orgPage =
-                            ( org, Nothing )
+                            ( org, Just <| Pages.OrgRepositories org)
 
                         currentRepo =
                             ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
@@ -194,7 +194,7 @@ toPath page =
                 Pages.PromoteDeployment org repo _ ->
                     let
                         orgPage =
-                            ( org, Nothing )
+                            ( org, Just <| Pages.OrgRepositories org)
 
                         currentRepo =
                             ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
@@ -273,7 +273,7 @@ toPath page =
                 Pages.RepositoryDeployments org repo maybePage maybePerPage ->
                     let
                         organizationPage =
-                            ( org, Nothing )
+                            ( org, Just <| Pages.OrgRepositories org)
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryDeployments org repo maybePage maybePerPage ) ]
 
