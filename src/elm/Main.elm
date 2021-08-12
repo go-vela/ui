@@ -2282,7 +2282,7 @@ viewContent model =
             )
 
         Pages.OrgRepositories org ->
-            ( "Org Repositories"
+            ( org
             , lazy2 Pages.Organization.viewOrgRepos org model.repo.orgRepos
             )
 
