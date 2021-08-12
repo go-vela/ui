@@ -131,7 +131,7 @@ toPath page =
                     , currentRepo
                     ]
 
-                Pages.OrgSecrets _ org maybePage _ ->
+                Pages.OrgSecrets _ org _ _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
@@ -256,7 +256,7 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, teamPage, sharedSecrets, nameCrumb ]
 
-                Pages.OrgBuilds org maybePage maybePerPage maybeEvent ->
+                Pages.OrgBuilds org _ _ _ ->
                     let
                         organizationPage =
                             ( org, Nothing )
