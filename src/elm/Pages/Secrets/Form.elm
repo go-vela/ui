@@ -22,7 +22,6 @@ import Html
         , code
         , div
         , em
-        , h4
         , input
         , label
         , section
