@@ -15,7 +15,7 @@ import Vela exposing (Build, BuildNumber, Engine, Event, FocusFragment, Name, Or
 type Page
     = Overview
     | SourceRepositories
-    | OrgRepositories Org
+    | OrgRepositories Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | RepoSecrets Engine Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -58,8 +58,8 @@ toRoute page =
         SourceRepositories ->
             Routes.SourceRepositories
 
-        OrgRepositories org ->
-            Routes.OrgRepositories org
+        OrgRepositories org maybePage maybePerPage ->
+            Routes.OrgRepositories org maybePage maybePerPage
 
         Hooks org repo maybePage maybePerPage ->
             Routes.Hooks org repo maybePage maybePerPage
@@ -149,8 +149,8 @@ strip page =
         SourceRepositories ->
             SourceRepositories
 
-        OrgRepositories org ->
-            OrgRepositories org
+        OrgRepositories org _ _ ->
+            OrgRepositories org Nothing Nothing
 
         Hooks org repo _ _ ->
             Hooks org repo Nothing Nothing

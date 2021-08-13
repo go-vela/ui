@@ -104,7 +104,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
                 ]
                 [ text "Source Repositories" ]
 
-        Pages.OrgRepositories _ ->
+        Pages.OrgRepositories _ _ _ ->
             a
                 [ class "button"
                 , class "-outline"
@@ -195,7 +195,7 @@ viewUtil model =
             Pages.OrgSecrets _ org _ _ ->
                 viewOrgTabs rm org model.page
 
-            Pages.OrgRepositories org ->
+            Pages.OrgRepositories org _ _ ->
                 viewOrgTabs rm org model.page
 
             Pages.RepositoryBuilds org repo _ _ _ ->
@@ -290,7 +290,7 @@ viewOrgTabs : RepoModel -> Org -> Page -> Html msg
 viewOrgTabs rm org currentPage =
     let
         tabs =
-            [ Tab "Repositories" currentPage (Pages.OrgRepositories org) False
+            [ Tab "Repositories" currentPage (Pages.OrgRepositories org Nothing Nothing) False
             , Tab "Builds" currentPage (Pages.OrgBuilds org rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
             , Tab "Secrets" currentPage (Pages.OrgSecrets "native" org Nothing Nothing) False
             ]
