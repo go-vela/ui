@@ -40,6 +40,7 @@ module Vela exposing
     , Logs
     , Name
     , Org
+    , OrgReposModel
     , PipelineConfig
     , PipelineModel
     , PipelineTemplates
@@ -145,6 +146,9 @@ module Vela exposing
     , updateHooksPager
     , updateHooksPerPage
     , updateOrgRepo
+    , updateOrgReposPage
+    , updateOrgReposPager
+    , updateOrgReposPerPage
     , updateOrgRepositories
     , updateRepo
     , updateRepoCounter
@@ -348,13 +352,28 @@ type alias RepoModel =
     { org : Org
     , name : Repo
     , repo : WebData Repository
-    , orgRepos : WebData (List Repository)
+    , orgRepos : OrgReposModel
     , hooks : HooksModel
     , builds : BuildsModel
     , deployments : DeploymentsModel
     , build : BuildModel
     , initialized : Bool
     }
+
+
+{-| OrgReposModel : model to contain repositories belonging to an org crucial for rendering the repositories tab on the org page
+-}
+type alias OrgReposModel =
+    { orgRepos : WebData (List Repository)
+    , pager : List WebLink
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
+    }
+
+
+defaultOrgReposModel : OrgReposModel
+defaultOrgReposModel =
+    OrgReposModel RemoteData.NotAsked [] Nothing Nothing
 
 
 {-| BuildModel : model to contain build information that is crucial for rendering a pipeline
@@ -390,7 +409,7 @@ defaultBuildModel =
 
 defaultRepoModel : RepoModel
 defaultRepoModel =
-    RepoModel "" "" NotAsked NotAsked defaultHooks defaultBuilds defaultDeployments defaultBuildModel False
+    RepoModel "" "" NotAsked defaultOrgReposModel defaultHooks defaultBuilds defaultDeployments defaultBuildModel False
 
 
 defaultStepsModel : StepsModel
@@ -420,7 +439,11 @@ updateRepo update rm =
 
 updateOrgRepositories : WebData (List Repository) -> RepoModel -> RepoModel
 updateOrgRepositories update rm =
-    { rm | orgRepos = update }
+    let
+        orm =
+            rm.orgRepos
+    in
+    { rm | orgRepos = { orm | orgRepos = update } }
 
 
 updateRepoTimeout : Maybe Int -> RepoModel -> RepoModel
@@ -577,6 +600,33 @@ updateDeploymentsPerPage maybePerPage rm =
             rm.deployments
     in
     { rm | deployments = { dm | maybePerPage = maybePerPage } }
+
+
+updateOrgReposPage : Maybe Pagination.Page -> RepoModel -> RepoModel
+updateOrgReposPage maybePage rm =
+    let
+        orm =
+            rm.orgRepos
+    in
+    { rm | orgRepos = { orm | maybePage = maybePage } }
+
+
+updateOrgReposPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
+updateOrgReposPerPage maybePerPage rm =
+    let
+        orm =
+            rm.orgRepos
+    in
+    { rm | orgRepos = { orm | maybePerPage = maybePerPage } }
+
+
+updateOrgReposPager : List WebLink -> RepoModel -> RepoModel
+updateOrgReposPager update rm =
+    let
+        orm =
+            rm.orgRepos
+    in
+    { rm | orgRepos = { orm | pager = update } }
 
 
 updateBuildsPage : Maybe Pagination.Page -> RepoModel -> RepoModel

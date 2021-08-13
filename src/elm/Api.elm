@@ -463,11 +463,11 @@ getRepo model org repo =
         |> withAuth model.session
 
 
-{-| getOrgRepositories : fetches single repo by org and repo name
+{-| getOrgRepositories : fetches repos by org
 -}
-getOrgRepositories : PartialModel a -> Org -> Request (List Repository)
-getOrgRepositories model org =
-    get model.velaAPI (Endpoint.OrgRepositories org) decodeRepositories
+getOrgRepositories : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Request (List Repository)
+getOrgRepositories model maybePage maybePerPage org =
+    get model.velaAPI (Endpoint.OrgRepositories maybePage maybePerPage org) decodeRepositories
         |> withAuth model.session
 
 
