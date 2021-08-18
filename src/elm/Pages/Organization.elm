@@ -7,7 +7,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Organization exposing (..)
 
 import Errors exposing (viewResourceError)
-import Favorites exposing (ToggleFavorite, starToggle)
 import Html
     exposing
         ( Html
@@ -25,11 +24,11 @@ import Html
 import Html.Attributes exposing (class, href)
 import Pages.Build.Model exposing (Msgs)
 import Pages.Build.View exposing (viewPreview)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Routes
 import Time exposing (Posix, Zone)
 import Util exposing (largeLoader)
-import Vela exposing (BuildsModel, Event, Favorites, Org, Repo, Repository)
+import Vela exposing (BuildsModel, Event, Org, OrgReposModel, Repository)
 
 
 {-| view : takes org and renders build previews
@@ -87,11 +86,11 @@ viewBuilds buildsModel msgs openMenus now zone org maybeEvent =
             viewResourceError { resourceLabel = "builds for this org", testLabel = "builds" }
 
 
-{-| viewOrgRepos : takes favorites, user search input and favorite action and renders favorites
+{-| viewOrgRepos : renders repositories for the provided org
 -}
-viewOrgRepos : Org -> WebData (List Repository) -> Html msg
+viewOrgRepos : Org -> OrgReposModel -> Html msg
 viewOrgRepos org repos =
-    case repos of
+    case repos.orgRepos of
         Success r ->
             if List.length r == 0 then
                 div []
@@ -109,21 +108,17 @@ viewOrgRepos org repos =
             else
                 div [] (List.map (viewOrgRepo org) r)
 
-        _ ->
-            div []
-                [ h1 [] [ text "No Repositories are enabled for this Organization!" ]
-                , p [] [ text "Enable repositories" ]
-                , a
-                    [ class "button"
-                    , class "-outline"
-                    , Util.testAttribute "source-repos"
-                    , Routes.href <| Routes.SourceRepositories
-                    ]
-                    [ text "Source Repositories" ]
-                ]
+        Loading ->
+            largeLoader
+
+        NotAsked ->
+            largeLoader
+
+        Failure _ ->
+            viewResourceError { resourceLabel = "repos for this org", testLabel = "repos" }
 
 
-{-| viewOrgRepo : takes favorites and favorite action and renders single favorite
+{-| viewOrgRepo : renders row of repos with action buttons
 -}
 viewOrgRepo : Org -> Repository -> Html msg
 viewOrgRepo org repo =

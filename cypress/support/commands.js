@@ -98,6 +98,7 @@ Cypress.Commands.add('stubBuilds', () => {
   cy.server();
   cy.fixture('builds_10a.json').as('buildsPage1');
   cy.fixture('builds_10b.json').as('buildsPage2');
+
   cy.route({
     method: 'GET',
     url: '*api/v1/repos/*/*/builds*',
@@ -113,6 +114,51 @@ Cypress.Commands.add('stubBuilds', () => {
       link: `<http://localhost:8888/api/v1/repos/github/octocat/builds?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/repos/github/octocat/builds?page=1&per_page=10>; rel="prev",`,
     },
     response: '@buildsPage2',
+  });
+});
+
+Cypress.Commands.add('stubOrgBuilds', () => {
+  cy.server();
+  cy.fixture('builds_10a.json').as('buildsPage1');
+  cy.fixture('builds_10b.json').as('buildsPage2');
+
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/vela/builds*',
+    headers: {
+      link: `<http://localhost:8888/api/v1/repos/vela/builds?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/repos/vela/builds?page=2&per_page=10>; rel="last",`,
+    },
+    response: '@buildsPage1',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/vela/builds?page=2*',
+    headers: {
+      link: `<http://localhost:8888/api/v1/repos/vela/builds?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/repos/vela/builds?page=1&per_page=10>; rel="prev",`,
+    },
+    response: '@buildsPage2',
+  });
+});
+
+Cypress.Commands.add('stubRepos', () => {
+  cy.server();
+  cy.fixture('repositories_10a.json').as('reposPage1');
+  cy.fixture('repositories_10b.json').as('reposPage2');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/vela*',
+    headers: {
+      link: `<http://localhost:8888/api/v1/repos/vela?page=2&per_page=10>; rel="next", <http://localhost:8888/api/v1/repos/vela?page=2&per_page=10>; rel="last",`,
+    },
+    response: '@reposPage1',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/vela?page=2*',
+    headers: {
+      link: `<http://localhost:8888/api/v1/repos/vela?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/repos/vela?page=1&per_page=10>; rel="prev",`,
+    },
+    response: '@reposPage2',
   });
 });
 

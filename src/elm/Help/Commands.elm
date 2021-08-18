@@ -85,16 +85,15 @@ commands page =
             [ listFavorites ]
 
         Pages.SourceRepositories ->
-            [ listFavorites ]
+            []
 
-        Pages.OrgRepositories _ ->
-            [ listFavorites ]
+        Pages.OrgRepositories _ _ _ ->
+            []
 
         Pages.Hooks org repo _ _ ->
             [ validate, listHooks org repo, viewHook org repo ]
 
         Pages.OrgBuilds _ _ _ _ ->
-            -- TODO: any way to do this in the cli?
             []
 
         Pages.RepositoryBuilds org repo _ _ _ ->
@@ -781,7 +780,7 @@ resourceLoaded args =
         Pages.SourceRepositories ->
             args.sourceRepos.success
 
-        Pages.OrgRepositories _ ->
+        Pages.OrgRepositories _ _ _ ->
             args.orgRepos.success
 
         Pages.OrgBuilds _ _ _ _ ->
@@ -871,7 +870,7 @@ resourceLoading args =
         Pages.SourceRepositories ->
             args.sourceRepos.loading
 
-        Pages.OrgRepositories _ ->
+        Pages.OrgRepositories _ _ _ ->
             args.sourceRepos.loading
 
         Pages.OrgBuilds _ _ _ _ ->

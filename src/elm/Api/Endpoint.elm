@@ -44,7 +44,7 @@ type Endpoint
     | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Repository Org Repo
-    | OrgRepositories Org
+    | OrgRepositories (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org
     | RepositoryChown Org Repo
     | RepositoryRepair Org Repo
     | UserSourceRepositories
@@ -87,8 +87,8 @@ toUrl api endpoint =
         Repository org repo ->
             url api [ "repos", org, repo ] []
 
-        OrgRepositories org ->
-            url api [ "repos", org ] []
+        OrgRepositories maybePage maybePerPage org ->
+            url api [ "repos", org ] <| Pagination.toQueryParams maybePage maybePerPage
 
         RepositoryChown org repo ->
             url api [ "repos", org, repo, "chown" ] []
