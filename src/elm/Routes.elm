@@ -24,7 +24,7 @@ import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Nam
 type Route
     = Overview
     | SourceRepositories
-    | OrgRepositories Org
+    | OrgRepositories Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | RepoSecrets Engine Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -61,7 +61,7 @@ routes =
     oneOf
         [ map Overview top
         , map SourceRepositories (s "account" </> s "source-repos")
-        , map OrgRepositories string
+        , map OrgRepositories (string <?> Query.int "page" <?> Query.int "per_page")
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , map Settings (s "account" </> s "settings")
@@ -121,8 +121,8 @@ routeToUrl route =
         SourceRepositories ->
             "/account/source-repos"
 
-        OrgRepositories org ->
-            "/" ++ org
+        OrgRepositories org maybePage maybePerPage ->
+            "/" ++ org ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
