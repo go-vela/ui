@@ -1,4 +1,4 @@
-module Pages.Build.History exposing (view, viewDeploymentBuilds)
+module Pages.Build.History exposing (view)
 
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
 import Html.Attributes exposing (attribute, class)
@@ -8,7 +8,7 @@ import Routes
 import SvgBuilder exposing (recentBuildStatusToIcon)
 import Time exposing (Posix, Zone)
 import Util
-import Vela exposing (Build, Builds, Org, Repo, RepoModel)
+import Vela exposing (Build, Org, Repo, RepoModel)
 
 
 
@@ -28,6 +28,20 @@ view now timezone page limit rm =
 
         builds =
             rm.builds.builds
+
+        buildNumber =
+            case page of
+                Pages.Build _ _ b _ ->
+                    Maybe.withDefault -1 <| String.toInt b
+
+                Pages.BuildServices _ _ b _ ->
+                    Maybe.withDefault -1 <| String.toInt b
+
+                Pages.BuildPipeline _ _ b _ _ _ ->
+                    Maybe.withDefault -1 <| String.toInt b
+
+                _ ->
+                    -1
     in
     case builds of
         RemoteData.Success blds ->
@@ -35,7 +49,7 @@ view now timezone page limit rm =
                 div [ class "build-history" ]
                     [ p [ class "build-history-title" ] [ text "Recent Builds" ]
                     , ul [ Util.testAttribute "build-history", class "previews" ] <|
-                        List.indexedMap (viewRecentBuild now timezone page org repo) <|
+                        List.indexedMap (viewRecentBuild now timezone page org repo buildNumber) <|
                             List.take limit blds
                     ]
 
@@ -52,36 +66,13 @@ view now timezone page limit rm =
             text ""
 
 
-viewDeploymentBuilds : Posix -> Zone -> Org -> Repo -> Builds -> Html msg
-viewDeploymentBuilds now timezone org repo builds =
-    let
-        page : Page
-        page =
-            NotFound
-    in
-    if List.length builds > 0 then
-        div [ class "build-history" ]
-            [ p [ class "build-history-title" ] [ text "Related Builds" ]
-            , ul [ Util.testAttribute "build-history", class "previews" ] <|
-                List.indexedMap (viewRecentBuild now timezone page org repo) <|
-                    builds
-            ]
-
-    else
-        text ""
-
-
 {-| viewRecentBuild : takes recent build and renders status and link to build as a small icon widget
 
     focusing or hovering the recent build icon will display a build info tooltip
 
 -}
-viewRecentBuild : Posix -> Zone -> Page -> Org -> Repo -> Int -> Build -> Html msg
-viewRecentBuild now timezone page org repo idx build =
-    let
-        buildNumber =
-            build.number
-    in
+viewRecentBuild : Posix -> Zone -> Page -> Org -> Repo -> Int -> Int -> Build -> Html msg
+viewRecentBuild now timezone page org repo buildNumber idx build =
     li [ class "recent-build" ]
         [ recentBuildLink page org repo buildNumber build idx
         , recentBuildTooltip now timezone build

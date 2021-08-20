@@ -10,8 +10,6 @@ import Errors exposing (viewResourceError)
 import FeatherIcons
 import Html exposing (Html, a, div, h2, p, text)
 import Html.Attributes exposing (class)
-import Pages
-import Pages.Build.History exposing (viewDeploymentBuilds)
 import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
     exposing
@@ -66,8 +64,8 @@ addForm deploymentModel =
 
 {-| viewPreview : renders single deployment item preview
 -}
-viewPreview : Posix -> Zone -> Org -> Repo -> Deployment -> Html msg
-viewPreview now zone org repo deployment =
+viewPreview : Org -> Repo -> Deployment -> Html msg
+viewPreview org repo deployment =
     let
         deploymentId =
             String.fromInt deployment.id
@@ -94,9 +92,6 @@ viewPreview now zone org repo deployment =
                 , p [] [ text <| " Description: " ++ deployment.description ]
                 ]
 
-        builds =
-            viewDeploymentBuilds now zone org repo <| deployment.builds
-
         status =
             div [ class "deployment-icon", Util.testAttribute "build-status" ]
                 [ svg
@@ -116,7 +111,6 @@ viewPreview now zone org repo deployment =
             [ info
 
             --, deploymentDetails
-            , builds
             , promoteDeploymentLink
             ]
     in
@@ -162,7 +156,7 @@ viewDeployments deploymentsModel now zone org repo =
             else
                 let
                     deploymentList =
-                        div [ class "deployments", Util.testAttribute "deployments" ] <| List.map (viewPreview now zone org repo) deployments
+                        div [ class "deployments", Util.testAttribute "deployments" ] <| List.map (viewPreview org repo) deployments
                 in
                 div []
                     [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
