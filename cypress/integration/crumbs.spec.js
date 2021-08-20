@@ -73,7 +73,6 @@ context('Crumbs', () => {
     });
     it('should show appropriate secrets crumbs', () => {
       cy.get('[data-test=crumb-github]').should('exist');
-      cy.get('[data-test=crumb-org-secrets]').should('exist');
     });
   });
   context('visit repo secret', () => {

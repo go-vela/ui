@@ -44,10 +44,12 @@ type Endpoint
     | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Repository Org Repo
+    | OrgRepositories (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org
     | RepositoryChown Org Repo
     | RepositoryRepair Org Repo
     | UserSourceRepositories
     | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
+    | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
     | Build Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
@@ -85,6 +87,9 @@ toUrl api endpoint =
         Repository org repo ->
             url api [ "repos", org, repo ] []
 
+        OrgRepositories maybePage maybePerPage org ->
+            url api [ "repos", org ] <| Pagination.toQueryParams maybePage maybePerPage
+
         RepositoryChown org repo ->
             url api [ "repos", org, repo, "chown" ] []
 
@@ -99,6 +104,9 @@ toUrl api endpoint =
 
         Hooks maybePage maybePerPage org repo ->
             url api [ "hooks", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
+
+        OrgBuilds maybePage maybePerPage maybeEvent org ->
+            url api [ "repos", org, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
 
         Builds maybePage maybePerPage maybeEvent org repo ->
             url api [ "repos", org, repo, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]

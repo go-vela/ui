@@ -40,6 +40,7 @@ module Vela exposing
     , Logs
     , Name
     , Org
+    , OrgReposModel
     , PipelineConfig
     , PipelineModel
     , PipelineTemplates
@@ -88,6 +89,7 @@ module Vela exposing
     , decodeLog
     , decodePipelineConfig
     , decodePipelineTemplates
+    , decodeRepositories
     , decodeRepository
     , decodeSecret
     , decodeSecrets
@@ -144,6 +146,10 @@ module Vela exposing
     , updateHooksPager
     , updateHooksPerPage
     , updateOrgRepo
+    , updateOrgReposPage
+    , updateOrgReposPager
+    , updateOrgReposPerPage
+    , updateOrgRepositories
     , updateRepo
     , updateRepoCounter
     , updateRepoEnabling
@@ -346,12 +352,28 @@ type alias RepoModel =
     { org : Org
     , name : Repo
     , repo : WebData Repository
+    , orgRepos : OrgReposModel
     , hooks : HooksModel
     , builds : BuildsModel
     , deployments : DeploymentsModel
     , build : BuildModel
     , initialized : Bool
     }
+
+
+{-| OrgReposModel : model to contain repositories belonging to an org crucial for rendering the repositories tab on the org page
+-}
+type alias OrgReposModel =
+    { orgRepos : WebData (List Repository)
+    , pager : List WebLink
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
+    }
+
+
+defaultOrgReposModel : OrgReposModel
+defaultOrgReposModel =
+    OrgReposModel RemoteData.NotAsked [] Nothing Nothing
 
 
 {-| BuildModel : model to contain build information that is crucial for rendering a pipeline
@@ -387,7 +409,7 @@ defaultBuildModel =
 
 defaultRepoModel : RepoModel
 defaultRepoModel =
-    RepoModel "" "" NotAsked defaultHooks defaultBuilds defaultDeployments defaultBuildModel False
+    RepoModel "" "" NotAsked defaultOrgReposModel defaultHooks defaultBuilds defaultDeployments defaultBuildModel False
 
 
 defaultStepsModel : StepsModel
@@ -413,6 +435,15 @@ updateOrgRepo org repo rm =
 updateRepo : WebData Repository -> RepoModel -> RepoModel
 updateRepo update rm =
     { rm | repo = update }
+
+
+updateOrgRepositories : WebData (List Repository) -> RepoModel -> RepoModel
+updateOrgRepositories update rm =
+    let
+        orm =
+            rm.orgRepos
+    in
+    { rm | orgRepos = { orm | orgRepos = update } }
 
 
 updateRepoTimeout : Maybe Int -> RepoModel -> RepoModel
@@ -569,6 +600,33 @@ updateDeploymentsPerPage maybePerPage rm =
             rm.deployments
     in
     { rm | deployments = { dm | maybePerPage = maybePerPage } }
+
+
+updateOrgReposPage : Maybe Pagination.Page -> RepoModel -> RepoModel
+updateOrgReposPage maybePage rm =
+    let
+        orm =
+            rm.orgRepos
+    in
+    { rm | orgRepos = { orm | maybePage = maybePage } }
+
+
+updateOrgReposPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
+updateOrgReposPerPage maybePerPage rm =
+    let
+        orm =
+            rm.orgRepos
+    in
+    { rm | orgRepos = { orm | maybePerPage = maybePerPage } }
+
+
+updateOrgReposPager : List WebLink -> RepoModel -> RepoModel
+updateOrgReposPager update rm =
+    let
+        orm =
+            rm.orgRepos
+    in
+    { rm | orgRepos = { orm | pager = update } }
 
 
 updateBuildsPage : Maybe Pagination.Page -> RepoModel -> RepoModel
@@ -774,6 +832,7 @@ type alias Repository =
     , enabling : Enabling
     , inTimeout : Maybe Int
     , inCounter : Maybe Int
+    , pipeline_type : String
     }
 
 
@@ -788,6 +847,11 @@ type Enabling
     | Enabling
     | Enabled
     | NotAsked_
+
+
+decodeRepositories : Decoder (List Repository)
+decodeRepositories =
+    Decode.list decodeRepository
 
 
 decodeRepository : Decoder Repository
@@ -820,6 +884,7 @@ decodeRepository =
         |> hardcoded Nothing
         -- "inCounter"
         |> hardcoded Nothing
+        |> optional "pipeline_type" string ""
 
 
 {-| enabledDecoder : decodes string field "status" to the union type Enabled
@@ -928,6 +993,7 @@ type alias UpdateRepositoryPayload =
     , visibility : Maybe String
     , timeout : Maybe Int
     , counter : Maybe Int
+    , pipeline_type : Maybe String
     }
 
 
@@ -937,7 +1003,7 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -954,6 +1020,7 @@ encodeUpdateRepository repo =
         , ( "visibility", encodeOptional Encode.string repo.visibility )
         , ( "timeout", encodeOptional Encode.int repo.timeout )
         , ( "counter", encodeOptional Encode.int repo.counter )
+        , ( "pipeline_type", encodeOptional Encode.string repo.pipeline_type )
         ]
 
 
@@ -1013,6 +1080,9 @@ buildUpdateRepoStringPayload field value =
     case field of
         "visibility" ->
             { defaultUpdateRepositoryPayload | visibility = Just value }
+
+        "pipeline_type" ->
+            { defaultUpdateRepositoryPayload | pipeline_type = Just value }
 
         _ ->
             defaultUpdateRepositoryPayload
@@ -1138,6 +1208,7 @@ type alias Build =
     , sender : String
     , author : String
     , branch : String
+    , link : String
     , ref : Ref
     , base_ref : Ref
     , host : String
@@ -1170,6 +1241,7 @@ decodeBuild =
         |> optional "sender" string ""
         |> optional "author" string ""
         |> optional "branch" string ""
+        |> optional "link" string ""
         |> optional "ref" string ""
         |> optional "base_ref" string ""
         |> optional "host" string ""

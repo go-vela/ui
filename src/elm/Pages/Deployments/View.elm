@@ -8,8 +8,8 @@ module Pages.Deployments.View exposing (addDeployment, addForm, promoteDeploymen
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html exposing (Html, a, br, code, div, em, h1, h2, li, ol, p, strong, text)
-import Html.Attributes exposing (class, href)
+import Html exposing (Html, a, div, h2, p, text)
+import Html.Attributes exposing (class)
 import Pages
 import Pages.Build.History exposing (viewDeploymentBuilds)
 import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
@@ -24,8 +24,8 @@ import Routes
 import Svg exposing (svg)
 import Svg.Attributes exposing (d, height, strokeWidth, viewBox, width)
 import Time exposing (Posix, Zone)
-import Util exposing (ariaHidden, largeLoader, testAttribute)
-import Vela exposing (BuildsModel, Deployment, DeploymentsModel, Event, Org, Repo)
+import Util exposing (ariaHidden, largeLoader)
+import Vela exposing (Deployment, DeploymentsModel, Org, Repo)
 
 
 

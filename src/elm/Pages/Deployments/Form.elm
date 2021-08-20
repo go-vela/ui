@@ -34,7 +34,7 @@ import Html.Events exposing (onClick, onInput)
 import Pages.Deployments.Model exposing (DeploymentForm, Model, Msg(..))
 import RemoteData exposing (WebData)
 import Util exposing (testAttribute)
-import Vela exposing (KeyValuePair, Repo, Repository)
+import Vela exposing (KeyValuePair, Repository)
 
 
 {-| viewAddedParameters : renders added parameters

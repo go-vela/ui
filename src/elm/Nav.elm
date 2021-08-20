@@ -104,6 +104,15 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
                 ]
                 [ text "Source Repositories" ]
 
+        Pages.OrgRepositories _ _ _ ->
+            a
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "source-repos"
+                , Routes.href <| Routes.SourceRepositories
+                ]
+                [ text "Source Repositories" ]
+
         Pages.SourceRepositories ->
             button
                 [ classList
@@ -180,6 +189,15 @@ viewUtil model =
     in
     div [ class "util" ]
         [ case model.page of
+            Pages.OrgBuilds org _ _ _ ->
+                viewOrgTabs rm org model.page
+
+            Pages.OrgSecrets _ org _ _ ->
+                viewOrgTabs rm org model.page
+
+            Pages.OrgRepositories org _ _ ->
+                viewOrgTabs rm org model.page
+
             Pages.RepositoryBuilds org repo _ _ _ ->
                 viewRepoTabs rm org repo model.page
 
@@ -262,6 +280,22 @@ viewingTab p1 p2 =
 
     else
         class ""
+
+
+
+-- ORG
+
+
+viewOrgTabs : RepoModel -> Org -> Page -> Html msg
+viewOrgTabs rm org currentPage =
+    let
+        tabs =
+            [ Tab "Repositories" currentPage (Pages.OrgRepositories org Nothing Nothing) False
+            , Tab "Builds" currentPage (Pages.OrgBuilds org rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
+            , Tab "Secrets" currentPage (Pages.OrgSecrets "native" org Nothing Nothing) False
+            ]
+    in
+    viewTabs tabs "jump-bar-repo"
 
 
 

@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pager exposing (defaultLabels, view)
+module Pager exposing (defaultLabels, prevNextLabels, view)
 
 import Api.Pagination as Pagination
 import FeatherIcons
@@ -25,6 +25,13 @@ defaultLabels : Labels
 defaultLabels =
     { previousLabel = "newer"
     , nextLabel = "older"
+    }
+
+
+prevNextLabels : Labels
+prevNextLabels =
+    { previousLabel = "prev"
+    , nextLabel = "next"
     }
 
 

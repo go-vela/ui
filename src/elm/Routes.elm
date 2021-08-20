@@ -24,6 +24,7 @@ import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Nam
 type Route
     = Overview
     | SourceRepositories
+    | OrgRepositories Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgSecrets Engine Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | RepoSecrets Engine Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -39,6 +40,7 @@ type Route
     | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | AddDeploymentRoute Org Repo
     | PromoteDeployment Org Repo BuildNumber
+    | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
@@ -59,6 +61,7 @@ routes =
     oneOf
         [ map Overview top
         , map SourceRepositories (s "account" </> s "source-repos")
+        , map OrgRepositories (string <?> Query.int "page" <?> Query.int "per_page")
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , map Settings (s "account" </> s "settings")
@@ -76,6 +79,7 @@ routes =
         , map RepoSettings (string </> string </> s "settings")
         , map AddDeploymentRoute (string </> string </> s "add-deployment")
         , map PromoteDeployment (string </> string </> s "deployment" </> string)
+        , map OrgBuilds (string </> s "builds" <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
         , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
@@ -117,6 +121,9 @@ routeToUrl route =
         SourceRepositories ->
             "/account/source-repos"
 
+        OrgRepositories org maybePage maybePerPage ->
+            "/" ++ org ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
+
         RepoSettings org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/settings"
 
@@ -146,6 +153,9 @@ routeToUrl route =
 
         SharedSecret engine org team name ->
             "/-/secrets/" ++ engine ++ "/shared/" ++ org ++ "/" ++ team ++ "/" ++ name
+
+        OrgBuilds org maybePage maybePerPage maybeEvent ->
+            "/" ++ org ++ "/builds" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
