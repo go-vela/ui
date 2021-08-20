@@ -622,7 +622,7 @@ update msg model =
                             model.secretsModel
 
                         loadingSecrets =
-                            { currentSecrets | orgSecrets = Loading }
+                            { currentSecrets | orgSecrets = Loading, sharedSecrets = Loading }
                     in
                     ( { model | secretsModel = loadingSecrets }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgSecrets engine org (Just pageNumber) maybePerPage
@@ -2051,6 +2051,7 @@ refreshPage model =
         Pages.OrgSecrets engine org maybePage maybePerPage ->
             Cmd.batch
                 [ getOrgSecrets model maybePage maybePerPage engine org
+                , getSharedSecrets model maybePage maybePerPage engine org "*"
                 ]
 
         Pages.RepoSecrets engine org repo maybePage maybePerPage ->
