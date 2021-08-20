@@ -804,6 +804,7 @@ type alias Deployment =
     , target : String
     , description : String
     , payload : Maybe (List KeyValuePair)
+    , builds : Builds
     }
 
 
@@ -1831,6 +1832,7 @@ decodeDeployment =
         |> optional "target" string ""
         |> optional "description" string ""
         |> optional "payload" decodeDeploymentParameters Nothing
+        |> optional "builds" decodeBuilds []
 
 
 decodeDeployments : Decoder (List Deployment)
