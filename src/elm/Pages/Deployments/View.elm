@@ -95,7 +95,7 @@ viewPreview org repo deployment =
         status =
             div [ class "deployment-icon", Util.testAttribute "build-status" ]
                 [ svg
-                    [ class "build-icon -success"
+                    [ Svg.Attributes.class "build-icon -success"
                     , strokeWidth "2"
                     , viewBox "0 0 44 44"
                     , width "44"
