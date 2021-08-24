@@ -8,7 +8,7 @@ module Pages.Deployments.View exposing (addDeployment, addForm, promoteDeploymen
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html exposing (Html, a, div, h2, p, strong, text)
+import Html exposing (Html, a, div, h2, p, span, strong, text)
 import Html.Attributes exposing (class)
 import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
@@ -77,36 +77,29 @@ viewPreview org repo deployment =
         --         , p [] [ text (" Ref: " ++ deployment.ref) ]
         --         , p [] [ text <| " Description: " ++ deployment.description ]
         --         ]
-
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", class "-success" ]
                 [ buildStatusToIcon Vela.Success ]
             , div [ class "info" ]
                 [ div [ class "row -left" ]
                     [ div [ class "id" ] [ text ("#" ++ deploymentId) ]
-                    , div [ class "commit-msg" ] [ strong [] [ text deployment.description ] ]
+                    , div [ class "commit-msg" ] [ strong [] [ text ("- " ++ deployment.description) ] ]
                     ]
                 , div [ class "row" ]
                     [ div [ class "git-info" ]
-                        [ div [ class "commit" ] [ text deployment.commit ]
+                        [ div [ class "commit" ] [ text <| deployment.target ++ " (" ++ Util.trimCommitHash deployment.commit ++ ")" ]
                         , text "on"
                         , div [ class "branch" ] [ text deployment.ref ]
                         , text "by"
                         , div [ class "sender" ] [ text deployment.user ]
                         ]
-                ]
-                , div []
-                    [ p [] [ text (deployment.target ++ " at (" ++ Util.trimCommitHash deployment.commit ++ ")") ]
-                    , p [] [ text (" Deployed by " ++ deployment.user) ]
+                    , div [ class "deployment-link" ] [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Redeploy" ] ]
                     ]
                 ]
-
-            --, deploymentDetails
-            , div [ class "deployment-link" ] [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Deploy" ] ]
             ]
     in
     div [ class "build-container", Util.testAttribute "deployment" ]
-        [ div [ class "build" ] <|
+        [ div [ class "build", class "-success" ] <|
             markdown
         ]
 
