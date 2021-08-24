@@ -71,12 +71,6 @@ viewPreview org repo deployment =
         deploymentId =
             String.fromInt deployment.id
 
-        -- deploymentDetails =
-        --     div [ class "deployment-details" ]
-        --         [ p [] [ text (" Task: " ++ deployment.task) ]
-        --         , p [] [ text (" Ref: " ++ deployment.ref) ]
-        --         , p [] [ text <| " Description: " ++ deployment.description ]
-        --         ]
         markdown =
             [ div [ class "status", Util.testAttribute "build-status", class "-success" ]
                 [ buildStatusToIcon Vela.Success ]
