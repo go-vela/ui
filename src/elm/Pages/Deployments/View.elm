@@ -71,23 +71,44 @@ viewPreview org repo deployment =
         deploymentId =
             String.fromInt deployment.id
 
+        status =
+            [ buildStatusToIcon Vela.Success ]
+
+        commit =
+            [ text <| deployment.target ++ " (" ++ Util.trimCommitHash deployment.commit ++ ")" ]
+
+        ref =
+            [ text deployment.ref ]
+
+        sender =
+            [ text deployment.user ]
+
+        description =
+            [ text ("- " ++ deployment.description) ]
+
+        id =
+            [ text ("#" ++ deploymentId) ]
+
+        redeploy =
+            [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Redeploy" ] ]
+
         markdown =
-            [ div [ class "status", Util.testAttribute "build-status", class "-success" ]
-                [ buildStatusToIcon Vela.Success ]
+            [ div [ class "status", Util.testAttribute "deployment-status", class "-success" ]
+                status
             , div [ class "info" ]
                 [ div [ class "row -left" ]
-                    [ div [ class "id" ] [ text ("#" ++ deploymentId) ]
-                    , div [ class "commit-msg" ] [ strong [] [ text ("- " ++ deployment.description) ] ]
+                    [ div [ class "id" ] id
+                    , div [ class "commit-msg" ] [ strong [] description ]
                     ]
                 , div [ class "row" ]
                     [ div [ class "git-info" ]
-                        [ div [ class "commit" ] [ text <| deployment.target ++ " (" ++ Util.trimCommitHash deployment.commit ++ ")" ]
+                        [ div [ class "commit" ] commit
                         , text "on"
-                        , div [ class "branch" ] [ text deployment.ref ]
+                        , div [ class "branch" ] ref
                         , text "by"
-                        , div [ class "sender" ] [ text deployment.user ]
+                        , div [ class "sender" ] sender
                         ]
-                    , div [ class "deployment-link" ] [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Redeploy" ] ]
+                    , div [] redeploy
                     ]
                 ]
             ]
@@ -133,7 +154,7 @@ viewDeployments deploymentsModel now zone org repo =
             else
                 let
                     deploymentList =
-                        div [ class "deployments", Util.testAttribute "deployments" ] <| List.map (viewPreview org repo) deployments
+                        div [ Util.testAttribute "deployments" ] <| List.map (viewPreview org repo) deployments
                 in
                 div []
                     [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
