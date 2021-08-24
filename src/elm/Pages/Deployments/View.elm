@@ -21,6 +21,7 @@ import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg exposing (svg)
 import Svg.Attributes exposing (d, height, strokeWidth, viewBox, width)
+import SvgBuilder exposing (buildStatusToIcon)
 import Time exposing (Posix, Zone)
 import Util exposing (ariaHidden, largeLoader)
 import Vela exposing (Deployment, DeploymentsModel, Org, Repo)
@@ -70,8 +71,16 @@ viewPreview org repo deployment =
         deploymentId =
             String.fromInt deployment.id
 
-        info =
-            div [ class "deployment-info" ]
+        -- deploymentDetails =
+        --     div [ class "deployment-details" ]
+        --         [ p [] [ text (" Task: " ++ deployment.task) ]
+        --         , p [] [ text (" Ref: " ++ deployment.ref) ]
+        --         , p [] [ text <| " Description: " ++ deployment.description ]
+        --         ]
+        markdown =
+            [ div [ class "status", Util.testAttribute "build-status", class "-success" ]
+                [ buildStatusToIcon Vela.Success ]
+            , div [ class "info" ]
                 [ div []
                     [ p [] [ text ("#" ++ deploymentId) ]
                     , p [] [ text deployment.task ]
@@ -82,41 +91,12 @@ viewPreview org repo deployment =
                     ]
                 ]
 
-        promoteDeploymentLink =
-            div [ class "deployment-link" ] [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Deploy" ] ]
-
-        deploymentDetails =
-            div [ class "deployment-details" ]
-                [ p [] [ text (" Task: " ++ deployment.task) ]
-                , p [] [ text (" Ref: " ++ deployment.ref) ]
-                , p [] [ text <| " Description: " ++ deployment.description ]
-                ]
-
-        status =
-            div [ class "deployment-icon", Util.testAttribute "build-status" ]
-                [ svg
-                    [ Svg.Attributes.class "build-icon -success"
-                    , strokeWidth "2"
-                    , viewBox "0 0 44 44"
-                    , width "44"
-                    , height "44"
-                    , ariaHidden
-                    ]
-                    [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-                    , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
-                    ]
-                ]
-
-        markdown =
-            [ info
-
             --, deploymentDetails
-            , promoteDeploymentLink
+            , div [ class "deployment-link" ] [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Deploy" ] ]
             ]
     in
-    div [ class "deployment-container", Util.testAttribute "deployment" ]
-        [ status
-        , div [ class "deployment" ] <|
+    div [ class "build-container", Util.testAttribute "deployment" ]
+        [ div [ class "build" ] <|
             markdown
         ]
 
