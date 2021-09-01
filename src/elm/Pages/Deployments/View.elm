@@ -8,7 +8,7 @@ module Pages.Deployments.View exposing (addDeployment, addForm, promoteDeploymen
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html exposing (Html, a, div, h2, p, text)
+import Html exposing (Html, a, div, h2, strong, text)
 import Html.Attributes exposing (class)
 import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
@@ -19,10 +19,10 @@ import Pages.Deployments.Model
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
-import Svg exposing (svg)
-import Svg.Attributes exposing (d, height, strokeWidth, viewBox, width)
+import Svg.Attributes
+import SvgBuilder exposing (buildStatusToIcon)
 import Time exposing (Posix, Zone)
-import Util exposing (ariaHidden, largeLoader)
+import Util exposing (largeLoader)
 import Vela exposing (Deployment, DeploymentsModel, Org, Repo)
 
 
@@ -70,53 +70,50 @@ viewPreview org repo deployment =
         deploymentId =
             String.fromInt deployment.id
 
-        info =
-            div [ class "deployment-info" ]
-                [ div []
-                    [ p [] [ text ("#" ++ deploymentId) ]
-                    , p [] [ text deployment.task ]
-                    ]
-                , div []
-                    [ p [] [ text (deployment.target ++ " at (" ++ Util.trimCommitHash deployment.commit ++ ")") ]
-                    , p [] [ text (" Deployed by " ++ deployment.user) ]
-                    ]
-                ]
-
-        promoteDeploymentLink =
-            div [ class "deployment-link" ] [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Deploy" ] ]
-
-        deploymentDetails =
-            div [ class "deployment-details" ]
-                [ p [] [ text (" Task: " ++ deployment.task) ]
-                , p [] [ text (" Ref: " ++ deployment.ref) ]
-                , p [] [ text <| " Description: " ++ deployment.description ]
-                ]
-
         status =
-            div [ class "deployment-icon", Util.testAttribute "build-status" ]
-                [ svg
-                    [ class "build-icon -success"
-                    , strokeWidth "2"
-                    , viewBox "0 0 44 44"
-                    , width "44"
-                    , height "44"
-                    , ariaHidden
-                    ]
-                    [ Svg.path [ d "M15 20.1l6.923 6.9L42 5" ] []
-                    , Svg.path [ d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
-                    ]
-                ]
+            [ buildStatusToIcon Vela.Success ]
+
+        commit =
+            [ text <| deployment.target ++ " (" ++ Util.trimCommitHash deployment.commit ++ ")" ]
+
+        ref =
+            [ text deployment.ref ]
+
+        sender =
+            [ text deployment.user ]
+
+        description =
+            [ text ("- " ++ deployment.description) ]
+
+        id =
+            [ text ("#" ++ deploymentId) ]
+
+        redeploy =
+            [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Redeploy" ] ]
 
         markdown =
-            [ info
-
-            --, deploymentDetails
-            , promoteDeploymentLink
+            [ div [ class "status", Util.testAttribute "deployment-status", class "-success" ]
+                status
+            , div [ class "info" ]
+                [ div [ class "row -left" ]
+                    [ div [ class "id" ] id
+                    , div [ class "commit-msg" ] [ strong [] description ]
+                    ]
+                , div [ class "row" ]
+                    [ div [ class "git-info" ]
+                        [ div [ class "commit" ] commit
+                        , text "on"
+                        , div [ class "branch" ] ref
+                        , text "by"
+                        , div [ class "sender" ] sender
+                        ]
+                    , div [] redeploy
+                    ]
+                ]
             ]
     in
-    div [ class "deployment-container", Util.testAttribute "deployment" ]
-        [ status
-        , div [ class "deployment" ] <|
+    div [ class "build-container", Util.testAttribute "deployment" ]
+        [ div [ class "build", class "-success" ] <|
             markdown
         ]
 
@@ -156,7 +153,7 @@ viewDeployments deploymentsModel now zone org repo =
             else
                 let
                     deploymentList =
-                        div [ class "deployments", Util.testAttribute "deployments" ] <| List.map (viewPreview org repo) deployments
+                        div [ Util.testAttribute "deployments" ] <| List.map (viewPreview org repo) deployments
                 in
                 div []
                     [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
