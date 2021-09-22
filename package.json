@@ -20,7 +20,7 @@
     "make-dir-cli": "3.0.0",
     "ncp": "2.0.0",
     "parcel": "2.0.0-rc.0",
-    "prettier": "2.3.2",
+    "prettier": "2.4.1",
     "rimraf": "3.0.2",
     "start-server-and-test": "1.13.1",
     "stylelint": "13.13.1",
