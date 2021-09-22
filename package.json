@@ -20,9 +20,9 @@
     "make-dir-cli": "3.0.0",
     "ncp": "2.0.0",
     "parcel": "2.0.0-rc.0",
-    "prettier": "2.3.2",
+    "prettier": "2.4.1",
     "rimraf": "3.0.2",
-    "start-server-and-test": "1.13.1",
+    "start-server-and-test": "1.14.0",
     "stylelint": "13.13.1",
     "stylelint-a11y": "1.2.3",
     "stylelint-color-format": "1.1.0",
@@ -33,7 +33,7 @@
     "stylelint-declaration-strict-value": "1.7.12",
     "stylelint-high-performance-animation": "1.5.2",
     "stylelint-order": "4.1.0",
-    "stylelint-scss": "3.20.1"
+    "stylelint-scss": "3.21.0"
   },
   "scripts": {
     "predev": "npm run clean",
