@@ -1025,7 +1025,11 @@ viewError build =
                 ]
 
         _ ->
-            div [] []
+            div [ class "error hidden-spacer", Util.testAttribute "build-spacer" ]
+                [ span [ class "label" ] [ text "No Errors" ]
+                , span [ class "message" ]
+                    [ text "This div is hidden to occupy space for a consistent experience" ]
+                ]
 
 
 

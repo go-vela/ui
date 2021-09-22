@@ -389,6 +389,10 @@ details.build-toggle {
   flex-direction: column;
 }
 
+.hidden-spacer {
+  visibility: hidden;
+}
+
 .large-loader {
   display: flex;
   flex-direction: row;
