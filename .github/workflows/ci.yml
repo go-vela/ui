@@ -23,7 +23,7 @@ jobs:
   # └─┘┴─┘┴ ┴   └  └─┘┴└─┴ ┴┴ ┴ ┴
   elm-format:
     name: validate elm files
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -61,7 +61,7 @@ jobs:
   # └─┘┴─┘┴ ┴   ┴ └─┘└─┘ ┴
   elm-test:
     name: run elm tests
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -99,7 +99,7 @@ jobs:
   # ┴─┘┴┘└┘ ┴
   lint:
     name: lint
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -135,7 +135,7 @@ jobs:
   # └─┘ ┴ ┴  ┴└─└─┘└─┘└─┘
   integration:
     name: run cypress tests
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     env:
       VELA_API: 'http://localhost:8080'
       TERM: xterm
@@ -174,7 +174,7 @@ jobs:
   # ┴  └─┘└─┘┴─┘┴└─┘┴ ┴
   publish:
     name: build and push to docker
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'go-vela/ui'
     needs: [lint, elm-format, elm-test, integration]
 
