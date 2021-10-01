@@ -503,6 +503,7 @@ getNameFromRef s =
         _ ->
             ""
 
+
 {-| byteUnitFactor : returns the factor for doing filesize calculations.
 This application uses decimal units, or units by the 1000.
 
