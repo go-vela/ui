@@ -122,8 +122,8 @@ header {
   box-shadow: 0 0 2px var(--color-black);
 
   .identity-menu-item a {
-    padding: 0.5rem 1rem;
     display: block;
+    padding: 0.5rem 1rem;
   }
 
   .identity-menu-item:not(:first-child) a {
@@ -192,12 +192,14 @@ nav {
   padding: 0 var(--horizontal-pad) 0 0;
 
   ol {
-    background-color: var(--color-bg-dark);
-    padding: 0;
-    margin: 0;
     display: inline-block;
-    list-style-type: none;
     width: auto;
+    margin: 0;
+    padding: 0;
+
+    list-style-type: none;
+
+    background-color: var(--color-bg-dark);
   }
 
   li {
@@ -217,18 +219,22 @@ nav {
     &:last-child {
       color: var(--color-bg-dark);
       font-weight: bold;
+
       background-color: var(--color-lavender);
     }
 
     &:last-child::before,
     &:last-child::after {
-      content: '';
       position: absolute;
       top: 0;
       bottom: 0;
+
       width: 1rem;
+
       background: var(--color-lavender);
       transform: skew(-15deg);
+
+      content: '';
     }
 
     &:last-child::before {
@@ -314,9 +320,77 @@ nav {
 }
 
 // builds styles for /:org/:repo/:build_number
+
+details.build-toggle {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  z-index: 9999;
+
+  -webkit-flex: 0;
+  flex: 0;
+}
+
+.build-toggle .summary {
+  position: initial;
+}
+
+.build-menu {
+  position: absolute;
+  top: 0.5em;
+  right: 0;
+
+  width: max-content;
+  min-width: 100%;
+  padding: 0;
+
+  font-size: 80%;
+
+  list-style: none;
+  background-color: var(--color-bg-dark);
+
+  border: 1px solid var(--color-bg-light);
+  box-shadow: 0 0 2px var(--color-black);
+
+  .build-menu-item {
+    padding: 0.5rem 1rem;
+  }
+
+  .build-menu-item a {
+    cursor: pointer;
+  }
+
+  @supports (clip-path: inset(50%)) {
+    &::after {
+      position: absolute;
+      top: -5px;
+      right: 0;
+
+      display: block;
+
+      width: 10px;
+      height: 10px;
+
+      background-color: inherit;
+
+      border: inherit;
+      border-radius: 0 0 0 0.25em;
+      transform: rotate(135deg);
+
+      content: '';
+
+      clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
+    }
+  }
+}
+
 .builds {
   display: flex;
   flex-direction: column;
+}
+
+.hidden-spacer {
+  visibility: hidden;
 }
 
 .large-loader {
@@ -371,9 +445,11 @@ nav {
   display: inline-block;
   margin-top: 0.4rem;
   padding: 0.6rem 0.8rem;
-  background-color: var(--color-bg-dark);
+
   color: var(--color-red-light);
   font-size: 16px;
+
+  background-color: var(--color-bg-dark);
 }
 
 .build {
@@ -473,11 +549,11 @@ nav {
 }
 
 .build .error {
+  max-width: 80%;
+
   color: var(--color-red-light);
 
   font-size: 16px;
-
-  max-width: 80%;
 }
 
 .build .error .message {
@@ -513,10 +589,13 @@ nav {
 
 .commit-msg {
   flex-basis: 80%;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
   margin-left: 6px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
 }
 
 .time-info {
@@ -597,7 +676,7 @@ nav {
 }
 
 .build-animation.-running.-frame-0 {
-  left: 0%;
+  left: 0;
 }
 
 .build-animation.-running.-frame-1 {
@@ -642,9 +721,10 @@ nav {
 }
 
 .build-history-title {
-  font-size: 0.8em;
-  padding: 0.4rem 0 0.4rem 0.4rem;
   display: inline;
+  padding: 0.4rem 0 0.4rem 0.4rem;
+
+  font-size: 0.8em;
 }
 
 .recent-build {
@@ -741,10 +821,9 @@ nav {
   margin-left: 0.5em;
 
   border-color: transparent;
-  border-bottom-color: var(--color-bg-light);
   border-style: solid;
-
   border-width: 5px;
+  border-bottom-color: var(--color-bg-light);
 
   content: ' ';
 }
@@ -791,16 +870,17 @@ nav {
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-
-  padding-right: 1rem;
-  padding-left: 1.6rem;
-  padding-top: 0.6rem;
-
   margin-top: 0.6rem;
 
+  padding-top: 0.6rem;
+  padding-right: 1rem;
+  padding-left: 1.6rem;
+
   div {
-    background: var(--color-bg-light);
     padding: 0.2rem 1.2rem;
+
+    background: var(--color-bg-light);
+
     border: 1px solid var(--color-bg-light);
   }
 }
@@ -869,12 +949,15 @@ nav {
 }
 
 .logs-container {
+  position: relative;
+
   margin-right: -1rem;
   margin-left: -1rem;
-  background-color: var(--color-bg-dark);
-  position: relative;
+
   font-weight: 300;
   font-size: 14px;
+
+  background-color: var(--color-bg-dark);
 
   .message {
     padding: 0.5rem 1rem;
@@ -930,17 +1013,20 @@ nav {
 
 .logs-table {
   display: block;
-  table-layout: fixed;
   width: 100%;
-  padding-bottom: 2rem;
+
   padding-top: 1rem;
+  padding-bottom: 2rem;
+
+  table-layout: fixed;
 }
 
 .logs-table.scrollable {
-  resize: vertical;
-  overflow-y: auto;
   min-height: 10rem;
   max-height: 75rem;
+  overflow-y: auto;
+
+  resize: vertical;
   scrollbar-color: var(--color-coal-light) var(--color-bg-dark);
   scrollbar-width: thin;
 }
@@ -956,19 +1042,21 @@ nav {
 
 .logs-table .line-number {
   position: relative;
+
+  width: 6ch;
+
+  overflow: hidden;
+
   font-family: var(--font-code);
+
+  white-space: nowrap;
+  text-align: right;
+  text-decoration: none;
+  text-overflow: ellipsis;
 
   background: none;
 
   user-select: none;
-
-  text-align: right;
-  text-overflow: ellipsis;
-  text-decoration: none;
-  white-space: nowrap;
-  overflow: hidden;
-
-  width: 6ch;
 
   &:hover,
   &:focus {
@@ -980,8 +1068,8 @@ nav {
   background: var(--color-bg-dark);
 
   border: 2px solid var(--color-bg-dark);
-  border-bottom: 3px solid var(--color-bg-light);
   border-right: 3px solid var(--color-bg-light);
+  border-bottom: 3px solid var(--color-bg-light);
 }
 
 .logs-table::-webkit-scrollbar {
@@ -990,23 +1078,25 @@ nav {
 
 .logs-table::-webkit-scrollbar-thumb {
   background-color: var(--color-bg-light);
-  border-radius: 1rem;
   border: 2px solid var(--color-bg-dark);
+  border-radius: 1rem;
 }
 
 .logs-header {
-  padding: 0.25rem 0;
-  border-bottom: 1px solid var(--color-slate);
-  background: var(--color-bg-dark);
-  width: 100%;
   z-index: 1;
 
   display: flex;
+
   justify-content: flex-end;
+  width: 100%;
+  padding: 0.25rem 0;
+
+  background: var(--color-bg-dark);
+  border-bottom: 1px solid var(--color-slate);
 
   .button {
-    padding: 0.3rem;
     margin: 0.2rem 0.6rem;
+    padding: 0.3rem;
   }
 }
 
@@ -1015,16 +1105,20 @@ nav {
 }
 
 .logs-sidebar {
-  height: 100%;
   position: absolute;
+
   right: 1rem;
+
+  height: 100%;
+
   padding-bottom: 2rem;
 }
 
 .logs-sidebar .inner-container {
-  margin: 0.5rem 0 0.5rem 0;
   position: sticky;
   top: 1rem;
+
+  margin: 0.5rem 0 0.5rem 0;
 
   svg {
     padding: 0.2rem;
@@ -1036,9 +1130,11 @@ nav {
   flex-direction: column;
 
   button {
-    background: var(--color-coal-light);
     margin-bottom: 0.4rem;
+
     color: var(--color-offwhite);
+
+    background: var(--color-coal-light);
   }
 }
 
@@ -1058,6 +1154,7 @@ nav {
 .fadeOutRightBig {
   animation-name: fadeOutRightBig;
 }
+
 /* stylelint-enable */
 
 .alerts {
@@ -1101,7 +1198,6 @@ nav {
   font-size: 14px;
 
   background-color: var(--color-bg-dark);
-  border-radius: 5px;
   border-radius: 0;
   box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
 
@@ -1244,15 +1340,18 @@ nav {
 
   // triangle tip
   &::after {
-    display: block;
     position: absolute;
-    content: '';
     top: -0.5rem;
     right: 0;
+
+    display: block;
+
     border-color: transparent;
     border-style: solid;
     border-width: 0 0.5rem 0.5rem 0.5rem;
     border-bottom-color: var(--color-bg-light);
+
+    content: '';
   }
 }
 
@@ -1262,12 +1361,15 @@ nav {
 }
 
 .cmd-text {
-  border: none;
-  padding: 0.5rem;
-  margin: 0.2rem 0;
-  color: var(--color-text);
-  background-color: var(--color-bg);
   flex: 1;
+  margin: 0.2rem 0;
+  padding: 0.5rem;
+
+  color: var(--color-text);
+
+  background-color: var(--color-bg);
+
+  border: none;
 
   + .button {
     margin-left: 0.5rem;
@@ -1282,6 +1384,7 @@ nav {
 .help.details[open] .summary + *:first-of-type {
   margin-top: 0.25rem;
 }
+
 /* stylelint-enable selector-max-specificity */
 
 .help-footer {
@@ -1358,8 +1461,8 @@ nav {
 
 // Secrets Section begin
 .secrets-first-cell {
-  padding: 0.5rem 1rem;
-  padding-bottom: 0;
+  padding: 0.5rem 1rem 0;
+
   color: var(--color-primary);
   font-size: 1.2rem;
 }
@@ -1368,15 +1471,17 @@ nav {
 .manage-deployment .header {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 0.5rem 0;
+
   border-bottom: 2px solid var(--color-secondary);
 }
 
 .manage-secret h2,
 .manage-deployment h2 {
   margin: 0;
+
   border-bottom: 2px solid var(--color-secondary);
 }
 
@@ -1415,20 +1520,23 @@ nav {
 
 .added-image,
 .added-parameter {
-  margin: 0.2rem 1rem;
-  display: flex;
-  padding: 0.3rem 1rem;
-  align-items: center;
-  background: var(--color-bg-dark);
   position: relative;
+
+  display: flex;
+  align-items: center;
+  margin: 0.2rem 1rem;
+  padding: 0.3rem 1rem;
+
+  background: var(--color-bg-dark);
 }
 
 .added-image .name,
 .added-parameter .name {
   flex: 1;
-  word-wrap: break-word;
-  font-family: var(--font-code);
+
   font-size: 0.9rem;
+  font-family: var(--font-code);
+  word-wrap: break-word;
 }
 
 .images .added-image .button,
@@ -1443,12 +1551,14 @@ nav {
 
 .added-image.chevron:before,
 .added-parameter.chevron:before {
-  content: '';
-  border-style: solid;
-  border-width: 0.1rem 1rem 0.1rem 0.2rem;
-  border-color: var(--color-primary);
   position: absolute;
   left: -1.5rem;
+
+  border-color: var(--color-primary);
+  border-style: solid;
+  border-width: 0.1rem 1rem 0.1rem 0.2rem;
+
+  content: '';
 }
 
 .no-rows {
@@ -1457,23 +1567,26 @@ nav {
 
 .manage-secret .subheader,
 .manage-deployment .subheader {
-  margin-top: 1rem;
-  border-bottom: 2px solid var(--color-primary);
   width: 80%;
+  margin-top: 1rem;
+
+  border-bottom: 2px solid var(--color-primary);
 }
 
 .manage-secret textarea,
 .update-secret textarea,
 .manage-deployment textarea {
   width: 70%;
-  border: none;
-  box-shadow: none;
-  background: var(--color-bg-dark);
-  color: var(--color-text);
-  font-size: 1rem;
-  font-weight: 300;
   margin-bottom: 0.5rem;
   padding: 0.5rem;
+
+  color: var(--color-text);
+  font-weight: 300;
+  font-size: 1rem;
+
+  background: var(--color-bg-dark);
+  border: none;
+  box-shadow: none;
 }
 
 .manage-secret input,
@@ -1505,15 +1618,17 @@ nav {
 }
 
 .button.-secret-delete-confirm {
-  background-color: var(--color-bg);
   color: var(--color-red);
+
+  background-color: var(--color-bg);
   border-color: var(--color-red);
 
   &:hover,
   &:focus,
   &:active {
-    background-color: var(--color-red-dark);
     color: var(--color-offwhite);
+
+    background-color: var(--color-red-dark);
     border-color: var(--color-offwhite);
   }
 }
@@ -1521,9 +1636,10 @@ nav {
 // Secrets Section end
 
 .field-description {
-  font-size: 1rem;
-  font-weight: 300;
   margin-left: 1rem;
+
+  font-weight: 300;
+  font-size: 1rem;
 }
 
 .field-header {
@@ -1538,8 +1654,8 @@ nav {
 }
 
 .break-text {
-  word-break: break-word;
   word-wrap: break-word;
+  word-break: break-word;
 }
 
 .break-word {
