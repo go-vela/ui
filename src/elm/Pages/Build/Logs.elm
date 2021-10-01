@@ -218,7 +218,7 @@ logSizeExceededMessage =
     "The data for this log exceeds the size limit ("
         ++ Util.formatFilesize logSizeLimit
         ++ ").\n"
-        ++ "To view this log use the CLI or click the 'download' link in the top right corner of this step."
+        ++ "To view this log use the CLI or click the 'download' link in the top right corner of this step (downloading may take a few moments, depending on the size of the file)."
 
 
 {-| focus : takes FocusFragment URL fragment and expands the appropriate resource to automatically view
