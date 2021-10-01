@@ -7,7 +7,7 @@ import RemoteData
 import Routes
 import SvgBuilder exposing (recentBuildStatusToIcon)
 import Time exposing (Posix, Zone)
-import Util
+import Util exposing (getNameFromRef)
 import Vela exposing (Build, Org, Repo, RepoModel)
 
 
@@ -135,14 +135,29 @@ recentBuildTooltip now timezone build =
                 [ span [ class "number" ] [ text <| String.fromInt build.number ]
                 , em [] [ text build.event ]
                 ]
+            , buildInfo build
             , viewTooltipField "started:" <| Util.humanReadableWithDefault timezone build.started
             , viewTooltipField "finished:" <| Util.humanReadableWithDefault timezone build.finished
             , viewTooltipField "duration:" <| Util.formatRunTime now build.started build.finished
             , viewTooltipField "worker:" build.host
+            , viewTooltipField "author:" build.author
             , viewTooltipField "commit:" <| Util.trimCommitHash build.commit
             , viewTooltipField "branch:" build.branch
             ]
         ]
+
+
+buildInfo : Build -> Html msg
+buildInfo build =
+    case build.event of
+        "pull_request" ->
+            viewTooltipField "PR" ("#" ++ getNameFromRef build.ref ++ " " ++ build.message)
+
+        "tag" ->
+            viewTooltipField "Tag" (getNameFromRef build.ref)
+
+        _ ->
+            viewTooltipField "" ""
 
 
 {-| viewTooltipField : takes build field key and value, renders field in the tooltip
