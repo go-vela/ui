@@ -1549,8 +1549,8 @@ type alias Log =
     , build_id : Int
     , repository_id : Int
     , rawData : String
-    , size : Int
     , decodedLogs : String
+    , size : Int
     }
 
 
@@ -1567,8 +1567,10 @@ decodeLog =
                 build_id
                 repository_id
                 data
-                (Bytes.Encode.getStringWidth data)
+                -- "decodedLogs"
                 ""
+                -- "size"
+                (Bytes.Encode.getStringWidth data)
         )
         |> optional "id" int -1
         |> optional "step_id" int -1

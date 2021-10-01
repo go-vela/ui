@@ -13,10 +13,8 @@ module Pages.Build.View exposing
 
 import Ansi.Log
 import Array
-import Bytes.Encode
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
-import Filesize
 import Focus
     exposing
         ( Resource
@@ -61,7 +59,6 @@ import Pages.Build.Logs
         , decodeAnsi
         , downloadFileName
         , getLog
-        , logEmpty
         , toString
         , topTrackerFocusId
         )
@@ -652,32 +649,20 @@ viewLines : FocusLine msg -> Resource -> ResourceID -> LogFocus -> String -> Boo
 viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
     let
         lines =
-            if not <| logEmpty decodedLog then
-                decodedLog
-                    |> decodeAnsi
-                    |> Array.indexedMap
-                        (\idx line ->
-                            Just <|
-                                viewLine focusLine
-                                    resource
-                                    resourceID
-                                    (idx + 1)
-                                    (Just line)
-                                    logFocus
-                                    shiftDown
-                        )
-                    |> Array.toList
-
-            else
-                [ Just <|
-                    viewLine focusLine
-                        resource
-                        resourceID
-                        1
-                        Nothing
-                        logFocus
-                        shiftDown
-                ]
+            decodedLog
+                |> decodeAnsi
+                |> Array.indexedMap
+                    (\idx line ->
+                        Just <|
+                            viewLine focusLine
+                                resource
+                                resourceID
+                                (idx + 1)
+                                (Just line)
+                                logFocus
+                                shiftDown
+                    )
+                |> Array.toList
 
         -- update resource filename when adding stages/services
         logs =
@@ -793,9 +778,9 @@ expandAllButton expandAll org repo buildNumber =
 {-| logsHeader : takes number, filename and decoded log and renders logs header
 -}
 logsHeader : LogsMsgs msg -> String -> String -> String -> String -> Html msg
-logsHeader msgs resource number fileName rawLog =
+logsHeader msgs resource number fileName logData =
     div [ class "logs-header", class "buttons", Util.testAttribute <| "logs-header-actions-" ++ number ]
-        [ downloadLogsButton msgs.downloadLog resource number fileName rawLog ]
+        [ downloadLogsButton msgs.download resource number fileName logData ]
 
 
 {-| logsSidebar : takes number/following and renders the logs sidebar

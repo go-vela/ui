@@ -69,7 +69,7 @@ type alias Msgs msg =
 
 type alias LogsMsgs msg =
     { focusLine : FocusLine msg
-    , downloadLog : Download msg
+    , download : Download msg
     , focusOn : FocusOn msg
     , followStep : FollowResource msg
     , followService : FollowResource msg

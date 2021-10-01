@@ -14,7 +14,6 @@ module Pages.Build.Logs exposing
     , focusAndClear
     , getLog
     , isViewing
-    , logEmpty
     , merge
     , setAllViews
     , toString
@@ -319,13 +318,6 @@ setAndClear ft n resources =
 clear : Resource a -> Resource a
 clear resource =
     { resource | logFocus = ( Nothing, Nothing ) }
-
-
-{-| logEmpty : takes log string and returns True if content does not exist
--}
-logEmpty : String -> Bool
-logEmpty log =
-    String.isEmpty <| String.replace " " "" log
 
 
 {-| toString : returns a string from a Maybe Log
