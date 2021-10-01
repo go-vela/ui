@@ -16,6 +16,7 @@ module Util exposing
     , filterEmptyList
     , filterEmptyLists
     , fiveSecondsMillis
+    , formatFilesize
     , formatRunTime
     , formatTestTag
     , getNameFromRef
@@ -24,6 +25,7 @@ module Util exposing
     , isLoading
     , isSuccess
     , largeLoader
+    , megabyte
     , mergeListsById
     , noBlanks
     , onClickPreventDefault
@@ -47,6 +49,7 @@ import Bytes
 import Bytes.Decode
 import DateFormat
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
+import Filesize
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (custom)
@@ -499,3 +502,36 @@ getNameFromRef s =
 
         _ ->
             ""
+
+
+{-| byte : returns a byte represented as an integer.
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+-}
+byte : Int
+byte =
+    1
+
+
+{-| kilobyte : returns a kilobyte defined as 1000 bytes.
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+-}
+kilobyte : Int
+kilobyte =
+    1000 * byte
+
+
+{-| megabyte : returns a megabyte defined as 1000 kilobytes.
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+-}
+megabyte : Int
+megabyte =
+    1000 * kilobyte
+
+
+{-| formatFilesize : returns a file size in bytes as a human readable string.
+Defined as a helper function to make it easier to configure bases, units etc.
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+-}
+formatFilesize : Int -> String
+formatFilesize =
+    Filesize.format

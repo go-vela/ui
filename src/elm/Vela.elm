@@ -158,9 +158,10 @@ module Vela exposing
     )
 
 import Api.Pagination as Pagination
+import Bytes.Encode
 import Dict exposing (Dict)
 import Errors exposing (Error)
-import Json.Decode as Decode exposing (Decoder, andThen, bool, int, string, succeed)
+import Json.Decode as Decode exposing (Decoder, andThen, bool, int, map2, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode exposing (Value)
 import LinkHeader exposing (WebLink)
@@ -1548,6 +1549,7 @@ type alias Log =
     , build_id : Int
     , repository_id : Int
     , rawData : String
+    , size : Int
     , decodedLogs : String
     }
 
@@ -1556,15 +1558,24 @@ type alias Log =
 -}
 decodeLog : Decoder Log
 decodeLog =
-    Decode.succeed Log
+    Decode.succeed
+        (\id step_id service_id build_id repository_id data ->
+            Log
+                id
+                step_id
+                service_id
+                build_id
+                repository_id
+                data
+                (Bytes.Encode.getStringWidth data)
+                ""
+        )
         |> optional "id" int -1
         |> optional "step_id" int -1
         |> optional "service_id" int -1
         |> optional "build_id" int -1
         |> optional "repository_id" int -1
         |> optional "data" string ""
-        -- "decodedLogs"
-        |> hardcoded ""
 
 
 type alias Logs =

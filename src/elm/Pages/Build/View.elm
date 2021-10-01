@@ -617,13 +617,6 @@ viewServiceLogs msgs shift rm service =
 -}
 viewLogLines : LogsMsgs msg -> FollowResource msg -> Org -> Repo -> BuildNumber -> String -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
 viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus maybeLog following shiftDown =
-    let
-        decodedLog =
-            toString maybeLog
-
-        fileName =
-            downloadFileName org repo buildNumber resource resourceID
-    in
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ resourceID
@@ -631,37 +624,20 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
     <|
         case Maybe.withDefault RemoteData.NotAsked maybeLog of
             RemoteData.Success l ->
-                if String.isEmpty l.rawData then
-                    [ emptyLogs ]
+                let
+                    decodedLog =
+                        toString maybeLog
 
-                else
-                    let
-                        logStringWidthBytes =
-                            Bytes.Encode.getStringWidth decodedLog
+                    fileName =
+                        downloadFileName org repo buildNumber resource resourceID
 
-                        -- _ =
-                        --     Debug.log "logStringWidthBytes: " logStringWidthBytes
-
-                        formattedFilesize =
-                            Filesize.format logStringWidthBytes
-
-                        -- _ =
-                        --     Debug.log "formattedFilesize: " formattedFilesize
-
-                        fileSizeLimitBytes =
-                            1048576
-
-                        ( logs, numLines ) =
-                            if logStringWidthBytes > fileSizeLimitBytes then
-                                ( text "too many logs bro", 0 )
-
-                            else
-                                viewLines msgs.focusLine resource resourceID logFocus decodedLog shiftDown
-                    in
-                    [ logsHeader msgs resource resourceID fileName l.rawData
-                    , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
-                    , logs
-                    ]
+                    ( logs, numLines ) =
+                        viewLines msgs.focusLine resource resourceID logFocus decodedLog shiftDown
+                in
+                [ logsHeader msgs resource resourceID fileName l.rawData
+                , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
+                , logs
+                ]
 
             RemoteData.Failure _ ->
                 [ code [ Util.testAttribute "logs-error" ] [ text "error fetching logs" ] ]

@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build.Logs exposing
-    ( bottomTrackerFocusId
+    ( addLog
+    , bottomTrackerFocusId
     , clickResource
     , decodeAnsi
     , downloadFileName
@@ -18,13 +19,14 @@ module Pages.Build.Logs exposing
     , setAllViews
     , toString
     , topTrackerFocusId
+    , updateLog
     )
 
 import Ansi.Log
 import Array
 import Focus exposing (FocusTarget, parseFocusFragment)
 import List.Extra exposing (updateIf)
-import RemoteData exposing (WebData)
+import RemoteData exposing (RemoteData(..), WebData)
 import Util exposing (overwriteById)
 import Vela
     exposing
@@ -42,6 +44,30 @@ import Vela
 
 
 -- HELPERS
+
+
+{-| logSizeLimit : returns the maximum size for log data, in bytes.
+-}
+logSizeLimit : Int
+logSizeLimit =
+    Util.megabyte * 5
+
+
+{-| logEmptyMessage : returns the default message when log data does not exist.
+-}
+logEmptyMessage : String
+logEmptyMessage =
+    "No logs written to this step yet."
+
+
+{-| logSizeExceededMessage : returns the default message when a log exceeds the size limit.
+-}
+logSizeExceededMessage : String
+logSizeExceededMessage =
+    "The data for this log exceeds the size limit ("
+        ++ Util.formatFilesize logSizeLimit
+        ++ ").\n"
+        ++ "To view this log use the CLI or click the 'download' link in the top right corner of this step."
 
 
 {-| clickResource : takes resources and resource number, toggles resource view state, and returns whether or not to fetch logs
@@ -156,6 +182,52 @@ getLog resource get logs =
                         False
             )
         |> List.head
+
+
+{-| addLog : takes incoming log and logs and adds log when not present
+-}
+addLog : Log -> Logs -> Logs
+addLog incomingLog logs =
+    RemoteData.succeed
+        (safeDecodeLogData incomingLog)
+        :: logs
+
+
+{-| updateLog : takes incoming log and logs and updates the appropriate log data
+-}
+updateLog : Log -> Logs -> Logs
+updateLog incomingLog logs =
+    updateIf
+        (\log ->
+            case log of
+                Success log_ ->
+                    incomingLog.id == log_.id && incomingLog.rawData /= log_.rawData
+
+                _ ->
+                    True
+        )
+        (\_ ->
+            RemoteData.succeed <|
+                safeDecodeLogData incomingLog
+        )
+        logs
+
+
+{-| safeDecodeLogData : takes log and decodes the data if it exists and does not exceed the size limit.
+-}
+safeDecodeLogData : Log -> Log
+safeDecodeLogData log =
+    { log
+        | decodedLogs =
+            if isEmpty log then
+                logEmptyMessage
+
+            else if exceedsSizeLimit log then
+                logSizeExceededMessage
+
+            else
+                Util.base64Decode log.rawData
+    }
 
 
 {-| focus : takes FocusFragment URL fragment and expands the appropriate resource to automatically view
@@ -292,6 +364,20 @@ bottomTrackerFocusId resource number =
 downloadFileName : Org -> Repo -> BuildNumber -> String -> String -> String
 downloadFileName org repo buildNumber resourceType resourceNumber =
     String.join "-" [ org, repo, buildNumber, resourceType, resourceNumber ]
+
+
+{-| exceedsSizeLimit : takes log and returns true if log.data exceeds the render size limit
+-}
+exceedsSizeLimit : Log -> Bool
+exceedsSizeLimit log =
+    log.size > logSizeLimit
+
+
+{-| isEmpty : takes log and returns true if log contains no data
+-}
+isEmpty : Log -> Bool
+isEmpty log =
+    log.size == 0
 
 
 

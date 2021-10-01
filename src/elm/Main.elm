@@ -16,7 +16,6 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
-import Bytes.Encode
 import Dict
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (toFavorite, updateFavorites)
@@ -73,19 +72,20 @@ import Http.Detailed
 import Interop
 import Json.Decode as Decode
 import Json.Encode as Encode
-import List.Extra exposing (updateIf)
 import Maybe
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( bottomTrackerFocusId
+        ( addLog
+        , bottomTrackerFocusId
         , clickResource
         , expandActive
         , focusAndClear
         , isViewing
         , setAllViews
+        , updateLog
         )
 import Pages.Build.Model
 import Pages.Build.View
@@ -3924,33 +3924,6 @@ updateServiceLogs model incomingLog =
         model
 
 
-{-| updateLog : takes incoming log and logs and updates the appropriate log data
--}
-updateLog : Log -> Logs -> Logs
-updateLog incomingLog logs =
-    let
-        bytes =
-            Bytes.Encode.getStringWidth incomingLog.rawData
-    in
-    updateIf
-        (\log ->
-            case log of
-                Success log_ ->
-                    incomingLog.id == log_.id && incomingLog.rawData /= log_.rawData
-
-                _ ->
-                    True
-        )
-        (\_ ->
-            RemoteData.succeed
-                { incomingLog
-                    | decodedLogs =
-                        safeDecodeLogData incomingLog.rawData
-                }
-        )
-        logs
-
-
 receiveSecrets : Model -> Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> SecretType -> ( Model, Cmd Msg )
 receiveSecrets model response type_ =
     let
@@ -4031,27 +4004,15 @@ receiveSecrets model response type_ =
             ( { model | secretsModel = sm }, addError error )
 
 
-{-| addLog : takes incoming log and logs and adds log when not present
+{-| decodeSizedLog : safely decodes only incoming log data that lies within the filesize limit
 -}
-addLog : Log -> Logs -> Logs
-addLog incomingLog logs =
-    RemoteData.succeed
-        { incomingLog
-            | decodedLogs =
-                safeDecodeLogData incomingLog.rawData
-        }
-        :: logs
-
-
-{-| safeDecodeLogData : safely decodes only incoming log data that lies within the filesize limit 
--}
-safeDecodeLogData : String -> String
-safeDecodeLogData data =
+decodeSizedLog : String -> Int -> String
+decodeSizedLog data size =
     let
         logSizeLimit =
             1048576
     in
-    if Bytes.Encode.getStringWidth data < logSizeLimit then
+    if size < logSizeLimit then
         Util.base64Decode data
 
     else
@@ -4060,7 +4021,7 @@ safeDecodeLogData data =
 
 logTooLarge : String
 logTooLarge =
-    "Log file is larger than 1mb. Please download these logs to view them."
+    "The logs for this step are too large to render (> 1mb). To view these logs, use the CLI or click \"download step logs\"."
 
 
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
