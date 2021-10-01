@@ -503,9 +503,21 @@ getNameFromRef s =
         _ ->
             ""
 
+{-| byteUnitFactor : returns the factor for doing filesize calculations.
+This application uses decimal units, or units by the 1000.
+
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+
+-}
+byteUnitFactor : Int
+byteUnitFactor =
+    1000
+
 
 {-| byte : returns a byte represented as an integer.
+
 see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+
 -}
 byte : Int
 byte =
@@ -517,7 +529,7 @@ see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesiz
 -}
 kilobyte : Int
 kilobyte =
-    1000 * byte
+    byteUnitFactor * byte
 
 
 {-| megabyte : returns a megabyte defined as 1000 kilobytes.
@@ -525,7 +537,7 @@ see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesiz
 -}
 megabyte : Int
 megabyte =
-    1000 * kilobyte
+    byteUnitFactor * kilobyte
 
 
 {-| formatFilesize : returns a file size in bytes as a human readable string.
