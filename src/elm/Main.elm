@@ -16,6 +16,7 @@ import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
+import Bytes.Encode
 import Dict
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (toFavorite, updateFavorites)
@@ -375,6 +376,7 @@ type Msg
     | ShowHideIdentity (Maybe Bool)
     | Copy String
     | DownloadFile String String String
+    | DownloadLog String String
     | ExpandAllSteps Org Repo BuildNumber
     | CollapseAllSteps
     | ExpandStep Org Repo BuildNumber StepNumber
@@ -681,6 +683,11 @@ update msg model =
         DownloadFile ext filename content ->
             ( model
             , Download.string filename ext content
+            )
+
+        DownloadLog filename data ->
+            ( model
+            , Download.string filename "text" <| Util.base64Decode data
             )
 
         -- steps
@@ -3921,6 +3928,10 @@ updateServiceLogs model incomingLog =
 -}
 updateLog : Log -> Logs -> Logs
 updateLog incomingLog logs =
+    let
+        bytes =
+            Bytes.Encode.getStringWidth incomingLog.rawData
+    in
     updateIf
         (\log ->
             case log of
@@ -3930,7 +3941,13 @@ updateLog incomingLog logs =
                 _ ->
                     True
         )
-        (\_ -> RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData })
+        (\_ ->
+            RemoteData.succeed
+                { incomingLog
+                    | decodedLogs =
+                        safeDecodeLogData incomingLog.rawData
+                }
+        )
         logs
 
 
@@ -4018,7 +4035,32 @@ receiveSecrets model response type_ =
 -}
 addLog : Log -> Logs -> Logs
 addLog incomingLog logs =
-    RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData } :: logs
+    RemoteData.succeed
+        { incomingLog
+            | decodedLogs =
+                safeDecodeLogData incomingLog.rawData
+        }
+        :: logs
+
+
+{-| safeDecodeLogData : safely decodes only incoming log data that lies within the filesize limit 
+-}
+safeDecodeLogData : String -> String
+safeDecodeLogData data =
+    let
+        logSizeLimit =
+            1048576
+    in
+    if Bytes.Encode.getStringWidth data < logSizeLimit then
+        Util.base64Decode data
+
+    else
+        logTooLarge
+
+
+logTooLarge : String
+logTooLarge =
+    "Log file is larger than 1mb. Please download these logs to view them."
 
 
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
@@ -4061,7 +4103,7 @@ buildMsgs =
     , expandService = ExpandService
     , logsMsgs =
         { focusLine = PushUrl
-        , download = DownloadFile "text"
+        , downloadLog = DownloadLog
         , focusOn = FocusOn
         , followStep = FollowStep
         , followService = FollowService

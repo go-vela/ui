@@ -13,8 +13,10 @@ module Pages.Build.View exposing
 
 import Ansi.Log
 import Array
+import Bytes.Encode
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
+import Filesize
 import Focus
     exposing
         ( Resource
@@ -628,16 +630,35 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
         ]
     <|
         case Maybe.withDefault RemoteData.NotAsked maybeLog of
-            RemoteData.Success _ ->
-                if logEmpty decodedLog then
+            RemoteData.Success l ->
+                if String.isEmpty l.rawData then
                     [ emptyLogs ]
 
                 else
                     let
+                        logStringWidthBytes =
+                            Bytes.Encode.getStringWidth decodedLog
+
+                        -- _ =
+                        --     Debug.log "logStringWidthBytes: " logStringWidthBytes
+
+                        formattedFilesize =
+                            Filesize.format logStringWidthBytes
+
+                        -- _ =
+                        --     Debug.log "formattedFilesize: " formattedFilesize
+
+                        fileSizeLimitBytes =
+                            1048576
+
                         ( logs, numLines ) =
-                            viewLines msgs.focusLine resource resourceID logFocus decodedLog shiftDown
+                            if logStringWidthBytes > fileSizeLimitBytes then
+                                ( text "too many logs bro", 0 )
+
+                            else
+                                viewLines msgs.focusLine resource resourceID logFocus decodedLog shiftDown
                     in
-                    [ logsHeader msgs resource resourceID fileName decodedLog
+                    [ logsHeader msgs resource resourceID fileName l.rawData
                     , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
                     , logs
                     ]
@@ -796,9 +817,9 @@ expandAllButton expandAll org repo buildNumber =
 {-| logsHeader : takes number, filename and decoded log and renders logs header
 -}
 logsHeader : LogsMsgs msg -> String -> String -> String -> String -> Html msg
-logsHeader msgs resource number fileName decodedLog =
+logsHeader msgs resource number fileName rawLog =
     div [ class "logs-header", class "buttons", Util.testAttribute <| "logs-header-actions-" ++ number ]
-        [ downloadLogsButton msgs.download resource number fileName decodedLog ]
+        [ downloadLogsButton msgs.downloadLog resource number fileName rawLog ]
 
 
 {-| logsSidebar : takes number/following and renders the logs sidebar
