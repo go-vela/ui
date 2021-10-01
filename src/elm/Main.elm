@@ -375,8 +375,7 @@ type Msg
     | ShowHideHelp (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
     | Copy String
-    | DownloadFile String String String
-    | DownloadLog String String
+    | DownloadFile String (String -> String) String String
     | ExpandAllSteps Org Repo BuildNumber
     | CollapseAllSteps
     | ExpandStep Org Repo BuildNumber StepNumber
@@ -680,14 +679,9 @@ update msg model =
                         Nothing
                     )
 
-        DownloadFile ext filename content ->
+        DownloadFile ext fn filename content ->
             ( model
-            , Download.string filename ext content
-            )
-
-        DownloadLog filename data ->
-            ( model
-            , Download.string filename "text" <| Util.base64Decode data
+            , Download.string filename ext <| fn content
             )
 
         -- steps
@@ -4004,26 +3998,6 @@ receiveSecrets model response type_ =
             ( { model | secretsModel = sm }, addError error )
 
 
-{-| decodeSizedLog : safely decodes only incoming log data that lies within the filesize limit
--}
-decodeSizedLog : String -> Int -> String
-decodeSizedLog data size =
-    let
-        logSizeLimit =
-            1048576
-    in
-    if size < logSizeLimit then
-        Util.base64Decode data
-
-    else
-        logTooLarge
-
-
-logTooLarge : String
-logTooLarge =
-    "The logs for this step are too large to render (> 1mb). To view these logs, use the CLI or click \"download step logs\"."
-
-
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
 -}
 homeMsgs : Pages.Home.Msgs Msg
@@ -4064,7 +4038,7 @@ buildMsgs =
     , expandService = ExpandService
     , logsMsgs =
         { focusLine = PushUrl
-        , downloadLog = DownloadLog
+        , downloadLog = DownloadFile "text" Util.base64Decode
         , focusOn = FocusOn
         , followStep = FollowStep
         , followService = FollowService
@@ -4080,7 +4054,7 @@ pipelineMsgs =
     , expand = ExpandPipelineConfig
     , focusLineNumber = FocusPipelineConfigLineNumber
     , showHideTemplates = ShowHideTemplates
-    , download = DownloadFile "text"
+    , download = DownloadFile "text" identity
     }
 
 

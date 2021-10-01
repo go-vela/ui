@@ -26,7 +26,7 @@ import Ansi.Log
 import Array
 import Focus exposing (FocusTarget, parseFocusFragment)
 import List.Extra exposing (updateIf)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (WebData)
 import Util exposing (overwriteById)
 import Vela
     exposing
@@ -200,7 +200,7 @@ updateLog incomingLog logs =
     updateIf
         (\log ->
             case log of
-                Success log_ ->
+                RemoteData.Success log_ ->
                     incomingLog.id == log_.id && incomingLog.rawData /= log_.rawData
 
                 _ ->
