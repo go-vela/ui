@@ -7,7 +7,7 @@ import RemoteData
 import Routes
 import SvgBuilder exposing (recentBuildStatusToIcon)
 import Time exposing (Posix, Zone)
-import Util exposing (getNameFromRef)
+import Util
 import Vela exposing (Build, Org, Repo, RepoModel)
 
 
@@ -151,10 +151,10 @@ buildInfo : Build -> Html msg
 buildInfo build =
     case build.event of
         "pull_request" ->
-            viewTooltipField "PR" ("#" ++ getNameFromRef build.ref ++ " " ++ build.message)
+            viewTooltipField "PR" ("#" ++ Util.getNameFromRef build.ref ++ " " ++ build.message)
 
         "tag" ->
-            viewTooltipField "Tag" (getNameFromRef build.ref)
+            viewTooltipField "Tag" (Util.getNameFromRef build.ref)
 
         _ ->
             viewTooltipField "" ""
