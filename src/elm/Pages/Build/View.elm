@@ -907,14 +907,6 @@ loadingLogs =
         [ Util.smallLoaderWithText "loading..." ]
 
 
-{-| emptyLogs : renders message for empty logs
--}
-emptyLogs : Html msg
-emptyLogs =
-    div [ class "message" ]
-        [ text "the build has not written logs to this step yet" ]
-
-
 {-| viewStatusIcon : renders a build step status icon
 -}
 viewStatusIcon : Status -> Html msg

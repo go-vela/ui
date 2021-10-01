@@ -208,7 +208,7 @@ safeDecodeLogData log =
 -}
 logEmptyMessage : String
 logEmptyMessage =
-    "No logs written to this step yet."
+    "The build has not written logs to this step yet."
 
 
 {-| logSizeExceededMessage : returns the default message when a log exceeds the size limit.
