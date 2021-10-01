@@ -16,7 +16,6 @@ module Pages.Build.Logs exposing
     , isViewing
     , merge
     , setAllViews
-    , toString
     , topTrackerFocusId
     , updateLog
     )
@@ -43,30 +42,6 @@ import Vela
 
 
 -- HELPERS
-
-
-{-| logSizeLimit : returns the maximum size for log data, in bytes.
--}
-logSizeLimit : Int
-logSizeLimit =
-    Util.megabyte * 5
-
-
-{-| logEmptyMessage : returns the default message when log data does not exist.
--}
-logEmptyMessage : String
-logEmptyMessage =
-    "No logs written to this step yet."
-
-
-{-| logSizeExceededMessage : returns the default message when a log exceeds the size limit.
--}
-logSizeExceededMessage : String
-logSizeExceededMessage =
-    "The data for this log exceeds the size limit ("
-        ++ Util.formatFilesize logSizeLimit
-        ++ ").\n"
-        ++ "To view this log use the CLI or click the 'download' link in the top right corner of this step."
 
 
 {-| clickResource : takes resources and resource number, toggles resource view state, and returns whether or not to fetch logs
@@ -229,6 +204,23 @@ safeDecodeLogData log =
     }
 
 
+{-| logEmptyMessage : returns the default message when log data does not exist.
+-}
+logEmptyMessage : String
+logEmptyMessage =
+    "No logs written to this step yet."
+
+
+{-| logSizeExceededMessage : returns the default message when a log exceeds the size limit.
+-}
+logSizeExceededMessage : String
+logSizeExceededMessage =
+    "The data for this log exceeds the size limit ("
+        ++ Util.formatFilesize logSizeLimit
+        ++ ").\n"
+        ++ "To view this log use the CLI or click the 'download' link in the top right corner of this step."
+
+
 {-| focus : takes FocusFragment URL fragment and expands the appropriate resource to automatically view
 -}
 focus : FocusFragment -> Resources a -> Resources a
@@ -320,23 +312,6 @@ clear resource =
     { resource | logFocus = ( Nothing, Nothing ) }
 
 
-{-| toString : returns a string from a Maybe Log
--}
-toString : Maybe (WebData Log) -> String
-toString log =
-    case log of
-        Just log_ ->
-            case log_ of
-                RemoteData.Success l ->
-                    l.decodedLogs
-
-                _ ->
-                    ""
-
-        Nothing ->
-            ""
-
-
 {-| topTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
 -}
 topTrackerFocusId : String -> String -> String
@@ -356,6 +331,13 @@ bottomTrackerFocusId resource number =
 downloadFileName : Org -> Repo -> BuildNumber -> String -> String -> String
 downloadFileName org repo buildNumber resourceType resourceNumber =
     String.join "-" [ org, repo, buildNumber, resourceType, resourceNumber ]
+
+
+{-| logSizeLimit : returns the maximum size for log data, in bytes.
+-}
+logSizeLimit : Int
+logSizeLimit =
+    Util.megabyte * 5
 
 
 {-| exceedsSizeLimit : takes log and returns true if log.data exceeds the render size limit

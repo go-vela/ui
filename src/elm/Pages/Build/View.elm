@@ -59,7 +59,6 @@ import Pages.Build.Logs
         , decodeAnsi
         , downloadFileName
         , getLog
-        , toString
         , topTrackerFocusId
         )
 import Pages.Build.Model
@@ -622,14 +621,11 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
         case Maybe.withDefault RemoteData.NotAsked maybeLog of
             RemoteData.Success l ->
                 let
-                    decodedLog =
-                        toString maybeLog
-
                     fileName =
                         downloadFileName org repo buildNumber resource resourceID
 
                     ( logs, numLines ) =
-                        viewLines msgs.focusLine resource resourceID logFocus decodedLog shiftDown
+                        viewLines msgs.focusLine resource resourceID logFocus l.decodedLogs shiftDown
                 in
                 [ logsHeader msgs resource resourceID fileName l.rawData
                 , logsSidebar msgs.focusOn followMsg resource resourceID following numLines

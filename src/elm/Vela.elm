@@ -161,7 +161,7 @@ import Api.Pagination as Pagination
 import Bytes.Encode
 import Dict exposing (Dict)
 import Errors exposing (Error)
-import Json.Decode as Decode exposing (Decoder, andThen, bool, int, map2, string, succeed)
+import Json.Decode as Decode exposing (Decoder, andThen, bool, int, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode exposing (Value)
 import LinkHeader exposing (WebLink)
