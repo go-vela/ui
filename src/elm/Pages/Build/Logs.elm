@@ -13,6 +13,7 @@ module Pages.Build.Logs exposing
     , expandActive
     , focusAndClear
     , getLog
+    , isEmpty
     , isViewing
     , merge
     , setAllViews
@@ -337,7 +338,7 @@ downloadFileName org repo buildNumber resourceType resourceNumber =
 -}
 logSizeLimit : Int
 logSizeLimit =
-    Util.megabyte * 5
+    Util.megabyte * 2
 
 
 {-| exceedsSizeLimit : takes log and returns true if log.data exceeds the render size limit

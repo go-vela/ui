@@ -59,6 +59,7 @@ import Pages.Build.Logs
         , decodeAnsi
         , downloadFileName
         , getLog
+        , isEmpty
         , topTrackerFocusId
         )
 import Pages.Build.Model
@@ -627,7 +628,7 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
                     ( logs, numLines ) =
                         viewLines msgs.focusLine resource resourceID logFocus l.decodedLogs shiftDown
                 in
-                [ logsHeader msgs resource resourceID fileName l.rawData
+                [ logsHeader msgs resource resourceID fileName l
                 , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
                 , logs
                 ]
@@ -773,10 +774,10 @@ expandAllButton expandAll org repo buildNumber =
 
 {-| logsHeader : takes number, filename and decoded log and renders logs header
 -}
-logsHeader : LogsMsgs msg -> String -> String -> String -> String -> Html msg
-logsHeader msgs resource number fileName logData =
+logsHeader : LogsMsgs msg -> String -> String -> String -> Log -> Html msg
+logsHeader msgs resource number fileName log =
     div [ class "logs-header", class "buttons", Util.testAttribute <| "logs-header-actions-" ++ number ]
-        [ downloadLogsButton msgs.download resource number fileName logData ]
+        [ downloadLogsButton msgs.download resource number fileName log ]
 
 
 {-| logsSidebar : takes number/following and renders the logs sidebar
@@ -841,13 +842,20 @@ jumpToTopButton focusOn resource number =
 
 {-| downloadLogsButton : renders action button for downloading a log
 -}
-downloadLogsButton : Download msg -> String -> String -> String -> String -> Html msg
-downloadLogsButton download resource number fileName logs =
+downloadLogsButton : Download msg -> String -> String -> String -> Log -> Html msg
+downloadLogsButton download resource number fileName log =
+    let
+        logEmpty =
+            isEmpty log
+    in
     button
         [ class "button"
         , class "-link"
+        , Html.Attributes.disabled logEmpty
+        , Util.attrIf logEmpty <| class "-hidden"
+        , Util.attrIf logEmpty <| Util.ariaHidden
         , Util.testAttribute <| "download-logs-" ++ number
-        , onClick <| download fileName logs
+        , onClick <| download fileName log.rawData
         , attribute "aria-label" <| "download logs for " ++ resource ++ " " ++ number
         ]
         [ text <| "download " ++ resource ++ " logs" ]

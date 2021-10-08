@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Util exposing
     ( anyBlank
     , ariaHidden
+    , attrIf
     , base64Decode
     , boolToYesNo
     , buildBranchUrl
@@ -357,6 +358,17 @@ smallLoaderWithText label =
 largeLoader : Html msg
 largeLoader =
     div [ class "large-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
+
+
+{-| attrIf : takes a Bool and returns either the Html.Attribute or the Html equivalent of nothing
+-}
+attrIf : Bool -> Html.Attribute msg -> Html.Attribute msg
+attrIf cond attr =
+    if cond then
+        attr
+
+    else
+        class ""
 
 
 {-| boolToYesNo : takes bool and converts to yes/no string
