@@ -23,6 +23,7 @@ module Pages.Build.Logs exposing
 
 import Ansi.Log
 import Array
+import Bytes.Encode
 import Focus exposing (FocusTarget, parseFocusFragment)
 import List.Extra exposing (updateIf)
 import RemoteData exposing (WebData)
@@ -192,8 +193,8 @@ updateLog incomingLog logs =
 -}
 safeDecodeLogData : Log -> Log
 safeDecodeLogData log =
-    { log
-        | decodedLogs =
+    let
+        str =
             if isEmpty log then
                 logEmptyMessage
 
@@ -202,6 +203,10 @@ safeDecodeLogData log =
 
             else
                 Util.base64Decode log.rawData
+    in
+    { log
+        | decodedLogs = str
+        , size = Bytes.Encode.getStringWidth log.rawData
     }
 
 
