@@ -223,7 +223,10 @@ context(
       });
 
       it('logs data should contain helpful message', () => {
-        cy.get('[data-test=log-data-step-2-1]').should('contain', 'The build has not written logs to this step yet.');
+        cy.get('[data-test=log-data-step-2-1]').should(
+          'contain',
+          'The build has not written logs to this step yet.',
+        );
       });
 
       it('logs sidebar actions should be visible', () => {
@@ -470,7 +473,10 @@ context(
       });
 
       it('logs data should contain helpful message', () => {
-        cy.get('[data-test=log-data-step-2-1]').should('contain', 'The build has not written logs to this step yet.');
+        cy.get('[data-test=log-data-step-2-1]').should(
+          'contain',
+          'The build has not written logs to this step yet.',
+        );
       });
 
       it('logs sidebar actions should be visible', () => {
