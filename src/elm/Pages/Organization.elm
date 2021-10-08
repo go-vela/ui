@@ -22,6 +22,7 @@ import Html
         , text
         )
 import Html.Attributes exposing (class, href)
+import Pages.Build.Model exposing (Msgs)
 import Pages.Build.View exposing (viewPreview)
 import RemoteData exposing (RemoteData(..))
 import Routes
@@ -32,8 +33,8 @@ import Vela exposing (BuildsModel, Event, Org, OrgReposModel, Repository)
 
 {-| view : takes org and renders build previews
 -}
-viewBuilds : BuildsModel -> Posix -> Zone -> Org -> Maybe Event -> Html msg
-viewBuilds buildsModel now zone org maybeEvent =
+viewBuilds : BuildsModel -> Msgs msgs -> List Int -> Posix -> Zone -> Org -> Maybe Event -> Html msgs
+viewBuilds buildsModel msgs openMenus now zone org maybeEvent =
     let
         none : Html msg
         none =
@@ -73,7 +74,7 @@ viewBuilds buildsModel now zone org maybeEvent =
                 none
 
             else
-                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview now zone org "") builds
+                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview msgs openMenus False now zone org "") builds
 
         RemoteData.Loading ->
             largeLoader

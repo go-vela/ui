@@ -24,23 +24,7 @@ import Focus
         , resourceAndLineToFocusId
         , resourceToFocusId
         )
-import Html
-    exposing
-        ( Html
-        , a
-        , button
-        , code
-        , details
-        , div
-        , small
-        , span
-        , strong
-        , summary
-        , table
-        , td
-        , text
-        , tr
-        )
+import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, tr, ul)
 import Html.Attributes
     exposing
         ( attribute
@@ -104,7 +88,7 @@ import Vela
 -}
 viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 viewBuild model msgs org repo buildNumber =
-    wrapWithBuildPreview model org repo buildNumber <|
+    wrapWithBuildPreview model msgs org repo buildNumber <|
         case model.repo.build.steps.steps of
             RemoteData.Success steps_ ->
                 viewBuildSteps model
@@ -126,8 +110,8 @@ viewBuild model msgs org repo buildNumber =
 
 {-| wrapWithBuildPreview : takes html content and wraps it with the build preview
 -}
-wrapWithBuildPreview : PartialModel a -> Org -> Repo -> BuildNumber -> Html msg -> Html msg
-wrapWithBuildPreview model org repo buildNumber content =
+wrapWithBuildPreview : PartialModel a -> Msgs msgs -> Org -> Repo -> BuildNumber -> Html msgs -> Html msgs
+wrapWithBuildPreview model msgs org repo buildNumber content =
     let
         rm =
             model.repo
@@ -138,7 +122,7 @@ wrapWithBuildPreview model org repo buildNumber content =
         markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    [ viewPreview model.time model.zone org repo bld
+                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo bld
                     , viewBuildTabs model org repo buildNumber model.page
                     , content
                     ]
@@ -155,11 +139,87 @@ wrapWithBuildPreview model org repo buildNumber content =
     div [ Util.testAttribute "full-build" ] markdown
 
 
+{-| restartBuildButton : takes org repo and build number and renders button to restart a build
+-}
+restartBuildButton : Org -> Repo -> Build -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+restartBuildButton org repo build restartBuild =
+    button
+        [ classList
+            [ ( "button", True )
+            , ( "-outline", True )
+            ]
+        , onClick <| restartBuild org repo <| String.fromInt build.number
+        , Util.testAttribute "restart-build"
+        ]
+        [ text "Restart Build"
+        ]
+
+
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Posix -> Zone -> Org -> Repo -> Build -> Html msg
-viewPreview now zone org repo build =
+viewPreview : Msgs msgs -> List Int -> Bool -> Posix -> Zone -> Org -> Repo -> Build -> Html msgs
+viewPreview msgs openMenu showMenu now zone org repo build =
     let
+        buildMenuBaseClassList : Html.Attribute msg
+        buildMenuBaseClassList =
+            classList
+                [ ( "details", True )
+                , ( "-marker-right", True )
+                , ( "-no-pad", True )
+                , ( "build-toggle", True )
+                ]
+
+        buildMenuAttributeList : List (Html.Attribute msg)
+        buildMenuAttributeList =
+            attribute "role" "navigation" :: Util.open (List.member build.id openMenu)
+
+        restartBuild : Html msgs
+        restartBuild =
+            li [ class "build-menu-item" ]
+                [ a
+                    [ href "#"
+                    , class "menu-item"
+                    , Util.onClickPreventDefault <| msgs.restartBuild org repo <| String.fromInt build.number
+                    , Util.testAttribute "restart-build"
+                    ]
+                    [ text "Restart Build"
+                    ]
+                ]
+
+        cancelBuild : Html msgs
+        cancelBuild =
+            case build.status of
+                Vela.Running ->
+                    li [ class "build-menu-item" ]
+                        [ a
+                            [ href "#"
+                            , class "menu-item"
+                            , Util.onClickPreventDefault <| msgs.cancelBuild org repo <| String.fromInt build.number
+                            , Util.testAttribute "cancel-build"
+                            ]
+                            [ text "Cancel Build"
+                            ]
+                        ]
+
+                _ ->
+                    text ""
+
+        actionsMenu =
+            if showMenu then
+                details (buildMenuBaseClassList :: buildMenuAttributeList)
+                    [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle build.id Nothing), Util.testAttribute "build-menu" ]
+                        [ text "Actions"
+                        , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+                        ]
+                    , ul [ class "build-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
+                        [ restartBuild
+                        , cancelBuild
+                        ]
+                    ]
+
+            else
+                div [] []
+
         repoName =
             case repo of
                 "" ->
@@ -280,13 +340,10 @@ viewPreview now zone org repo build =
                         , div [ class "sender" ] sender
                         ]
                     , div [ class "time-info" ]
-                        [ div
-                            [ class "age"
-                            , title timestamp
-                            ]
-                            age
+                        [ div [ class "age", title timestamp ] age
                         , span [ class "delimiter" ] [ text "/" ]
                         , div [ class "duration" ] [ text duration ]
+                        , actionsMenu
                         ]
                     ]
                 , div [ class "row" ]
@@ -484,7 +541,7 @@ viewStepLogs msgs shift rm step =
 -}
 viewBuildServices : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 viewBuildServices model msgs org repo buildNumber =
-    wrapWithBuildPreview model org repo buildNumber <|
+    wrapWithBuildPreview model msgs org repo buildNumber <|
         case model.repo.build.services.services of
             RemoteData.Success services ->
                 if List.isEmpty services then
@@ -946,7 +1003,11 @@ viewError build =
                 ]
 
         _ ->
-            div [] []
+            div [ class "error hidden-spacer", Util.testAttribute "build-spacer" ]
+                [ span [ class "label" ] [ text "No Errors" ]
+                , span [ class "message" ]
+                    [ text "This div is hidden to occupy space for a consistent experience" ]
+                ]
 
 
 
@@ -982,7 +1043,7 @@ statusToClass status =
 
 {-| buildStatusStyles : takes build markdown and adds styled flair based on running status
 -}
-buildStatusStyles : List (Html msg) -> Status -> Int -> List (Html msg)
+buildStatusStyles : List (Html msgs) -> Status -> Int -> List (Html msgs)
 buildStatusStyles markdown buildStatus buildNumber =
     let
         animation =
