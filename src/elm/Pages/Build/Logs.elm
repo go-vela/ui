@@ -194,7 +194,7 @@ updateLog incomingLog logs =
 safeDecodeLogData : Log -> Log
 safeDecodeLogData log =
     let
-        str =
+        decoded =
             if isEmpty log then
                 logEmptyMessage
 
@@ -205,7 +205,7 @@ safeDecodeLogData log =
                 Util.base64Decode log.rawData
     in
     { log
-        | decodedLogs = str
+        | decodedLogs = decoded
         , size = Bytes.Encode.getStringWidth log.rawData
     }
 
