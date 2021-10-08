@@ -216,9 +216,9 @@ logEmptyMessage =
 -}
 logSizeExceededMessage : String
 logSizeExceededMessage =
-    "The data for this log exceeds the size limit ("
+    "The data for this log exceeds the size limit of "
         ++ Util.formatFilesize logSizeLimit
-        ++ ").\n"
+        ++ ".\n"
         ++ "To view this log use the CLI or click the 'download' link in the top right corner of this step (downloading may take a few moments, depending on the size of the file)."
 
 
