@@ -214,12 +214,20 @@ context(
         cy.get('[data-test=step-header-1]').click({ force: true });
       });
 
-      it('logs header actions should not exist', () => {
-        cy.get('[data-test=logs-header-actions-1]').should('not.exist');
+      it('logs header actions should exist', () => {
+        cy.get('[data-test=logs-header-actions-1]').should('be.visible');
       });
 
-      it('logs sidebar actions should not exist', () => {
-        cy.get('[data-test=logs-sidebar-actions-1]').should('not.exist');
+      it('download button should not be visible', () => {
+        cy.get('[data-test=download-logs-1]').should('not.be.visible');
+      });
+
+      it('logs data should contain helpful message', () => {
+        cy.get('[data-test=log-data-step-2-1]').should('contain', 'The build has not written logs to this step yet.');
+      });
+
+      it('logs sidebar actions should be visible', () => {
+        cy.get('[data-test=logs-sidebar-actions-1]').should('be.visible');
       });
     });
   },
@@ -453,12 +461,20 @@ context(
         cy.get('[data-test=service-header-1]').click({ force: true });
       });
 
-      it('logs header actions should not exist', () => {
-        cy.get('[data-test=logs-header-actions-1]').should('not.exist');
+      it('logs header actions should exist', () => {
+        cy.get('[data-test=logs-header-actions-1]').should('be.visible');
       });
 
-      it('logs sidebar actions should not exist', () => {
-        cy.get('[data-test=logs-sidebar-actions-1]').should('not.exist');
+      it('download button should not be visible', () => {
+        cy.get('[data-test=download-logs-1]').should('not.be.visible');
+      });
+
+      it('logs data should contain helpful message', () => {
+        cy.get('[data-test=log-data-step-2-1]').should('contain', 'The build has not written logs to this step yet.');
+      });
+
+      it('logs sidebar actions should be visible', () => {
+        cy.get('[data-test=logs-sidebar-actions-1]').should('be.visible');
       });
     });
   },
