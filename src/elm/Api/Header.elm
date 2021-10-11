@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Api.Header exposing (get)
+module Api.Header exposing (contentLength, get)
 
 import Dict exposing (Dict)
 
@@ -26,3 +26,16 @@ get key headers =
                 |> Dict.fromList
     in
     Dict.get key_ headers_
+
+
+{-| contentLength : looks for the 'Content-Length' header key and returns the value
+
+    we return a maybe int because not all responses contain the header
+
+-}
+contentLength : Dict String String -> Maybe Int
+contentLength headers =
+    headers
+        |> get "content-length"
+        |> Maybe.withDefault ""
+        |> String.toInt

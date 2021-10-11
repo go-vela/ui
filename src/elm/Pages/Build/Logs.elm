@@ -9,6 +9,7 @@ module Pages.Build.Logs exposing
     , bottomTrackerFocusId
     , clickResource
     , decodeAnsi
+    , decodeLogSize
     , downloadFileName
     , expandActive
     , focusAndClear
@@ -22,8 +23,10 @@ module Pages.Build.Logs exposing
     )
 
 import Ansi.Log
+import Api.Header
 import Array
 import Bytes.Encode
+import Dict exposing (Dict)
 import Focus exposing (FocusTarget, parseFocusFragment)
 import List.Extra exposing (updateIf)
 import RemoteData exposing (WebData)
@@ -206,8 +209,16 @@ safeDecodeLogData log =
     in
     { log
         | decodedLogs = decoded
-        , size = Bytes.Encode.getStringWidth log.rawData
     }
+
+
+{-| decodeLogSize : takes log and decodes the size based on content length header or data size
+-}
+decodeLogSize : Dict String String -> Log -> Int
+decodeLogSize headers log =
+    headers
+        |> Api.Header.contentLength
+        |> Maybe.withDefault (Bytes.Encode.getStringWidth log.rawData)
 
 
 {-| logEmptyMessage : returns the default message when log data does not exist.

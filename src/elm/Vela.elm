@@ -1570,7 +1570,7 @@ decodeLog =
                 -- "decodedLogs"
                 ""
                 -- "size"
-                (Bytes.Encode.getStringWidth data)
+                0
         )
         |> optional "id" int -1
         |> optional "step_id" int -1

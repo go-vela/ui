@@ -9,6 +9,7 @@ module Main exposing (main)
 import Alerts exposing (Alert)
 import Api
 import Api.Endpoint
+import Api.Header
 import Api.Pagination as Pagination
 import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
 import Auth.Session exposing (Session(..), SessionDetails, refreshAccessToken)
@@ -81,6 +82,7 @@ import Pages.Build.Logs
         ( addLog
         , bottomTrackerFocusId
         , clickResource
+        , decodeLogSize
         , expandActive
         , focusAndClear
         , isViewing
@@ -1507,7 +1509,7 @@ update msg model =
 
         StepLogResponse stepNumber logFocus refresh response ->
             case response of
-                Ok ( _, incomingLog ) ->
+                Ok ( meta, incomingLog ) ->
                     let
                         following =
                             rm.build.steps.followingStep /= 0
@@ -1535,8 +1537,11 @@ update msg model =
 
                             else
                                 Cmd.none
+
+                        size =
+                            decodeLogSize meta.headers incomingLog
                     in
-                    ( updateStepLogs { model | repo = updateBuildSteps steps rm } incomingLog
+                    ( updateStepLogs { model | repo = updateBuildSteps steps rm } { incomingLog | size = size }
                     , cmd
                     )
 
@@ -1565,7 +1570,7 @@ update msg model =
 
         ServiceLogResponse serviceNumber logFocus refresh response ->
             case response of
-                Ok ( _, incomingLog ) ->
+                Ok ( meta, incomingLog ) ->
                     let
                         following =
                             rm.build.services.followingService /= 0
@@ -1593,8 +1598,11 @@ update msg model =
 
                             else
                                 Cmd.none
+
+                        size =
+                            decodeLogSize meta.headers incomingLog
                     in
-                    ( updateServiceLogs { model | repo = updateBuildServices services rm } incomingLog
+                    ( updateServiceLogs { model | repo = updateBuildServices services rm } { incomingLog | size = size }
                     , cmd
                     )
 
