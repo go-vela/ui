@@ -325,9 +325,7 @@ details.build-toggle {
   position: absolute;
   top: 1em;
   right: 1em;
-  z-index: 9999;
 
-  -webkit-flex: 0;
   flex: 0;
 }
 
@@ -337,8 +335,8 @@ details.build-toggle {
 
 .build-menu {
   position: absolute;
-  top: 0.5em;
-  right: 0;
+  top: 0.75rem;
+  right: 0.25rem;
 
   width: max-content;
   min-width: 100%;
