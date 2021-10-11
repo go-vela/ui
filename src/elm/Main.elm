@@ -9,7 +9,6 @@ module Main exposing (main)
 import Alerts exposing (Alert)
 import Api
 import Api.Endpoint
-import Api.Header
 import Api.Pagination as Pagination
 import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
 import Auth.Session exposing (Session(..), SessionDetails, refreshAccessToken)
@@ -82,7 +81,6 @@ import Pages.Build.Logs
         ( addLog
         , bottomTrackerFocusId
         , clickResource
-        , decodeLogSize
         , expandActive
         , focusAndClear
         , isViewing
@@ -244,6 +242,7 @@ type alias Flags =
     , velaDocsURL : String
     , velaTheme : String
     , velaRedirect : String
+    , velaLogBytesLimit : Int
     }
 
 
@@ -258,6 +257,7 @@ type alias Model =
     , velaFeedbackURL : String
     , velaDocsURL : String
     , velaRedirect : String
+    , velaLogBytesLimit : Int
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
@@ -306,6 +306,7 @@ init flags url navKey =
             , velaFeedbackURL = flags.velaFeedbackURL
             , velaDocsURL = flags.velaDocsURL
             , velaRedirect = flags.velaRedirect
+            , velaLogBytesLimit = flags.velaLogBytesLimit
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = utc
@@ -1509,7 +1510,7 @@ update msg model =
 
         StepLogResponse stepNumber logFocus refresh response ->
             case response of
-                Ok ( meta, incomingLog ) ->
+                Ok ( _, incomingLog ) ->
                     let
                         following =
                             rm.build.steps.followingStep /= 0
@@ -1537,11 +1538,8 @@ update msg model =
 
                             else
                                 Cmd.none
-
-                        size =
-                            decodeLogSize meta.headers incomingLog
                     in
-                    ( updateStepLogs { model | repo = updateBuildSteps steps rm } { incomingLog | size = size }
+                    ( updateStepLogs { model | repo = updateBuildSteps steps rm } incomingLog
                     , cmd
                     )
 
@@ -1570,7 +1568,7 @@ update msg model =
 
         ServiceLogResponse serviceNumber logFocus refresh response ->
             case response of
-                Ok ( meta, incomingLog ) ->
+                Ok ( _, incomingLog ) ->
                     let
                         following =
                             rm.build.services.followingService /= 0
@@ -1598,11 +1596,8 @@ update msg model =
 
                             else
                                 Cmd.none
-
-                        size =
-                            decodeLogSize meta.headers incomingLog
                     in
-                    ( updateServiceLogs { model | repo = updateBuildServices services rm } { incomingLog | size = size }
+                    ( updateServiceLogs { model | repo = updateBuildServices services rm } incomingLog
                     , cmd
                     )
 
@@ -3930,10 +3925,10 @@ updateStepLogs model incomingLog =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repo = updateBuildStepsLogs (updateLog incomingLog logs) rm }
+        { model | repo = updateBuildStepsLogs (updateLog incomingLog logs model.velaLogBytesLimit) rm }
 
     else if incomingLog.id /= 0 then
-        { model | repo = updateBuildStepsLogs (addLog incomingLog logs) rm }
+        { model | repo = updateBuildStepsLogs (addLog incomingLog logs model.velaLogBytesLimit) rm }
 
     else
         model
@@ -3957,10 +3952,10 @@ updateServiceLogs model incomingLog =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repo = updateBuildServicesLogs (updateLog incomingLog logs) rm }
+        { model | repo = updateBuildServicesLogs (updateLog incomingLog logs model.velaLogBytesLimit) rm }
 
     else if incomingLog.id /= 0 then
-        { model | repo = updateBuildServicesLogs (addLog incomingLog logs) rm }
+        { model | repo = updateBuildServicesLogs (addLog incomingLog logs model.velaLogBytesLimit) rm }
 
     else
         model

@@ -19,28 +19,28 @@ context(
     });
 
     it('line should not contain ansi characters', () => {
-      cy.get('[data-test=log-line-step-2-30]').within(() => {
+      cy.get('[data-test=log-line-step-2-1]').within(() => {
         cy.get('[class=ansi-red-fg]').should('not.exist');
       });
     });
 
     it('line should contain ansi color css', () => {
-      cy.get('[data-test=log-line-step-2-31]').within(() => {
+      cy.get('[data-test=log-line-step-2-2]').within(() => {
         cy.get('[class=ansi-green-fg]').should('exist');
         cy.get('[class=ansi-red-fg]').should('exist');
       });
-      cy.get('[data-test=log-line-step-2-31]').within(() => {
+      cy.get('[data-test=log-line-step-2-2]').within(() => {
         cy.get('[class=ansi-bright-black-fg]').should('exist');
       });
     });
 
     it('ansi fg classes should change css color', () => {
-      cy.get('[data-test=log-line-step-2-31]').within(() => {
+      cy.get('[data-test=log-line-step-2-2]').within(() => {
         cy.get('[class=ansi-green-fg]')
           .should('have.css', 'color')
           .should('eq', 'rgb(125, 209, 35)');
       });
-      cy.get('[data-test=log-line-step-2-31]').within(() => {
+      cy.get('[data-test=log-line-step-2-2]').within(() => {
         cy.get('[class=ansi-red-fg]')
           .should('have.css', 'color')
           .should('eq', 'rgb(235, 102, 117)');
@@ -48,7 +48,7 @@ context(
     });
 
     it('line should respect ansi font style', () => {
-      cy.get('[data-test=log-line-step-2-46]').within(() => {
+      cy.get('[data-test=log-line-step-2-3]').within(() => {
         cy.get('.ansi-bold').should('exist');
       });
     });
@@ -253,28 +253,28 @@ context(
     });
 
     it('line should not contain ansi characters', () => {
-      cy.get('[data-test=log-line-service-2-30]').within(() => {
+      cy.get('[data-test=log-line-service-2-1]').within(() => {
         cy.get('[class=ansi-red-fg]').should('not.exist');
       });
     });
 
     it('line should contain ansi color css', () => {
-      cy.get('[data-test=log-line-service-2-31]').within(() => {
+      cy.get('[data-test=log-line-service-2-2]').within(() => {
         cy.get('[class=ansi-green-fg]').should('exist');
         cy.get('[class=ansi-red-fg]').should('exist');
       });
-      cy.get('[data-test=log-line-service-2-31]').within(() => {
+      cy.get('[data-test=log-line-service-2-2]').within(() => {
         cy.get('[class=ansi-bright-black-fg]').should('exist');
       });
     });
 
     it('ansi fg classes should change css color', () => {
-      cy.get('[data-test=log-line-service-2-31]').within(() => {
+      cy.get('[data-test=log-line-service-2-2]').within(() => {
         cy.get('[class=ansi-green-fg]')
           .should('have.css', 'color')
           .should('eq', 'rgb(125, 209, 35)');
       });
-      cy.get('[data-test=log-line-service-2-31]').within(() => {
+      cy.get('[data-test=log-line-service-2-2]').within(() => {
         cy.get('[class=ansi-red-fg]')
           .should('have.css', 'color')
           .should('eq', 'rgb(235, 102, 117)');
@@ -282,7 +282,7 @@ context(
     });
 
     it('line should respect ansi font style', () => {
-      cy.get('[data-test=log-line-service-2-46]').within(() => {
+      cy.get('[data-test=log-line-service-2-3]').within(() => {
         cy.get('.ansi-bold').should('exist');
       });
     });
@@ -485,3 +485,28 @@ context(
     });
   },
 );
+
+context('visit Build with steps and large logs', () => {
+  beforeEach(() => {
+    cy.server();
+    cy.stubBuild();
+    cy.stubStepsWithLargeLogs();
+    cy.login('/github/octocat/1');
+    cy.get('[data-test=step-header-1]').click({ force: true });
+  });
+
+  it('line should contain size exceeded message', () => {
+    cy.get('[data-test=log-line-step-1-1]').should(
+      'contain',
+      'exceeds the size limit',
+    );
+  });
+
+  it('second line should contain download tip', () => {
+    cy.get('[data-test=log-line-step-1-2]').should('contain', 'download');
+  });
+
+  it('download button should show', () => {
+    cy.get('[data-test=download-logs-1]').should('exist');
+  });
+});

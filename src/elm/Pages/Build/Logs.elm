@@ -9,7 +9,6 @@ module Pages.Build.Logs exposing
     , bottomTrackerFocusId
     , clickResource
     , decodeAnsi
-    , decodeLogSize
     , downloadFileName
     , expandActive
     , focusAndClear
@@ -23,10 +22,7 @@ module Pages.Build.Logs exposing
     )
 
 import Ansi.Log
-import Api.Header
 import Array
-import Bytes.Encode
-import Dict exposing (Dict)
 import Focus exposing (FocusTarget, parseFocusFragment)
 import List.Extra exposing (updateIf)
 import RemoteData exposing (WebData)
@@ -165,17 +161,17 @@ getLog resource get logs =
 
 {-| addLog : takes incoming log and logs and adds log when not present
 -}
-addLog : Log -> Logs -> Logs
-addLog incomingLog logs =
+addLog : Log -> Logs -> Int -> Logs
+addLog incomingLog logs limit =
     RemoteData.succeed
-        (safeDecodeLogData incomingLog)
+        (safeDecodeLogData incomingLog limit)
         :: logs
 
 
 {-| updateLog : takes incoming log and logs and updates the appropriate log data
 -}
-updateLog : Log -> Logs -> Logs
-updateLog incomingLog logs =
+updateLog : Log -> Logs -> Int -> Logs
+updateLog incomingLog logs limit =
     updateIf
         (\log ->
             case log of
@@ -187,38 +183,34 @@ updateLog incomingLog logs =
         )
         (\_ ->
             RemoteData.succeed <|
-                safeDecodeLogData incomingLog
+                safeDecodeLogData incomingLog limit
         )
         logs
 
 
 {-| safeDecodeLogData : takes log and decodes the data if it exists and does not exceed the size limit.
 -}
-safeDecodeLogData : Log -> Log
-safeDecodeLogData log =
+safeDecodeLogData : Log -> Int -> Log
+safeDecodeLogData log limit =
     let
         decoded =
             if isEmpty log then
                 logEmptyMessage
 
-            else if exceedsSizeLimit log then
-                logSizeExceededMessage
+            else if log.size > limit then
+                logSizeExceededMessage limit
 
             else
                 Util.base64Decode log.rawData
     in
-    { log
-        | decodedLogs = decoded
-    }
+    { log | decodedLogs = decoded }
 
 
-{-| decodeLogSize : takes log and decodes the size based on content length header or data size
+{-| isEmpty : takes log and returns true if log contains no data
 -}
-decodeLogSize : Dict String String -> Log -> Int
-decodeLogSize headers log =
-    headers
-        |> Api.Header.contentLength
-        |> Maybe.withDefault (Bytes.Encode.getStringWidth log.rawData)
+isEmpty : Log -> Bool
+isEmpty log =
+    log.size == 0
 
 
 {-| logEmptyMessage : returns the default message when log data does not exist.
@@ -230,10 +222,10 @@ logEmptyMessage =
 
 {-| logSizeExceededMessage : returns the default message when a log exceeds the size limit.
 -}
-logSizeExceededMessage : String
-logSizeExceededMessage =
+logSizeExceededMessage : Int -> String
+logSizeExceededMessage limit =
     "The data for this log exceeds the size limit of "
-        ++ Util.formatFilesize logSizeLimit
+        ++ Util.formatFilesize limit
         ++ ".\n"
         ++ "To view this log use the CLI or click the 'download' link in the top right corner of this step (downloading may take a few moments, depending on the size of the file)."
 
@@ -348,27 +340,6 @@ bottomTrackerFocusId resource number =
 downloadFileName : Org -> Repo -> BuildNumber -> String -> String -> String
 downloadFileName org repo buildNumber resourceType resourceNumber =
     String.join "-" [ org, repo, buildNumber, resourceType, resourceNumber ]
-
-
-{-| logSizeLimit : returns the maximum size for log data, in bytes.
--}
-logSizeLimit : Int
-logSizeLimit =
-    Util.megabyte * 2
-
-
-{-| exceedsSizeLimit : takes log and returns true if log.data exceeds the render size limit
--}
-exceedsSizeLimit : Log -> Bool
-exceedsSizeLimit log =
-    log.size > logSizeLimit
-
-
-{-| isEmpty : takes log and returns true if log contains no data
--}
-isEmpty : Log -> Bool
-isEmpty log =
-    log.size == 0
 
 
 
