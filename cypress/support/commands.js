@@ -329,6 +329,25 @@ Cypress.Commands.add('stubStepsWithANSILogs', () => {
   });
 });
 
+Cypress.Commands.add('stubStepsWithLargeLogs', () => {
+  cy.server();
+  cy.fixture('steps_5.json').as('steps');
+  cy.route({
+    method: 'GET',
+    url: 'api/v1/repos/*/*/builds/*/steps*',
+    status: 200,
+    response: '@steps',
+  });
+  cy.fixture('logs_large').then(log => {
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/1/logs',
+      status: 200,
+      response: log,
+    }).as('getLogs-1');
+  });
+});
+
 Cypress.Commands.add('stubServicesWithANSILogs', () => {
   cy.server();
   cy.fixture('services_5.json').as('services');

@@ -55,6 +55,8 @@ export type Flags = {
   readonly velaTheme: Theme;
   /** @property velaRedirect: string */
   readonly velaRedirect: string;
+  /** @property velaLogBytesLimit: number */
+  readonly velaLogBytesLimit: number;
 };
 
 /**

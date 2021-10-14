@@ -7,6 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Util exposing
     ( anyBlank
     , ariaHidden
+    , attrIf
     , base64Decode
     , boolToYesNo
     , buildBranchUrl
@@ -16,6 +17,7 @@ module Util exposing
     , filterEmptyList
     , filterEmptyLists
     , fiveSecondsMillis
+    , formatFilesize
     , formatRunTime
     , formatTestTag
     , getNameFromRef
@@ -24,6 +26,7 @@ module Util exposing
     , isLoading
     , isSuccess
     , largeLoader
+    , megabyte
     , mergeListsById
     , noBlanks
     , onClickPreventDefault
@@ -47,6 +50,7 @@ import Bytes
 import Bytes.Decode
 import DateFormat
 import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOptions)
+import Filesize
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (custom)
@@ -356,6 +360,17 @@ largeLoader =
     div [ class "large-loader" ] [ div [ class "-spinner" ] [], div [ class "-label" ] [] ]
 
 
+{-| attrIf : takes a Bool and returns either the Html.Attribute or the Html equivalent of nothing
+-}
+attrIf : Bool -> Html.Attribute msg -> Html.Attribute msg
+attrIf cond attr =
+    if cond then
+        attr
+
+    else
+        class ""
+
+
 {-| boolToYesNo : takes bool and converts to yes/no string
 -}
 boolToYesNo : Bool -> String
@@ -499,3 +514,49 @@ getNameFromRef s =
 
         _ ->
             ""
+
+
+{-| byteUnitFactor : returns the factor for doing filesize calculations.
+This application uses decimal units, or units by the 1000.
+
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+
+-}
+byteUnitFactor : Int
+byteUnitFactor =
+    1000
+
+
+{-| byte : returns a byte represented as an integer.
+
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+
+-}
+byte : Int
+byte =
+    1
+
+
+{-| kilobyte : returns a kilobyte defined as 1000 bytes.
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+-}
+kilobyte : Int
+kilobyte =
+    byteUnitFactor * byte
+
+
+{-| megabyte : returns a megabyte defined as 1000 kilobytes.
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+-}
+megabyte : Int
+megabyte =
+    byteUnitFactor * kilobyte
+
+
+{-| formatFilesize : returns a file size in bytes as a human readable string.
+Defined as a helper function to make it easier to configure bases, units etc.
+see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
+-}
+formatFilesize : Int -> String
+formatFilesize =
+    Filesize.format

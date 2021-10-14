@@ -72,19 +72,20 @@ import Http.Detailed
 import Interop
 import Json.Decode as Decode
 import Json.Encode as Encode
-import List.Extra exposing (updateIf)
 import Maybe
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page(..))
 import Pages.Build.Logs
     exposing
-        ( bottomTrackerFocusId
+        ( addLog
+        , bottomTrackerFocusId
         , clickResource
         , expandActive
         , focusAndClear
         , isViewing
         , setAllViews
+        , updateLog
         )
 import Pages.Build.Model
 import Pages.Build.View
@@ -241,6 +242,7 @@ type alias Flags =
     , velaDocsURL : String
     , velaTheme : String
     , velaRedirect : String
+    , velaLogBytesLimit : Int
     }
 
 
@@ -255,6 +257,7 @@ type alias Model =
     , velaFeedbackURL : String
     , velaDocsURL : String
     , velaRedirect : String
+    , velaLogBytesLimit : Int
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
@@ -303,6 +306,7 @@ init flags url navKey =
             , velaFeedbackURL = flags.velaFeedbackURL
             , velaDocsURL = flags.velaDocsURL
             , velaRedirect = flags.velaRedirect
+            , velaLogBytesLimit = flags.velaLogBytesLimit
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = utc
@@ -377,7 +381,7 @@ type Msg
     | ShowHideBuildMenu Int (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
     | Copy String
-    | DownloadFile String String String
+    | DownloadFile String (String -> String) String String
     | ExpandAllSteps Org Repo BuildNumber
     | CollapseAllSteps
     | ExpandStep Org Repo BuildNumber StepNumber
@@ -709,9 +713,9 @@ update msg model =
                         Nothing
                     )
 
-        DownloadFile ext filename content ->
+        DownloadFile ext fn filename content ->
             ( model
-            , Download.string filename ext content
+            , Download.string filename ext <| fn content
             )
 
         -- steps
@@ -3924,10 +3928,10 @@ updateStepLogs model incomingLog =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repo = updateBuildStepsLogs (updateLog incomingLog logs) rm }
+        { model | repo = updateBuildStepsLogs (updateLog incomingLog logs model.velaLogBytesLimit) rm }
 
     else if incomingLog.id /= 0 then
-        { model | repo = updateBuildStepsLogs (addLog incomingLog logs) rm }
+        { model | repo = updateBuildStepsLogs (addLog incomingLog logs model.velaLogBytesLimit) rm }
 
     else
         model
@@ -3951,30 +3955,13 @@ updateServiceLogs model incomingLog =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repo = updateBuildServicesLogs (updateLog incomingLog logs) rm }
+        { model | repo = updateBuildServicesLogs (updateLog incomingLog logs model.velaLogBytesLimit) rm }
 
     else if incomingLog.id /= 0 then
-        { model | repo = updateBuildServicesLogs (addLog incomingLog logs) rm }
+        { model | repo = updateBuildServicesLogs (addLog incomingLog logs model.velaLogBytesLimit) rm }
 
     else
         model
-
-
-{-| updateLog : takes incoming log and logs and updates the appropriate log data
--}
-updateLog : Log -> Logs -> Logs
-updateLog incomingLog logs =
-    updateIf
-        (\log ->
-            case log of
-                Success log_ ->
-                    incomingLog.id == log_.id && incomingLog.rawData /= log_.rawData
-
-                _ ->
-                    True
-        )
-        (\_ -> RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData })
-        logs
 
 
 receiveSecrets : Model -> Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> SecretType -> ( Model, Cmd Msg )
@@ -4057,13 +4044,6 @@ receiveSecrets model response type_ =
             ( { model | secretsModel = sm }, addError error )
 
 
-{-| addLog : takes incoming log and logs and adds log when not present
--}
-addLog : Log -> Logs -> Logs
-addLog incomingLog logs =
-    RemoteData.succeed { incomingLog | decodedLogs = Util.base64Decode incomingLog.rawData } :: logs
-
-
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
 -}
 homeMsgs : Pages.Home.Msgs Msg
@@ -4107,7 +4087,7 @@ buildMsgs =
     , toggle = ShowHideBuildMenu
     , logsMsgs =
         { focusLine = PushUrl
-        , download = DownloadFile "text"
+        , download = DownloadFile "text" Util.base64Decode
         , focusOn = FocusOn
         , followStep = FollowStep
         , followService = FollowService
@@ -4123,7 +4103,7 @@ pipelineMsgs =
     , expand = ExpandPipelineConfig
     , focusLineNumber = FocusPipelineConfigLineNumber
     , showHideTemplates = ShowHideTemplates
-    , download = DownloadFile "text"
+    , download = DownloadFile "text" identity
     }
 
 
