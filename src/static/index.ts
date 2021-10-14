@@ -3,15 +3,16 @@
 // Use of this source code is governed by the LICENSE file in this repository.
 
 // import types
-import { App, Config, Flags, Theme } from './index.d';
+import * as ClipboardJS from 'clipboard';
 import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
-import * as ClipboardJS from 'clipboard';
+import { App, Config, Flags, Theme } from './index.d';
 
 // Vela consts
 const feedbackURL: string =
   'https://github.com/go-vela/community/issues/new/choose';
 const docsURL: string = 'https://go-vela.github.io/docs';
+const defaultLogBytesLimit: number = 2000000; // 2mb
 
 // setup for auth redirect
 const redirectKey: string = 'vela-redirect';
@@ -39,6 +40,11 @@ const flags: Flags = {
     docsURL,
   velaTheme: currentThemeState || (defaultTheme as Theme),
   velaRedirect: currentRedirectKey || '',
+  velaLogBytesLimit: Number(
+    process.env.VELA_LOG_BYTES_LIMIT ||
+      envOrNull('VELA_LOG_BYTES_LIMIT', '$VELA_LOG_BYTES_LIMIT') ||
+      defaultLogBytesLimit,
+  ),
 };
 
 // create the configuration object for Elm

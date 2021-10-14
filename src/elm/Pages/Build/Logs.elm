@@ -5,19 +5,20 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build.Logs exposing
-    ( bottomTrackerFocusId
+    ( addLog
+    , bottomTrackerFocusId
     , clickResource
     , decodeAnsi
     , downloadFileName
     , expandActive
     , focusAndClear
     , getLog
+    , isEmpty
     , isViewing
-    , logEmpty
     , merge
     , setAllViews
-    , toString
     , topTrackerFocusId
+    , updateLog
     )
 
 import Ansi.Log
@@ -158,6 +159,77 @@ getLog resource get logs =
         |> List.head
 
 
+{-| addLog : takes incoming log and logs and adds log when not present
+-}
+addLog : Log -> Logs -> Int -> Logs
+addLog incomingLog logs limit =
+    RemoteData.succeed
+        (safeDecodeLogData incomingLog limit)
+        :: logs
+
+
+{-| updateLog : takes incoming log and logs and updates the appropriate log data
+-}
+updateLog : Log -> Logs -> Int -> Logs
+updateLog incomingLog logs limit =
+    updateIf
+        (\log ->
+            case log of
+                RemoteData.Success log_ ->
+                    incomingLog.id == log_.id && incomingLog.rawData /= log_.rawData
+
+                _ ->
+                    True
+        )
+        (\_ ->
+            RemoteData.succeed <|
+                safeDecodeLogData incomingLog limit
+        )
+        logs
+
+
+{-| safeDecodeLogData : takes log and decodes the data if it exists and does not exceed the size limit.
+-}
+safeDecodeLogData : Log -> Int -> Log
+safeDecodeLogData log limit =
+    let
+        decoded =
+            if isEmpty log then
+                logEmptyMessage
+
+            else if log.size > limit then
+                logSizeExceededMessage limit
+
+            else
+                Util.base64Decode log.rawData
+    in
+    { log | decodedLogs = decoded }
+
+
+{-| isEmpty : takes log and returns true if log contains no data
+-}
+isEmpty : Log -> Bool
+isEmpty log =
+    log.size == 0
+
+
+{-| logEmptyMessage : returns the default message when log data does not exist.
+-}
+logEmptyMessage : String
+logEmptyMessage =
+    "The build has not written logs to this step yet."
+
+
+{-| logSizeExceededMessage : returns the default message when a log exceeds the size limit.
+-}
+logSizeExceededMessage : Int -> String
+logSizeExceededMessage limit =
+    "The data for this log exceeds the size limit of "
+        ++ Util.formatFilesize limit
+        ++ ".\n"
+        ++ "To view this log use the CLI or click the 'download' link in the top right corner of this step (downloading may take a few moments, depending on the size of the file)."
+
+
 {-| focus : takes FocusFragment URL fragment and expands the appropriate resource to automatically view
 -}
 focus : FocusFragment -> Resources a -> Resources a
@@ -247,30 +319,6 @@ setAndClear ft n resources =
 clear : Resource a -> Resource a
 clear resource =
     { resource | logFocus = ( Nothing, Nothing ) }
-
-
-{-| logEmpty : takes log string and returns True if content does not exist
--}
-logEmpty : String -> Bool
-logEmpty log =
-    String.isEmpty <| String.replace " " "" log
-
-
-{-| toString : returns a string from a Maybe Log
--}
-toString : Maybe (WebData Log) -> String
-toString log =
-    case log of
-        Just log_ ->
-            case log_ of
-                RemoteData.Success l ->
-                    l.decodedLogs
-
-                _ ->
-                    ""
-
-        Nothing ->
-            ""
 
 
 {-| topTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
