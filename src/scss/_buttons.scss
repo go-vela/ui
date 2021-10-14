@@ -223,6 +223,11 @@
   }
 }
 
+// hidden button
+.button.-hidden {
+  visibility: hidden;
+}
+
 // to fix multiple-button misalignment
 .buttons {
   display: flex;

@@ -43,8 +43,7 @@ import Pages.Build.Logs
         , decodeAnsi
         , downloadFileName
         , getLog
-        , logEmpty
-        , toString
+        , isEmpty
         , topTrackerFocusId
         )
 import Pages.Build.Model
@@ -672,32 +671,24 @@ viewServiceLogs msgs shift rm service =
 -}
 viewLogLines : LogsMsgs msg -> FollowResource msg -> Org -> Repo -> BuildNumber -> String -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
 viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus maybeLog following shiftDown =
-    let
-        decodedLog =
-            toString maybeLog
-
-        fileName =
-            downloadFileName org repo buildNumber resource resourceID
-    in
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ resourceID
         ]
     <|
         case Maybe.withDefault RemoteData.NotAsked maybeLog of
-            RemoteData.Success _ ->
-                if logEmpty decodedLog then
-                    [ emptyLogs ]
+            RemoteData.Success l ->
+                let
+                    fileName =
+                        downloadFileName org repo buildNumber resource resourceID
 
-                else
-                    let
-                        ( logs, numLines ) =
-                            viewLines msgs.focusLine resource resourceID logFocus decodedLog shiftDown
-                    in
-                    [ logsHeader msgs resource resourceID fileName decodedLog
-                    , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
-                    , logs
-                    ]
+                    ( logs, numLines ) =
+                        viewLines msgs.focusLine resource resourceID logFocus l.decodedLogs shiftDown
+                in
+                [ logsHeader msgs resource resourceID fileName l
+                , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
+                , logs
+                ]
 
             RemoteData.Failure _ ->
                 [ code [ Util.testAttribute "logs-error" ] [ text "error fetching logs" ] ]
@@ -712,32 +703,20 @@ viewLines : FocusLine msg -> Resource -> ResourceID -> LogFocus -> String -> Boo
 viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
     let
         lines =
-            if not <| logEmpty decodedLog then
-                decodedLog
-                    |> decodeAnsi
-                    |> Array.indexedMap
-                        (\idx line ->
-                            Just <|
-                                viewLine focusLine
-                                    resource
-                                    resourceID
-                                    (idx + 1)
-                                    (Just line)
-                                    logFocus
-                                    shiftDown
-                        )
-                    |> Array.toList
-
-            else
-                [ Just <|
-                    viewLine focusLine
-                        resource
-                        resourceID
-                        1
-                        Nothing
-                        logFocus
-                        shiftDown
-                ]
+            decodedLog
+                |> decodeAnsi
+                |> Array.indexedMap
+                    (\idx line ->
+                        Just <|
+                            viewLine focusLine
+                                resource
+                                resourceID
+                                (idx + 1)
+                                (Just line)
+                                logFocus
+                                shiftDown
+                    )
+                |> Array.toList
 
         -- update resource filename when adding stages/services
         logs =
@@ -852,10 +831,10 @@ expandAllButton expandAll org repo buildNumber =
 
 {-| logsHeader : takes number, filename and decoded log and renders logs header
 -}
-logsHeader : LogsMsgs msg -> String -> String -> String -> String -> Html msg
-logsHeader msgs resource number fileName decodedLog =
+logsHeader : LogsMsgs msg -> String -> String -> String -> Log -> Html msg
+logsHeader msgs resource number fileName log =
     div [ class "logs-header", class "buttons", Util.testAttribute <| "logs-header-actions-" ++ number ]
-        [ downloadLogsButton msgs.download resource number fileName decodedLog ]
+        [ downloadLogsButton msgs.download resource number fileName log ]
 
 
 {-| logsSidebar : takes number/following and renders the logs sidebar
@@ -920,13 +899,20 @@ jumpToTopButton focusOn resource number =
 
 {-| downloadLogsButton : renders action button for downloading a log
 -}
-downloadLogsButton : Download msg -> String -> String -> String -> String -> Html msg
-downloadLogsButton download resource number fileName logs =
+downloadLogsButton : Download msg -> String -> String -> String -> Log -> Html msg
+downloadLogsButton download resource number fileName log =
+    let
+        logEmpty =
+            isEmpty log
+    in
     button
         [ class "button"
         , class "-link"
+        , Html.Attributes.disabled logEmpty
+        , Util.attrIf logEmpty <| class "-hidden"
+        , Util.attrIf logEmpty <| Util.ariaHidden
         , Util.testAttribute <| "download-logs-" ++ number
-        , onClick <| download fileName logs
+        , onClick <| download fileName log.rawData
         , attribute "aria-label" <| "download logs for " ++ resource ++ " " ++ number
         ]
         [ text <| "download " ++ resource ++ " logs" ]
@@ -984,14 +970,6 @@ loadingLogs : Html msg
 loadingLogs =
     div [ class "message" ]
         [ Util.smallLoaderWithText "loading..." ]
-
-
-{-| emptyLogs : renders message for empty logs
--}
-emptyLogs : Html msg
-emptyLogs =
-    div [ class "message" ]
-        [ text "the build has not written logs to this step yet" ]
 
 
 {-| viewStatusIcon : renders a build step status icon
