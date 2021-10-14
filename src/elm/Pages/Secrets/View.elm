@@ -20,12 +20,7 @@ import Html
         , text
         , tr
         )
-import Html.Attributes
-    exposing
-        ( attribute
-        , class
-        , scope
-        )
+import Html.Attributes exposing (attribute, class, disabled, scope)
 import Html.Events exposing (onClick)
 import Pages.Secrets.Form exposing (viewAllowCommandCheckbox, viewEventsSelect, viewHelp, viewImagesInput, viewInput, viewNameInput, viewSubmitButtons, viewValueInput)
 import Pages.Secrets.Model
@@ -199,7 +194,7 @@ viewSharedSecrets model showManage showAdd =
                     [ class "button"
                     , class "-outline"
                     , Routes.href <|
-                        Routes.OrgSecrets secretsModel.engine secretsModel.org Nothing Nothing
+                        Routes.SharedSecrets secretsModel.engine secretsModel.org "*" Nothing Nothing
                     , Util.testAttribute "manage-shared-secrets"
                     ]
                     [ text "Manage Org Secrets" ]
@@ -478,7 +473,7 @@ addForm secretsModel =
             secretsModel.form
 
         teamForm =
-            if secretsModel.team == "*" then
+            if secretsModel.team == "*" && secretsModel.type_ == SharedSecret then
                 viewInput "Team" secretUpdate.team "Team Name"
 
             else

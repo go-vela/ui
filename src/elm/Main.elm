@@ -2380,16 +2380,14 @@ viewContent model =
             , div []
                 [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
                 , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
-                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
-                , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
+                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
                 ]
             )
 
         Pages.SharedSecrets engine org team _ _ ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
-                [ Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
-                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
+                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
                 , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
                 ]
             )
@@ -3042,6 +3040,7 @@ loadRepoSubPage model org repo toPage =
                         { secretsModel
                             | repoSecrets = Loading
                             , orgSecrets = Loading
+                            , sharedSecrets = Loading
                             , org = org
                             , repo = repo
                             , engine = "native"
@@ -3316,7 +3315,7 @@ loadSharedSecretsPage model maybePage maybePerPage engine org team =
             Pages.SharedSecrets engine org team maybePage maybePerPage
         , secretsModel =
             { secretsModel
-                | repoSecrets = Loading
+                | sharedSecrets = Loading
                 , org = org
                 , team = team
                 , engine = engine
