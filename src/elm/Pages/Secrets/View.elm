@@ -8,18 +8,7 @@ module Pages.Secrets.View exposing (addSecret, editSecret, viewOrgSecrets, viewR
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html
-    exposing
-        ( Html
-        , a
-        , button
-        , div
-        , h2
-        , span
-        , td
-        , text
-        , tr
-        )
+import Html exposing (Html, a, button, div, h2, h4, span, td, text, tr)
 import Html.Attributes exposing (attribute, class, disabled, scope)
 import Html.Events exposing (onClick)
 import Pages.Secrets.Form exposing (viewAllowCommandCheckbox, viewEventsSelect, viewHelp, viewImagesInput, viewInput, viewNameInput, viewSubmitButtons, viewValueInput)
@@ -243,17 +232,10 @@ viewSharedSecrets model showManage showAdd =
                 ]
 
         RemoteData.Failure _ ->
-            viewResourceError
-                { resourceLabel =
-                    secretsErrorLabel Vela.SharedSecret
-                        secretsModel.org
-                    <|
-                        Just secretsModel.team
-                , testLabel = "shared-secrets"
-                }
+            div [] [ text "Unable to load Shared Secrets; Most likely due to not being a member of any team in this org" ]
 
         _ ->
-            div [] [ largeLoader ]
+            div [] [ text "Loading Shared Secrets", largeLoader ]
 
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
