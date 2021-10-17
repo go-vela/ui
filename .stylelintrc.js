@@ -63,7 +63,11 @@ module.exports = {
       true,
       {
         ignoreProperties: [
-          'composes', '@import', '@extend', '@mixin', '@at-root',
+          'composes',
+          '@import',
+          '@extend',
+          '@mixin',
+          '@at-root',
         ],
       },
     ],
@@ -84,35 +88,22 @@ module.exports = {
     // https://webdesign.tutsplus.com/articles/outside-in-ordering-css-properties-by-importance--cms-21685
     'order/properties-order': [
       {
-        'groupName': 'special',
-        'emptyLineBefore': 'always',
-        'noEmptyLineBetween': true,
-        'properties': [
-          'composes',
-          '@import',
-          '@extend',
-          '@mixin',
-          '@at-root',
-        ],
+        groupName: 'special',
+        emptyLineBefore: 'always',
+        noEmptyLineBetween: true,
+        properties: ['composes', '@import', '@extend', '@mixin', '@at-root'],
       },
       {
-        'groupName': 'position',
-        'emptyLineBefore': 'always',
-        'noEmptyLineBetween': true,
-        'properties': [
-          'position',
-          'top',
-          'right',
-          'bottom',
-          'left',
-          'z-index',
-        ],
+        groupName: 'position',
+        emptyLineBefore: 'always',
+        noEmptyLineBetween: true,
+        properties: ['position', 'top', 'right', 'bottom', 'left', 'z-index'],
       },
       {
-        'groupName': 'box-model',
-        'emptyLineBefore': 'always',
-        'noEmptyLineBetween': true,
-        'properties': [
+        groupName: 'box-model',
+        emptyLineBefore: 'always',
+        noEmptyLineBetween: true,
+        properties: [
           'display',
           'flex',
           'flex-basis',
@@ -174,10 +165,10 @@ module.exports = {
         ],
       },
       {
-        'groupName': 'typography',
-        'emptyLineBefore': 'always',
-        'noEmptyLineBetween': true,
-        'properties': [
+        groupName: 'typography',
+        emptyLineBefore: 'always',
+        noEmptyLineBetween: true,
+        properties: [
           'color',
           'font',
           'font-weight',
@@ -238,10 +229,10 @@ module.exports = {
         ],
       },
       {
-        'groupName': 'visual',
-        'emptyLineBefore': 'always',
-        'noEmptyLineBetween': true,
-        'properties': [
+        groupName: 'visual',
+        emptyLineBefore: 'always',
+        noEmptyLineBetween: true,
+        properties: [
           'list-style',
           'list-style-position',
           'list-style-type',
@@ -317,10 +308,10 @@ module.exports = {
         ],
       },
       {
-        'groupName': 'animation',
-        'emptyLineBefore': 'always',
-        'noEmptyLineBetween': true,
-        'properties': [
+        groupName: 'animation',
+        emptyLineBefore: 'always',
+        noEmptyLineBetween: true,
+        properties: [
           'transition',
           'transition-delay',
           'transition-timing-function',
@@ -338,10 +329,10 @@ module.exports = {
         ],
       },
       {
-        'groupName': 'misc',
-        'emptyLineBefore': 'always',
-        'noEmptyLineBetween': true,
-        'properties': [
+        groupName: 'misc',
+        emptyLineBefore: 'always',
+        noEmptyLineBetween: true,
+        properties: [
           'appearance',
           'content',
           'clip',
