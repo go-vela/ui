@@ -8,13 +8,11 @@ html {
 
 body {
   color: var(--color-text);
-
   font-size: 18px;
 
   background-color: var(--color-bg);
 
   transition-duration: 0.2s;
-
   transition-property: background-color, color;
 }
 
@@ -38,7 +36,6 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   padding: 1em var(--horizontal-pad);
 
   background: radial-gradient(
@@ -46,7 +43,6 @@ header {
     var(--color-bg-light) -7%,
     transparent 50%
   );
-
   border-top-width: 0;
   border-bottom: var(--line-width) solid;
   border-left-width: 0;
@@ -117,7 +113,6 @@ header {
 
   list-style: none;
   background-color: var(--color-bg-dark);
-
   border: 1px solid var(--color-bg-light);
   box-shadow: 0 0 2px var(--color-black);
 
@@ -137,18 +132,15 @@ header {
       left: calc(50% - 6px);
 
       display: block;
-
       width: 10px;
       height: 10px;
 
       background-color: inherit;
-
       border: inherit;
       border-radius: 0 0 0 0.25em;
       transform: rotate(135deg);
 
       content: '';
-
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
   }
@@ -198,7 +190,6 @@ nav {
     padding: 0;
 
     list-style-type: none;
-
     background-color: var(--color-bg-dark);
   }
 
@@ -272,7 +263,6 @@ nav {
 // loading ellipsis
 .loading-ellipsis::after {
   display: inline-block;
-
   width: 0;
   overflow: hidden;
 
@@ -346,7 +336,6 @@ details.build-toggle {
 
   list-style: none;
   background-color: var(--color-bg-dark);
-
   border: 1px solid var(--color-bg-light);
   box-shadow: 0 0 2px var(--color-black);
 
@@ -365,18 +354,15 @@ details.build-toggle {
       right: 0;
 
       display: block;
-
       width: 10px;
       height: 10px;
 
       background-color: inherit;
-
       border: inherit;
       border-radius: 0 0 0 0.25em;
       transform: rotate(135deg);
 
       content: '';
-
       clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
     }
   }
@@ -429,7 +415,6 @@ details.build-toggle {
   margin-left: 0.8em;
 
   font-weight: 300;
-
   font-size: 14px;
 }
 
@@ -471,7 +456,6 @@ details.build-toggle {
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-
   margin-top: -2px;
   margin-bottom: -2px;
 }
@@ -523,9 +507,7 @@ details.build-toggle {
   flex: 1;
   flex-direction: column;
   justify-content: center;
-
   min-width: 0;
-
   padding: 12px 0;
 
   background: var(--color-bg-dark);
@@ -550,7 +532,6 @@ details.build-toggle {
   max-width: 80%;
 
   color: var(--color-red-light);
-
   font-size: 16px;
 }
 
@@ -588,11 +569,9 @@ details.build-toggle {
 .commit-msg {
   flex-basis: 80%;
   margin-left: 6px;
-
   overflow: hidden;
 
   white-space: nowrap;
-
   text-overflow: ellipsis;
 }
 
@@ -785,19 +764,15 @@ details.build-toggle {
 .recent-build-tooltip {
   position: absolute;
   top: calc(100% + 10px);
-
   z-index: 9999;
 
   display: flex;
   flex-direction: column;
-
   width: 300px;
   padding: 0.2em 0;
 
   color: var(--color-text);
-
   font-weight: 300;
-
   text-align: center;
 
   background-color: var(--color-bg-dark);
@@ -869,7 +844,6 @@ details.build-toggle {
   align-items: center;
   justify-content: flex-start;
   margin-top: 0.6rem;
-
   padding-top: 0.6rem;
   padding-right: 1rem;
   padding-left: 1.6rem;
@@ -878,7 +852,6 @@ details.build-toggle {
     padding: 0.2rem 1.2rem;
 
     background: var(--color-bg-light);
-
     border: 1px solid var(--color-bg-light);
   }
 }
@@ -1012,7 +985,6 @@ details.build-toggle {
 .logs-table {
   display: block;
   width: 100%;
-
   padding-top: 1rem;
   padding-bottom: 2rem;
 
@@ -1042,11 +1014,9 @@ details.build-toggle {
   position: relative;
 
   width: 6ch;
-
   overflow: hidden;
 
   font-family: var(--font-code);
-
   white-space: nowrap;
   text-align: right;
   text-decoration: none;
@@ -1064,7 +1034,6 @@ details.build-toggle {
 
 .logs-table::-webkit-resizer {
   background: var(--color-bg-dark);
-
   border: 2px solid var(--color-bg-dark);
   border-right: 3px solid var(--color-bg-light);
   border-bottom: 3px solid var(--color-bg-light);
@@ -1084,7 +1053,6 @@ details.build-toggle {
   z-index: 1;
 
   display: flex;
-
   justify-content: flex-end;
   width: 100%;
   padding: 0.25rem 0;
@@ -1104,11 +1072,9 @@ details.build-toggle {
 
 .logs-sidebar {
   position: absolute;
-
   right: 1rem;
 
   height: 100%;
-
   padding-bottom: 2rem;
 }
 
@@ -1138,7 +1104,6 @@ details.build-toggle {
 
 .animated {
   animation-duration: 1s;
-
   animation-fill-mode: both;
 }
 
@@ -1192,19 +1157,16 @@ details.build-toggle {
   padding: 1em;
 
   color: var(--color-text);
-
   font-size: 14px;
 
   background-color: var(--color-bg-dark);
   border-radius: 0;
   box-shadow: 0 5px 5px -5px hsla(0, 0%, 0%, 0.5);
-
   cursor: pointer;
 }
 
 .alert-container .-title {
   display: flex;
-
   justify-content: space-between;
   margin: 0;
 
@@ -1215,7 +1177,6 @@ details.build-toggle {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-
   max-height: 3.25em;
   margin-top: 0.25em;
   margin-bottom: 0;
@@ -1366,7 +1327,6 @@ details.build-toggle {
   color: var(--color-text);
 
   background-color: var(--color-bg);
-
   border: none;
 
   + .button {
@@ -1415,7 +1375,6 @@ details.build-toggle {
   color: var(--color-text);
 
   background-color: var(--color-bg-dark);
-
   border: none;
 }
 

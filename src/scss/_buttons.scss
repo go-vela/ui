@@ -74,7 +74,6 @@
 
   &.-success {
     background-color: var(--color-green);
-
     cursor: default;
   }
 
@@ -88,7 +87,6 @@
   &.-loading,
   &.-running {
     background-color: var(--color-yellow);
-
     cursor: default;
   }
 }
@@ -142,7 +140,6 @@
     color: var(--color-green);
 
     border-color: var(--color-green);
-
     cursor: default;
   }
 
@@ -160,7 +157,6 @@
     color: var(--color-yellow);
 
     border-color: var(--color-yellow);
-
     cursor: default;
   }
 
@@ -181,7 +177,6 @@
   padding: 0;
 
   color: var(--color-primary);
-
   font-weight: normal;
   font-size: inherit;
   text-decoration: underline;
