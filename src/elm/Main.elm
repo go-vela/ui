@@ -1486,7 +1486,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | repo = updateDeployments (toFailure error) rm }, addError error )
+                    ( model, addError error )
 
         StepsResponse org repo buildNumber logFocus refresh response ->
             case response of
