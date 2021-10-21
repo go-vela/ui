@@ -1433,7 +1433,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | repo = updateBuilds (toFailure error) rm }, addError error )
+                    ( { model | repo = updateDeployments (toFailure error) rm }, addError error )
 
         HooksResponse _ _ response ->
             case response of
@@ -1486,7 +1486,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | repo = updateDeployments (toFailure error) rm }, addError error )
+                    ( model, addError error )
 
         StepsResponse org repo buildNumber logFocus refresh response ->
             case response of
@@ -3127,7 +3127,7 @@ loadRepoSubPage model org repo toPage =
                             getDeployments model o r maybePage maybePerPage
 
                         _ ->
-                            getDeployments model org repo Nothing Nothing
+                            Cmd.none
                     , case toPage of
                         Pages.Hooks o r maybePage maybePerPage ->
                             getHooks model o r maybePage maybePerPage
