@@ -1313,7 +1313,7 @@ update msg model =
                         |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
 
                 Err error ->
-                    ( { model | repo = updateRepo (toFailure error) rm }, addError error )
+                    ( model, addError error )
 
         RepoChownedResponse repo response ->
             case response of
