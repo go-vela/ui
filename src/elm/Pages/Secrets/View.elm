@@ -186,7 +186,7 @@ viewSharedSecrets model showManage showAdd =
                         Routes.SharedSecrets secretsModel.engine secretsModel.org "*" Nothing Nothing
                     , Util.testAttribute "manage-shared-secrets"
                     ]
-                    [ text "Manage Org Secrets" ]
+                    [ text "Manage Shared Secrets" ]
 
             else
                 text ""
