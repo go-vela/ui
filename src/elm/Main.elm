@@ -629,7 +629,7 @@ update msg model =
                             model.secretsModel
 
                         loadingSecrets =
-                            { currentSecrets | orgSecrets = Loading }
+                            { currentSecrets | orgSecrets = Loading, sharedSecrets = Loading }
                     in
                     ( { model | secretsModel = loadingSecrets }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgSecrets engine org (Just pageNumber) maybePerPage
@@ -2094,6 +2094,7 @@ refreshPage model =
         Pages.OrgSecrets engine org maybePage maybePerPage ->
             Cmd.batch
                 [ getOrgSecrets model maybePage maybePerPage engine org
+                , getSharedSecrets model maybePage maybePerPage engine org "*"
                 ]
 
         Pages.RepoSecrets engine org repo maybePage maybePerPage ->
@@ -2383,14 +2384,14 @@ viewContent model =
             , div []
                 [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
                 , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
+                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
                 ]
             )
 
         Pages.SharedSecrets engine org team _ _ ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
-                [ Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
-                , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.viewSharedSecrets model
+                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
                 , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
                 ]
             )
@@ -2937,6 +2938,7 @@ loadOrgSubPage model org toPage =
                         { secretsModel
                             | repoSecrets = Loading
                             , orgSecrets = Loading
+                            , sharedSecrets = Loading
                             , org = org
                             , repo = ""
                             , engine = "native"
@@ -3042,6 +3044,7 @@ loadRepoSubPage model org repo toPage =
                         { secretsModel
                             | repoSecrets = Loading
                             , orgSecrets = Loading
+                            , sharedSecrets = Loading
                             , org = org
                             , repo = repo
                             , engine = "native"
@@ -3316,7 +3319,7 @@ loadSharedSecretsPage model maybePage maybePerPage engine org team =
             Pages.SharedSecrets engine org team maybePage maybePerPage
         , secretsModel =
             { secretsModel
-                | repoSecrets = Loading
+                | sharedSecrets = Loading
                 , org = org
                 , team = team
                 , engine = engine
