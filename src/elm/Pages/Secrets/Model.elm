@@ -25,16 +25,7 @@ import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
-import Vela
-    exposing
-        ( Engine
-        , Org
-        , Repo
-        , Secret
-        , SecretType
-        , Secrets
-        , Team
-        )
+import Vela exposing (Engine, Key, Org, Repo, Secret, SecretType, Secrets, Team)
 
 
 
@@ -89,12 +80,13 @@ type alias SecretForm =
     , imageInput : String
     , images : List String
     , allowCommand : Bool
+    , team : Key
     }
 
 
 defaultSecretUpdate : SecretForm
 defaultSecretUpdate =
-    SecretForm "" "" [] "" [] True
+    SecretForm "" "" [] "" [] True ""
 
 
 
