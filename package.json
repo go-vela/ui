@@ -31,7 +31,7 @@
     "stylelint-declaration-block-no-ignored-properties": "2.4.0",
     "stylelint-declaration-strict-value": "1.7.12",
     "stylelint-high-performance-animation": "1.5.2",
-    "stylelint-order": "4.1.0",
+    "stylelint-order": "5.0.0",
     "stylelint-scss": "3.21.0"
   },
   "scripts": {
