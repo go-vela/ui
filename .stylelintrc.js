@@ -358,6 +358,7 @@ module.exports = {
         ],
       },
     ],
+    'scss/comment-no-empty': null,
     'scss/selector-no-redundant-nesting-selector': true,
     'scss/at-extend-no-missing-placeholder': true,
     'color-format/format': {
