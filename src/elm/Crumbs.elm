@@ -335,6 +335,5 @@ toPath page =
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]
-
     in
     pages
