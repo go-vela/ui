@@ -8,15 +8,14 @@ module Pages.Secrets.View exposing (addSecret, editSecret, viewOrgSecrets, viewR
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html exposing (Html, a, button, div, h2, h4, span, td, text, tr)
-import Html.Attributes exposing (attribute, class, disabled, scope)
+import Html exposing (Html, a, button, div, h2, span, td, text, tr)
+import Html.Attributes exposing (attribute, class, scope)
 import Html.Events exposing (onClick)
 import Pages.Secrets.Form exposing (viewAllowCommandCheckbox, viewEventsSelect, viewHelp, viewImagesInput, viewInput, viewNameInput, viewSubmitButtons, viewValueInput)
 import Pages.Secrets.Model
     exposing
-        ( ManageSecretState(..)
-        , Model
-        , Msg(..)
+        ( Model
+        , Msg
         , PartialModel
         )
 import RemoteData exposing (RemoteData(..))

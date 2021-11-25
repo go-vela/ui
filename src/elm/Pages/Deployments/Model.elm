@@ -10,16 +10,15 @@ module Pages.Deployments.Model exposing
     , Model
     , Msg(..)
     , PartialModel
-    , PromoteDeploymentResponse
     , defaultDeploymentForm
     )
 
-import Auth.Session exposing (Session(..))
+import Auth.Session exposing (Session)
 import Http
 import Http.Detailed
-import Pages exposing (Page(..))
+import Pages exposing (Page)
 import RemoteData exposing (WebData)
-import Vela exposing (Build, Deployment, KeyValuePair, Org, Repo, Repository, Team)
+import Vela exposing (Deployment, KeyValuePair, Org, Repo, Repository, Team)
 
 
 
@@ -74,10 +73,6 @@ defaultDeploymentForm =
 
 type alias DeploymentResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ) -> msg
-
-
-type alias PromoteDeploymentResponse msg =
-    Result (Http.Detailed.Error String) ( Http.Metadata, Build ) -> msg
 
 
 type Msg

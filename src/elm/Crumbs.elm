@@ -8,8 +8,8 @@ module Crumbs exposing (view)
 
 import Html exposing (Html, a, li, ol, text)
 import Html.Attributes exposing (attribute)
-import Pages exposing (Page(..), toRoute)
-import Routes exposing (Route(..))
+import Pages exposing (Page, toRoute)
+import Routes
 import Tuple exposing (first, second)
 import Url exposing (percentDecode)
 import Util exposing (pageToString)
@@ -330,16 +330,11 @@ toPath page =
                 Pages.Login ->
                     []
 
-                Pages.Logout ->
-                    []
-
                 Pages.Settings ->
                     [ ( "Overview", Just Pages.Overview ), ( "My Settings", Nothing ) ]
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]
 
-                Pages.Authenticate ->
-                    []
     in
     pages

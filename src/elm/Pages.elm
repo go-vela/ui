@@ -8,8 +8,8 @@ module Pages exposing (Page(..), strip, toRoute)
 
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
-import Routes exposing (Route(..))
-import Vela exposing (Build, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Routes exposing (Route)
+import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
 
 type Page
@@ -38,8 +38,6 @@ type Page
     | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
     | Login
-    | Logout
-    | Authenticate
     | NotFound
 
 
@@ -127,13 +125,6 @@ toRoute page =
         Login ->
             Routes.Login
 
-        Logout ->
-            Routes.Logout
-
-        Authenticate ->
-            -- this shouldn't be referenced, we'll just return login page
-            Routes.Login
-
         NotFound ->
             Routes.NotFound
 
@@ -217,12 +208,6 @@ strip page =
 
         Login ->
             Login
-
-        Logout ->
-            Logout
-
-        Authenticate ->
-            Authenticate
 
         NotFound ->
             NotFound

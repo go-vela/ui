@@ -5,8 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Deployments.Form exposing
-    ( viewAddedParameters
-    , viewDeployEnabled
+    ( viewDeployEnabled
     , viewHelp
     , viewParameterInput
     , viewSubmitButtons
@@ -31,7 +30,7 @@ import Html
         )
 import Html.Attributes exposing (class, disabled, for, href, id, placeholder, rows, target, value, wrap)
 import Html.Events exposing (onClick, onInput)
-import Pages.Deployments.Model exposing (DeploymentForm, Model, Msg(..))
+import Pages.Deployments.Model exposing (DeploymentForm, Msg(..))
 import RemoteData exposing (WebData)
 import Util exposing (testAttribute)
 import Vela exposing (KeyValuePair, Repository)
@@ -174,15 +173,15 @@ viewParameterInput deployment =
         ]
 
 
-viewSubmitButtons : Model msg -> Html Msg
-viewSubmitButtons deploymentsModel =
+viewSubmitButtons : Html Msg
+viewSubmitButtons =
     div [ class "buttons" ]
-        [ viewUpdateButton deploymentsModel
+        [ viewUpdateButton
         ]
 
 
-viewUpdateButton : Model msg -> Html Msg
-viewUpdateButton deploymentsModel =
+viewUpdateButton : Html Msg
+viewUpdateButton =
     button
         [ class "button"
         , Util.testAttribute "add-deployment-button"
