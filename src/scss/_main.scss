@@ -577,25 +577,41 @@ details.build-toggle {
 
 .time-info {
   display: flex;
-  flex-direction: row;
-
+  flex-direction: column;
   font-weight: 300;
 }
 
-.time-info .age {
+.time-info .time-completed {
+  display: flex;
+  flex-direction: row;
+}
+
+.time-info .time-elapsed {
+  display: flex;
+  flex-direction: row;
+}
+
+.time-completed .age {
   margin: 0 4px 0 4px;
 }
 
-.time-info .delimiter {
+.time-completed .delimiter {
   margin: 0 8px;
 
   color: var(--color-secondary);
 }
 
-.time-info .duration {
+.duration {
   margin: 0 0 0 4px;
 
   font-family: var(--font-code);
+}
+
+
+.row {
+  display: flex;
+  flex-direction: row;
+  margin: 0 0 0 4px;
 }
 
 .build-animation {
@@ -1388,7 +1404,37 @@ details.build-toggle {
 }
 
 // build filters
-.build-filters {
+.build-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  
+  background-color: var(--color-bg-dark);
+}
+
+.build-bar .build-timestamp {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 1rem;
+
+  .time-toggle{
+    border-radius: 50%;
+    border-radius: 30px;
+    border: 2px solid gray;
+    
+
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    margin-right: 5px;
+  }
+
+}
+
+.build-bar .build-filters {
   justify-content: flex-start;
   margin: 1rem 0;
   padding: 1rem;

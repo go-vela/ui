@@ -78,6 +78,10 @@ import Vela
         , Steps
         , defaultStep
         )
+import Html exposing (time)
+import Debug exposing (toString)
+import Time exposing (posixToMillis)
+import Time exposing (millisToPosix)
 
 
 
@@ -122,7 +126,7 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
         markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo bld
+                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo model.showTimestamp bld 
                     , viewBuildTabs model org repo buildNumber model.page
                     , content
                     ]
@@ -157,8 +161,8 @@ restartBuildButton org repo build restartBuild =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Msgs msgs -> List Int -> Bool -> Posix -> Zone -> Org -> Repo -> Build -> Html msgs
-viewPreview msgs openMenu showMenu now zone org repo build =
+viewPreview : Msgs msgs -> List Int -> Bool -> Posix -> Zone -> Org -> Repo -> Bool -> Build -> Html msgs
+viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
     let
         buildMenuBaseClassList : Html.Attribute msg
         buildMenuBaseClassList =
@@ -295,14 +299,21 @@ viewPreview msgs openMenu showMenu now zone org repo build =
                 [ text <| "#" ++ buildNumber ]
             ]
 
-        age =
-            [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
-
         buildCreatedPosix =
             Time.millisToPosix <| Util.secondsToMillis build.created
 
+        age =
+            [ text <| relativeTime now <| buildCreatedPosix ]
+
         timestamp =
-            Util.humanReadableDateTimeFormatter zone buildCreatedPosix
+           Util.humanReadableDateTimeFormatter zone buildCreatedPosix
+
+        displayTime = 
+            if showTimestamp then
+                [text <| timestamp ++ " " ]
+            else
+                age
+
 
         -- calculate build runtime
         runtime =
@@ -340,12 +351,12 @@ viewPreview msgs openMenu showMenu now zone org repo build =
                         , div [ class "sender" ] sender
                         ]
                     , div [ class "time-info" ]
-                        [ div [ class "age", title timestamp ] age
-                        , span [ class "delimiter" ] [ text "/" ]
-                        , div [ class "duration" ] [ text duration ]
-                        , actionsMenu
+                        [ div [class "time-completed"][ div [] displayTime
+                        , span [ class "delimiter" ] [ text " /" ]
+                        , div [ class "duration" ][ text duration]
+                        ],
+                        actionsMenu]   
                         ]
-                    ]
                 , div [ class "row" ]
                     [ viewError build
                     ]

@@ -269,6 +269,7 @@ type alias Model =
     , visibility : Visibility
     , showHelp : Bool
     , showIdentity : Bool
+    , showTimestamp : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
     , deploymentModel : Pages.Deployments.Model.Model Msg
@@ -320,6 +321,7 @@ init flags url navKey =
             , visibility = Visible
             , showHelp = False
             , showIdentity = False
+            , showTimestamp = False
             , buildMenuOpen = []
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
@@ -375,6 +377,7 @@ type Msg
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
     | FilterBuildEventBy (Maybe Event) Org Repo
+    | UpdateTimestamp
     | SetTheme Theme
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
@@ -576,6 +579,14 @@ update msg model =
               }
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| route
             )
+
+        UpdateTimestamp ->
+           ( { model | showTimestamp = not model.showTimestamp}, Cmd.none )
+
+
+
+
+
 
         SetTheme theme ->
             if theme == model.theme then
@@ -2465,7 +2476,10 @@ viewContent model =
             in
             ( org ++ " builds" ++ Util.pageToString maybePage
             , div []
-                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                [ div [class "build-bar"] [
+                    viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                    , viewTimeToggle shouldRenderFilter model.showTimestamp
+                ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 , lazy7 Pages.Organization.viewBuilds model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
@@ -2491,9 +2505,13 @@ viewContent model =
             in
             ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
             , div []
-                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                [
+                div [class "build-bar"] [
+                    viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                    , viewTimeToggle shouldRenderFilter model.showTimestamp
+                ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo maybeEvent
+                , Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo model.showTimestamp maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -2530,6 +2548,7 @@ viewContent model =
                     org
                     repo
                     buildNumber
+
             )
 
         Pages.Pipeline org repo ref _ _ ->
@@ -2609,6 +2628,17 @@ viewBuildsFilter shouldRender org repo maybeEvent =
 
     else
         text ""
+
+viewTimeToggle : Bool -> Bool -> Html Msg
+viewTimeToggle shouldRender showTimestamp =
+    if shouldRender then
+        div [class "build-timestamp"] [
+            input [ type_ "checkbox", class "time-toggle", checked showTimestamp, onClick UpdateTimestamp] [],
+            label [][text "Show full timestamp" ]
+        ]
+    else
+        text ""
+
 
 
 viewLogin : Html Msg
