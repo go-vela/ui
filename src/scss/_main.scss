@@ -1408,7 +1408,7 @@ details.build-toggle {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  
+ 
   background-color: var(--color-bg-dark);
 }
 
@@ -1416,7 +1416,7 @@ details.build-toggle {
   justify-content: flex-start;
   margin: 1rem 0;
   padding: 1rem;
-
+  flex-flow: wrap;
   font-size: 1rem;
 
   background-color: var(--color-bg-dark);
