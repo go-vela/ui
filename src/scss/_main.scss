@@ -1412,28 +1412,6 @@ details.build-toggle {
   background-color: var(--color-bg-dark);
 }
 
-.build-bar .build-timestamp {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: 1rem;
-
-  .time-toggle{
-    border-radius: 50%;
-    border-radius: 30px;
-    border: 2px solid gray;
-    
-
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    margin-right: 5px;
-  }
-
-}
-
 .build-bar .build-filters {
   justify-content: flex-start;
   margin: 1rem 0;
