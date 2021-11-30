@@ -576,12 +576,7 @@ update msg model =
             )
 
         UpdateTimestamp ->
-           ( { model | showTimestamp = not model.showTimestamp}, Cmd.none )
-
-
-
-
-
+            ( { model | showTimestamp = not model.showTimestamp }, Cmd.none )
 
         SetTheme theme ->
             if theme == model.theme then
@@ -2472,10 +2467,10 @@ viewContent model =
             in
             ( org ++ " builds" ++ Util.pageToString maybePage
             , div []
-                [ div [class "build-bar"] [
-                    viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
                     , viewTimeToggle shouldRenderFilter model.showTimestamp
-                ]
+                    ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 , lazy7 Pages.Organization.viewBuilds model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
@@ -2501,11 +2496,10 @@ viewContent model =
             in
             ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
             , div []
-                [
-                div [class "build-bar"] [
-                    viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
                     , viewTimeToggle shouldRenderFilter model.showTimestamp
-                ]
+                    ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 , Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo model.showTimestamp maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
@@ -2544,7 +2538,6 @@ viewContent model =
                     org
                     repo
                     buildNumber
-
             )
 
         Pages.Pipeline org repo ref _ _ ->
@@ -2615,18 +2608,19 @@ viewBuildsFilter shouldRender org repo maybeEvent =
     else
         text ""
 
+
 viewTimeToggle : Bool -> Bool -> Html Msg
 viewTimeToggle shouldRender showTimestamp =
     if shouldRender then
-        div [ class "form-controls", class "-stack", Html.Attributes.style "justify-content" "space-around" ] [
-            div [class "form-control" ] [
-                input [ type_ "checkbox",checked showTimestamp, onClick UpdateTimestamp, id <| "checkbox-time-toggle"] []
-                , label [ class "form-label", for <| "checkbox-time-toggle"  ] [ text "show full timestamps" ]
+        div [ class "form-controls", class "-stack", Html.Attributes.style "justify-content" "space-around" ]
+            [ div [ class "form-control" ]
+                [ input [ type_ "checkbox", checked showTimestamp, onClick UpdateTimestamp, id <| "checkbox-time-toggle" ] []
+                , label [ class "form-label", for <| "checkbox-time-toggle" ] [ text "show full timestamps" ]
+                ]
             ]
-        ]
+
     else
         text ""
-
 
 
 viewLogin : Html Msg

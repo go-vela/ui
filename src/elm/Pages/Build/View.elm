@@ -14,6 +14,7 @@ module Pages.Build.View exposing
 import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
+import Debug exposing (toString)
 import FeatherIcons
 import Focus
     exposing
@@ -24,7 +25,7 @@ import Focus
         , resourceAndLineToFocusId
         , resourceToFocusId
         )
-import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, tr, ul)
+import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, time, tr, ul)
 import Html.Attributes
     exposing
         ( attribute
@@ -61,7 +62,7 @@ import RemoteData exposing (WebData)
 import Routes
 import String
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
-import Time exposing (Posix, Zone)
+import Time exposing (Posix, Zone, millisToPosix, posixToMillis)
 import Util exposing (getNameFromRef)
 import Vela
     exposing
@@ -78,10 +79,6 @@ import Vela
         , Steps
         , defaultStep
         )
-import Html exposing (time)
-import Debug exposing (toString)
-import Time exposing (posixToMillis)
-import Time exposing (millisToPosix)
 
 
 
@@ -126,7 +123,7 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
         markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo model.showTimestamp bld 
+                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo model.showTimestamp bld
                     , viewBuildTabs model org repo buildNumber model.page
                     , content
                     ]
@@ -290,14 +287,14 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
             [ text <| relativeTime now <| buildCreatedPosix ]
 
         timestamp =
-           Util.humanReadableDateTimeFormatter zone buildCreatedPosix
+            Util.humanReadableDateTimeFormatter zone buildCreatedPosix
 
-        displayTime = 
+        displayTime =
             if showTimestamp then
-                [text <| timestamp ++ " " ]
+                [ text <| timestamp ++ " " ]
+
             else
                 age
-
 
         -- calculate build runtime
         runtime =
@@ -335,12 +332,14 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         , div [ class "sender" ] sender
                         ]
                     , div [ class "time-info" ]
-                        [ div [class "time-completed"][ div [] displayTime
-                        , span [ class "delimiter" ] [ text " /" ]
-                        , div [ class "duration" ][ text duration]
-                        ],
-                        actionsMenu]   
+                        [ div [ class "time-completed" ]
+                            [ div [] displayTime
+                            , span [ class "delimiter" ] [ text " /" ]
+                            , div [ class "duration" ] [ text duration ]
+                            ]
+                        , actionsMenu
                         ]
+                    ]
                 , div [ class "row" ]
                     [ viewError build
                     ]
