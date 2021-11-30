@@ -730,24 +730,6 @@ updateAccessTip field =
             text ""
 
 
-{-| updatePipelineTypeTip : takes field and returns the tip to display after the label.
--}
-updatePipelineTypeTip : Field -> Html msg
-updatePipelineTypeTip field =
-    case field of
-        "yaml" ->
-            text " (base pipeline will be as a YAML file)"
-
-        "go" ->
-            text " (base pipeline will be as a Go template file)"
-
-        "starlark" ->
-            text " (base pipeline will be as a Starlark file)"
-
-        _ ->
-            text ""
-
-
 {-| msgPrefix : takes update field and returns alert prefix.
 -}
 msgPrefix : Field -> String

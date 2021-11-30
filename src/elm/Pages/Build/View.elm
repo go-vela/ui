@@ -58,7 +58,7 @@ import Pages.Build.Model
         , PartialModel
         )
 import RemoteData exposing (WebData)
-import Routes exposing (Route(..))
+import Routes
 import String
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone)
@@ -141,22 +141,6 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
                     ]
     in
     div [ Util.testAttribute "full-build" ] markdown
-
-
-{-| restartBuildButton : takes org repo and build number and renders button to restart a build
--}
-restartBuildButton : Org -> Repo -> Build -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
-restartBuildButton org repo build restartBuild =
-    button
-        [ classList
-            [ ( "button", True )
-            , ( "-outline", True )
-            ]
-        , onClick <| restartBuild org repo <| String.fromInt build.number
-        , Util.testAttribute "restart-build"
-        ]
-        [ text "Restart Build"
-        ]
 
 
 {-| viewPreview : renders single build item preview based on current application time

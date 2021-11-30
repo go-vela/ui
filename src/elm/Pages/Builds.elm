@@ -24,10 +24,10 @@ import Html
 import Html.Attributes exposing (class, href)
 import Pages.Build.Model exposing (Msgs)
 import Pages.Build.View exposing (viewPreview)
-import RemoteData exposing (RemoteData(..))
+import RemoteData
 import Time exposing (Posix, Zone)
 import Util exposing (largeLoader)
-import Vela exposing (BuildNumber, BuildsModel, Event, Org, Repo)
+import Vela exposing (BuildsModel, Event, Org, Repo)
 
 
 {-| view : takes org and repo and renders build previews

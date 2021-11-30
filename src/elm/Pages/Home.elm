@@ -28,7 +28,6 @@ import Html.Attributes
         )
 import List
 import List.Extra
-import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
 import Search
@@ -163,7 +162,7 @@ viewOrg : String -> ToggleFavorite msg -> Favorites -> Html msg
 viewOrg org toggleFavorite favorites =
     details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
         (summary [ class "summary" ]
-            [ text org
+            [ a [ Routes.href <| Routes.OrgRepositories org Nothing Nothing ] [ text org ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
             :: List.map (viewFavorite favorites toggleFavorite False) favorites

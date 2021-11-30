@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Deployments.View exposing (addDeployment, addForm, promoteDeployment, viewDeployments)
+module Pages.Deployments.View exposing (addDeployment, promoteDeployment, viewDeployments)
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
@@ -14,14 +14,13 @@ import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParamet
 import Pages.Deployments.Model
     exposing
         ( Model
-        , Msg(..)
+        , Msg
         , PartialModel
         )
-import RemoteData exposing (RemoteData(..))
+import RemoteData
 import Routes
 import Svg.Attributes
 import SvgBuilder exposing (buildStatusToIcon)
-import Time exposing (Posix, Zone)
 import Util exposing (largeLoader)
 import Vela exposing (Deployment, DeploymentsModel, Org, Repo)
 
@@ -58,7 +57,7 @@ addForm deploymentModel =
         , viewValueInput "Task" deployment.task "Provide the task for the deployment (default: \"deploy:vela\")"
         , viewParameterInput deployment
         , viewHelp
-        , viewSubmitButtons deploymentModel
+        , viewSubmitButtons
         ]
 
 
@@ -120,8 +119,8 @@ viewPreview org repo deployment =
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : DeploymentsModel -> Posix -> Zone -> Org -> Repo -> Html msg
-viewDeployments deploymentsModel now zone org repo =
+viewDeployments : DeploymentsModel -> Org -> Repo -> Html msg
+viewDeployments deploymentsModel org repo =
     let
         addButton =
             a
