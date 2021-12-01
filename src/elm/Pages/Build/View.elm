@@ -62,7 +62,7 @@ import RemoteData exposing (WebData)
 import Routes
 import String
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
-import Time exposing (Posix, Zone, millisToPosix, posixToMillis)
+import Time exposing (Posix, Zone)
 import Util exposing (getNameFromRef)
 import Vela
     exposing

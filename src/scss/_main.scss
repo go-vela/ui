@@ -582,14 +582,10 @@ details.build-toggle {
   font-weight: 300;
 }
 
-.time-info .time-completed {
-  display: flex;
-  flex-direction: row;
-}
-
+.time-info .time-completed,
 .time-info .time-elapsed {
   display: flex;
-  flex-direction: row;
+  flex-flow: row wrap;
 }
 
 .time-completed .age {
@@ -1427,10 +1423,7 @@ details.build-toggle {
   }
 
   // TODO: revisit the following
-  .form-control .form-label::before {
-    top: 2px;
-  }
-
+  .form-control .form-label::before,
   .form-control .form-label::after {
     top: 2px;
   }
