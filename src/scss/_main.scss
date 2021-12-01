@@ -578,6 +578,7 @@ details.build-toggle {
 .time-info {
   display: flex;
   flex-direction: column;
+
   font-weight: 300;
 }
 
@@ -606,7 +607,6 @@ details.build-toggle {
 
   font-family: var(--font-code);
 }
-
 
 .row {
   display: flex;
@@ -1408,15 +1408,16 @@ details.build-toggle {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
- 
+
   background-color: var(--color-bg-dark);
 }
 
-.build-bar .build-filters {
+.build-filters {
+  flex-flow: wrap;
   justify-content: flex-start;
   margin: 1rem 0;
   padding: 1rem;
-  flex-flow: wrap;
+
   font-size: 1rem;
 
   background-color: var(--color-bg-dark);
@@ -1426,7 +1427,10 @@ details.build-toggle {
   }
 
   // TODO: revisit the following
-  .form-control .form-label::before,
+  .form-control .form-label::before {
+    top: 2px;
+  }
+
   .form-control .form-label::after {
     top: 2px;
   }
