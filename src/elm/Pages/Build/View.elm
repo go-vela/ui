@@ -284,7 +284,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
             Time.millisToPosix <| Util.secondsToMillis build.created
 
         age =
-            [ text <| relativeTime now <| buildCreatedPosix ]
+            relativeTime now <| buildCreatedPosix
 
         timestamp =
             Util.humanReadableDateTimeFormatter zone buildCreatedPosix
@@ -294,7 +294,14 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                 [ text <| timestamp ++ " " ]
 
             else
-                age
+                [ text age ]
+
+        hoverTime =
+            if showTimestamp then
+                toString age
+
+            else
+                toString timestamp
 
         -- calculate build runtime
         runtime =
@@ -333,7 +340,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         ]
                     , div [ class "time-info" ]
                         [ div [ class "time-completed" ]
-                            [ div [] displayTime
+                            [ div [ class "age", title hoverTime ] displayTime
                             , span [ class "delimiter" ] [ text " /" ]
                             , div [ class "duration" ] [ text duration ]
                             ]
