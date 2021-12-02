@@ -39,7 +39,7 @@ cd $HOME/go-vela/ui
 
 ```bash
 # add Github Enterprise Web URL to local secrets file for `docker-compose`
-echo "VELA_SOURCE_ADDR=<GitHub Enterprise Web URL>" >> .env
+echo "VELA_SCM_ADDR=<GitHub Enterprise Web URL>" >> .env
 ```
 
 * Create an [OAuth App](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/) and obtain secrets for local development:
@@ -51,10 +51,10 @@ echo "VELA_SOURCE_ADDR=<GitHub Enterprise Web URL>" >> .env
 
 ```bash
 # add Github Client ID to local secrets file for `docker-compose`
-echo "VELA_SOURCE_CLIENT=<Github OAuth Client ID>" >> .env
+echo "VELA_SCM_CLIENT=<Github OAuth Client ID>" >> .env
 
 # add Github Client Secret to local secrets file for `docker-compose`
-echo "VELA_SOURCE_SECRET=<Github OAuth Client Secret>" >> .env
+echo "VELA_SCM_SECRET=<Github OAuth Client Secret>" >> .env
 ```
 
 * Switch to the correct version of NodeJS
