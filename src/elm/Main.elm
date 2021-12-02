@@ -2615,7 +2615,7 @@ viewTimeToggle shouldRender showTimestamp =
         div [ class "form-controls", class "-stack", Html.Attributes.style "justify-content" "space-around" ]
             [ div [ class "form-control" ]
                 [ input [ type_ "checkbox", checked showTimestamp, onClick UpdateTimestamp, id "checkbox-time-toggle" ] []
-                , label [ class "form-label", for <| "checkbox-time-toggle" ] [ text "show full timestamps" ]
+                , label [ class "form-label", for "checkbox-time-toggle" ] [ text "show full timestamps" ]
                 ]
             ]
 
