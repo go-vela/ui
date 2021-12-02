@@ -14,7 +14,6 @@ module Pages.Build.View exposing
 import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
-import Debug exposing (toString)
 import FeatherIcons
 import Focus
     exposing
