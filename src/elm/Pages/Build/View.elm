@@ -298,10 +298,10 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         hoverTime =
             if showTimestamp then
-                toString age
+                age
 
             else
-                toString timestamp
+                timestamp
 
         -- calculate build runtime
         runtime =
