@@ -2612,9 +2612,9 @@ viewBuildsFilter shouldRender org repo maybeEvent =
 viewTimeToggle : Bool -> Bool -> Html Msg
 viewTimeToggle shouldRender showTimestamp =
     if shouldRender then
-        div [ class "form-controls", class "-stack", Html.Attributes.style "justify-content" "space-around" ]
+        div [ class "form-controls", class "-stack", class "time-toggle" ]
             [ div [ class "form-control" ]
-                [ input [ type_ "checkbox", checked showTimestamp, onClick UpdateTimestamp, id "checkbox-time-toggle" ] []
+                [ input [ type_ "checkbox", checked showTimestamp, onClick UpdateTimestamp, id "checkbox-time-toggle", Util.testAttribute "time-toggle" ] []
                 , label [ class "form-label", for "checkbox-time-toggle" ] [ text "show full timestamps" ]
                 ]
             ]

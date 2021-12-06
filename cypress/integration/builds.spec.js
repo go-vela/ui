@@ -158,6 +158,30 @@ context('Builds', () => {
     it('pagination controls should not show', () => {
       cy.get('[data-test=pager-previous]').should('not.be.visible');
     });
+
+    it('timestamp checkbox should be present', () => {
+      cy.get('[data-test=time-toggle]').should('exist');
+    });
+
+    it('timestamp checkbox switches time when checked', () => {
+      cy.get('@firstBuild')
+        .find('.time-info .age')
+        .should(elem => {
+          expect(elem.text().trim()).to.not.equal(
+            'Nov 5th, 2019 at 12:59:36 PM',
+          );
+        })
+        .and('have.attr', 'title', 'Nov 5th, 2019 at 12:59:36 PM');
+
+      cy.get('[data-test=time-toggle]').click({ force: true });
+
+      cy.get('@firstBuild')
+        .find('.time-info .age')
+        .should(elem => {
+          expect(elem.text().trim()).to.equal('Nov 5th, 2019 at 12:59:36 PM');
+        })
+        .and('not.have.attr', 'title', 'Nov 5th, 2019 at 12:59:36 PM');
+    });
   });
 
   context('logged in and server returning 20 builds and running build', () => {
