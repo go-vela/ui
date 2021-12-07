@@ -167,20 +167,24 @@ context('Builds', () => {
       cy.get('@firstBuild')
         .find('.time-info .age')
         .should(elem => {
-          expect(elem.text().trim()).to.not.equal(
-            'Nov 5th, 2019 at 12:59:36 PM',
-          );
+          expect(elem.text()).to.not.include('at');
         })
-        .and('have.attr', 'title', 'Nov 5th, 2019 at 12:59:36 PM');
+        .and('have.attr', 'title')
+        .then(title => {
+          expect(title).to.include('at');
+        });
 
       cy.get('[data-test=time-toggle]').click({ force: true });
 
       cy.get('@firstBuild')
         .find('.time-info .age')
         .should(elem => {
-          expect(elem.text().trim()).to.equal('Nov 5th, 2019 at 12:59:36 PM');
+          expect(elem.text()).to.include('at');
         })
-        .and('not.have.attr', 'title', 'Nov 5th, 2019 at 12:59:36 PM');
+        .and('have.attr', 'title')
+        .then(title => {
+          expect(title).to.not.include('at');
+        });
     });
   });
 
