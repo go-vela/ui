@@ -155,7 +155,7 @@ viewPreview msgs openMenu showMenu now zone org repo build =
 
         buildMenuAttributeList : List (Html.Attribute msg)
         buildMenuAttributeList =
-            attribute "role" "navigation" :: Util.open (List.member build.id openMenu)
+            [ attribute "role" "navigation", Html.Attributes.id "build-actions" ] ++ Util.open (List.member build.id openMenu)
 
         restartBuild : Html msgs
         restartBuild =
@@ -191,7 +191,7 @@ viewPreview msgs openMenu showMenu now zone org repo build =
         actionsMenu =
             if showMenu then
                 details (buildMenuBaseClassList :: buildMenuAttributeList)
-                    [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle build.id Nothing), Util.testAttribute "build-menu" ]
+                    [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle (Just build.id) Nothing), Util.testAttribute "build-menu" ]
                         [ text "Actions"
                         , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                         ]
