@@ -661,6 +661,9 @@ update msg model =
 
         ShowHideBuildMenu build show ->
             let
+                buildsOpen =
+                    model.buildMenuOpen
+
                 replaceList : Int -> List Int -> List Int
                 replaceList id buildList =
                     if List.member id buildList then
@@ -674,8 +677,8 @@ update msg model =
                     unwrap []
                         (\b ->
                             unwrap
-                                (replaceList b model.buildMenuOpen)
-                                (\_ -> model.buildMenuOpen)
+                                (replaceList b buildsOpen)
+                                (\_ -> buildsOpen)
                                 show
                         )
                         build

@@ -155,7 +155,7 @@ viewPreview msgs openMenu showMenu now zone org repo build =
 
         buildMenuAttributeList : List (Html.Attribute msg)
         buildMenuAttributeList =
-            [ attribute "role" "navigation", Html.Attributes.id "build-actions" ] ++ Util.open (List.member build.id openMenu)
+            [ attribute "role" "navigation", id "build-actions" ] ++ Util.open (List.member build.id openMenu)
 
         restartBuild : Html msgs
         restartBuild =
@@ -271,7 +271,7 @@ viewPreview msgs openMenu showMenu now zone org repo build =
         message =
             [ text <| "- " ++ build.message ]
 
-        id =
+        buildId =
             [ a
                 [ Util.testAttribute "build-number"
                 , href build.link
@@ -312,7 +312,7 @@ viewPreview msgs openMenu showMenu now zone org repo build =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
                 [ div [ class "row -left" ]
-                    [ div [ class "id" ] id
+                    [ div [ class "id" ] buildId
                     , div [ class "commit-msg" ] [ strong [] message ]
                     ]
                 , div [ class "row" ]
