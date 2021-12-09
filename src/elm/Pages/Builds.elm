@@ -32,8 +32,8 @@ import Vela exposing (BuildsModel, Event, Org, Repo)
 
 {-| view : takes org and repo and renders build previews
 -}
-view : BuildsModel -> Msgs msgs -> List Int -> Posix -> Zone -> Org -> Repo -> Bool -> Maybe Event -> Html msgs
-view buildsModel msgs buildMenuOpen now zone org repo showTimestamp maybeEvent =
+view : BuildsModel -> Msgs msgs -> List Int -> Posix -> Zone -> Org -> Repo -> Maybe Event -> Html msgs
+view buildsModel msgs buildMenuOpen now zone org repo maybeEvent =
     let
         settingsLink : String
         settingsLink =
@@ -78,7 +78,7 @@ view buildsModel msgs buildMenuOpen now zone org repo showTimestamp maybeEvent =
                 none
 
             else
-                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview msgs buildMenuOpen True now zone org repo showTimestamp) builds
+                div [ class "builds", Util.testAttribute "builds" ] <| List.map (viewPreview msgs buildMenuOpen True now zone org repo buildsModel.showTimestamp) builds
 
         RemoteData.Loading ->
             largeLoader

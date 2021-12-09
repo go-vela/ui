@@ -205,6 +205,7 @@ import Vela
         , updateBuildsPage
         , updateBuildsPager
         , updateBuildsPerPage
+        , updateBuildsShowTimeStamp
         , updateDeployments
         , updateDeploymentsPage
         , updateDeploymentsPager
@@ -264,7 +265,6 @@ type alias Model =
     , visibility : Visibility
     , showHelp : Bool
     , showIdentity : Bool
-    , showTimestamp : Bool
     , favicon : Favicon
     , secretsModel : Pages.Secrets.Model.Model Msg
     , deploymentModel : Pages.Deployments.Model.Model Msg
@@ -316,7 +316,6 @@ init flags url navKey =
             , visibility = Visible
             , showHelp = False
             , showIdentity = False
-            , showTimestamp = False
             , buildMenuOpen = []
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
@@ -576,7 +575,7 @@ update msg model =
             )
 
         ShowHideFullTimestamp ->
-            ( { model | showTimestamp = not model.showTimestamp }, Cmd.none )
+            ( { model | repo = rm |> updateBuildsShowTimeStamp}, Cmd.none )
 
         SetTheme theme ->
             if theme == model.theme then
@@ -2469,7 +2468,7 @@ viewContent model =
             , div []
                 [ div [ class "build-bar" ]
                     [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                    , viewTimeToggle shouldRenderFilter model.showTimestamp
+                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
                     ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 , lazy7 Pages.Organization.viewBuilds model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org maybeEvent
@@ -2498,10 +2497,10 @@ viewContent model =
             , div []
                 [ div [ class "build-bar" ]
                     [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                    , viewTimeToggle shouldRenderFilter model.showTimestamp
+                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
                     ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo model.showTimestamp maybeEvent
+                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )

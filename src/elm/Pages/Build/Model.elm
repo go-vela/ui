@@ -39,7 +39,6 @@ type alias PartialModel a =
         , zone : Zone
         , repo : RepoModel
         , shift : Bool
-        , showTimestamp : Bool
         , buildMenuOpen : List Int
         , pipeline : PipelineModel
     }

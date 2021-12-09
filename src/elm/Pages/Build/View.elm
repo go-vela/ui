@@ -122,7 +122,7 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
         markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo model.showTimestamp bld
+                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
                     , viewBuildTabs model org repo buildNumber model.page
                     , content
                     ]
