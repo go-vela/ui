@@ -575,7 +575,7 @@ update msg model =
             )
 
         ShowHideFullTimestamp ->
-            ( { model | repo = rm |> updateBuildsShowTimeStamp}, Cmd.none )
+            ( { model | repo = rm |> updateBuildsShowTimeStamp }, Cmd.none )
 
         SetTheme theme ->
             if theme == model.theme then

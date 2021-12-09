@@ -566,8 +566,9 @@ updateBuildsPager update rm =
     in
     { rm | builds = { bm | pager = update } }
 
+
 updateBuildsShowTimeStamp : RepoModel -> RepoModel
-updateBuildsShowTimeStamp  rm =
+updateBuildsShowTimeStamp rm =
     let
         bm =
             rm.builds
