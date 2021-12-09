@@ -372,7 +372,7 @@ type Msg
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
     | FilterBuildEventBy (Maybe Event) Org Repo
-    | UpdateTimestamp
+    | ShowHideFullTimestamp
     | SetTheme Theme
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
@@ -575,7 +575,7 @@ update msg model =
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| route
             )
 
-        UpdateTimestamp ->
+        ShowHideFullTimestamp ->
             ( { model | showTimestamp = not model.showTimestamp }, Cmd.none )
 
         SetTheme theme ->
@@ -2614,7 +2614,7 @@ viewTimeToggle shouldRender showTimestamp =
     if shouldRender then
         div [ class "form-controls", class "-stack", class "time-toggle" ]
             [ div [ class "form-control" ]
-                [ input [ type_ "checkbox", checked showTimestamp, onClick UpdateTimestamp, id "checkbox-time-toggle", Util.testAttribute "time-toggle" ] []
+                [ input [ type_ "checkbox", checked showTimestamp, onClick ShowHideFullTimestamp, id "checkbox-time-toggle", Util.testAttribute "time-toggle" ] []
                 , label [ class "form-label", for "checkbox-time-toggle" ] [ text "show full timestamps" ]
                 ]
             ]
