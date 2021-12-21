@@ -28,7 +28,6 @@ import Html.Attributes
         )
 import List
 import List.Extra
-import Pages exposing (Page(..))
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
 import Search

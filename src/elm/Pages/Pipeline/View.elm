@@ -28,11 +28,9 @@ import Html
         )
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
-import Pages exposing (Page(..))
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..))
-import Routes exposing (Route(..))
 import Util
 import Vela
     exposing

@@ -11,7 +11,6 @@ module Util exposing
     , base64Decode
     , boolToYesNo
     , buildBranchUrl
-    , dateToHumanReadable
     , dispatch
     , extractFocusIdFromRange
     , filterEmptyList
@@ -26,7 +25,6 @@ module Util exposing
     , isLoading
     , isSuccess
     , largeLoader
-    , megabyte
     , mergeListsById
     , noBlanks
     , onClickPreventDefault
@@ -514,43 +512,6 @@ getNameFromRef s =
 
         _ ->
             ""
-
-
-{-| byteUnitFactor : returns the factor for doing filesize calculations.
-This application uses decimal units, or units by the 1000.
-
-see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
-
--}
-byteUnitFactor : Int
-byteUnitFactor =
-    1000
-
-
-{-| byte : returns a byte represented as an integer.
-
-see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
-
--}
-byte : Int
-byte =
-    1
-
-
-{-| kilobyte : returns a kilobyte defined as 1000 bytes.
-see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
--}
-kilobyte : Int
-kilobyte =
-    byteUnitFactor * byte
-
-
-{-| megabyte : returns a megabyte defined as 1000 kilobytes.
-see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesize/latest/Filesize>
--}
-megabyte : Int
-megabyte =
-    byteUnitFactor * kilobyte
 
 
 {-| formatFilesize : returns a file size in bytes as a human readable string.

@@ -97,7 +97,6 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeTheme
-    , defaultDeployments
     , defaultEnableRepositoryPayload
     , defaultFavicon
     , defaultPipeline
@@ -1884,10 +1883,6 @@ decodeKeyValuePairs o =
 
     else
         Just <| List.map decodeKeyValuePair <| o
-
-
-type alias ParameterMap =
-    Dict String String
 
 
 decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
