@@ -1033,7 +1033,7 @@ buildStatusStyles markdown buildStatus buildNumber =
         animation =
             case buildStatus of
                 Vela.Running ->
-                    List.append (topParticles buildNumber) (bottomParticles buildNumber)
+                    [div [ class "build-animation"] <| List.append (topParticles buildNumber) (bottomParticles buildNumber)]
 
                 _ ->
                     [ div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
