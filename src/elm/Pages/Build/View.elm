@@ -24,7 +24,7 @@ import Focus
         , resourceAndLineToFocusId
         , resourceToFocusId
         )
-import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, tr, ul)
+import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, time, tr, ul)
 import Html.Attributes
     exposing
         ( attribute
@@ -122,7 +122,7 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
         markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo bld
+                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
                     , viewBuildTabs model org repo buildNumber model.page
                     , content
                     ]
@@ -141,8 +141,8 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Msgs msgs -> List Int -> Bool -> Posix -> Zone -> Org -> Repo -> Build -> Html msgs
-viewPreview msgs openMenu showMenu now zone org repo build =
+viewPreview : Msgs msgs -> List Int -> Bool -> Posix -> Zone -> Org -> Repo -> Bool -> Build -> Html msgs
+viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
     let
         buildMenuBaseClassList : Html.Attribute msg
         buildMenuBaseClassList =
@@ -279,14 +279,28 @@ viewPreview msgs openMenu showMenu now zone org repo build =
                 [ text <| "#" ++ buildNumber ]
             ]
 
-        age =
-            [ text <| relativeTime now <| Time.millisToPosix <| Util.secondsToMillis build.created ]
-
         buildCreatedPosix =
             Time.millisToPosix <| Util.secondsToMillis build.created
 
+        age =
+            relativeTime now <| buildCreatedPosix
+
         timestamp =
             Util.humanReadableDateTimeFormatter zone buildCreatedPosix
+
+        displayTime =
+            if showTimestamp then
+                [ text <| timestamp ++ " " ]
+
+            else
+                [ text age ]
+
+        hoverTime =
+            if showTimestamp then
+                age
+
+            else
+                timestamp
 
         -- calculate build runtime
         runtime =
@@ -324,9 +338,11 @@ viewPreview msgs openMenu showMenu now zone org repo build =
                         , div [ class "sender" ] sender
                         ]
                     , div [ class "time-info" ]
-                        [ div [ class "age", title timestamp ] age
-                        , span [ class "delimiter" ] [ text "/" ]
-                        , div [ class "duration" ] [ text duration ]
+                        [ div [ class "time-completed" ]
+                            [ div [ class "age", title hoverTime ] displayTime
+                            , span [ class "delimiter" ] [ text " /" ]
+                            , div [ class "duration" ] [ text duration ]
+                            ]
                         , actionsMenu
                         ]
                     ]
