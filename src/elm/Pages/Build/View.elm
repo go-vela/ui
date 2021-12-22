@@ -1023,7 +1023,7 @@ statusToClass status =
             class "-error"
 
 
-{-| buildAnimation : takes build markdown and adds styled flair based on running status
+{-| buildAnimation : takes build info and returns div containing styled flair based on running status
 -}
 buildAnimation : Status -> Int -> Html msgs
 buildAnimation buildStatus buildNumber =
