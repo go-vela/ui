@@ -1029,7 +1029,7 @@ buildAnimation : Status -> Int -> Html msgs
 buildAnimation buildStatus buildNumber =
     case buildStatus of
         Vela.Running ->
-            div [ class "build-animation" ] <| List.append (topParticles buildNumber) (bottomParticles buildNumber)
+            div [ class "build-animation" ] <| (topParticles buildNumber) ++ (bottomParticles buildNumber)
 
         _ ->
             div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
