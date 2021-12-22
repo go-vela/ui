@@ -36,6 +36,10 @@ context('Repo Settings', () => {
       cy.login('/github/octocat/settings');
     });
 
+    it('build limit input should show', () => {
+      cy.get('[data-test=repo-limit]').should('be.visible');
+    });
+
     it('build timeout input should show', () => {
       cy.get('[data-test=repo-timeout]').should('be.visible');
     });
@@ -73,6 +77,33 @@ context('Repo Settings', () => {
       cy.get('@pipelineTypeRadio').should('not.have.checked');
       cy.get('@pipelineTypeRadio').click({ force: true });
       cy.get('@pipelineTypeRadio').should('have.checked');
+    });
+
+    it('build limit input should allow number input', () => {
+      cy.get('[data-test=repo-limit]').as('repoLimit');
+      cy.get('[data-test=repo-limit] input').as('repoLimitInput');
+      cy.get('@repoLimitInput').should('be.visible').type('{selectall}123');
+      cy.get('@repoLimitInput').should('have.value', '123');
+    });
+
+    it('build limit input should not allow letter/character input', () => {
+      cy.get('[data-test=repo-limit]').as('repoLimit');
+      cy.get('[data-test=repo-limit] input').as('repoLimitInput');
+      cy.get('@repoLimitInput').should('be.visible').type('{selectall}cat');
+      cy.get('@repoLimitInput').should('not.have.value', 'cat');
+      cy.get('@repoLimitInput').type('{selectall}12cat34');
+      cy.get('@repoLimitInput').should('have.value', '1234');
+    });
+
+    it('clicking update on build limit should update limit and hide button', () => {
+      cy.get('[data-test=repo-limit]').as('repoLimit');
+      cy.get('[data-test=repo-limit] input').as('repoLimitInput');
+      cy.get('@repoLimitInput').should('be.visible').clear();
+      cy.get('@repoLimitInput').type('{selectall}80');
+      cy.get('[data-test=repo-limit] + button')
+        .should('be.visible')
+        .click({ force: true });
+      cy.get('[data-test=repo-limit] + button').should('be.disabled');
     });
 
     it('build timeout input should allow number input', () => {

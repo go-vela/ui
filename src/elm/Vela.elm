@@ -153,6 +153,7 @@ module Vela exposing
     , updateRepoCounter
     , updateRepoEnabling
     , updateRepoInitialized
+    , updateRepoLimit
     , updateRepoTimeout
     )
 
@@ -444,6 +445,23 @@ updateOrgRepositories update rm =
             rm.orgRepos
     in
     { rm | orgRepos = { orm | orgRepos = update } }
+
+
+updateRepoLimit : Maybe Int -> RepoModel -> RepoModel
+updateRepoLimit update rm =
+    let
+        repo =
+            rm.repo
+    in
+    { rm
+        | repo =
+            case repo of
+                RemoteData.Success r ->
+                    RemoteData.succeed { r | inLimit = update }
+
+                _ ->
+                    repo
+    }
 
 
 updateRepoTimeout : Maybe Int -> RepoModel -> RepoModel
@@ -816,6 +834,7 @@ type alias Repository =
     , link : String
     , clone : String
     , branch : String
+    , limit : Int
     , timeout : Int
     , counter : Int
     , visibility : String
@@ -829,6 +848,7 @@ type alias Repository =
     , allow_comment : Bool
     , enabled : Enabled
     , enabling : Enabling
+    , inLimit : Maybe Int
     , inTimeout : Maybe Int
     , inCounter : Maybe Int
     , pipeline_type : String
@@ -864,6 +884,7 @@ decodeRepository =
         |> optional "link" string ""
         |> optional "clone" string ""
         |> optional "branch" string ""
+        |> optional "build_limit" int 0
         |> optional "timeout" int 0
         |> optional "counter" int 0
         |> optional "visibility" string ""
@@ -879,6 +900,8 @@ decodeRepository =
         |> optional "active" enabledDecoder NotAsked
         -- "enabling"
         |> optional "active" enablingDecoder NotAsked_
+        -- "inLimit"
+        |> hardcoded Nothing
         -- "inTimeout"
         |> hardcoded Nothing
         -- "inCounter"
@@ -990,6 +1013,7 @@ type alias UpdateRepositoryPayload =
     , allow_tag : Maybe Bool
     , allow_comment : Maybe Bool
     , visibility : Maybe String
+    , limit : Maybe Int
     , timeout : Maybe Int
     , counter : Maybe Int
     , pipeline_type : Maybe String
@@ -1002,7 +1026,7 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -1017,6 +1041,7 @@ encodeUpdateRepository repo =
         , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
         , ( "allow_comment", encodeOptional Encode.bool repo.allow_comment )
         , ( "visibility", encodeOptional Encode.string repo.visibility )
+        , ( "build_limit", encodeOptional Encode.int repo.limit )
         , ( "timeout", encodeOptional Encode.int repo.timeout )
         , ( "counter", encodeOptional Encode.int repo.counter )
         , ( "pipeline_type", encodeOptional Encode.string repo.pipeline_type )
@@ -1090,6 +1115,9 @@ buildUpdateRepoStringPayload field value =
 buildUpdateRepoIntPayload : Field -> Int -> UpdateRepositoryPayload
 buildUpdateRepoIntPayload field value =
     case field of
+        "build_limit" ->
+            { defaultUpdateRepositoryPayload | limit = Just value }
+
         "timeout" ->
             { defaultUpdateRepositoryPayload | timeout = Just value }
 

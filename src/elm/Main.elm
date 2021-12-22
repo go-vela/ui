@@ -222,6 +222,7 @@ import Vela
         , updateRepoCounter
         , updateRepoEnabling
         , updateRepoInitialized
+        , updateRepoLimit
         , updateRepoTimeout
         )
 
@@ -364,6 +365,7 @@ type Msg
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
     | SearchFavorites String
+    | ChangeRepoLimit String
     | ChangeRepoTimeout String
     | ChangeRepoCounter String
     | RefreshSettings Org Repo
@@ -400,6 +402,7 @@ type Msg
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoPipelineType Org Repo Field String
+    | UpdateRepoLimit Org Repo Field Int
     | UpdateRepoTimeout Org Repo Field Int
     | UpdateRepoCounter Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
@@ -494,6 +497,18 @@ update msg model =
         SearchFavorites searchBy ->
             ( { model | favoritesFilter = searchBy }, Cmd.none )
 
+        ChangeRepoLimit limit ->
+            let
+                newLimit =
+                    case String.toInt limit of
+                        Just t ->
+                            Just t
+
+                        Nothing ->
+                            Just 0
+            in
+            ( { model | repo = updateRepoLimit newLimit rm }, Cmd.none )
+
         ChangeRepoTimeout timeout ->
             let
                 newTimeout =
@@ -522,6 +537,7 @@ update msg model =
             ( { model
                 | repo =
                     rm
+                        |> updateRepoLimit Nothing
                         |> updateRepoTimeout Nothing
                         |> updateRepoCounter Nothing
                         |> updateRepo Loading
@@ -1032,6 +1048,20 @@ update msg model =
             in
             ( model
             , cmd
+            )
+
+        UpdateRepoLimit org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoIntPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+            in
+            ( model
+            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
             )
 
         UpdateRepoTimeout org repo field value ->
@@ -4054,7 +4084,7 @@ sourceReposMsgs =
 -}
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
-    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo UpdateRepoPipelineType
+    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoLimit ChangeRepoLimit UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo UpdateRepoPipelineType
 
 
 {-| buildMsgs : prepares the input record required for the Build pages to route Msgs back to Main.elm
