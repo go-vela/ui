@@ -136,6 +136,7 @@ module Vela exposing
     , updateBuildsPage
     , updateBuildsPager
     , updateBuildsPerPage
+    , updateBuildsShowTimeStamp
     , updateDeployments
     , updateDeploymentsPage
     , updateDeploymentsPager
@@ -564,6 +565,15 @@ updateBuildsPager update rm =
             rm.builds
     in
     { rm | builds = { bm | pager = update } }
+
+
+updateBuildsShowTimeStamp : RepoModel -> RepoModel
+updateBuildsShowTimeStamp rm =
+    let
+        bm =
+            rm.builds
+    in
+    { rm | builds = { bm | showTimestamp = not bm.showTimestamp } }
 
 
 updateDeployments : WebData (List Deployment) -> RepoModel -> RepoModel
@@ -1182,6 +1192,7 @@ type alias BuildsModel =
     , maybePage : Maybe Pagination.Page
     , maybePerPage : Maybe Pagination.PerPage
     , maybeEvent : Maybe Event
+    , showTimestamp : Bool
     }
 
 
@@ -1266,7 +1277,7 @@ buildStatusDecoder =
 
 defaultBuilds : BuildsModel
 defaultBuilds =
-    BuildsModel RemoteData.NotAsked [] Nothing Nothing Nothing
+    BuildsModel RemoteData.NotAsked [] Nothing Nothing Nothing False
 
 
 defaultDeployments : DeploymentsModel
