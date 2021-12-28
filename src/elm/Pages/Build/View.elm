@@ -321,8 +321,9 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         statusClass =
             statusToClass build.status
-
-        markdown =
+    in
+    div [ class "build-container", Util.testAttribute "build" ]
+        [ div [ class "build", statusClass ]
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
                 [ div [ class "row -left" ]
@@ -350,11 +351,8 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                     [ viewError build
                     ]
                 ]
+            , buildAnimation build.status build.number
             ]
-    in
-    div [ class "build-container", Util.testAttribute "build" ]
-        [ div [ class "build", statusClass ] <|
-            buildStatusStyles markdown build.status build.number
         ]
 
 
@@ -1041,21 +1039,16 @@ statusToClass status =
             class "-error"
 
 
-{-| buildStatusStyles : takes build markdown and adds styled flair based on running status
+{-| buildAnimation : takes build info and returns div containing styled flair based on running status
 -}
-buildStatusStyles : List (Html msgs) -> Status -> Int -> List (Html msgs)
-buildStatusStyles markdown buildStatus buildNumber =
-    let
-        animation =
-            case buildStatus of
-                Vela.Running ->
-                    List.append (topParticles buildNumber) (bottomParticles buildNumber)
+buildAnimation : Status -> Int -> Html msgs
+buildAnimation buildStatus buildNumber =
+    case buildStatus of
+        Vela.Running ->
+            div [ class "build-animation" ] <| topParticles buildNumber ++ bottomParticles buildNumber
 
-                _ ->
-                    [ div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
-                    ]
-    in
-    markdown ++ animation
+        _ ->
+            div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
 
 
 {-| topParticles : returns an svg frame to parallax scroll on a running build, set to the top of the build
