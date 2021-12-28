@@ -155,7 +155,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         buildMenuAttributeList : List (Html.Attribute msg)
         buildMenuAttributeList =
-            attribute "role" "navigation" :: Util.open (List.member build.id openMenu)
+            [ attribute "role" "navigation", id "build-actions" ] ++ Util.open (List.member build.id openMenu)
 
         restartBuild : Html msgs
         restartBuild =
@@ -191,7 +191,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
         actionsMenu =
             if showMenu then
                 details (buildMenuBaseClassList :: buildMenuAttributeList)
-                    [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle build.id Nothing), Util.testAttribute "build-menu" ]
+                    [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle (Just build.id) Nothing), Util.testAttribute "build-menu" ]
                         [ text "Actions"
                         , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                         ]
@@ -271,7 +271,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
         message =
             [ text <| "- " ++ build.message ]
 
-        id =
+        buildId =
             [ a
                 [ Util.testAttribute "build-number"
                 , href build.link
@@ -327,7 +327,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
                 [ div [ class "row -left" ]
-                    [ div [ class "id" ] id
+                    [ div [ class "id" ] buildId
                     , div [ class "commit-msg" ] [ strong [] message ]
                     ]
                 , div [ class "row" ]
