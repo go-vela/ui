@@ -21,7 +21,7 @@
     "make-dir-cli": "3.0.0",
     "ncp": "2.0.0",
     "parcel": "2.0.1",
-    "postcss": "8.4.4",
+    "postcss": "8.4.5",
     "prettier": "2.5.1",
     "rimraf": "3.0.2",
     "start-server-and-test": "1.14.0",
