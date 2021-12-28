@@ -155,7 +155,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         buildMenuAttributeList : List (Html.Attribute msg)
         buildMenuAttributeList =
-            attribute "role" "navigation" :: Util.open (List.member build.id openMenu)
+            [ attribute "role" "navigation", id "build-actions" ] ++ Util.open (List.member build.id openMenu)
 
         restartBuild : Html msgs
         restartBuild =
@@ -191,7 +191,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
         actionsMenu =
             if showMenu then
                 details (buildMenuBaseClassList :: buildMenuAttributeList)
-                    [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle build.id Nothing), Util.testAttribute "build-menu" ]
+                    [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle (Just build.id) Nothing), Util.testAttribute "build-menu" ]
                         [ text "Actions"
                         , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                         ]
@@ -271,7 +271,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
         message =
             [ text <| "- " ++ build.message ]
 
-        id =
+        buildId =
             [ a
                 [ Util.testAttribute "build-number"
                 , href build.link
@@ -321,12 +321,13 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         statusClass =
             statusToClass build.status
-
-        markdown =
+    in
+    div [ class "build-container", Util.testAttribute "build" ]
+        [ div [ class "build", statusClass ]
             [ div [ class "status", Util.testAttribute "build-status", statusClass ] status
             , div [ class "info" ]
                 [ div [ class "row -left" ]
-                    [ div [ class "id" ] id
+                    [ div [ class "id" ] buildId
                     , div [ class "commit-msg" ] [ strong [] message ]
                     ]
                 , div [ class "row" ]
@@ -350,11 +351,8 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                     [ viewError build
                     ]
                 ]
+            , buildAnimation build.status build.number
             ]
-    in
-    div [ class "build-container", Util.testAttribute "build" ]
-        [ div [ class "build", statusClass ] <|
-            buildStatusStyles markdown build.status build.number
         ]
 
 
@@ -1041,21 +1039,16 @@ statusToClass status =
             class "-error"
 
 
-{-| buildStatusStyles : takes build markdown and adds styled flair based on running status
+{-| buildAnimation : takes build info and returns div containing styled flair based on running status
 -}
-buildStatusStyles : List (Html msgs) -> Status -> Int -> List (Html msgs)
-buildStatusStyles markdown buildStatus buildNumber =
-    let
-        animation =
-            case buildStatus of
-                Vela.Running ->
-                    List.append (topParticles buildNumber) (bottomParticles buildNumber)
+buildAnimation : Status -> Int -> Html msgs
+buildAnimation buildStatus buildNumber =
+    case buildStatus of
+        Vela.Running ->
+            div [ class "build-animation" ] <| topParticles buildNumber ++ bottomParticles buildNumber
 
-                _ ->
-                    [ div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
-                    ]
-    in
-    markdown ++ animation
+        _ ->
+            div [ class "build-animation", class "-not-running", statusToClass buildStatus ] []
 
 
 {-| topParticles : returns an svg frame to parallax scroll on a running build, set to the top of the build
