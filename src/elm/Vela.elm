@@ -1266,84 +1266,42 @@ decodeBuild =
 {-| BuildDAG : record type for vela build directed graph
 -}
 type alias BuildDAG =
-    { nodes : List DAGNode
-    }
+    List DAGNode
 
 
 type alias DAGNode =
-    { node_id : Int
+    {id : String
+    , parentIDs : List String
     , label : String
-    , edges : List DAGEdge
-    }
-
-
-type alias DAGEdge =
-    { edge_id : Int
-    , node_id : Int
     }
 
 
 
--- type Node struct {
--- 	NodeID int             `json:"node_id"`
--- 	Stage  *pipeline.Stage `json:"stage"`
--- 	Steps  []*library.Step `json:"steps"`
--- 	Edges  []*Edge         `json:"edges"`
--- }
 
 
 decodeBuildDAG : Decoder BuildDAG
 decodeBuildDAG =
-    Decode.succeed BuildDAG
-        |> required "nodes" decodeDAGNodes
-
-
-decodeDAGNodes : Decoder (List DAGNode)
-decodeDAGNodes =
     Decode.list decodeDAGNode
 
 
 decodeDAGNode : Decoder DAGNode
 decodeDAGNode =
     Decode.succeed DAGNode
-        |> required "node_id" int
+        |> required "id" string
+        |> optional "parent_ids" (Decode.list string) []
         |> required "label" Decode.string
-        |> required "edges" decodeDAGEdges
-
-
-decodeDAGEdges : Decoder (List DAGEdge)
-decodeDAGEdges =
-    Decode.list decodeDAGEdge
-
-
-decodeDAGEdge : Decoder DAGEdge
-decodeDAGEdge =
-    Decode.succeed DAGEdge
-        |> required "edge_id" int
-        |> required "node_id" int
 
 
 encodeBuildDAG : BuildDAG -> Encode.Value
 encodeBuildDAG dag =
-    Encode.object
-        [ ( "nodes", Encode.list encodeDAGNode dag.nodes )
-        ]
-
+    Encode.list encodeDAGNode dag 
 
 encodeDAGNode : DAGNode -> Encode.Value
 encodeDAGNode node =
     Encode.object
-        [ ( "node_id", Encode.int node.node_id )
+        [ ( "id", Encode.string node.id )
+        , ( "parentIds", Encode.list Encode.string node.parentIDs )
         , ( "label", Encode.string node.label )
-        , ( "edges", Encode.list encodeDAGEdge node.edges )
-        ]
-
-
-encodeDAGEdge : DAGEdge -> Encode.Value
-encodeDAGEdge edge =
-    Encode.object
-        [ ( "edge_id", Encode.int edge.edge_id )
-        , ( "node_id", Encode.int edge.node_id )
         ]
 
 

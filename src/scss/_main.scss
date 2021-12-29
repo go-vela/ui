@@ -20,6 +20,18 @@
   stroke: #ccc;
   stroke-width: 2px;
 }
+#build-dag {
+  padding: 1rem;
+  background: lightgray;
+}
+
+.d3-tip {
+  font: 12px sans-serif;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
 // end d3
 
 

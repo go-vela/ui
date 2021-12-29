@@ -2127,6 +2127,13 @@ refreshPage model =
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 ]
+        Pages.BuildDAG org repo buildNumber   ->
+            Cmd.batch
+                [ getBuilds model org repo Nothing Nothing Nothing
+                , refreshBuild model org repo buildNumber
+                , refreshBuildDAG model org repo buildNumber
+                ]
+
 
         Pages.Hooks org repo maybePage maybePerPage ->
             Cmd.batch
@@ -2222,6 +2229,17 @@ refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> C
 refreshBuildServices model org repo buildNumber focusFragment =
     if shouldRefresh model.repo.build.build then
         getAllBuildServices model org repo buildNumber focusFragment True
+
+    else
+        Cmd.none
+
+
+{-| refreshBuildDAG : takes model org repo and build number and refreshes the build dag
+-}
+refreshBuildDAG : Model -> Org -> Repo -> BuildNumber  -> Cmd Msg
+refreshBuildDAG model org repo buildNumber   =
+    if shouldRefresh model.repo.build.build then
+        getBuildDAG model org repo buildNumber 
 
     else
         Cmd.none
@@ -2584,6 +2602,17 @@ viewContent model =
                     buildNumber
             )
 
+
+        Pages.BuildDAG org repo buildNumber ->
+            ( "Pipeline " ++ String.join "/" [ org, repo ]
+            , Pages.Build.View.viewBuildDAG
+                model
+                buildMsgs
+                org
+                repo
+                buildNumber
+            )
+
         Pages.Pipeline org repo ref _ _ ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Pages.Pipeline.View.viewPipeline
@@ -2877,6 +2906,9 @@ setNewPage route model =
 
         ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, Authenticated _ ) ->
             loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
+
+        ( Routes.BuildDAG org repo buildNumber , Authenticated _ ) ->
+            loadBuildDAGPage model org repo buildNumber  
 
         ( Routes.Pipeline org repo ref expand lineFocus, Authenticated _ ) ->
             loadPipelinePage model org repo ref expand lineFocus
@@ -3760,6 +3792,49 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             ]
     )
 
+{-| loadBuildDAGPage : takes model org, repo, and build number and loads the appropriate build dag resources.
+-}
+loadBuildDAGPage : Model -> Org -> Repo -> BuildNumber ->    ( Model, Cmd Msg )
+loadBuildDAGPage model org repo buildNumber       =
+    let
+        -- get resource transition information
+        sameBuild =
+            isSameBuild ( org, repo, buildNumber ) model.page
+
+        sameResource =
+            case model.page of
+                Pages.BuildPipeline _ _ _ _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
+        -- if build has changed, set build fields in the model
+        m =
+            if not sameBuild then
+                setBuild org repo buildNumber sameResource model
+
+            else
+                model
+
+
+
+    in
+    ( { m
+        | page = Pages.BuildDAG org repo buildNumber  
+      }
+      -- do not load resources if transition is auto refresh, line focus, etc
+    , if sameBuild && sameResource then
+        Cmd.none
+
+      else
+        Cmd.batch
+            [ getBuilds model org repo Nothing Nothing Nothing
+            , getBuild model org repo buildNumber
+            , getBuildDAG model org repo buildNumber
+            ]
+    )
+
 
 {-| loadPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
@@ -3842,6 +3917,9 @@ isSameBuild id currentPage =
         Pages.BuildPipeline o r b _ _ _ ->
             not <| resourceChanged id ( o, r, b )
 
+        Pages.BuildDAG o r b  ->
+            not <| resourceChanged id ( o, r, b )
+
         _ ->
             False
 
@@ -3862,6 +3940,9 @@ isSamePipelineRef id currentPage pipeline =
 
         Pages.BuildPipeline o r _ rf _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
+
+        Pages.BuildDAG o r _ ->
+            not <| resourceChanged id ( o, r, Maybe.withDefault ""  pipeline.ref )
 
         _ ->
             False

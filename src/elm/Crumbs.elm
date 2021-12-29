@@ -313,6 +313,22 @@ toPath page =
                     , ( "#" ++ buildNumber, Nothing )
                     ]
 
+
+
+                Pages.BuildDAG org repo buildNumber  ->
+                    let
+                        organizationPage =
+                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
+
+                        repoBuildsPage =
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+                    in
+                    [ overviewPage
+                    , organizationPage
+                    , repoBuildsPage
+                    , ( "#" ++ buildNumber, Nothing )
+                    ]
+
                 Pages.Pipeline org repo _ _ _ ->
                     let
                         organizationPage =

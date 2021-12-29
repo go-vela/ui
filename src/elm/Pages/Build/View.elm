@@ -6,6 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.View exposing
     ( viewBuild
+    , viewBuildDAG
     , viewBuildServices
     , viewPreview
     , wrapWithBuildPreview
@@ -123,7 +124,6 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
             case build.build of
                 RemoteData.Success bld ->
                     [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
-                    , div [ id "build-dag" ] [div [] [ text "build-dag goes here"]]
                     , viewBuildTabs model org repo buildNumber model.page
                     , content
                     ]
@@ -532,6 +532,29 @@ viewStepLogs msgs shift rm step =
                 shift
 
 
+
+-- VISUALIZE
+
+
+{-| viewBuildDAG : renders build dag using d3
+-}
+viewBuildDAG : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
+viewBuildDAG model msgs org repo buildNumber =
+    wrapWithBuildPreview model msgs org repo buildNumber <|
+        case model.repo.build.build of
+            RemoteData.Success b ->
+                div[] [ div [ id "build-dag" ] [ ]]
+                   
+            RemoteData.Failure _ ->
+                div [] [ text "Error loading build visualization... Please try again" ]
+
+            _ ->
+                -- Don't show two loaders
+                if Util.isLoading model.repo.build.build then
+                    text ""
+
+                else
+                    Util.smallLoader
 
 -- SERVICES
 
