@@ -2,6 +2,28 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
+
+
+// start d3
+.node circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 3px;
+}
+
+.node text {
+  font: 12px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 2px;
+}
+// end d3
+
+
+
 html {
   font-family: var(--font-family);
 }

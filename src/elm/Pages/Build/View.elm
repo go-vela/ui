@@ -123,6 +123,7 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
             case build.build of
                 RemoteData.Success bld ->
                     [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
+                    , div [ id "build-dag" ] [div [] [ text "build-dag goes here"]]
                     , viewBuildTabs model org repo buildNumber model.page
                     , content
                     ]

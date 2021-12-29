@@ -126,6 +126,7 @@ import Vela
     exposing
         ( AuthParams
         , Build
+        , BuildDAG
         , BuildNumber
         , Builds
         , CurrentUser
@@ -176,6 +177,7 @@ import Vela
         , defaultPipeline
         , defaultPipelineTemplates
         , defaultRepoModel
+        , encodeBuildDAG
         , encodeEnableRepository
         , encodeTheme
         , encodeUpdateRepository
@@ -374,6 +376,8 @@ type Msg
     | FilterBuildEventBy (Maybe Event) Org Repo
     | ShowHideFullTimestamp
     | SetTheme Theme
+      -- D3
+    | InboundD3 String
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideBuildMenu (Maybe Int) (Maybe Bool)
@@ -429,6 +433,7 @@ type Msg
     | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, List Deployment ))
     | HooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
+    | BuildDAGResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, BuildDAG ))
     | DeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
@@ -584,6 +589,13 @@ update msg model =
 
             else
                 ( { model | theme = theme }, Interop.setTheme <| encodeTheme theme )
+
+        InboundD3 inboundString ->
+            let
+                _ =
+                    Debug.log "received Msg.InboundD3 inboundString" inboundString
+            in
+            ( model, Cmd.none )
 
         GotoPage pageNumber ->
             case model.page of
@@ -1469,6 +1481,21 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
+        BuildDAGResponse org repo response ->
+            case response of
+                Ok ( _, dag ) ->
+                    let
+                        _ =
+                            Debug.log "received dag, sending to interop" dag
+                    in
+                    ( model
+                    , Interop.outboundD3 <| encodeBuildDAG dag
+                    )
+
+                Err error ->
+                    -- dag error
+                    ( model, addError error )
+
         DeploymentResponse response ->
             case response of
                 Ok ( _, deployment ) ->
@@ -1991,6 +2018,7 @@ subscriptions model =
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
         , refreshSubscriptions model
+        , Interop.inboundD3 decodeInboundD3
         ]
 
 
@@ -2002,6 +2030,16 @@ decodeOnThemeChange inTheme =
 
         Err _ ->
             SetTheme Dark
+
+
+decodeInboundD3 : Decode.Value -> Msg
+decodeInboundD3 inboundString =
+    case Decode.decodeValue Decode.string inboundString of
+        Ok inString ->
+            InboundD3 inString
+
+        Err _ ->
+            NoOp
 
 
 {-| refreshSubscriptions : takes model and returns the subscriptions for automatically refreshing page data
@@ -3563,6 +3601,7 @@ loadBuildPage model org repo buildNumber lineFocus =
             [ getBuilds model org repo Nothing Nothing Nothing
             , getBuild model org repo buildNumber
             , getAllBuildSteps model org repo buildNumber lineFocus sameBuild
+            , getBuildDAG model org repo buildNumber
             ]
     )
 
@@ -4256,6 +4295,11 @@ restartBuild model org repo buildNumber =
 cancelBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 cancelBuild model org repo buildNumber =
     Api.try (CancelBuildResponse org repo buildNumber) <| Api.cancelBuild model org repo buildNumber
+
+
+getBuildDAG : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+getBuildDAG model org repo buildNumber =
+    Api.try (BuildDAGResponse org repo) <| Api.getBuildDAG model org repo buildNumber
 
 
 getRepoSecrets :

@@ -52,6 +52,7 @@ type Endpoint
     | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
     | Build Org Repo BuildNumber
+    | BuildDAG Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
     | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | ServiceLogs Org Repo BuildNumber ServiceNumber
@@ -113,6 +114,9 @@ toUrl api endpoint =
 
         Build org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber ] []
+
+        BuildDAG org repo buildNumber ->
+            url api [ "repos", org, repo, "builds", buildNumber, "dag" ] []
 
         CancelBuild org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "cancel" ] []

@@ -10,14 +10,14 @@ module Api exposing
     , addSecret
     , cancelBuild
     , chownRepo
+    ,getBuildDAG
     , deleteRepo
-    , deleteSecret
+    , deleteSecret, getBuild
     , enableRepository
     , expandPipelineConfig
     , getAllSecrets
     , getAllServices
     , getAllSteps
-    , getBuild
     , getBuilds
     , getCurrentUser
     , getDeployment
@@ -80,6 +80,7 @@ import Vela
         , Step
         , StepNumber
         , Templates
+        , BuildDAG
         , Type
         , decodeBuild
         , decodeBuilds
@@ -93,6 +94,7 @@ import Vela
         , decodeRepositories
         , decodeRepository
         , decodeSecret
+        , decodeBuildDAG
         , decodeSecrets
         , decodeService
         , decodeSourceRepositories
@@ -683,4 +685,12 @@ addDeployment model org key body =
 deleteSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Request String
 deleteSecret model engine type_ org key name =
     delete model.velaAPI (Endpoint.Secret engine type_ org key name) Json.Decode.string
+        |> withAuth model.session
+
+
+{-| getBuildDAG : fetches vela build dag by repository and build number
+-}
+getBuildDAG : PartialModel a -> Org -> Repo -> BuildNumber -> Request BuildDAG
+getBuildDAG model org repository buildNumber =
+    get model.velaAPI (Endpoint.BuildDAG org repository buildNumber) decodeBuildDAG
         |> withAuth model.session

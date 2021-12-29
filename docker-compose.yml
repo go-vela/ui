@@ -32,7 +32,11 @@ services:
   # https://go-vela.github.io/docs/concepts/infrastructure/server/
   server:
     container_name: server
-    image: target/vela-server:latest
+    # image: target/vela-server:latest
+    build:
+      context: ../server/
+      dockerfile: Dockerfile
+    image: worker:local
     networks:
       - vela
     environment:
@@ -74,6 +78,10 @@ services:
   worker:
     container_name: worker
     image: target/vela-worker:latest
+    # build:
+    #   context: ../worker/
+    #   dockerfile: Dockerfile
+    # image: worker:local
     networks:
       - vela
     environment:
