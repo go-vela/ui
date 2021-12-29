@@ -3,7 +3,6 @@
 // Use of this source code is governed by the LICENSE file in this repository.
 
 
-
 // start d3
 .node circle {
   fill: #fff;
@@ -25,13 +24,15 @@
   background: lightgray;
 }
 
-.d3-tip {
+.e .the-tooltip {
   font: 12px sans-serif;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
+  background-color: var(--color-bg);
+  color: red !important;
+
   border-radius: 2px;
 }
+
 // end d3
 
 
@@ -65,6 +66,9 @@ a {
     text-decoration: none;
   }
 }
+
+
+
 
 header {
   display: flex;

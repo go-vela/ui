@@ -1273,6 +1273,7 @@ type alias DAGNode =
     {id : String
     , parentIDs : List String
     , label : String
+    , steps : List Step
     }
 
 
@@ -1290,6 +1291,7 @@ decodeDAGNode =
         |> required "id" string
         |> optional "parent_ids" (Decode.list string) []
         |> required "label" Decode.string
+        |> optional "steps" (Decode.list decodeStep) []
 
 
 encodeBuildDAG : BuildDAG -> Encode.Value
@@ -1302,6 +1304,7 @@ encodeDAGNode node =
         [ ( "id", Encode.string node.id )
         , ( "parentIds", Encode.list Encode.string node.parentIDs )
         , ( "label", Encode.string node.label )
+        , ( "steps", Encode.list encodeStep node.steps )
         ]
 
 
@@ -1509,6 +1512,19 @@ decodeStep =
         |> hardcoded False
         -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
+
+
+
+encodeStep : Step -> Encode.Value
+encodeStep step =
+    Encode.object
+        [ ( "id", Encode.int step.id )
+        , ( "build_id", Encode.int step.build_id )
+        , ( "repo_id", Encode.int step.repo_id )
+        , ( "number", Encode.int step.number )
+        , ( "name", Encode.string step.name )
+        , ( "image", Encode.string step.image )
+        ]
 
 
 type alias Steps =

@@ -115,17 +115,26 @@ app.ports.outboundD3.subscribe(function (d) {
 
       // initialize tooltips
       var tip = d3Tip()
-          .attr('class', 'd3-tip')
-          .direction('e')
-          .offset([0, 5])
+      .attr('class', 'd3-tip')
+      .style('color', 'green')
+      .direction('e')
+          .offset([0, 50])
           .html(
               function (ev, d) {
+                var innerSteps = ``;
+                if (d.data.steps) {
+                  d.data.steps.map((s) => innerSteps = innerSteps + `<tr><td align="left">` + s.name + `</td><td align="left">`+ s.image +`</td></tr>`)
+                 }
+                 else {
+                  innerSteps = `<tr><td></td></tr>`
+                 }
                   // if (d.data.isUnion) return;
-                  var content = `
-                  <span style='margin-left: 2.5px;'><b>` + d.data.label + `</b></span><br>
+                  var content = d.data.steps ? `
                   <table style="margin-top: 2.5px;">
-                  </table>
-                  `
+                  <tr><span style="text-decoration: underline;">steps</span></tr>
+                  <tr><th align="left">name</td><th align="left">image</td></tr>
+                  `+ innerSteps + `</table>                  
+                  ` : `<span/>`
                   return content.replace(new RegExp("null", "g"), "?")
               }
           );
