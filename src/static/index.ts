@@ -48,8 +48,8 @@ const flags: Flags = {
   ),
   velaMaxBuildLimit: Number(
     process.env.VELA_MAX_BUILD_LIMIT ||
-    envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
-    maximumBuildLimit,
+      envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
+      maximumBuildLimit,
   ),
 };
 
