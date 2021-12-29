@@ -13,6 +13,7 @@ const feedbackURL: string =
   'https://github.com/go-vela/community/issues/new/choose';
 const docsURL: string = 'https://go-vela.github.io/docs';
 const defaultLogBytesLimit: number = 2000000; // 2mb
+const maximumBuildLimit: number = 30;
 
 // setup for auth redirect
 const redirectKey: string = 'vela-redirect';
@@ -44,6 +45,11 @@ const flags: Flags = {
     process.env.VELA_LOG_BYTES_LIMIT ||
       envOrNull('VELA_LOG_BYTES_LIMIT', '$VELA_LOG_BYTES_LIMIT') ||
       defaultLogBytesLimit,
+  ),
+  velaMaxBuildLimit: Number(
+    process.env.VELA_MAX_BUILD_LIMIT ||
+    envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
+    maximumBuildLimit,
   ),
 };
 

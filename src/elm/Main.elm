@@ -66,7 +66,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy7, lazy8)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
@@ -241,6 +241,7 @@ type alias Flags =
     , velaTheme : String
     , velaRedirect : String
     , velaLogBytesLimit : Int
+    , velaMaxBuildLimit : Int
     }
 
 
@@ -256,6 +257,7 @@ type alias Model =
     , velaDocsURL : String
     , velaRedirect : String
     , velaLogBytesLimit : Int
+    , velaMaxBuildLimit : Int
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
@@ -305,6 +307,7 @@ init flags url navKey =
             , velaDocsURL = flags.velaDocsURL
             , velaRedirect = flags.velaRedirect
             , velaLogBytesLimit = flags.velaLogBytesLimit
+            , velaMaxBuildLimit = flags.velaMaxBuildLimit
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = utc
@@ -2405,7 +2408,7 @@ viewContent model =
 
         Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy4 Pages.RepoSettings.view model.repo.repo repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
+            , lazy5 Pages.RepoSettings.view model.repo.repo repoSettingsMsgs model.velaAPI (Url.toString model.entryURL) model.velaMaxBuildLimit
             )
 
         Pages.RepoSecrets engine org repo _ _ ->

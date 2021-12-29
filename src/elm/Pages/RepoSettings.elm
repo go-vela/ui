@@ -130,8 +130,8 @@ type alias Msgs msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Msgs msg -> String -> String -> Html msg
-view repo actions velaAPI velaURL =
+view : WebData Repository -> Msgs msg -> String -> String -> Int -> Html msg
+view repo actions velaAPI velaURL maxLimit =
     let
         ( accessUpdate, pipelineTypeUpdate ) =
             ( actions.accessUpdate, actions.pipelineTypeUpdate )
@@ -156,7 +156,7 @@ view repo actions velaAPI velaURL =
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ events repo_ eventsUpdate
                 , access repo_ accessUpdate
-                , limit repo_.inLimit repo_ limitUpdate inLimitChange
+                , limit maxLimit repo_.inLimit repo_ limitUpdate inLimitChange
                 , timeout repo_.inTimeout repo_ timeoutUpdate inTimeoutChange
                 , counter repo_.inCounter repo_ counterUpdate inCounterChange
                 , badge repo_ velaAPI velaURL actions.copy
@@ -319,16 +319,16 @@ events repo msg =
 
 {-| limit : takes model and repo and renders the settings category for updating repo build limit
 -}
-limit : Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) -> Html msg
-limit inLimit repo clickMsg inputMsg =
+limit : Int -> Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) -> Html msg
+limit maxLimit inLimit repo clickMsg inputMsg =
     section [ class "settings", Util.testAttribute "repo-settings-limit" ]
         [ h2 [ class "settings-title" ] [ text "Build Limit" ]
         , p [ class "settings-description" ] [ text "Concurrent builds (pending or running) that exceed this limit will be stopped." ]
         , div [ class "form-controls" ]
-            [ limitInput repo inLimit inputMsg
-            , updateLimit inLimit repo repo.limit <| clickMsg repo.org repo.name "build_limit" <| Maybe.withDefault 0 inLimit
+            [ limitInput repo maxLimit inLimit inputMsg
+            , updateLimit maxLimit inLimit repo repo.limit <| clickMsg repo.org repo.name "build_limit" <| Maybe.withDefault 0 inLimit
             ]
-        , limitWarning inLimit
+        , limitWarning maxLimit inLimit
         ]
 
 
@@ -396,15 +396,15 @@ radio value field title msg =
 
 {-| limitInput : takes repo, user input, and button action and renders the text input for updating build limit.
 -}
-limitInput : Repository -> Maybe Int -> (String -> msg) -> Html msg
-limitInput repo inLimit inputMsg =
+limitInput : Repository -> Int -> Maybe Int -> (String -> msg) -> Html msg
+limitInput repo maxLimit inLimit inputMsg =
     div [ class "form-control", Util.testAttribute "repo-limit" ]
         [ input
             [ id <| "repo-limit"
             , onInput inputMsg
             , type_ "number"
             , Html.Attributes.min "1"
-            , Html.Attributes.max "30"
+            , Html.Attributes.max <| String.fromInt maxLimit
             , value <| String.fromInt <| Maybe.withDefault repo.limit inLimit
             ]
             []
@@ -414,8 +414,8 @@ limitInput repo inLimit inputMsg =
 
 {-| updateLimit : takes maybe int of user entered limit and current repo limit and renders the button to submit the update.
 -}
-updateLimit : Maybe Int -> Repository -> Int -> msg -> Html msg
-updateLimit inLimit repo repoLimit msg =
+updateLimit : Int -> Maybe Int -> Repository -> Int -> msg -> Html msg
+updateLimit maxLimit inLimit repo repoLimit msg =
     case inLimit of
         Just _ ->
             button
@@ -424,7 +424,7 @@ updateLimit inLimit repo repoLimit msg =
                     , ( "-outline", True )
                     ]
                 , onClick msg
-                , disabled <| not <| validLimit inLimit repo <| Just repoLimit
+                , disabled <| not <| validLimit maxLimit inLimit repo <| Just repoLimit
                 ]
                 [ text "update" ]
 
@@ -434,12 +434,14 @@ updateLimit inLimit repo repoLimit msg =
 
 {-| limitWarning : takes maybe string of user entered limit and renders a disclaimer on updating the build limit.
 -}
-limitWarning : Maybe Int -> Html msg
-limitWarning inLimit =
+limitWarning : Int -> Maybe Int -> Html msg
+limitWarning maxLimit inLimit =
     case inLimit of
         Just _ ->
             p [ class "notice" ]
-                [ text "Disclaimer: it is highly recommended to optimize your pipeline before increasing this value. Limits must also lie between 1 and 30."
+                [ text "Disclaimer: it is highly recommended to optimize your pipeline before increasing this value. Limits must also lie between 1 and "
+                , text <| String.fromInt maxLimit
+                , text "."
                 ]
 
         Nothing ->
@@ -698,11 +700,11 @@ alert field repo =
 
 {-| validLimit : takes maybe string of user entered limit and returns whether or not it is a valid update.
 -}
-validLimit : Maybe Int -> Repository -> Maybe Int -> Bool
-validLimit inLimit repo repoLimit =
+validLimit : Int -> Maybe Int -> Repository -> Maybe Int -> Bool
+validLimit maxLimit inLimit repo repoLimit =
     case inLimit of
         Just t ->
-            if t >= 1 && t <= 30 then
+            if t >= 1 && t <= maxLimit then
                 case repoLimit of
                     Just ti ->
                         t /= ti
