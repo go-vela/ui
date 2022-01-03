@@ -329,6 +329,7 @@ details.build-toggle {
   position: absolute;
   top: 0.75rem;
   right: 0.25rem;
+  z-index: 9999;
 
   width: max-content;
   min-width: 100%;
@@ -423,7 +424,6 @@ details.build-toggle {
 .build-container {
   width: 100%;
   margin: 12px 0;
-  overflow: hidden;
 }
 
 .deployment-container {
@@ -618,6 +618,10 @@ details.build-toggle {
   position: absolute;
 
   width: 100%;
+  height: 100%;
+  overflow-x: clip;
+
+  pointer-events: none;
 }
 
 .-running-start {

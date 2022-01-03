@@ -73,6 +73,7 @@ import Interop
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Maybe
+import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page)
@@ -375,7 +376,7 @@ type Msg
     | SetTheme Theme
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
-    | ShowHideBuildMenu Int (Maybe Bool)
+    | ShowHideBuildMenu (Maybe Int) (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
     | Copy String
     | DownloadFile String (String -> String) String String
@@ -678,12 +679,14 @@ update msg model =
 
                 updatedOpen : List Int
                 updatedOpen =
-                    case show of
-                        Just _ ->
-                            buildsOpen
-
-                        Nothing ->
-                            replaceList build buildsOpen
+                    unwrap []
+                        (\b ->
+                            unwrap
+                                (replaceList b buildsOpen)
+                                (\_ -> buildsOpen)
+                                show
+                        )
+                        build
             in
             ( { model
                 | buildMenuOpen = updatedOpen
@@ -1983,6 +1986,7 @@ subscriptions model =
         [ Interop.onThemeChange decodeOnThemeChange
         , onMouseDown "contextual-help" model ShowHideHelp
         , onMouseDown "identity" model ShowHideIdentity
+        , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
@@ -2260,6 +2264,9 @@ onMouseDown targetId model triggerMsg =
         Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
 
     else if model.showIdentity then
+        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
+
+    else if List.length model.buildMenuOpen > 0 then
         Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
 
     else

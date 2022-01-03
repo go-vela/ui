@@ -58,7 +58,7 @@ type alias Msgs msg =
     , logsMsgs : LogsMsgs msg
     , restartBuild : RestartBuild msg
     , cancelBuild : CancelBuild msg
-    , toggle : Int -> Maybe Bool -> msg
+    , toggle : Maybe Int -> Maybe Bool -> msg
     }
 
 
