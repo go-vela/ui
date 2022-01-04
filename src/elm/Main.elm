@@ -505,7 +505,8 @@ update msg model =
 
         ChangeRepoLimit limit ->
             let
-                newLimit = Maybe.withDefault 0 <| String.toInt limit
+                newLimit =
+                    Maybe.withDefault 0 <| String.toInt limit
             in
             ( { model | repo = updateRepoLimit (Just newLimit) rm }, Cmd.none )
 
