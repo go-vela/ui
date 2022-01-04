@@ -505,15 +505,9 @@ update msg model =
 
         ChangeRepoLimit limit ->
             let
-                newLimit =
-                    case String.toInt limit of
-                        Just t ->
-                            Just t
-
-                        Nothing ->
-                            Just 0
+                newLimit = Maybe.withDefault 0 <| String.toInt limit
             in
-            ( { model | repo = updateRepoLimit newLimit rm }, Cmd.none )
+            ( { model | repo = updateRepoLimit (Just newLimit) rm }, Cmd.none )
 
         ChangeRepoTimeout timeout ->
             let
