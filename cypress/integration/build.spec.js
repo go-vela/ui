@@ -34,8 +34,8 @@ context('Build', () => {
     });
 
     it('clicking build history item should redirect to build page', () => {
-      cy.get('[data-test=recent-build-link-1]').children().last().click();
-      cy.location('pathname').should('eq', '/github/octocat/105');
+      cy.get('[data-test=recent-build-link-101]').children().last().click();
+      cy.location('pathname').should('eq', '/github/octocat/101');
     });
   });
 
@@ -79,7 +79,7 @@ context('Build', () => {
 
       it('clicking build history item should redirect to build page', () => {
         cy.get('[data-test=recent-build-link-1]').children().last().click();
-        cy.location('pathname').should('eq', '/github/octocat/10');
+        cy.location('pathname').should('eq', '/github/octocat/1');
       });
 
       context('hover build history item', () => {
