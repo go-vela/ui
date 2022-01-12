@@ -1265,8 +1265,12 @@ decodeBuild =
 
 {-| BuildDAG : record type for vela build directed graph
 -}
-type alias BuildDAG =
-    List DAGNode
+type alias BuildDAG = 
+    {
+    nodes : Dict String ( DAGNode)
+    , links : List (List String)
+    }
+    
 
 
 type alias DAGNode =
@@ -1282,7 +1286,9 @@ type alias DAGNode =
 
 decodeBuildDAG : Decoder BuildDAG
 decodeBuildDAG =
-    Decode.list decodeDAGNode
+    Decode.succeed BuildDAG    
+        |> required "nodes" (Decode.dict  decodeDAGNode )
+        |> required "links" (Decode.list (Decode.list Decode.string))
 
 
 decodeDAGNode : Decoder DAGNode
@@ -1294,9 +1300,14 @@ decodeDAGNode =
         |> optional "steps" (Decode.list decodeStep) []
 
 
-encodeBuildDAG : BuildDAG -> Encode.Value
+encodeBuildDAG : BuildDAG -> Encode.Value   
 encodeBuildDAG dag =
-    Encode.list encodeDAGNode dag 
+    Encode.object
+        [ ( "nodes", Encode.dict identity  encodeDAGNode  dag.nodes )
+        , ( "links", (Encode.list (Encode.list Encode.string) dag.links) )
+
+        ]
+    
 
 encodeDAGNode : DAGNode -> Encode.Value
 encodeDAGNode node =

@@ -10,7 +10,7 @@ import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Routes exposing (Route)
 import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
-
+import Maybe.Extra
 
 type Page
     = Overview
@@ -130,6 +130,11 @@ toRoute page =
             Routes.Login
 
         NotFound ->
+            let
+                limit = "0"
+                newLimit =
+                    Maybe.withDefault 0 <| String.toInt limit  
+            in
             Routes.NotFound
 
 

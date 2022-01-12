@@ -8,10 +8,11 @@ services:
   #
   # https://go-vela.github.io/docs/concepts/infrastructure/ui/
   ui:
+    container_name: ui
+    # image: target/vela-server:latest
     build:
       context: .
       dockerfile: Dockerfile.local
-    container_name: ui
     image: ui:local
     networks:
       - vela
@@ -36,7 +37,7 @@ services:
     build:
       context: ../server/
       dockerfile: Dockerfile
-    image: worker:local
+    image: server:local
     networks:
       - vela
     environment:
@@ -55,8 +56,8 @@ services:
       VELA_WEBUI_ADDR: 'http://localhost:8888'
       VELA_LOG_LEVEL: trace
       VELA_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
-      VELA_REFRESH_TOKEN_DURATION: 90m
-      VELA_ACCESS_TOKEN_DURATION: 60m
+      VELA_REFRESH_TOKEN_DURATION: 900m
+      VELA_ACCESS_TOKEN_DURATION: 600m
       VELA_DISABLE_WEBHOOK_VALIDATION: 'true'
       VELA_ENABLE_SECURE_COOKIE: 'false'
     env_file:

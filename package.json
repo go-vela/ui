@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "clipboard": "2.0.8",
-    "d3": "^7.2.1",
-    "d3-dag": "^0.8.2",
+    "d3": "7.2.1",
+    "d3-dag": "0.9.0",
     "d3-tip": "^0.9.1"
   },
   "devDependencies": {
@@ -37,7 +37,7 @@
     "stylelint-declaration-strict-value": "1.8.0",
     "stylelint-high-performance-animation": "1.6.0",
     "stylelint-order": "5.0.0",
-    "stylelint-scss": "4.0.0"
+    "stylelint-scss": "4.1.0"
   },
   "scripts": {
     "predev": "npm run clean",
