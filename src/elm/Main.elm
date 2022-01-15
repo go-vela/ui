@@ -377,8 +377,6 @@ type Msg
     | FilterBuildEventBy (Maybe Event) Org Repo
     | ShowHideFullTimestamp
     | SetTheme Theme
-      -- D3
-    | InboundD3 String
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideBuildMenu (Maybe Int) (Maybe Bool)
@@ -590,13 +588,6 @@ update msg model =
 
             else
                 ( { model | theme = theme }, Interop.setTheme <| encodeTheme theme )
-
-        InboundD3 inboundString ->
-            let
-                _ =
-                    Debug.log "received Msg.InboundD3 inboundString" inboundString
-            in
-            ( model, Cmd.none )
 
         GotoPage pageNumber ->
             case model.page of
@@ -1495,7 +1486,7 @@ update msg model =
                     ( model
                     , case model.page of
                         Pages.BuildGraph _ _ _ ->
-                            Interop.outboundD3 <| Encode.string dot
+                            Interop.renderBuildGraph <| Encode.string dot
 
                         _ ->
                             Cmd.none
@@ -2027,7 +2018,6 @@ subscriptions model =
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
         , refreshSubscriptions model
-        , Interop.inboundD3 decodeInboundD3
         ]
 
 
@@ -2040,15 +2030,6 @@ decodeOnThemeChange inTheme =
         Err _ ->
             SetTheme Dark
 
-
-decodeInboundD3 : Decode.Value -> Msg
-decodeInboundD3 inboundString =
-    case Decode.decodeValue Decode.string inboundString of
-        Ok inString ->
-            InboundD3 inString
-
-        Err _ ->
-            NoOp
 
 
 {-| refreshSubscriptions : takes model and returns the subscriptions for automatically refreshing page data

@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-port module Interop exposing (inboundD3, onThemeChange, outboundD3, setFavicon, setRedirect, setTheme)
+port module Interop exposing (onThemeChange, renderBuildGraph, setFavicon, setRedirect, setTheme)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -43,14 +43,9 @@ port setFavicon : Encode.Value -> Cmd msg
 
 
 
--- D3
-
-
-{-| inbound
--}
-port inboundD3 : (Decode.Value -> msg) -> Sub msg
+-- VISUALIZATION
 
 
 {-| outbound
 -}
-port outboundD3 : Encode.Value -> Cmd msg
+port renderBuildGraph : Encode.Value -> Cmd msg

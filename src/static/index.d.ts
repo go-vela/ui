@@ -68,10 +68,7 @@ export type Ports = {
   readonly setRedirect: ToJS<string>;
   readonly setFavicon: ToJS<string>;
   readonly onThemeChange: ToElm<Theme>;
-
-  // d3
-  readonly outboundD3: ToJS<string>;
-  readonly inboundD3: ToElm<string>;
+  readonly renderBuildGraph: ToJS<string>;
 };
 
 /**

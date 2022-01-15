@@ -91,8 +91,8 @@ app.ports.setFavicon.subscribe(function (url) {
   document.head.appendChild(newIcon);
 });
 
-app.ports.outboundD3.subscribe(function (dotGraph) {
-  const wasmPromise = wasmWorker(dotGraph);
+app.ports.renderBuildGraph.subscribe(function (dot) {
+  const wasmPromise = wasmWorker(dot);
 });
 
 // initialize clipboard.js
