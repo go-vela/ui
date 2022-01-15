@@ -11,9 +11,6 @@ import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
 import { App, Config, Flags, Theme } from './index.d';
 
-// @ts-ignore // false negative module warning
-import WASM_PATH from 'url:@hpcc-js/wasm/dist/graphvizlib.wasm';
-
 // Vela consts
 const feedbackURL: string =
   'https://github.com/go-vela/community/issues/new/choose';
@@ -94,10 +91,6 @@ app.ports.setFavicon.subscribe(function (url) {
   document.head.appendChild(newIcon);
 });
 
-app.ports.renderBuildGraph.subscribe(function (dot) {
-  runGraphvizWorker(dot);
-});
-
 // initialize clipboard.js
 new ClipboardJS('.copy-button');
 
@@ -123,50 +116,59 @@ function envOrNull(env: string, subst: string): string | null {
   return subst;
 }
 
+
+
+let worker;
+var workerPromise;
+
+app.ports.renderBuildGraph.subscribe(function (dot) {
+  if (typeof(Worker) === "undefined") {
+    console.log("sorry, your browser does not support the Worker API, unable to compile graphviz.")
+  }
+
+  if (!worker) {
+    workerPromise = runGraphvizWorker(dot);
+  }
+  // how do we wait on the above promise?
+  worker.postMessage({ eventType: 'LAYOUT', dot: dot });
+});
+
+
 // runGraphvizWorker
 function runGraphvizWorker(dot) {
   return new Promise((resolve, reject) => {
     // @ts-ignore // false negative - standalone support for import.meta added in Parcel v2 - https://parceljs.org/blog/rc0/#support-for-standalone-import.meta
-    const worker = new Worker(new URL('./graphviz.worker.js', import.meta.url), {
+    worker = new Worker(new URL('./graphviz.worker.js', import.meta.url), {
       type: 'module',
     });
     
-    
-    // TODO: postMessage to initialize the graphviz engine
-    
-    // TODO: how to run this only if the promise isnt resolved
-    //   how to store global resolved promise here
-    worker.postMessage({ eventType: 'INIT', wasmPath: WASM_PATH });
-
-    worker.postMessage({ eventType: 'LAYOUT', eventData: dot });
-
-    // TODO: once the graphviz engine is loaded, reuse it to make layout() calls
-    // TODO: reuse the engine.layout() in draw()
-
+    // use the worker to initialize the worker
+    worker.postMessage({ eventType: 'INIT' });
 
     worker.addEventListener('message', function (event) {
-      const { eventType, eventData } = event.data;
-      if (eventType === "INIT_RESULT") {
-
-        // worker.postMessage({ eventType: 'INIT', eventData: dot, wasmPath: WASM_PATH });
-
-      } else if (eventType === 'LAYOUT_RESULT') {
+      const { eventType } = event.data;
+      if (eventType === 'DRAW') {
+        const { drawContent } = event.data;
         // draw occurs in the main thread 
         //  because web workers do not have access to the DOM
-        draw(eventData);
+        draw(drawContent);
       }
     });
     worker.addEventListener('error', function (error) {
       reject(error);
     });
+    console.log("done creating promise")
   });
 }
 
 function draw(content) {
+  console.log('drawing')
   var svg = d3.select('.build-graph');
   var g = d3.select('g.node_mousedown');
-
+  console.log(svg)
   if (g.empty()) {
+    console.log("g empty")
+    // console.log(g)
     g = svg.append('g').attr('class', 'node_mousedown');
     svg.on('mousedown', (e, d) => {
       // stop propagation on buttons and ctrl+click
@@ -174,9 +176,11 @@ function draw(content) {
         e.stopImmediatePropagation();
       }
     });
+    // console.log(g)
   }
   svg = g;
-
+  console.log(svg)
+  console.log(svg.node())
   svg.html(content);
   svg.selectAll('title').remove();
   svg.selectAll('*').attr('xlink:title', null);
