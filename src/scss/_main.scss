@@ -2,37 +2,6 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-
-// start d3
-.node circle {
-  fill: #fff;
-  stroke: steelblue;
-  stroke-width: 3px;
-}
-
-.node text {
-  font: 12px sans-serif;
-}
-
-.link {
-  fill: none;
-  stroke: #ccc;
-  stroke-width: 2px;
-}
-#build-graph {
-  // padding: 1rem;
-  // border-top: 1px solid lightgray;
-  // border-left: 1px solid lightgray;
-  // background: lightgray;
-  // overflow: hidden;
-  // height: 480px;
-}
-
-
-// end d3
-
-
-
 html {
   font-family: var(--font-family);
 }
