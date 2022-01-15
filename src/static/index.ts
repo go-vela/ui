@@ -11,6 +11,9 @@ import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
 import { App, Config, Flags, Theme } from './index.d';
 
+// @ts-ignore // false negative module warning
+import WASM_PATH from 'url:@hpcc-js/wasm/dist/graphvizlib.wasm';
+
 // Vela consts
 const feedbackURL: string =
   'https://github.com/go-vela/community/issues/new/choose';
@@ -128,8 +131,13 @@ function runGraphvizWorker(dot) {
       type: 'module',
     });
     
+    
     // TODO: postMessage to initialize the graphviz engine
     
+    // TODO: how to run this only if the promise isnt resolved
+    //   how to store global resolved promise here
+    worker.postMessage({ eventType: 'INIT', wasmPath: WASM_PATH });
+
     worker.postMessage({ eventType: 'LAYOUT', eventData: dot });
 
     // TODO: once the graphviz engine is loaded, reuse it to make layout() calls
@@ -138,7 +146,11 @@ function runGraphvizWorker(dot) {
 
     worker.addEventListener('message', function (event) {
       const { eventType, eventData } = event.data;
-      if (eventType === 'LAYOUT_RESULT') {
+      if (eventType === "INIT_RESULT") {
+
+        // worker.postMessage({ eventType: 'INIT', eventData: dot, wasmPath: WASM_PATH });
+
+      } else if (eventType === 'LAYOUT_RESULT') {
         // draw occurs in the main thread 
         //  because web workers do not have access to the DOM
         draw(eventData);
