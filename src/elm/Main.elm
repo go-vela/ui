@@ -2031,7 +2031,6 @@ decodeOnThemeChange inTheme =
             SetTheme Dark
 
 
-
 {-| refreshSubscriptions : takes model and returns the subscriptions for automatically refreshing page data
 -}
 refreshSubscriptions : Model -> Sub Msg
