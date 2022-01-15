@@ -45,8 +45,8 @@ const flags: Flags = {
   velaRedirect: currentRedirectKey || '',
   velaLogBytesLimit: Number(
     process.env.VELA_LOG_BYTES_LIMIT ||
-    envOrNull('VELA_LOG_BYTES_LIMIT', '$VELA_LOG_BYTES_LIMIT') ||
-    defaultLogBytesLimit,
+      envOrNull('VELA_LOG_BYTES_LIMIT', '$VELA_LOG_BYTES_LIMIT') ||
+      defaultLogBytesLimit,
   ),
 };
 
@@ -91,13 +91,9 @@ app.ports.setFavicon.subscribe(function (url) {
   document.head.appendChild(newIcon);
 });
 
-
-
-
 app.ports.outboundD3.subscribe(function (dotGraph) {
   const wasmPromise = wasmWorker(dotGraph);
 });
-
 
 // initialize clipboard.js
 new ClipboardJS('.copy-button');
@@ -128,12 +124,14 @@ function envOrNull(env: string, subst: string): string | null {
 function wasmWorker(dotGraph) {
   return new Promise((resolve, reject) => {
     // @ts-ignore // false negative - import.meta supported by Parcel v2 - https://parceljs.org/blog/rc0/#support-for-standalone-import.meta
-    const worker = new Worker(new URL('./worker.js', import.meta.url), { type: "module" });
-    console.log("posting message to worker: INITIALISE")
-    worker.postMessage({ eventType: "INITIALISE", eventData: dotGraph });
+    const worker = new Worker(new URL('./worker.js', import.meta.url), {
+      type: 'module',
+    });
+    console.log('posting message to worker: INITIALISE');
+    worker.postMessage({ eventType: 'INITIALISE', eventData: dotGraph });
     worker.addEventListener('message', function (event) {
       const { eventType, eventData, eventId } = event.data;
-      if (eventType === "RESULT") {
+      if (eventType === 'RESULT') {
         var svg = d3.select('.build-graph');
         svg = createSvg(svg);
         svg.html(eventData);
@@ -141,36 +139,47 @@ function wasmWorker(dotGraph) {
         svg.selectAll('*').attr('xlink:title', null);
 
         var bbox = svg.node().getBBox();
-        const VIEWBOX_PADDING = { x1: 20, x2: 40, y1: 20, y2: 40 }
+        const VIEWBOX_PADDING = { x1: 20, x2: 40, y1: 20, y2: 40 };
 
         var parent = d3.select(svg.node().parentNode);
         console.log(parent);
-        parent.attr("viewBox", "" + (bbox.x - VIEWBOX_PADDING.x1) + " " + (bbox.y - VIEWBOX_PADDING.y1) + " " + (bbox.width + VIEWBOX_PADDING.x2) + " " + (bbox.height + VIEWBOX_PADDING.y2));
-        
+        parent.attr(
+          'viewBox',
+          '' +
+            (bbox.x - VIEWBOX_PADDING.x1) +
+            ' ' +
+            (bbox.y - VIEWBOX_PADDING.y1) +
+            ' ' +
+            (bbox.width + VIEWBOX_PADDING.x2) +
+            ' ' +
+            (bbox.height + VIEWBOX_PADDING.y2),
+        );
       }
     });
-    worker.addEventListener("error", function (error) {
+    worker.addEventListener('error', function (error) {
       reject(error);
     });
-  })
+  });
 }
 
 function createSvg(svg) {
-  var g = d3.select("g.test")
+  var g = d3.select('g.test');
   if (g.empty()) {
-    svg.append("defs").append("filter")
-      .attr("id", "embiggen")
-      .append("feMorphology")
-      .attr("operator", "dilate")
-      .attr("radius", "4");
+    svg
+      .append('defs')
+      .append('filter')
+      .attr('id', 'embiggen')
+      .append('feMorphology')
+      .attr('operator', 'dilate')
+      .attr('radius', '4');
 
-    g = svg.append("g").attr("class", "test")
-    svg.on("mousedown", (e, d) => {
+    g = svg.append('g').attr('class', 'test');
+    svg.on('mousedown', (e, d) => {
       if (e.button || e.ctrlKey) {
-        console.log("button or ctrl");
+        console.log('button or ctrl');
         e.stopImmediatePropagation();
       }
     });
   }
-  return g
+  return g;
 }
