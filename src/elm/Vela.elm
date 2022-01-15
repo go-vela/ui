@@ -8,6 +8,7 @@ module Vela exposing
     ( AuthParams
     , Build
     , BuildGraph
+    , updateBuildGraph
     , BuildModel
     , BuildNumber
     , Builds
@@ -389,6 +390,7 @@ type alias BuildModel =
     , build : WebData Build
     , steps : StepsModel
     , services : ServicesModel
+    , graph : WebData BuildGraph
     }
 
 
@@ -410,7 +412,7 @@ type alias ServicesModel =
 
 defaultBuildModel : BuildModel
 defaultBuildModel =
-    BuildModel "" NotAsked defaultStepsModel defaultServicesModel
+    BuildModel "" NotAsked defaultStepsModel defaultServicesModel NotAsked
 
 
 defaultRepoModel : RepoModel
@@ -580,6 +582,14 @@ updateBuildsShowTimeStamp rm =
     in
     { rm | builds = { bm | showTimestamp = not bm.showTimestamp } }
 
+
+updateBuildGraph : WebData BuildGraph -> RepoModel -> RepoModel
+updateBuildGraph update rm =
+    let
+        b =
+            rm.build
+    in
+    { rm | build = { b | graph = update } }
 
 updateDeployments : WebData (List Deployment) -> RepoModel -> RepoModel
 updateDeployments update rm =

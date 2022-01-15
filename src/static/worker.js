@@ -23,7 +23,6 @@ self.addEventListener(
               wasmBinary: wasmBinary,
             })
             .then(content => {
-              console.log('posting message to self: RESULT');
               self.postMessage({
                 eventType: 'RESULT',
                 eventData: content,

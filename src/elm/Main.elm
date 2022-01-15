@@ -187,6 +187,7 @@ import Vela
         , statusToFavicon
         , stringToTheme
         , updateBuild
+        , updateBuildGraph
         , updateBuildNumber
         , updateBuildPipelineBuildNumber
         , updateBuildPipelineConfig
@@ -1476,18 +1477,25 @@ update msg model =
         BuildGraphResponse _ _ response ->
             case response of
                 Ok ( _, graph ) ->
-                    ( model
-                    , case model.page of
+                    case model.page of
                         Pages.BuildGraph _ _ _ ->
-                            Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT () graph
+                            let
+                                -- TODO: optimize this
+                                --       only render if the buildgraph has actually changed
+                                cmd =
+                                    if True then -- for now, the build graph always renders when receiving graph response from the server
+                                        Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT () graph
+
+                                    else
+                                        Cmd.none
+                            in
+                            ( { model | repo = rm |> updateBuildGraph (RemoteData.succeed graph) }, cmd )
 
                         _ ->
-                            Cmd.none
-                    )
+                            ( model, Cmd.none )
 
                 Err error ->
-                    -- dag error
-                    ( model, addError error )
+                    ( { model | repo = updateBuildGraph (toFailure error) rm }, addError error )
 
         DeploymentResponse response ->
             case response of
@@ -3785,7 +3793,7 @@ loadBuildGraphPage model org repo buildNumber =
 
         sameResource =
             case model.page of
-                Pages.BuildPipeline _ _ _ _ _ _ ->
+                Pages.BuildGraph _ _ _  ->
                     True
 
                 _ ->
@@ -3804,7 +3812,16 @@ loadBuildGraphPage model org repo buildNumber =
       }
       -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
-        Cmd.none
+        Cmd.batch [
+            -- TODO: optimize this
+            --   only render if the graph changed
+            --   dont re-render if the graph is already rendered
+            case m.repo.build.graph of
+                Success g ->
+                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT () g
+                _ ->
+                    getBuildGraph model org repo buildNumber
+        ]
 
       else
         Cmd.batch

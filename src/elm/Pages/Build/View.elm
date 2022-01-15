@@ -543,8 +543,8 @@ viewStepLogs msgs shift rm step =
 viewBuildGraph : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 viewBuildGraph model msgs org repo buildNumber =
     wrapWithBuildPreview model msgs org repo buildNumber <|
-        case model.repo.build.build of
-            RemoteData.Success b ->
+        case model.repo.build.graph of
+            RemoteData.Success g ->
                 Html.div
                     [ class "build-graph-view"
                     , id "build-graph-container"

@@ -127,7 +127,6 @@ function wasmWorker(dotGraph) {
     const worker = new Worker(new URL('./worker.js', import.meta.url), {
       type: 'module',
     });
-    console.log('posting message to worker: INITIALISE');
     worker.postMessage({ eventType: 'INITIALISE', eventData: dotGraph });
     worker.addEventListener('message', function (event) {
       const { eventType, eventData, eventId } = event.data;
@@ -142,7 +141,6 @@ function wasmWorker(dotGraph) {
         const VIEWBOX_PADDING = { x1: 20, x2: 40, y1: 20, y2: 40 };
 
         var parent = d3.select(svg.node().parentNode);
-        console.log(parent);
         parent.attr(
           'viewBox',
           '' +
@@ -176,7 +174,6 @@ function createSvg(svg) {
     g = svg.append('g').attr('class', 'test');
     svg.on('mousedown', (e, d) => {
       if (e.button || e.ctrlKey) {
-        console.log('button or ctrl');
         e.stopImmediatePropagation();
       }
     });
