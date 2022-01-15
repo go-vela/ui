@@ -6,7 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Build.View exposing
     ( viewBuild
-    , viewBuildDAG
+    , viewBuildGraph
     , viewBuildServices
     , viewPreview
     , wrapWithBuildPreview
@@ -61,6 +61,8 @@ import Pages.Build.Model
 import RemoteData exposing (WebData)
 import Routes
 import String
+import Svg
+import Svg.Attributes
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone)
 import Util exposing (getNameFromRef)
@@ -536,15 +538,28 @@ viewStepLogs msgs shift rm step =
 -- VISUALIZE
 
 
-{-| viewBuildDAG : renders build dag using d3
+{-| viewBuildGraph : renders build graph using graphviz and d3
 -}
-viewBuildDAG : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
-viewBuildDAG model msgs org repo buildNumber =
+viewBuildGraph : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
+viewBuildGraph model msgs org repo buildNumber =
     wrapWithBuildPreview model msgs org repo buildNumber <|
         case model.repo.build.build of
             RemoteData.Success b ->
-                div[] [ div [ id "build-dag" ] [ ]]
-                   
+                Html.div
+                [ class "build-graph-view"
+                , id "build-graph-container"
+                -- , Html.Attributes.style "display" "flex"
+                -- , Html.Attributes.style "flex-direction" "column"
+                -- , Html.Attributes.style "flex-grow" "1"
+                ]
+                [ Html.div
+                    [ class "build-graph-content" ]
+                    [ Svg.svg
+                        [ Svg.Attributes.class "build-graph" ]
+                        []
+                    ]
+                ]
+
             RemoteData.Failure _ ->
                 div [] [ text "Error loading build visualization... Please try again" ]
 

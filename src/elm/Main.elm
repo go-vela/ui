@@ -9,6 +9,7 @@ module Main exposing (main)
 import Alerts exposing (Alert)
 import Api
 import Api.Endpoint
+import Visualization.BuildGraph
 import Api.Pagination as Pagination
 import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
 import Auth.Session exposing (Session(..), SessionDetails, refreshAccessToken)
@@ -126,7 +127,7 @@ import Vela
     exposing
         ( AuthParams
         , Build
-        , BuildDAG
+        , BuildGraph
         , BuildNumber
         , Builds
         , CurrentUser
@@ -177,7 +178,7 @@ import Vela
         , defaultPipeline
         , defaultPipelineTemplates
         , defaultRepoModel
-        , encodeBuildDAG
+        , encodeBuildGraph
         , encodeEnableRepository
         , encodeTheme
         , encodeUpdateRepository
@@ -433,7 +434,7 @@ type Msg
     | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, List Deployment ))
     | HooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | BuildDAGResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, BuildDAG ))
+    | BuildGraphResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, BuildGraph ))
     | DeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
@@ -1481,15 +1482,21 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
-        BuildDAGResponse org repo response ->
+        BuildGraphResponse org repo response ->
             case response of
-                Ok ( _, dag ) ->
+                Ok ( _, graph ) ->
                     let
-                        _ =
-                            Debug.log "received dag, sending to interop" dag
+                        dot = Visualization.BuildGraph.toDOT () graph
+                        _ = Debug.log "built DOT" dot
+
                     in
                     ( model
-                    , Interop.outboundD3 <| encodeBuildDAG dag
+                    , 
+                        case model.page of 
+                            Pages.BuildGraph _ _ _ -> 
+                                Interop.outboundD3 <| Encode.string dot
+                            _ ->
+                                Cmd.none
                     )
 
                 Err error ->
@@ -2127,11 +2134,11 @@ refreshPage model =
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 ]
-        Pages.BuildDAG org repo buildNumber   ->
+        Pages.BuildGraph org repo buildNumber   ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
-                , refreshBuildDAG model org repo buildNumber
+                , refreshBuildGraph model org repo buildNumber
                 ]
 
 
@@ -2234,12 +2241,12 @@ refreshBuildServices model org repo buildNumber focusFragment =
         Cmd.none
 
 
-{-| refreshBuildDAG : takes model org repo and build number and refreshes the build dag
+{-| refreshBuildGraph : takes model org repo and build number and refreshes the build graph
 -}
-refreshBuildDAG : Model -> Org -> Repo -> BuildNumber  -> Cmd Msg
-refreshBuildDAG model org repo buildNumber   =
+refreshBuildGraph : Model -> Org -> Repo -> BuildNumber  -> Cmd Msg
+refreshBuildGraph model org repo buildNumber   =
     if shouldRefresh model.repo.build.build then
-        getBuildDAG model org repo buildNumber 
+        getBuildGraph model org repo buildNumber 
 
     else
         Cmd.none
@@ -2603,9 +2610,9 @@ viewContent model =
             )
 
 
-        Pages.BuildDAG org repo buildNumber ->
+        Pages.BuildGraph org repo buildNumber ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Pages.Build.View.viewBuildDAG
+            , Pages.Build.View.viewBuildGraph
                 model
                 buildMsgs
                 org
@@ -2907,8 +2914,8 @@ setNewPage route model =
         ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, Authenticated _ ) ->
             loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
 
-        ( Routes.BuildDAG org repo buildNumber , Authenticated _ ) ->
-            loadBuildDAGPage model org repo buildNumber  
+        ( Routes.BuildGraph org repo buildNumber , Authenticated _ ) ->
+            loadBuildGraphPage model org repo buildNumber  
 
         ( Routes.Pipeline org repo ref expand lineFocus, Authenticated _ ) ->
             loadPipelinePage model org repo ref expand lineFocus
@@ -3633,7 +3640,7 @@ loadBuildPage model org repo buildNumber lineFocus =
             [ getBuilds model org repo Nothing Nothing Nothing
             , getBuild model org repo buildNumber
             , getAllBuildSteps model org repo buildNumber lineFocus sameBuild
-            , getBuildDAG model org repo buildNumber
+            , getBuildGraph model org repo buildNumber
             ]
     )
 
@@ -3792,10 +3799,10 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             ]
     )
 
-{-| loadBuildDAGPage : takes model org, repo, and build number and loads the appropriate build dag resources.
+{-| loadBuildGraphPage : takes model org, repo, and build number and loads the appropriate build graph resources.
 -}
-loadBuildDAGPage : Model -> Org -> Repo -> BuildNumber ->    ( Model, Cmd Msg )
-loadBuildDAGPage model org repo buildNumber       =
+loadBuildGraphPage : Model -> Org -> Repo -> BuildNumber ->    ( Model, Cmd Msg )
+loadBuildGraphPage model org repo buildNumber       =
     let
         -- get resource transition information
         sameBuild =
@@ -3821,7 +3828,7 @@ loadBuildDAGPage model org repo buildNumber       =
 
     in
     ( { m
-        | page = Pages.BuildDAG org repo buildNumber  
+        | page = Pages.BuildGraph org repo buildNumber  
       }
       -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
@@ -3831,7 +3838,7 @@ loadBuildDAGPage model org repo buildNumber       =
         Cmd.batch
             [ getBuilds model org repo Nothing Nothing Nothing
             , getBuild model org repo buildNumber
-            , getBuildDAG model org repo buildNumber
+            , getBuildGraph model org repo buildNumber
             ]
     )
 
@@ -3917,7 +3924,7 @@ isSameBuild id currentPage =
         Pages.BuildPipeline o r b _ _ _ ->
             not <| resourceChanged id ( o, r, b )
 
-        Pages.BuildDAG o r b  ->
+        Pages.BuildGraph o r b  ->
             not <| resourceChanged id ( o, r, b )
 
         _ ->
@@ -3941,7 +3948,7 @@ isSamePipelineRef id currentPage pipeline =
         Pages.BuildPipeline o r _ rf _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
 
-        Pages.BuildDAG o r _ ->
+        Pages.BuildGraph o r _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault ""  pipeline.ref )
 
         _ ->
@@ -4378,9 +4385,9 @@ cancelBuild model org repo buildNumber =
     Api.try (CancelBuildResponse org repo buildNumber) <| Api.cancelBuild model org repo buildNumber
 
 
-getBuildDAG : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-getBuildDAG model org repo buildNumber =
-    Api.try (BuildDAGResponse org repo) <| Api.getBuildDAG model org repo buildNumber
+getBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+getBuildGraph model org repo buildNumber =
+    Api.try (BuildGraphResponse org repo) <| Api.getBuildGraph model org repo buildNumber
 
 
 getRepoSecrets :

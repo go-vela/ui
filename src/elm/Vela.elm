@@ -6,8 +6,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Vela exposing
     ( AuthParams
-    , Build
-    , BuildDAG
+    , Build,StageNode
+    , BuildGraph
     , BuildModel
     , BuildNumber
     , Builds
@@ -82,7 +82,7 @@ module Vela exposing
     , buildUpdateRepoStringPayload
     , buildUpdateSecretPayload
     , decodeBuild
-    , decodeBuildDAG
+    , decodeBuildGraph
     , decodeBuilds
     , decodeCurrentUser
     , decodeDeployment
@@ -105,7 +105,7 @@ module Vela exposing
     , defaultPipelineTemplates
     , defaultRepoModel
     , defaultStep
-    , encodeBuildDAG
+    , encodeBuildGraph
     , encodeDeploymentPayload
     , encodeEnableRepository
     , encodeTheme
@@ -171,7 +171,7 @@ import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
 
-
+import Json.Decode.Extra exposing (dict2)
 
 -- COMMON
 
@@ -1263,59 +1263,71 @@ decodeBuild =
         |> optional "deploy_payload" decodeDeploymentParameters Nothing
 
 
-{-| BuildDAG : record type for vela build directed graph
+{-| BuildGraph : record type for vela build directed graph
 -}
-type alias BuildDAG = 
-    {
-    nodes : Dict String ( DAGNode)
-    , links : List (List String)
+type alias BuildGraph =
+    { nodes : Dict Int StageNode
+    , edges : List Edge
     }
-    
 
 
-type alias DAGNode =
-    {id : String
-    , parentIDs : List String
+type alias StageNode =
+    { id : Int
     , label : String
     , steps : List Step
     }
 
 
+type alias Edge =
+    { source : Int
+    , destination : Int
+    }
 
 
+decodeBuildGraph : Decoder BuildGraph
+decodeBuildGraph =
+    Decode.succeed BuildGraph
+        |> required "nodes" (dict2 int decodeStageNode)
+        |> optional "edges" (Decode.list decodeEdge) []
 
-decodeBuildDAG : Decoder BuildDAG
-decodeBuildDAG =
-    Decode.succeed BuildDAG    
-        |> required "nodes" (Decode.dict  decodeDAGNode )
-        |> required "links" (Decode.list (Decode.list Decode.string))
 
-
-decodeDAGNode : Decoder DAGNode
-decodeDAGNode =
-    Decode.succeed DAGNode
-        |> required "id" string
-        |> optional "parent_ids" (Decode.list string) []
+decodeStageNode : Decoder StageNode
+decodeStageNode =
+    Decode.succeed StageNode
+        |> required "id" int
         |> required "label" Decode.string
         |> optional "steps" (Decode.list decodeStep) []
 
 
-encodeBuildDAG : BuildDAG -> Encode.Value   
-encodeBuildDAG dag =
-    Encode.object
-        [ ( "nodes", Encode.dict identity  encodeDAGNode  dag.nodes )
-        , ( "links", (Encode.list (Encode.list Encode.string) dag.links) )
+decodeEdge : Decoder Edge
+decodeEdge =
+    Decode.succeed Edge
+        |> required "source" int
+        |> required "destination" int
 
+
+encodeBuildGraph : BuildGraph -> Encode.Value
+encodeBuildGraph graph =
+    Encode.object
+        [ ( "nodes", Encode.dict (String.fromInt) encodeStageNode graph.nodes )
+        , ( "edges", Encode.list encodeEdge graph.edges )
         ]
-    
 
-encodeDAGNode : DAGNode -> Encode.Value
-encodeDAGNode node =
+
+encodeStageNode : StageNode -> Encode.Value
+encodeStageNode node =
     Encode.object
-        [ ( "id", Encode.string node.id )
-        , ( "parentIds", Encode.list Encode.string node.parentIDs )
+        [ ( "id", Encode.int node.id )
         , ( "label", Encode.string node.label )
         , ( "steps", Encode.list encodeStep node.steps )
+        ]
+
+
+encodeEdge : Edge -> Encode.Value
+encodeEdge edge =
+    Encode.object
+        [ ( "source", Encode.int edge.source )
+        , ( "destination", Encode.int edge.destination )
         ]
 
 
@@ -1523,7 +1535,6 @@ decodeStep =
         |> hardcoded False
         -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
-
 
 
 encodeStep : Step -> Encode.Value

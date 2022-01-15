@@ -35,7 +35,7 @@ type Page
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
-    | BuildDAG Org Repo BuildNumber
+    | BuildGraph Org Repo BuildNumber
     | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
     | Login
@@ -117,8 +117,8 @@ toRoute page =
         BuildPipeline org repo buildNumber ref expanded lineFocus ->
             Routes.BuildPipeline org repo buildNumber ref expanded lineFocus
 
-        BuildDAG org repo buildNumber  ->
-            Routes.BuildDAG org repo buildNumber 
+        BuildGraph org repo buildNumber  ->
+            Routes.BuildGraph org repo buildNumber 
 
         Pipeline org repo ref expanded lineFocus ->
             Routes.Pipeline org repo ref expanded lineFocus
@@ -130,11 +130,6 @@ toRoute page =
             Routes.Login
 
         NotFound ->
-            let
-                limit = "0"
-                newLimit =
-                    Maybe.withDefault 0 <| String.toInt limit  
-            in
             Routes.NotFound
 
 
@@ -209,8 +204,8 @@ strip page =
         BuildPipeline org repo buildNumber _ _ _ ->
             BuildPipeline org repo buildNumber Nothing Nothing Nothing
 
-        BuildDAG org repo buildNumber  ->
-            BuildDAG org repo buildNumber
+        BuildGraph org repo buildNumber  ->
+            BuildGraph org repo buildNumber
 
         Pipeline org repo _ _ _ ->
             Pipeline org repo Nothing Nothing Nothing

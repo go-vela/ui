@@ -44,7 +44,7 @@ type Route
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
-    | BuildDAG Org Repo BuildNumber 
+    | BuildGraph Org Repo BuildNumber 
     | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
     | Settings
     | Login
@@ -87,7 +87,7 @@ routes =
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
-        , map BuildDAG (string </> string </> string </> s "dag")
+        , map BuildGraph (string </> string </> string </> s "graph")
         , map NotFound (s "404")
         ]
 
@@ -183,8 +183,8 @@ routeToUrl route =
         BuildPipeline org repo buildNumber ref expand lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
 
-        BuildDAG org repo buildNumber   ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/dag" 
+        BuildGraph org repo buildNumber   ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/graph" 
 
         Pipeline org repo ref expand lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus

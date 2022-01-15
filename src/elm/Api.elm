@@ -10,7 +10,7 @@ module Api exposing
     , addSecret
     , cancelBuild
     , chownRepo
-    ,getBuildDAG
+    ,getBuildGraph
     , deleteRepo
     , deleteSecret, getBuild
     , enableRepository
@@ -80,7 +80,7 @@ import Vela
         , Step
         , StepNumber
         , Templates
-        , BuildDAG
+        , BuildGraph
         , Type
         , decodeBuild
         , decodeBuilds
@@ -94,7 +94,7 @@ import Vela
         , decodeRepositories
         , decodeRepository
         , decodeSecret
-        , decodeBuildDAG
+        , decodeBuildGraph
         , decodeSecrets
         , decodeService
         , decodeSourceRepositories
@@ -688,9 +688,9 @@ deleteSecret model engine type_ org key name =
         |> withAuth model.session
 
 
-{-| getBuildDAG : fetches vela build dag by repository and build number
+{-| getBuildGraph : fetches vela build graph by repository and build number
 -}
-getBuildDAG : PartialModel a -> Org -> Repo -> BuildNumber -> Request BuildDAG
-getBuildDAG model org repository buildNumber =
-    get model.velaAPI (Endpoint.BuildDAG org repository buildNumber) decodeBuildDAG
+getBuildGraph : PartialModel a -> Org -> Repo -> BuildNumber -> Request BuildGraph
+getBuildGraph model org repository buildNumber =
+    get model.velaAPI (Endpoint.BuildGraph org repository buildNumber) decodeBuildGraph
         |> withAuth model.session

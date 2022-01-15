@@ -19,21 +19,15 @@
   stroke: #ccc;
   stroke-width: 2px;
 }
-#build-dag {
-  padding: 1rem;
-  background: lightgray;
+#build-graph {
+  // padding: 1rem;
+  // border-top: 1px solid lightgray;
+  // border-left: 1px solid lightgray;
+  // background: lightgray;
   // overflow: hidden;
-  height: 480px;
+  // height: 480px;
 }
 
-.e .the-tooltip {
-  font: 12px sans-serif;
-  padding: 12px;
-  background-color: var(--color-bg);
-  color: red !important;
-
-  border-radius: 2px;
-}
 
 // end d3
 
