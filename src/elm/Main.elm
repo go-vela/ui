@@ -9,7 +9,6 @@ module Main exposing (main)
 import Alerts exposing (Alert)
 import Api
 import Api.Endpoint
-import Visualization.BuildGraph
 import Api.Pagination as Pagination
 import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
 import Auth.Session exposing (Session(..), SessionDetails, refreshAccessToken)
@@ -229,6 +228,7 @@ import Vela
         , updateRepoInitialized
         , updateRepoTimeout
         )
+import Visualization.BuildGraph
 
 
 
@@ -1486,17 +1486,19 @@ update msg model =
             case response of
                 Ok ( _, graph ) ->
                     let
-                        dot = Visualization.BuildGraph.toDOT () graph
-                        _ = Debug.log "built DOT" dot
+                        dot =
+                            Visualization.BuildGraph.toDOT () graph
 
+                        _ =
+                            Debug.log "built DOT" dot
                     in
                     ( model
-                    , 
-                        case model.page of 
-                            Pages.BuildGraph _ _ _ -> 
-                                Interop.outboundD3 <| Encode.string dot
-                            _ ->
-                                Cmd.none
+                    , case model.page of
+                        Pages.BuildGraph _ _ _ ->
+                            Interop.outboundD3 <| Encode.string dot
+
+                        _ ->
+                            Cmd.none
                     )
 
                 Err error ->
@@ -2134,13 +2136,13 @@ refreshPage model =
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 ]
-        Pages.BuildGraph org repo buildNumber   ->
+
+        Pages.BuildGraph org repo buildNumber ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildGraph model org repo buildNumber
                 ]
-
 
         Pages.Hooks org repo maybePage maybePerPage ->
             Cmd.batch
@@ -2243,10 +2245,10 @@ refreshBuildServices model org repo buildNumber focusFragment =
 
 {-| refreshBuildGraph : takes model org repo and build number and refreshes the build graph
 -}
-refreshBuildGraph : Model -> Org -> Repo -> BuildNumber  -> Cmd Msg
-refreshBuildGraph model org repo buildNumber   =
+refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+refreshBuildGraph model org repo buildNumber =
     if shouldRefresh model.repo.build.build then
-        getBuildGraph model org repo buildNumber 
+        getBuildGraph model org repo buildNumber
 
     else
         Cmd.none
@@ -2609,7 +2611,6 @@ viewContent model =
                     buildNumber
             )
 
-
         Pages.BuildGraph org repo buildNumber ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Pages.Build.View.viewBuildGraph
@@ -2914,8 +2915,8 @@ setNewPage route model =
         ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, Authenticated _ ) ->
             loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
 
-        ( Routes.BuildGraph org repo buildNumber , Authenticated _ ) ->
-            loadBuildGraphPage model org repo buildNumber  
+        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
+            loadBuildGraphPage model org repo buildNumber
 
         ( Routes.Pipeline org repo ref expand lineFocus, Authenticated _ ) ->
             loadPipelinePage model org repo ref expand lineFocus
@@ -3799,10 +3800,11 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             ]
     )
 
+
 {-| loadBuildGraphPage : takes model org, repo, and build number and loads the appropriate build graph resources.
 -}
-loadBuildGraphPage : Model -> Org -> Repo -> BuildNumber ->    ( Model, Cmd Msg )
-loadBuildGraphPage model org repo buildNumber       =
+loadBuildGraphPage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
+loadBuildGraphPage model org repo buildNumber =
     let
         -- get resource transition information
         sameBuild =
@@ -3823,12 +3825,9 @@ loadBuildGraphPage model org repo buildNumber       =
 
             else
                 model
-
-
-
     in
     ( { m
-        | page = Pages.BuildGraph org repo buildNumber  
+        | page = Pages.BuildGraph org repo buildNumber
       }
       -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
@@ -3924,7 +3923,7 @@ isSameBuild id currentPage =
         Pages.BuildPipeline o r b _ _ _ ->
             not <| resourceChanged id ( o, r, b )
 
-        Pages.BuildGraph o r b  ->
+        Pages.BuildGraph o r b ->
             not <| resourceChanged id ( o, r, b )
 
         _ ->
@@ -3949,7 +3948,7 @@ isSamePipelineRef id currentPage pipeline =
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
 
         Pages.BuildGraph o r _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault ""  pipeline.ref )
+            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
 
         _ ->
             False

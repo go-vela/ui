@@ -10,14 +10,15 @@ module Api exposing
     , addSecret
     , cancelBuild
     , chownRepo
-    ,getBuildGraph
     , deleteRepo
-    , deleteSecret, getBuild
+    , deleteSecret
     , enableRepository
     , expandPipelineConfig
     , getAllSecrets
     , getAllServices
     , getAllSteps
+    , getBuild
+    , getBuildGraph
     , getBuilds
     , getCurrentUser
     , getDeployment
@@ -58,6 +59,7 @@ import Vela
     exposing
         ( AuthParams
         , Build
+        , BuildGraph
         , BuildNumber
         , Builds
         , CurrentUser
@@ -80,9 +82,9 @@ import Vela
         , Step
         , StepNumber
         , Templates
-        , BuildGraph
         , Type
         , decodeBuild
+        , decodeBuildGraph
         , decodeBuilds
         , decodeCurrentUser
         , decodeDeployment
@@ -94,7 +96,6 @@ import Vela
         , decodeRepositories
         , decodeRepository
         , decodeSecret
-        , decodeBuildGraph
         , decodeSecrets
         , decodeService
         , decodeSourceRepositories

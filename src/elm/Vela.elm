@@ -6,7 +6,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Vela exposing
     ( AuthParams
-    , Build,StageNode
+    , Build
     , BuildGraph
     , BuildModel
     , BuildNumber
@@ -63,6 +63,7 @@ module Vela exposing
     , ServiceNumber
     , Services
     , SourceRepositories
+    , StageNode
     , Status(..)
     , Step
     , StepNumber
@@ -165,13 +166,14 @@ import Bytes.Encode
 import Dict exposing (Dict)
 import Errors exposing (Error)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, int, string, succeed)
+import Json.Decode.Extra exposing (dict2)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode exposing (Value)
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
 
-import Json.Decode.Extra exposing (dict2)
+
 
 -- COMMON
 
@@ -1309,7 +1311,7 @@ decodeEdge =
 encodeBuildGraph : BuildGraph -> Encode.Value
 encodeBuildGraph graph =
     Encode.object
-        [ ( "nodes", Encode.dict (String.fromInt) encodeStageNode graph.nodes )
+        [ ( "nodes", Encode.dict String.fromInt encodeStageNode graph.nodes )
         , ( "edges", Encode.list encodeEdge graph.edges )
         ]
 

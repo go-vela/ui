@@ -1,7 +1,9 @@
 module Visualization.DOT exposing
     ( Attribute(..)
     , Rankdir(..)
-    , Styles, escapeCharacters, escapeAttributes
+    , Styles
+    , escapeAttributes
+    , escapeCharacters
     , outputWithStylesAndAttributes
     )
 
@@ -129,7 +131,9 @@ outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph =
         ]
 
 
+
 -- HELPERS
+
 
 {-| escapeCharacters : takes string and escapes special characters to prepare for use in a DOT string
 -}
@@ -153,4 +157,3 @@ escapeAttributes attrs =
         )
         attrs
         |> String.join " "
-

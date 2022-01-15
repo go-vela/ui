@@ -8,9 +8,10 @@ module Pages exposing (Page(..), strip, toRoute)
 
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
+import Maybe.Extra
 import Routes exposing (Route)
 import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
-import Maybe.Extra
+
 
 type Page
     = Overview
@@ -117,8 +118,8 @@ toRoute page =
         BuildPipeline org repo buildNumber ref expanded lineFocus ->
             Routes.BuildPipeline org repo buildNumber ref expanded lineFocus
 
-        BuildGraph org repo buildNumber  ->
-            Routes.BuildGraph org repo buildNumber 
+        BuildGraph org repo buildNumber ->
+            Routes.BuildGraph org repo buildNumber
 
         Pipeline org repo ref expanded lineFocus ->
             Routes.Pipeline org repo ref expanded lineFocus
@@ -204,7 +205,7 @@ strip page =
         BuildPipeline org repo buildNumber _ _ _ ->
             BuildPipeline org repo buildNumber Nothing Nothing Nothing
 
-        BuildGraph org repo buildNumber  ->
+        BuildGraph org repo buildNumber ->
             BuildGraph org repo buildNumber
 
         Pipeline org repo _ _ _ ->

@@ -546,19 +546,20 @@ viewBuildGraph model msgs org repo buildNumber =
         case model.repo.build.build of
             RemoteData.Success b ->
                 Html.div
-                [ class "build-graph-view"
-                , id "build-graph-container"
-                -- , Html.Attributes.style "display" "flex"
-                -- , Html.Attributes.style "flex-direction" "column"
-                -- , Html.Attributes.style "flex-grow" "1"
-                ]
-                [ Html.div
-                    [ class "build-graph-content" ]
-                    [ Svg.svg
-                        [ Svg.Attributes.class "build-graph" ]
-                        []
+                    [ class "build-graph-view"
+                    , id "build-graph-container"
+
+                    -- , Html.Attributes.style "display" "flex"
+                    -- , Html.Attributes.style "flex-direction" "column"
+                    -- , Html.Attributes.style "flex-grow" "1"
                     ]
-                ]
+                    [ Html.div
+                        [ class "build-graph-content" ]
+                        [ Svg.svg
+                            [ Svg.Attributes.class "build-graph" ]
+                            []
+                        ]
+                    ]
 
             RemoteData.Failure _ ->
                 div [] [ text "Error loading build visualization... Please try again" ]
@@ -570,6 +571,8 @@ viewBuildGraph model msgs org repo buildNumber =
 
                 else
                     Util.smallLoader
+
+
 
 -- SERVICES
 

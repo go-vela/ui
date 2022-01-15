@@ -1,16 +1,14 @@
 module Visualization.BuildGraph exposing (toDOT)
 
 import Dict exposing (Dict)
-import Graph exposing (Edge,  Node)
-import Vela exposing (BuildGraph, StageNode )
-import Visualization.DOT as DOT exposing (Attribute(..), escapeCharacters, escapeAttributes, outputWithStylesAndAttributes)
-
-
+import Graph exposing (Edge, Node)
+import Vela exposing (BuildGraph, StageNode)
+import Visualization.DOT as DOT exposing (Attribute(..), escapeAttributes, escapeCharacters, outputWithStylesAndAttributes)
 
 
 {-| toDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
-        https://graphviz.org/doc/info/lang.html
-        https://package.elm-lang.org/packages/elm-community/graph/latest/Graph.DOT
+<https://graphviz.org/doc/info/lang.html>
+<https://package.elm-lang.org/packages/elm-community/graph/latest/Graph.DOT>
 -}
 toDOT : () -> BuildGraph -> String
 toDOT _ buildGraph =
@@ -26,7 +24,9 @@ toDOT _ buildGraph =
 
         edges =
             List.map (\( a, b ) -> Edge a b ()) pairs
-        graph = Graph.fromNodesAndEdges nodes edges
+
+        graph =
+            Graph.fromNodesAndEdges nodes edges
 
         styles : DOT.Styles
         styles =
@@ -64,4 +64,3 @@ toDOT _ buildGraph =
             Dict.empty
     in
     outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph
-

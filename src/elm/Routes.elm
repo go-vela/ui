@@ -44,7 +44,7 @@ type Route
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
-    | BuildGraph Org Repo BuildNumber 
+    | BuildGraph Org Repo BuildNumber
     | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
     | Settings
     | Login
@@ -183,8 +183,8 @@ routeToUrl route =
         BuildPipeline org repo buildNumber ref expand lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
 
-        BuildGraph org repo buildNumber   ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/graph" 
+        BuildGraph org repo buildNumber ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/graph"
 
         Pipeline org repo ref expand lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
