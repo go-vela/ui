@@ -92,7 +92,7 @@ app.ports.setFavicon.subscribe(function (url) {
 });
 
 app.ports.renderBuildGraph.subscribe(function (dot) {
-  const wasmPromise = wasmWorker(dot);
+  runGraphvizWorker(dot);
 });
 
 // initialize clipboard.js
@@ -120,38 +120,28 @@ function envOrNull(env: string, subst: string): string | null {
   return subst;
 }
 
-// wasmWorker
-function wasmWorker(dotGraph) {
+// runGraphvizWorker
+function runGraphvizWorker(dot) {
   return new Promise((resolve, reject) => {
-    // @ts-ignore // false negative - import.meta supported by Parcel v2 - https://parceljs.org/blog/rc0/#support-for-standalone-import.meta
-    const worker = new Worker(new URL('./worker.js', import.meta.url), {
+    // @ts-ignore // false negative - standalone support for import.meta added in Parcel v2 - https://parceljs.org/blog/rc0/#support-for-standalone-import.meta
+    const worker = new Worker(new URL('./graphviz.worker.js', import.meta.url), {
       type: 'module',
     });
-    worker.postMessage({ eventType: 'INITIALISE', eventData: dotGraph });
+    
+    // TODO: postMessage to initialize the graphviz engine
+    
+    worker.postMessage({ eventType: 'LAYOUT', eventData: dot });
+
+    // TODO: once the graphviz engine is loaded, reuse it to make layout() calls
+    // TODO: reuse the engine.layout() in draw()
+
+
     worker.addEventListener('message', function (event) {
-      const { eventType, eventData, eventId } = event.data;
-      if (eventType === 'RESULT') {
-        var svg = d3.select('.build-graph');
-        svg = createSvg(svg);
-        svg.html(eventData);
-        svg.selectAll('title').remove();
-        svg.selectAll('*').attr('xlink:title', null);
-
-        var bbox = svg.node().getBBox();
-        const VIEWBOX_PADDING = { x1: 20, x2: 40, y1: 20, y2: 40 };
-
-        var parent = d3.select(svg.node().parentNode);
-        parent.attr(
-          'viewBox',
-          '' +
-            (bbox.x - VIEWBOX_PADDING.x1) +
-            ' ' +
-            (bbox.y - VIEWBOX_PADDING.y1) +
-            ' ' +
-            (bbox.width + VIEWBOX_PADDING.x2) +
-            ' ' +
-            (bbox.height + VIEWBOX_PADDING.y2),
-        );
+      const { eventType, eventData } = event.data;
+      if (eventType === 'LAYOUT_RESULT') {
+        // draw occurs in the main thread 
+        //  because web workers do not have access to the DOM
+        draw(eventData);
       }
     });
     worker.addEventListener('error', function (error) {
@@ -160,23 +150,36 @@ function wasmWorker(dotGraph) {
   });
 }
 
-function createSvg(svg) {
-  var g = d3.select('g.test');
-  if (g.empty()) {
-    svg
-      .append('defs')
-      .append('filter')
-      .attr('id', 'embiggen')
-      .append('feMorphology')
-      .attr('operator', 'dilate')
-      .attr('radius', '4');
+function draw(content) {
+  var svg = d3.select('.build-graph');
+  var g = d3.select('g.node_mousedown');
 
-    g = svg.append('g').attr('class', 'test');
+  if (g.empty()) {
+    g = svg.append('g').attr('class', 'node_mousedown');
     svg.on('mousedown', (e, d) => {
+      // stop propagation on buttons and ctrl+click
       if (e.button || e.ctrlKey) {
         e.stopImmediatePropagation();
       }
     });
   }
-  return g;
+  svg = g;
+
+  svg.html(content);
+  svg.selectAll('title').remove();
+  svg.selectAll('*').attr('xlink:title', null);
+  var bbox = svg.node().getBBox();
+  const VIEWBOX_PADDING = { x1: 20, x2: 40, y1: 20, y2: 40 };
+  var parent = d3.select(svg.node().parentNode);
+  parent.attr(
+    'viewBox',
+    '' +
+      (bbox.x - VIEWBOX_PADDING.x1) +
+      ' ' +
+      (bbox.y - VIEWBOX_PADDING.y1) +
+      ' ' +
+      (bbox.width + VIEWBOX_PADDING.x2) +
+      ' ' +
+      (bbox.height + VIEWBOX_PADDING.y2),
+  );
 }
