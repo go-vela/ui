@@ -117,8 +117,8 @@ recentBuildLink page org repo buildNumber build idx =
             Pages.BuildPipeline _ _ _ _ _ _ ->
                 Routes.href <| Routes.BuildPipeline org repo (String.fromInt build.number) (Just build.commit) Nothing Nothing
 
-            Pages.BuildGraph _ _ _   ->
-                Routes.href <| Routes.BuildGraph org repo (String.fromInt build.number) 
+            Pages.BuildGraph _ _ _ ->
+                Routes.href <| Routes.BuildGraph org repo (String.fromInt build.number)
 
             _ ->
                 Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing

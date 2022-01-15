@@ -8,7 +8,6 @@ module Vela exposing
     ( AuthParams
     , Build
     , BuildGraph
-    , updateBuildGraph
     , BuildModel
     , BuildNumber
     , Builds
@@ -120,6 +119,7 @@ module Vela exposing
     , statusToFavicon
     , stringToTheme
     , updateBuild
+    , updateBuildGraph
     , updateBuildNumber
     , updateBuildPipelineBuildNumber
     , updateBuildPipelineConfig
@@ -590,6 +590,7 @@ updateBuildGraph update rm =
             rm.build
     in
     { rm | build = { b | graph = update } }
+
 
 updateDeployments : WebData (List Deployment) -> RepoModel -> RepoModel
 updateDeployments update rm =

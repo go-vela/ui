@@ -1483,7 +1483,8 @@ update msg model =
                                 -- TODO: optimize this
                                 --       only render if the buildgraph has actually changed
                                 cmd =
-                                    if True then -- for now, the build graph always renders when receiving graph response from the server
+                                    if True then
+                                        -- for now, the build graph always renders when receiving graph response from the server
                                         Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT () graph
 
                                     else
@@ -3793,7 +3794,7 @@ loadBuildGraphPage model org repo buildNumber =
 
         sameResource =
             case model.page of
-                Pages.BuildGraph _ _ _  ->
+                Pages.BuildGraph _ _ _ ->
                     True
 
                 _ ->
@@ -3812,16 +3813,17 @@ loadBuildGraphPage model org repo buildNumber =
       }
       -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
-        Cmd.batch [
-            -- TODO: optimize this
-            --   only render if the graph changed
-            --   dont re-render if the graph is already rendered
-            case m.repo.build.graph of
+        Cmd.batch
+            [ -- TODO: optimize this
+              --   only render if the graph changed
+              --   dont re-render if the graph is already rendered
+              case m.repo.build.graph of
                 Success g ->
                     Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT () g
+
                 _ ->
                     getBuildGraph model org repo buildNumber
-        ]
+            ]
 
       else
         Cmd.batch
