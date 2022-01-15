@@ -3,7 +3,7 @@ module Visualization.BuildGraph exposing (toDOT)
 import Dict exposing (Dict)
 import Graph exposing (Edge, Node)
 import Vela exposing (BuildGraph, StageNode)
-import Visualization.DOT as DOT exposing (Attribute(..), escapeAttributes, escapeCharacters, outputWithStylesAndAttributes)
+import Visualization.DOT as DOT exposing (Attribute(..), escapeAttributes, outputWithStylesAndAttributes)
 
 
 {-| toDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package

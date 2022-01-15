@@ -3813,10 +3813,14 @@ loadBuildGraphPage model org repo buildNumber =
       }
       -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
+        Cmd.none
+        -- tab switch
+
+      else if sameBuild && not sameResource then
         Cmd.batch
             [ -- TODO: optimize this
-              --   only render if the graph changed
-              --   dont re-render if the graph is already rendered
+              -- only render when the graph actually changed
+              -- detect if graph is already rendered
               case m.repo.build.graph of
                 Success g ->
                     Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT () g
@@ -3989,6 +3993,7 @@ setBuild org repo buildNumber soft model =
                 |> updateBuildServicesFollowing 0
                 |> updateBuildServicesLogs []
                 |> updateBuildServicesFocusFragment Nothing
+                |> updateBuildGraph NotAsked
     }
 
 
