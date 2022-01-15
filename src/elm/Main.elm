@@ -1473,20 +1473,13 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
-        BuildGraphResponse org repo response ->
+        BuildGraphResponse _ _ response ->
             case response of
                 Ok ( _, graph ) ->
-                    let
-                        dot =
-                            Visualization.BuildGraph.toDOT () graph
-
-                        _ =
-                            Debug.log "built DOT" dot
-                    in
                     ( model
                     , case model.page of
                         Pages.BuildGraph _ _ _ ->
-                            Interop.renderBuildGraph <| Encode.string dot
+                            Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT () graph
 
                         _ ->
                             Cmd.none
