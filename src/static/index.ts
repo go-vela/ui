@@ -91,6 +91,9 @@ app.ports.setFavicon.subscribe(function (url) {
   document.head.appendChild(newIcon);
 });
 
+
+
+
 app.ports.outboundD3.subscribe(function (dotGraph) {
   const wasmPromise = wasmWorker(dotGraph);
 });
