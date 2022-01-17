@@ -9,9 +9,9 @@ module Vela exposing
     , Build
     , BuildGraph
     , BuildModel
-    , BuildNumber
+    , BuildNumber,decodeGraphInteraction,GraphInteraction
     , Builds
-    , BuildsModel
+    , BuildsModel, BuildGraphNode ,BuildGraphEdge
     , ChownRepo
     , Copy
     , CurrentUser
@@ -63,7 +63,6 @@ module Vela exposing
     , ServiceNumber
     , Services
     , SourceRepositories
-    , StageNode
     , Status(..)
     , Step
     , StepNumber
@@ -1276,22 +1275,23 @@ decodeBuild =
         |> optional "deploy_payload" decodeDeploymentParameters Nothing
 
 
+
 {-| BuildGraph : record type for vela build directed graph
 -}
 type alias BuildGraph =
-    { nodes : Dict Int StageNode
-    , edges : List Edge
+    { nodes : Dict Int BuildGraphNode
+    , edges : List BuildGraphEdge
     }
 
 
-type alias StageNode =
+type alias BuildGraphNode =
     { id : Int
-    , label : String
+    , name : String
     , steps : List Step
     }
 
 
-type alias Edge =
+type alias BuildGraphEdge =
     { source : Int
     , destination : Int
     }
@@ -1300,21 +1300,21 @@ type alias Edge =
 decodeBuildGraph : Decoder BuildGraph
 decodeBuildGraph =
     Decode.succeed BuildGraph
-        |> required "nodes" (dict2 int decodeStageNode)
+        |> required "nodes" (dict2 int decodeBuildGraphNode)
         |> optional "edges" (Decode.list decodeEdge) []
 
 
-decodeStageNode : Decoder StageNode
-decodeStageNode =
-    Decode.succeed StageNode
+decodeBuildGraphNode : Decoder BuildGraphNode
+decodeBuildGraphNode =
+    Decode.succeed BuildGraphNode
         |> required "id" int
-        |> required "label" Decode.string
+        |> required "name" Decode.string
         |> optional "steps" (Decode.list decodeStep) []
 
 
-decodeEdge : Decoder Edge
+decodeEdge : Decoder BuildGraphEdge
 decodeEdge =
-    Decode.succeed Edge
+    Decode.succeed BuildGraphEdge
         |> required "source" int
         |> required "destination" int
 
@@ -1322,26 +1322,40 @@ decodeEdge =
 encodeBuildGraph : BuildGraph -> Encode.Value
 encodeBuildGraph graph =
     Encode.object
-        [ ( "nodes", Encode.dict String.fromInt encodeStageNode graph.nodes )
+        [ ( "nodes", Encode.dict String.fromInt encodeBuildGraphNode graph.nodes )
         , ( "edges", Encode.list encodeEdge graph.edges )
         ]
 
 
-encodeStageNode : StageNode -> Encode.Value
-encodeStageNode node =
+encodeBuildGraphNode : BuildGraphNode -> Encode.Value
+encodeBuildGraphNode node =
     Encode.object
         [ ( "id", Encode.int node.id )
-        , ( "label", Encode.string node.label )
+        , ( "label", Encode.string node.name )
         , ( "steps", Encode.list encodeStep node.steps )
         ]
 
 
-encodeEdge : Edge -> Encode.Value
+encodeEdge : BuildGraphEdge -> Encode.Value
 encodeEdge edge =
     Encode.object
         [ ( "source", Encode.int edge.source )
         , ( "destination", Encode.int edge.destination )
         ]
+
+
+type alias GraphInteraction = {
+        event_type : String
+        , href : String
+    }
+
+decodeGraphInteraction : Decoder GraphInteraction
+decodeGraphInteraction =
+    Decode.succeed GraphInteraction
+        |> required "event_type" string
+        |> optional "href" string ""
+
+
 
 
 {-| decodeBuilds : decodes json from vela into list of builds

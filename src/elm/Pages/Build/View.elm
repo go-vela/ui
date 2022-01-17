@@ -9,6 +9,7 @@ module Pages.Build.View exposing
     , viewBuildGraph
     , viewBuildServices
     , viewPreview
+    , statusToString
     , wrapWithBuildPreview
     )
 
@@ -1079,6 +1080,32 @@ statusToClass status =
 
         Vela.Error ->
             class "-error"
+
+{-| statusToString : takes build status and returns string form
+-}
+statusToString : Status -> String 
+statusToString status =
+    case status of
+        Vela.Pending ->
+            "pending"
+
+        Vela.Running ->
+            "running"
+
+        Vela.Success ->
+            "success"
+
+        Vela.Failure ->
+            "failure"
+
+        Vela.Killed ->
+            "failure"
+
+        Vela.Canceled ->
+            "failure"
+
+        Vela.Error ->
+            "failure"
 
 
 {-| buildAnimation : takes build info and returns div containing styled flair based on running status

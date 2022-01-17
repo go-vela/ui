@@ -1,7 +1,7 @@
 module Visualization.DOT exposing
     ( Attribute(..)
-    , Rankdir(..)
-    , Styles
+    , Rankdir(..),AttributeValue(..)
+    , Styles  
     , escapeAttributes
     , escapeCharacters
     , outputWithStylesAndAttributes
@@ -31,6 +31,9 @@ type Attribute
     = DefaultJSONLabelEscape String
     | HtmlLabelEscape String
 
+type AttributeValue
+    = DefaultEscape String
+    | BooleanEscape String
 
 outputWithStylesAndAttributes :
     Styles
@@ -38,7 +41,7 @@ outputWithStylesAndAttributes :
     -> (e -> Dict String Attribute)
     -> Graph n e
     -> String
-outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph =
+outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph   =
     let
         encode : Attribute -> String
         encode attr =
@@ -80,6 +83,7 @@ outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph =
             Graph.edges graph
                 |> List.sortWith compareEdge
 
+
         nodes =
             Graph.nodes graph
 
@@ -116,8 +120,9 @@ outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph =
 
                 RL ->
                     "RL"
+ 
     in
-    String.join "\n"
+    String.join "\n" <|
         [ "digraph G {"
         , "  rankdir=" ++ rankDirToString styles.rankdir
         , "  graph [" ++ styles.graph ++ "]"
@@ -127,8 +132,10 @@ outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph =
         , edgesString
         , ""
         , nodesString
+        , ""
         , "}"
         ]
+ 
 
 
 
@@ -149,11 +156,16 @@ escapeCharacters s =
 
 {-| escapeAttributes : takes list of string attributes and escapes special characters for keys and values to prepare for use in a DOT string
 -}
-escapeAttributes : List ( String, String ) -> String
+escapeAttributes : List ( String, AttributeValue ) -> String
 escapeAttributes attrs =
     List.map
-        (\( k, v ) ->
-            escapeCharacters k ++ "=\"" ++ escapeCharacters v ++ "\""
+        (\( k, attrV ) ->
+            case attrV of
+                DefaultEscape v -> 
+                    escapeCharacters k ++ "=\"" ++ escapeCharacters v ++ "\""
+                BooleanEscape v ->
+                    escapeCharacters k ++ "=" ++ v ++ ""
+
         )
         attrs
         |> String.join " "

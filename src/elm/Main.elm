@@ -216,9 +216,10 @@ import Vela
         , updateDeploymentsPerPage
         , updateHooks
         , updateHooksPage
-        , updateHooksPager
+        , updateHooksPager,GraphInteraction
         , updateHooksPerPage
         , updateOrgRepo
+        ,decodeGraphInteraction
         , updateOrgReposPage
         , updateOrgReposPager
         , updateOrgReposPerPage
@@ -231,7 +232,7 @@ import Vela
         )
 import Visualization.BuildGraph
 
-
+import String.Extra
 
 -- TYPES
 
@@ -378,6 +379,7 @@ type Msg
     | FilterBuildEventBy (Maybe Event) Org Repo
     | ShowHideFullTimestamp
     | SetTheme Theme
+    | OnGraphLinkClick GraphInteraction
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideBuildMenu (Maybe Int) (Maybe Bool)
@@ -589,6 +591,12 @@ update msg model =
 
             else
                 ( { model | theme = theme }, Interop.setTheme <| encodeTheme theme )
+
+        OnGraphLinkClick interaction ->
+            let
+                _= Debug.log "on OnGraphLinkClick" interaction
+            in
+            ( model, Cmd.batch [Navigation.pushUrl model.navigationKey interaction.href, Util.dispatch <| (FocusOn ((focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))))] )
 
         GotoPage pageNumber ->
             case model.page of
@@ -1485,7 +1493,7 @@ update msg model =
                                 cmd =
                                     if True then
                                         -- for now, the build graph always renders when receiving graph response from the server
-                                        Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT () graph
+                                        Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model graph
 
                                     else
                                         Cmd.none
@@ -2013,6 +2021,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch <|
         [ Interop.onThemeChange decodeOnThemeChange
+        , Interop.onGraphInteraction decodeOnGraphInteraction
         , onMouseDown "contextual-help" model ShowHideHelp
         , onMouseDown "identity" model ShowHideIdentity
         , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
@@ -2031,6 +2040,16 @@ decodeOnThemeChange inTheme =
 
         Err _ ->
             SetTheme Dark
+
+
+decodeOnGraphInteraction : Decode.Value -> Msg
+decodeOnGraphInteraction interaction =
+    case Decode.decodeValue decodeGraphInteraction interaction of
+        Ok i ->
+            OnGraphLinkClick i
+
+        Err _ ->
+            NoOp
 
 
 {-| refreshSubscriptions : takes model and returns the subscriptions for automatically refreshing page data
@@ -3823,7 +3842,7 @@ loadBuildGraphPage model org repo buildNumber =
               -- detect if graph is already rendered
               case m.repo.build.graph of
                 Success g ->
-                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT () g
+                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model g
 
                 _ ->
                     getBuildGraph model org repo buildNumber

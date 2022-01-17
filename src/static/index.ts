@@ -6,6 +6,8 @@
 import * as ClipboardJS from 'clipboard';
 import * as d3 from 'd3';
 
+import post from './images/post.png'
+
 // @ts-ignore // false negative module warning
 import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
@@ -122,6 +124,8 @@ let worker;
 var workerPromise;
 
 app.ports.renderBuildGraph.subscribe(function (dot) {
+
+
   if (typeof(Worker) === "undefined") {
     console.log("sorry, your browser does not support the Worker API, unable to compile graphviz.")
   }
@@ -167,17 +171,27 @@ function draw(content) {
   var g = d3.select('g.node_mousedown');
   console.log(svg)
   if (g.empty()) {
-    console.log("g empty")
-    // console.log(g)
     g = svg.append('g').attr('class', 'node_mousedown');
-    svg.on('mousedown', (e, d) => {
-      // stop propagation on buttons and ctrl+click
-      if (e.button || e.ctrlKey) {
-        e.stopImmediatePropagation();
-      }
-    });
-    // console.log(g)
+
+
+
+    // svg.on('mousedown', (e, d) => {
+    //   // stop propagation on buttons and ctrl+click
+    //   if (e.button || e.ctrlKey) {
+    //     e.stopImmediatePropagation();
+    //   }
+    // });
+
+
+
   }
+
+  console.log('setting onclick')
+  svg.selectAll('stage-node a').on("click", function(d){
+    console.log(d);
+    alert("You clicked on node " + d.name);
+  });
+
   svg = g;
   console.log(svg)
   console.log(svg.node())
@@ -198,4 +212,73 @@ function draw(content) {
       ' ' +
       (bbox.height + VIEWBOX_PADDING.y2),
   );
+  svg.selectAll('.stage-node a').attr('style', 'outline: none')
+  // svg.selectAll(".node").on("click", evt => console.log("Hello and welcome!"))
+  svg.selectAll(".stage-node a")
+  .filter(function() {
+    var href = d3.select(this).attr("xlink:href")
+    if (href !== null) {
+      d3.select(this).on('click', function(e) {
+        e.preventDefault();
+        console.log('new onclick')
+        setTimeout(() => app.ports.onGraphInteraction.send({event_type: "href", href: href}), 0);
+      })
+    }
+    return ""; // filter by single attribute
+  })
+
+
+  svg.selectAll(".stage-node text")
+  .filter(function() {
+    var inner = d3.select(this).node().innerHTML;
+
+    if (inner !== undefined && inner.startsWith('xyz123-')) {
+      var status = inner.replace('xyz123-', '')
+      var og = d3.select(this)
+
+
+      var ogX = og.attr('x')
+      var ogY = og.attr('y')
+
+      const parent = d3.select(og.node().parentNode);
+      // og.remove();
+
+
+      // parent.append("path")
+      // // .attr("d", d3.svg.symbol()
+      // //     .size(function(d) { return d.size; })
+      // //     .type(function(d) { return d.type; }))
+      // .style("fill", "steelblue")
+      // .style("stroke", "black")
+      // .style("stroke-width", "1.5px");
+
+
+      parent.append("image")
+      .attr("xlink:href", "/images/vela_"+status +".png")
+      .attr("x", ogX - 6)
+      .attr("y", ogY - 14)
+      .attr("width", 16)
+      .attr("height", 16)
+      .style("stroke", "red")
+      .style("fill", "red")
+      .style("stroke-width", "1px")
+      .style("cursor", "pointer")
+      .on('click', function(e) {
+        e.preventDefault();
+        console.log('new onclick 2')
+        setTimeout(() => app.ports.onGraphInteraction.send({event_type: "href", href: 'href'}), 0);
+      })
+      ;
+
+      og.remove();
+
+    }
+
+    console.log('inner')
+    console.log(inner)
+
+
+    return ""; // filter by single attribute
+  })
+
 }
