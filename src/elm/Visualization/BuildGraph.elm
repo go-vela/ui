@@ -21,7 +21,7 @@ toDOT model buildGraph =
     let
         baseStyles : DOT.Styles
         baseStyles =
-            { rankdir = DOT.LR
+            { rankdir = DOT.TB
             , graph =
                 escapeAttributes
                     [ ( "bgcolor", DefaultEscape "transparent" )

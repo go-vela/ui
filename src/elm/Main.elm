@@ -946,8 +946,12 @@ update msg model =
             )
 
         EnableRepos repos ->
+            let
+                enableRepos = List.map (Util.dispatch << EnableRepo) repos
+                toggleAllFavorites = Cmd.none
+            in
             ( model
-            , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
+            , Cmd.batch <| toggleAllFavorites :: enableRepos  
             )
 
         EnableRepo repo ->
