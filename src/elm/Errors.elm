@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Errors exposing (Error, addError, addErrorString, detailedErrorToString, toFailure, viewResourceError)
 
 import Html exposing (Html, div, p, text)
-import Http exposing (Error(..))
+import Http
 import Http.Detailed
 import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..), WebData)

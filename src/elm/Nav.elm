@@ -26,10 +26,10 @@ import Html.Attributes
         , disabled
         )
 import Html.Events exposing (onClick)
-import Pages exposing (Page(..))
+import Pages exposing (Page)
 import Pages.Build.History
 import RemoteData exposing (RemoteData(..), WebData)
-import Routes exposing (Route(..))
+import Routes
 import Time exposing (Posix, Zone)
 import Util
 import Vela

@@ -327,6 +327,7 @@ details.build-toggle {
   position: absolute;
   top: 0.75rem;
   right: 0.25rem;
+  z-index: 9999;
 
   width: max-content;
   min-width: 100%;
@@ -421,7 +422,6 @@ details.build-toggle {
 .build-container {
   width: 100%;
   margin: 12px 0;
-  overflow: hidden;
 }
 
 .build-preview-error {
@@ -575,24 +575,34 @@ details.build-toggle {
   text-overflow: ellipsis;
 }
 
+.time-toggle {
+  justify-content: space-around;
+}
+
 .time-info {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 
   font-weight: 300;
 }
 
-.time-info .age {
+.time-info .time-completed,
+.time-info .time-elapsed {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.time-completed .age {
   margin: 0 4px 0 4px;
 }
 
-.time-info .delimiter {
+.time-completed .delimiter {
   margin: 0 8px;
 
   color: var(--color-secondary);
 }
 
-.time-info .duration {
+.duration {
   margin: 0 0 0 4px;
 
   font-family: var(--font-code);
@@ -602,6 +612,10 @@ details.build-toggle {
   position: absolute;
 
   width: 100%;
+  height: 100%;
+  overflow-x: clip;
+
+  pointer-events: none;
 }
 
 .-running-start {
@@ -1388,7 +1402,16 @@ details.build-toggle {
 }
 
 // build filters
+.build-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  background-color: var(--color-bg-dark);
+}
+
 .build-filters {
+  flex-flow: wrap;
   justify-content: flex-start;
   margin: 1rem 0;
   padding: 1rem;

@@ -26,8 +26,7 @@ import Html.Attributes
         , scope
         )
 import Pages.Build.Logs exposing (decodeAnsi)
-import RemoteData exposing (RemoteData(..))
-import Routes exposing (Route(..))
+import RemoteData
 import SvgBuilder exposing (hookStatusToIcon)
 import Table
 import Time exposing (Posix)

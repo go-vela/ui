@@ -34,7 +34,6 @@ type alias Destination =
 
 type Alert
     = Success String String (Maybe Link)
-    | Warning String String
     | Error String String
 
 
@@ -49,9 +48,6 @@ view copy toast =
     case toast of
         Success title message link ->
             wrapAlert "-success" title message link Nothing
-
-        Warning title message ->
-            wrapAlert "-warning" title message Nothing Nothing
 
         Error title message ->
             wrapAlert "-error" title message Nothing <| Just copy

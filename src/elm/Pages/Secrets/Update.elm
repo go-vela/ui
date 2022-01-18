@@ -95,7 +95,7 @@ reinitializeSecretUpdate secretsModel secret =
 
 initSecretUpdate : Secret -> SecretForm
 initSecretUpdate secret =
-    SecretForm secret.name "" secret.events "" secret.images secret.allowCommand
+    SecretForm secret.name "" secret.events "" secret.images secret.allowCommand secret.team
 
 
 {-| updateSecretModel : makes an update to the appropriate secret update
@@ -128,6 +128,9 @@ updateSecretField field value secret =
     case field of
         "name" ->
             { secret | name = String.replace " " "" value }
+
+        "Team" ->
+            { secret | team = String.replace " " "" value }
 
         "value" ->
             { secret | value = value }
@@ -264,7 +267,11 @@ toAddSecretPayload secretsModel secret =
                     { repo = Just "*", team = Nothing }
 
                 Vela.SharedSecret ->
-                    { repo = Nothing, team = stringToMaybe secretsModel.team }
+                    if secretsModel.team == "*" then
+                        { repo = Nothing, team = stringToMaybe secret.team }
+
+                    else
+                        { repo = Nothing, team = stringToMaybe secretsModel.team }
     in
     buildUpdateSecretPayload
         (Just secretsModel.type_)
@@ -334,6 +341,14 @@ update model msg =
                         payload =
                             toAddSecretPayload secretsModel secret
 
+                        team : String
+                        team =
+                            if secretsModel.team == "*" && secretsModel.type_ == SharedSecret then
+                                secret.team
+
+                            else
+                                getKey secretsModel
+
                         body : Http.Body
                         body =
                             Http.jsonBody <| encodeUpdateSecret payload
@@ -344,7 +359,7 @@ update model msg =
                             engine
                             (secretTypeToString secretsModel.type_)
                             secretsModel.org
-                            (getKey secretsModel)
+                            team
                             body
                     )
 

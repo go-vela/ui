@@ -158,6 +158,34 @@ context('Builds', () => {
     it('pagination controls should not show', () => {
       cy.get('[data-test=pager-previous]').should('not.be.visible');
     });
+
+    it('timestamp checkbox should be present', () => {
+      cy.get('[data-test=time-toggle]').should('exist');
+    });
+
+    it('timestamp checkbox switches time when checked', () => {
+      cy.get('@firstBuild')
+        .find('.time-info .age')
+        .should(elem => {
+          expect(elem.text()).to.not.include('at');
+        })
+        .and('have.attr', 'title')
+        .then(title => {
+          expect(title).to.include('at');
+        });
+
+      cy.get('[data-test=time-toggle]').click({ force: true });
+
+      cy.get('@firstBuild')
+        .find('.time-info .age')
+        .should(elem => {
+          expect(elem.text()).to.include('at');
+        })
+        .and('have.attr', 'title')
+        .then(title => {
+          expect(title).to.not.include('at');
+        });
+    });
   });
 
   context('logged in and server returning 20 builds and running build', () => {
