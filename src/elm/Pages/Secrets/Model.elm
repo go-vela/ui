@@ -8,7 +8,6 @@ module Pages.Secrets.Model exposing
     ( AddSecretResponse
     , DeleteSecretResponse
     , DeleteSecretState(..)
-    , ManageSecretState(..)
     , Model
     , Msg(..)
     , PartialModel
@@ -19,22 +18,13 @@ module Pages.Secrets.Model exposing
     , defaultSecretUpdate
     )
 
-import Auth.Session exposing (Session(..))
+import Auth.Session exposing (Session)
 import Http
 import Http.Detailed
 import LinkHeader exposing (WebLink)
-import Pages exposing (Page(..))
-import RemoteData exposing (RemoteData(..), WebData)
-import Vela
-    exposing
-        ( Engine
-        , Org
-        , Repo
-        , Secret
-        , SecretType
-        , Secrets
-        , Team
-        )
+import Pages exposing (Page)
+import RemoteData exposing (WebData)
+import Vela exposing (Engine, Key, Org, Repo, Secret, SecretType, Secrets, Team)
 
 
 
@@ -89,12 +79,13 @@ type alias SecretForm =
     , imageInput : String
     , images : List String
     , allowCommand : Bool
+    , team : Key
     }
 
 
 defaultSecretUpdate : SecretForm
 defaultSecretUpdate =
-    SecretForm "" "" [] "" [] True
+    SecretForm "" "" [] "" [] True ""
 
 
 
@@ -137,9 +128,3 @@ type DeleteSecretState
     = NotAsked_
     | Confirm
     | Deleting
-
-
-type ManageSecretState
-    = Choose
-    | Add
-    | Update

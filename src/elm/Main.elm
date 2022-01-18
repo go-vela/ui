@@ -66,16 +66,17 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Maybe
+import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
-import Pages exposing (Page(..))
+import Pages exposing (Page)
 import Pages.Build.Logs
     exposing
         ( addLog
@@ -89,7 +90,7 @@ import Pages.Build.Logs
         )
 import Pages.Build.Model
 import Pages.Build.View
-import Pages.Builds exposing (view)
+import Pages.Builds
 import Pages.Deployments.Model
 import Pages.Deployments.Update exposing (initializeFormFromDeployment)
 import Pages.Deployments.View
@@ -105,7 +106,7 @@ import Pages.Secrets.View
 import Pages.Settings
 import Pages.SourceRepos
 import RemoteData exposing (RemoteData(..), WebData)
-import Routes exposing (Route(..))
+import Routes
 import String.Extra
 import SvgBuilder exposing (velaLogo)
 import Task
@@ -127,14 +128,10 @@ import Vela
         , Build
         , BuildNumber
         , Builds
-        , ChownRepo
         , CurrentUser
         , Deployment
         , DeploymentId
-        , EnableRepo
-        , EnableRepos
         , EnableRepositoryPayload
-        , Enabling(..)
         , Engine
         , Event
         , Favicon
@@ -149,7 +146,6 @@ import Vela
         , PipelineModel
         , PipelineTemplates
         , Ref
-        , RepairRepo
         , Repo
         , RepoModel
         , RepoResourceIdentifier
@@ -157,7 +153,7 @@ import Vela
         , Repositories
         , Repository
         , Secret
-        , SecretType(..)
+        , SecretType
         , Secrets
         , ServiceNumber
         , Services
@@ -210,6 +206,7 @@ import Vela
         , updateBuildsPage
         , updateBuildsPager
         , updateBuildsPerPage
+        , updateBuildsShowTimeStamp
         , updateDeployments
         , updateDeploymentsPage
         , updateDeploymentsPager
@@ -281,7 +278,7 @@ type alias Model =
 type Interval
     = OneSecond
     | OneSecondHidden
-    | FiveSecond RefreshData
+    | FiveSecond
     | FiveSecondHidden RefreshData
 
 
@@ -375,10 +372,11 @@ type Msg
     | RefreshHooks Org Repo
     | RefreshSecrets Engine SecretType Org Repo
     | FilterBuildEventBy (Maybe Event) Org Repo
+    | ShowHideFullTimestamp
     | SetTheme Theme
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
-    | ShowHideBuildMenu Int (Maybe Bool)
+    | ShowHideBuildMenu (Maybe Int) (Maybe Bool)
     | ShowHideIdentity (Maybe Bool)
     | Copy String
     | DownloadFile String (String -> String) String String
@@ -429,16 +427,16 @@ type Msg
     | OrgBuildsResponse Org (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, List Deployment ))
-    | HooksResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
-    | BuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | DeploymentResponse Org Repo DeploymentId (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
+    | HooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
+    | BuildResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
+    | DeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
-    | GetPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | ExpandPipelineConfigResponse Org Repo (Maybe Ref) FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | GetPipelineTemplatesResponse Org Repo FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
+    | GetPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ExpandPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | GetPipelineTemplatesResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddDeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
@@ -452,7 +450,7 @@ type Msg
     | AdjustTime Posix
     | Tick Interval Posix
       -- Components
-    | AddSecretUpdate Engine Pages.Secrets.Model.Msg
+    | AddSecretUpdate Pages.Secrets.Model.Msg
     | AddDeploymentUpdate Pages.Deployments.Model.Msg
       -- Other
     | HandleError Error
@@ -577,6 +575,9 @@ update msg model =
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| route
             )
 
+        ShowHideFullTimestamp ->
+            ( { model | repo = rm |> updateBuildsShowTimeStamp }, Cmd.none )
+
         SetTheme theme ->
             if theme == model.theme then
                 ( model, Cmd.none )
@@ -629,7 +630,7 @@ update msg model =
                             model.secretsModel
 
                         loadingSecrets =
-                            { currentSecrets | orgSecrets = Loading }
+                            { currentSecrets | orgSecrets = Loading, sharedSecrets = Loading }
                     in
                     ( { model | secretsModel = loadingSecrets }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgSecrets engine org (Just pageNumber) maybePerPage
@@ -678,12 +679,14 @@ update msg model =
 
                 updatedOpen : List Int
                 updatedOpen =
-                    case show of
-                        Just _ ->
-                            buildsOpen
-
-                        Nothing ->
-                            replaceList build buildsOpen
+                    unwrap []
+                        (\b ->
+                            unwrap
+                                (replaceList b buildsOpen)
+                                (\_ -> buildsOpen)
+                                show
+                        )
+                        build
             in
             ( { model
                 | buildMenuOpen = updatedOpen
@@ -1435,7 +1438,7 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateDeployments (toFailure error) rm }, addError error )
 
-        HooksResponse _ _ response ->
+        HooksResponse response ->
             case response of
                 Ok ( meta, hooks ) ->
                     ( { model
@@ -1450,7 +1453,7 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateHooks (toFailure error) rm }, addError error )
 
-        BuildResponse org repo _ response ->
+        BuildResponse org repo response ->
             case response of
                 Ok ( _, build ) ->
                     ( { model
@@ -1466,7 +1469,7 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
-        DeploymentResponse _ _ _ response ->
+        DeploymentResponse response ->
             case response of
                 Ok ( _, deployment ) ->
                     let
@@ -1604,7 +1607,7 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        GetPipelineConfigResponse _ _ _ lineFocus refresh response ->
+        GetPipelineConfigResponse lineFocus refresh response ->
             case response of
                 Ok ( _, config ) ->
                     let
@@ -1643,7 +1646,7 @@ update msg model =
                     , Errors.addError error HandleError
                     )
 
-        ExpandPipelineConfigResponse _ _ _ lineFocus refresh response ->
+        ExpandPipelineConfigResponse lineFocus refresh response ->
             case response of
                 Ok ( _, config ) ->
                     let
@@ -1684,7 +1687,7 @@ update msg model =
                     , addError error
                     )
 
-        GetPipelineTemplatesResponse _ _ lineFocus refresh response ->
+        GetPipelineTemplatesResponse lineFocus refresh response ->
             case response of
                 Ok ( _, templates ) ->
                     ( { model
@@ -1822,7 +1825,7 @@ update msg model =
                     in
                     ( { model | time = time, favicon = favicon }, cmd )
 
-                FiveSecond _ ->
+                FiveSecond ->
                     ( model, refreshPage model )
 
                 OneSecondHidden ->
@@ -1836,7 +1839,7 @@ update msg model =
                     ( model, refreshPageHidden model data )
 
         -- Components
-        AddSecretUpdate _ m ->
+        AddSecretUpdate m ->
             let
                 ( newModel, action ) =
                     Pages.Secrets.Update.update model m
@@ -1983,6 +1986,7 @@ subscriptions model =
         [ Interop.onThemeChange decodeOnThemeChange
         , onMouseDown "contextual-help" model ShowHideHelp
         , onMouseDown "identity" model ShowHideIdentity
+        , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
         , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
         , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
@@ -2008,7 +2012,7 @@ refreshSubscriptions model =
         case model.visibility of
             Visible ->
                 [ every Util.oneSecondMillis <| Tick OneSecond
-                , every Util.fiveSecondsMillis <| Tick (FiveSecond <| refreshData model)
+                , every Util.fiveSecondsMillis <| Tick FiveSecond
                 ]
 
             Hidden ->
@@ -2094,6 +2098,7 @@ refreshPage model =
         Pages.OrgSecrets engine org maybePage maybePerPage ->
             Cmd.batch
                 [ getOrgSecrets model maybePage maybePerPage engine org
+                , getSharedSecrets model maybePage maybePerPage engine org "*"
                 ]
 
         Pages.RepoSecrets engine org repo maybePage maybePerPage ->
@@ -2261,6 +2266,9 @@ onMouseDown targetId model triggerMsg =
     else if model.showIdentity then
         Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
 
+    else if List.length model.buildMenuOpen > 0 then
+        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
+
     else
         Sub.none
 
@@ -2383,62 +2391,62 @@ viewContent model =
             , div []
                 [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
                 , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
+                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
                 ]
             )
 
         Pages.SharedSecrets engine org team _ _ ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
-                [ Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
-                , Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.viewSharedSecrets model
+                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
                 , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
                 ]
             )
 
         Pages.AddOrgSecret engine _ ->
             ( "add " ++ engine ++ " org secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.addSecret model
+            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.AddRepoSecret engine _ _ ->
             ( "add " ++ engine ++ " repo secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.addSecret model
+            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.AddSharedSecret engine _ _ ->
             ( "add " ++ engine ++ " shared secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.addSecret model
+            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.OrgSecret engine org name ->
             ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
+            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.RepoSecret engine org repo name ->
             ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
+            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-            , Html.map (\m -> AddSecretUpdate engine m) <| lazy Pages.Secrets.View.editSecret model
+            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.AddDeployment org repo ->
             ( String.join "/" [ org, repo ] ++ " add deployment"
-            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.addDeployment model
+            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
             )
 
         Pages.PromoteDeployment org repo buildNumber ->
             ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
-            , Html.map (\m -> AddDeploymentUpdate m) <| lazy Pages.Deployments.View.promoteDeployment model
+            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.promoteDeployment model
             )
 
         Pages.RepositoryDeployments org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
             , div []
-                [ lazy5 Pages.Deployments.View.viewDeployments model.repo.deployments model.time model.zone org repo
+                [ lazy3 Pages.Deployments.View.viewDeployments model.repo.deployments org repo
                 , Pager.view model.repo.deployments.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -2465,7 +2473,10 @@ viewContent model =
             in
             ( org ++ " builds" ++ Util.pageToString maybePage
             , div []
-                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
+                    ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 , lazy7 Pages.Organization.viewBuilds model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
@@ -2491,7 +2502,10 @@ viewContent model =
             in
             ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
             , div []
-                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
+                    ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
@@ -2550,16 +2564,6 @@ viewContent model =
             , viewLogin
             )
 
-        Pages.Logout ->
-            ( "Logout"
-            , h1 [] [ text "Logging out" ]
-            )
-
-        Pages.Authenticate ->
-            ( "Authentication"
-            , h1 [ Util.testAttribute "page-h1" ] [ text "Authenticating..." ]
-            )
-
         Pages.NotFound ->
             ( "404"
             , h1 [] [ text "Not Found" ]
@@ -2606,6 +2610,20 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                             ]
                     )
                     eventEnum
+
+    else
+        text ""
+
+
+viewTimeToggle : Bool -> Bool -> Html Msg
+viewTimeToggle shouldRender showTimestamp =
+    if shouldRender then
+        div [ class "form-controls", class "-stack", class "time-toggle" ]
+            [ div [ class "form-control" ]
+                [ input [ type_ "checkbox", checked showTimestamp, onClick ShowHideFullTimestamp, id "checkbox-time-toggle", Util.testAttribute "time-toggle" ] []
+                , label [ class "form-label", for "checkbox-time-toggle" ] [ text "show full timestamps" ]
+                ]
+            ]
 
     else
         text ""
@@ -2937,6 +2955,7 @@ loadOrgSubPage model org toPage =
                         { secretsModel
                             | repoSecrets = Loading
                             , orgSecrets = Loading
+                            , sharedSecrets = Loading
                             , org = org
                             , repo = ""
                             , engine = "native"
@@ -3042,6 +3061,7 @@ loadRepoSubPage model org repo toPage =
                         { secretsModel
                             | repoSecrets = Loading
                             , orgSecrets = Loading
+                            , sharedSecrets = Loading
                             , org = org
                             , repo = repo
                             , engine = "native"
@@ -3316,7 +3336,7 @@ loadSharedSecretsPage model maybePage maybePerPage engine org team =
             Pages.SharedSecrets engine org team maybePage maybePerPage
         , secretsModel =
             { secretsModel
-                | repoSecrets = Loading
+                | sharedSecrets = Loading
                 , org = org
                 , team = team
                 , engine = engine
@@ -4142,7 +4162,7 @@ getCurrentUser model =
 
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getHooks model org repo maybePage maybePerPage =
-    Api.try (HooksResponse org repo) <| Api.getHooks model maybePage maybePerPage org repo
+    Api.try HooksResponse <| Api.getHooks model maybePage maybePerPage org repo
 
 
 getRepo : Model -> Org -> Repo -> Cmd Msg
@@ -4167,12 +4187,12 @@ getBuilds model org repo maybePage maybePerPage maybeEvent =
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =
-    Api.try (BuildResponse org repo buildNumber) <| Api.getBuild model org repo buildNumber
+    Api.try (BuildResponse org repo) <| Api.getBuild model org repo buildNumber
 
 
 getDeployment : Model -> Org -> Repo -> DeploymentId -> Cmd Msg
 getDeployment model org repo deploymentNumber =
-    Api.try (DeploymentResponse org repo deploymentNumber) <| Api.getDeployment model org repo <| Just deploymentNumber
+    Api.try DeploymentResponse <| Api.getDeployment model org repo <| Just deploymentNumber
 
 
 getDeployments : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
@@ -4301,21 +4321,21 @@ getSecret model engine type_ org key name =
 -}
 getPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineConfig model org repo ref lineFocus refresh =
-    Api.tryString (GetPipelineConfigResponse org repo ref lineFocus refresh) <| Api.getPipelineConfig model org repo ref
+    Api.tryString (GetPipelineConfigResponse lineFocus refresh) <| Api.getPipelineConfig model org repo ref
 
 
 {-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
 -}
 expandPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
 expandPipelineConfig model org repo ref lineFocus refresh =
-    Api.tryString (ExpandPipelineConfigResponse org repo ref lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
+    Api.tryString (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
 -}
 getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineTemplates model org repo ref lineFocus refresh =
-    Api.try (GetPipelineTemplatesResponse org repo lineFocus refresh) <| Api.getPipelineTemplates model org repo ref
+    Api.try (GetPipelineTemplatesResponse lineFocus refresh) <| Api.getPipelineTemplates model org repo ref
 
 
 

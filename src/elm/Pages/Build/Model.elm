@@ -17,10 +17,10 @@ module Pages.Build.Model exposing
     )
 
 import Browser.Navigation as Navigation
-import Pages exposing (Page(..))
+import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
-import Vela exposing (Build, BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoModel, SourceRepositories)
+import Vela exposing (BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoModel, SourceRepositories)
 
 
 
@@ -58,7 +58,7 @@ type alias Msgs msg =
     , logsMsgs : LogsMsgs msg
     , restartBuild : RestartBuild msg
     , cancelBuild : CancelBuild msg
-    , toggle : Int -> Maybe Bool -> msg
+    , toggle : Maybe Int -> Maybe Bool -> msg
     }
 
 

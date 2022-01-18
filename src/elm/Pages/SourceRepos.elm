@@ -35,7 +35,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import RemoteData exposing (WebData)
-import Routes exposing (Route(..))
+import Routes
 import Search
     exposing
         ( Search

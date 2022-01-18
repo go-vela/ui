@@ -17,7 +17,7 @@ module Help.Commands exposing
     , usageDocsUrl
     )
 
-import Pages exposing (Page(..))
+import Pages exposing (Page)
 import String.Extra
 import Util exposing (anyBlank, noBlanks)
 import Vela
@@ -29,7 +29,7 @@ import Vela
         , Name
         , Org
         , Repo
-        , SecretType(..)
+        , SecretType
         , StepNumber
         , secretTypeToString
         )
@@ -153,14 +153,8 @@ commands page =
         Pages.Settings ->
             []
 
-        Pages.Authenticate ->
-            []
-
         Pages.Login ->
             [ authenticate ]
-
-        Pages.Logout ->
-            []
 
         Pages.NotFound ->
             []
@@ -849,12 +843,6 @@ resourceLoaded args =
         Pages.Login ->
             True
 
-        Pages.Logout ->
-            True
-
-        Pages.Authenticate ->
-            True
-
         Pages.NotFound ->
             False
 
@@ -938,12 +926,6 @@ resourceLoading args =
 
         Pages.Login ->
             False
-
-        Pages.Logout ->
-            True
-
-        Pages.Authenticate ->
-            True
 
         Pages.NotFound ->
             False

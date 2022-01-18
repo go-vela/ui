@@ -42,9 +42,8 @@ services:
       DATABASE_ENCRYPTION_KEY: 'C639A572E14D5075C526FDDD43E4ECF6'
       QUEUE_DRIVER: redis
       QUEUE_ADDR: 'redis://redis:6379'
-      QUEUE_ROUTES: 'docker,local,docker:local'
-      SOURCE_DRIVER: github
-      SOURCE_CONTEXT: 'continuous-integration/vela'
+      SCM_DRIVER: github
+      SCM_CONTEXT: 'continuous-integration/vela'
       SECRET_VAULT: 'true'
       SECRET_VAULT_ADDR: 'http://vault:8200'
       SECRET_VAULT_TOKEN: vela
@@ -52,8 +51,8 @@ services:
       VELA_WEBUI_ADDR: 'http://localhost:8888'
       VELA_LOG_LEVEL: trace
       VELA_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
-      VELA_REFRESH_TOKEN_DURATION: 5m
-      VELA_ACCESS_TOKEN_DURATION: 1m
+      VELA_REFRESH_TOKEN_DURATION: 90m
+      VELA_ACCESS_TOKEN_DURATION: 60m
       VELA_DISABLE_WEBHOOK_VALIDATION: 'true'
       VELA_ENABLE_SECURE_COOKIE: 'false'
     env_file:
@@ -80,15 +79,14 @@ services:
     environment:
       QUEUE_DRIVER: redis
       QUEUE_ADDR: 'redis://redis:6379'
-      QUEUE_ROUTES: 'docker,local,docker:local'
       VELA_BUILD_LIMIT: 1
       VELA_BUILD_TIMEOUT: 30m
       VELA_LOG_LEVEL: trace
       VELA_RUNTIME_DRIVER: docker
       VELA_SERVER_ADDR: 'http://server:8080'
       VELA_SERVER_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
-      WORKER_ADDR: http://worker:8080
-      WORKER_CHECK_IN: 1m
+      WORKER_ADDR: 'http://worker:8080'
+      WORKER_CHECK_IN: 15m
     restart: always
     ports:
       - '8081:8080'
@@ -117,7 +115,7 @@ services:
   # https://www.postgresql.org/
   postgres:
     container_name: postgres
-    image: postgres:13-alpine
+    image: postgres:14-alpine
     networks:
       - vela
     environment:

@@ -2,7 +2,7 @@ module Pages.Build.History exposing (view)
 
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
 import Html.Attributes exposing (attribute, class)
-import Pages exposing (Page(..))
+import Pages exposing (Page)
 import RemoteData
 import Routes
 import SvgBuilder exposing (recentBuildStatusToIcon)

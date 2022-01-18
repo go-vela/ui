@@ -7,9 +7,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 
 import Alerts exposing (Alert)
-import Auth.Session exposing (Session(..))
+import Auth.Session exposing (Session)
 import Browser.Navigation as Navigation
-import Pages exposing (Page(..))
+import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Time exposing (Posix)
 import Toasty exposing (Stack)
