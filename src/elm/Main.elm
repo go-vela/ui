@@ -18,7 +18,7 @@ import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Dict
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
-import Favorites exposing (toFavorite, updateFavorites)
+import Favorites exposing (enableFavorite, toFavorite, updateFavorites)
 import FeatherIcons
 import File.Download as Download
 import Focus
@@ -395,6 +395,7 @@ type Msg
     | SignInRequested
     | FetchSourceRepositories
     | ToggleFavorite Org (Maybe Repo)
+    | AddFavorite Org (Maybe Repo)
     | EnableRepos Repositories
     | EnableRepo Repository
     | DisableRepo Repository
@@ -932,6 +933,26 @@ update msg model =
             , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
             )
 
+        AddFavorite org repo ->
+            let
+                favorite =
+                    toFavorite org repo
+
+                ( favorites, favorited ) =
+                    enableFavorite model.user favorite
+
+                payload : UpdateUserPayload
+                payload =
+                    buildUpdateFavoritesPayload favorites
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateUser payload
+            in
+            ( model
+            , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
+            )
+
         EnableRepos repos ->
             ( model
             , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
@@ -1284,7 +1305,7 @@ update msg model =
                         | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
                         , repo = updateRepoEnabling Vela.Enabled rm
                       }
-                    , Util.dispatch <| ToggleFavorite repo.org <| Just repo.name
+                    , Util.dispatch <| AddFavorite repo.org <| Just repo.name
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
 

@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Favorites exposing (ToggleFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
+module Favorites exposing (ToggleFavorite, enableFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
 
 import Html exposing (Html, button)
 import Html.Attributes exposing (attribute, class)
@@ -86,6 +86,25 @@ updateFavorites user favorite =
 
                     else
                         List.Extra.unique <| favorite :: u.favorites
+            in
+            ( favorites, not favorited )
+
+        _ ->
+            ( [], False )
+
+
+{-| enableFavorite : takes current user and favorite key and adds favorite to list of favorites
+-}
+enableFavorite : WebData CurrentUser -> String -> ( List String, Bool )
+enableFavorite user favorite =
+    case user of
+        Success u ->
+            let
+                favorited =
+                    List.member favorite u.favorites
+
+                favorites =
+                    List.Extra.unique <| favorite :: u.favorites
             in
             ( favorites, not favorited )
 
