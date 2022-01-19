@@ -109,6 +109,8 @@ type alias StringInputChange msg =
 type alias Msgs msg =
     { eventsUpdate : CheckboxUpdate msg
     , accessUpdate : RadioUpdate msg
+    , limitUpdate : NumberInputChange msg
+    , inLimitChange : StringInputChange msg
     , timeoutUpdate : NumberInputChange msg
     , inTimeoutChange : StringInputChange msg
     , counterUpdate : NumberInputChange msg
@@ -128,11 +130,14 @@ type alias Msgs msg =
 
 {-| view : takes model, org and repo and renders page for updating repo settings
 -}
-view : WebData Repository -> Msgs msg -> String -> String -> Html msg
-view repo actions velaAPI velaURL =
+view : WebData Repository -> Msgs msg -> String -> String -> Int -> Html msg
+view repo actions velaAPI velaURL maxLimit =
     let
         ( accessUpdate, pipelineTypeUpdate ) =
             ( actions.accessUpdate, actions.pipelineTypeUpdate )
+
+        ( limitUpdate, inLimitChange ) =
+            ( actions.limitUpdate, actions.inLimitChange )
 
         ( timeoutUpdate, inTimeoutChange ) =
             ( actions.timeoutUpdate, actions.inTimeoutChange )
@@ -151,6 +156,7 @@ view repo actions velaAPI velaURL =
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ events repo_ eventsUpdate
                 , access repo_ accessUpdate
+                , limit maxLimit repo_.inLimit repo_ limitUpdate inLimitChange
                 , timeout repo_.inTimeout repo_ timeoutUpdate inTimeoutChange
                 , counter repo_.inCounter repo_ counterUpdate inCounterChange
                 , badge repo_ velaAPI velaURL actions.copy
@@ -311,6 +317,21 @@ events repo msg =
         ]
 
 
+{-| limit : takes model and repo and renders the settings category for updating repo build limit
+-}
+limit : Int -> Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) -> Html msg
+limit maxLimit inLimit repo clickMsg inputMsg =
+    section [ class "settings", Util.testAttribute "repo-settings-limit" ]
+        [ h2 [ class "settings-title" ] [ text "Build Limit" ]
+        , p [ class "settings-description" ] [ text "Concurrent builds (pending or running) that exceed this limit will be stopped." ]
+        , div [ class "form-controls" ]
+            [ limitInput repo maxLimit inLimit inputMsg
+            , updateLimit maxLimit inLimit repo repo.limit <| clickMsg repo.org repo.name "build_limit" <| Maybe.withDefault 0 inLimit
+            ]
+        , limitWarning maxLimit inLimit
+        ]
+
+
 {-| timeout : takes model and repo and renders the settings category for updating repo build timeout
 -}
 timeout : Maybe Int -> Repository -> NumberInputChange msg -> (String -> msg) -> Html msg
@@ -371,6 +392,60 @@ radio value field title msg =
             []
         , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], updateAccessTip field ]
         ]
+
+
+{-| limitInput : takes repo, user input, and button action and renders the text input for updating build limit.
+-}
+limitInput : Repository -> Int -> Maybe Int -> (String -> msg) -> Html msg
+limitInput repo maxLimit inLimit inputMsg =
+    div [ class "form-control", Util.testAttribute "repo-limit" ]
+        [ input
+            [ id <| "repo-limit"
+            , onInput inputMsg
+            , type_ "number"
+            , Html.Attributes.min "1"
+            , Html.Attributes.max <| String.fromInt maxLimit
+            , value <| String.fromInt <| Maybe.withDefault repo.limit inLimit
+            ]
+            []
+        , label [ class "form-label", for "repo-limit" ] [ text "limit" ]
+        ]
+
+
+{-| updateLimit : takes maybe int of user entered limit and current repo limit and renders the button to submit the update.
+-}
+updateLimit : Int -> Maybe Int -> Repository -> Int -> msg -> Html msg
+updateLimit maxLimit inLimit repo repoLimit msg =
+    case inLimit of
+        Just _ ->
+            button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick msg
+                , disabled <| not <| validLimit maxLimit inLimit repo <| Just repoLimit
+                ]
+                [ text "update" ]
+
+        Nothing ->
+            text ""
+
+
+{-| limitWarning : takes maybe string of user entered limit and renders a disclaimer on updating the build limit.
+-}
+limitWarning : Int -> Maybe Int -> Html msg
+limitWarning maxLimit inLimit =
+    case inLimit of
+        Just _ ->
+            p [ class "notice" ]
+                [ text "Disclaimer: it is highly recommended to optimize your pipeline before increasing this value. Limits must also lie between 1 and "
+                , text <| String.fromInt maxLimit
+                , text "."
+                ]
+
+        Nothing ->
+            text ""
 
 
 {-| timeoutInput : takes repo, user input, and button action and renders the text input for updating build timeout.
@@ -623,6 +698,27 @@ alert field repo =
     String.replace "$" repo.full_name <| prefix ++ suffix
 
 
+{-| validLimit : takes maybe string of user entered limit and returns whether or not it is a valid update.
+-}
+validLimit : Int -> Maybe Int -> Repository -> Maybe Int -> Bool
+validLimit maxLimit inLimit repo repoLimit =
+    case inLimit of
+        Just t ->
+            if t >= 1 && t <= maxLimit then
+                case repoLimit of
+                    Just ti ->
+                        t /= ti
+
+                    Nothing ->
+                        True
+
+            else
+                False
+
+        Nothing ->
+            True
+
+
 {-| validTimeout : takes maybe string of user entered timeout and returns whether or not it is a valid update.
 -}
 validTimeout : Maybe Int -> Maybe Int -> Bool
@@ -644,7 +740,7 @@ validTimeout inTimeout repoTimeout =
             True
 
 
-{-| validCounter : takes maybe string of user entered timeout and returns whether or not it is a valid update.
+{-| validCounter : takes maybe string of user entered counter and returns whether or not it is a valid update.
 -}
 validCounter : Maybe Int -> Repository -> Maybe Int -> Bool
 validCounter inCounter repo repoCounter =
@@ -759,6 +855,9 @@ msgPrefix field =
         "allow_comment" ->
             "Comment events for $ "
 
+        "build_limit" ->
+            "Build limit for $ "
+
         "timeout" ->
             "Build timeout for $ "
 
@@ -797,6 +896,9 @@ msgSuffix field repo =
 
         "allow_comment" ->
             toggleText "allow_comment" repo.allow_comment
+
+        "build_limit" ->
+            "set to " ++ String.fromInt repo.limit
 
         "timeout" ->
             "set to " ++ String.fromInt repo.timeout ++ " minute(s)."
