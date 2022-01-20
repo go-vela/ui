@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Favorites exposing (ToggleFavorite, enableFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
+module Favorites exposing (ToggleFavorite, addFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
 
 import Html exposing (Html, button)
 import Html.Attributes exposing (attribute, class)
@@ -93,10 +93,10 @@ updateFavorites user favorite =
             ( [], False )
 
 
-{-| enableFavorite : takes current user and favorite key and adds favorite to list of favorites
+{-| addFavorite : takes current user and favorite key and adds favorite to list of favorites
 -}
-enableFavorite : WebData CurrentUser -> String -> ( List String, Bool )
-enableFavorite user favorite =
+addFavorite : WebData CurrentUser -> String -> ( List String, Bool )
+addFavorite user favorite =
     case user of
         Success u ->
             let

@@ -18,7 +18,7 @@ import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Dict
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
-import Favorites exposing (enableFavorite, toFavorite, updateFavorites)
+import Favorites exposing (addFavorite, toFavorite, updateFavorites)
 import FeatherIcons
 import File.Download as Download
 import Focus
@@ -939,7 +939,7 @@ update msg model =
                     toFavorite org repo
 
                 ( favorites, favorited ) =
-                    enableFavorite model.user favorite
+                    addFavorite model.user favorite
 
                 payload : UpdateUserPayload
                 payload =
