@@ -1396,9 +1396,9 @@ details.build-toggle {
 // build filters
 .build-bar {
   display: flex;
-  margin: 1rem 0;
   flex-direction: row;
   justify-content: space-between;
+  margin: 1rem 0;
 
   background-color: var(--color-bg-dark);
 }
@@ -1407,6 +1407,7 @@ details.build-toggle {
   flex-flow: wrap;
   justify-content: flex-start;
   padding: 1rem;
+
   font-size: 1rem;
 
   background-color: var(--color-bg-dark);
