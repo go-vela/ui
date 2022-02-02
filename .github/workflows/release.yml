@@ -25,9 +25,9 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.elm
-          key: ${{ runner.os }}-elm-v2-${{ hashFiles('**/elm.json') }}
+          key: ${{ runner.os }}-elm-v3-${{ hashFiles('**/elm.json') }}
           restore-keys: |
-            ${{ runner.os }}-elm-v2-
+            ${{ runner.os }}-elm-v3-
       - uses: actions/cache@v2
         with:
           path: ~/.npm
