@@ -94,9 +94,6 @@ recentBuildLink page org repo buildNumber build idx =
             if buildNumber == build.number then
                 class "-current"
 
-            else if buildNumber > build.number then
-                class "-older"
-
             else
                 class ""
     in

@@ -66,7 +66,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop

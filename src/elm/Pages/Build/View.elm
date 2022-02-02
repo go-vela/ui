@@ -24,7 +24,7 @@ import Focus
         , resourceAndLineToFocusId
         , resourceToFocusId
         )
-import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, time, tr, ul)
+import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, tr, ul)
 import Html.Attributes
     exposing
         ( attribute
