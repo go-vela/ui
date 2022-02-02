@@ -60,6 +60,12 @@ jobs:
         run: npm i elm-format@0.8.5
       - name: run elm-format
         run: npm run lint:elm
+      - name: check elm cache
+        run: |
+          ls -la ~/.elm
+          ls -la ~/.elm/0.19.1
+      - name: what is elm home
+        run: echo $ELM_HOME
 
   # ┌─┐┬  ┌┬┐  ┌┬┐┌─┐┌─┐┌┬┐
   # ├┤ │  │││───│ ├┤ └─┐ │
@@ -104,6 +110,10 @@ jobs:
         run: npm i elm-test@0.19.1-revision6
       - name: run elm-test
         run: npm run test
+      - name: check elm cache
+        run: |
+          ls -la ~/.elm
+          ls -la ~/.elm/0.19.1
 
   # ┬  ┬┌┐┌┌┬┐
   # │  ││││ │
@@ -146,6 +156,10 @@ jobs:
         run: npm ci --prefer-offline --no-audit
       - name: run linter
         run: npm run lint
+      - name: check elm cache
+        run: |
+          ls -la ~/.elm
+          ls -la ~/.elm/0.19.1
 
   # ┌─┐┬ ┬┌─┐┬─┐┌─┐┌─┐┌─┐
   # │  └┬┘├─┘├┬┘├┤ └─┐└─┐
@@ -192,7 +206,9 @@ jobs:
       - name: run cypress tests
         run: npm run test:cy
       - name: check elm cache
-        run: ls -la ~/.elm
+        run: |
+          ls -la ~/.elm
+          ls -la ~/.elm/0.19.1
 
   # ┌─┐┬ ┬┌┐ ┬  ┬┌─┐┬ ┬
   # ├─┘│ │├┴┐│  │└─┐├─┤
