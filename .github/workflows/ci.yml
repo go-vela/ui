@@ -191,6 +191,8 @@ jobs:
         run: npm ci --prefer-offline --no-audit
       - name: run cypress tests
         run: npm run test:cy
+      - name: check elm cache
+        run: ls -la ~/.elm
 
   # ┌─┐┬ ┬┌┐ ┬  ┬┌─┐┬ ┬
   # ├─┘│ │├┴┐│  │└─┐├─┤
