@@ -4,9 +4,8 @@
 
 // import types
 import * as ClipboardJS from 'clipboard';
+import { Console } from 'console';
 import * as d3 from 'd3';
-
-import post from './images/post.png'
 
 // @ts-ignore // false negative module warning
 import { Elm } from '../elm/Main.elm';
@@ -140,6 +139,8 @@ app.ports.renderBuildGraph.subscribe(function (dot) {
 
 // runGraphvizWorker
 function runGraphvizWorker(dot) {
+  console.log(dot)
+
   return new Promise((resolve, reject) => {
     // @ts-ignore // false negative - standalone support for import.meta added in Parcel v2 - https://parceljs.org/blog/rc0/#support-for-standalone-import.meta
     worker = new Worker(new URL('./graphviz.worker.js', import.meta.url), {
@@ -165,15 +166,40 @@ function runGraphvizWorker(dot) {
   });
 }
 
+
+
 function draw(content) {
   console.log('drawing')
   var svg = d3.select('.build-graph');
+
+  svg.call(d3.zoom().on("zoom", zoomed));
+
+  function zoomed(event) {
+    var g = d3.select(svg.node().querySelector("g"));
+    g.attr('transform', event.transform);
+}
+
+
+  svg.selectAll('.stage-edge').each((e) => {
+     console.log()
+     var g = svg.append('g').attr('class', 'edge_hover');
+      
+
+    e.on('mouseover', ()=> {
+      console.log('over edge')
+
+    });
+
+  });
+
+
+
   var g = d3.select('g.node_mousedown');
   console.log(svg)
   if (g.empty()) {
     g = svg.append('g').attr('class', 'node_mousedown');
 
-
+ 
 
     // svg.on('mousedown', (e, d) => {
     //   // stop propagation on buttons and ctrl+click
@@ -221,6 +247,7 @@ function draw(content) {
       d3.select(this).on('click', function(e) {
         e.preventDefault();
         console.log('new onclick')
+        // @ts-ignore
         setTimeout(() => app.ports.onGraphInteraction.send({event_type: "href", href: href}), 0);
       })
     }
@@ -266,6 +293,7 @@ function draw(content) {
       .on('click', function(e) {
         e.preventDefault();
         console.log('new onclick 2')
+        // @ts-ignore
         setTimeout(() => app.ports.onGraphInteraction.send({event_type: "href", href: 'href'}), 0);
       })
       ;
@@ -273,9 +301,6 @@ function draw(content) {
       og.remove();
 
     }
-
-    console.log('inner')
-    console.log(inner)
 
 
     return ""; // filter by single attribute

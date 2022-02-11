@@ -63,8 +63,9 @@ toDOT model buildGraph =
             List.map (\( _, node ) -> Node node.id (BuildGraphNode node.id node.name node.steps)) <| Dict.toList buildGraph.nodes
 
         edgeAttrs _ =
-            Dict.empty
-
+            Dict.fromList <|
+                [ ( "class", DefaultJSONLabelEscape "stage-edge" )
+                ]
         graph =
             Graph.fromNodesAndEdges nodes edges
     in
