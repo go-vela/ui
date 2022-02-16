@@ -11,9 +11,6 @@ on:
     tags:
       - 'v*'
 
-env:
-  NODE_VERSION: '16.13.2'
-
 # pipeline to execute
 jobs:
   release:
@@ -42,7 +39,7 @@ jobs:
             ${{ runner.os }}-modules-v2-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
 
       # ┌┐ ┬ ┬┬┬  ┌┬┐
       # ├┴┐│ │││   ││
