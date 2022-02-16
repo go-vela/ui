@@ -100,13 +100,10 @@ addFavorite user favorite =
     case user of
         Success u ->
             let
-                favorited =
-                    List.member favorite u.favorites
-
                 favorites =
                     List.Extra.unique <| favorite :: u.favorites
             in
-            ( favorites, not favorited )
+            ( favorites, True )
 
         _ ->
             ( [], False )
