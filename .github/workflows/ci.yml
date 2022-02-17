@@ -8,11 +8,9 @@ name: ci
 # trigger on pull_request or push events
 on:
   push:
-    branches:
   pull_request:
 
 env:
-  NODE_VERSION: '16.13.2'
   CI: 1
 
 # pipeline to execute
@@ -46,7 +44,7 @@ jobs:
             cypress-${{ runner.os }}-bin-v2-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
 
       - name: install dependencies
         run: npm ci --prefer-offline --no-audit
@@ -90,7 +88,7 @@ jobs:
             cypress-${{ runner.os }}-bin-v2-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
 
       - name: install dependencies
         run: npm ci --prefer-offline --no-audit
@@ -128,7 +126,7 @@ jobs:
             cypress-${{ runner.os }}-bin-v2-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
 
       - name: install dependencies
         run: npm ci --prefer-offline --no-audit
@@ -173,7 +171,7 @@ jobs:
             cypress-${{ runner.os }}-bin-v2-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
 
       - name: install dependencies
         run: npm ci --prefer-offline --no-audit
@@ -211,7 +209,7 @@ jobs:
             ${{ runner.os }}-modules-v2-
       - uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
 
       # ┌┐ ┬ ┬┬┬  ┌┬┐
       # ├┴┐│ │││   ││
