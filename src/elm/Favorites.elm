@@ -1,10 +1,10 @@
 {--
-Copyright (c) 2021 Target Brands, Inc. All rights reserved.
+Copyright (c) 2022 Target Brands, Inc. All rights reserved.
 Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Favorites exposing (ToggleFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
+module Favorites exposing (ToggleFavorite, addFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
 
 import Html exposing (Html, button)
 import Html.Attributes exposing (attribute, class)
@@ -88,6 +88,22 @@ updateFavorites user favorite =
                         List.Extra.unique <| favorite :: u.favorites
             in
             ( favorites, not favorited )
+
+        _ ->
+            ( [], False )
+
+
+{-| addFavorite : takes current user and favorite key and adds favorite to list of favorites
+-}
+addFavorite : WebData CurrentUser -> String -> ( List String, Bool )
+addFavorite user favorite =
+    case user of
+        Success u ->
+            let
+                favorites =
+                    List.Extra.unique <| favorite :: u.favorites
+            in
+            ( favorites, True )
 
         _ ->
             ( [], False )

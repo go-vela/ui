@@ -5,6 +5,7 @@
   "link": "",
   "clone": "",
   "branch": "master",
+  "build_limit": 10,
   "timeout": 30,
   "counter": 0
 }

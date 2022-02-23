@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Target Brands, Inc. All rights reserved.
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
@@ -720,7 +720,7 @@ details.build-toggle {
 
 .build-history-title {
   display: inline;
-  padding: 0.4rem 0 0.4rem 0.4rem;
+  padding: 0.4rem 0;
 
   font-size: 0.8em;
 }
@@ -742,19 +742,11 @@ details.build-toggle {
 }
 
 .recent-build-link.-current {
-  transform: translateX(5px);
-
-  transition: transform 0.1s;
-
-  will-change: transform;
+  margin: 0 0.2rem;
 }
 
-.recent-build-link.-older {
-  transform: translateX(10px);
-
-  transition: transform 0.1s;
-
-  will-change: transform;
+.recent-build:first-child .recent-build-link.-current {
+  margin: 0 0.2rem 0 0;
 }
 
 .build-history .recent-build-link .-icon {
@@ -1413,6 +1405,7 @@ details.build-toggle {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  margin: 1rem 0;
 
   background-color: var(--color-bg-dark);
 }
@@ -1420,7 +1413,6 @@ details.build-toggle {
 .build-filters {
   flex-flow: wrap;
   justify-content: flex-start;
-  margin: 1rem 0;
   padding: 1rem;
 
   font-size: 1rem;

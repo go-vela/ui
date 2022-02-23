@@ -1,5 +1,5 @@
 {--
-Copyright (c) 2021 Target Brands, Inc. All rights reserved.
+Copyright (c) 2022 Target Brands, Inc. All rights reserved.
 Use of this source code is governed by the LICENSE file in this repository.
 --}
 
@@ -18,7 +18,7 @@ import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Dict
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
-import Favorites exposing (toFavorite, updateFavorites)
+import Favorites exposing (addFavorite, toFavorite, updateFavorites)
 import FeatherIcons
 import File.Download as Download
 import Focus
@@ -66,7 +66,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy7, lazy8)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
@@ -228,6 +228,7 @@ import Vela
         , updateRepoCounter
         , updateRepoEnabling
         , updateRepoInitialized
+        , updateRepoLimit
         , updateRepoTimeout
         )
 import Visualization.BuildGraph
@@ -245,6 +246,7 @@ type alias Flags =
     , velaTheme : String
     , velaRedirect : String
     , velaLogBytesLimit : Int
+    , velaMaxBuildLimit : Int
     }
 
 
@@ -260,6 +262,7 @@ type alias Model =
     , velaDocsURL : String
     , velaRedirect : String
     , velaLogBytesLimit : Int
+    , velaMaxBuildLimit : Int
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
@@ -309,6 +312,7 @@ init flags url navKey =
             , velaDocsURL = flags.velaDocsURL
             , velaRedirect = flags.velaRedirect
             , velaLogBytesLimit = flags.velaLogBytesLimit
+            , velaMaxBuildLimit = flags.velaMaxBuildLimit
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = utc
@@ -371,6 +375,7 @@ type Msg
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
     | SearchFavorites String
+    | ChangeRepoLimit String
     | ChangeRepoTimeout String
     | ChangeRepoCounter String
     | RefreshSettings Org Repo
@@ -401,6 +406,7 @@ type Msg
     | SignInRequested
     | FetchSourceRepositories
     | ToggleFavorite Org (Maybe Repo)
+    | AddFavorite Org (Maybe Repo)
     | EnableRepos Repositories
     | EnableRepo Repository
     | DisableRepo Repository
@@ -409,6 +415,7 @@ type Msg
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoPipelineType Org Repo Field String
+    | UpdateRepoLimit Org Repo Field Int
     | UpdateRepoTimeout Org Repo Field Int
     | UpdateRepoCounter Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
@@ -504,6 +511,13 @@ update msg model =
         SearchFavorites searchBy ->
             ( { model | favoritesFilter = searchBy }, Cmd.none )
 
+        ChangeRepoLimit limit ->
+            let
+                newLimit =
+                    Maybe.withDefault 0 <| String.toInt limit
+            in
+            ( { model | repo = updateRepoLimit (Just newLimit) rm }, Cmd.none )
+
         ChangeRepoTimeout timeout ->
             let
                 newTimeout =
@@ -532,6 +546,7 @@ update msg model =
             ( { model
                 | repo =
                     rm
+                        |> updateRepoLimit Nothing
                         |> updateRepoTimeout Nothing
                         |> updateRepoCounter Nothing
                         |> updateRepo Loading
@@ -945,6 +960,26 @@ update msg model =
             , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
             )
 
+        AddFavorite org repo ->
+            let
+                favorite =
+                    toFavorite org repo
+
+                ( favorites, favorited ) =
+                    addFavorite model.user favorite
+
+                payload : UpdateUserPayload
+                payload =
+                    buildUpdateFavoritesPayload favorites
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateUser payload
+            in
+            ( model
+            , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
+            )
+
         EnableRepos repos ->
             let
                 enableRepos = List.map (Util.dispatch << EnableRepo) repos
@@ -1057,6 +1092,20 @@ update msg model =
             in
             ( model
             , cmd
+            )
+
+        UpdateRepoLimit org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoIntPayload field value
+
+                body : Http.Body
+                body =
+                    Http.jsonBody <| encodeUpdateRepository payload
+            in
+            ( model
+            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
             )
 
         UpdateRepoTimeout org repo field value ->
@@ -1301,7 +1350,7 @@ update msg model =
                         | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
                         , repo = updateRepoEnabling Vela.Enabled rm
                       }
-                    , Util.dispatch <| ToggleFavorite repo.org <| Just repo.name
+                    , Util.dispatch <| AddFavorite repo.org <| Just repo.name
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
 
@@ -2445,7 +2494,7 @@ viewContent model =
 
         Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy4 Pages.RepoSettings.view model.repo.repo repoSettingsMsgs model.velaAPI (Url.toString model.entryURL)
+            , lazy5 Pages.RepoSettings.view model.repo.repo repoSettingsMsgs model.velaAPI (Url.toString model.entryURL) model.velaMaxBuildLimit
             )
 
         Pages.RepoSecrets engine org repo _ _ ->
@@ -4232,7 +4281,7 @@ sourceReposMsgs =
 -}
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
-    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo UpdateRepoPipelineType
+    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoLimit ChangeRepoLimit UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo UpdateRepoPipelineType
 
 
 {-| buildMsgs : prepares the input record required for the Build pages to route Msgs back to Main.elm

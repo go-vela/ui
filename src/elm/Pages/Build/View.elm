@@ -1,5 +1,5 @@
 {--
-Copyright (c) 2021 Target Brands, Inc. All rights reserved.
+Copyright (c) 2022 Target Brands, Inc. All rights reserved.
 Use of this source code is governed by the LICENSE file in this repository.
 --}
 
@@ -26,7 +26,7 @@ import Focus
         , resourceAndLineToFocusId
         , resourceToFocusId
         )
-import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, time, tr, ul)
+import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, tr, ul)
 import Html.Attributes
     exposing
         ( attribute
