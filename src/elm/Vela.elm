@@ -110,6 +110,7 @@ module Vela exposing
     , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
+    , secretToKey
     , secretTypeToString
     , secretsErrorLabel
     , statusToFavicon
@@ -1702,6 +1703,7 @@ type alias Secret =
     , org : Org
     , repo : Repo
     , team : Key
+    , key : String
     , name : String
     , type_ : SecretType
     , images : List String
@@ -1789,6 +1791,21 @@ maybeSecretTypeToMaybeString type_ =
             Nothing
 
 
+{-| secretToKey : helper to create secret key
+-}
+secretToKey : Secret -> String
+secretToKey secret =
+    case secret.type_ of
+        SharedSecret ->
+            secret.org ++ "/" ++ secret.team ++ "/" ++ secret.name
+
+        OrgSecret ->
+            secret.org ++ "/" ++ secret.name
+
+        RepoSecret ->
+            secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name
+
+
 decodeSecret : Decoder Secret
 decodeSecret =
     Decode.succeed Secret
@@ -1796,6 +1813,7 @@ decodeSecret =
         |> optional "org" string ""
         |> optional "repo" string ""
         |> optional "team" string ""
+        |> optional "key" string ""
         |> optional "name" string ""
         |> optional "type" secretTypeDecoder RepoSecret
         |> optional "images" (Decode.list string) []
