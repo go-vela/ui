@@ -29,6 +29,7 @@ import Vela
         ( Secret
         , SecretType(..)
         , Secrets
+        , secretToKey
         , secretTypeToString
         , secretsErrorLabel
         )
@@ -256,6 +257,7 @@ secretsToRowsForSharedSecrets type_ secrets =
 tableHeaders : Table.Columns
 tableHeaders =
     [ ( Nothing, "name" )
+    , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
@@ -269,6 +271,7 @@ tableHeadersForSharedSecrets : Table.Columns
 tableHeadersForSharedSecrets =
     [ ( Nothing, "name" )
     , ( Nothing, "team" )
+    , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
@@ -288,6 +291,12 @@ renderSecret type_ secret =
             , Util.testAttribute <| "secrets-row-name"
             ]
             [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
+        , td
+            [ attribute "data-label" "key"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| secretToKey secret ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
@@ -336,6 +345,12 @@ renderSharedSecret type_ secret =
             , Util.testAttribute <| "secrets-row-team"
             ]
             [ a [ Routes.href <| Routes.SharedSecrets "native" (percentEncode secret.org) (percentEncode secret.team) Nothing Nothing ] [ text secret.team ] ]
+        , td
+            [ attribute "data-label" "key"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| secretToKey secret ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
