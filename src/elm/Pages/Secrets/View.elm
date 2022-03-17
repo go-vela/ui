@@ -26,10 +26,10 @@ import Url exposing (percentEncode)
 import Util exposing (largeLoader)
 import Vela
     exposing
-        ( Secret
+        ( Copy
+        , Secret
         , SecretType(..)
         , Secrets
-        , secretToKey
         , secretTypeToString
         , secretsErrorLabel
         )
@@ -37,7 +37,6 @@ import Vela
 
 
 -- VIEW
-
 
 {-| viewRepoSecrets : takes secrets model and renders table for viewing repo secrets
 -}
@@ -64,6 +63,7 @@ viewRepoSecrets model =
                             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
                         ]
                     ]
+
     in
     case secretsModel.repoSecrets of
         Success s ->
@@ -216,6 +216,7 @@ viewSharedSecrets model showManage showAdd =
                     [ manageButton
                     , addButton
                     ]
+        
     in
     case secretsModel.sharedSecrets of
         Success s ->
@@ -242,21 +243,22 @@ viewSharedSecrets model showManage showAdd =
 -}
 secretsToRows : SecretType -> Secrets -> Table.Rows Secret Msg
 secretsToRows type_ secrets =
-    List.map (\secret -> Table.Row secret (renderSecret type_)) secrets
+    List.map (\secret -> Table.Row (addKey secret) (renderSecret type_)) secrets
 
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
 secretsToRowsForSharedSecrets : SecretType -> Secrets -> Table.Rows Secret Msg
 secretsToRowsForSharedSecrets type_ secrets =
-    List.map (\secret -> Table.Row secret (renderSharedSecret type_)) secrets
+    List.map (\secret -> Table.Row (addKey secret) (renderSharedSecret type_)) secrets
 
 
 {-| tableHeaders : returns table headers for secrets table
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Nothing, "name" )
+    [ ( Nothing, "" )
+    , ( Nothing, "name" )
     , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
@@ -269,7 +271,8 @@ tableHeaders =
 -}
 tableHeadersForSharedSecrets : Table.Columns
 tableHeadersForSharedSecrets =
-    [ ( Nothing, "name" )
+    [ ( Nothing, "" )
+    , ( Nothing, "name" )
     , ( Nothing, "team" )
     , ( Nothing, "key" )
     , ( Nothing, "type" )
@@ -284,19 +287,25 @@ tableHeadersForSharedSecrets =
 renderSecret : SecretType -> Secret -> Html msg
 renderSecret type_ secret =
     tr [ Util.testAttribute <| "secrets-row" ]
-        [ td
+        [ td  
+            [ attribute "data-label" ""
+            , scope "row"
+            , class "break-word"
+            ]
+            [ copyButton (copySecret secret) ]
+        , td
             [ attribute "data-label" "name"
             , scope "row"
             , class "break-word"
             , Util.testAttribute <| "secrets-row-name"
             ]
-            [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
+            [a [ updateSecretHref type_ secret ] [ text secret.name ]]
         , td
             [ attribute "data-label" "key"
             , scope "row"
             , class "break-word"
             ]
-            [ text <| secretToKey secret ]
+            [ text <| secret.key ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
@@ -331,7 +340,13 @@ renderSecret type_ secret =
 renderSharedSecret : SecretType -> Secret -> Html msg
 renderSharedSecret type_ secret =
     tr [ Util.testAttribute <| "secrets-row" ]
-        [ td
+        [ td  
+            [ attribute "data-label" ""
+            , scope "row"
+            , class "break-word"
+            ]
+            [ copyButton (copySecret secret) ]
+        , td
             [ attribute "data-label" "name"
             , scope "row"
             , class "break-word"
@@ -350,7 +365,7 @@ renderSharedSecret type_ secret =
             , scope "row"
             , class "break-word"
             ]
-            [ text <| secretToKey secret ]
+            [ text <| secret.key ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
@@ -429,6 +444,45 @@ updateSecretHref type_ secret =
                 Routes.SharedSecret "native" secret.org encodedTeam encodedName
 
 
+{-| copySecret : takes a secret and returns the yaml struct of the secret -}
+copySecret : Secret -> String
+copySecret secret =
+    let 
+        yaml ="- name: " ++ secret.name ++ "\n  key: " ++ secret.key ++ "\n  engine: native\n  type: "
+    in
+     case secret.type_ of
+            Vela.OrgSecret ->
+                yaml ++  "org"
+
+            Vela.RepoSecret ->
+               yaml ++ "repo"
+
+            Vela.SharedSecret ->
+               yaml ++ "shared"
+
+{-| copyButton : copy button that copys secret yaml to clipboard -}
+-- copyButton : String -> Maybe (Copy msg) -> Html msg
+-- copyButton copyYaml copy =
+copyButton : String  -> Html msg
+copyButton copyYaml = 
+    -- case copy of
+    --     Just copyMsg ->
+    button
+        [ class "copy-button"
+        , attribute "aria-label" <| "copy secret yaml '" ++ copyYaml ++ "' to clipboard "
+        , class "button"
+        , class "-icon"
+        -- , Html.Events.onClick <| copyYaml
+        , attribute "data-clipboard-text" copyYaml
+        ]
+        [ FeatherIcons.copy
+            |> FeatherIcons.withSize 18
+            |> FeatherIcons.toHtml []
+        ]
+        -- Nothing ->
+        --     text ""
+        
+
 
 -- ADD SECRET
 
@@ -488,6 +542,19 @@ addForm secretsModel =
             ]
         ]
 
+{-| addKey : helper to create secret key
+-}
+addKey : Secret -> Secret
+addKey secret =
+    case secret.type_ of
+        SharedSecret ->
+            {secret | key = secret.org ++ "/" ++ secret.team ++ "/" ++ secret.name}
+
+        OrgSecret ->
+            { secret | key = secret.org ++ "/" ++ secret.name}
+
+        RepoSecret ->
+            { secret | key = secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name}
 
 
 -- EDIT SECRET
