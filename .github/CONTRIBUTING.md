@@ -1,28 +1,13 @@
 # Contributing
 
-We'd love to accept your contributions to this project!
-
-There are just a few guidelines you need to follow.
-
-## Bugs
-
-Bug reports should be opened up as [issues](https://help.github.com/en/github/managing-your-work-on-github/about-issues) on the [go-vela/community](https://github.com/go-vela/community) repository!
-
-## Feature Requests
-
-Feature Requests should be opened up as [issues](https://help.github.com/en/github/managing-your-work-on-github/about-issues) on the [go-vela/community](https://github.com/go-vela/community) repository!
-
-## Pull Requests
-
-**NOTE: We recommend you start by opening a new issue describing the bug or feature you're intending to fix. Even if you think it's relatively minor, it's helpful to know what people are working on.**
-
-We are always open to new PRs! You can follow the below guide for learning how you can contribute to the project!
-
 ## Getting Started
+
+We'd love to accept your contributions to this project! If you are a first time contributor, please review our [Contributing Guidelines](https://go-vela.github.io/docs/community/contributing_guidelines/) before proceeding.
 
 ### Prerequisites
 
 - [Review the commit guide we follow](https://chris.beams.io/posts/git-commit/#seven-rules) - ensure your commits follow our standards
+- [Review our style guide](https://go-vela.github.io/docs/community/contributing_guidelines/#style-guide) to ensure your code is clean and consistent
 - [Review the local development docs](..//DOCS.md) - ensures you have the Vela application stack running locally
 
 ### Setup
@@ -62,7 +47,6 @@ cd $HOME/go-vela/ui
 ```
 
 * Write your code and tests to implement the changes you desire.
-  * Please be sure to [follow our commit rules](https://chris.beams.io/posts/git-commit/#seven-rules)
 
 * Run the repository code (ensures your changes perform as you desire):
 
@@ -108,7 +92,9 @@ npm run lint:fix
 git push fork master
 ```
 
-* Open a pull request. Thank you for your contribution!
+* Make sure to follow our [PR process](https://go-vela.github.io/docs/community/contributing_guidelines/#development-workflow) when opening a pull request
+
+Thank you for your contribution!
 
 ## Tips
 
