@@ -74,7 +74,7 @@ viewRepoSecrets model =
                         "repo-secrets"
                         "No secrets found for this repository"
                         tableHeaders
-                        (secretsToRows Vela.RepoSecret s)
+                        (secretsToRows Vela.RepoSecret s <| Just secretsModel.copy)
                         actions
                     )
                 ]
@@ -150,7 +150,7 @@ viewOrgSecrets model showManage showAdd =
                         "org-secrets"
                         "No secrets found for this org"
                         tableHeaders
-                        (secretsToRows Vela.OrgSecret s)
+                        (secretsToRows Vela.OrgSecret s secretsModel.copy)
                         actions
                     )
                 ]
@@ -227,7 +227,7 @@ viewSharedSecrets model showManage showAdd =
                         "shared-secrets"
                         "No secrets found for this org/team"
                         tableHeadersForSharedSecrets
-                        (secretsToRowsForSharedSecrets Vela.SharedSecret s)
+                        (secretsToRowsForSharedSecrets Vela.SharedSecret s secretsModel.copy)
                         actions
                     )
                 ]
@@ -241,17 +241,17 @@ viewSharedSecrets model showManage showAdd =
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
-secretsToRows : SecretType -> Secrets -> Table.Rows Secret Msg
-secretsToRows type_ secrets =
-    List.map (\secret -> Table.Row (addKey secret) (renderSecret type_)) secrets
+secretsToRows : SecretType -> Secrets -> Copy msg -> Table.Rows Secret Msg
+secretsToRows type_ secrets copy =
+    List.map (\secret -> Table.Row (addKey secret) (renderSecret type_ copy)) secrets
+    -- |> List.concat
 
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
-secretsToRowsForSharedSecrets : SecretType -> Secrets -> Table.Rows Secret Msg
-secretsToRowsForSharedSecrets type_ secrets =
-    List.map (\secret -> Table.Row (addKey secret) (renderSharedSecret type_)) secrets
-
+secretsToRowsForSharedSecrets : SecretType -> Secrets -> Copy msg -> Table.Rows Secret Msg
+secretsToRowsForSharedSecrets type_ secrets copy =
+    List.map (\secret -> Table.Row (addKey secret) (renderSharedSecret type_ copy)) secrets
 
 {-| tableHeaders : returns table headers for secrets table
 -}
@@ -284,15 +284,15 @@ tableHeadersForSharedSecrets =
 
 {-| renderSecret : takes secret and secret type and renders a table row
 -}
-renderSecret : SecretType -> Secret -> Html msg
-renderSecret type_ secret =
+renderSecret : SecretType -> Copy msg -> Secret -> Html msg
+renderSecret type_ copy secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td  
             [ attribute "data-label" ""
             , scope "row"
             , class "break-word"
             ]
-            [ copyButton (copySecret secret) ]
+            [ copyButton (copySecret secret) copy ]
         , td
             [ attribute "data-label" "name"
             , scope "row"
@@ -337,15 +337,15 @@ renderSecret type_ secret =
 
 {-| renderSecret : takes secret and secret type and renders a table row
 -}
-renderSharedSecret : SecretType -> Secret -> Html msg
-renderSharedSecret type_ secret =
+renderSharedSecret : SecretType -> Copy msg -> Secret -> Html msg
+renderSharedSecret type_ copy secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td  
             [ attribute "data-label" ""
             , scope "row"
             , class "break-word"
             ]
-            [ copyButton (copySecret secret) ]
+            [ copyButton (copySecret secret) copy]
         , td
             [ attribute "data-label" "name"
             , scope "row"
@@ -461,27 +461,23 @@ copySecret secret =
                yaml ++ "shared"
 
 {-| copyButton : copy button that copys secret yaml to clipboard -}
--- copyButton : String -> Maybe (Copy msg) -> Html msg
--- copyButton copyYaml copy =
-copyButton : String  -> Html msg
-copyButton copyYaml = 
-    -- case copy of
-    --     Just copyMsg ->
+copyButton : String -> Copy msg -> Html msg
+copyButton copyYaml copy =
+-- copyButton : String  -> Html msg
+-- copyButton copyYaml = 
     button
         [ class "copy-button"
         , attribute "aria-label" <| "copy secret yaml '" ++ copyYaml ++ "' to clipboard "
         , class "button"
         , class "-icon"
-        -- , Html.Events.onClick <| copyYaml
+        , Html.Events.onClick <| copy copyYaml
         , attribute "data-clipboard-text" copyYaml
         ]
         [ FeatherIcons.copy
             |> FeatherIcons.withSize 18
             |> FeatherIcons.toHtml []
         ]
-        -- Nothing ->
-        --     text ""
-        
+    
 
 
 -- ADD SECRET

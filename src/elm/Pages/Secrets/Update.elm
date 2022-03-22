@@ -41,6 +41,7 @@ import Vela
         , encodeUpdateSecret
         , secretTypeToString
         )
+import Vela exposing (Copy)
 
 
 
@@ -49,8 +50,8 @@ import Vela
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
-init : SecretResponse msg -> SecretsResponse msg -> SecretsResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> DeleteSecretResponse msg -> Model msg
-init secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse addSecretResponse updateSecretResponse deleteSecretResponse =
+init : Copy msg -> SecretResponse msg -> SecretsResponse msg -> SecretsResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> DeleteSecretResponse msg -> Model msg
+init copy secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse addSecretResponse updateSecretResponse deleteSecretResponse =
     Model "native"
         ""
         ""
@@ -64,6 +65,7 @@ init secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse
         []
         NotAsked
         defaultSecretUpdate
+        copy
         secretResponse
         repoSecretsResponse
         orgSecretsResponse

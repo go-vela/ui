@@ -25,6 +25,7 @@ import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Vela exposing (Engine, Key, Org, Repo, Secret, SecretType, Secrets, Team)
+import Vela exposing (Copy)
 
 
 
@@ -58,6 +59,7 @@ type alias Model msg =
     , sharedSecretsPager : List WebLink
     , secret : WebData Secret
     , form : SecretForm
+    , copy : Copy msg
     , secretResponse : SecretResponse msg
     , repoSecretsResponse : SecretsResponse msg
     , orgSecretsResponse : SecretsResponse msg
