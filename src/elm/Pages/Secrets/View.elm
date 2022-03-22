@@ -241,7 +241,7 @@ viewSharedSecrets model showManage showAdd =
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
-secretsToRows : SecretType -> Secrets -> Copy msg -> Table.Rows Secret Msg
+secretsToRows : SecretType -> Secrets -> Copy msg -> Table.Rows Secret Msg -- KM: remove Copy msg params
 secretsToRows type_ secrets copy =
     List.map (\secret -> Table.Row (addKey secret) (renderSecret type_ copy)) secrets
     -- |> List.concat
@@ -284,7 +284,7 @@ tableHeadersForSharedSecrets =
 
 {-| renderSecret : takes secret and secret type and renders a table row
 -}
-renderSecret : SecretType -> Copy msg -> Secret -> Html msg
+renderSecret : SecretType -> Copy msg -> Secret -> Html msg -- KM: msg should be Msg
 renderSecret type_ copy secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td  
@@ -461,7 +461,7 @@ copySecret secret =
                yaml ++ "shared"
 
 {-| copyButton : copy button that copys secret yaml to clipboard -}
-copyButton : String -> Copy msg -> Html msg
+copyButton : String -> Copy msg -> Html msg -- KM: remove copy param + capital Msg
 copyButton copyYaml copy =
 -- copyButton : String  -> Html msg
 -- copyButton copyYaml = 
@@ -470,7 +470,7 @@ copyButton copyYaml copy =
         , attribute "aria-label" <| "copy secret yaml '" ++ copyYaml ++ "' to clipboard "
         , class "button"
         , class "-icon"
-        , Html.Events.onClick <| copy copyYaml
+        , Html.Events.onClick <| copy copyYaml -- KM: use strict Pages.Secrets.Model.Copy
         , attribute "data-clipboard-text" copyYaml
         ]
         [ FeatherIcons.copy

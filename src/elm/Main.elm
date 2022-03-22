@@ -457,7 +457,7 @@ type Msg
     | AdjustTime Posix
     | Tick Interval Posix
       -- Components
-    | AddSecretUpdate Pages.Secrets.Model.Msg
+    | AddSecretUpdate Pages.Secrets.Model.Msg -- KM: rename these to not-add-secret
     | AddDeploymentUpdate Pages.Deployments.Model.Msg
       -- Other
     | HandleError Error
@@ -2430,7 +2430,7 @@ viewContent model =
         Pages.RepoSecrets engine org repo _ _ ->
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
             , div []
-                [ Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.viewRepoSecrets model
+                [ Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.viewRepoSecrets model -- KM: map all these to SecretsUpdate :/
                 , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
                 ]
             )
@@ -2447,14 +2447,14 @@ viewContent model =
         Pages.SharedSecrets engine org team _ _ ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
-                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
+                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False -- KM: down to here
                 , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
                 ]
             )
 
         Pages.AddOrgSecret engine _ ->
             ( "add " ++ engine ++ " org secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
+            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model -- KM: rename these to not-add-secret
             )
 
         Pages.AddRepoSecret engine _ _ ->

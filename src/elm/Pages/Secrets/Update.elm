@@ -434,6 +434,7 @@ update model msg =
                       }
                     , Cmd.none
                     )
+                    -- KM: add copy Sub Msg Util.dispatch back to Main.elm (for toasties)
     in
     ( { model | secretsModel = sm }, action )
 

@@ -123,7 +123,7 @@ type Msg
     | AddSecret Engine
     | UpdateSecret Engine
     | DeleteSecret Engine
-    | CancelDeleteSecret
+    | CancelDeleteSecret -- KM: add Copy sub Msg
 
 
 type DeleteSecretState
