@@ -26,14 +26,12 @@ import Url exposing (percentEncode)
 import Util exposing (largeLoader)
 import Vela
     exposing
-        ( Copy
-        , Secret
+        ( Secret
         , SecretType(..)
         , Secrets
         , secretTypeToString
         , secretsErrorLabel
         )
-
 
 
 -- VIEW
@@ -74,7 +72,7 @@ viewRepoSecrets model =
                         "repo-secrets"
                         "No secrets found for this repository"
                         tableHeaders
-                        (secretsToRows Vela.RepoSecret s <| Just secretsModel.copy)
+                        (secretsToRows Vela.RepoSecret s)
                         actions
                     )
                 ]
@@ -150,7 +148,7 @@ viewOrgSecrets model showManage showAdd =
                         "org-secrets"
                         "No secrets found for this org"
                         tableHeaders
-                        (secretsToRows Vela.OrgSecret s secretsModel.copy)
+                        (secretsToRows Vela.OrgSecret s)
                         actions
                     )
                 ]
@@ -227,7 +225,7 @@ viewSharedSecrets model showManage showAdd =
                         "shared-secrets"
                         "No secrets found for this org/team"
                         tableHeadersForSharedSecrets
-                        (secretsToRowsForSharedSecrets Vela.SharedSecret s secretsModel.copy)
+                        (secretsToRowsForSharedSecrets Vela.SharedSecret s)
                         actions
                     )
                 ]
@@ -241,17 +239,17 @@ viewSharedSecrets model showManage showAdd =
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
-secretsToRows : SecretType -> Secrets -> Copy msg -> Table.Rows Secret Msg -- KM: remove Copy msg params
-secretsToRows type_ secrets copy =
-    List.map (\secret -> Table.Row (addKey secret) (renderSecret type_ copy)) secrets
+secretsToRows : SecretType -> Secrets -> Table.Rows Secret Msg
+secretsToRows type_ secrets =
+    List.map (\secret -> Table.Row (addKey secret) (renderSecret type_)) secrets
     -- |> List.concat
 
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
--}
-secretsToRowsForSharedSecrets : SecretType -> Secrets -> Copy msg -> Table.Rows Secret Msg
-secretsToRowsForSharedSecrets type_ secrets copy =
-    List.map (\secret -> Table.Row (addKey secret) (renderSharedSecret type_ copy)) secrets
+-} 
+secretsToRowsForSharedSecrets : SecretType -> Secrets -> Table.Rows Secret Msg
+secretsToRowsForSharedSecrets type_ secrets =
+    List.map (\secret -> Table.Row (addKey secret) (renderSharedSecret type_)) secrets
 
 {-| tableHeaders : returns table headers for secrets table
 -}
@@ -284,15 +282,15 @@ tableHeadersForSharedSecrets =
 
 {-| renderSecret : takes secret and secret type and renders a table row
 -}
-renderSecret : SecretType -> Copy msg -> Secret -> Html msg -- KM: msg should be Msg
-renderSecret type_ copy secret =
+renderSecret : SecretType -> Secret -> Html Msg
+renderSecret type_ secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td  
             [ attribute "data-label" ""
             , scope "row"
             , class "break-word"
             ]
-            [ copyButton (copySecret secret) copy ]
+            [ copyButton (copySecret secret)]
         , td
             [ attribute "data-label" "name"
             , scope "row"
@@ -337,15 +335,15 @@ renderSecret type_ copy secret =
 
 {-| renderSecret : takes secret and secret type and renders a table row
 -}
-renderSharedSecret : SecretType -> Copy msg -> Secret -> Html msg
-renderSharedSecret type_ copy secret =
+renderSharedSecret : SecretType -> Secret -> Html Msg
+renderSharedSecret type_ secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td  
             [ attribute "data-label" ""
             , scope "row"
             , class "break-word"
             ]
-            [ copyButton (copySecret secret) copy]
+            [ copyButton (copySecret secret)]
         , td
             [ attribute "data-label" "name"
             , scope "row"
@@ -461,16 +459,14 @@ copySecret secret =
                yaml ++ "shared"
 
 {-| copyButton : copy button that copys secret yaml to clipboard -}
-copyButton : String -> Copy msg -> Html msg -- KM: remove copy param + capital Msg
-copyButton copyYaml copy =
--- copyButton : String  -> Html msg
--- copyButton copyYaml = 
+copyButton : String -> Html Msg
+copyButton copyYaml =
     button
         [ class "copy-button"
         , attribute "aria-label" <| "copy secret yaml '" ++ copyYaml ++ "' to clipboard "
         , class "button"
         , class "-icon"
-        , Html.Events.onClick <| copy copyYaml -- KM: use strict Pages.Secrets.Model.Copy
+        , Html.Events.onClick <| Pages.Secrets.Model.Copy copyYaml
         , attribute "data-clipboard-text" copyYaml
         ]
         [ FeatherIcons.copy

@@ -34,14 +34,14 @@ import Routes
 import Util exposing (stringToMaybe)
 import Vela
     exposing
-        ( Secret
+        ( Copy
+        , Secret
         , SecretType(..)
         , UpdateSecretPayload
         , buildUpdateSecretPayload
         , encodeUpdateSecret
         , secretTypeToString
         )
-import Vela exposing (Copy)
 
 
 
@@ -434,7 +434,10 @@ update model msg =
                       }
                     , Cmd.none
                     )
-                    -- KM: add copy Sub Msg Util.dispatch back to Main.elm (for toasties)
+                
+                Pages.Secrets.Model.Copy str ->
+                    (secretsModel, Util.dispatch <| secretsModel.copy str)   
+
     in
     ( { model | secretsModel = sm }, action )
 

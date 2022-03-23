@@ -24,8 +24,7 @@ import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
-import Vela exposing (Engine, Key, Org, Repo, Secret, SecretType, Secrets, Team)
-import Vela exposing (Copy)
+import Vela exposing (Copy, Engine, Key, Org, Repo, Secret, SecretType, Secrets, Team)
 
 
 
@@ -123,7 +122,8 @@ type Msg
     | AddSecret Engine
     | UpdateSecret Engine
     | DeleteSecret Engine
-    | CancelDeleteSecret -- KM: add Copy sub Msg
+    | Copy String
+    | CancelDeleteSecret
 
 
 type DeleteSecretState
