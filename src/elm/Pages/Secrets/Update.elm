@@ -434,10 +434,9 @@ update model msg =
                       }
                     , Cmd.none
                     )
-                
-                Pages.Secrets.Model.Copy str ->
-                    (secretsModel, Util.dispatch <| secretsModel.copy str)   
 
+                Pages.Secrets.Model.Copy str ->
+                    ( secretsModel, Util.dispatch <| secretsModel.copy str )
     in
     ( { model | secretsModel = sm }, action )
 
