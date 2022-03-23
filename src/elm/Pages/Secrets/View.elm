@@ -289,6 +289,7 @@ renderSecret type_ secret =
             [ attribute "data-label" ""
             , scope "row"
             , class "break-word"
+            , Util.testAttribute <| "secrets-row-copy"
             ]
             [ copyButton (copySecret secret)]
         , td
@@ -302,6 +303,7 @@ renderSecret type_ secret =
             [ attribute "data-label" "key"
             , scope "row"
             , class "break-word"
+            , Util.testAttribute <| "secrets-row-key"
             ]
             [ text <| secret.key ]
         , td
@@ -342,6 +344,7 @@ renderSharedSecret type_ secret =
             [ attribute "data-label" ""
             , scope "row"
             , class "break-word"
+            , Util.testAttribute <| "secrets-row-copy"
             ]
             [ copyButton (copySecret secret)]
         , td
@@ -362,6 +365,7 @@ renderSharedSecret type_ secret =
             [ attribute "data-label" "key"
             , scope "row"
             , class "break-word"
+            , Util.testAttribute <| "secrets-row-key"
             ]
             [ text <| secret.key ]
         , td
@@ -468,6 +472,7 @@ copyButton copyYaml =
         , class "-icon"
         , Html.Events.onClick <| Pages.Secrets.Model.Copy copyYaml
         , attribute "data-clipboard-text" copyYaml
+        , Util.testAttribute "copy-secret"
         ]
         [ FeatherIcons.copy
             |> FeatherIcons.withSize 18

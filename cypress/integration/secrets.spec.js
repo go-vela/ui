@@ -85,6 +85,7 @@ context('Secrets', () => {
             .contains('repo');
         });
       });
+
     });
   });
 
@@ -164,6 +165,32 @@ context('Secrets', () => {
         cy.get('[data-test=secrets-row]').first().as('firstSecret');
         cy.get('[data-test=secrets-row]').last().as('lastSecret');
       });
+
+      it('should show copy', () => {
+        cy.get('@firstSecret').within(() => {
+          cy.get('[data-test=secrets-row-copy]').should('exist');
+        });
+        cy.get('@lastSecret').within(() => {
+          cy.get('[data-test=secrets-row-copy]').should('exist');
+        });
+      });
+
+      it('should copy secret to clipboard and alert', () => {
+        cy.get('@firstSecret').within(() => {
+          cy.get('[data-test=copy-secret]').click();
+        });
+          cy.get('[data-test=alerts]').should('exist').contains('Copied');
+      });
+
+      it('should show key', () => {
+        cy.get('@firstSecret').within(() => {
+          cy.get('[data-test=secrets-row-key]').contains('github/docker_username');
+        });
+        cy.get('@lastSecret').within(() => {
+          cy.get('[data-test=secrets-row-key]').contains('github/deployment');
+        });
+      });
+
       it('should show name', () => {
         cy.get('@firstSecret').within(() => {
           cy.get('[data-test=secrets-row-name]').contains('docker_username');
@@ -172,6 +199,7 @@ context('Secrets', () => {
           cy.get('[data-test=secrets-row-name]').contains('deployment');
         });
       });
+
       it('clicking name should route to edit secret page', () => {
         cy.get('@firstSecret').within(() => {
           cy.get('[data-test=secrets-row-name] > a').click({ force: true });
@@ -181,6 +209,7 @@ context('Secrets', () => {
           );
         });
       });
+
       it('clicking name with special character should use encoded url', () => {
         cy.get('@lastSecret').within(() => {
           cy.get('[data-test=secrets-row-name] > a').click({ force: true });
