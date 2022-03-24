@@ -110,6 +110,7 @@ module Vela exposing
     , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
+    , secretToKey
     , secretTypeToString
     , secretsErrorLabel
     , statusToFavicon
@@ -1788,6 +1789,21 @@ maybeSecretTypeToMaybeString type_ =
 
         _ ->
             Nothing
+
+
+{-| secretToKey : helper to create secret key
+-}
+secretToKey : Secret -> String
+secretToKey secret =
+    case secret.type_ of
+        SharedSecret ->
+            secret.org ++ "/" ++ secret.team ++ "/" ++ secret.name
+
+        OrgSecret ->
+            secret.org ++ "/" ++ secret.name
+
+        RepoSecret ->
+            secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name
 
 
 decodeSecret : Decoder Secret
