@@ -85,7 +85,6 @@ context('Secrets', () => {
             .contains('repo');
         });
       });
-
     });
   });
 
@@ -179,12 +178,14 @@ context('Secrets', () => {
         cy.get('@firstSecret').within(() => {
           cy.get('[data-test=copy-secret]').click();
         });
-          cy.get('[data-test=alerts]').should('exist').contains('Copied');
+        cy.get('[data-test=alerts]').should('exist').contains('Copied');
       });
 
       it('should show key', () => {
         cy.get('@firstSecret').within(() => {
-          cy.get('[data-test=secrets-row-key]').contains('github/docker_username');
+          cy.get('[data-test=secrets-row-key]').contains(
+            'github/docker_username',
+          );
         });
         cy.get('@lastSecret').within(() => {
           cy.get('[data-test=secrets-row-key]').contains('github/deployment');
