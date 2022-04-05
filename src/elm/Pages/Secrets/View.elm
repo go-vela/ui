@@ -476,7 +476,7 @@ copyButton : String -> Html Msg
 copyButton copyYaml =
     button
         [ class "copy-button"
-        , attribute "aria-label" <| "copy secret yaml '" ++ copyYaml ++ "' to clipboard "
+        , attribute "aria-label" <| "copy secret yaml to clipboard "
         , class "button"
         , class "-icon"
         , Html.Events.onClick <| Pages.Secrets.Model.Copy copyYaml
