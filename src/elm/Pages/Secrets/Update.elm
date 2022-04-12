@@ -34,7 +34,8 @@ import Routes
 import Util exposing (stringToMaybe)
 import Vela
     exposing
-        ( Secret
+        ( Copy
+        , Secret
         , SecretType(..)
         , UpdateSecretPayload
         , buildUpdateSecretPayload
@@ -49,8 +50,8 @@ import Vela
 
 {-| init : takes msg updates from Main.elm and initializes secrets page input arguments
 -}
-init : SecretResponse msg -> SecretsResponse msg -> SecretsResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> DeleteSecretResponse msg -> Model msg
-init secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse addSecretResponse updateSecretResponse deleteSecretResponse =
+init : Copy msg -> SecretResponse msg -> SecretsResponse msg -> SecretsResponse msg -> SecretsResponse msg -> AddSecretResponse msg -> UpdateSecretResponse msg -> DeleteSecretResponse msg -> Model msg
+init copy secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse addSecretResponse updateSecretResponse deleteSecretResponse =
     Model "native"
         ""
         ""
@@ -64,6 +65,7 @@ init secretResponse repoSecretsResponse orgSecretsResponse sharedSecretsResponse
         []
         NotAsked
         defaultSecretUpdate
+        copy
         secretResponse
         repoSecretsResponse
         orgSecretsResponse
@@ -432,6 +434,9 @@ update model msg =
                       }
                     , Cmd.none
                     )
+
+                Pages.Secrets.Model.Copy str ->
+                    ( secretsModel, Util.dispatch <| secretsModel.copy str )
     in
     ( { model | secretsModel = sm }, action )
 
