@@ -457,7 +457,7 @@ type Msg
     | AdjustTime Posix
     | Tick Interval Posix
       -- Components
-    | AddSecretUpdate Pages.Secrets.Model.Msg
+    | SecretsUpdate Pages.Secrets.Model.Msg
     | AddDeploymentUpdate Pages.Deployments.Model.Msg
       -- Other
     | HandleError Error
@@ -1888,7 +1888,7 @@ update msg model =
                     ( model, refreshPageHidden model data )
 
         -- Components
-        AddSecretUpdate m ->
+        SecretsUpdate m ->
             let
                 ( newModel, action ) =
                     Pages.Secrets.Update.update model m
@@ -2430,56 +2430,56 @@ viewContent model =
         Pages.RepoSecrets engine org repo _ _ ->
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
             , div []
-                [ Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.viewRepoSecrets model
-                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
+                [ Html.map SecretsUpdate <| lazy Pages.Secrets.View.viewRepoSecrets model
+                , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
                 ]
             )
 
         Pages.OrgSecrets engine org maybePage _ ->
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ Util.pageToString maybePage
             , div []
-                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
+                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
                 , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
-                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
+                , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
                 ]
             )
 
         Pages.SharedSecrets engine org team _ _ ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
-                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
+                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
                 , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
                 ]
             )
 
         Pages.AddOrgSecret engine _ ->
             ( "add " ++ engine ++ " org secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.AddRepoSecret engine _ _ ->
             ( "add " ++ engine ++ " repo secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.AddSharedSecret engine _ _ ->
             ( "add " ++ engine ++ " shared secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.OrgSecret engine org name ->
             ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.editSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.RepoSecret engine org repo name ->
             ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.editSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.editSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.AddDeployment org repo ->
@@ -4175,7 +4175,7 @@ pipelineMsgs =
 
 initSecretsModel : Pages.Secrets.Model.Model Msg
 initSecretsModel =
-    Pages.Secrets.Update.init SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
+    Pages.Secrets.Update.init Copy SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
 
 
 initDeploymentsModel : Pages.Deployments.Model.Model Msg
