@@ -59,9 +59,9 @@ type Endpoint
     | StepLogs Org Repo BuildNumber StepNumber
     | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
     | Secret Engine Type Org String Name
-    | PipelineConfig Org Repo (Maybe Ref)
-    | ExpandPipelineConfig Org Repo (Maybe Ref)
-    | PipelineTemplates Org Repo (Maybe Ref)
+    | PipelineConfig Org Repo (Ref)
+    | ExpandPipelineConfig Org Repo (Ref)
+    | PipelineTemplates Org Repo (Ref)
 
 
 {-| toUrl : turns and Endpoint into a URL string
@@ -136,13 +136,13 @@ toUrl api endpoint =
             url api [ "secrets", engine, type_, org, key, name ] []
 
         PipelineConfig org repo ref ->
-            url api [ "pipelines", org, repo ] [ UB.string "ref" <| Maybe.withDefault "" ref ]
+            url api [ "pipelines", org, repo, ref ] [  ]
 
         ExpandPipelineConfig org repo ref ->
-            url api [ "pipelines", org, repo, "expand" ] [ UB.string "ref" <| Maybe.withDefault "" ref ]
+            url api [ "pipelines", org, repo, "expand", ref ] [  ]
 
         PipelineTemplates org repo ref ->
-            url api [ "pipelines", org, repo, "templates" ] [ UB.string "output" "json", UB.string "ref" <| Maybe.withDefault "" ref ]
+            url api [ "pipelines", org, repo, "templates", ref ] [ UB.string "output" "json" ]
 
         Deployment org repo deploymentNumber ->
             case deploymentNumber of

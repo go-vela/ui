@@ -508,7 +508,7 @@ updateRepository model org repo body =
 
 {-| getPipelineConfig : fetches vela pipeline by repository
 -}
-getPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Request String
+getPipelineConfig : PartialModel a -> Org -> Repo -> String -> Request String
 getPipelineConfig model org repository ref =
     get model.velaAPI (Endpoint.PipelineConfig org repository ref) decodePipelineConfig
         |> withAuth model.session
@@ -516,7 +516,7 @@ getPipelineConfig model org repository ref =
 
 {-| expandPipelineConfig : expands vela pipeline by repository
 -}
-expandPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Request String
+expandPipelineConfig : PartialModel a -> Org -> Repo -> String -> Request String
 expandPipelineConfig model org repository ref =
     post model.velaAPI (Endpoint.ExpandPipelineConfig org repository ref) Http.emptyBody decodePipelineConfig
         |> withAuth model.session
@@ -524,7 +524,7 @@ expandPipelineConfig model org repository ref =
 
 {-| getPipelineTemplates : fetches vela pipeline templates by repository
 -}
-getPipelineTemplates : PartialModel a -> Org -> Repo -> Maybe String -> Request Templates
+getPipelineTemplates : PartialModel a -> Org -> Repo -> String -> Request Templates
 getPipelineTemplates model org repository ref =
     get model.velaAPI (Endpoint.PipelineTemplates org repository ref) decodePipelineTemplates
         |> withAuth model.session

@@ -414,8 +414,8 @@ type Msg
     | UpdateRepoCounter Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
-    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
-    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
+    | GetPipelineConfig Org Repo (Maybe BuildNumber) Ref FocusFragment Bool
+    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) Ref FocusFragment Bool
       -- Inbound HTTP responses
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
@@ -1149,10 +1149,10 @@ update msg model =
                 , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
                   case buildNumber of
                     Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref Nothing lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b (Just ref) Nothing lineFocus
 
                     Nothing ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo (Just ref) Nothing lineFocus
                 ]
             )
 
@@ -1168,10 +1168,10 @@ update msg model =
                 , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
                   case buildNumber of
                     Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref (Just "true") lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b (Just ref) (Just "true") lineFocus
 
                     Nothing ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo (Just ref) (Just "true") lineFocus
                 ]
             )
 
@@ -3744,7 +3744,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
                     )
                 |> updateBuildPipelineOrgRepo org repo
                 |> updateBuildPipelineBuildNumber (Just buildNumber)
-                |> updateBuildPipelineRef ref
+                |> updateBuildPipelineRef (Maybe.withDefault "abc" ref)
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                 |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
@@ -3765,8 +3765,8 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
         Cmd.batch
             [ getBuilds model org repo Nothing Nothing Nothing
             , getBuild model org repo buildNumber
-            , getPipeline model org repo ref lineFocus sameBuild
-            , getPipelineTemplates model org repo ref lineFocus sameBuild
+            , getPipeline model org repo (Maybe.withDefault "abc" ref) lineFocus sameBuild
+            , getPipelineTemplates model org repo  (Maybe.withDefault "abc" ref)  lineFocus sameBuild
             ]
     )
 
@@ -3820,7 +3820,7 @@ loadPipelinePage model org repo ref expand lineFocus =
                     )
                 |> updateBuildPipelineOrgRepo org repo
                 |> updateBuildPipelineBuildNumber Nothing
-                |> updateBuildPipelineRef ref
+                |> updateBuildPipelineRef (Maybe.withDefault "abc" ref)
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                 |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
@@ -3832,8 +3832,8 @@ loadPipelinePage model org repo ref expand lineFocus =
                 { data = Loading, error = "", show = True }
       }
     , Cmd.batch
-        [ getPipeline model org repo ref lineFocus False
-        , getPipelineTemplates model org repo ref lineFocus False
+        [ getPipeline model org repo  (Maybe.withDefault "abc" ref)  lineFocus False
+        , getPipelineTemplates model org repo  (Maybe.withDefault "abc" ref)  lineFocus False
         ]
     )
 
@@ -3865,10 +3865,10 @@ isSamePipelineRef id currentPage pipeline =
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
 
         Pages.Build o r _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
+            not <| resourceChanged id ( o, r, pipeline.ref )
 
         Pages.BuildServices o r _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
+            not <| resourceChanged id ( o, r, pipeline.ref )
 
         Pages.BuildPipeline o r _ rf _ _ ->
             not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
@@ -4368,21 +4368,21 @@ getSecret model engine type_ org key name =
 
 {-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
 -}
-getPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+getPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineConfig model org repo ref lineFocus refresh =
     Api.tryString (GetPipelineConfigResponse lineFocus refresh) <| Api.getPipelineConfig model org repo ref
 
 
 {-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
 -}
-expandPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+expandPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 expandPipelineConfig model org repo ref lineFocus refresh =
     Api.tryString (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
 -}
-getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+getPipelineTemplates : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineTemplates model org repo ref lineFocus refresh =
     Api.try (GetPipelineTemplatesResponse lineFocus refresh) <| Api.getPipelineTemplates model org repo ref
 
