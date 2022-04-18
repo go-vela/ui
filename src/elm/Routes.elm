@@ -14,7 +14,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team)
 
 
 
@@ -43,8 +43,8 @@ type Route
     | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
-    | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
-    | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
+    | BuildPipeline Org Repo BuildNumber Ref (Maybe ExpandTemplatesQuery) FocusFragment
+    | Pipeline Org Repo Ref (Maybe ExpandTemplatesQuery) FocusFragment
     | Settings
     | Login
     | Logout
@@ -179,10 +179,10 @@ routeToUrl route =
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/services" ++ Maybe.withDefault "" lineFocus
 
         BuildPipeline org repo buildNumber ref expand lineFocus ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ Just <| UB.string ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
 
         Pipeline org repo ref expand lineFocus ->
-            "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
+            "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ Just <| UB.string ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

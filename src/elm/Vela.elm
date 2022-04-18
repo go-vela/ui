@@ -760,7 +760,7 @@ updateBuildPipelineBuildNumber update pipeline =
     { pipeline | buildNumber = update }
 
 
-updateBuildPipelineRef : Maybe Ref -> PipelineModel -> PipelineModel
+updateBuildPipelineRef : Ref -> PipelineModel -> PipelineModel
 updateBuildPipelineRef update pipeline =
     { pipeline | ref = update }
 
@@ -1150,7 +1150,7 @@ type alias PipelineModel =
     , org : Org
     , repo : Repo
     , buildNumber : Maybe BuildNumber
-    , ref : Maybe Ref
+    , ref : Ref
     , expand : Maybe String
     , lineFocus : LogFocus
     , focusFragment : FocusFragment
@@ -1159,7 +1159,7 @@ type alias PipelineModel =
 
 defaultPipeline : PipelineModel
 defaultPipeline =
-    PipelineModel ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing ) Nothing
+    PipelineModel ( NotAsked, "" ) False False "" "" Nothing "" Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =
