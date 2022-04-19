@@ -755,7 +755,7 @@ updateBuildPipelineOrgRepo org repo pipeline =
     { pipeline | org = org, repo = repo }
 
 
-updateBuildPipelineBuildNumber : Maybe BuildNumber -> PipelineModel -> PipelineModel
+updateBuildPipelineBuildNumber : BuildNumber -> PipelineModel -> PipelineModel
 updateBuildPipelineBuildNumber update pipeline =
     { pipeline | buildNumber = update }
 
@@ -1149,7 +1149,7 @@ type alias PipelineModel =
     , expanding : Bool
     , org : Org
     , repo : Repo
-    , buildNumber : Maybe BuildNumber
+    , buildNumber : BuildNumber
     , ref : Ref
     , expand : Maybe String
     , lineFocus : LogFocus
@@ -1159,7 +1159,7 @@ type alias PipelineModel =
 
 defaultPipeline : PipelineModel
 defaultPipeline =
-    PipelineModel ( NotAsked, "" ) False False "" "" Nothing "" Nothing ( Nothing, Nothing ) Nothing
+    PipelineModel ( NotAsked, "" ) False False "" "" "" "" Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =
