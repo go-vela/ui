@@ -414,8 +414,8 @@ type Msg
     | UpdateRepoCounter Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
-    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
-    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
+    | GetPipelineConfig Org Repo (Maybe BuildNumber) Ref FocusFragment Bool
+    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) Ref FocusFragment Bool
       -- Inbound HTTP responses
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
@@ -3678,7 +3678,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 
 {-| loadBuildPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
+loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Ref -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
 loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
     let
         -- get resource transition information
@@ -3694,7 +3694,7 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
                     False
 
         sameRef =
-            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
+            isSamePipelineRef ( org, repo, ref ) model.page pipeline
 
         -- if build has changed, set build fields in the model
         m =
@@ -3773,12 +3773,12 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
 
 {-| loadPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadPipelinePage : Model -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
+loadPipelinePage : Model -> Org -> Repo -> Ref -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
 loadPipelinePage model org repo ref expand lineFocus =
     let
         -- get resource transition information
         sameRef =
-            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
+            isSamePipelineRef ( org, repo, ref ) model.page pipeline
 
         -- get or expand the pipeline depending on expand query parameter
         getPipeline =
@@ -3861,17 +3861,17 @@ isSameBuild id currentPage =
 isSamePipelineRef : RepoResourceIdentifier -> Page -> PipelineModel -> Bool
 isSamePipelineRef id currentPage pipeline =
     case currentPage of
-        Pages.Pipeline o r rf _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
+        Pages.Pipeline o r ref _ _ ->
+            not <| resourceChanged id ( o, r, ref )
 
         Pages.Build o r _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
+            not <| resourceChanged id ( o, r, pipeline.ref )
 
         Pages.BuildServices o r _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
+            not <| resourceChanged id ( o, r, pipeline.ref )
 
-        Pages.BuildPipeline o r _ rf _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
+        Pages.BuildPipeline o r _ ref _ _ ->
+            not <| resourceChanged id ( o, r, ref )
 
         _ ->
             False
@@ -4368,21 +4368,21 @@ getSecret model engine type_ org key name =
 
 {-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
 -}
-getPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+getPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineConfig model org repo ref lineFocus refresh =
     Api.tryString (GetPipelineConfigResponse lineFocus refresh) <| Api.getPipelineConfig model org repo ref
 
 
 {-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
 -}
-expandPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+expandPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 expandPipelineConfig model org repo ref lineFocus refresh =
     Api.tryString (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
 -}
-getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+getPipelineTemplates : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineTemplates model org repo ref lineFocus refresh =
     Api.try (GetPipelineTemplatesResponse lineFocus refresh) <| Api.getPipelineTemplates model org repo ref
 
