@@ -114,7 +114,7 @@ toRoute page =
             Routes.BuildServices org repo buildNumber logFocus
 
         BuildPipeline org repo buildNumber ref expanded lineFocus ->
-            Routes.BuildPipeline org repo buildNumber ref expanded lineFocus
+            Routes.BuildPipeline org repo buildNumber expanded lineFocus
 
         Pipeline org repo ref expanded lineFocus ->
             Routes.Pipeline org repo ref expanded lineFocus

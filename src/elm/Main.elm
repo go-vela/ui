@@ -1149,7 +1149,7 @@ update msg model =
                 , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
                   case buildNumber of
                     Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref Nothing lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b Nothing lineFocus
 
                     Nothing ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing lineFocus
@@ -1168,7 +1168,7 @@ update msg model =
                 , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
                   case buildNumber of
                     Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref (Just "true") lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b (Just "true") lineFocus
 
                     Nothing ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") lineFocus
@@ -2886,8 +2886,8 @@ setNewPage route model =
         ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildServicesPage model org repo buildNumber lineFocus
 
-        ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, Authenticated _ ) ->
-            loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
+        ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
+            loadBuildPipelinePage model org repo buildNumber "" expand lineFocus
 
         ( Routes.Pipeline org repo ref expand lineFocus, Authenticated _ ) ->
             loadPipelinePage model org repo ref expand lineFocus
