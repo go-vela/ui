@@ -1149,7 +1149,7 @@ update msg model =
                 , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
                   case buildNumber of
                     Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b Nothing lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref Nothing lineFocus
 
                     Nothing ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing lineFocus
@@ -1168,7 +1168,7 @@ update msg model =
                 , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
                   case buildNumber of
                     Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b (Just "true") lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref (Just "true") lineFocus
 
                     Nothing ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") lineFocus
@@ -2886,8 +2886,8 @@ setNewPage route model =
         ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildServicesPage model org repo buildNumber lineFocus
 
-        ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
-            loadBuildPipelinePage model org repo buildNumber expand lineFocus
+        ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, Authenticated _ ) ->
+            loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
 
         ( Routes.Pipeline org repo ref expand lineFocus, Authenticated _ ) ->
             loadPipelinePage model org repo ref expand lineFocus
@@ -3678,8 +3678,8 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 
 {-| loadBuildPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
-loadBuildPipelinePage model org repo buildNumber expand lineFocus =
+loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Ref -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
+loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
     let
         -- get resource transition information
         sameBuild =
@@ -3694,7 +3694,7 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
                     False
 
         sameRef =
-            isSamePipelineRef ( org, repo, "" ) model.page pipeline
+            isSamePipelineRef ( org, repo, ref ) model.page pipeline
 
         -- if build has changed, set build fields in the model
         m =
@@ -3725,7 +3725,7 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
             model.pipeline
     in
     ( { m
-        | page = Pages.BuildPipeline org repo buildNumber "" expand lineFocus
+        | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus
 
         -- set pipeline fields
         , pipeline =
@@ -3744,7 +3744,7 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
                     )
                 |> updateBuildPipelineOrgRepo org repo
                 |> updateBuildPipelineBuildNumber (Just buildNumber)
-                |> updateBuildPipelineRef ""
+                |> updateBuildPipelineRef ref
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                 |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
@@ -3765,8 +3765,8 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
         Cmd.batch
             [ getBuilds model org repo Nothing Nothing Nothing
             , getBuild model org repo buildNumber
-            , getPipeline model org repo "" lineFocus sameBuild
-            , getPipelineTemplates model org repo "" lineFocus sameBuild
+            , getPipeline model org repo ref lineFocus sameBuild
+            , getPipelineTemplates model org repo ref lineFocus sameBuild
             ]
     )
 
