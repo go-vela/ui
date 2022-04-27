@@ -70,6 +70,7 @@ import Vela
         , Log
         , Name
         , Org
+        , PipelineConfig
         , Ref
         , Repo
         , Repository
@@ -509,7 +510,7 @@ updateRepository model org repo body =
 
 {-| getPipelineConfig : fetches vela pipeline by repository
 -}
-getPipelineConfig : PartialModel a -> Org -> Repo -> Ref -> Request String
+getPipelineConfig : PartialModel a -> Org -> Repo -> Ref -> Request PipelineConfig
 getPipelineConfig model org repository ref =
     get model.velaAPI (Endpoint.PipelineConfig org repository ref) decodePipelineConfig
         |> withAuth model.session
@@ -517,7 +518,7 @@ getPipelineConfig model org repository ref =
 
 {-| expandPipelineConfig : expands vela pipeline by repository
 -}
-expandPipelineConfig : PartialModel a -> Org -> Repo -> Ref -> Request String
+expandPipelineConfig : PartialModel a -> Org -> Repo -> Ref -> Request PipelineConfig
 expandPipelineConfig model org repository ref =
     post model.velaAPI (Endpoint.ExpandPipelineConfig org repository ref) Http.emptyBody decodePipelineConfig
         |> withAuth model.session

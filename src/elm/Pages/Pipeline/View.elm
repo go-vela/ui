@@ -175,9 +175,12 @@ viewPipelineConfigurationResponse model msgs ref =
 -}
 viewPipelineConfigurationData : PartialModel a -> Msgs msg -> Ref -> PipelineConfig -> Html msg
 viewPipelineConfigurationData model msgs ref config =
+    let
+        decodedConfig = safeDecodePipelineData config
+    in
     wrapPipelineConfigurationContent model msgs ref (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-            viewLines config model.pipeline.lineFocus msgs.focusLineNumber
+            viewLines decodedConfig model.pipeline.lineFocus msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
@@ -239,7 +242,7 @@ viewPipelineActions model get expand download =
                     [ class "button"
                     , class "-link"
                     , Util.testAttribute <| "download-yml"
-                    , onClick <| download velaYmlFileName <| RemoteData.unwrap "" .data <| Tuple.first model.pipeline.config
+                    , onClick <| download velaYmlFileName <| RemoteData.unwrap "" .decodedData <| Tuple.first model.pipeline.config
                     , attribute "aria-label" <| "download pipeline configuration file for "
                     ]
                     [ text <|
@@ -314,6 +317,18 @@ expandTemplatesTip =
     small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
 
 
+{-| safeDecodePipelineData : takes pipeline config and decodes the data.
+-}
+safeDecodePipelineData : PipelineConfig -> PipelineConfig
+safeDecodePipelineData config =
+    let
+        decoded =
+            Util.base64Decode config.rawData
+
+    in
+    { config | decodedData = decoded }
+
+
 {-| viewLines : takes pipeline configuration, line focus and shift key.
 
     returns a list of rendered data lines with focusable line numbers.
@@ -321,7 +336,7 @@ expandTemplatesTip =
 -}
 viewLines : PipelineConfig -> LogFocus -> (Int -> msg) -> List (Html msg)
 viewLines config lineFocus focusLineNumber =
-    config.data
+    config.decodedData
         |> decodeAnsi
         |> Array.indexedMap
             (\idx line ->

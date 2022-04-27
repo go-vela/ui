@@ -1163,7 +1163,8 @@ defaultPipeline =
 
 
 type alias PipelineConfig =
-    { data : String
+    { rawData : String
+    , decodedData : String
     }
 
 
@@ -1191,9 +1192,16 @@ defaultPipelineTemplates =
     PipelineTemplates NotAsked "" True
 
 
-decodePipelineConfig : Decode.Decoder String
+decodePipelineConfig : Decode.Decoder PipelineConfig
 decodePipelineConfig =
-    Decode.string
+    Decode.succeed
+        (\data ->
+            PipelineConfig
+                data
+                -- "decodedData"
+                ""
+        )
+        |> optional "data" string ""
 
 
 decodePipelineTemplates : Decode.Decoder Templates

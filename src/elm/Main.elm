@@ -143,6 +143,7 @@ import Vela
         , Logs
         , Name
         , Org
+        , PipelineConfig
         , PipelineModel
         , PipelineTemplates
         , Ref
@@ -441,8 +442,8 @@ type Msg
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
-    | GetPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | ExpandPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | GetPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, PipelineConfig ))
+    | ExpandPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, PipelineConfig ))
     | GetPipelineTemplatesResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -4370,14 +4371,14 @@ getSecret model engine type_ org key name =
 -}
 getPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineConfig model org repo ref lineFocus refresh =
-    Api.tryString (GetPipelineConfigResponse lineFocus refresh) <| Api.getPipelineConfig model org repo ref
+    Api.try (GetPipelineConfigResponse lineFocus refresh) <| Api.getPipelineConfig model org repo ref
 
 
 {-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
 -}
 expandPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 expandPipelineConfig model org repo ref lineFocus refresh =
-    Api.tryString (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
+    Api.try (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
