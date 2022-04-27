@@ -176,7 +176,8 @@ viewPipelineConfigurationResponse model msgs ref =
 viewPipelineConfigurationData : PartialModel a -> Msgs msg -> Ref -> PipelineConfig -> Html msg
 viewPipelineConfigurationData model msgs ref config =
     let
-        decodedConfig = safeDecodePipelineData config
+        decodedConfig =
+            safeDecodePipelineData config
     in
     wrapPipelineConfigurationContent model msgs ref (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
@@ -324,7 +325,6 @@ safeDecodePipelineData config =
     let
         decoded =
             Util.base64Decode config.rawData
-
     in
     { config | decodedData = decoded }
 
