@@ -4,7 +4,6 @@
       "content": ["./src/**/*.elm", "./src/static/index.js"],
       "safelist": ["html", "body", "svg"],
       "variables": true
-    },
-    "autoprefixer": {}
+    }
   }
 }
