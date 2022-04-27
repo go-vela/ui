@@ -1678,7 +1678,7 @@ update msg model =
                     ( { model
                         | pipeline =
                             { pipeline
-                                | config = ( RemoteData.succeed { data = config }, "" )
+                                | config = ( RemoteData.succeed config, "")
                                 , expanded = False
                                 , expanding = False
                             }
@@ -1717,7 +1717,7 @@ update msg model =
                     ( { model
                         | pipeline =
                             { pipeline
-                                | config = ( RemoteData.succeed { data = config }, "" )
+                                | config = ( RemoteData.succeed config, "")
                                 , expanded = True
                                 , expanding = False
                             }
