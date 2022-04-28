@@ -326,6 +326,7 @@ safeDecodePipelineData config =
         decoded =
             if config.decodedData == "" then
                 Util.base64Decode config.rawData
+
             else
                 config.decodedData
     in
