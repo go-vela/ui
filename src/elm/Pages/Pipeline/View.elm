@@ -324,7 +324,10 @@ safeDecodePipelineData : PipelineConfig -> PipelineConfig
 safeDecodePipelineData config =
     let
         decoded =
-            Util.base64Decode config.rawData
+            if config.decodedData == "" then
+                Util.base64Decode config.rawData
+            else
+                config.decodedData
     in
     { config | decodedData = decoded }
 

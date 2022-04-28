@@ -91,6 +91,7 @@ import Vela
         , decodeHooks
         , decodeLog
         , decodePipelineConfig
+        , decodePipelineExpand
         , decodePipelineTemplates
         , decodeRepositories
         , decodeRepository
@@ -518,9 +519,9 @@ getPipelineConfig model org repository ref =
 
 {-| expandPipelineConfig : expands vela pipeline by repository
 -}
-expandPipelineConfig : PartialModel a -> Org -> Repo -> Ref -> Request PipelineConfig
+expandPipelineConfig : PartialModel a -> Org -> Repo -> Ref -> Request String
 expandPipelineConfig model org repository ref =
-    post model.velaAPI (Endpoint.ExpandPipelineConfig org repository ref) Http.emptyBody decodePipelineConfig
+    post model.velaAPI (Endpoint.ExpandPipelineConfig org repository ref) Http.emptyBody decodePipelineExpand
         |> withAuth model.session
 
 

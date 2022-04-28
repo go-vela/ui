@@ -443,7 +443,7 @@ type Msg
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | GetPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, PipelineConfig ))
-    | ExpandPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, PipelineConfig ))
+    | ExpandPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | GetPipelineTemplatesResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -1717,7 +1717,7 @@ update msg model =
                     ( { model
                         | pipeline =
                             { pipeline
-                                | config = ( RemoteData.succeed config, "" )
+                                | config = ( RemoteData.succeed { rawData = config, decodedData = config }, "" )
                                 , expanded = True
                                 , expanding = False
                             }
@@ -4378,7 +4378,7 @@ getPipelineConfig model org repo ref lineFocus refresh =
 -}
 expandPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 expandPipelineConfig model org repo ref lineFocus refresh =
-    Api.try (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
+    Api.tryString (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.

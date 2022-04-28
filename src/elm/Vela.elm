@@ -88,6 +88,7 @@ module Vela exposing
     , decodeHooks
     , decodeLog
     , decodePipelineConfig
+    , decodePipelineExpand
     , decodePipelineTemplates
     , decodeRepositories
     , decodeRepository
@@ -1202,6 +1203,11 @@ decodePipelineConfig =
                 ""
         )
         |> optional "data" string ""
+
+
+decodePipelineExpand : Decode.Decoder String
+decodePipelineExpand =
+    Decode.string
 
 
 decodePipelineTemplates : Decode.Decoder Templates
