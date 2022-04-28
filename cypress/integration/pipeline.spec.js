@@ -12,7 +12,9 @@ context('Pipeline', () => {
         cy.stubBuild();
         cy.stubPipelineErrors();
         cy.stubPipelineTemplatesErrors();
-        cy.login('/github/octocat/1/pipeline/9b1d8bded6e992ab660eaee527c5e3232d0a2441');
+        cy.login(
+          '/github/octocat/1/pipeline/9b1d8bded6e992ab660eaee527c5e3232d0a2441',
+        );
       });
       it('pipeline configuration error should show', () => {
         cy.get('[data-test=pipeline-configuration-error]').should('be.visible');
@@ -36,7 +38,9 @@ context('Pipeline', () => {
       cy.stubBuild();
       cy.stubPipeline();
       cy.stubPipelineTemplatesEmpty();
-      cy.login('/github/octocat/1/pipeline/9b1d8bded6e992ab660eaee527c5e3232d0a2441');
+      cy.login(
+        '/github/octocat/1/pipeline/9b1d8bded6e992ab660eaee527c5e3232d0a2441',
+      );
     });
     it('templates should not show', () => {
       cy.get('[data-test=pipeline-templates]').should('not.be.visible');
@@ -63,7 +67,9 @@ context('Pipeline', () => {
         cy.stubPipeline();
         cy.stubPipelineExpand();
         cy.stubPipelineTemplates();
-        cy.login('/github/octocat/1/pipeline/9b1d8bded6e992ab660eaee527c5e3232d0a2441');
+        cy.login(
+          '/github/octocat/1/pipeline/9b1d8bded6e992ab660eaee527c5e3232d0a2441',
+        );
       });
 
       it('should show 3 templates', () => {
@@ -257,7 +263,9 @@ context('Pipeline', () => {
         cy.stubPipeline();
         cy.stubPipelineExpandErrors();
         cy.stubPipelineTemplates();
-        cy.login('/github/octocat/1/pipeline/9b1d8bded6e992ab660eaee527c5e3232d0a2441');
+        cy.login(
+          '/github/octocat/1/pipeline/9b1d8bded6e992ab660eaee527c5e3232d0a2441',
+        );
       });
 
       it('should show 3 templates', () => {
