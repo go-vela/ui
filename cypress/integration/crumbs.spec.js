@@ -130,15 +130,4 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-octocat]').should('exist');
     });
   });
-  context('visit pipeline', () => {
-    beforeEach(() => {
-      cy.server();
-      cy.login('/github/octocat/pipeline?ref=somebranch');
-    });
-    it('should show appropriate pipeline crumbs', () => {
-      cy.get('[data-test=crumb-github]').should('exist');
-      cy.get('[data-test=crumb-octocat]').should('exist');
-      cy.get('[data-test=crumb-pipeline]').should('exist');
-    });
-  });
 });

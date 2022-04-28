@@ -50,7 +50,7 @@ import Vela
 
 {-| viewPipeline : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.
 -}
-viewPipeline : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
+viewPipeline : PartialModel a -> Msgs msg -> Ref -> Html msg
 viewPipeline model msgs ref =
     div [ class "pipeline" ]
         [ viewPipelineTemplates model.templates msgs.showHideTemplates
@@ -141,7 +141,7 @@ viewTemplate ( _, t ) =
 
 {-| viewPipelineConfiguration : takes model and renders a wrapper view for a pipeline configuration if Success or Failure.
 -}
-viewPipelineConfiguration : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
+viewPipelineConfiguration : PartialModel a -> Msgs msg -> Ref -> Html msg
 viewPipelineConfiguration model msgs ref =
     case model.pipeline.config of
         ( Loading, _ ) ->
@@ -156,7 +156,7 @@ viewPipelineConfiguration model msgs ref =
 
 {-| viewPipelineConfiguration : takes model and renders view for a pipeline configuration.
 -}
-viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Maybe Ref -> Html msg
+viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Ref -> Html msg
 viewPipelineConfigurationResponse model msgs ref =
     div [ class "logs-container", class "-pipeline" ]
         [ case model.pipeline.config of
@@ -173,16 +173,20 @@ viewPipelineConfigurationResponse model msgs ref =
 
 {-| viewPipelineConfigurationData : takes model and config and renders view for a pipeline configuration's data.
 -}
-viewPipelineConfigurationData : PartialModel a -> Msgs msg -> Maybe Ref -> PipelineConfig -> Html msg
+viewPipelineConfigurationData : PartialModel a -> Msgs msg -> Ref -> PipelineConfig -> Html msg
 viewPipelineConfigurationData model msgs ref config =
+    let
+        decodedConfig =
+            safeDecodePipelineData config
+    in
     wrapPipelineConfigurationContent model msgs ref (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-            viewLines config model.pipeline.lineFocus msgs.focusLineNumber
+            viewLines decodedConfig model.pipeline.lineFocus msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
 -}
-viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Maybe Ref -> Error -> Html msg
+viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Ref -> Error -> Html msg
 viewPipelineConfigurationError model msgs ref err =
     wrapPipelineConfigurationContent model msgs ref (class "-error") <|
         div [ class "content", Util.testAttribute "pipeline-configuration-error" ]
@@ -191,19 +195,14 @@ viewPipelineConfigurationError model msgs ref err =
 
 {-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
 -}
-wrapPipelineConfigurationContent : PartialModel a -> Msgs msg -> Maybe Ref -> Html.Attribute msg -> Html msg -> Html msg
+wrapPipelineConfigurationContent : PartialModel a -> Msgs msg -> Ref -> Html.Attribute msg -> Html msg -> Html msg
 wrapPipelineConfigurationContent model { get, expand, download } ref cls content =
     let
         body =
             [ div [ class "header" ]
                 [ span []
                     [ text "Pipeline Configuration"
-                    , case ref of
-                        Just r ->
-                            span [ class "link" ] [ text <| "(" ++ r ++ ")" ]
-
-                        Nothing ->
-                            text ""
+                    , span [ class "link" ] [ text <| "(" ++ ref ++ ")" ]
                     ]
                 ]
             , viewPipelineActions model get expand download
@@ -244,7 +243,7 @@ viewPipelineActions model get expand download =
                     [ class "button"
                     , class "-link"
                     , Util.testAttribute <| "download-yml"
-                    , onClick <| download velaYmlFileName <| RemoteData.unwrap "" .data <| Tuple.first model.pipeline.config
+                    , onClick <| download velaYmlFileName <| RemoteData.unwrap "" .decodedData <| Tuple.first model.pipeline.config
                     , attribute "aria-label" <| "download pipeline configuration file for "
                     ]
                     [ text <|
@@ -319,6 +318,21 @@ expandTemplatesTip =
     small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
 
 
+{-| safeDecodePipelineData : takes pipeline config and decodes the data.
+-}
+safeDecodePipelineData : PipelineConfig -> PipelineConfig
+safeDecodePipelineData config =
+    let
+        decoded =
+            if config.decodedData == "" then
+                Util.base64Decode config.rawData
+
+            else
+                config.decodedData
+    in
+    { config | decodedData = decoded }
+
+
 {-| viewLines : takes pipeline configuration, line focus and shift key.
 
     returns a list of rendered data lines with focusable line numbers.
@@ -326,7 +340,7 @@ expandTemplatesTip =
 -}
 viewLines : PipelineConfig -> LogFocus -> (Int -> msg) -> List (Html msg)
 viewLines config lineFocus focusLineNumber =
-    config.data
+    config.decodedData
         |> decodeAnsi
         |> Array.indexedMap
             (\idx line ->

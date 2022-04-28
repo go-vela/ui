@@ -365,10 +365,10 @@ viewBuildTabs model org repo buildNumber currentPage =
         ref =
             case bm.build of
                 RemoteData.Success build ->
-                    Just build.commit
+                    build.commit
 
                 _ ->
-                    Nothing
+                    ""
 
         tabs =
             [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False

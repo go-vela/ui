@@ -9,7 +9,7 @@ module Pages exposing (Page(..), strip, toRoute)
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
 import Routes exposing (Route)
-import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team)
 
 
 type Page
@@ -34,8 +34,8 @@ type Page
     | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
-    | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
-    | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
+    | BuildPipeline Org Repo BuildNumber Ref (Maybe ExpandTemplatesQuery) (Maybe Fragment)
+    | Pipeline Org Repo Ref (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
     | Login
     | NotFound
@@ -197,11 +197,11 @@ strip page =
         BuildServices org repo buildNumber _ ->
             BuildServices org repo buildNumber Nothing
 
-        BuildPipeline org repo buildNumber _ _ _ ->
-            BuildPipeline org repo buildNumber Nothing Nothing Nothing
+        BuildPipeline org repo buildNumber ref _ _ ->
+            BuildPipeline org repo buildNumber ref Nothing Nothing
 
-        Pipeline org repo _ _ _ ->
-            Pipeline org repo Nothing Nothing Nothing
+        Pipeline org repo ref _ _ ->
+            Pipeline org repo ref Nothing Nothing
 
         Settings ->
             Settings
