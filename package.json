@@ -4,7 +4,7 @@
   "description": "Vela UI",
   "author": "Vela Team",
   "engines": {
-    "node": ">=16.14.0"
+    "node": ">=16.15.0"
   },
   "dependencies": {
     "clipboard": "2.0.10"
