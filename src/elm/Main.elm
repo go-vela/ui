@@ -77,6 +77,7 @@ import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page)
+import Pages.Admin
 import Pages.Build.Logs
     exposing
         ( addLog
@@ -2392,6 +2393,11 @@ viewContent model =
             , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
             )
 
+        Pages.Admin ->
+            ( "Admin"
+            , lazy2 Pages.Admin.view model.user adminMsgs
+            )
+
         Pages.SourceRepositories ->
             ( "Source Repositories"
             , lazy2 Pages.SourceRepos.view
@@ -2724,6 +2730,8 @@ viewHeader session { feedbackLink, docsLink, theme, help, showId } =
                             [ li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
                             , li [ class "identity-menu-item" ]
+                                [ a [ Routes.href Routes.Admin, Util.testAttribute "admin-link", attribute "role" "menuitem" ] [ text "Admin" ] ]
+                            , li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]
@@ -2826,6 +2834,9 @@ setNewPage route model =
         -- "Normal" page handling below
         ( Routes.Overview, Authenticated _ ) ->
             loadOverviewPage model
+
+        ( Routes.Admin, Authenticated _ ) ->
+            loadAdminPage model
 
         ( Routes.SourceRepositories, Authenticated _ ) ->
             loadSourceReposPage model
@@ -2962,6 +2973,15 @@ loadOrgReposPage model org maybePage maybePerPage =
 loadOverviewPage : Model -> ( Model, Cmd Msg )
 loadOverviewPage model =
     ( { model | page = Pages.Overview }
+    , Cmd.batch
+        [ getCurrentUser model
+        ]
+    )
+
+
+loadAdminPage : Model -> ( Model, Cmd Msg )
+loadAdminPage model =
+    ( { model | page = Pages.Admin }
     , Cmd.batch
         [ getCurrentUser model
         ]
@@ -4116,6 +4136,13 @@ receiveSecrets model response type_ =
 homeMsgs : Pages.Home.Msgs Msg
 homeMsgs =
     Pages.Home.Msgs ToggleFavorite SearchFavorites
+
+
+{-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
+-}
+adminMsgs : Pages.Admin.Msgs Msg
+adminMsgs =
+    Pages.Admin.Msgs ToggleFavorite SearchFavorites
 
 
 {-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm

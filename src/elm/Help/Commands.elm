@@ -84,6 +84,9 @@ commands page =
         Pages.Overview ->
             [ listFavorites ]
 
+        Pages.Admin ->
+            []
+
         Pages.SourceRepositories ->
             []
 
@@ -771,6 +774,9 @@ resourceLoaded args =
         Pages.Overview ->
             args.user.success
 
+        Pages.Admin ->
+            args.user.success
+
         Pages.SourceRepositories ->
             args.sourceRepos.success
 
@@ -853,6 +859,9 @@ resourceLoading : Model msg -> Bool
 resourceLoading args =
     case args.page of
         Pages.Overview ->
+            args.user.loading
+
+        Pages.Admin ->
             args.user.loading
 
         Pages.SourceRepositories ->

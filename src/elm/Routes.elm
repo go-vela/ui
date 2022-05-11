@@ -23,6 +23,7 @@ import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Nam
 
 type Route
     = Overview
+    | Admin
     | SourceRepositories
     | OrgRepositories Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -60,6 +61,7 @@ routes : Parser (Route -> a) a
 routes =
     oneOf
         [ map Overview top
+        , map Admin (s "admin")
         , map SourceRepositories (s "account" </> s "source-repos")
         , map OrgRepositories (string <?> Query.int "page" <?> Query.int "per_page")
         , map Login (s "account" </> s "login")
@@ -118,6 +120,9 @@ routeToUrl route =
         Overview ->
             "/"
 
+        Admin ->
+            "/admin"
+            
         SourceRepositories ->
             "/account/source-repos"
 

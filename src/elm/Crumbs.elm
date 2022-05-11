@@ -81,6 +81,9 @@ toPath page =
         overviewPage =
             ( "Overview", Just Pages.Overview )
 
+        adminPage =
+            ( "Admin", Just Pages.Admin )
+
         accountPage =
             ( "Account", Nothing )
 
@@ -94,6 +97,9 @@ toPath page =
             case page of
                 Pages.Overview ->
                     [ overviewPage ]
+
+                Pages.Admin ->
+                    [ adminPage ]
 
                 Pages.SourceRepositories ->
                     [ overviewPage, accountPage, sourceRepositoriesPage ]
