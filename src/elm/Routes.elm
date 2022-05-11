@@ -82,7 +82,7 @@ routes =
         , map OrgBuilds (string </> s "builds" <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
-        , map Pipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
+        , map Pipeline (string </> string </> s "pipeline" </> string <?> Query.string "expand" </> fragment identity)
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string </> string </> s "pipeline" </> string <?> Query.string "expand" </> fragment identity)
@@ -166,6 +166,9 @@ routeToUrl route =
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
+        Pipeline org repo ref expand lineFocus ->
+            "/" ++ org ++ "/" ++ repo ++ "/pipeline/" ++ ref ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
+
         Build org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" lineFocus
 
@@ -180,9 +183,6 @@ routeToUrl route =
 
         BuildPipeline org repo buildNumber ref expand lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ "/" ++ ref ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
-
-        Pipeline org repo ref expand lineFocus ->
-            "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

@@ -31,8 +31,11 @@ services:
   #
   # https://go-vela.github.io/docs/administration/server/
   server:
+    build:
+      context: ../server/
+      dockerfile: Dockerfile
     container_name: server
-    image: target/vela-server:latest
+    image: server:local
     networks:
       - vela
     environment:
