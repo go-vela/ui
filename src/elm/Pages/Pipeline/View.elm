@@ -258,7 +258,6 @@ viewPipelineActions model get expand download =
 
 {-| downloadButton : takes config information and download msg and returns the button to download a configuration file yaml.
 -}
-
 downloadButton : PipelineConfig -> Bool -> Download msg -> Html msg
 downloadButton config expanded download =
     button
