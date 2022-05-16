@@ -256,6 +256,9 @@ viewPipelineActions model get expand download =
     div [ class "actions" ] [ toggle, dl ]
 
 
+{-| downloadButton : takes config information and download msg and returns the button to download a configuration file yaml.
+-}
+
 downloadButton : PipelineConfig -> Bool -> Download msg -> Html msg
 downloadButton config expanded download =
     button
@@ -274,6 +277,8 @@ downloadButton config expanded download =
         ]
 
 
+{-| velaYmlFileName : default vela filename used for writing the downloaded configuration file.
+-}
 velaYmlFileName : String
 velaYmlFileName =
     "vela.yml"
