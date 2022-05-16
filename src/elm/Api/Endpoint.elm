@@ -36,6 +36,7 @@ apiBase =
 -}
 type Endpoint
     = Authenticate AuthParams
+    | Workers
     | Login
     | Logout
     | CurrentUser
@@ -63,12 +64,16 @@ type Endpoint
     | ExpandPipelineConfig Org Repo Ref
     | PipelineTemplates Org Repo Ref
 
+ 
 
 {-| toUrl : turns and Endpoint into a URL string
 -}
 toUrl : String -> Endpoint -> String
 toUrl api endpoint =
     case endpoint of
+        Workers ->
+            url api [ "workerss" ] [ ]
+
         Authenticate { code, state } ->
             url api [ "authenticate" ] [ UB.string "code" <| Maybe.withDefault "" code, UB.string "state" <| Maybe.withDefault "" state ]
 

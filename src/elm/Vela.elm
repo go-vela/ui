@@ -8,12 +8,13 @@ module Vela exposing
     ( AuthParams
     , Build
     , BuildModel
+    , Worker
     , BuildNumber
     , Builds
     , BuildsModel
     , ChownRepo
     , Copy
-    , CurrentUser
+    , CurrentUser, Workers
     , Deployment
     , DeploymentId
     , DeploymentPayload
@@ -36,7 +37,7 @@ module Vela exposing
     , Key
     , KeyValuePair
     , Log
-    , LogFocus
+    , LogFocus, decodeWorker
     , Logs
     , Name
     , Org
@@ -790,6 +791,8 @@ updateHooks update rm =
     { rm | hooks = { h | hooks = update } }
 
 
+
+
 updateHooksPager : List WebLink -> RepoModel -> RepoModel
 updateHooksPager update rm =
     let
@@ -1329,6 +1332,58 @@ defaultDeployments =
 
 type alias Builds =
     List Build
+
+
+
+
+{-| Worker : record type for vela worker
+-}
+type alias Worker =
+    { id : Int
+     , hostname: String
+     , address: String
+     , routes: List String
+     , active : Bool
+     , last_checked_in: Int
+     , build_limit: Int
+    }
+
+
+type alias Workers =
+    List Worker
+
+
+{-| decodeWorker : decodes json from vela into worker
+-}
+decodeWorker : Decoder Worker
+decodeWorker =
+    Decode.succeed Worker
+        |> optional "id" int -1
+        |> optional "hostname" string ""
+        |> optional "address" string ""
+        |> optional "routes" (Decode.list string) []
+        |> optional "active" bool False
+        |> optional "last_checked_in" int -1
+        |> optional "build_limit" int -1
+
+        -- |> optional "name" string ""
+        -- |> optional "stage" string ""
+        -- |> optional "status" buildStatusDecoder Pending
+        -- |> optional "error" string ""
+        -- |> optional "exit_code" int -1
+        -- |> optional "created" int -1
+        -- |> optional "started" int -1
+        -- |> optional "finished" int -1
+        -- |> optional "host" string ""
+        -- |> optional "runtime" string ""
+        -- |> optional "distribution" string ""
+        -- |> optional "image" string ""
+        -- -- "viewing"
+        -- |> hardcoded False
+        -- -- "logFocus"
+        -- |> hardcoded ( Nothing, Nothing )
+
+
 
 
 {-| Status : type enum to represent the possible statuses a vela object can be in

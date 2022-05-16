@@ -133,7 +133,7 @@ import Vela
         , Deployment
         , DeploymentId
         , EnableRepositoryPayload
-        , Engine
+        , Engine, Worker
         , Event
         , Favicon
         , Field
@@ -228,6 +228,7 @@ import Vela
         , updateRepoInitialized
         , updateRepoLimit
         , updateRepoTimeout
+        , Workers
         )
 
 
@@ -277,6 +278,7 @@ type alias Model =
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int
+    , workers : WebData (List Worker)
     }
 
 
@@ -329,6 +331,7 @@ init flags url navKey =
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
+            , workers = NotAsked
             }
 
         ( newModel, newPage ) =
@@ -368,7 +371,13 @@ init flags url navKey =
 
 type Msg
     = -- User events
+
       NewRoute Routes.Route
+
+
+
+              | WorkersResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Worker ))
+
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
     | SearchFavorites String
@@ -487,6 +496,26 @@ update msg model =
         -- User events
         NewRoute route ->
             setNewPage route model
+
+
+
+        WorkersResponse response ->
+            -- ( model, Cmd.none)
+            case response of
+                Ok ( meta, workers ) ->
+                    ( { model
+                       | workers = RemoteData.succeed workers
+                        
+                        -- | repo =
+                        --     rm
+                        --         |> updateHooks (RemoteData.succeed workers)
+                        --         |> updateHooksPager (Pagination.get meta.headers)
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | workers = (toFailure error) }, addError error )
 
         ClickedLink urlRequest ->
             case urlRequest of
@@ -2374,7 +2403,7 @@ view model =
     in
     { title = title ++ " - Vela"
     , body =
-        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
+        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity, user = model.user }
         , lazy2 Nav.viewNav model navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
@@ -2700,8 +2729,23 @@ viewLogin =
         ]
 
 
-viewHeader : Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Commands.Model Msg, showId : Bool } -> Html Msg
-viewHeader session { feedbackLink, docsLink, theme, help, showId } =
+viewPlatformAdminLink : WebData CurrentUser -> Html Msg
+viewPlatformAdminLink user =
+    case user of
+        RemoteData.Success u ->
+            if u.admin then
+                li [ class "identity-menu-item" ]
+                    [ a [ Routes.href Routes.Admin, Util.testAttribute "admin-link", attribute "role" "menuitem" ] [ text "Platform Admin" ] ]
+
+            else
+                text ""
+
+        _ ->
+            text ""
+
+
+viewHeader : Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Commands.Model Msg, showId : Bool, user : WebData CurrentUser } -> Html Msg
+viewHeader session { feedbackLink, docsLink, theme, help, showId, user } =
     let
         identityBaseClassList : Html.Attribute Msg
         identityBaseClassList =
@@ -2729,8 +2773,7 @@ viewHeader session { feedbackLink, docsLink, theme, help, showId } =
                         , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                             [ li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
-                            , li [ class "identity-menu-item" ]
-                                [ a [ Routes.href Routes.Admin, Util.testAttribute "admin-link", attribute "role" "menuitem" ] [ text "Admin" ] ]
+                            , viewPlatformAdminLink user
                             , li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
@@ -2984,6 +3027,7 @@ loadAdminPage model =
     ( { model | page = Pages.Admin }
     , Cmd.batch
         [ getCurrentUser model
+        , getWorkers model
         ]
     )
 
@@ -4235,6 +4279,13 @@ getCurrentUser model =
 
         _ ->
             Cmd.none
+
+
+
+
+getWorkers : Model -> Cmd Msg
+getWorkers model =
+    Api.try WorkersResponse <| Api.getWorkers model
 
 
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg

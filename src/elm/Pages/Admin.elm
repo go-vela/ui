@@ -41,6 +41,7 @@ import Util
 import Vela
     exposing
         ( CurrentUser
+        , Worker
         , Favorites
         )
 
@@ -71,7 +72,18 @@ view user { toggleFavorite, search } =
                 , a [ class "button", Routes.href Routes.SourceRepositories ] [ text "Source Repositories" ]
                 ]
     in
-    div [ Util.testAttribute "admin" ] [ text "this is where the admin page goes" ]
+    div [ Util.testAttribute "admin" ] <|
+        case user of
+            Success u ->
+                if u.admin then
+                    [ text "user is platform admin"
+                    ]
+
+                else
+                    [ text "user is not a platform admin" ]
+
+            _ ->
+                [ text "user is not loaded" ]
 
 
 
@@ -92,18 +104,19 @@ view user { toggleFavorite, search } =
 --             [ text "" ]
 
 
-{-| viewFavorites : takes favorites, user search input and favorite action and renders favorites
+{-| viewWorkers :  
 -}
-viewFavorites : Favorites -> String -> ToggleFavorite msg -> Html msg
-viewFavorites favorites filter toggleFavorite =
+viewWorkers : List Worker -> Html msg
+viewWorkers workers     =
     -- no search input
-    if String.isEmpty filter then
-        favorites
-            |> toOrgFavorites
-            |> viewFavoritesByOrg toggleFavorite
+    text ""
+    -- if String.isEmpty filter then
+    --     favorites
+    --         |> toOrgFavorites
+    --         |> viewFavoritesByOrg toggleFavorite
 
-    else
-        viewFilteredFavorites favorites filter toggleFavorite
+    -- else
+    --     viewFilteredFavorites favorites filter toggleFavorite
 
 
 {-| viewFilteredFavorites : takes favorites, user search input and favorite action and renders favorites

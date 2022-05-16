@@ -16,7 +16,7 @@ module Api exposing
     , expandPipelineConfig
     , getAllSecrets
     , getAllServices
-    , getAllSteps
+    , getAllSteps, getWorkers
     , getBuild
     , getBuilds
     , getCurrentUser
@@ -57,7 +57,7 @@ import Task exposing (Task)
 import Vela
     exposing
         ( AuthParams
-        , Build
+        , Build, Worker
         , BuildNumber
         , Builds
         , CurrentUser
@@ -99,7 +99,7 @@ import Vela
         , decodeSecrets
         , decodeService
         , decodeSourceRepositories
-        , decodeStep
+        , decodeStep, decodeWorker
         )
 
 
@@ -406,6 +406,12 @@ tryString msg request_ =
 
 
 -- OPERATIONS
+
+
+getWorkers : PartialModel a -> Request (List Worker)
+getWorkers model =
+    get model.velaAPI Endpoint.Workers (Json.Decode.list decodeWorker)
+        |> withAuth model.session
 
 
 getLogout : PartialModel a -> Request String
