@@ -61,11 +61,11 @@ type alias Msgs msg =
 
 
 type alias Get msg =
-    Org -> Repo -> Maybe BuildNumber -> Ref -> FocusFragment -> Bool -> msg
+    Org -> Repo -> BuildNumber -> Ref -> FocusFragment -> Bool -> msg
 
 
 type alias Expand msg =
-    Org -> Repo -> Maybe BuildNumber -> Ref -> FocusFragment -> Bool -> msg
+    Org -> Repo -> BuildNumber -> Ref -> FocusFragment -> Bool -> msg
 
 
 type alias Download msg =

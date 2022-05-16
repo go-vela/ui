@@ -187,12 +187,10 @@ import Vela
         , stringToTheme
         , updateBuild
         , updateBuildNumber
-        , updateBuildPipelineBuildNumber
         , updateBuildPipelineConfig
         , updateBuildPipelineExpand
         , updateBuildPipelineFocusFragment
         , updateBuildPipelineLineFocus
-        , updateBuildPipelineOrgRepo
         , updateBuildPipelineRef
         , updateBuildServices
         , updateBuildServicesFocusFragment
@@ -415,8 +413,8 @@ type Msg
     | UpdateRepoCounter Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
-    | GetPipelineConfig Org Repo (Maybe BuildNumber) Ref FocusFragment Bool
-    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) Ref FocusFragment Bool
+    | GetPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
+    | ExpandPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
       -- Inbound HTTP responses
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
@@ -444,7 +442,7 @@ type Msg
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | GetPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, PipelineConfig ))
-    | ExpandPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ExpandPipelineConfigResponse Ref FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | GetPipelineTemplatesResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
     | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -1148,13 +1146,7 @@ update msg model =
               }
             , Cmd.batch
                 [ getPipelineConfig model org repo ref lineFocus refresh
-                , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
-                  case buildNumber of
-                    Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b Nothing lineFocus
-
-                    Nothing ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing lineFocus
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo buildNumber Nothing lineFocus
                 ]
             )
 
@@ -1167,13 +1159,7 @@ update msg model =
               }
             , Cmd.batch
                 [ expandPipelineConfig model org repo ref lineFocus refresh
-                , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
-                  case buildNumber of
-                    Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b (Just "true") lineFocus
-
-                    Nothing ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") lineFocus
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo buildNumber (Just "true") lineFocus
                 ]
             )
 
@@ -1521,9 +1507,6 @@ update msg model =
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
         BuildAndPipelineResponse org repo expand response ->
-            let
-                _ = Debug.log "BuildAndPipelineResponse" response
-            in
             case response of
                 Ok ( _, build ) ->
                     let
@@ -1545,6 +1528,9 @@ update msg model =
                             rm
                                 |> updateOrgRepo org repo
                                 |> updateBuild (RemoteData.succeed build)
+
+                        -- , pipeline =
+                        --     pipeline |> updateBuildPipelineBuildNumber
                         , favicon = statusToFavicon build.status
                       }
                     , Cmd.batch
@@ -1735,7 +1721,7 @@ update msg model =
                     , Errors.addError error HandleError
                     )
 
-        ExpandPipelineConfigResponse lineFocus refresh response ->
+        ExpandPipelineConfigResponse ref lineFocus refresh response ->
             case response of
                 Ok ( _, config ) ->
                     let
@@ -1756,7 +1742,7 @@ update msg model =
                     ( { model
                         | pipeline =
                             { pipeline
-                                | config = ( RemoteData.succeed { rawData = config, decodedData = config }, "" )
+                                | config = ( RemoteData.succeed { rawData = config, decodedData = config, ref = ref }, "" )
                                 , expanded = True
                                 , expanding = False
                             }
@@ -3761,12 +3747,9 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
 
         pipeline =
             model.pipeline
-        _=Debug.log "loadBuildPipelinePage" "dispatch page load"
     in
     ( { m
         | page = Pages.BuildPipeline org repo buildNumber expand lineFocus
-
-        -- set pipeline fields
         , pipeline =
             pipeline
                 |> updateBuildPipelineConfig
@@ -3781,15 +3764,17 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
                      else
                         ( Loading, "" )
                     )
-                |> updateBuildPipelineOrgRepo org repo
-                |> updateBuildPipelineBuildNumber buildNumber
                 |> (updateBuildPipelineRef <|
-                        case build of
-                            Success b ->
-                                b.commit
+                        if sameBuild then
+                            case build of
+                                Success b ->
+                                    Just b.commit
 
-                            _ ->
-                                ""
+                                _ ->
+                                    Nothing
+
+                        else
+                            Nothing
                    )
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
@@ -3803,14 +3788,16 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
             else
                 { data = Loading, error = "", show = True }
       }
-      -- do not load resources if transition is auto refresh, line focus, etc
-    , if sameBuild && sameResource then
-        Cmd.none
+    , Cmd.batch <|
+        -- do not load resources if transition is auto refresh, line focus, etc
+        if sameBuild && sameResource then
+            []
+            -- same build, most likely a tab switch
 
-      else
-        Cmd.batch <|
+        else if sameBuild then
             case build of
                 Success b ->
+                    -- build exists, chained request not needed
                     [ getBuilds model org repo Nothing Nothing Nothing
                     , getBuild model org repo buildNumber
                     , getPipeline model org repo b.commit lineFocus False
@@ -3818,9 +3805,16 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
                     ]
 
                 _ ->
+                    -- no build present, use chained request
                     [ getBuilds model org repo Nothing Nothing Nothing
                     , getBuildAndPipeline model org repo buildNumber expand
                     ]
+            -- different build, use chained request
+
+        else
+            [ getBuilds model org repo Nothing Nothing Nothing
+            , getBuildAndPipeline model org repo buildNumber expand
+            ]
     )
 
 
@@ -3872,9 +3866,9 @@ loadPipelinePage model org repo ref expand lineFocus =
                      else
                         ( Loading, "" )
                     )
-                |> updateBuildPipelineOrgRepo org repo
-                |> updateBuildPipelineBuildNumber ""
-                |> updateBuildPipelineRef ref
+                -- |> updateBuildPipelineOrgRepo org repo
+                -- |> updateBuildPipelineBuildNumber ""
+                |> updateBuildPipelineRef (Just ref)
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                 |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
@@ -3929,9 +3923,6 @@ setBuild org repo buildNumber soft model =
                 , expand = Nothing
                 , expanding = False
                 , expanded = False
-                , org = org
-                , repo = repo
-                , buildNumber = buildNumber
             }
         , templates = { data = NotAsked, error = "", show = True }
         , repo =
@@ -4415,7 +4406,7 @@ getPipelineConfig model org repo ref lineFocus refresh =
 -}
 expandPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 expandPipelineConfig model org repo ref lineFocus refresh =
-    Api.tryString (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
+    Api.tryString (ExpandPipelineConfigResponse ref lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.

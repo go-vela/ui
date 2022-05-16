@@ -36,9 +36,7 @@ import Vela
     exposing
         ( LogFocus
         , PipelineConfig
-        , PipelineModel
         , PipelineTemplates
-        , Ref
         , Template
         , Templates
         )
@@ -160,11 +158,11 @@ viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Html msg
 viewPipelineConfigurationResponse model msgs =
     div [ class "logs-container", class "-pipeline" ]
         [ case model.pipeline.config of
-            ( Success config, _ ) ->
-                viewPipelineConfigurationData model msgs config
+            ( Success pipelineConfig, _ ) ->
+                viewPipelineConfigurationData model pipelineConfig msgs
 
             ( Failure _, err ) ->
-                viewPipelineConfigurationError model msgs err
+                viewPipelineConfigurationError err
 
             _ ->
                 text ""
@@ -173,40 +171,52 @@ viewPipelineConfigurationResponse model msgs =
 
 {-| viewPipelineConfigurationData : takes model and config and renders view for a pipeline configuration's data.
 -}
-viewPipelineConfigurationData : PartialModel a -> Msgs msg -> PipelineConfig -> Html msg
-viewPipelineConfigurationData model msgs config =
+viewPipelineConfigurationData : PartialModel a -> PipelineConfig -> Msgs msg -> Html msg
+viewPipelineConfigurationData model pipelineConfig msgs =
     let
         decodedConfig =
-            safeDecodePipelineData config
+            safeDecodePipelineData pipelineConfig
     in
-    wrapPipelineConfigurationContent model msgs (class "") <|
+    wrapPipelineConfigurationContent model pipelineConfig msgs (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
             viewLines decodedConfig model.pipeline.lineFocus msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
 -}
-viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Error -> Html msg
-viewPipelineConfigurationError model msgs err =
-    wrapPipelineConfigurationContent model msgs (class "-error") <|
-        div [ class "content", Util.testAttribute "pipeline-configuration-error" ]
-            [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
-
-
-{-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
--}
-wrapPipelineConfigurationContent : PartialModel a -> Msgs msg  -> Html.Attribute msg -> Html msg -> Html msg
-wrapPipelineConfigurationContent model { get, expand, download } cls content =
+viewPipelineConfigurationError : Error -> Html msg
+viewPipelineConfigurationError err =
     let
         body =
             [ div [ class "header" ]
                 [ span []
                     [ text "Pipeline Configuration"
-                    -- TODO: is it worth it to keep this
-                    -- , span [ class "link" ] [ text <| "(" ++ ref ++ ")" ]
                     ]
                 ]
-            , viewPipelineActions model get expand download
+            , div [ class "content", Util.testAttribute "pipeline-configuration-error" ]
+                [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
+            ]
+    in
+    Html.table
+        [ class "logs-table"
+        , class "-error"
+        ]
+        body
+
+
+{-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
+-}
+wrapPipelineConfigurationContent : PartialModel a -> PipelineConfig -> Msgs msg -> Html.Attribute msg -> Html msg -> Html msg
+wrapPipelineConfigurationContent model pipelineConfig { get, expand, download } cls content =
+    let
+        body =
+            [ div [ class "header" ]
+                [ span []
+                    [ text "Pipeline Configuration"
+                    , span [ class "link" ] [ text <| "(" ++ pipelineConfig.ref ++ ")" ]
+                    ]
+                ]
+            , viewPipelineActions model pipelineConfig get expand download
             , content
             ]
     in
@@ -219,16 +229,16 @@ wrapPipelineConfigurationContent model { get, expand, download } cls content =
 
 {-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
 -}
-viewPipelineActions : PartialModel a -> Get msg -> Expand msg -> Download msg -> Html msg
-viewPipelineActions model get expand download =
+viewPipelineActions : PartialModel a -> PipelineConfig -> Get msg -> Expand msg -> Download msg -> Html msg
+viewPipelineActions model pipelineConfig get expand download =
     let
         t =
             case model.templates.data of
                 Success templates ->
                     if Dict.size templates > 0 then
                         div [ class "action", class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
-                            [ expandTemplatesToggleButton model.pipeline get expand
-                            , expandTemplatesToggleIcon model.pipeline
+                            [ expandTemplatesToggleButton model pipelineConfig get expand
+                            , expandTemplatesToggleIcon model
                             , expandTemplatesTip
                             ]
 
@@ -266,9 +276,12 @@ velaYmlFileName =
 
 {-| expandTemplatesToggleIcon : takes pipeline and renders icon for toggling templates expansion.
 -}
-expandTemplatesToggleIcon : PipelineModel -> Html msg
-expandTemplatesToggleIcon pipeline =
+expandTemplatesToggleIcon : PartialModel a -> Html msg
+expandTemplatesToggleIcon model =
     let
+        pipeline =
+            model.pipeline
+
         wrapExpandTemplatesIcon : Icon -> Html msg
         wrapExpandTemplatesIcon i =
             div [ class "icon" ] [ i |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
@@ -285,18 +298,18 @@ expandTemplatesToggleIcon pipeline =
 
 {-| expandTemplatesToggleButton : takes pipeline and renders button that toggles templates expansion.
 -}
-expandTemplatesToggleButton : PipelineModel -> Get msg -> Expand msg -> Html msg
-expandTemplatesToggleButton pipeline get expand =
+expandTemplatesToggleButton : PartialModel a -> PipelineConfig -> Get msg -> Expand msg -> Html msg
+expandTemplatesToggleButton model pipeline get expand =
     let
-        { org, repo, buildNumber, ref } =
-            pipeline
+        { org, name, build } =
+            model.repo
 
         action =
-            if pipeline.expanded then
-                get org repo (Just buildNumber) ref Nothing True
+            if model.pipeline.expanded then
+                get org name build.buildNumber pipeline.ref Nothing True
 
             else
-                expand org repo (Just buildNumber) ref Nothing True
+                expand org name build.buildNumber pipeline.ref Nothing True
     in
     button
         [ class "button"
@@ -304,7 +317,7 @@ expandTemplatesToggleButton pipeline get expand =
         , Util.onClickPreventDefault <| action
         , Util.testAttribute "pipeline-templates-expand-toggle"
         ]
-        [ if pipeline.expanded then
+        [ if model.pipeline.expanded then
             text "revert template expansion"
 
           else
