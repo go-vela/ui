@@ -1150,7 +1150,7 @@ update msg model =
                 , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
                   case buildNumber of
                     Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref Nothing lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b Nothing lineFocus
 
                     Nothing ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing lineFocus
@@ -1169,7 +1169,7 @@ update msg model =
                 , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
                   case buildNumber of
                     Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref (Just "true") lineFocus
+                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b (Just "true") lineFocus
 
                     Nothing ->
                         Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") lineFocus
@@ -2134,7 +2134,7 @@ refreshPage model =
                 , refreshServiceLogs model org repo buildNumber model.repo.build.services.services Nothing
                 ]
 
-        Pages.BuildPipeline org repo buildNumber _ _ _ ->
+        Pages.BuildPipeline org repo buildNumber _ _ ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
@@ -2582,12 +2582,11 @@ viewContent model =
                 buildNumber
             )
 
-        Pages.BuildPipeline org repo buildNumber ref _ _ ->
+        Pages.BuildPipeline org repo buildNumber _ _ ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Pages.Pipeline.View.viewPipeline
                 model
                 pipelineMsgs
-                ref
                 |> Pages.Build.View.wrapWithBuildPreview
                     model
                     buildMsgs
@@ -2601,7 +2600,6 @@ viewContent model =
             , Pages.Pipeline.View.viewPipeline
                 model
                 pipelineMsgs
-                ref
             )
 
         Pages.Settings ->
@@ -2887,8 +2885,8 @@ setNewPage route model =
         ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildServicesPage model org repo buildNumber lineFocus
 
-        ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, Authenticated _ ) ->
-            loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
+        ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
+            loadBuildPipelinePage model org repo buildNumber expand lineFocus
 
         ( Routes.Pipeline org repo ref expand lineFocus, Authenticated _ ) ->
             loadPipelinePage model org repo ref expand lineFocus
@@ -3679,8 +3677,8 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 
 {-| loadBuildPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Ref -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
-loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
+loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
+loadBuildPipelinePage model org repo buildNumber expand lineFocus =
     let
         -- get resource transition information
         sameBuild =
@@ -3688,14 +3686,11 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
 
         sameResource =
             case model.page of
-                Pages.BuildPipeline _ _ _ _ _ _ ->
+                Pages.BuildPipeline _ _ _ _ _ ->
                     True
 
                 _ ->
                     False
-
-        sameRef =
-            isSamePipelineRef ( org, repo, ref ) model.page pipeline
 
         -- if build has changed, set build fields in the model
         m =
@@ -3726,13 +3721,13 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             model.pipeline
     in
     ( { m
-        | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus
+        | page = Pages.BuildPipeline org repo buildNumber expand lineFocus
 
         -- set pipeline fields
         , pipeline =
             pipeline
                 |> updateBuildPipelineConfig
-                    (if sameRef then
+                    (if sameBuild then
                         case pipeline.config of
                             ( Success _, _ ) ->
                                 pipeline.config
@@ -3745,14 +3740,14 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
                     )
                 |> updateBuildPipelineOrgRepo org repo
                 |> updateBuildPipelineBuildNumber (Just buildNumber)
-                |> updateBuildPipelineRef ref
+                |> (if True then updateBuildPipelineRef "TODO" else updateBuildPipelineRef "TODO" )
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                 |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
 
-        -- reset templates if ref has changed
+        -- reset templates if build has changed
         , templates =
-            if sameRef then
+            if sameBuild then
                 model.templates
 
             else
@@ -3766,8 +3761,8 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
         Cmd.batch
             [ getBuilds model org repo Nothing Nothing Nothing
             , getBuild model org repo buildNumber
-            , getPipeline model org repo ref lineFocus sameBuild
-            , getPipelineTemplates model org repo ref lineFocus sameBuild
+            , getPipeline model org repo "TODO" lineFocus sameBuild
+            , getPipelineTemplates model org repo "TODO" lineFocus sameBuild
             ]
     )
 
@@ -3779,7 +3774,7 @@ loadPipelinePage model org repo ref expand lineFocus =
     let
         -- get resource transition information
         sameRef =
-            isSamePipelineRef ( org, repo, ref ) model.page pipeline
+            False -- expected merge conflict: this entire function will be removed in https://github.com/go-vela/ui/pull/550
 
         -- get or expand the pipeline depending on expand query parameter
         getPipeline =
@@ -3850,29 +3845,8 @@ isSameBuild id currentPage =
         Pages.BuildServices o r b _ ->
             not <| resourceChanged id ( o, r, b )
 
-        Pages.BuildPipeline o r b _ _ _ ->
+        Pages.BuildPipeline o r b _ _ ->
             not <| resourceChanged id ( o, r, b )
-
-        _ ->
-            False
-
-
-{-| isSamePipelineRef : takes pipeline ref identifier and current page and returns true if the pipeline ref has not changed
--}
-isSamePipelineRef : RepoResourceIdentifier -> Page -> PipelineModel -> Bool
-isSamePipelineRef id currentPage pipeline =
-    case currentPage of
-        Pages.Pipeline o r ref _ _ ->
-            not <| resourceChanged id ( o, r, ref )
-
-        Pages.Build o r _ _ ->
-            not <| resourceChanged id ( o, r, pipeline.ref )
-
-        Pages.BuildServices o r _ _ ->
-            not <| resourceChanged id ( o, r, pipeline.ref )
-
-        Pages.BuildPipeline o r _ ref _ _ ->
-            not <| resourceChanged id ( o, r, ref )
 
         _ ->
             False

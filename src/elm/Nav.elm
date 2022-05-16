@@ -166,7 +166,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
                 , restartBuildButton org repo model.repo.build.build restartBuild
                 ]
 
-        Pages.BuildPipeline org repo _ _ _ _ ->
+        Pages.BuildPipeline org repo _ _ _ ->
             div [ class "buttons" ]
                 [ cancelBuildButton org repo model.repo.build.build cancelBuild
                 , restartBuildButton org repo model.repo.build.build restartBuild
@@ -219,7 +219,7 @@ viewUtil model =
             Pages.BuildServices _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
-            Pages.BuildPipeline _ _ _ _ _ _ ->
+            Pages.BuildPipeline _ _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
             Pages.AddDeployment org repo ->
@@ -373,7 +373,7 @@ viewBuildTabs model org repo buildNumber currentPage =
         tabs =
             [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False
             , Tab "Services" currentPage (Pages.BuildServices org repo buildNumber bm.services.focusFragment) False
-            , Tab "Pipeline" currentPage (Pages.BuildPipeline org repo buildNumber ref pipeline.expand pipeline.focusFragment) False
+            , Tab "Pipeline" currentPage (Pages.BuildPipeline org repo buildNumber pipeline.expand pipeline.focusFragment) False
             ]
     in
     viewTabs tabs "jump-bar-build"

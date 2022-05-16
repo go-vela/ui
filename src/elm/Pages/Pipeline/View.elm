@@ -50,11 +50,11 @@ import Vela
 
 {-| viewPipeline : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.
 -}
-viewPipeline : PartialModel a -> Msgs msg -> Ref -> Html msg
-viewPipeline model msgs ref =
+viewPipeline : PartialModel a -> Msgs msg -> Html msg
+viewPipeline model msgs =
     div [ class "pipeline" ]
         [ viewPipelineTemplates model.templates msgs.showHideTemplates
-        , viewPipelineConfiguration model msgs ref
+        , viewPipelineConfiguration model msgs
         ]
 
 
@@ -141,8 +141,8 @@ viewTemplate ( _, t ) =
 
 {-| viewPipelineConfiguration : takes model and renders a wrapper view for a pipeline configuration if Success or Failure.
 -}
-viewPipelineConfiguration : PartialModel a -> Msgs msg -> Ref -> Html msg
-viewPipelineConfiguration model msgs ref =
+viewPipelineConfiguration : PartialModel a -> Msgs msg -> Html msg
+viewPipelineConfiguration model msgs =
     case model.pipeline.config of
         ( Loading, _ ) ->
             Util.smallLoaderWithText "loading pipeline configuration"
@@ -151,20 +151,20 @@ viewPipelineConfiguration model msgs ref =
             text ""
 
         _ ->
-            viewPipelineConfigurationResponse model msgs ref
+            viewPipelineConfigurationResponse model msgs
 
 
 {-| viewPipelineConfiguration : takes model and renders view for a pipeline configuration.
 -}
-viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Ref -> Html msg
-viewPipelineConfigurationResponse model msgs ref =
+viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Html msg
+viewPipelineConfigurationResponse model msgs =
     div [ class "logs-container", class "-pipeline" ]
         [ case model.pipeline.config of
             ( Success config, _ ) ->
-                viewPipelineConfigurationData model msgs ref config
+                viewPipelineConfigurationData model msgs config
 
             ( Failure _, err ) ->
-                viewPipelineConfigurationError model msgs ref err
+                viewPipelineConfigurationError model msgs err
 
             _ ->
                 text ""
@@ -173,31 +173,37 @@ viewPipelineConfigurationResponse model msgs ref =
 
 {-| viewPipelineConfigurationData : takes model and config and renders view for a pipeline configuration's data.
 -}
-viewPipelineConfigurationData : PartialModel a -> Msgs msg -> Ref -> PipelineConfig -> Html msg
-viewPipelineConfigurationData model msgs ref config =
+viewPipelineConfigurationData : PartialModel a -> Msgs msg -> PipelineConfig -> Html msg
+viewPipelineConfigurationData model msgs config =
     let
         decodedConfig =
             safeDecodePipelineData config
     in
-    wrapPipelineConfigurationContent model msgs ref (class "") <|
+    wrapPipelineConfigurationContent model msgs (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
             viewLines decodedConfig model.pipeline.lineFocus msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
 -}
-viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Ref -> Error -> Html msg
-viewPipelineConfigurationError model msgs ref err =
-    wrapPipelineConfigurationContent model msgs ref (class "-error") <|
+viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Error -> Html msg
+viewPipelineConfigurationError model msgs err =
+    wrapPipelineConfigurationContent model msgs (class "-error") <|
         div [ class "content", Util.testAttribute "pipeline-configuration-error" ]
             [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
 
 
 {-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
 -}
-wrapPipelineConfigurationContent : PartialModel a -> Msgs msg -> Ref -> Html.Attribute msg -> Html msg -> Html msg
-wrapPipelineConfigurationContent model { get, expand, download } ref cls content =
+wrapPipelineConfigurationContent : PartialModel a -> Msgs msg  -> Html.Attribute msg -> Html msg -> Html msg
+wrapPipelineConfigurationContent model { get, expand, download } cls content =
     let
+    -- TODO: is this done?
+        ref = case model.repo.build.build of 
+            Success b -> 
+                b.commit
+            _ ->
+                "TODO"
         body =
             [ div [ class "header" ]
                 [ span []
