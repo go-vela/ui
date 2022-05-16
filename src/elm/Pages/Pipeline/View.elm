@@ -198,17 +198,12 @@ viewPipelineConfigurationError model msgs err =
 wrapPipelineConfigurationContent : PartialModel a -> Msgs msg  -> Html.Attribute msg -> Html msg -> Html msg
 wrapPipelineConfigurationContent model { get, expand, download } cls content =
     let
-    -- TODO: is this done?
-        ref = case model.repo.build.build of 
-            Success b -> 
-                b.commit
-            _ ->
-                "TODO"
         body =
             [ div [ class "header" ]
                 [ span []
                     [ text "Pipeline Configuration"
-                    , span [ class "link" ] [ text <| "(" ++ ref ++ ")" ]
+                    -- TODO: is it worth it to keep this
+                    -- , span [ class "link" ] [ text <| "(" ++ ref ++ ")" ]
                     ]
                 ]
             , viewPipelineActions model get expand download
@@ -298,10 +293,10 @@ expandTemplatesToggleButton pipeline get expand =
 
         action =
             if pipeline.expanded then
-                get org repo buildNumber ref Nothing True
+                get org repo (Just buildNumber) ref Nothing True
 
             else
-                expand org repo buildNumber ref Nothing True
+                expand org repo (Just buildNumber) ref Nothing True
     in
     button
         [ class "button"

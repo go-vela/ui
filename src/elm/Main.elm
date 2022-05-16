@@ -437,6 +437,7 @@ type Msg
     | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, List Deployment ))
     | HooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | BuildResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
+    | BuildAndPipelineResponse Org Repo (Maybe ExpandTemplatesQuery) (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | DeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
@@ -1517,6 +1518,44 @@ update msg model =
                     )
 
                 Err error ->
+                    ( { model | repo = updateBuild (toFailure error) rm }, addError error )
+
+        BuildAndPipelineResponse org repo expand response ->
+            let
+                _ = Debug.log "BuildAndPipelineResponse" response
+            in
+            case response of
+                Ok ( _, build ) ->
+                    let
+                        -- set pipeline fetch api call based on ?expand= query
+                        getPipeline =
+                            case expand of
+                                Just e ->
+                                    if e == "true" then
+                                        expandPipelineConfig
+
+                                    else
+                                        getPipelineConfig
+
+                                Nothing ->
+                                    getPipelineConfig
+                    in
+                    ( { model
+                        | repo =
+                            rm
+                                |> updateOrgRepo org repo
+                                |> updateBuild (RemoteData.succeed build)
+                        , favicon = statusToFavicon build.status
+                      }
+                    , Cmd.batch
+                        [ Interop.setFavicon <| Encode.string <| statusToFavicon build.status
+                        , getPipeline model org repo build.commit Nothing False
+                        , getPipelineTemplates model org repo build.commit Nothing False
+                        ]
+                    )
+
+                Err error ->
+                    -- cant get build, should pipeline be updated to Error?
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
         DeploymentResponse response ->
@@ -3717,8 +3756,12 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
         parsed =
             parseFocusFragment lineFocus
 
+        build =
+            model.repo.build.build
+
         pipeline =
             model.pipeline
+        _=Debug.log "loadBuildPipelinePage" "dispatch page load"
     in
     ( { m
         | page = Pages.BuildPipeline org repo buildNumber expand lineFocus
@@ -3739,8 +3782,15 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
                         ( Loading, "" )
                     )
                 |> updateBuildPipelineOrgRepo org repo
-                |> updateBuildPipelineBuildNumber (Just buildNumber)
-                |> (if True then updateBuildPipelineRef "TODO" else updateBuildPipelineRef "TODO" )
+                |> updateBuildPipelineBuildNumber buildNumber
+                |> (updateBuildPipelineRef <|
+                        case build of
+                            Success b ->
+                                b.commit
+
+                            _ ->
+                                ""
+                   )
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                 |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
@@ -3758,12 +3808,19 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
         Cmd.none
 
       else
-        Cmd.batch
-            [ getBuilds model org repo Nothing Nothing Nothing
-            , getBuild model org repo buildNumber
-            , getPipeline model org repo "TODO" lineFocus sameBuild
-            , getPipelineTemplates model org repo "TODO" lineFocus sameBuild
-            ]
+        Cmd.batch <|
+            case build of
+                Success b ->
+                    [ getBuilds model org repo Nothing Nothing Nothing
+                    , getBuild model org repo buildNumber
+                    , getPipeline model org repo b.commit lineFocus False
+                    , getPipelineTemplates model org repo b.commit lineFocus False
+                    ]
+
+                _ ->
+                    [ getBuilds model org repo Nothing Nothing Nothing
+                    , getBuildAndPipeline model org repo buildNumber expand
+                    ]
     )
 
 
@@ -3774,8 +3831,9 @@ loadPipelinePage model org repo ref expand lineFocus =
     let
         -- get resource transition information
         sameRef =
-            False -- expected merge conflict: this entire function will be removed in https://github.com/go-vela/ui/pull/550
+            False
 
+        -- expected merge conflict: this entire function will be removed in https://github.com/go-vela/ui/pull/550
         -- get or expand the pipeline depending on expand query parameter
         getPipeline =
             case expand of
@@ -3815,7 +3873,7 @@ loadPipelinePage model org repo ref expand lineFocus =
                         ( Loading, "" )
                     )
                 |> updateBuildPipelineOrgRepo org repo
-                |> updateBuildPipelineBuildNumber Nothing
+                |> updateBuildPipelineBuildNumber ""
                 |> updateBuildPipelineRef ref
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
@@ -3873,7 +3931,7 @@ setBuild org repo buildNumber soft model =
                 , expanded = False
                 , org = org
                 , repo = repo
-                , buildNumber = Just buildNumber
+                , buildNumber = buildNumber
             }
         , templates = { data = NotAsked, error = "", show = True }
         , repo =
@@ -4212,6 +4270,11 @@ getBuilds model org repo maybePage maybePerPage maybeEvent =
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =
     Api.try (BuildResponse org repo) <| Api.getBuild model org repo buildNumber
+
+
+getBuildAndPipeline : Model -> Org -> Repo -> BuildNumber -> Maybe ExpandTemplatesQuery -> Cmd Msg
+getBuildAndPipeline model org repo buildNumber expand =
+    Api.try (BuildAndPipelineResponse org repo expand) <| Api.getBuild model org repo buildNumber
 
 
 getDeployment : Model -> Org -> Repo -> DeploymentId -> Cmd Msg

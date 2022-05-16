@@ -82,7 +82,6 @@ routes =
         , map OrgBuilds (string </> s "builds" <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
-        , map Pipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
