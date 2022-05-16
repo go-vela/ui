@@ -25,7 +25,6 @@ import Focus
     exposing
         ( ExpandTemplatesQuery
         , Fragment
-        , RefQuery
         , focusFragmentToFocusId
         , lineRangeId
         , parseFocusFragment
@@ -191,7 +190,6 @@ import Vela
         , updateBuildPipelineExpand
         , updateBuildPipelineFocusFragment
         , updateBuildPipelineLineFocus
-          -- , updateBuildPipelineRef
         , updateBuildServices
         , updateBuildServicesFocusFragment
         , updateBuildServicesFollowing
@@ -1538,7 +1536,6 @@ update msg model =
                     )
 
                 Err error ->
-                    -- todo: cant get build, should pipeline be updated to Error?
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
         DeploymentResponse response ->
@@ -3739,9 +3736,6 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
         parsed =
             parseFocusFragment lineFocus
 
-        build =
-            model.repo.build.build
-
         pipeline =
             model.pipeline
     in
@@ -3777,16 +3771,16 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
         -- do not load resources if transition is auto refresh, line focus, etc
         if sameBuild && sameResource then
             []
-            -- same build, most likely a tab switch
 
         else if sameBuild then
-            case build of
-                Success b ->
+            -- same build, most likely a tab switch
+            case model.repo.build.build of
+                Success build ->
                     -- build exists, chained request not needed
                     [ getBuilds model org repo Nothing Nothing Nothing
                     , getBuild model org repo buildNumber
-                    , getPipeline model org repo b.commit lineFocus False
-                    , getPipelineTemplates model org repo b.commit lineFocus False
+                    , getPipeline model org repo build.commit lineFocus False
+                    , getPipelineTemplates model org repo build.commit lineFocus False
                     ]
 
                 _ ->
@@ -3794,9 +3788,9 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
                     [ getBuilds model org repo Nothing Nothing Nothing
                     , getBuildAndPipeline model org repo buildNumber expand
                     ]
-            -- different build, use chained request
 
         else
+            -- different build, use chained request
             [ getBuilds model org repo Nothing Nothing Nothing
             , getBuildAndPipeline model org repo buildNumber expand
             ]
@@ -3851,9 +3845,6 @@ loadPipelinePage model org repo ref expand lineFocus =
                      else
                         ( Loading, "" )
                     )
-                -- |> updateBuildPipelineOrgRepo org repo
-                -- |> updateBuildPipelineBuildNumber ""
-                -- |> updateBuildPipelineRef (Just ref)
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                 |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)

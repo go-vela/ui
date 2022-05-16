@@ -7,7 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Routes exposing (Route(..), href, match, routeToUrl)
 
 import Api.Pagination as Pagination
-import Focus exposing (ExpandTemplatesQuery, RefQuery)
+import Focus exposing (ExpandTemplatesQuery)
 import Html
 import Html.Attributes as Attr
 import Url exposing (Url)

@@ -34,8 +34,7 @@ import RemoteData exposing (RemoteData(..))
 import Util
 import Vela
     exposing
-        ( Build
-        , LogFocus
+        ( LogFocus
         , PipelineConfig
         , PipelineModel
         , PipelineTemplates
@@ -160,8 +159,8 @@ viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Html msg
 viewPipelineConfigurationResponse model msgs =
     div [ class "logs-container", class "-pipeline" ]
         [ case model.pipeline.config of
-            ( Success pipelineConfig, _ ) ->
-                viewPipelineConfigurationData model pipelineConfig msgs
+            ( Success config, _ ) ->
+                viewPipelineConfigurationData model config msgs
 
             ( Failure _, err ) ->
                 viewPipelineConfigurationError model msgs err
@@ -174,10 +173,10 @@ viewPipelineConfigurationResponse model msgs =
 {-| viewPipelineConfigurationData : takes model and config and renders view for a pipeline configuration's data.
 -}
 viewPipelineConfigurationData : PartialModel a -> PipelineConfig -> Msgs msg -> Html msg
-viewPipelineConfigurationData model pipelineConfig msgs =
+viewPipelineConfigurationData model config msgs =
     let
         decodedConfig =
-            safeDecodePipelineData pipelineConfig
+            safeDecodePipelineData config
     in
     wrapPipelineConfigurationContent model msgs (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|

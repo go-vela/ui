@@ -362,14 +362,6 @@ viewBuildTabs model org repo buildNumber currentPage =
         pipeline =
             model.pipeline
 
-        ref =
-            case bm.build of
-                RemoteData.Success build ->
-                    build.commit
-
-                _ ->
-                    ""
-
         tabs =
             [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False
             , Tab "Services" currentPage (Pages.BuildServices org repo buildNumber bm.services.focusFragment) False

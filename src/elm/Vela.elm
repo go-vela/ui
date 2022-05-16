@@ -748,12 +748,6 @@ updateBuildPipelineConfig update pipeline =
     { pipeline | config = update }
 
 
-
--- updateBuildPipelineRef : Maybe Ref -> PipelineModel -> PipelineModel
--- updateBuildPipelineRef update pipeline =
---     { pipeline | ref = update }
-
-
 updateBuildPipelineExpand : Maybe String -> PipelineModel -> PipelineModel
 updateBuildPipelineExpand update pipeline =
     { pipeline | expand = update }
