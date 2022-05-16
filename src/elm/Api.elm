@@ -513,7 +513,7 @@ updateRepository model org repo body =
 -}
 getPipelineConfig : PartialModel a -> Org -> Repo -> Ref -> Request PipelineConfig
 getPipelineConfig model org repository ref =
-    get model.velaAPI (Endpoint.PipelineConfig org repository ref) (decodePipelineConfig ref)
+    get model.velaAPI (Endpoint.PipelineConfig org repository ref) decodePipelineConfig
         |> withAuth model.session
 
 
