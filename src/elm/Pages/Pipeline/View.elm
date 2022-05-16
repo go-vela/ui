@@ -308,11 +308,14 @@ expandTemplatesToggleIcon pipeline =
 expandTemplatesToggleButton : PartialModel a -> String -> Get msg -> Expand msg -> Html msg
 expandTemplatesToggleButton model ref get expand =
     let
+        pipeline =
+            model.pipeline
+
         { org, name, build } =
             model.repo
 
         action =
-            if model.pipeline.expanded then
+            if pipeline.expanded then
                 get org name build.buildNumber ref Nothing True
 
             else
@@ -324,7 +327,7 @@ expandTemplatesToggleButton model ref get expand =
         , Util.onClickPreventDefault <| action
         , Util.testAttribute "pipeline-templates-expand-toggle"
         ]
-        [ if model.pipeline.expanded then
+        [ if pipeline.expanded then
             text "revert template expansion"
 
           else
