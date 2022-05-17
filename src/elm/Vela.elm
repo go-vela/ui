@@ -88,6 +88,7 @@ module Vela exposing
     , decodeHooks
     , decodeLog
     , decodePipelineConfig
+    , decodePipelineExpand
     , decodePipelineTemplates
     , decodeRepositories
     , decodeRepository
@@ -760,7 +761,7 @@ updateBuildPipelineBuildNumber update pipeline =
     { pipeline | buildNumber = update }
 
 
-updateBuildPipelineRef : Maybe Ref -> PipelineModel -> PipelineModel
+updateBuildPipelineRef : Ref -> PipelineModel -> PipelineModel
 updateBuildPipelineRef update pipeline =
     { pipeline | ref = update }
 
@@ -1150,7 +1151,7 @@ type alias PipelineModel =
     , org : Org
     , repo : Repo
     , buildNumber : Maybe BuildNumber
-    , ref : Maybe Ref
+    , ref : Ref
     , expand : Maybe String
     , lineFocus : LogFocus
     , focusFragment : FocusFragment
@@ -1159,11 +1160,12 @@ type alias PipelineModel =
 
 defaultPipeline : PipelineModel
 defaultPipeline =
-    PipelineModel ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing ) Nothing
+    PipelineModel ( NotAsked, "" ) False False "" "" Nothing "" Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =
-    { data : String
+    { rawData : String
+    , decodedData : String
     }
 
 
@@ -1191,8 +1193,20 @@ defaultPipelineTemplates =
     PipelineTemplates NotAsked "" True
 
 
-decodePipelineConfig : Decode.Decoder String
+decodePipelineConfig : Decode.Decoder PipelineConfig
 decodePipelineConfig =
+    Decode.succeed
+        (\data ->
+            PipelineConfig
+                data
+                -- "decodedData"
+                ""
+        )
+        |> optional "data" string ""
+
+
+decodePipelineExpand : Decode.Decoder String
+decodePipelineExpand =
     Decode.string
 
 

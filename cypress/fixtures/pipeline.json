@@ -1,0 +1,17 @@
+{
+  "id": 1,
+  "repo_id": 1,
+  "commit": "9b1d8bded6e992ab660eaee527c5e3232d0a2441",
+  "flavor": "",
+  "platform": "",
+  "ref": "refs/heads/master",
+  "type": "yaml",
+  "version": "1",
+  "external_secrets": false,
+  "internal_secrets": false,
+  "services": false,
+  "stages": false,
+  "steps": true,
+  "templates": true,
+  "data": "dmVyc2lvbjogIjEiCnN0ZXBzOgotIHRlbXBsYXRlOgogICAgbmFtZTogY3VzdG9tX3RlbXBsYXRlCiAgICB2YXJzOgogICAgICBidWlsZF9ldmVudDogJHtCVUlMRF9FVkVOVH0KICBuYW1lOiBpbnZva2UgdGVtcGxhdGUxX25hbWUKICBwdWxsOiBub3RfcHJlc2VudAotIHRlbXBsYXRlOgogICAgbmFtZTogc2ltcGxlX3RlbXBsYXRlCiAgICB2YXJzOgogICAgICBidWlsZF9ldmVudDogJHtCVUlMRF9FVkVOVH0KICBuYW1lOiBpbnZva2UgdGVtcGxhdGUyX25hbWUKICBwdWxsOiBub3RfcHJlc2VudAotIHRlbXBsYXRlOgogICAgbmFtZTogYnJhbmNoZWRfdGVtcGxhdGUKICAgIHZhcnM6CiAgICAgIGJ1aWxkX2V2ZW50OiAke0JVSUxEX0VWRU5UfQogIG5hbWU6IGludm9rZSB0ZW1wbGF0ZTNfbmFtZQogIHB1bGw6IG5vdF9wcmVzZW50CnRlbXBsYXRlczoKLSBuYW1lOiB0ZW1wbGF0ZTFfbmFtZQogIHNvdXJjZTogZ2l0aHViLmNvbS9naXRodWIvb2N0b2NhdC90ZW1wbGF0ZTEueW1sCiAgdHlwZTogZ2l0aHViCi0gbmFtZTogdGVtcGxhdGUyX25hbWUKICBzb3VyY2U6IGdpdGh1Yi5jb20vZ2l0aHViL29jdG9jYXQvdGVtcGxhdGUyLnltbAogIHR5cGU6IGdpdGh1YgotIG5hbWU6IHRlbXBsYXRlM19uYW1lCiAgc291cmNlOiBnaXRodWIuY29tL2dpdGh1Yi9vY3RvY2F0L3RlbXBsYXRlMy55bWwKICB0eXBlOiBnaXRodWI="
+}
