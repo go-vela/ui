@@ -1734,11 +1734,11 @@ update msg model =
                                 Cmd.none
                     in
                     ( { model
+                                , expanded = True
+                                , expanding = False
                         | pipeline =
                             { pipeline
                                 | config = ( RemoteData.succeed { rawData = config, decodedData = config }, "" )
-                                , expanded = True
-                                , expanding = False
                             }
                       }
                     , cmd
@@ -2614,13 +2614,6 @@ viewContent model =
                     buildNumber
             )
 
-        Pages.Pipeline org repo ref _ _ ->
-            ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Pages.Pipeline.View.viewPipeline
-                model
-                pipelineMsgs
-            )
-
         Pages.Settings ->
             ( "Settings"
             , Pages.Settings.view model.session model.time (Pages.Settings.Msgs Copy)
@@ -2906,9 +2899,6 @@ setNewPage route model =
 
         ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
             loadBuildPipelinePage model org repo buildNumber expand lineFocus
-
-        ( Routes.Pipeline org repo ref expand lineFocus, Authenticated _ ) ->
-            loadPipelinePage model org repo ref expand lineFocus
 
         ( Routes.Settings, Authenticated _ ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -3796,72 +3786,6 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
             ]
     )
 
-
-{-| loadPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
--}
-loadPipelinePage : Model -> Org -> Repo -> Ref -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
-loadPipelinePage model org repo ref expand lineFocus =
-    let
-        -- get resource transition information
-        sameRef =
-            False
-
-        -- expected merge conflict: this entire function will be removed in https://github.com/go-vela/ui/pull/550
-        -- get or expand the pipeline depending on expand query parameter
-        getPipeline =
-            case expand of
-                Just e ->
-                    if e == "true" then
-                        expandPipelineConfig
-
-                    else
-                        getPipelineConfig
-
-                Nothing ->
-                    getPipelineConfig
-
-        parsed =
-            parseFocusFragment lineFocus
-
-        pipeline =
-            model.pipeline
-    in
-    -- load page depending on ref change
-    ( { model
-        | page = Pages.Pipeline org repo ref expand lineFocus
-
-        -- set pipeline fields
-        , pipeline =
-            pipeline
-                |> updateBuildPipelineConfig
-                    (if sameRef then
-                        case pipeline.config of
-                            ( Success _, _ ) ->
-                                pipeline.config
-
-                            _ ->
-                                ( Loading, "" )
-
-                     else
-                        ( Loading, "" )
-                    )
-                |> updateBuildPipelineExpand expand
-                |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
-                |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
-        , templates =
-            if sameRef then
-                model.templates
-
-            else
-                { data = Loading, error = "", show = True }
-      }
-    , Cmd.batch
-        [ getPipeline model org repo ref lineFocus False
-        , getPipelineTemplates model org repo ref lineFocus False
-        ]
-    )
-
-
 {-| isSameBuild : takes build identifier and current page and returns true if the build has not changed
 -}
 isSameBuild : RepoResourceIdentifier -> Page -> Bool
@@ -3878,7 +3802,6 @@ isSameBuild id currentPage =
 
         _ ->
             False
-
 
 {-| setBuild : takes new build information and sets the appropriate model state
 -}

@@ -35,7 +35,6 @@ type Page
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) (Maybe Fragment)
-    | Pipeline Org Repo Ref (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Settings
     | Login
     | NotFound
@@ -115,9 +114,6 @@ toRoute page =
 
         BuildPipeline org repo buildNumber expanded lineFocus ->
             Routes.BuildPipeline org repo buildNumber expanded lineFocus
-
-        Pipeline org repo ref expanded lineFocus ->
-            Routes.Pipeline org repo ref expanded lineFocus
 
         Settings ->
             Routes.Settings
@@ -199,9 +195,6 @@ strip page =
 
         BuildPipeline org repo buildNumber _ _ ->
             BuildPipeline org repo buildNumber Nothing Nothing
-
-        Pipeline org repo ref _ _ ->
-            Pipeline org repo ref Nothing Nothing
 
         Settings ->
             Settings
