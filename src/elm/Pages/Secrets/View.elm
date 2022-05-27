@@ -29,7 +29,6 @@ import Vela
         ( Secret
         , SecretType(..)
         , Secrets
-        , secretToKey
         , secretTypeToString
         , secretsErrorLabel
         )

@@ -701,7 +701,7 @@ alert field repo =
 {-| validLimit : takes maybe string of user entered limit and returns whether or not it is a valid update.
 -}
 validLimit : Int -> Maybe Int -> Repository -> Maybe Int -> Bool
-validLimit maxLimit inLimit repo repoLimit =
+validLimit maxLimit inLimit _ repoLimit =
     case inLimit of
         Just t ->
             if t >= 1 && t <= maxLimit then
