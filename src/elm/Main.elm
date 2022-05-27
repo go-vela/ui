@@ -1734,11 +1734,11 @@ update msg model =
                                 Cmd.none
                     in
                     ( { model
-                                , expanded = True
-                                , expanding = False
                         | pipeline =
                             { pipeline
                                 | config = ( RemoteData.succeed { rawData = config, decodedData = config }, "" )
+                                , expanded = True
+                                , expanding = False
                             }
                       }
                     , cmd
@@ -3786,6 +3786,7 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
             ]
     )
 
+
 {-| isSameBuild : takes build identifier and current page and returns true if the build has not changed
 -}
 isSameBuild : RepoResourceIdentifier -> Page -> Bool
@@ -3802,6 +3803,7 @@ isSameBuild id currentPage =
 
         _ ->
             False
+
 
 {-| setBuild : takes new build information and sets the appropriate model state
 -}
