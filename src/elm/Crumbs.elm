@@ -299,7 +299,7 @@ toPath page =
                     , ( "#" ++ buildNumber, Nothing )
                     ]
 
-                Pages.BuildPipeline org repo buildNumber _ _ _ ->
+                Pages.BuildPipeline org repo buildNumber _ _ ->
                     let
                         organizationPage =
                             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )

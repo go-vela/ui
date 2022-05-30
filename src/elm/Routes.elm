@@ -7,14 +7,14 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Routes exposing (Route(..), href, match, routeToUrl)
 
 import Api.Pagination as Pagination
-import Focus exposing (ExpandTemplatesQuery, RefQuery)
+import Focus exposing (ExpandTemplatesQuery)
 import Html
 import Html.Attributes as Attr
 import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Ref, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
 
 
 
@@ -43,7 +43,7 @@ type Route
     | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
-    | BuildPipeline Org Repo BuildNumber Ref (Maybe ExpandTemplatesQuery) FocusFragment
+    | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) FocusFragment
     | Settings
     | Login
     | Logout
@@ -83,7 +83,7 @@ routes =
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
-        , map BuildPipeline (string </> string </> string </> s "pipeline" </> string <?> Query.string "expand" </> fragment identity)
+        , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
         , map NotFound (s "404")
         ]
 
@@ -176,8 +176,8 @@ routeToUrl route =
         BuildServices org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/services" ++ Maybe.withDefault "" lineFocus
 
-        BuildPipeline org repo buildNumber ref expand lineFocus ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ "/" ++ ref ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
+        BuildPipeline org repo buildNumber expand lineFocus ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

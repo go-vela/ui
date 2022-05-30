@@ -118,13 +118,10 @@ module Vela exposing
     , stringToTheme
     , updateBuild
     , updateBuildNumber
-    , updateBuildPipelineBuildNumber
     , updateBuildPipelineConfig
     , updateBuildPipelineExpand
     , updateBuildPipelineFocusFragment
     , updateBuildPipelineLineFocus
-    , updateBuildPipelineOrgRepo
-    , updateBuildPipelineRef
     , updateBuildServices
     , updateBuildServicesFocusFragment
     , updateBuildServicesFollowing
@@ -751,21 +748,6 @@ updateBuildPipelineConfig update pipeline =
     { pipeline | config = update }
 
 
-updateBuildPipelineOrgRepo : Org -> Repo -> PipelineModel -> PipelineModel
-updateBuildPipelineOrgRepo org repo pipeline =
-    { pipeline | org = org, repo = repo }
-
-
-updateBuildPipelineBuildNumber : BuildNumber -> PipelineModel -> PipelineModel
-updateBuildPipelineBuildNumber update pipeline =
-    { pipeline | buildNumber = update }
-
-
-updateBuildPipelineRef : Ref -> PipelineModel -> PipelineModel
-updateBuildPipelineRef update pipeline =
-    { pipeline | ref = update }
-
-
 updateBuildPipelineExpand : Maybe String -> PipelineModel -> PipelineModel
 updateBuildPipelineExpand update pipeline =
     { pipeline | expand = update }
@@ -1148,10 +1130,6 @@ type alias PipelineModel =
     { config : ( WebData PipelineConfig, Error )
     , expanded : Bool
     , expanding : Bool
-    , org : Org
-    , repo : Repo
-    , buildNumber : BuildNumber
-    , ref : Ref
     , expand : Maybe String
     , lineFocus : LogFocus
     , focusFragment : FocusFragment
@@ -1160,7 +1138,7 @@ type alias PipelineModel =
 
 defaultPipeline : PipelineModel
 defaultPipeline =
-    PipelineModel ( NotAsked, "" ) False False "" "" "" "" Nothing ( Nothing, Nothing ) Nothing
+    PipelineModel ( NotAsked, "" ) False False Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =

@@ -38,7 +38,6 @@ import Vela
         , PipelineConfig
         , PipelineModel
         , PipelineTemplates
-        , Ref
         , Template
         , Templates
         )
@@ -50,11 +49,11 @@ import Vela
 
 {-| viewPipeline : takes model and renders collapsible template previews and the pipeline configuration file for the desired ref.
 -}
-viewPipeline : PartialModel a -> Msgs msg -> Ref -> Html msg
-viewPipeline model msgs ref =
+viewPipeline : PartialModel a -> Msgs msg -> Html msg
+viewPipeline model msgs =
     div [ class "pipeline" ]
         [ viewPipelineTemplates model.templates msgs.showHideTemplates
-        , viewPipelineConfiguration model msgs ref
+        , viewPipelineConfiguration model msgs
         ]
 
 
@@ -141,8 +140,8 @@ viewTemplate ( _, t ) =
 
 {-| viewPipelineConfiguration : takes model and renders a wrapper view for a pipeline configuration if Success or Failure.
 -}
-viewPipelineConfiguration : PartialModel a -> Msgs msg -> Ref -> Html msg
-viewPipelineConfiguration model msgs ref =
+viewPipelineConfiguration : PartialModel a -> Msgs msg -> Html msg
+viewPipelineConfiguration model msgs =
     case model.pipeline.config of
         ( Loading, _ ) ->
             Util.smallLoaderWithText "loading pipeline configuration"
@@ -151,20 +150,20 @@ viewPipelineConfiguration model msgs ref =
             text ""
 
         _ ->
-            viewPipelineConfigurationResponse model msgs ref
+            viewPipelineConfigurationResponse model msgs
 
 
 {-| viewPipelineConfiguration : takes model and renders view for a pipeline configuration.
 -}
-viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Ref -> Html msg
-viewPipelineConfigurationResponse model msgs ref =
+viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Html msg
+viewPipelineConfigurationResponse model msgs =
     div [ class "logs-container", class "-pipeline" ]
         [ case model.pipeline.config of
             ( Success config, _ ) ->
-                viewPipelineConfigurationData model msgs ref config
+                viewPipelineConfigurationData model config msgs
 
             ( Failure _, err ) ->
-                viewPipelineConfigurationError model msgs ref err
+                viewPipelineConfigurationError model msgs err
 
             _ ->
                 text ""
@@ -173,36 +172,35 @@ viewPipelineConfigurationResponse model msgs ref =
 
 {-| viewPipelineConfigurationData : takes model and config and renders view for a pipeline configuration's data.
 -}
-viewPipelineConfigurationData : PartialModel a -> Msgs msg -> Ref -> PipelineConfig -> Html msg
-viewPipelineConfigurationData model msgs ref config =
+viewPipelineConfigurationData : PartialModel a -> PipelineConfig -> Msgs msg -> Html msg
+viewPipelineConfigurationData model config msgs =
     let
         decodedConfig =
             safeDecodePipelineData config
     in
-    wrapPipelineConfigurationContent model msgs ref (class "") <|
+    wrapPipelineConfigurationContent model msgs (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
             viewLines decodedConfig model.pipeline.lineFocus msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
 -}
-viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Ref -> Error -> Html msg
-viewPipelineConfigurationError model msgs ref err =
-    wrapPipelineConfigurationContent model msgs ref (class "-error") <|
+viewPipelineConfigurationError : PartialModel a -> Msgs msg -> Error -> Html msg
+viewPipelineConfigurationError model msgs err =
+    wrapPipelineConfigurationContent model msgs (class "") <|
         div [ class "content", Util.testAttribute "pipeline-configuration-error" ]
             [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
 
 
 {-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
 -}
-wrapPipelineConfigurationContent : PartialModel a -> Msgs msg -> Ref -> Html.Attribute msg -> Html msg -> Html msg
-wrapPipelineConfigurationContent model { get, expand, download } ref cls content =
+wrapPipelineConfigurationContent : PartialModel a -> Msgs msg -> Html.Attribute msg -> Html msg -> Html msg
+wrapPipelineConfigurationContent model { get, expand, download } cls content =
     let
         body =
             [ div [ class "header" ]
                 [ span []
                     [ text "Pipeline Configuration"
-                    , span [ class "link" ] [ text <| "(" ++ ref ++ ")" ]
                     ]
                 ]
             , viewPipelineActions model get expand download
@@ -221,43 +219,65 @@ wrapPipelineConfigurationContent model { get, expand, download } ref cls content
 viewPipelineActions : PartialModel a -> Get msg -> Expand msg -> Download msg -> Html msg
 viewPipelineActions model get expand download =
     let
-        t =
-            case model.templates.data of
-                Success templates ->
-                    if Dict.size templates > 0 then
-                        div [ class "action", class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
-                            [ expandTemplatesToggleButton model.pipeline get expand
-                            , expandTemplatesToggleIcon model.pipeline
-                            , expandTemplatesTip
-                            ]
+        pipeline =
+            model.pipeline
 
-                    else
-                        text ""
+        toggle =
+            case model.repo.build.build of
+                Success build ->
+                    case model.templates.data of
+                        Success templates ->
+                            if Dict.size templates > 0 then
+                                div [ class "action", class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
+                                    [ expandTemplatesToggleButton model build.commit get expand
+                                    , expandTemplatesToggleIcon pipeline
+                                    , expandTemplatesTip
+                                    ]
+
+                            else
+                                text ""
+
+                        _ ->
+                            text ""
 
                 _ ->
                     text ""
 
-        d =
-            div [ class "action" ]
-                [ button
-                    [ class "button"
-                    , class "-link"
-                    , Util.testAttribute <| "download-yml"
-                    , onClick <| download velaYmlFileName <| RemoteData.unwrap "" .decodedData <| Tuple.first model.pipeline.config
-                    , attribute "aria-label" <| "download pipeline configuration file for "
-                    ]
-                    [ text <|
-                        if model.pipeline.expanded then
-                            "download (expanded) " ++ velaYmlFileName
+        dl =
+            case pipeline.config of
+                ( Success config, _ ) ->
+                    div [ class "action" ]
+                        [ downloadButton config pipeline.expanded download
+                        ]
 
-                        else
-                            "download " ++ velaYmlFileName
-                    ]
-                ]
+                _ ->
+                    text ""
     in
-    div [ class "actions" ] [ t, d ]
+    div [ class "actions" ] [ toggle, dl ]
 
 
+{-| downloadButton : takes config information and download msg and returns the button to download a configuration file yaml.
+-}
+downloadButton : PipelineConfig -> Bool -> Download msg -> Html msg
+downloadButton config expanded download =
+    button
+        [ class "button"
+        , class "-link"
+        , Util.testAttribute <| "download-yml"
+        , onClick <| download velaYmlFileName <| config.decodedData
+        , attribute "aria-label" <| "download pipeline configuration file for "
+        ]
+        [ text <|
+            if expanded then
+                "download (expanded) " ++ velaYmlFileName
+
+            else
+                "download " ++ velaYmlFileName
+        ]
+
+
+{-| velaYmlFileName : default vela filename used for writing the downloaded configuration file.
+-}
 velaYmlFileName : String
 velaYmlFileName =
     "vela.yml"
@@ -284,18 +304,21 @@ expandTemplatesToggleIcon pipeline =
 
 {-| expandTemplatesToggleButton : takes pipeline and renders button that toggles templates expansion.
 -}
-expandTemplatesToggleButton : PipelineModel -> Get msg -> Expand msg -> Html msg
-expandTemplatesToggleButton pipeline get expand =
+expandTemplatesToggleButton : PartialModel a -> String -> Get msg -> Expand msg -> Html msg
+expandTemplatesToggleButton model ref get expand =
     let
-        { org, repo, buildNumber, ref } =
-            pipeline
+        pipeline =
+            model.pipeline
+
+        { org, name, build } =
+            model.repo
 
         action =
             if pipeline.expanded then
-                get org repo buildNumber ref Nothing True
+                get org name build.buildNumber ref Nothing True
 
             else
-                expand org repo buildNumber ref Nothing True
+                expand org name build.buildNumber ref Nothing True
     in
     button
         [ class "button"
