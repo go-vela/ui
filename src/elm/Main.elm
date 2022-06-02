@@ -2437,6 +2437,8 @@ viewContent model =
                 , lazy Pages.Hooks.view
                     { hooks = model.repo.hooks
                     , time = model.time
+                    , org = model.org
+                    , repo = model.repo
                     }
                 , Pager.view model.repo.hooks.pager Pager.defaultLabels GotoPage
                 ]
