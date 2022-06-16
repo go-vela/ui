@@ -3248,7 +3248,7 @@ loadRepoSubPage model org repo toPage =
                             | repo =
                                 rm
                                     |> updateHooksPage maybePage
-                                    |> updateHooksPage maybePerPage
+                                    |> updateHooksPerPage maybePerPage
                           }
                         , getHooks model o r maybePage maybePerPage
                         )
