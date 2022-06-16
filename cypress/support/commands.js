@@ -527,6 +527,25 @@ Cypress.Commands.add('hookPages', () => {
   });
 });
 
+Cypress.Commands.add('redeliverHook', () => {
+  cy.server();
+  cy.route({
+    method: 'POST',
+    url: '*api/v1/hooks/*/*/*/redeliver',
+    response: 'hook * redelivered',
+  });
+});
+
+Cypress.Commands.add('redeliverHookError', () => {
+  cy.server();
+  cy.route({
+    method: 'POST',
+    url: '*api/v1/hooks/github/octocat/*/redeliver',
+    status: 500,
+    response: 'unable to redeliver hook'
+  });
+});
+
 Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();

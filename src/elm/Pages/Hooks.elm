@@ -165,7 +165,7 @@ renderHook now org repo redeliverHook hook =
                 [ href "#"
                 , class "break-word"
                 , Util.onClickPreventDefault <| redeliverHook org repo <| String.fromInt hook.number
-                , Util.testAttribute "redeliver-hook"
+                , Util.testAttribute <| "redeliver-hook-" ++ String.fromInt hook.number
                 ]
                 [ text "Redeliver Hook"
                 ]
