@@ -136,6 +136,7 @@ import Vela
         , Favicon
         , Field
         , FocusFragment
+        , HookNumber
         , Hooks
         , Key
         , Log
@@ -411,6 +412,7 @@ type Msg
     | UpdateRepoCounter Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
+    | RedeliverHook Org Repo HookNumber
     | GetPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
     | ExpandPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
       -- Inbound HTTP responses
@@ -432,6 +434,7 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, List Deployment ))
     | HooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
+    | RedeliverHookResponse Org Repo HookNumber (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | BuildResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | BuildAndPipelineResponse Org Repo (Maybe ExpandTemplatesQuery) (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | DeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
@@ -1135,6 +1138,11 @@ update msg model =
             , cancelBuild model org repo buildNumber
             )
 
+        RedeliverHook org repo hookNumber ->
+            ( model
+            , redeliverHook model org repo hookNumber
+            )
+
         GetPipelineConfig org repo buildNumber ref lineFocus refresh ->
             ( { model
                 | pipeline =
@@ -1487,6 +1495,21 @@ update msg model =
 
                 Err error ->
                     ( { model | repo = updateHooks (toFailure error) rm }, addError error )
+
+        RedeliverHookResponse org repo hookNumber response ->
+            case response of
+                Ok ( _, redeliverResponse ) ->
+                    let
+                        redeliveredHook =
+                            "Hook " ++ String.join "/" [ org, repo, hookNumber ]
+                    in
+                    ( model
+                    , getHooks model org repo Nothing Nothing
+                    )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (redeliveredHook ++ " redelivered.") Nothing)
+
+                Err error ->
+                    ( model, addError error )
 
         BuildResponse org repo response ->
             case response of
@@ -2434,12 +2457,13 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
             , div []
                 [ Pager.view model.repo.hooks.pager Pager.defaultLabels GotoPage
-                , lazy Pages.Hooks.view
+                , lazy2 Pages.Hooks.view
                     { hooks = model.repo.hooks
                     , time = model.time
-                    , org = model.org
-                    , repo = model.repo
+                    , org = model.repo.org
+                    , repo = model.repo.name
                     }
+                    RedeliverHook
                 , Pager.view model.repo.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -4139,6 +4163,11 @@ getCurrentUser model =
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getHooks model org repo maybePage maybePerPage =
     Api.try HooksResponse <| Api.getHooks model maybePage maybePerPage org repo
+
+
+redeliverHook : Model -> Org -> Repo -> HookNumber -> Cmd Msg
+redeliverHook model org repo hookNumber =
+    Api.try (RedeliverHookResponse org repo hookNumber) <| Api.redeliverHook model org repo hookNumber
 
 
 getRepo : Model -> Org -> Repo -> Cmd Msg

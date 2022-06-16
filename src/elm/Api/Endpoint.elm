@@ -107,6 +107,9 @@ toUrl api endpoint =
         Hooks maybePage maybePerPage org repo ->
             url api [ "hooks", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
+        Hook org repo hookNumber ->
+            url api [ "hooks", org, repo, hookNumber, "redeliver" ] []
+
         OrgBuilds maybePage maybePerPage maybeEvent org ->
             url api [ "repos", org, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
 
@@ -145,9 +148,6 @@ toUrl api endpoint =
 
         PipelineTemplates org repo ref ->
             url api [ "pipelines", org, repo, ref, "templates" ] [ UB.string "output" "json" ]
-
-        Hook org repo hookNumber ->
-            url api [ "hooks", org, repo, hookNumber, "redeliver"] []
 
         Deployment org repo deploymentNumber ->
             case deploymentNumber of

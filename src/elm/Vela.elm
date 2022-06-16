@@ -206,8 +206,10 @@ type alias Event =
 type alias BuildNumber =
     String
 
+
 type alias HookNumber =
     String
+
 
 type alias DeploymentId =
     String
@@ -1646,7 +1648,7 @@ type alias Hook =
     , repo_id : Int
     , build_id : Int
     , source_id : String
-    , number: Int
+    , number : Int
     , created : Int
     , host : String
     , event : String

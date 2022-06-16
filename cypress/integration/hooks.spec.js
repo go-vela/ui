@@ -82,6 +82,11 @@ context('Hooks', () => {
       it('should show host', () => {
         cy.get('@firstHook').contains('github.com');
       });
+      it('should show redeliver hook', () => {
+        cy.get('@firstHook').within(() => {
+          cy.get('[data-test=redeliver-hook]').should('exist');
+        })
+      })
       context('failure', () => {
         beforeEach(() => {
           cy.get('@lastHook').within(() => {
