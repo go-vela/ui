@@ -3066,7 +3066,7 @@ loadOrgSubPage model org toPage =
                                                 |> updateBuildsEvent maybeEvent
 
                                         _ ->
-                                            rm
+                                            rm_
                                                 |> updateBuildsPage Nothing
                                                 |> updateBuildsPerPage Nothing
                                                 |> updateBuildsEvent Nothing
@@ -3184,7 +3184,7 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateBuildsEvent maybeEvent
 
                                         _ ->
-                                            rm
+                                            rm_
                                                 |> updateBuildsPage Nothing
                                                 |> updateBuildsPerPage Nothing
                                                 |> updateBuildsEvent Nothing
@@ -3198,7 +3198,7 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateDeploymentsPerPage maybePerPage
 
                                         _ ->
-                                            rm
+                                            rm_
                                                 |> updateDeploymentsPage Nothing
                                                 |> updateDeploymentsPerPage Nothing
                                )
@@ -3211,7 +3211,7 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateHooksPerPage maybePerPage
 
                                         _ ->
-                                            rm
+                                            rm_
                                                 |> updateHooksPage Nothing
                                                 |> updateHooksPerPage Nothing
                                )
@@ -3274,7 +3274,7 @@ loadRepoSubPage model org repo toPage =
                             | repo =
                                 rm
                                     |> updateHooksPage maybePage
-                                    |> updateHooksPage maybePerPage
+                                    |> updateHooksPerPage maybePerPage
                           }
                         , getHooks model o r maybePage maybePerPage
                         )
