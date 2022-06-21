@@ -85,8 +85,8 @@ context('Hooks', () => {
       it('should show redeliver hook', () => {
         cy.get('@firstHook').within(() => {
           cy.get('[data-test=redeliver-hook-5]').should('exist');
-        })
-      })
+        });
+      });
       context('failure', () => {
         beforeEach(() => {
           cy.get('@lastHook').within(() => {
@@ -114,12 +114,9 @@ context('Hooks', () => {
         });
 
         it('should show successful toasty.', () => {
-          cy.get('@redeliverHook').click()
-          cy.get('[data-test=alert]').should(
-            'contain',
-            'hook * redelivered',
-          );
-        })
+          cy.get('@redeliverHook').click();
+          cy.get('[data-test=alert]').should('contain', 'hook * redelivered');
+        });
       });
       context('unsuccessful redeliver hook', () => {
         beforeEach(() => {

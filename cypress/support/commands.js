@@ -542,7 +542,7 @@ Cypress.Commands.add('redeliverHookError', () => {
     method: 'POST',
     url: '*api/v1/hooks/github/octocat/*/redeliver',
     status: 500,
-    response: 'unable to redeliver hook'
+    response: 'unable to redeliver hook',
   });
 });
 
