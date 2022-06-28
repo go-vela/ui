@@ -113,7 +113,7 @@ context('Hooks', () => {
           cy.get('[data-test=redeliver-hook-1]').as('redeliverHook');
         });
 
-        it('should show successful toasty.', () => {
+        it('should show alert', () => {
           cy.get('@redeliverHook').click();
           cy.get('[data-test=alert]').should('contain', 'hook * redelivered');
         });
