@@ -127,7 +127,7 @@ viewNameInput val disable =
         ]
 
 
-{-| viewValueInput : renders value input box
+{-| viewInput : renders value input box
 -}
 viewInput : String -> String -> String -> Html Msg
 viewInput name val placeholder_ =
@@ -176,9 +176,7 @@ viewEventsSelect secretUpdate =
                 , em [] [ text "at least one event must be selected" ]
                 , text " )"
                 ]
-            , p [ class "notice" ]
-                [ text "Disclaimer: Native secrets do NOT have the pull_request event enabled by default. This is intentional to help mitigate exposure via a pull request against the repo. You can override this behavior, at your own risk, for each secret."
-                ]
+            , pullRequestWarning
             ]
         , div
             [ class "form-controls"
@@ -210,6 +208,15 @@ viewEventsSelect secretUpdate =
               <|
                 OnChangeEvent "deployment"
             ]
+        ]
+
+
+{-| pullRequestWarning : renders disclaimer for pull request exposure
+-}
+pullRequestWarning : Html Msg
+pullRequestWarning =
+    p [ class "notice" ]
+        [ text "Disclaimer: Native secrets do NOT have the pull_request event enabled by default. This is intentional to help mitigate exposure via a pull request against the repo. You can override this behavior, at your own risk, for each secret."
         ]
 
 
