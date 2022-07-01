@@ -25,6 +25,7 @@ import Html
         , em
         , input
         , label
+        , p
         , section
         , span
         , strong
@@ -174,6 +175,9 @@ viewEventsSelect secretUpdate =
                 [ text "( "
                 , em [] [ text "at least one event must be selected" ]
                 , text " )"
+                ]
+            , p [ class "notice" ]
+                [ text "Disclaimer: Native secrets do NOT have the pull_request event enabled by default. This is intentional to help mitigate exposure via a pull request against the repo. You can override this behavior, at your own risk, for each secret."
                 ]
             ]
         , div
