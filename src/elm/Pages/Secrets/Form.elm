@@ -216,7 +216,9 @@ viewEventsSelect secretUpdate =
 pullRequestWarning : Html Msg
 pullRequestWarning =
     p [ class "notice" ]
-        [ text "Disclaimer: Native secrets do NOT have the pull_request event enabled by default. This is intentional to help mitigate exposure via a pull request against the repo. You can override this behavior, at your own risk, for each secret."
+        [ text "Disclaimer: Native secrets do NOT have the "
+        , strong [] [ text "pull_request" ]
+        , text " event enabled by default. This is intentional to help mitigate exposure via a pull request against the repo. You can override this behavior, at your own risk, for each secret."
         ]
 
 
