@@ -86,7 +86,12 @@ type alias SecretForm =
 
 defaultSecretUpdate : SecretForm
 defaultSecretUpdate =
-    SecretForm "" "" [] "" [] True ""
+    SecretForm "" "" defaultSecretEvents "" [] True ""
+
+
+defaultSecretEvents : List String
+defaultSecretEvents =
+    [ "deployment", "push", "tag" ]
 
 
 
