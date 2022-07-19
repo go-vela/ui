@@ -15,6 +15,7 @@ import Vela
         , DeploymentId
         , Engine
         , Event
+        , HookNumber
         , Name
         , Org
         , Ref
@@ -49,6 +50,7 @@ type Endpoint
     | RepositoryRepair Org Repo
     | UserSourceRepositories
     | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
+    | Hook Org Repo HookNumber
     | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
     | Build Org Repo BuildNumber
@@ -104,6 +106,9 @@ toUrl api endpoint =
 
         Hooks maybePage maybePerPage org repo ->
             url api [ "hooks", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
+
+        Hook org repo hookNumber ->
+            url api [ "hooks", org, repo, hookNumber, "redeliver" ] []
 
         OrgBuilds maybePage maybePerPage maybeEvent org ->
             url api [ "repos", org, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]

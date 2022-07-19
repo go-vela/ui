@@ -31,6 +31,7 @@ module Vela exposing
     , Field
     , FocusFragment
     , Hook
+    , HookNumber
     , Hooks
     , HooksModel
     , Key
@@ -203,6 +204,10 @@ type alias Event =
 
 
 type alias BuildNumber =
+    String
+
+
+type alias HookNumber =
     String
 
 
@@ -1643,6 +1648,7 @@ type alias Hook =
     , repo_id : Int
     , build_id : Int
     , source_id : String
+    , number : Int
     , created : Int
     , host : String
     , event : String
@@ -1660,6 +1666,7 @@ decodeHook =
         |> optional "repo_id" int -1
         |> optional "build_id" int -1
         |> optional "source_id" string ""
+        |> optional "number" int -1
         |> optional "created" int -1
         |> optional "host" string ""
         |> optional "event" string ""

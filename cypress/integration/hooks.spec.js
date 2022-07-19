@@ -82,6 +82,11 @@ context('Hooks', () => {
       it('should show host', () => {
         cy.get('@firstHook').contains('github.com');
       });
+      it('should show redeliver hook', () => {
+        cy.get('@firstHook').within(() => {
+          cy.get('[data-test=redeliver-hook-5]').should('exist');
+        });
+      });
       context('failure', () => {
         beforeEach(() => {
           cy.get('@lastHook').within(() => {
@@ -100,6 +105,26 @@ context('Hooks', () => {
               'github/octocat does not have tag events enabled',
             );
           });
+        });
+      });
+      context('successful redeliver hook', () => {
+        beforeEach(() => {
+          cy.redeliverHook();
+          cy.get('[data-test=redeliver-hook-1]').as('redeliverHook');
+        });
+
+        it('should show alert', () => {
+          cy.get('@redeliverHook').click();
+          cy.get('[data-test=alert]').should('contain', 'hook * redelivered');
+        });
+      });
+      context('unsuccessful redeliver hook', () => {
+        beforeEach(() => {
+          cy.redeliverHookError();
+        });
+
+        it('should show error', () => {
+          cy.get('[data-test=alerts]').should('exist').contains('Error');
         });
       });
     });
