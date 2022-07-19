@@ -36,6 +36,7 @@ module Api exposing
     , getSourceRepositories
     , getStepLogs
     , getToken
+    , redeliverHook
     , repairRepo
     , restartBuild
     , try
@@ -65,6 +66,8 @@ import Vela
         , DeploymentId
         , Engine
         , Event
+        , Hook
+        , HookNumber
         , Hooks
         , Key
         , Log
@@ -614,6 +617,14 @@ getServiceLogs model org repository buildNumber serviceNumber =
 getHooks : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Hooks
 getHooks model maybePage maybePerPage org repository =
     get model.velaAPI (Endpoint.Hooks maybePage maybePerPage org repository) decodeHooks
+        |> withAuth model.session
+
+
+{-| redeliverHook : redelivers a hook
+-}
+redeliverHook : PartialModel a -> Org -> Repo -> HookNumber -> Request String
+redeliverHook model org repository hookNumber =
+    post model.velaAPI (Endpoint.Hook org repository hookNumber) Http.emptyBody Json.Decode.string
         |> withAuth model.session
 
 

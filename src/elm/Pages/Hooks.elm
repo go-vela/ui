@@ -7,11 +7,13 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Hooks exposing (view)
 
 import Ansi.Log
+import Api
 import Array
 import Errors exposing (viewResourceError)
 import Html
     exposing
         ( Html
+        , a
         , code
         , div
         , small
@@ -23,6 +25,7 @@ import Html.Attributes
     exposing
         ( attribute
         , class
+        , href
         , scope
         )
 import Pages.Build.Logs exposing (decodeAnsi)
@@ -34,8 +37,11 @@ import Util
 import Vela
     exposing
         ( Hook
+        , HookNumber
         , Hooks
         , HooksModel
+        , Org
+        , Repo
         )
 
 
@@ -44,7 +50,13 @@ import Vela
 type alias PartialModel =
     { hooks : HooksModel
     , time : Posix
+    , org : Org
+    , repo : Repo
     }
+
+
+type alias RedeliverHook msg =
+    Org -> Repo -> HookNumber -> msg
 
 
 
@@ -53,8 +65,8 @@ type alias PartialModel =
 
 {-| view : renders hooks
 -}
-view : PartialModel -> Html msg
-view { hooks, time } =
+view : PartialModel -> RedeliverHook msg -> Html msg
+view { hooks, time, org, repo } redeliverHook =
     case hooks.hooks of
         RemoteData.Success hooks_ ->
             div []
@@ -64,7 +76,7 @@ view { hooks, time } =
                         "hooks"
                         "No hooks found for this organization/repo"
                         tableHeaders
-                        (hooksToRows time hooks_)
+                        (hooksToRows time hooks_ org repo redeliverHook)
                         Nothing
                     )
                 ]
@@ -81,10 +93,10 @@ view { hooks, time } =
 
 {-| hooksToRows : takes list of hooks and produces list of Table rows
 -}
-hooksToRows : Posix -> Hooks -> Table.Rows Hook msg
-hooksToRows now hooks =
+hooksToRows : Posix -> Hooks -> Org -> Repo -> RedeliverHook msg -> Table.Rows Hook msg
+hooksToRows now hooks org repo redeliverHook =
     hooks
-        |> List.map (\hook -> [ Just <| Table.Row hook (renderHook now), hookErrorRow hook ])
+        |> List.map (\hook -> [ Just <| Table.Row hook (renderHook now org repo redeliverHook), hookErrorRow hook ])
         |> List.concat
         |> List.filterMap identity
 
@@ -104,8 +116,8 @@ tableHeaders =
 
 {-| renderHook : takes hook and renders a table row
 -}
-renderHook : Posix -> Hook -> Html msg
-renderHook now hook =
+renderHook : Posix -> Org -> Repo -> RedeliverHook msg -> Hook -> Html msg
+renderHook now org repo redeliverHook hook =
     tr [ Util.testAttribute <| "hooks-row", hookStatusToRowClass hook.status ]
         [ td
             [ attribute "data-label" "status"
@@ -144,6 +156,20 @@ renderHook now hook =
             , class "break-word"
             ]
             [ text hook.branch ]
+        , td
+            [ attribute "data-label" "redeliver"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ a
+                [ href "#"
+                , class "break-word"
+                , Util.onClickPreventDefault <| redeliverHook org repo <| String.fromInt hook.number
+                , Util.testAttribute <| "redeliver-hook-" ++ String.fromInt hook.number
+                ]
+                [ text "Redeliver Hook"
+                ]
+            ]
         ]
 
 
