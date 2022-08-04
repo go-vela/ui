@@ -30,7 +30,7 @@
     "stylelint-config-prettier": "9.0.3",
     "stylelint-config-recommended-scss": "4.3.0",
     "stylelint-declaration-block-no-ignored-properties": "2.5.0",
-    "stylelint-declaration-strict-value": "1.8.0",
+    "stylelint-declaration-strict-value": "1.9.0",
     "stylelint-high-performance-animation": "1.6.0",
     "stylelint-order": "4.1.0",
     "stylelint-scss": "3.21.0"
