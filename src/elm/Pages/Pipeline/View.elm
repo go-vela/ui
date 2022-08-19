@@ -4,14 +4,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.View exposing (viewPipeline)
+module Pages.Pipeline.View exposing (safeDecodePipelineData, viewPipeline)
 
 import Ansi.Log
 import Array
 import Dict
-import List.Extra exposing (updateIf)
 import Errors exposing (Error)
-import RemoteData exposing (WebData)
 import FeatherIcons exposing (Icon)
 import Focus exposing (Resource, ResourceID, lineFocusStyles, resourceAndLineToFocusId)
 import Html
@@ -32,7 +30,7 @@ import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
-import RemoteData exposing (RemoteData(..))
+import RemoteData exposing (RemoteData(..), WebData)
 import Util
 import Vela
     exposing
@@ -337,6 +335,22 @@ expandTemplatesToggleButton model ref get expand =
 expandTemplatesTip : Html msg
 expandTemplatesTip =
     small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
+
+
+{-| safeDecodePipelineData : takes pipeline config and decodes the data.
+-}
+safeDecodePipelineData : PipelineConfig -> ( WebData PipelineConfig, Error ) -> PipelineConfig
+safeDecodePipelineData incomingConfig currentConfig =
+    case currentConfig of
+        ( RemoteData.Success current, _ ) ->
+            if current.rawData == incomingConfig.rawData then
+                current
+
+            else
+                { incomingConfig | decodedData = Util.base64Decode incomingConfig.rawData }
+
+        _ ->
+            { incomingConfig | decodedData = Util.base64Decode incomingConfig.rawData }
 
 
 {-| viewLines : takes pipeline configuration, line focus and shift key.

@@ -97,7 +97,7 @@ import Pages.Home
 import Pages.Hooks
 import Pages.Organization
 import Pages.Pipeline.Model
-import Pages.Pipeline.View
+import Pages.Pipeline.View exposing (safeDecodePipelineData)
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.Model
 import Pages.Secrets.Update
@@ -1716,23 +1716,11 @@ update msg model =
 
                             else
                                 Cmd.none
-
-                        c =
-                            case model.pipeline.config of
-                                ( RemoteData.Success current, _ ) ->
-                                    if current.rawData == config.rawData then
-                                        current
-
-                                    else
-                                        { config | decodedData = Util.base64Decode config.rawData }
-
-                                _ ->
-                                    { config | decodedData = Util.base64Decode config.rawData }
                     in
                     ( { model
                         | pipeline =
                             { pipeline
-                                | config = ( RemoteData.succeed c, "" )
+                                | config = ( RemoteData.succeed <| safeDecodePipelineData config pipeline.config, "" )
                                 , expanded = False
                                 , expanding = False
                             }
