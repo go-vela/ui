@@ -9,7 +9,9 @@ module Pages.Pipeline.View exposing (viewPipeline)
 import Ansi.Log
 import Array
 import Dict
+import List.Extra exposing (updateIf)
 import Errors exposing (Error)
+import RemoteData exposing (WebData)
 import FeatherIcons exposing (Icon)
 import Focus exposing (Resource, ResourceID, lineFocusStyles, resourceAndLineToFocusId)
 import Html
@@ -174,13 +176,9 @@ viewPipelineConfigurationResponse model msgs =
 -}
 viewPipelineConfigurationData : PartialModel a -> PipelineConfig -> Msgs msg -> Html msg
 viewPipelineConfigurationData model config msgs =
-    let
-        decodedConfig =
-            safeDecodePipelineData config
-    in
     wrapPipelineConfigurationContent model msgs (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-            viewLines decodedConfig model.pipeline.lineFocus msgs.focusLineNumber
+            viewLines config model.pipeline.lineFocus msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
@@ -339,21 +337,6 @@ expandTemplatesToggleButton model ref get expand =
 expandTemplatesTip : Html msg
 expandTemplatesTip =
     small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
-
-
-{-| safeDecodePipelineData : takes pipeline config and decodes the data.
--}
-safeDecodePipelineData : PipelineConfig -> PipelineConfig
-safeDecodePipelineData config =
-    let
-        decoded =
-            if config.decodedData == "" then
-                Util.base64Decode config.rawData
-
-            else
-                config.decodedData
-    in
-    { config | decodedData = decoded }
 
 
 {-| viewLines : takes pipeline configuration, line focus and shift key.

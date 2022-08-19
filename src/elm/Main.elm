@@ -1716,11 +1716,23 @@ update msg model =
 
                             else
                                 Cmd.none
+
+                        c =
+                            case model.pipeline.config of
+                                ( RemoteData.Success current, _ ) ->
+                                    if current.rawData == config.rawData then
+                                        current
+
+                                    else
+                                        { config | decodedData = Util.base64Decode config.rawData }
+
+                                _ ->
+                                    { config | decodedData = Util.base64Decode config.rawData }
                     in
                     ( { model
                         | pipeline =
                             { pipeline
-                                | config = ( RemoteData.succeed config, "" )
+                                | config = ( RemoteData.succeed c, "" )
                                 , expanded = False
                                 , expanding = False
                             }
