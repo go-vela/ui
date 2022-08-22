@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Pipeline.View exposing (viewPipeline)
+module Pages.Pipeline.View exposing (safeDecodePipelineData, viewPipeline)
 
 import Ansi.Log
 import Array
@@ -30,7 +30,7 @@ import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
-import RemoteData exposing (RemoteData(..))
+import RemoteData exposing (RemoteData(..), WebData)
 import Util
 import Vela
     exposing
@@ -174,13 +174,9 @@ viewPipelineConfigurationResponse model msgs =
 -}
 viewPipelineConfigurationData : PartialModel a -> PipelineConfig -> Msgs msg -> Html msg
 viewPipelineConfigurationData model config msgs =
-    let
-        decodedConfig =
-            safeDecodePipelineData config
-    in
     wrapPipelineConfigurationContent model msgs (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-            viewLines decodedConfig model.pipeline.lineFocus msgs.focusLineNumber
+            viewLines config model.pipeline.lineFocus msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
@@ -343,17 +339,18 @@ expandTemplatesTip =
 
 {-| safeDecodePipelineData : takes pipeline config and decodes the data.
 -}
-safeDecodePipelineData : PipelineConfig -> PipelineConfig
-safeDecodePipelineData config =
-    let
-        decoded =
-            if config.decodedData == "" then
-                Util.base64Decode config.rawData
+safeDecodePipelineData : PipelineConfig -> ( WebData PipelineConfig, Error ) -> PipelineConfig
+safeDecodePipelineData incomingConfig currentConfig =
+    case currentConfig of
+        ( RemoteData.Success current, _ ) ->
+            if current.rawData == incomingConfig.rawData then
+                current
 
             else
-                config.decodedData
-    in
-    { config | decodedData = decoded }
+                { incomingConfig | decodedData = Util.base64Decode incomingConfig.rawData }
+
+        _ ->
+            { incomingConfig | decodedData = Util.base64Decode incomingConfig.rawData }
 
 
 {-| viewLines : takes pipeline configuration, line focus and shift key.

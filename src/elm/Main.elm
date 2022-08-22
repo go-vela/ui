@@ -97,7 +97,7 @@ import Pages.Home
 import Pages.Hooks
 import Pages.Organization
 import Pages.Pipeline.Model
-import Pages.Pipeline.View
+import Pages.Pipeline.View exposing (safeDecodePipelineData)
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Secrets.Model
 import Pages.Secrets.Update
@@ -1720,7 +1720,7 @@ update msg model =
                     ( { model
                         | pipeline =
                             { pipeline
-                                | config = ( RemoteData.succeed config, "" )
+                                | config = ( RemoteData.succeed <| safeDecodePipelineData config pipeline.config, "" )
                                 , expanded = False
                                 , expanding = False
                             }
