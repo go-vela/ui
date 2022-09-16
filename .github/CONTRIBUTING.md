@@ -105,7 +105,7 @@ npm run lint:fix
 
 ```bash
 # push your code up to your fork
-git push fork master
+git push fork main
 ```
 
 * Open a pull request. Thank you for your contribution!
