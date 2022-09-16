@@ -10,7 +10,7 @@ module.exports = {
   ignoreFiles: ['src/scss/_reset.scss'],
   extends: [
     'stylelint-config-recommended-scss',
-    'stylelint-a11y/recommended',
+    '@double-great/stylelint-a11y/recommended',
     'stylelint-config-prettier',
   ],
   plugins: [

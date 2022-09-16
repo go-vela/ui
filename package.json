@@ -10,6 +10,7 @@
     "clipboard": "2.0.11"
   },
   "devDependencies": {
+    "@double-great/stylelint-a11y": "2.0.1",
     "@fullhuman/postcss-purgecss": "5.0.0",
     "@parcel/transformer-elm": "2.7.0",
     "@parcel/transformer-sass": "2.7.0",
@@ -25,7 +26,6 @@
     "rimraf": "3.0.2",
     "start-server-and-test": "1.14.0",
     "stylelint": "13.13.1",
-    "stylelint-a11y": "1.2.3",
     "stylelint-color-format": "1.1.0",
     "stylelint-config-prettier": "9.0.3",
     "stylelint-config-recommended-scss": "4.3.0",
