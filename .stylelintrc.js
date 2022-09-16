@@ -10,7 +10,7 @@ module.exports = {
   ignoreFiles: ['src/scss/_reset.scss'],
   extends: [
     'stylelint-config-recommended-scss',
-    '@double-great/stylelint-a11y/recommended',
+    '@double-great/stylelint-a11y/recommended.cjs',
     'stylelint-config-prettier',
   ],
   plugins: [
@@ -23,6 +23,7 @@ module.exports = {
   rules: {
     'color-named': 'never',
     'color-no-hex': true,
+    'keyframe-block-no-duplicate-selectors': null, // we use duplicate selectors on purpose - it's a thing
     'declaration-no-important': true,
     'declaration-colon-space-after': 'always',
     'declaration-empty-line-before': null,
@@ -53,7 +54,7 @@ module.exports = {
     'selector-class-pattern': '^((?!(-|_)\\2{1,})[a-z0-9\\-])*$',
     'selector-max-compound-selectors': 3,
     'selector-max-specificity': [
-      // setting for interim, try to lower especially last numer (id,class,type)
+      // setting for interim, try to lower especially last number (id,class,type)
       '0,3,3',
       { ignoreSelectors: ['/:.*/', '/^\\.-[^-].*/'] },
     ],
