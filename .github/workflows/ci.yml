@@ -184,7 +184,7 @@ jobs:
   publish:
     name: build and push to docker
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository == 'go-vela/ui'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'go-vela/ui'
     needs: [lint, elm-format, elm-test, integration]
 
     steps:
@@ -223,7 +223,7 @@ jobs:
       #  │││ ││  ├┴┐├┤ ├┬┘
       # ─┴┘└─┘└─┘┴ ┴└─┘┴└─
       - name: push to docker
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v4
         with:
           name: target/vela-ui
           cache: true
