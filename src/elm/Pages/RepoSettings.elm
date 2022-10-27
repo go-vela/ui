@@ -298,6 +298,11 @@ events repo msg =
                 repo.allow_pull
               <|
                 msg repo.org repo.name "allow_pull"
+            , checkbox "Pull Request Fork"
+                "allow_pull_fork"
+                repo.allow_pull_fork
+              <|
+                msg repo.org repo.name "allow_pull_fork"
             , checkbox "Tag"
                 "allow_tag"
                 repo.allow_tag
@@ -803,6 +808,7 @@ validEventsUpdate originalRepo repoUpdate =
         RemoteData.Success repo ->
             Maybe.withDefault repo.allow_push repoUpdate.allow_push
                 || Maybe.withDefault repo.allow_pull repoUpdate.allow_pull
+                || Maybe.withDefault repo.allow_pull_fork repoUpdate.allow_pull_fork
                 || Maybe.withDefault repo.allow_deploy repoUpdate.allow_deploy
                 || Maybe.withDefault repo.allow_tag repoUpdate.allow_tag
                 || Maybe.withDefault repo.allow_comment repoUpdate.allow_comment
@@ -842,6 +848,9 @@ msgPrefix field =
 
         "allow_pull" ->
             "Pull events for $ "
+
+        "allow_pull_fork" ->
+            "Pull Fork events for $ "
 
         "allow_push" ->
             "Push events for $ "
@@ -887,6 +896,9 @@ msgSuffix field repo =
 
         "allow_pull" ->
             toggleText "allow_pull" repo.allow_pull
+
+        "allow_pull_fork" ->
+            toggleText "allow_pull_fork" repo.allow_pull_fork
 
         "allow_push" ->
             toggleText "allow_push" repo.allow_push

@@ -16,6 +16,7 @@
     "trusted": true,
     "active": true,
     "allow_pull": false,
+    "allow_pull_fork": false,
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false
@@ -37,6 +38,7 @@
     "trusted": true,
     "active": false,
     "allow_pull": false,
+    "allow_pull_fork": false,
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false
@@ -58,6 +60,7 @@
     "trusted": true,
     "active": true,
     "allow_pull": false,
+    "allow_pull_fork": false,
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false
@@ -79,6 +82,7 @@
     "trusted": true,
     "active": true,
     "allow_pull": false,
+    "allow_pull_fork": false,
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false

@@ -192,6 +192,11 @@ viewEventsSelect secretUpdate =
                 (eventEnabled "pull_request" secretUpdate.events)
               <|
                 OnChangeEvent "pull_request"
+            , checkbox "Pull Request Fork"
+                "pull_request_fork"
+                (eventEnabled "pull_request_fork" secretUpdate.events)
+              <|
+                OnChangeEvent "pull_request_fork"
             , checkbox "Tag"
                 "tag"
                 (eventEnabled "tag" secretUpdate.events)

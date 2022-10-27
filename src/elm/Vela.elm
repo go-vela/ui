@@ -841,6 +841,7 @@ type alias Repository =
     , trusted : Bool
     , active : Bool
     , allow_pull : Bool
+    , allow_pull_fork : Bool
     , allow_push : Bool
     , allow_deploy : Bool
     , allow_tag : Bool
@@ -891,6 +892,7 @@ decodeRepository =
         |> optional "trusted" bool False
         |> optional "active" bool False
         |> optional "allow_pull" bool False
+        |> optional "allow_pull_fork" bool False
         |> optional "allow_push" bool False
         |> optional "allow_deploy" bool False
         |> optional "allow_tag" bool False
@@ -973,6 +975,7 @@ encodeEnableRepository repo =
         , ( "trusted", Encode.bool <| repo.trusted )
         , ( "active", Encode.bool <| repo.active )
         , ( "allow_pull", Encode.bool <| repo.allow_pull )
+        , ( "allow_pull_fork", Encode.bool <| repo.allow_pull_fork )
         , ( "allow_push", Encode.bool <| repo.allow_push )
         , ( "allow_deploy", Encode.bool <| repo.allow_deploy )
         , ( "allow_tag", Encode.bool <| repo.allow_tag )
@@ -990,6 +993,7 @@ type alias EnableRepositoryPayload =
     , trusted : Bool
     , active : Bool
     , allow_pull : Bool
+    , allow_pull_fork : Bool
     , allow_push : Bool
     , allow_deploy : Bool
     , allow_tag : Bool
@@ -999,7 +1003,7 @@ type alias EnableRepositoryPayload =
 
 defaultEnableRepositoryPayload : EnableRepositoryPayload
 defaultEnableRepositoryPayload =
-    EnableRepositoryPayload "" "" "" "" "" False True True True True False False False
+    EnableRepositoryPayload "" "" "" "" "" False True True True False True False False False
 
 
 type alias UpdateRepositoryPayload =
@@ -1007,6 +1011,7 @@ type alias UpdateRepositoryPayload =
     , trusted : Maybe Bool
     , active : Maybe Bool
     , allow_pull : Maybe Bool
+    , allow_pull_fork : Maybe Bool
     , allow_push : Maybe Bool
     , allow_deploy : Maybe Bool
     , allow_tag : Maybe Bool
@@ -1025,7 +1030,7 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -1035,6 +1040,7 @@ encodeUpdateRepository repo =
         , ( "private", encodeOptional Encode.bool repo.private )
         , ( "trusted", encodeOptional Encode.bool repo.trusted )
         , ( "allow_pull", encodeOptional Encode.bool repo.allow_pull )
+        , ( "allow_pull_fork", encodeOptional Encode.bool repo.allow_pull_fork )
         , ( "allow_push", encodeOptional Encode.bool repo.allow_push )
         , ( "allow_deploy", encodeOptional Encode.bool repo.allow_deploy )
         , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
@@ -1081,6 +1087,9 @@ buildUpdateRepoBoolPayload field value =
 
         "allow_pull" ->
             { defaultUpdateRepositoryPayload | allow_pull = Just value }
+
+        "allow_pull_fork" ->
+            { defaultUpdateRepositoryPayload | allow_pull_fork = Just value }
 
         "allow_push" ->
             { defaultUpdateRepositoryPayload | allow_push = Just value }
