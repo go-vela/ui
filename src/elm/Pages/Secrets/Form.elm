@@ -197,6 +197,11 @@ viewEventsSelect secretUpdate =
                 (eventEnabled "tag" secretUpdate.events)
               <|
                 OnChangeEvent "tag"
+            , checkbox "Release"
+                "release"
+                (eventEnabled "release" secretUpdate.events)
+              <|
+                OnChangeEvent "release"
             , checkbox "Comment"
                 "comment"
                 (eventEnabled "comment" secretUpdate.events)
