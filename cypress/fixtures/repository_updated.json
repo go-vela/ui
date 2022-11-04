@@ -18,6 +18,7 @@
   "allow_push": false,
   "allow_deploy": true,
   "allow_tag": true,
+  "allow_release": false,
   "allow_comment": false,
   "pipeline_type": "yaml"
 }

@@ -19,6 +19,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   },
@@ -42,6 +43,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   },
@@ -65,6 +67,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   },
@@ -88,6 +91,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   },
@@ -111,6 +115,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   },
@@ -134,6 +139,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   },
@@ -157,6 +163,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   },
@@ -180,6 +187,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   },
@@ -203,6 +211,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   },
@@ -226,6 +235,7 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
+    "allow_release": false,
     "allow_comment": false,
     "pipeline_type": "yaml"
   }

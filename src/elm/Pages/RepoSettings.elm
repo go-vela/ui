@@ -303,6 +303,11 @@ events repo msg =
                 repo.allow_tag
               <|
                 msg repo.org repo.name "allow_tag"
+            , checkbox "Release"
+                "allow_release"
+                repo.allow_release
+              <|
+                msg repo.org repo.name "allow_release"
             , checkbox "Comment"
                 "allow_comment"
                 repo.allow_comment
@@ -805,6 +810,7 @@ validEventsUpdate originalRepo repoUpdate =
                 || Maybe.withDefault repo.allow_pull repoUpdate.allow_pull
                 || Maybe.withDefault repo.allow_deploy repoUpdate.allow_deploy
                 || Maybe.withDefault repo.allow_tag repoUpdate.allow_tag
+                || Maybe.withDefault repo.allow_release repoUpdate.allow_release
                 || Maybe.withDefault repo.allow_comment repoUpdate.allow_comment
 
         _ ->
@@ -851,6 +857,9 @@ msgPrefix field =
 
         "allow_tag" ->
             "Tag events for $ "
+
+        "allow_release" ->
+            "Release events for $ "
 
         "allow_comment" ->
             "Comment events for $ "
