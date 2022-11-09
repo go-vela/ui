@@ -999,7 +999,7 @@ type alias EnableRepositoryPayload =
 
 defaultEnableRepositoryPayload : EnableRepositoryPayload
 defaultEnableRepositoryPayload =
-    EnableRepositoryPayload "" "" "" "" "" False True True True True False False False
+    EnableRepositoryPayload "" "" "" "" "" False True True False True False False False
 
 
 type alias UpdateRepositoryPayload =

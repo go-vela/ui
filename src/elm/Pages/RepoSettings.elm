@@ -314,6 +314,9 @@ events repo msg =
               <|
                 msg repo.org repo.name "allow_deploy"
             ]
+        , div []
+            [ pullRequestEventWarning
+            ]
         ]
 
 
@@ -446,6 +449,21 @@ limitWarning maxLimit inLimit =
 
         Nothing ->
             text ""
+
+
+{-| pullRequestEventWarning : renders disclaimer for pull request exposure
+-}
+pullRequestEventWarning : Html msg
+pullRequestEventWarning =
+    p [ class "notice" ]
+        [ text "Disclaimer: Vela repos do NOT have the "
+        , strong [] [ text "pull_request" ]
+        , text " event enabled by default. For all public repositories, "
+        , strong [] [ text "any user" ]
+        , text ", even outside of the organization, can open a pull request, triggering a build. "
+        , strong [] [ text "The risks from this can include: changes to the pipeline, arbitrary code execution inside your environment, and exposure of Vela-accessible secrets in your repository." ]
+        , text " You can override this behavior, at your own risk."
+        ]
 
 
 {-| timeoutInput : takes repo, user input, and button action and renders the text input for updating build timeout.
