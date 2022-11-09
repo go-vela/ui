@@ -14,7 +14,7 @@
     "@fullhuman/postcss-purgecss": "5.0.0",
     "@parcel/transformer-elm": "2.7.0",
     "@parcel/transformer-sass": "2.7.0",
-    "axe-core": "4.4.3",
+    "axe-core": "4.5.1",
     "cypress": "5.6.0",
     "cypress-axe": "0.14.0",
     "elm": "0.19.1-5",
