@@ -11,7 +11,6 @@ module.exports = {
   extends: [
     'stylelint-config-recommended-scss',
     '@double-great/stylelint-a11y/recommended.cjs',
-    'stylelint-config-prettier',
   ],
   plugins: [
     'stylelint-color-format',
