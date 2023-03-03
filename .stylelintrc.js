@@ -11,7 +11,6 @@ module.exports = {
   extends: [
     'stylelint-config-recommended-scss',
     '@double-great/stylelint-a11y/recommended.cjs',
-    'stylelint-config-prettier',
   ],
   plugins: [
     'stylelint-color-format',
@@ -25,7 +24,6 @@ module.exports = {
     'color-no-hex': true,
     'keyframe-block-no-duplicate-selectors': null, // we use duplicate selectors on purpose - it's a thing
     'declaration-no-important': true,
-    'declaration-colon-space-after': 'always',
     'declaration-empty-line-before': null,
     'font-weight-notation': 'named-where-possible',
     'no-descending-specificity': null,
@@ -47,7 +45,6 @@ module.exports = {
       2,
       { ignore: ['blockless-at-rules', 'pseudo-classes'] },
     ],
-    'number-leading-zero': 'always',
     'length-zero-no-unit': true,
     // mostly disallows traditional BEM naming
     // since we're going for http://www.cutestrap.com/features/popsicle
