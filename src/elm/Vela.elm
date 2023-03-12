@@ -571,6 +571,23 @@ updateBuildStepsLogs update rm =
     { rm | build = { b | steps = { s | logs = update } } }
 
 
+updateBuildStepsTimestamps : Bool -> RepoModel -> RepoModel
+updateBuildStepsTimestamps update rm =
+    let
+        b =
+            rm.build
+
+        s =
+            b.steps
+
+
+        step =
+            b.steps
+    in
+    -- { rm | build = { b | steps = { s | followingStep = update } } }
+        rm
+
+
 updateBuilds : WebData Builds -> RepoModel -> RepoModel
 updateBuilds update rm =
     let
@@ -1454,6 +1471,7 @@ type alias Step =
     , distribution : String
     , image : String
     , viewing : Bool
+    , timestamps : Bool
     , logFocus : LogFocus
     }
 
@@ -1462,7 +1480,7 @@ type alias Step =
 -}
 defaultStep : Step
 defaultStep =
-    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" "" False ( Nothing, Nothing )
+    Step 0 0 0 0 "" "" Pending "" 0 0 0 0 "" "" "" "" False False ( Nothing, Nothing )
 
 
 {-| decodeStep : decodes json from vela into step
@@ -1487,6 +1505,8 @@ decodeStep =
         |> optional "distribution" string ""
         |> optional "image" string ""
         -- "viewing"
+        |> hardcoded False
+        -- "timestamps"
         |> hardcoded False
         -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
@@ -1517,6 +1537,7 @@ type alias Service =
     , distribution : String
     , image : String
     , viewing : Bool
+    , timestamps : Bool
     , logFocus : LogFocus
     }
 
@@ -1543,6 +1564,8 @@ decodeService =
         |> optional "image" string ""
         -- "viewing"
         |> hardcoded False
+        -- "timestamps"
+        |> hardcoded False
         -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
 
@@ -1565,6 +1588,7 @@ type alias Resource a =
         , number : Int
         , status : Status
         , viewing : Bool
+        , timestamps : Bool
         , logFocus : LogFocus
         , error : String
     }

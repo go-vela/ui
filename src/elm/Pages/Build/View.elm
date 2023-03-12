@@ -13,18 +13,19 @@ module Pages.Build.View exposing
 
 import Ansi.Log
 import Array
+import Bytes.Decode exposing (decode)
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
     exposing
-        ( Resource
-        , ResourceID
+        ( ResourceID
+        , ResourceType
         , lineFocusStyles
         , lineRangeId
         , resourceAndLineToFocusId
         , resourceToFocusId
         )
-import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, tr, ul)
+import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, time, tr, ul)
 import Html.Attributes
     exposing
         ( attribute
@@ -41,6 +42,7 @@ import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
         , decodeAnsi
+        , defaultLogModel
         , downloadFileName
         , getLog
         , isEmpty
@@ -56,6 +58,7 @@ import Pages.Build.Model
         , LogsMsgs
         , Msgs
         , PartialModel
+        , ToggleTimestampsResource
         )
 import RemoteData exposing (WebData)
 import Routes
@@ -72,6 +75,7 @@ import Vela
         , Org
         , Repo
         , RepoModel
+        , Resource
         , Service
         , Status
         , Step
@@ -520,9 +524,11 @@ viewStepLogs msgs shift rm step =
         _ ->
             viewLogLines msgs
                 msgs.followStep
+                msgs.toggleStepTimestamps
                 rm.org
                 rm.name
                 rm.build.buildNumber
+                step
                 "step"
                 (String.fromInt step.number)
                 step.logFocus
@@ -650,9 +656,11 @@ viewServiceLogs msgs shift rm service =
         _ ->
             viewLogLines msgs
                 msgs.followService
+                msgs.toggleStepTimestamps
                 rm.org
                 rm.name
                 rm.build.buildNumber
+                service
                 "service"
                 (String.fromInt service.number)
                 service.logFocus
@@ -667,8 +675,8 @@ viewServiceLogs msgs shift rm service =
 
 {-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource
 -}
-viewLogLines : LogsMsgs msg -> FollowResource msg -> Org -> Repo -> BuildNumber -> String -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
-viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus maybeLog following shiftDown =
+viewLogLines : LogsMsgs msg -> FollowResource msg -> ToggleTimestampsResource msg -> Org -> Repo -> BuildNumber -> Resource a -> ResourceType -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
+viewLogLines msgs followMsg toggleTimestampsMsg org repo buildNumber resource resourceType resourceID logFocus maybeLog following shiftDown =
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ resourceID
@@ -678,13 +686,13 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
             RemoteData.Success l ->
                 let
                     fileName =
-                        downloadFileName org repo buildNumber resource resourceID
+                        downloadFileName org repo buildNumber resourceType resourceID
 
                     ( logs, numLines ) =
-                        viewLines msgs.focusLine resource resourceID logFocus l.decodedLogs shiftDown
+                        viewLines msgs.focusLine resource resourceType resourceID logFocus l.decodedLogs shiftDown
                 in
-                [ logsHeader msgs resource resourceID fileName l
-                , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
+                [ logsHeader msgs resourceType resourceID fileName l
+                , logsSidebar msgs.focusOn followMsg toggleTimestampsMsg resource resourceType resourceID following numLines
                 , logs
                 ]
 
@@ -695,26 +703,70 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
                 [ loadingLogs ]
 
 
+type alias LogLine msg =
+    { timestamp : Maybe String
+    , ansiDecoded : Html.Html msg
+    }
+
+
+renderLine : Ansi.Log.Model -> Html msg
+renderLine m =
+    let
+        l =
+            case List.head <| Array.toList m.lines of
+                Just ll ->
+                    Ansi.Log.viewLine ll
+
+                _ ->
+                    text ""
+    in
+    l
+
+
+decodeMetadata : String -> String -> List (LogLine msg)
+decodeMetadata parseCode log =
+    log
+        |> String.split "\n"
+        |> List.map
+            (\log_ ->
+                let
+                    ( l, ts ) =
+                        case String.split parseCode log_ of
+                            timestamp :: data :: _ ->
+                                -- let
+                                --      _ =Debug.log "timestamp" timestamp
+                                --      _ =Debug.log "folded data" ( data)
+                                --      _ =Debug.log "folded data" (List.foldl (++) "" data)
+                                -- in
+                                ( renderLine (Ansi.Log.update data defaultLogModel), Just timestamp )
+
+                            _ ->
+                                ( renderLine (Ansi.Log.update log_ defaultLogModel), Nothing )
+                in
+                LogLine ts l
+            )
+
+
 {-| viewLines : takes number, line focus information and click action and renders logs
 -}
-viewLines : FocusLine msg -> Resource -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
-viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
+viewLines : FocusLine msg -> Resource a -> ResourceType -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
+viewLines focusLine resource resourceType resourceID logFocus decodedLog shiftDown =
     let
         lines =
             decodedLog
-                |> decodeAnsi
-                |> Array.indexedMap
+                |> decodeMetadata "##[]"
+                |> List.indexedMap
                     (\idx line ->
                         Just <|
                             viewLine focusLine
                                 resource
+                                resourceType
                                 resourceID
                                 (idx + 1)
-                                (Just line)
+                                line
                                 logFocus
                                 shiftDown
                     )
-                |> Array.toList
 
         -- update resource filename when adding stages/services
         logs =
@@ -725,7 +777,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        topTrackerFocusId resource resourceID
+                        topTrackerFocusId resourceType resourceID
                     , Util.testAttribute <| "top-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
@@ -736,7 +788,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        bottomTrackerFocusId resource resourceID
+                        bottomTrackerFocusId resourceType resourceID
                     , Util.testAttribute <| "bottom-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
@@ -753,8 +805,8 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : FocusLine msg -> Resource -> ResourceID -> Int -> Maybe Ansi.Log.Line -> LogFocus -> Bool -> Html msg
-viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
+viewLine : FocusLine msg -> Resource a -> ResourceType -> ResourceID -> Int -> LogLine msg -> LogFocus -> Bool -> Html msg
+viewLine focusLine resource resourceType resourceID lineNumber ll logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             resourceID
@@ -762,30 +814,35 @@ viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
                 ++ String.fromInt lineNumber
         , class "line"
         ]
-        [ case line of
-            Just l ->
-                div
-                    [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, resourceID, String.fromInt lineNumber ]
-                    , class <| lineFocusStyles logFocus lineNumber
+        [ div
+            [ class "wrapper"
+            , Util.testAttribute <| String.join "-" [ "log", "line", resourceType, resourceID, String.fromInt lineNumber ]
+            , class <| lineFocusStyles logFocus lineNumber
+            ]
+            [ td []
+                [ lineFocusButton focusLine resourceType resourceID logFocus lineNumber shiftDown ]
+            , td [ class "break-text", class "overflow-auto" ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceType, resourceID, String.fromInt lineNumber ] ]
+                    [ ll.ansiDecoded
                     ]
-                    [ td []
-                        [ lineFocusButton focusLine resource resourceID logFocus lineNumber shiftDown ]
-                    , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, resourceID, String.fromInt lineNumber ] ]
-                            [ Ansi.Log.viewLine l
-                            ]
-                        ]
-                    ]
+                ]
+            , if resource.timestamps then
+                case ll.timestamp of
+                    Just timestamp ->
+                        td [ class "log-timestamp-wrapper" ] [ text timestamp ]
 
-            Nothing ->
+                    Nothing ->
+                        text ""
+
+              else
                 text ""
+            ]
         ]
 
 
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
-lineFocusButton : (String -> msg) -> Resource -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
+lineFocusButton : (String -> msg) -> ResourceType -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
 lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
@@ -837,8 +894,8 @@ logsHeader msgs resource number fileName log =
 
 {-| logsSidebar : takes number/following and renders the logs sidebar
 -}
-logsSidebar : FocusOn msg -> FollowResource msg -> String -> String -> Int -> Int -> Html msg
-logsSidebar focusOn followMsg resource number following numLines =
+logsSidebar : FocusOn msg -> FollowResource msg -> ToggleTimestampsResource msg -> Resource a -> ResourceType -> ResourceID -> Int -> Int -> Html msg
+logsSidebar focusOn followMsg toggleTimestampsMsg resource resourceType resourceID following numLines =
     let
         long =
             numLines > 25
@@ -847,18 +904,20 @@ logsSidebar focusOn followMsg resource number following numLines =
         [ div [ class "inner-container" ]
             [ div
                 [ class "actions"
-                , Util.testAttribute <| "logs-sidebar-actions-" ++ number
+                , Util.testAttribute <| "logs-sidebar-actions-" ++ resourceID
                 ]
               <|
                 (if long then
-                    [ jumpToTopButton focusOn resource number
-                    , jumpToBottomButton focusOn resource number
+                    [ jumpToTopButton focusOn resourceType resourceID
+                    , jumpToBottomButton focusOn resourceType resourceID
                     ]
 
                  else
                     []
                 )
-                    ++ [ followButton followMsg resource number following ]
+                    ++ [ followButton followMsg resourceType resourceID following
+                       , toggleTimestamps toggleTimestampsMsg resource resourceType resourceID
+                       ]
             ]
         ]
 
@@ -942,6 +1001,29 @@ followButton followStep resource number following =
         , Util.testAttribute <| "follow-logs-" ++ number
         , onClick <| followStep toFollow
         , attribute "aria-label" <| tooltip ++ " for " ++ resource ++ " " ++ number
+        ]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+
+{-| toggleTimestamps : renders button for toggling log line timestamps
+-}
+toggleTimestamps : ToggleTimestampsResource msg -> Resource a -> ResourceType -> ResourceID -> Html msg
+toggleTimestamps toggleTimestampsMsg resource resourceType resourceID =
+    let
+        ( tooltip, icon ) =
+            if resource.timestamps then
+                ( "hide timestamps", FeatherIcons.eyeOff )
+            else
+                ( "show timestamps", FeatherIcons.eye )
+    in
+    button
+        [ class "button"
+        , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" tooltip
+        , Util.testAttribute <| "show-hide-logs-timestamps" ++ resourceID
+        , onClick <| toggleTimestampsMsg resourceID False
+        , attribute "aria-label" <| tooltip ++ " for " ++ resourceType ++ " " ++ resourceID
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 

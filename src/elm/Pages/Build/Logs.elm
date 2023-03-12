@@ -10,9 +10,12 @@ module Pages.Build.Logs exposing
     , clickResource
     , decodeAnsi
     , downloadFileName
+    , clickResourceTimestamps
+    ,defaultLogModel
     , expandActive
     , focusAndClear
     , getLog
+    , toggleTimestamps
     , isEmpty
     , isViewing
     , merge
@@ -54,6 +57,19 @@ clickResource resources resourceID =
             (\resources_ ->
                 ( toggleView resourceID resources_ |> RemoteData.succeed
                 , True
+                )
+            )
+
+
+
+{-| clickResourceTimestamps : takes resources and resource number, toggles resource view state, and returns the modified resources
+-}
+clickResourceTimestamps : WebData (Resources a) -> String -> ( WebData (Resources a) )
+clickResourceTimestamps resources resourceID =
+    resources
+        |> RemoteData.unwrap ( resources )
+            (\resources_ ->
+                ( toggleTimestamps resourceID resources_ |> RemoteData.succeed
                 )
             )
 
@@ -112,6 +128,15 @@ toggleView number =
     List.Extra.updateIf
         (\resource -> String.fromInt resource.number == number)
         (\resource -> { resource | viewing = not resource.viewing })
+
+
+{-| toggleTimestamps : takes resources and resource number and toggles that resource timestamp state
+-}
+toggleTimestamps : String -> Resources a -> Resources a
+toggleTimestamps number =
+    List.Extra.updateIf
+        (\resource -> String.fromInt resource.number == number)
+        (\resource -> { resource | timestamps = not resource.timestamps })
 
 
 {-| setAllViews : takes resources and value and sets all resources viewing state

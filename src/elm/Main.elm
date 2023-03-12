@@ -81,6 +81,7 @@ import Pages.Build.Logs
         ( addLog
         , bottomTrackerFocusId
         , clickResource
+        , clickResourceTimestamps
         , expandActive
         , focusAndClear
         , isViewing
@@ -469,6 +470,8 @@ type Msg
     | OnKeyUp String
     | VisibilityChanged Visibility
     | PushUrl String
+      -- vader
+    | StepTimestamps StepNumber Bool
       -- NoOp
     | NoOp
 
@@ -2008,6 +2011,20 @@ update msg model =
         PushUrl url ->
             ( model
             , Navigation.pushUrl model.navigationKey url
+            )
+
+        -- vader
+        StepTimestamps stepNumber show ->
+            let
+                build =
+                    rm.build
+
+                steps =
+                    clickResourceTimestamps build.steps.steps stepNumber
+                _ = Debug.log "yo" "we togglin'3"
+            in
+            ( { model | repo = rm |> updateBuildSteps steps }
+            , Cmd.none
             )
 
         -- NoOp
@@ -4108,6 +4125,7 @@ buildMsgs =
         , focusOn = FocusOn
         , followStep = FollowStep
         , followService = FollowService
+        , toggleStepTimestamps = StepTimestamps
         }
     }
 

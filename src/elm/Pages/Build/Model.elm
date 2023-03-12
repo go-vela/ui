@@ -9,6 +9,7 @@ module Pages.Build.Model exposing
     , Expand
     , ExpandAll
     , FocusLine
+    , ToggleTimestampsResource
     , FocusOn
     , FollowResource
     , LogsMsgs
@@ -20,7 +21,7 @@ import Browser.Navigation as Navigation
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
-import Vela exposing (BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoModel, SourceRepositories)
+import Vela exposing (BuildNumber, CurrentUser, Org, PipelineModel, StepNumber, Repo, RepoModel, SourceRepositories)
 
 
 
@@ -68,6 +69,7 @@ type alias LogsMsgs msg =
     , focusOn : FocusOn msg
     , followStep : FollowResource msg
     , followService : FollowResource msg
+    , toggleStepTimestamps : ToggleTimestampsResource msg 
     }
 
 
@@ -89,6 +91,9 @@ type alias Expand msg =
 
 type alias FollowResource msg =
     Int -> msg
+
+type alias ToggleTimestampsResource msg =
+    StepNumber -> Bool -> msg
 
 
 type alias FocusLine msg =
