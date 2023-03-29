@@ -1507,7 +1507,7 @@ decodeStep =
         -- "viewing"
         |> hardcoded False
         -- "timestamps"
-        |> hardcoded False
+        |> hardcoded True
         -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
 
@@ -1565,7 +1565,7 @@ decodeService =
         -- "viewing"
         |> hardcoded False
         -- "timestamps"
-        |> hardcoded False
+        |> hardcoded True
         -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
 

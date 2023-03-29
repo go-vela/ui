@@ -829,7 +829,7 @@ viewLine focusLine resource resourceType resourceID lineNumber ll logFocus shift
             , if resource.timestamps then
                 case ll.timestamp of
                     Just timestamp ->
-                        td [ class "log-timestamp-wrapper" ] [ text timestamp ]
+                        td [ class "log-timestamp-wrapper" ] [ code [class "log-timestamp"] [text timestamp] ]
 
                     Nothing ->
                         text ""
