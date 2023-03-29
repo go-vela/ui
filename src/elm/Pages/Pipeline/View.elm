@@ -221,20 +221,11 @@ viewPipelineActions model get expand download =
         toggle =
             case model.repo.build.build of
                 Success build ->
-                    case model.templates.data of
-                        Success templates ->
-                            if Dict.size templates > 0 then
-                                div [ class "action", class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
-                                    [ expandTemplatesToggleButton model build.commit get expand
-                                    , expandTemplatesToggleIcon pipeline
-                                    , expandTemplatesTip
-                                    ]
-
-                            else
-                                text ""
-
-                        _ ->
-                            text ""
+                    div [ class "action", class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
+                        [ expandTemplatesToggleButton model build.commit get expand
+                        , expandTemplatesToggleIcon pipeline
+                        , expandTemplatesTip
+                        ]
 
                 _ ->
                     text ""
@@ -320,13 +311,13 @@ expandTemplatesToggleButton model ref get expand =
         [ class "button"
         , class "-link"
         , Util.onClickPreventDefault <| action
-        , Util.testAttribute "pipeline-templates-expand-toggle"
+        , Util.testAttribute "pipeline-expand-toggle"
         ]
         [ if pipeline.expanded then
             text "revert template expansion"
 
           else
-            text "expand templates"
+            text "expand pipeline"
         ]
 
 

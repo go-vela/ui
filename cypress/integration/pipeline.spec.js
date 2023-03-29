@@ -42,8 +42,8 @@ context('Pipeline', () => {
       cy.get('[data-test=pipeline-templates]').should('not.be.visible');
     });
 
-    it('expand templates should not be visible', () => {
-      cy.get('[data-test=pipeline-templates-expand]').should('not.be.visible');
+    it('expand pipeline should be visible', () => {
+      cy.get('[data-test=pipeline-templates-expand]').should('be.visible');
     });
 
     it('pipeline configuration data should show', () => {
@@ -93,7 +93,7 @@ context('Pipeline', () => {
 
       context('click expand templates', () => {
         beforeEach(() => {
-          cy.get('[data-test=pipeline-templates-expand-toggle]').click({
+          cy.get('[data-test=pipeline-expand-toggle]').click({
             force: true,
           });
         });
@@ -105,7 +105,7 @@ context('Pipeline', () => {
         });
 
         it('should show revert expansion button', () => {
-          cy.get('[data-test=pipeline-templates-expand-toggle]').contains(
+          cy.get('[data-test=pipeline-expand-toggle]').contains(
             'revert',
           );
         });
@@ -271,9 +271,9 @@ context('Pipeline', () => {
           .children()
           .should('be.visible');
       });
-      context('click expand templates', () => {
+      context('click expand pipeline', () => {
         beforeEach(() => {
-          cy.get('[data-test=pipeline-templates-expand-toggle]').click({
+          cy.get('[data-test=pipeline-expand-toggle]').click({
             force: true,
           });
         });
@@ -297,9 +297,9 @@ context('Pipeline', () => {
           );
         });
 
-        context('click expand templates again', () => {
+        context('click expand pipeline again', () => {
           beforeEach(() => {
-            cy.get('[data-test=pipeline-templates-expand-toggle]').click({
+            cy.get('[data-test=pipeline-expand-toggle]').click({
               force: true,
             });
           });
