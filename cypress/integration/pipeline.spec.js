@@ -105,9 +105,7 @@ context('Pipeline', () => {
         });
 
         it('should show revert expansion button', () => {
-          cy.get('[data-test=pipeline-expand-toggle]').contains(
-            'revert',
-          );
+          cy.get('[data-test=pipeline-expand-toggle]').contains('revert');
         });
 
         it('pipeline configuration data should show', () => {
