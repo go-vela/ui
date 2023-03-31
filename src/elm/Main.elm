@@ -2117,29 +2117,42 @@ refreshSubscriptions model =
 -}
 refreshFavicon : Page -> Favicon -> WebData Build -> ( Favicon, Cmd Msg )
 refreshFavicon page currentFavicon build =
-    case page of
-        Pages.Build _ _ _ _ ->
-            case build of
-                RemoteData.Success b ->
-                    let
-                        newFavicon =
-                            statusToFavicon b.status
-                    in
-                    if currentFavicon /= newFavicon then
-                        ( newFavicon, Interop.setFavicon <| Encode.string newFavicon )
+    let
+        onBuild =
+            case page of
+                Pages.Build _ _ _ _ ->
+                    True
 
-                    else
-                        ( currentFavicon, Cmd.none )
+                Pages.BuildServices _ _ _ _ ->
+                    True
+
+                Pages.BuildPipeline _ _ _ _ _ ->
+                    True
 
                 _ ->
+                    False
+    in
+    if onBuild then
+        case build of
+            RemoteData.Success b ->
+                let
+                    newFavicon =
+                        statusToFavicon b.status
+                in
+                if currentFavicon /= newFavicon then
+                    ( newFavicon, Interop.setFavicon <| Encode.string newFavicon )
+
+                else
                     ( currentFavicon, Cmd.none )
 
-        _ ->
-            if currentFavicon /= defaultFavicon then
-                ( defaultFavicon, Interop.setFavicon <| Encode.string defaultFavicon )
-
-            else
+            _ ->
                 ( currentFavicon, Cmd.none )
+
+    else if currentFavicon /= defaultFavicon then
+        ( defaultFavicon, Interop.setFavicon <| Encode.string defaultFavicon )
+
+    else
+        ( currentFavicon, Cmd.none )
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
