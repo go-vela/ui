@@ -7,9 +7,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Hooks exposing (view)
 
 import Ansi.Log
-import Api
 import Array
-import Errors exposing (viewResourceError)
 import Html
     exposing
         ( Html
@@ -17,6 +15,7 @@ import Html
         , code
         , div
         , small
+        , span
         , td
         , text
         , tr
@@ -28,6 +27,7 @@ import Html.Attributes
         , href
         , scope
         )
+import Http
 import Pages.Build.Logs exposing (decodeAnsi)
 import RemoteData
 import SvgBuilder exposing (hookStatusToIcon)
@@ -67,28 +67,45 @@ type alias RedeliverHook msg =
 -}
 view : PartialModel -> RedeliverHook msg -> Html msg
 view { hooks, time, org, repo } redeliverHook =
-    case hooks.hooks of
-        RemoteData.Success hooks_ ->
-            div []
-                [ Table.view
-                    (Table.Config
-                        "Hooks"
-                        "hooks"
-                        (text "No hooks found for this organization/repo")
-                        tableHeaders
-                        (hooksToRows time hooks_ org repo redeliverHook)
-                        Nothing
+    let
+        ( noRowsView, rows ) =
+            case hooks.hooks of
+                RemoteData.Success hooks_ ->
+                    ( text "No hooks found for this repo"
+                    , hooksToRows time hooks_ org repo redeliverHook
                     )
-                ]
 
-        RemoteData.Loading ->
-            Util.largeLoader
+                RemoteData.Failure error ->
+                    ( span [ Util.testAttribute "hooks-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No hooks found for this repo, most likely due to not having sufficient permissions to the source control repo"
 
-        RemoteData.NotAsked ->
-            Util.largeLoader
+                                        _ ->
+                                            "No hooks found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
-        RemoteData.Failure _ ->
-            viewResourceError { resourceLabel = "hooks for this repository", testLabel = "hooks" }
+                                _ ->
+                                    "No hooks found for this repo, there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                _ ->
+                    ( Util.largeLoader, [] )
+
+        cfg =
+            Table.Config
+                "Hooks"
+                "hooks"
+                noRowsView
+                tableHeaders
+                rows
+                Nothing
+    in
+    div [] [ Table.view cfg ]
 
 
 {-| hooksToRows : takes list of hooks and produces list of Table rows
