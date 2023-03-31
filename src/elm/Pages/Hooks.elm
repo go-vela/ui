@@ -74,7 +74,7 @@ view { hooks, time, org, repo } redeliverHook =
                     (Table.Config
                         "Hooks"
                         "hooks"
-                        "No hooks found for this organization/repo"
+                        (text "No hooks found for this organization/repo")
                         tableHeaders
                         (hooksToRows time hooks_ org repo redeliverHook)
                         Nothing
