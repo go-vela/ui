@@ -3135,6 +3135,9 @@ loadRepoSubPage model org repo toPage =
         fetchSecrets o r =
             Cmd.batch [ getAllRepoSecrets model "native" o r, getAllOrgSecrets model "native" o ]
 
+        _ =
+            Debug.log "toPage" toPage
+
         -- update model and dispatch cmds depending on initialization state and destination
         ( loadModel, loadCmd ) =
             -- repo data has not been initialized or org/repo has changed
@@ -3281,6 +3284,9 @@ loadRepoSubPage model org repo toPage =
 
                     Pages.RepoSettings o r ->
                         ( model, getRepo model o r )
+
+                    Pages.PromoteDeployment o r deploymentNumber ->
+                        ( model, getDeployment model o r deploymentNumber )
 
                     -- page is not a repo subpage
                     _ ->
