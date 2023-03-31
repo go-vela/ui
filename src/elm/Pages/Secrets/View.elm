@@ -77,7 +77,7 @@ viewRepoSecrets model =
                         Http.BadStatus statusCode ->
                             case statusCode of
                                 401 ->
-                                    ( text "No secrets found for this repo, most likely due to not being an admin of the source control repo.", [] )
+                                    ( text "No secrets found for this repo, most likely due to not being an admin of the source control repo", [] )
 
                                 _ ->
                                     ( text <| "No secrets found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")", [] )
@@ -160,7 +160,7 @@ viewOrgSecrets model showManage showAdd =
                         Http.BadStatus statusCode ->
                             case statusCode of
                                 401 ->
-                                    ( text "No secrets found for this org, most likely due to not being an admin of the source control org.", [] )
+                                    ( text "No secrets found for this org, most likely due to not being an admin of the source control org", [] )
 
                                 _ ->
                                     ( text <| "No secrets found for this org, there was an error with the server (" ++ String.fromInt statusCode ++ ")", [] )
@@ -243,7 +243,7 @@ viewSharedSecrets model showManage showAdd =
                         Http.BadStatus statusCode ->
                             case statusCode of
                                 401 ->
-                                    ( text "No shared secrets found for this org/team, most likely due to not being an admin of the source control org.", [] )
+                                    ( text "No shared secrets found for this org/team, most likely due to not being an admin of the source control org", [] )
 
                                 _ ->
                                     ( text <| "No shared secrets found for this org/team, there was an error with the server (" ++ String.fromInt statusCode ++ ")", [] )
