@@ -133,7 +133,7 @@ context('Secrets', () => {
     it('error banner should show', () => {
       cy.get('[data-test=org-secrets-error]')
         .should('exist')
-        .contains('try again later');
+        .contains('there was an error');
     });
   });
   context('server returning 5 secrets', () => {
