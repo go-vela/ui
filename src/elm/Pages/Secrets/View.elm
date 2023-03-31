@@ -259,7 +259,7 @@ viewSharedSecrets model showManage showAdd =
                 "Shared Secrets"
                 "shared-secrets"
                 noRowsView
-                tableHeaders
+                tableHeadersForSharedSecrets
                 rows
                 actions
     in
