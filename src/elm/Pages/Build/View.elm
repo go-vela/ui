@@ -254,6 +254,14 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                     , text <| ")"
                     ]
 
+                "deployment" ->
+                    [ repoLink
+                    , text <| String.replace "_" " " build.event
+                    , text " ("
+                    , a [ href <| Util.buildRefURL build.clone build.commit ] [ text <| Util.trimCommitHash build.commit ]
+                    , text <| ")"
+                    ]
+
                 _ ->
                     [ repoLink
                     , text <| String.replace "_" " " build.event
@@ -263,7 +271,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                     ]
 
         branch =
-            [ a [ href <| Util.buildBranchUrl build.clone build.branch ] [ text build.branch ] ]
+            [ a [ href <| Util.buildRefURL build.clone build.branch ] [ text build.branch ] ]
 
         sender =
             [ text build.sender ]
