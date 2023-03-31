@@ -255,7 +255,7 @@ viewSharedSecrets model showManage showAdd =
                                 Http.BadStatus statusCode ->
                                     case statusCode of
                                         401 ->
-                                            "No shared secrets found for this org/team, most likely due to not being an admin of the source control org"
+                                            "No shared secrets found for this org/team, it is likely that no teams exist or you are not an admin of the source control org"
 
                                         _ ->
                                             "No shared secrets found for this org/team, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
