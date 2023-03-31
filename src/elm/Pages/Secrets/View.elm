@@ -73,17 +73,22 @@ viewRepoSecrets model =
                     )
 
                 Failure error ->
-                    case error of
-                        Http.BadStatus statusCode ->
-                            case statusCode of
-                                401 ->
-                                    ( text "No secrets found for this repo, most likely due to not being an admin of the source control repo", [] )
+                    ( span [ Util.testAttribute "repo-secrets-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No secrets found for this repo, most likely due to not being an admin of the source control repo"
+
+                                        _ ->
+                                            "No secrets found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
-                                    ( text <| "No secrets found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")", [] )
-
-                        _ ->
-                            ( text <| "No secrets found for this repo, there was an error with the server", [] )
+                                    "No secrets found for this repo, there was an error with the server"
+                        ]
+                    , []
+                    )
 
                 _ ->
                     ( largeLoader, [] )
@@ -156,17 +161,22 @@ viewOrgSecrets model showManage showAdd =
                     )
 
                 Failure error ->
-                    case error of
-                        Http.BadStatus statusCode ->
-                            case statusCode of
-                                401 ->
-                                    ( text "No secrets found for this org, most likely due to not being an admin of the source control org", [] )
+                    ( span [ Util.testAttribute "org-secrets-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No secrets found for this org, most likely due to not being an admin of the source control org"
+
+                                        _ ->
+                                            "No secrets found for this org, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
-                                    ( text <| "No secrets found for this org, there was an error with the server (" ++ String.fromInt statusCode ++ ")", [] )
-
-                        _ ->
-                            ( text <| "No secrets found for this org, there was an error with the server", [] )
+                                    "No secrets found for this org, there was an error with the server"
+                        ]
+                    , []
+                    )
 
                 _ ->
                     ( largeLoader, [] )
@@ -239,17 +249,22 @@ viewSharedSecrets model showManage showAdd =
                     )
 
                 Failure error ->
-                    case error of
-                        Http.BadStatus statusCode ->
-                            case statusCode of
-                                401 ->
-                                    ( text "No shared secrets found for this org/team, most likely due to not being an admin of the source control org", [] )
+                    ( span [ Util.testAttribute "shared-secrets-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No shared secrets found for this org/team, most likely due to not being an admin of the source control org"
+
+                                        _ ->
+                                            "No shared secrets found for this org/team, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
-                                    ( text <| "No shared secrets found for this org/team, there was an error with the server (" ++ String.fromInt statusCode ++ ")", [] )
-
-                        _ ->
-                            ( text <| "No shared secrets found for this org/team, there was an error with the server", [] )
+                                    "No shared secrets found for this org/team, there was an error with the server"
+                        ]
+                    , []
+                    )
 
                 _ ->
                     ( largeLoader, [] )
