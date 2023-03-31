@@ -273,7 +273,6 @@ secretsToRows type_ secrets =
     List.map (\secret -> Table.Row (addKey secret) (renderSecret type_)) secrets
 
 
-
 {-| secretsToRowsForSharedSecrets : takes list of shared secrets and produces list of Table rows
 -}
 secretsToRowsForSharedSecrets : SecretType -> Secrets -> Table.Rows Secret Msg
