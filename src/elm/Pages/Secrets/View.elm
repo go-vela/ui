@@ -235,7 +235,7 @@ viewSharedSecrets model showManage showAdd =
             case secretsModel.sharedSecrets of
                 Success s ->
                     ( text "No shared secrets found for this org/team"
-                    , secretsToRows Vela.SharedSecret s
+                    , secretsToRowsForSharedSecrets Vela.SharedSecret s
                     )
 
                 Failure error ->
@@ -271,6 +271,14 @@ viewSharedSecrets model showManage showAdd =
 secretsToRows : SecretType -> Secrets -> Table.Rows Secret Msg
 secretsToRows type_ secrets =
     List.map (\secret -> Table.Row (addKey secret) (renderSecret type_)) secrets
+
+
+
+{-| secretsToRowsForSharedSecrets : takes list of shared secrets and produces list of Table rows
+-}
+secretsToRowsForSharedSecrets : SecretType -> Secrets -> Table.Rows Secret Msg
+secretsToRowsForSharedSecrets type_ secrets =
+    List.map (\secret -> Table.Row (addKey secret) (renderSharedSecret type_)) secrets
 
 
 {-| tableHeaders : returns table headers for secrets table
