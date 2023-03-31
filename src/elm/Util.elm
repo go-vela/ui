@@ -10,7 +10,7 @@ module Util exposing
     , attrIf
     , base64Decode
     , boolToYesNo
-    , buildBranchUrl
+    , buildRefURL
     , dispatch
     , extractFocusIdFromRange
     , filterEmptyList
@@ -481,11 +481,11 @@ pageToString maybePage =
                 ""
 
 
-{-| buildBranchUrl : drops '.git' off the clone url and concatenates tree + branch ref
+{-| buildRefURL : drops '.git' off the clone url and concatenates tree + ref
 -}
-buildBranchUrl : String -> String -> String
-buildBranchUrl clone branch =
-    String.dropRight 4 clone ++ "/tree/" ++ branch
+buildRefURL : String -> String -> String
+buildRefURL clone ref =
+    String.dropRight 4 clone ++ "/tree/" ++ ref
 
 
 {-| trimCommitHash : takes the first 7 characters of the full commit hash
