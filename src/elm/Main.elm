@@ -4050,6 +4050,20 @@ receiveSecrets model response type_ =
                 e =
                     toFailure error
 
+                -- only show error toasty for 500 error
+                showError =
+                    case error of
+                        Http.Detailed.BadStatus meta _ ->
+                            case meta.statusCode of
+                                500 ->
+                                    addError error
+
+                                _ ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+
                 sm =
                     case type_ of
                         Vela.RepoSecret ->
@@ -4061,7 +4075,7 @@ receiveSecrets model response type_ =
                         Vela.SharedSecret ->
                             { secretsModel | sharedSecrets = e }
             in
-            ( { model | secretsModel = sm }, addError error )
+            ( { model | secretsModel = sm }, showError )
 
 
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
