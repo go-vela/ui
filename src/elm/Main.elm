@@ -3135,9 +3135,6 @@ loadRepoSubPage model org repo toPage =
         fetchSecrets o r =
             Cmd.batch [ getAllRepoSecrets model "native" o r, getAllOrgSecrets model "native" o ]
 
-        _ =
-            Debug.log "toPage" toPage
-
         -- update model and dispatch cmds depending on initialization state and destination
         ( loadModel, loadCmd ) =
             -- repo data has not been initialized or org/repo has changed
