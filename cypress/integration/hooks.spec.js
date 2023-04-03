@@ -25,7 +25,7 @@ context('Hooks', () => {
     it('error banner should show', () => {
       cy.get('[data-test=hooks-error]')
         .should('exist')
-        .contains('try again later');
+        .contains('there was an error');
     });
   });
   context('server returning 5 hooks', () => {
