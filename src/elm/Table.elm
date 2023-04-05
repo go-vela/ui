@@ -65,7 +65,7 @@ type alias Rows data msg =
 type alias Config data msg =
     { label : String
     , testLabel : String
-    , noRows : String
+    , noRows : Html msg
     , columns : Columns
     , rows : Rows data msg
     , headerElement : Maybe (Html msg)
@@ -79,6 +79,9 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
     let
         numRows =
             List.length rows
+
+        numColumns =
+            List.length columns
     in
     Html.table [ class "table-base", Util.testAttribute <| testLabel ++ "-table" ]
         [ Html.caption []
@@ -88,17 +91,17 @@ view { label, testLabel, noRows, columns, rows, headerElement } =
                 ]
             ]
         , thead [] [ tr [] <| List.map (\( className, col ) -> th [ class <| Maybe.withDefault "" className, scope "col" ] [ text <| String.Extra.toTitleCase col ]) columns ]
-        , footer noRows numRows
+        , footer noRows numRows numColumns
         , tbody [] <| List.map (\row_ -> row_.display row_.data) rows
         ]
 
 
 {-| footer : renders data table footer
 -}
-footer : String -> Int -> Html msg
-footer noRows numRows =
+footer : Html msg -> Int -> Int -> Html msg
+footer noRows numRows numColumns =
     if numRows == 0 then
-        Html.tfoot [ class "no-rows" ] [ tr [] [ td [ attribute "colspan" "5" ] [ text noRows ] ] ]
+        Html.tfoot [ class "no-rows" ] [ tr [] [ td [ attribute "colspan" <| String.fromInt numColumns ] [ noRows ] ] ]
 
     else
         text ""

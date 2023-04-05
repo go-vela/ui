@@ -125,6 +125,7 @@ import Vela
     exposing
         ( AuthParams
         , Build
+        , BuildModel
         , BuildNumber
         , Builds
         , CurrentUser
@@ -2252,7 +2253,7 @@ refreshBuild model org repo buildNumber =
         refresh =
             getBuild model org repo buildNumber
     in
-    if shouldRefresh model.repo.build.build then
+    if shouldRefresh model.repo.build then
         refresh
 
     else
@@ -2263,7 +2264,7 @@ refreshBuild model org repo buildNumber =
 -}
 refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefresh model.repo.build.build then
+    if shouldRefresh model.repo.build then
         getAllBuildSteps model org repo buildNumber focusFragment True
 
     else
@@ -2274,7 +2275,7 @@ refreshBuildSteps model org repo buildNumber focusFragment =
 -}
 refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildServices model org repo buildNumber focusFragment =
-    if shouldRefresh model.repo.build.build then
+    if shouldRefresh model.repo.build then
         getAllBuildServices model org repo buildNumber focusFragment True
 
     else
@@ -2283,16 +2284,46 @@ refreshBuildServices model org repo buildNumber focusFragment =
 
 {-| shouldRefresh : takes build and returns true if a refresh is required
 -}
-shouldRefresh : WebData Build -> Bool
+shouldRefresh : BuildModel -> Bool
 shouldRefresh build =
-    case build of
+    case build.build of
         Success bld ->
-            not <| isComplete bld.status
+            -- build is incomplete
+            (not <| isComplete bld.status)
+                -- any steps or services are incomplete
+                || (case build.steps.steps of
+                        Success steps ->
+                            List.any (\s -> not <| isComplete s.status) steps
+
+                        NotAsked ->
+                            True
+
+                        -- do not refresh Failed or Loading steps
+                        Failure _ ->
+                            False
+
+                        Loading ->
+                            False
+                   )
+                || (case build.services.services of
+                        Success services ->
+                            List.any (\s -> not <| isComplete s.status) services
+
+                        NotAsked ->
+                            True
+
+                        -- do not refresh Failed or Loading services
+                        Failure _ ->
+                            False
+
+                        Loading ->
+                            False
+                   )
 
         NotAsked ->
             True
 
-        -- Do not refresh a Failed or Loading build
+        -- do not refresh a Failed or Loading build
         Failure _ ->
             False
 
@@ -2317,7 +2348,7 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
         refresh =
             getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
     in
-    if shouldRefresh model.repo.build.build then
+    if shouldRefresh model.repo.build then
         refresh
 
     else
@@ -2341,7 +2372,7 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
         refresh =
             getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
     in
-    if shouldRefresh model.repo.build.build then
+    if shouldRefresh model.repo.build then
         refresh
 
     else
@@ -4047,6 +4078,20 @@ receiveSecrets model response type_ =
                 e =
                     toFailure error
 
+                -- only show error toasty for 500 error
+                showError =
+                    case error of
+                        Http.Detailed.BadStatus meta _ ->
+                            case meta.statusCode of
+                                500 ->
+                                    addError error
+
+                                _ ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+
                 sm =
                     case type_ of
                         Vela.RepoSecret ->
@@ -4058,7 +4103,7 @@ receiveSecrets model response type_ =
                         Vela.SharedSecret ->
                             { secretsModel | sharedSecrets = e }
             in
-            ( { model | secretsModel = sm }, addError error )
+            ( { model | secretsModel = sm }, showError )
 
 
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
