@@ -43,7 +43,7 @@ context('Pipeline', () => {
     });
 
     it('expand pipeline should be visible', () => {
-      cy.get('[data-test=pipeline-templates-expand]').should('be.visible');
+      cy.get('[data-test=pipeline-expand]').should('be.visible');
     });
 
     it('pipeline configuration data should show', () => {
@@ -88,7 +88,7 @@ context('Pipeline', () => {
       });
 
       it('expand templates should be visible', () => {
-        cy.get('[data-test=pipeline-templates-expand]').should('exist');
+        cy.get('[data-test=pipeline-expand]').should('exist');
       });
 
       context('click expand templates', () => {
