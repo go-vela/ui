@@ -188,7 +188,7 @@ viewPipelineConfigurationError model msgs err =
             [ text <| "There was a problem fetching the pipeline configuration:", div [] [ text err ] ]
 
 
-{-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the template expansion header.
+{-| wrapPipelineConfigurationContent : takes model, pipeline configuration and content and wraps it with a table, title and the pipeline expansion header.
 -}
 wrapPipelineConfigurationContent : PartialModel a -> Msgs msg -> Html.Attribute msg -> Html msg -> Html msg
 wrapPipelineConfigurationContent model { get, expand, download } cls content =
@@ -210,7 +210,7 @@ wrapPipelineConfigurationContent model { get, expand, download } cls content =
         body
 
 
-{-| viewPipelineActions : takes model and renders the config header buttons for expanding pipeline templates and downloading yaml.
+{-| viewPipelineActions : takes model and renders the config header buttons for expanding pipelines and downloading yaml.
 -}
 viewPipelineActions : PartialModel a -> Get msg -> Expand msg -> Download msg -> Html msg
 viewPipelineActions model get expand download =
@@ -221,10 +221,10 @@ viewPipelineActions model get expand download =
         toggle =
             case model.repo.build.build of
                 Success build ->
-                    div [ class "action", class "expand-templates", Util.testAttribute "pipeline-templates-expand" ]
-                        [ expandTemplatesToggleButton model build.commit get expand
-                        , expandTemplatesToggleIcon pipeline
-                        , expandTemplatesTip
+                    div [ class "action", class "expand-pipeline", Util.testAttribute "pipeline-expand" ]
+                        [ expandPipelineToggleButton model build.commit get expand
+                        , expandPipelineToggleIcon pipeline
+                        , expandPipelineTip
                         ]
 
                 _ ->
@@ -270,29 +270,29 @@ velaYmlFileName =
     "vela.yml"
 
 
-{-| expandTemplatesToggleIcon : takes pipeline and renders icon for toggling templates expansion.
+{-| expandPipelineToggleIcon : takes pipeline and renders icon for toggling pipeline expansion.
 -}
-expandTemplatesToggleIcon : PipelineModel -> Html msg
-expandTemplatesToggleIcon pipeline =
+expandPipelineToggleIcon : PipelineModel -> Html msg
+expandPipelineToggleIcon pipeline =
     let
-        wrapExpandTemplatesIcon : Icon -> Html msg
-        wrapExpandTemplatesIcon i =
+        wrapExpandIcon : Icon -> Html msg
+        wrapExpandIcon i =
             div [ class "icon" ] [ i |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml [] ]
     in
     if pipeline.expanding then
         Util.smallLoader
 
     else if pipeline.expanded then
-        wrapExpandTemplatesIcon FeatherIcons.checkCircle
+        wrapExpandIcon FeatherIcons.checkCircle
 
     else
-        wrapExpandTemplatesIcon FeatherIcons.circle
+        wrapExpandIcon FeatherIcons.circle
 
 
-{-| expandTemplatesToggleButton : takes pipeline and renders button that toggles templates expansion.
+{-| expandPipelineToggleButton : takes pipeline and renders button that toggles pipeline expansion.
 -}
-expandTemplatesToggleButton : PartialModel a -> String -> Get msg -> Expand msg -> Html msg
-expandTemplatesToggleButton model ref get expand =
+expandPipelineToggleButton : PartialModel a -> String -> Get msg -> Expand msg -> Html msg
+expandPipelineToggleButton model ref get expand =
     let
         pipeline =
             model.pipeline
@@ -314,18 +314,18 @@ expandTemplatesToggleButton model ref get expand =
         , Util.testAttribute "pipeline-expand-toggle"
         ]
         [ if pipeline.expanded then
-            text "revert template expansion"
+            text "revert pipeline expansion"
 
           else
             text "expand pipeline"
         ]
 
 
-{-| expandTemplatesTip : renders help tip that is displayed next to the expand templates button.
+{-| expandPipelineTip : renders help tip that is displayed next to the expand pipeline button.
 -}
-expandTemplatesTip : Html msg
-expandTemplatesTip =
-    small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when expanding templates." ]
+expandPipelineTip : Html msg
+expandPipelineTip =
+    small [ class "tip" ] [ text "note: yaml fields will be sorted alphabetically when the pipeline is expanded." ]
 
 
 {-| safeDecodePipelineData : takes pipeline config and decodes the data.
