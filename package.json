@@ -23,7 +23,7 @@
     "parcel": "2.8.3",
     "postcss": "8.4.22",
     "prettier": "2.8.7",
-    "rimraf": "4.3.0",
+    "rimraf": "4.4.1",
     "start-server-and-test": "2.0.0",
     "stylelint": "15.2.0",
     "stylelint-color-format": "1.1.0",
