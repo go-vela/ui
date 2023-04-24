@@ -321,7 +321,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                     runtime
 
                 _ ->
-                    if build.finished /= 0 then
+                    if build.started /= 0 && build.finished /= 0 then
                         runtime
 
                     else
