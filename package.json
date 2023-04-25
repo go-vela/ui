@@ -27,7 +27,7 @@
     "start-server-and-test": "2.0.0",
     "stylelint": "15.5.0",
     "stylelint-color-format": "1.1.0",
-    "stylelint-config-recommended-scss": "10.0.0",
+    "stylelint-config-recommended-scss": "11.0.0",
     "stylelint-declaration-block-no-ignored-properties": "2.7.0",
     "stylelint-declaration-strict-value": "1.9.2",
     "stylelint-high-performance-animation": "1.8.0",
