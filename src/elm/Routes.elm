@@ -37,6 +37,7 @@ type Route
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
+    | RepositoryBuildsPulls Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | AddDeploymentRoute Org Repo
     | PromoteDeployment Org Repo BuildNumber
@@ -80,6 +81,7 @@ routes =
         , map PromoteDeployment (string </> string </> s "deployment" </> string)
         , map OrgBuilds (string </> s "builds" <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
+        , map RepositoryBuildsPulls (string </> string </> s "pulls" <?> Query.int "page" <?> Query.int "per_page")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
@@ -157,6 +159,9 @@ routeToUrl route =
 
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
+
+        RepositoryBuildsPulls org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/pulls" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         RepositoryDeployments org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/deployments" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
