@@ -3391,7 +3391,7 @@ loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
     loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
 
-{-| loadRepoBuildsPullsPage : takes model org and repo and loads the appropriate builds.
+{-| loadRepoBuildsPullsPage : takes model org and repo and loads the appropriate builds for the pull_request event only.
 
     loadRepoBuildsPullsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
