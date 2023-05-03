@@ -48,7 +48,6 @@ type Route
     | AddSchedule Org Repo
     | Schedules Org Repo
     | Schedule Org Repo ScheduleID
-    | Build Org Repo BuildNumber
     | Settings
     | Login
     | Logout

@@ -209,6 +209,7 @@ update model msg =
                         Api.updateSchedule model
                             scheduleModel.org
                             scheduleModel.repo
+                            scheduleModel.id
                             body
                     )
 

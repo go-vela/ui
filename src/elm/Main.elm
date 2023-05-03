@@ -3002,6 +3002,16 @@ setNewPage route model =
         ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
             loadBuildPipelinePage model org repo buildNumber expand lineFocus
 
+        ( Routes.AddSchedule _ _, Authenticated _ ) ->
+            Debug.todo
+
+        ( Routes.Schedules _ _, Authenticated _ ) ->
+            Debug.todo
+
+        ( Routes.Schedule _ _ _, Authenticated _ ) ->
+            Debug.todo
+
+
         ( Routes.Settings, Authenticated _ ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
 
@@ -3418,6 +3428,18 @@ loadRepoSecretsPage :
     -> ( Model, Cmd Msg )
 loadRepoSecretsPage model maybePage maybePerPage engine org repo =
     loadRepoSubPage model org repo <| Pages.RepoSecrets engine org repo maybePage maybePerPage
+
+{-| loadRepoSchedulesPage : takes model org and repo and loads the page for managing repo secrets
+-}
+loadRepoSchedulesPage :
+    Model
+    -> Maybe Pagination.Page
+    -> Maybe Pagination.PerPage
+    -> Org
+    -> Repo
+    -> ( Model, Cmd Msg )
+loadRepoSchedulesPage model maybePage maybePerPage org repo =
+    loadRepoSubPage model org repo <| Pages.Schedules org repo
 
 
 {-| loadAddDeploymentPage : takes model org and repo and loads the page for managing deployments

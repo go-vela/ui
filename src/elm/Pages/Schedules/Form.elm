@@ -5,7 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Schedules.Form exposing
-    ( viewAllowCommandCheckbox
+    ( viewEnabledCheckbox
     , viewHelp
     , viewInput
     , viewNameInput
@@ -126,8 +126,8 @@ radio value field title msg =
 
 {-| allowCommandCheckbox : renders checkbox inputs for selecting allowcommand
 -}
-viewAllowCommandCheckbox : ScheduleForm -> Html Msg
-viewAllowCommandCheckbox enableUpdate =
+viewEnabledCheckbox : ScheduleForm -> Html Msg
+viewEnabledCheckbox enableUpdate =
     section [ Util.testAttribute "" ]
         [ div [ class "form-control" ]
             [ strong []

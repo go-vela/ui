@@ -51,7 +51,8 @@ type alias Model msg =
     , entry : String
     , enabled : Bool
     , schedule: WebData Schedule
-    , repoSchedulesPager : List WebLink
+    , schedules: WebData Schedules
+    , schedulesPager : List WebLink
     , form : ScheduleForm
     , copy : Copy msg
     , scheduleResponse : ScheduleResponse msg
@@ -104,7 +105,7 @@ type Msg
     | AddSchedule
     | UpdateSchedule
     | DeleteSchedule
-    | Copy
+    | Copy String
     | CancelDeleteSchedule
 
 
