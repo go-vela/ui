@@ -55,6 +55,7 @@ module Vela exposing
     , Repository
     , Resource
     , Resources
+    , ScheduleID
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -254,7 +255,8 @@ type alias Payload =
 type alias Target =
     String
 
-
+type alias ScheduleID =
+    String
 
 -- THEME
 

@@ -14,7 +14,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleID, Team)
 
 
 
@@ -45,6 +45,9 @@ type Route
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) FocusFragment
+    | AddSchedule Org Repo
+    | Schedules Org Repo ScheduleID
+    | Build Org Repo BuildNumber
     | Settings
     | Login
     | Logout
@@ -86,6 +89,8 @@ routes =
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
+        , map AddSchedule (string </> string </> s "add-schedule" )
+        , map Schedules (string </> string </> s "schedules" </> string)
         , map NotFound (s "404")
         ]
 
@@ -186,6 +191,12 @@ routeToUrl route =
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }
+
+        AddSchedule org repo ->
+                    "/" ++ org ++ "/" ++ repo ++ "/add-schedule"
+
+        Schedules org repo scheduleID ->
+                    "/" ++ org ++ "/" ++ repo ++ "/schedules/" ++ scheduleID
 
         Settings ->
             "/account/settings"
