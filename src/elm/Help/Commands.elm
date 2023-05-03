@@ -159,6 +159,13 @@ commands page =
         Pages.NotFound ->
             []
 
+        Pages.Schedule _ _ _ ->
+            []
+
+        Pages.Schedules _ _ ->
+            []
+
+
 
 {-| listFavorites : returns cli command for listing favorites
 
@@ -846,6 +853,13 @@ resourceLoaded args =
         Pages.NotFound ->
             False
 
+        Pages.Schedule org repo scheduleID ->
+            False -- TODO
+
+        Pages.Schedules org repo ->
+            False -- TODO
+
+
 
 {-| resourceLoading : takes help args and returns if the resource is loading
 -}
@@ -929,3 +943,10 @@ resourceLoading args =
 
         Pages.NotFound ->
             False
+
+        Pages.Schedule _ _ _ ->
+            False -- TODO
+
+        Pages.Schedules _ _ ->
+            False -- TODO
+

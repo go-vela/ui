@@ -328,5 +328,12 @@ toPath page =
 
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]
+
+                Pages.Schedule _ _ _ ->
+                    [overviewPage, notFoundPage] -- TODO
+
+                Pages.Schedules _ _ ->
+                    [overviewPage, notFoundPage] -- TODO
+
     in
     pages
