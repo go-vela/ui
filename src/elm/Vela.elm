@@ -62,6 +62,7 @@ module Vela exposing
     , UpdateSchedulePayload
     , buildUpdateSchedulePayload
     , decodeSchedule
+    , decodeSchedules
     , encodeUpdateSchedule
     , SearchFilter
     , Secret
@@ -1753,6 +1754,12 @@ decodeSchedule =
         |> optional "name" string ""
         |> optional "entry" string ""
         |> optional "enabled" bool False
+
+{-| decodeSchedules : decodes json from vela into list of builds
+-}
+decodeSchedules : Decoder Schedules
+decodeSchedules =
+    Decode.list decodeSchedule
 
 encodeUpdateSchedule : UpdateSchedulePayload -> Encode.Value
 encodeUpdateSchedule secret =

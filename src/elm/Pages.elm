@@ -37,7 +37,7 @@ type Page
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) (Maybe Fragment)
     | Schedule Org Repo ScheduleID
-    | Schedules Org Repo
+    | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings
     | Login
     | NotFound
@@ -121,8 +121,8 @@ toRoute page =
         BuildPipeline org repo buildNumber expanded lineFocus ->
             Routes.BuildPipeline org repo buildNumber expanded lineFocus
 
-        Schedules org repo ->
-            Routes.Schedules org repo
+        Schedules org repo maybePage maybePerPage ->
+            Routes.Schedules org repo maybePage maybePerPage
 
         Schedule org repo id ->
             Routes.Schedule org repo id
@@ -211,8 +211,8 @@ strip page =
         BuildPipeline org repo buildNumber _ _ ->
             BuildPipeline org repo buildNumber Nothing Nothing
 
-        Schedules org repo ->
-            Schedules org repo
+        Schedules org repo _ _ ->
+            Schedules org repo Nothing Nothing
 
         Schedule org repo id ->
             Schedule org repo id

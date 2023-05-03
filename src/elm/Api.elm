@@ -48,6 +48,7 @@ module Api exposing
     , updateCurrentUser
     , updateRepository
     , updateSecret
+    , getSchedules
     )
 
 import Api.Endpoint as Endpoint exposing (Endpoint)
@@ -58,7 +59,7 @@ import Http
 import Http.Detailed
 import Json.Decode exposing (Decoder)
 import Task exposing (Task)
-import Vela exposing (AuthParams, Build, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, Engine, Event, Hook, HookNumber, Hooks, Key, Log, Name, Org, PipelineConfig, Ref, Repo, Repository, Schedule, ScheduleID, Schedules, Secret, Secrets, Service, ServiceNumber, SourceRepositories, Step, StepNumber, Templates, Type, decodeBuild, decodeBuilds, decodeCurrentUser, decodeDeployment, decodeDeployments, decodeHooks, decodeLog, decodePipelineConfig, decodePipelineExpand, decodePipelineTemplates, decodeRepositories, decodeRepository, decodeSchedule, decodeSecret, decodeSecrets, decodeService, decodeSourceRepositories, decodeStep)
+import Vela exposing (AuthParams, Build, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, Engine, Event, Hook, HookNumber, Hooks, Key, Log, Name, Org, PipelineConfig, Ref, Repo, Repository, Schedule, ScheduleID, Schedules, Secret, Secrets, Service, ServiceNumber, SourceRepositories, Step, StepNumber, Templates, Type, decodeBuild, decodeBuilds, decodeCurrentUser, decodeDeployment, decodeDeployments, decodeHooks, decodeLog, decodePipelineConfig, decodePipelineExpand, decodePipelineTemplates, decodeRepositories, decodeRepository, decodeSchedule, decodeSchedules, decodeSecret, decodeSecrets, decodeService, decodeSourceRepositories, decodeStep)
 
 
 
@@ -656,6 +657,13 @@ deleteSecret model engine type_ org key name =
 
 
 -- SCHEDULES
+
+{-| getSchedules : fetches vela builds by repository
+-}
+getSchedules : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Org -> Repo -> Request Schedules
+getSchedules model maybePage maybePerPage maybeEvent org repository =
+    get model.velaAPI (Endpoint.Schedule org repository Nothing) decodeSchedules
+        |> withAuth model.session
 
 {-| addSchedule : adds a schedule
 -}

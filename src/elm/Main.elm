@@ -121,111 +121,7 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela
-    exposing
-        ( AuthParams
-        , Build
-        , BuildModel
-        , BuildNumber
-        , Builds
-        , CurrentUser
-        , Deployment
-        , DeploymentId
-        , EnableRepositoryPayload
-        , Engine
-        , Event
-        , Favicon
-        , Field
-        , FocusFragment
-        , HookNumber
-        , Hooks
-        , Key
-        , Log
-        , Logs
-        , Name
-        , Org
-        , PipelineConfig
-        , PipelineModel
-        , PipelineTemplates
-        , Ref
-        , Repo
-        , RepoModel
-        , RepoResourceIdentifier
-        , RepoSearchFilters
-        , Repositories
-        , Repository
-        , Secret
-        , SecretType
-        , Secrets
-        , ServiceNumber
-        , Services
-        , SourceRepositories
-        , StepNumber
-        , Steps
-        , Team
-        , Templates
-        , Theme(..)
-        , Type
-        , UpdateRepositoryPayload
-        , UpdateUserPayload
-        , buildUpdateFavoritesPayload
-        , buildUpdateRepoBoolPayload
-        , buildUpdateRepoIntPayload
-        , buildUpdateRepoStringPayload
-        , decodeTheme
-        , defaultEnableRepositoryPayload
-        , defaultFavicon
-        , defaultPipeline
-        , defaultPipelineTemplates
-        , defaultRepoModel
-        , encodeEnableRepository
-        , encodeTheme
-        , encodeUpdateRepository
-        , encodeUpdateUser
-        , isComplete
-        , secretTypeToString
-        , statusToFavicon
-        , stringToTheme
-        , updateBuild
-        , updateBuildNumber
-        , updateBuildPipelineConfig
-        , updateBuildPipelineExpand
-        , updateBuildPipelineFocusFragment
-        , updateBuildPipelineLineFocus
-        , updateBuildServices
-        , updateBuildServicesFocusFragment
-        , updateBuildServicesFollowing
-        , updateBuildServicesLogs
-        , updateBuildSteps
-        , updateBuildStepsFocusFragment
-        , updateBuildStepsFollowing
-        , updateBuildStepsLogs
-        , updateBuilds
-        , updateBuildsEvent
-        , updateBuildsPage
-        , updateBuildsPager
-        , updateBuildsPerPage
-        , updateBuildsShowTimeStamp
-        , updateDeployments
-        , updateDeploymentsPage
-        , updateDeploymentsPager
-        , updateDeploymentsPerPage
-        , updateHooks
-        , updateHooksPage
-        , updateHooksPager
-        , updateHooksPerPage
-        , updateOrgRepo
-        , updateOrgReposPage
-        , updateOrgReposPager
-        , updateOrgReposPerPage
-        , updateOrgRepositories
-        , updateRepo
-        , updateRepoCounter
-        , updateRepoEnabling
-        , updateRepoInitialized
-        , updateRepoLimit
-        , updateRepoTimeout
-        )
+import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout)
 
 
 
@@ -437,6 +333,7 @@ type Msg
     | HooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | RedeliverHookResponse Org Repo HookNumber (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | BuildResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
+    | SchedulesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Schedules ))
     | BuildAndPipelineResponse Org Repo (Maybe ExpandTemplatesQuery) (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | DeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
@@ -3005,8 +2902,8 @@ setNewPage route model =
         ( Routes.AddSchedule _ _, Authenticated _ ) ->
             Debug.todo
 
-        ( Routes.Schedules _ _, Authenticated _ ) ->
-            Debug.todo
+        ( Routes.Schedules org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoSchedulesPage org repo maybePage maybePerPage
 
         ( Routes.Schedule _ _ _, Authenticated _ ) ->
             Debug.todo
@@ -3328,6 +3225,12 @@ loadRepoSubPage model org repo toPage =
                             getHooks model org repo Nothing Nothing
                     , case toPage of
                         Pages.RepoSecrets _ o r _ _ ->
+                            fetchSecrets o r
+
+                        _ ->
+                            Cmd.none
+                    , case toPage of
+                        Pages.Schedules o r _ _ ->
                             fetchSecrets o r
 
                         _ ->
@@ -4317,6 +4220,9 @@ getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.Pe
 getBuilds model org repo maybePage maybePerPage maybeEvent =
     Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
 
+getSchedules : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
+getSchedules model org repo maybePage maybePerPage maybeEvent =
+    Api.try (SchedulesResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =

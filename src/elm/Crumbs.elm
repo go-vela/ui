@@ -332,7 +332,7 @@ toPath page =
                 Pages.Schedule _ _ _ ->
                     [overviewPage, notFoundPage] -- TODO
 
-                Pages.Schedules _ _ ->
+                Pages.Schedules _ _ _ _ ->
                     [overviewPage, notFoundPage] -- TODO
 
     in

@@ -162,7 +162,7 @@ commands page =
         Pages.Schedule _ _ _ ->
             []
 
-        Pages.Schedules _ _ ->
+        Pages.Schedules _ _ _ _ ->
             []
 
 
@@ -856,7 +856,7 @@ resourceLoaded args =
         Pages.Schedule org repo scheduleID ->
             False -- TODO
 
-        Pages.Schedules org repo ->
+        Pages.Schedules org repo _ _ ->
             False -- TODO
 
 
@@ -947,6 +947,6 @@ resourceLoading args =
         Pages.Schedule _ _ _ ->
             False -- TODO
 
-        Pages.Schedules _ _ ->
+        Pages.Schedules _ _ _ _ ->
             False -- TODO
 
