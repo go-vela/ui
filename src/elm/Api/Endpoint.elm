@@ -8,22 +8,7 @@ module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
 import Url.Builder as UB exposing (QueryParameter)
-import Vela
-    exposing
-        ( AuthParams
-        , BuildNumber
-        , DeploymentId
-        , Engine
-        , Event
-        , HookNumber
-        , Name
-        , Org
-        , Ref
-        , Repo
-        , ServiceNumber
-        , StepNumber
-        , Type
-        )
+import Vela exposing (AuthParams, BuildNumber, DeploymentId, Engine, Event, HookNumber, Name, Org, Ref, Repo, ScheduleID, ServiceNumber, StepNumber, Type)
 
 
 {-| apiBase : is the versioned base of all API paths
@@ -59,6 +44,7 @@ type Endpoint
     | ServiceLogs Org Repo BuildNumber ServiceNumber
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | StepLogs Org Repo BuildNumber StepNumber
+    | Schedule Org Repo (Maybe ScheduleID)
     | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
     | Secret Engine Type Org String Name
     | PipelineConfig Org Repo Ref
@@ -136,6 +122,13 @@ toUrl api endpoint =
 
         Secrets maybePage maybePerPage engine type_ org key ->
             url api [ "secrets", engine, type_, org, key ] <| Pagination.toQueryParams maybePage maybePerPage
+
+        Schedule org repo scheduleID ->
+          case scheduleID of
+              Just id ->
+                  url api [ "schedules", org, repo, id ] []
+              Nothing ->
+                  url api [ "schedules", org, repo ] []
 
         Secret engine type_ org key name ->
             url api [ "secrets", engine, type_, org, key, name ] []

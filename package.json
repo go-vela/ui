@@ -7,7 +7,9 @@
     "node": ">=18.12.0"
   },
   "dependencies": {
-    "clipboard": "2.0.11"
+    "clipboard": "2.0.11",
+    "elm-format": "^0.8.7",
+    "elm-test": "^0.19.1-revision12"
   },
   "devDependencies": {
     "@double-great/stylelint-a11y": "2.0.2",

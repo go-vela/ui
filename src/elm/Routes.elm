@@ -46,7 +46,8 @@ type Route
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) FocusFragment
     | AddSchedule Org Repo
-    | Schedules Org Repo ScheduleID
+    | Schedules Org Repo
+    | Schedule Org Repo ScheduleID
     | Build Org Repo BuildNumber
     | Settings
     | Login
@@ -90,7 +91,8 @@ routes =
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
         , map AddSchedule (string </> string </> s "add-schedule" )
-        , map Schedules (string </> string </> s "schedules" </> string)
+        , map Schedules (string </> string </> s "schedules")
+        , map Schedule (string </> string </> s "schedules" </> string)
         , map NotFound (s "404")
         ]
 
@@ -195,7 +197,10 @@ routeToUrl route =
         AddSchedule org repo ->
                     "/" ++ org ++ "/" ++ repo ++ "/add-schedule"
 
-        Schedules org repo scheduleID ->
+        Schedules org repo ->
+                    "/" ++ org ++ "/" ++ repo ++ "/schedules"
+
+        Schedule org repo scheduleID ->
                     "/" ++ org ++ "/" ++ repo ++ "/schedules/" ++ scheduleID
 
         Settings ->

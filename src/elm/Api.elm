@@ -11,6 +11,9 @@ module Api exposing
     , cancelBuild
     , chownRepo
     , deleteRepo
+    , addSchedule
+    , updateSchedule
+    , deleteSchedule
     , deleteSecret
     , enableRepository
     , expandPipelineConfig
@@ -55,55 +58,7 @@ import Http
 import Http.Detailed
 import Json.Decode exposing (Decoder)
 import Task exposing (Task)
-import Vela
-    exposing
-        ( AuthParams
-        , Build
-        , BuildNumber
-        , Builds
-        , CurrentUser
-        , Deployment
-        , DeploymentId
-        , Engine
-        , Event
-        , Hook
-        , HookNumber
-        , Hooks
-        , Key
-        , Log
-        , Name
-        , Org
-        , PipelineConfig
-        , Ref
-        , Repo
-        , Repository
-        , Secret
-        , Secrets
-        , Service
-        , ServiceNumber
-        , SourceRepositories
-        , Step
-        , StepNumber
-        , Templates
-        , Type
-        , decodeBuild
-        , decodeBuilds
-        , decodeCurrentUser
-        , decodeDeployment
-        , decodeDeployments
-        , decodeHooks
-        , decodeLog
-        , decodePipelineConfig
-        , decodePipelineExpand
-        , decodePipelineTemplates
-        , decodeRepositories
-        , decodeRepository
-        , decodeSecret
-        , decodeSecrets
-        , decodeService
-        , decodeSourceRepositories
-        , decodeStep
-        )
+import Vela exposing (AuthParams, Build, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, Engine, Event, Hook, HookNumber, Hooks, Key, Log, Name, Org, PipelineConfig, Ref, Repo, Repository, Schedule, ScheduleID, Secret, Secrets, Service, ServiceNumber, SourceRepositories, Step, StepNumber, Templates, Type, decodeBuild, decodeBuilds, decodeCurrentUser, decodeDeployment, decodeDeployments, decodeHooks, decodeLog, decodePipelineConfig, decodePipelineExpand, decodePipelineTemplates, decodeRepositories, decodeRepository, decodeSchedule, decodeSecret, decodeSecrets, decodeService, decodeSourceRepositories, decodeStep)
 
 
 
@@ -697,4 +652,28 @@ addDeployment model org key body =
 deleteSecret : PartialModel a -> Engine -> Type -> Org -> Key -> Name -> Request String
 deleteSecret model engine type_ org key name =
     delete model.velaAPI (Endpoint.Secret engine type_ org key name) Json.Decode.string
+        |> withAuth model.session
+
+
+-- SCHEDULES
+
+{-| addSchedule : adds a schedule
+-}
+addSchedule : PartialModel a -> Org -> Repo -> Http.Body -> Request Schedule
+addSchedule model org repo body =
+    post model.velaAPI (Endpoint.Schedule org repo Nothing) body decodeSchedule
+        |> withAuth model.session
+
+{-| updateSchedule : updates a schedule
+-}
+updateSchedule : PartialModel a -> Org -> Repo -> Http.Body -> Request Schedule
+updateSchedule model org repo body =
+    put model.velaAPI (Endpoint.Schedule org repo model.id) body decodeSchedule
+        |> withAuth model.session
+
+{-| deleteSchedule : deletes a schedule
+-}
+deleteSchedule : PartialModel a -> Org -> Repo -> Request String
+deleteSchedule model org repo =
+    delete model.velaAPI (Endpoint.Schedule org repo model.id) Json.Decode.string
         |> withAuth model.session

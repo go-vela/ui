@@ -56,6 +56,13 @@ module Vela exposing
     , Resource
     , Resources
     , ScheduleID
+    , Schedule
+    , Schedules
+    , AddSchedulePayload
+    , UpdateSchedulePayload
+    , buildUpdateSchedulePayload
+    , decodeSchedule
+    , encodeUpdateSchedule
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -1693,6 +1700,69 @@ type alias RepoResourceIdentifier =
     ( Org, Repo, String )
 
 
+-- SCHEDULES
+
+
+type alias Schedule =
+  { id: Int
+  , org: String
+  , repo: String
+  , name: String
+  , entry: String
+  , enabled: Bool
+  }
+
+type alias Schedules =
+    List Schedule
+
+
+type alias AddSchedulePayload =
+  { id: Int
+  , org: String
+  , repo: String
+  , name: String
+  , entry: String
+  , enabled: Bool
+  }
+
+type alias UpdateSchedulePayload =
+    { org : Maybe Org
+    , repo : Maybe Repo
+    , name : Maybe Name
+    , entry : Maybe String
+    , enabled : Maybe Bool
+    }
+
+buildUpdateSchedulePayload :
+    Maybe Org
+    -> Maybe Repo
+    -> Maybe Name
+    -> Maybe String
+    -> Maybe Bool
+    -> UpdateSchedulePayload
+buildUpdateSchedulePayload org repo name entry enabled =
+    UpdateSchedulePayload org repo name entry enabled
+
+
+decodeSchedule : Decoder Schedule
+decodeSchedule =
+    Decode.succeed Schedule
+        |> optional "id" int -1
+        |> optional "org" string ""
+        |> optional "repo" string ""
+        |> optional "name" string ""
+        |> optional "entry" string ""
+        |> optional "enabled" bool False
+
+encodeUpdateSchedule : UpdateSchedulePayload -> Encode.Value
+encodeUpdateSchedule secret =
+    Encode.object
+        [ ( "org", encodeOptional Encode.string secret.org )
+        , ( "repo", encodeOptional Encode.string secret.repo )
+        , ( "name", encodeOptional Encode.string secret.name )
+        , ( "entry", encodeOptional Encode.string secret.entry )
+        , ( "enabled", encodeOptional Encode.bool secret.enabled )
+        ]
 
 -- SECRETS
 
