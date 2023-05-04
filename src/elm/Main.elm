@@ -123,7 +123,7 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedule, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout)
+import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedule, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout, updateSchedules)
 
 
 
@@ -1922,7 +1922,20 @@ update msg model =
             ( model, Cmd.none )
 
         SchedulesResponse org repo result ->
-            ( model, Cmd.none ) --TODO
+            case result of
+            Ok ( meta, schedules ) ->
+                ( { model
+                    | repo =
+                        rm
+                            |> updateOrgRepo org repo
+                            |> updateSchedules (RemoteData.succeed schedules)
+                            |> updateDeploymentsPager (Pagination.get meta.headers)
+                  }
+                , Cmd.none
+                )
+
+            Err error ->
+                ( { model | repo = updateDeployments (toFailure error) rm }, addError error )
 
         ScheduleResponse result ->
             ( model, Cmd.none ) --TODO
@@ -3146,6 +3159,9 @@ loadRepoSubPage model org repo toPage =
         secretsModel =
             model.secretsModel
 
+        schedulesModel =
+                    model.schedulesModel
+
         dm =
             model.deploymentModel
 
@@ -3167,6 +3183,13 @@ loadRepoSubPage model org repo toPage =
                             , repo = repo
                             , engine = "native"
                             , type_ = Vela.RepoSecret
+                        }
+                    , schedulesModel =
+                        { schedulesModel
+                            | schedules = Loading
+                            , schedule = Loading
+                            , org = org
+                            , repo = repo
                         }
                     , deploymentModel =
                         let
@@ -3265,8 +3288,8 @@ loadRepoSubPage model org repo toPage =
                         _ ->
                             Cmd.none
                     , case toPage of
-                        Pages.Schedules o r _ _ ->
-                            fetchSecrets o r
+                        Pages.Schedules o r maybePage maybePerPage ->
+                            getSchedules model o r maybePage maybePerPage
 
                         _ ->
                             Cmd.none
@@ -3295,6 +3318,9 @@ loadRepoSubPage model org repo toPage =
 
                     Pages.RepoSecrets _ o r _ _ ->
                         ( model, fetchSecrets o r )
+
+                    Pages.Schedules o r _ _ ->
+                        (model, getSchedules model o r Nothing Nothing)
 
                     Pages.Hooks o r maybePage maybePerPage ->
                         ( { model
@@ -4282,9 +4308,9 @@ getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.Pe
 getBuilds model org repo maybePage maybePerPage maybeEvent =
     Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
 
-getSchedules : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
-getSchedules model org repo maybePage maybePerPage maybeEvent =
-    Api.try (SchedulesResponse org repo) <| Api.getSchedules model maybePage maybePerPage maybeEvent org repo
+getSchedules : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
+getSchedules model org repo maybePage maybePerPage =
+    Api.try (SchedulesResponse org repo) <| Api.getSchedules model maybePage maybePerPage org repo
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =

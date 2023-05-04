@@ -660,28 +660,28 @@ deleteSecret model engine type_ org key name =
 
 {-| getSchedules : fetches vela builds by repository
 -}
-getSchedules : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Org -> Repo -> Request Schedules
-getSchedules model maybePage maybePerPage maybeEvent org repository =
-    get model.velaAPI (Endpoint.Schedule org repository Nothing) decodeSchedules
+getSchedules : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Schedules
+getSchedules model maybePage maybePerPage org repository =
+    get model.velaAPI (Endpoint.Schedule org repository Nothing maybePage maybePerPage) decodeSchedules
         |> withAuth model.session
 
 {-| addSchedule : adds a schedule
 -}
 addSchedule : PartialModel a -> Org -> Repo -> Http.Body -> Request Schedule
 addSchedule model org repo body =
-    post model.velaAPI (Endpoint.Schedule org repo Nothing) body decodeSchedule
+    post model.velaAPI (Endpoint.Schedule org repo Nothing Nothing Nothing) body decodeSchedule
         |> withAuth model.session
 
 {-| updateSchedule : updates a schedule
 -}
 updateSchedule : PartialModel a -> Org -> Repo -> ScheduleID -> Http.Body -> Request Schedule
 updateSchedule model org repo id body =
-    put model.velaAPI (Endpoint.Schedule org repo (Just id)) body decodeSchedule
+    put model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) body decodeSchedule
         |> withAuth model.session
 
 {-| deleteSchedule : deletes a schedule
 -}
 deleteSchedule : PartialModel a -> Org -> Repo -> ScheduleID -> Request String
 deleteSchedule model org repo id =
-    delete model.velaAPI (Endpoint.Schedule org repo (Just id)) Json.Decode.string
+    delete model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) Json.Decode.string
         |> withAuth model.session

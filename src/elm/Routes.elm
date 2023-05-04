@@ -86,12 +86,12 @@ routes =
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuildsPulls (string </> string </> s "pulls" <?> Query.int "page" <?> Query.int "per_page")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
-        , map Build (string </> string </> string </> fragment identity)
-        , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
-        , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
         , map AddSchedule (string </> string </> s "add-schedule" )
         , map Schedules (string </> string </> s "schedules" <?> Query.int "page" <?> Query.int "per_page")
         , map Schedule (string </> string </> s "schedules" </> string)
+        , map Build (string </> string </> string </> fragment identity)
+        , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
+        , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
         , map NotFound (s "404")
         ]
 
@@ -172,6 +172,15 @@ routeToUrl route =
         RepositoryDeployments org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/deployments" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
+        AddSchedule org repo ->
+            "/" ++ org ++ "/" ++ repo ++ "/add-schedule"
+
+        Schedules org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/schedules" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
+
+        Schedule org repo scheduleID ->
+            "/" ++ org ++ "/" ++ repo ++ "/schedules/" ++ scheduleID
+
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
@@ -193,14 +202,6 @@ routeToUrl route =
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }
 
-        AddSchedule org repo ->
-                    "/" ++ org ++ "/" ++ repo ++ "/add-schedule"
-
-        Schedules org repo maybePage maybePerPage ->
-                    "/" ++ org ++ "/" ++ repo ++ "/schedules" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
-
-        Schedule org repo scheduleID ->
-                    "/" ++ org ++ "/" ++ repo ++ "/schedules/" ++ scheduleID
 
         Settings ->
             "/account/settings"

@@ -207,6 +207,9 @@ viewUtil model =
             Pages.RepoSecrets _ org repo _ _ ->
                 viewRepoTabs rm org repo model.page
 
+            Pages.Schedules org repo _ _ ->
+                viewRepoTabs rm org repo model.page
+
             Pages.Hooks org repo _ _ ->
                 viewRepoTabs rm org repo model.page
 
@@ -340,6 +343,7 @@ viewRepoTabs rm org repo currentPage =
             [ Tab "Builds" currentPage (Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
             , Tab "Deployments" currentPage (Pages.RepositoryDeployments org repo rm.builds.maybePage rm.builds.maybePerPage) False
             , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False
+            , Tab "Schedules" currentPage (Pages.Schedules org repo Nothing Nothing) False
             , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting
             , Tab "Settings" currentPage (Pages.RepoSettings org repo) False
             ]

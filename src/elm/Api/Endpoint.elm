@@ -44,7 +44,7 @@ type Endpoint
     | ServiceLogs Org Repo BuildNumber ServiceNumber
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | StepLogs Org Repo BuildNumber StepNumber
-    | Schedule Org Repo (Maybe ScheduleID)
+    | Schedule Org Repo (Maybe ScheduleID) (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
     | Secret Engine Type Org String Name
     | PipelineConfig Org Repo Ref
@@ -123,12 +123,12 @@ toUrl api endpoint =
         Secrets maybePage maybePerPage engine type_ org key ->
             url api [ "secrets", engine, type_, org, key ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        Schedule org repo scheduleID ->
+        Schedule org repo scheduleID maybePage maybePerPage ->
           case scheduleID of
               Just id ->
                   url api [ "schedules", org, repo, id ] []
               Nothing ->
-                  url api [ "schedules", org, repo ] []
+                  url api [ "schedules", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
         Secret engine type_ org key name ->
             url api [ "secrets", engine, type_, org, key, name ] []

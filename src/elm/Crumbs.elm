@@ -332,8 +332,15 @@ toPath page =
                 Pages.Schedule _ _ _ ->
                     [overviewPage, notFoundPage] -- TODO
 
-                Pages.Schedules _ _ _ _ ->
-                    [overviewPage, notFoundPage] -- TODO
+                Pages.Schedules org repo _ _ ->
+                    let
+                        organizationPage =
+                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
+
+                        currentRepo =
+                            ( repo, Just <| Pages.Schedules org repo Nothing Nothing )
+                    in
+                    [ overviewPage, organizationPage, currentRepo ]
 
     in
     pages
