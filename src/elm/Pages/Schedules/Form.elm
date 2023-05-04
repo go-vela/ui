@@ -124,26 +124,25 @@ radio value field title msg =
         ]
 
 
-{-| allowCommandCheckbox : renders checkbox inputs for selecting allowcommand
+{-| viewEnabledCheckbox : renders checkbox inputs for selecting enabled
 -}
 viewEnabledCheckbox : ScheduleForm -> Html Msg
 viewEnabledCheckbox enableUpdate =
     section [ Util.testAttribute "" ]
         [ div [ class "form-control" ]
             [ strong []
-                [ text "Enabled"
+                [ text "State"
                 , span [ class "field-description" ]
                     [ text "( "
-                    , em [] [ text "\"No\" blah blah blah " ]
-                    , code [] [ text "commands" ]
+                    , em [] [ text "Disabled schdules will not be run" ]
                     , text " )"
                     ]
                 ]
             ]
         , div
             [ class "form-controls", class "-stack" ]
-            [ radio (Util.boolToYesNo enableUpdate.enabled) "Enabled" "yes" <| OnChangeEnabled "yes"
-            , radio (Util.boolToYesNo enableUpdate.enabled) "Disabled" "no" <| OnChangeEnabled "no"
+            [ radio (Util.boolToYesNo enableUpdate.enabled) "yes" "Enabled" <| OnChangeEnabled "yes"
+            , radio (Util.boolToYesNo enableUpdate.enabled) "no" "Disabled" <| OnChangeEnabled "no"
             ]
         ]
 

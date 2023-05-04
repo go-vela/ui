@@ -188,8 +188,8 @@ update model msg =
                     ( scheduleModel
                     , Api.try scheduleModel.addScheduleResponse <|
                         Api.addSchedule model
-                            scheduleModel.repo
                             scheduleModel.org
+                            scheduleModel.repo
                             body
                     )
 

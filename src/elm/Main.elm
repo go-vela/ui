@@ -358,6 +358,7 @@ type Msg
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- Schedules
     | ScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
+    | AddScheduleUpdate Pages.Schedules.Model.Msg
     | AddScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | UpdateScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
@@ -1857,6 +1858,15 @@ update msg model =
             , action
             )
 
+        AddScheduleUpdate m ->
+            let
+                ( newModel, action ) =
+                    Pages.Schedules.Update.update model m
+            in
+            ( newModel
+            , action
+            )
+
         -- Other
         HandleError error ->
             ( model, Cmd.none )
@@ -2525,6 +2535,11 @@ viewContent model =
                 ]
             )
 
+        Pages.Schedule org repo scheduleID -> -- TODO UI
+            ( String.join "/" [ org, repo ] ++ " add schedule"
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.addSchedule model
+            )
+
         Pages.Schedules org repo maybePage _ ->   -- TODO UI
             ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
             , div []
@@ -2667,11 +2682,6 @@ viewContent model =
             )
 
         Pages.NotFound ->
-            ( "404"
-            , h1 [] [ text "Not Found" ]
-            )
-
-        Pages.Schedule org repo scheduleID -> -- TODO UI
             ( "404"
             , h1 [] [ text "Not Found" ]
             )
@@ -2950,8 +2960,8 @@ setNewPage route model =
         ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
             loadBuildPipelinePage model org repo buildNumber expand lineFocus
 
-        ( Routes.AddSchedule _ _, Authenticated _ ) ->
-            ( { model | page = Pages.NotFound }, Cmd.none ) -- TODO
+        ( Routes.AddSchedule org repo, Authenticated _ ) ->
+            loadAddSchedulePage model org repo
 
         ( Routes.Schedules org repo maybePage maybePerPage, Authenticated _ ) ->
             loadRepoSchedulesPage model org repo maybePage maybePerPage
@@ -3418,7 +3428,6 @@ loadAddDeploymentPage :
     -> ( Model, Cmd Msg )
 loadAddDeploymentPage model org repo =
     loadRepoSubPage model org repo <| Pages.AddDeployment org repo
-
 
 {-| loadPromoteDeploymentPage : takes model org and repo and loads the page for managing deployments
 -}
