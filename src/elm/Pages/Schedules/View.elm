@@ -8,10 +8,9 @@ module Pages.Schedules.View exposing (addSchedule, viewRepoSchedules)
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html exposing (Html, a, button, div, h2, span, td, text, tr)
+import Html exposing (Html, a, button, div, h2, span, strong, td, text, tr)
 import Html.Attributes exposing (attribute, class, scope)
 import Html.Events exposing (onClick)
-import Http
 import Pages.Schedules.Form exposing (viewEnabledCheckbox, viewHelp, viewNameInput, viewSubmitButtons, viewValueInput)
 import Pages.Schedules.Model exposing (Model, Msg, PartialModel)
 import RemoteData exposing (RemoteData(..))
@@ -19,77 +18,108 @@ import Routes
 import Svg.Attributes
 import Table
 import Util exposing (largeLoader)
-import Vela exposing (Schedule, Schedules, Schedule, SecretType(..))
+import Vela exposing (Org, Repo, Schedule, Schedules, SchedulesModel, SecretType(..))
 
 
 
 -- VIEW
 
+{-| viewPreview : renders single deployment item preview
+-}
+viewPreview : Org -> Repo -> Schedule -> Html msg
+viewPreview org repo schedule =
+    let
+        id =
+            String.fromInt schedule.id
+
+        name =
+            [ text <| schedule.name ]
+
+        entry =
+            [ text schedule.entry ]
+
+        enabled = schedule.enabled
+
+        redeploy =
+            [ a [ Routes.href <| Routes.Schedule org repo id ] [ text "Edit" ] ]
+
+        markdown =
+            [ div [ class "status", Util.testAttribute "deployment-status", class "-success" ]
+                []
+            , div [ class "info" ]
+                [ div [ class "row -left" ]
+                    [ div [ class "id" ] []
+                    , div [ class "commit-msg" ] [ strong [] name ]
+                    ]
+                , div [ class "row" ]
+                    [ div [ class "git-info" ]
+                        [ div [ class "commit" ] name
+                        , text "on"
+                        , div [ class "branch" ] entry
+                        , text "by"
+                        , div [ class "sender" ] [ text <| Util.boolToYesNo schedule.enabled ]
+                        ]
+                    , div [] redeploy
+                    ]
+                ]
+            ]
+    in
+    div [ class "build-container", Util.testAttribute "deployment" ]
+        [ div [ class "build", class "-success" ] <|
+            markdown
+        ]
+
 
 {-| viewRepoSecrets : takes secrets model and renders table for viewing repo secrets
 -}
-viewRepoSchedules : PartialModel a msg -> Html Msg
-viewRepoSchedules model =
+viewRepoSchedules : SchedulesModel -> Org -> Repo -> Html msg
+viewRepoSchedules sm org repo =
     let
-        scheduleModel =
-            model.schedulesModel
+        addButton =
+            a
+                [ class "button"
+                , class "-outline"
+                , class "button-with-icon"
+                , Util.testAttribute "add-deployment"
+                , Routes.href <|
+                    Routes.AddSchedule org repo
+                ]
+                [ text "Add Schedule"
+                , FeatherIcons.plus
+                    |> FeatherIcons.withSize 18
+                    |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                ]
 
-        actions =
-            Just <|
-                div [ class "buttons" ]
-                    [ a
-                        [ class "button"
-                        , class "button-with-icon"
-                        , class "-outline"
-                        , Util.testAttribute "add-repo-secret"
-                        , Routes.href <|
-                            Routes.AddRepoSecret "native" scheduleModel.org scheduleModel.repo
-                        ]
-                        [ text "Add Repo Secret"
-                        , FeatherIcons.plus
-                            |> FeatherIcons.withSize 18
-                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-                        ]
+        none : Html msg
+        none =
+            div []
+                [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
+                , h2 [] [ text "No schedules found." ]
+                ]
+    in
+    case sm.schedules of
+        RemoteData.Success deployments ->
+            if List.length deployments == 0 then
+                none
+
+            else
+                let
+                    deploymentList =
+                        div [ Util.testAttribute "deployments" ] <| List.map (viewPreview org repo) deployments
+                in
+                div []
+                    [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
+                    , deploymentList
                     ]
 
-        ( noRowsView, rows ) =
-            case scheduleModel.schedules of
-                Success s ->
-                    ( text "No Schedules found for this repo"
-                    , schedulesToRows s
-                    )
+        RemoteData.Loading ->
+            largeLoader
 
-                Failure error ->
-                    ( span [ Util.testAttribute "repo-secrets-error" ]
-                        [ text <|
-                            case error of
-                                Http.BadStatus statusCode ->
-                                    case statusCode of
-                                        401 ->
-                                            "No secrets found for this repo, most likely due to not being an admin of the source control repo"
+        RemoteData.NotAsked ->
+            largeLoader
 
-                                        _ ->
-                                            "No secrets found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
-
-                                _ ->
-                                    "No secrets found for this repo, there was an error with the server"
-                        ]
-                    , []
-                    )
-
-                _ ->
-                    ( largeLoader, [] )
-
-        cfg =
-            Table.Config
-                "Repo Secrets"
-                "repo-secrets"
-                noRowsView
-                tableHeaders
-                rows
-                actions
-    in
-    div [] [ Table.view cfg ]
+        RemoteData.Failure _ ->
+            viewResourceError { resourceLabel = "deployments for this repository", testLabel = "deployments" }
 
 
 
@@ -195,7 +225,7 @@ addSchedule : PartialModel a msg -> Html Msg
 addSchedule model =
     div [ class "add-schedule", Util.testAttribute "add-schedule" ]
         [ div []
-            [  addForm model.secretsModel
+            [  addForm model.schedulesModel
             ]
         ]
 
@@ -240,7 +270,7 @@ editSchedule model =
         Success _ ->
             div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
                 [ div []
-                    [ editForm model.secretsModel
+                    [ editForm model.schedulesModel
                     ]
                 ]
 

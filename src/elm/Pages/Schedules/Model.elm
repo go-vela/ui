@@ -24,7 +24,7 @@ import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
-import Vela exposing (Copy, Engine, Key, Org, Repo, Schedule, Schedules, Team)
+import Vela exposing (Org, Repo, Schedule, Schedules, Team)
 
 
 

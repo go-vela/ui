@@ -10,6 +10,8 @@ module Pages.Schedules.Update exposing
     , reinitializeScheduleAdd
     , reinitializeScheduleUpdate
     , update
+    , onChangeEnable
+    , onChangeStringField
     )
 
 import Api

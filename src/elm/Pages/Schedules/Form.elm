@@ -43,7 +43,7 @@ import Html.Attributes
         , value
         )
 import Html.Events exposing (onClick, onInput)
-import Pages.Schedules.Model exposing (DeleteScheduleState(..), Model, Msg, ScheduleForm)
+import Pages.Schedules.Model exposing (DeleteScheduleState(..), Model, Msg(..), ScheduleForm)
 import Util
 import Vela exposing (Field)
 
@@ -142,8 +142,8 @@ viewEnabledCheckbox enableUpdate =
             ]
         , div
             [ class "form-controls", class "-stack" ]
-            [ radio (Util.boolToYesNo enableUpdate.enabled) "Enabled" "yes" <| OnChangeEnable "yes"
-            , radio (Util.boolToYesNo enableUpdate.enabled) "Disabled" "no" <| OnChangeEnable "no"
+            [ radio (Util.boolToYesNo enableUpdate.enabled) "Enabled" "yes" <| OnChangeEnabled "yes"
+            , radio (Util.boolToYesNo enableUpdate.enabled) "Disabled" "no" <| OnChangeEnabled "no"
             ]
         ]
 

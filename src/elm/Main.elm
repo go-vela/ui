@@ -101,6 +101,7 @@ import Pages.Pipeline.View exposing (safeDecodePipelineData)
 import Pages.RepoSettings exposing (enableUpdate)
 import Pages.Schedules.Model
 import Pages.Schedules.Update
+import Pages.Schedules.View
 import Pages.Secrets.Model
 import Pages.Secrets.Update
 import Pages.Secrets.View
@@ -123,7 +124,7 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedule, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout, updateSchedules)
+import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedule, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout, updateSchedules, updateSchedulesPager)
 
 
 
@@ -1929,7 +1930,7 @@ update msg model =
                         rm
                             |> updateOrgRepo org repo
                             |> updateSchedules (RemoteData.succeed schedules)
-                            |> updateDeploymentsPager (Pagination.get meta.headers)
+                            |> updateSchedulesPager (Pagination.get meta.headers)
                   }
                 , Cmd.none
                 )
@@ -1938,16 +1939,16 @@ update msg model =
                 ( { model | repo = updateDeployments (toFailure error) rm }, addError error )
 
         ScheduleResponse result ->
-            ( model, Cmd.none ) --TODO
+            ( model, Cmd.none ) --TODO Handle API Calls
 
         AddScheduleResponse result ->
-            ( model, Cmd.none ) --TODO
+            ( model, Cmd.none ) --TODO Handle API Calls
 
         UpdateScheduleResponse result ->
-            ( model, Cmd.none ) --TODO
+            ( model, Cmd.none ) --TODO Handle API Calls
 
         DeleteScheduleResponse result ->
-            ( model, Cmd.none ) --TODO
+            ( model, Cmd.none ) --TODO Handle API Calls
 
 
 {-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
@@ -2524,6 +2525,14 @@ viewContent model =
                 ]
             )
 
+        Pages.Schedules org repo maybePage _ ->   -- TODO UI
+            ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
+            , div []
+                [ lazy3 Pages.Schedules.View.viewRepoSchedules model.repo.schedules org repo
+                , Pager.view model.repo.schedules.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
         Pages.OrgBuilds org maybePage _ maybeEvent ->
             let
                 repo =
@@ -2662,16 +2671,10 @@ viewContent model =
             , h1 [] [ text "Not Found" ]
             )
 
-        Pages.Schedule org repo scheduleID ->
+        Pages.Schedule org repo scheduleID -> -- TODO UI
             ( "404"
             , h1 [] [ text "Not Found" ]
             )
-
-        Pages.Schedules org repo _ _ ->
-            ( "404"
-            , h1 [] [ text "Not Found" ]
-            )
-
 
 
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg

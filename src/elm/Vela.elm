@@ -58,6 +58,7 @@ module Vela exposing
     , ScheduleID
     , Schedule
     , Schedules
+    , SchedulesModel
     , AddSchedulePayload
     , UpdateSchedulePayload
     , buildUpdateSchedulePayload
@@ -1713,7 +1714,7 @@ type alias RepoResourceIdentifier =
 -- SCHEDULES
 
 type alias SchedulesModel =
-    { schedules : WebData Schedules
+    { schedules : WebData (List Schedule)
     , pager : List WebLink
     , maybePage : Maybe Pagination.Page
     , maybePerPage : Maybe Pagination.PerPage
