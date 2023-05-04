@@ -54,7 +54,6 @@ type alias Model msg =
     , schedules: WebData Schedules
     , schedulesPager : List WebLink
     , form : ScheduleForm
-    , copy : Copy msg
     , scheduleResponse : ScheduleResponse msg
     , addScheduleResponse : AddScheduleResponse msg
     , deleteScheduleResponse : DeleteScheduleResponse msg
@@ -96,7 +95,7 @@ type alias UpdateScheduleResponse msg =
 
 
 type alias DeleteScheduleResponse msg =
-    Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ) -> msg
+    Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
 
 
 type Msg
@@ -105,7 +104,6 @@ type Msg
     | AddSchedule
     | UpdateSchedule
     | DeleteSchedule
-    | Copy String
     | CancelDeleteSchedule
 
 

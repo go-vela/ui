@@ -99,6 +99,8 @@ import Pages.Organization
 import Pages.Pipeline.Model
 import Pages.Pipeline.View exposing (safeDecodePipelineData)
 import Pages.RepoSettings exposing (enableUpdate)
+import Pages.Schedules.Model
+import Pages.Schedules.Update
 import Pages.Secrets.Model
 import Pages.Secrets.Update
 import Pages.Secrets.View
@@ -121,7 +123,7 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout)
+import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedule, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout)
 
 
 
@@ -165,6 +167,7 @@ type alias Model =
     , showHelp : Bool
     , showIdentity : Bool
     , favicon : Favicon
+    , schedulesModel : Pages.Schedules.Model.Model Msg
     , secretsModel : Pages.Secrets.Model.Model Msg
     , deploymentModel : Pages.Deployments.Model.Model Msg
     , pipeline : PipelineModel
@@ -219,6 +222,7 @@ init flags url navKey =
             , buildMenuOpen = []
             , favicon = defaultFavicon
             , secretsModel = initSecretsModel
+            , schedulesModel = initSchedulesModel
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
@@ -351,6 +355,11 @@ type Msg
     | OrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | SharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+      -- Schedules
+    | ScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
+    | AddScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
+    | UpdateScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
+    | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -1913,7 +1922,19 @@ update msg model =
             ( model, Cmd.none )
 
         SchedulesResponse org repo result ->
-            ( model, Cmd.none )
+            ( model, Cmd.none ) --TODO
+
+        ScheduleResponse result ->
+            ( model, Cmd.none ) --TODO
+
+        AddScheduleResponse result ->
+            ( model, Cmd.none ) --TODO
+
+        UpdateScheduleResponse result ->
+            ( model, Cmd.none ) --TODO
+
+        DeleteScheduleResponse result ->
+            ( model, Cmd.none ) --TODO
 
 
 {-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
@@ -2914,13 +2935,13 @@ setNewPage route model =
             loadBuildPipelinePage model org repo buildNumber expand lineFocus
 
         ( Routes.AddSchedule _ _, Authenticated _ ) ->
-            ( { model | page = Pages.NotFound }, Cmd.none )
+            ( { model | page = Pages.NotFound }, Cmd.none ) -- TODO
 
         ( Routes.Schedules org repo maybePage maybePerPage, Authenticated _ ) ->
             loadRepoSchedulesPage model org repo maybePage maybePerPage
 
         ( Routes.Schedule _ _ _, Authenticated _ ) ->
-            ( { model | page = Pages.NotFound }, Cmd.none )
+            ( { model | page = Pages.NotFound }, Cmd.none ) -- TODO
 
 
         ( Routes.Settings, Authenticated _ ) ->
@@ -3506,6 +3527,28 @@ loadAddRepoSecretPage model engine org repo =
                 , repo = repo
                 , engine = engine
                 , type_ = Vela.RepoSecret
+            }
+      }
+    , Cmd.batch
+        [ getCurrentUser model
+        ]
+    )
+
+{-| loadAddRepoSecretPage : takes model engine org and repo and loads the page for adding secrets
+-}
+loadAddSchedulePage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadAddSchedulePage model org repo =
+    -- Fetch secrets from Api
+    let
+        scheduleModel =
+            Pages.Schedules.Update.reinitializeScheduleAdd model.schedulesModel
+    in
+    ( { model
+        | page = Pages.Schedule org repo Nothing
+        , schedulesModel =
+            { scheduleModel
+                | org = org
+                , repo = repo
             }
       }
     , Cmd.batch
@@ -4172,6 +4215,11 @@ pipelineMsgs =
 initSecretsModel : Pages.Secrets.Model.Model Msg
 initSecretsModel =
     Pages.Secrets.Update.init Copy SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
+
+
+initSchedulesModel : Pages.Schedules.Model.Model Msg
+initSchedulesModel =
+    Pages.Schedules.Update.init ScheduleResponse AddScheduleResponse UpdateScheduleResponse DeleteScheduleResponse
 
 
 initDeploymentsModel : Pages.Deployments.Model.Model Msg

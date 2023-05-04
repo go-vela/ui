@@ -28,17 +28,17 @@ import Vela exposing (Copy, Schedule, UpdateSchedulePayload, buildUpdateSchedule
 
 {-| init : takes msg updates from Main.elm and initializes schedules page input arguments
 -}
-init : Copy msg -> ScheduleResponse msg -> AddScheduleResponse msg -> UpdateScheduleResponse msg -> DeleteScheduleResponse msg ->  Model msg
-init copy scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleResponse =
+init : ScheduleResponse msg -> AddScheduleResponse msg -> UpdateScheduleResponse msg -> DeleteScheduleResponse msg ->  Model msg
+init scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleResponse =
     Model -1
         ""
         ""
         ""
         False
         NotAsked
+        NotAsked
         []
         defaultScheduleUpdate
-        copy
         scheduleResponse
         addScheduleResponse
         deleteScheduleResponse
@@ -209,7 +209,7 @@ update model msg =
                         Api.updateSchedule model
                             scheduleModel.org
                             scheduleModel.repo
-                            scheduleModel.id
+                            (String.fromInt scheduleModel.id)
                             body
                     )
 
@@ -243,6 +243,7 @@ update model msg =
                                         Api.deleteSchedule model
                                             scheduleModel.org
                                             scheduleModel.repo
+                                            (String.fromInt scheduleModel.id)
 
                                 Deleting ->
                                     Cmd.none
@@ -255,11 +256,8 @@ update model msg =
                       }
                     , Cmd.none
                     )
-
-                Pages.Schedules.Model.Copy ->
-                    ( scheduleModel, Util.dispatch <| scheduleModel.copy )
     in
-    ( { model | schedule = sm }, action )
+    ( { model | schedulesModel = sm }, action )
 
 
 
@@ -269,5 +267,5 @@ update model msg =
 deleteScheduleRedirect : Model msg -> String
 deleteScheduleRedirect { org, repo } =
     Routes.routeToUrl <|
-            Routes.Schedules org repo
+            Routes.Schedules org repo Nothing Nothing
 
