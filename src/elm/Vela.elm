@@ -1765,11 +1765,11 @@ decodeSchedule : Decoder Schedule
 decodeSchedule =
     Decode.succeed Schedule
         |> optional "id" int -1
-        |> optional "org" string ""
-        |> optional "repo" string ""
+        |> optional "repo.org" string ""
+        |> optional "repo.repo" string ""
         |> optional "name" string ""
         |> optional "entry" string ""
-        |> optional "enabled" bool False
+        |> optional "active" bool False
 
 {-| decodeSchedules : decodes json from vela into list of builds
 -}
@@ -1780,9 +1780,7 @@ decodeSchedules =
 encodeUpdateSchedule : UpdateSchedulePayload -> Encode.Value
 encodeUpdateSchedule secret =
     Encode.object
-        [ ( "org", encodeOptional Encode.string secret.org )
-        , ( "repo", encodeOptional Encode.string secret.repo )
-        , ( "name", encodeOptional Encode.string secret.name )
+        [ ( "name", encodeOptional Encode.string secret.name )
         , ( "entry", encodeOptional Encode.string secret.entry )
         , ( "enabled", encodeOptional Encode.bool secret.enabled )
         ]
