@@ -1912,6 +1912,9 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        SchedulesResponse org repo result ->
+            ( model, Cmd.none )
+
 
 {-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
 -}
@@ -2625,6 +2628,17 @@ viewContent model =
             , h1 [] [ text "Not Found" ]
             )
 
+        Pages.Schedule org repo scheduleID ->
+            ( "404"
+            , h1 [] [ text "Not Found" ]
+            )
+
+        Pages.Schedules org repo _ _ ->
+            ( "404"
+            , h1 [] [ text "Not Found" ]
+            )
+
+
 
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
 viewBuildsFilter shouldRender org repo maybeEvent =
@@ -2900,13 +2914,13 @@ setNewPage route model =
             loadBuildPipelinePage model org repo buildNumber expand lineFocus
 
         ( Routes.AddSchedule _ _, Authenticated _ ) ->
-            Debug.todo
+            ( { model | page = Pages.NotFound }, Cmd.none )
 
         ( Routes.Schedules org repo maybePage maybePerPage, Authenticated _ ) ->
-            loadRepoSchedulesPage org repo maybePage maybePerPage
+            loadRepoSchedulesPage model org repo maybePage maybePerPage
 
         ( Routes.Schedule _ _ _, Authenticated _ ) ->
-            Debug.todo
+            ( { model | page = Pages.NotFound }, Cmd.none )
 
 
         ( Routes.Settings, Authenticated _ ) ->
@@ -3336,13 +3350,13 @@ loadRepoSecretsPage model maybePage maybePerPage engine org repo =
 -}
 loadRepoSchedulesPage :
     Model
-    -> Maybe Pagination.Page
-    -> Maybe Pagination.PerPage
     -> Org
     -> Repo
+    -> Maybe Pagination.Page
+    -> Maybe Pagination.PerPage
     -> ( Model, Cmd Msg )
-loadRepoSchedulesPage model maybePage maybePerPage org repo =
-    loadRepoSubPage model org repo <| Pages.Schedules org repo
+loadRepoSchedulesPage model org repo maybePage maybePerPage =
+    loadRepoSubPage model org repo <| Pages.Schedules org repo maybePage maybePerPage
 
 
 {-| loadAddDeploymentPage : takes model org and repo and loads the page for managing deployments
@@ -4222,7 +4236,7 @@ getBuilds model org repo maybePage maybePerPage maybeEvent =
 
 getSchedules : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
 getSchedules model org repo maybePage maybePerPage maybeEvent =
-    Api.try (SchedulesResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
+    Api.try (SchedulesResponse org repo) <| Api.getSchedules model maybePage maybePerPage maybeEvent org repo
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =
