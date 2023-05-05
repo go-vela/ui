@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Schedules.View exposing (addSchedule, viewRepoSchedules)
+module Pages.Schedules.View exposing (addSchedule, editSchedule, viewRepoSchedules)
 
 import Errors exposing (viewResourceError)
 import FeatherIcons

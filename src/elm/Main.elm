@@ -124,7 +124,7 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedule, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout, updateSchedules, updateSchedulesPager)
+import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedule, ScheduleID, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout, updateSchedules, updateSchedulesPager)
 
 
 
@@ -1946,19 +1946,49 @@ update msg model =
                 )
 
             Err error ->
-                ( { model | repo = updateDeployments (toFailure error) rm }, addError error )
+                ( { model | repo = updateSchedules (toFailure error) rm }, addError error )
 
-        ScheduleResponse result ->
-            ( model, Cmd.none ) --TODO Handle API Calls
+        ScheduleResponse response ->
+            case response of
+                Ok ( _, s ) ->
+                    let
+                        sm =
+                            model.schedulesModel
 
-        AddScheduleResponse result ->
-            ( model, Cmd.none ) --TODO Handle API Calls
+                        updatedSecretsModel =
+                            Pages.Schedules.Update.reinitializeScheduleUpdate sm s
+                    in
+                    ( { model | schedulesModel = updatedSecretsModel }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( model, addError error )
+
+        AddScheduleResponse response ->  --TODO Handle Add
+            case response of
+                Ok _ ->
+                    let
+                        sm =
+                            model.schedulesModel
+
+                        alertMessage =
+                            "Schedule Added"
+
+                        redirectTo =
+                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+
+                Err error ->
+                    ( model, addError error )
 
         UpdateScheduleResponse result ->
-            ( model, Cmd.none ) --TODO Handle API Calls
+            ( model, Cmd.none ) --TODO Handle Update
 
         DeleteScheduleResponse result ->
-            ( model, Cmd.none ) --TODO Handle API Calls
+            ( model, Cmd.none ) --TODO Handle Delete
 
 
 {-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
@@ -2535,12 +2565,19 @@ viewContent model =
                 ]
             )
 
-        Pages.Schedule org repo scheduleID -> -- TODO UI
-            ( String.join "/" [ org, repo ] ++ " add schedule"
-            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.addSchedule model
-            )
+        Pages.Schedule org repo scheduleID ->
+            case scheduleID of
+                Just id ->
+                    ( String.join "/" [ org, repo, id ]
+                    , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.editSchedule model
+                    )
+                Nothing ->
+                    ( String.join "/" [ org, repo ] ++ " add schedule"
+                    , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.addSchedule model
+                    )
 
-        Pages.Schedules org repo maybePage _ ->   -- TODO UI
+
+        Pages.Schedules org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
             , div []
                 [ lazy3 Pages.Schedules.View.viewRepoSchedules model.repo.schedules org repo
@@ -2966,8 +3003,8 @@ setNewPage route model =
         ( Routes.Schedules org repo maybePage maybePerPage, Authenticated _ ) ->
             loadRepoSchedulesPage model org repo maybePage maybePerPage
 
-        ( Routes.Schedule _ _ _, Authenticated _ ) ->
-            ( { model | page = Pages.NotFound }, Cmd.none ) -- TODO
+        ( Routes.Schedule org repo id, Authenticated _ ) ->
+            loadEditSchedulePage model org repo id
 
 
         ( Routes.Settings, Authenticated _ ) ->
@@ -3591,6 +3628,29 @@ loadAddSchedulePage model org repo =
       }
     , Cmd.batch
         [ getCurrentUser model
+        ]
+    )
+
+{-| loadAddRepoSecretPage : takes model engine org and repo and loads the page for adding secrets
+-}
+loadEditSchedulePage : Model -> Org -> ScheduleID -> Repo -> ( Model, Cmd Msg )
+loadEditSchedulePage model org repo id =
+    -- Fetch secrets from Api
+    let
+        scheduleModel =
+            model.schedulesModel
+    in
+    ( { model
+        | page = Pages.Schedule org repo Nothing
+        , schedulesModel =
+            { scheduleModel
+                | org = org
+                , repo = repo
+            }
+      }
+    , Cmd.batch
+        [ getCurrentUser model,
+          getSchedule model org repo id
         ]
     )
 
@@ -4460,6 +4520,9 @@ getSecret : Model -> Engine -> Type -> Org -> Key -> Name -> Cmd Msg
 getSecret model engine type_ org key name =
     Api.try SecretResponse <| Api.getSecret model engine type_ org key name
 
+getSchedule : Model -> Org -> Repo -> ScheduleID -> Cmd Msg
+getSchedule model org repo id =
+    Api.try ScheduleResponse <| Api.getSchedule model org repo id
 
 {-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
 -}

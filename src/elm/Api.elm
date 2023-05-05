@@ -49,6 +49,7 @@ module Api exposing
     , updateRepository
     , updateSecret
     , getSchedules
+    , getSchedule
     )
 
 import Api.Endpoint as Endpoint exposing (Endpoint)
@@ -664,6 +665,14 @@ getSchedules : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPa
 getSchedules model maybePage maybePerPage org repository =
     get model.velaAPI (Endpoint.Schedule org repository Nothing maybePage maybePerPage) decodeSchedules
         |> withAuth model.session
+
+{-| getSchedule : fetches vela builds by repository
+-}
+getSchedule : PartialModel a -> Org -> Repo -> ScheduleID -> Request Schedule
+getSchedule model org repo id =
+    get model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) decodeSchedule
+        |> withAuth model.session
+
 
 {-| addSchedule : adds a schedule
 -}

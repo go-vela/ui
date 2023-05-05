@@ -91,7 +91,7 @@ type alias AddScheduleResponse msg =
 
 
 type alias UpdateScheduleResponse msg =
-    Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ) -> msg
+   Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ) -> msg
 
 
 type alias DeleteScheduleResponse msg =
