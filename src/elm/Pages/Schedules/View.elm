@@ -11,6 +11,7 @@ import FeatherIcons
 import Html exposing (Html, a, button, div, h2, span, strong, td, text, tr)
 import Html.Attributes exposing (attribute, class, scope)
 import Html.Events exposing (onClick)
+import Http
 import Pages.Schedules.Form exposing (viewEnabledCheckbox, viewHelp, viewNameInput, viewSubmitButtons, viewValueInput)
 import Pages.Schedules.Model exposing (Model, Msg, PartialModel)
 import RemoteData exposing (RemoteData(..))
@@ -24,7 +25,7 @@ import Vela exposing (Org, Repo, Schedule, Schedules, SchedulesModel, SecretType
 
 -- VIEW
 
-{-| viewPreview : renders single deployment item preview
+{-| viewPreview : renders single schedule item preview
 -}
 viewPreview : Org -> Repo -> Schedule -> Html msg
 viewPreview org repo schedule =
@@ -70,107 +71,108 @@ viewPreview org repo schedule =
         ]
 
 
-{-| viewRepoSecrets : takes secrets model and renders table for viewing repo secrets
+{-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules
 -}
 viewRepoSchedules : SchedulesModel -> Org -> Repo -> Html msg
 viewRepoSchedules sm org repo =
     let
-        addButton =
-            a
-                [ class "button"
-                , class "-outline"
-                , class "button-with-icon"
-                , Util.testAttribute "add-deployment"
-                , Routes.href <|
-                    Routes.AddSchedule org repo
-                ]
-                [ text "Add Schedule"
-                , FeatherIcons.plus
-                    |> FeatherIcons.withSize 18
-                    |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-                ]
 
-        none : Html msg
-        none =
-            div []
-                [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
-                , h2 [] [ text "No schedules found." ]
-                ]
-    in
-    case sm.schedules of
-        RemoteData.Success deployments ->
-            if List.length deployments == 0 then
-                none
-
-            else
-                let
-                    deploymentList =
-                        div [ Util.testAttribute "deployments" ] <| List.map (viewPreview org repo) deployments
-                in
-                div []
-                    [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
-                    , deploymentList
+        actions =
+            Just <|
+                div [ class "buttons" ]
+                    [ a
+                        [ class "button"
+                        , class "button-with-icon"
+                        , class "-outline"
+                        , Util.testAttribute "add-repo-schedule"
+                        , Routes.href <|
+                            Routes.AddSchedule org repo
+                        ]
+                        [ text "Add Schedule"
+                        , FeatherIcons.plus
+                            |> FeatherIcons.withSize 18
+                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                        ]
                     ]
 
-        RemoteData.Loading ->
-            largeLoader
+        ( noRowsView, rows ) =
+            case sm.schedules of
+                Success s ->
+                    ( text "No schedules found for this repo"
+                    , schedulesToRows org repo s
+                    )
 
-        RemoteData.NotAsked ->
-            largeLoader
+                Failure error ->
+                    ( span [ Util.testAttribute "repo-schedule-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No schedules found for this repo, most likely due to not being an admin of the source control repo"
 
-        RemoteData.Failure _ ->
-            viewResourceError { resourceLabel = "deployments for this repository", testLabel = "deployments" }
+                                        _ ->
+                                            "No schedules found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No schedules found for this repo, there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                _ ->
+                    ( largeLoader, [] )
+
+        cfg =
+            Table.Config
+                "Repo Schedules"
+                "repo-schedules"
+                noRowsView
+                tableHeaders
+                rows
+                actions
+    in
+      div [] [Table.view cfg]
 
 
-
-{-| secretsToRows : takes list of secrets and produces list of Table rows
+{-| schedulesToRows : takes list of schedules and produces list of Table rows
 -}
-schedulesToRows : Schedules -> Table.Rows Schedule Msg
-schedulesToRows schedules =
-    List.map (\secret -> Table.Row (addKey secret) (renderSchedule )) schedules
+schedulesToRows : Org -> Repo -> Schedules -> Table.Rows Schedule msg
+schedulesToRows org repo schedules =
+    List.map (\s -> Table.Row (addKey s) (renderSchedule org repo )) schedules
 
 
-{-| tableHeaders : returns table headers for secrets table
+{-| tableHeaders : returns table headers for schedules table
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Nothing, "" )
-    , ( Nothing, "name" )
-    , ( Nothing, "key" )
-    , ( Nothing, "type" )
-    , ( Nothing, "events" )
-    , ( Nothing, "images" )
-    , ( Nothing, "allow command" )
+    [ ( Nothing, "name" )
+    , ( Nothing, "entry" )
+    , ( Nothing, "enabled" )
     ]
 
 
-{-| renderSecret : takes secret and secret type and renders a table row
+{-| renderSchedule : takes schedule and renders a table row
 -}
-renderSchedule : Schedule -> Html Msg
-renderSchedule schedule =
-    tr [ Util.testAttribute <| "secrets-row" ]
+renderSchedule : Org -> Repo -> Schedule -> Html msg
+renderSchedule org repo schedule =
+    tr [ Util.testAttribute <| "schedules-row" ]
         [ td
             [ attribute "data-label" "name"
             , scope "row"
             , class "break-word"
-            , Util.testAttribute <| "secrets-row-name"
+            , Util.testAttribute <| "schedules-row-name"
             ]
-            [ a [ updateSecretHref schedule ] [ text schedule.name ] ]
+            [ a [ updateScheduleHref org repo schedule ] [ text schedule.name ] ]
         , td
-            [ attribute "data-label" "key"
+            [ attribute "data-label" "entry"
             , scope "row"
             , class "break-word"
-            , Util.testAttribute <| "secrets-row-key"
-            ]
-            [ text <| schedule.name ]
-        , td
-            [ attribute "data-label" "type"
-            , scope "row"
-            , class "break-word"
+            , Util.testAttribute <| "schedules-row-key"
             ]
             [ text <| schedule.entry ]
         , td
-            [ attribute "data-label" "allow command"
+            [ attribute "data-label" "enabled"
             , scope "row"
             , class "break-word"
             ]
@@ -204,22 +206,19 @@ renderListCell items none itemClassName =
         [ Html.code [ class itemClassName ] [ span [] [ text content ] ] ]
 
 
-{-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
+{-| updateScheduleHref : takes schedule and returns href link for routing to view/edit schedule page
 -}
-updateSecretHref : Schedule -> Html.Attribute msg
-updateSecretHref secret =
+updateScheduleHref : Org -> Repo -> Schedule -> Html.Attribute msg
+updateScheduleHref org repo s =
     let
         idAsString =
-            String.fromInt secret.id
+            String.fromInt s.id
     in
     Routes.href <|
-            Routes.Schedule secret.org secret.repo idAsString
+            Routes.Schedule org repo idAsString
 
 
--- ADD SECRET
-
-
-{-| addSecret : takes partial model and renders the Add Secret form
+{-| addSchedule : takes partial model and renders the Add schedule form
 -}
 addSchedule : PartialModel a msg -> Html Msg
 addSchedule model =
@@ -230,18 +229,18 @@ addSchedule model =
         ]
 
 
-{-| addForm : renders secret update form for adding a new secret
+{-| addForm : renders schedule update form for adding a new schedule
 -}
 addForm : Model msg -> Html Msg
 addForm scheduleModel =
     let
-        secretUpdate =
+        s =
             scheduleModel.form
     in
-    div [ class "secret-form" ]
-        [ viewNameInput secretUpdate.name False
-        , viewValueInput secretUpdate.entry "Secret Value"
-        , viewEnabledCheckbox secretUpdate
+    div [ class "schedule-form" ]
+        [ viewNameInput s.name False
+        , viewValueInput s.entry "cron expression (0 0 * * *)"
+        , viewEnabledCheckbox s
         , viewHelp
         , div [ class "form-action" ]
             [ button [ class "button", class "-outline", onClick <| Pages.Schedules.Model.AddSchedule ] [ text "Add" ]
@@ -249,7 +248,7 @@ addForm scheduleModel =
         ]
 
 
-{-| addKey : helper to create secret key
+{-| addKey : helper to create Schedule key
 -}
 addKey : Schedule -> Schedule
 addKey schedule =
@@ -259,10 +258,7 @@ addKey schedule =
     { schedule | org = schedule.org ++ "/" ++ schedule.repo ++ "/" ++ idAsString }
 
 
--- EDIT SECRET
-
-
-{-| editSecret : takes partial model and renders secret update form for editing a secret
+{-| editSchedule : takes partial model and renders schedule update form for editing a schedule
 -}
 editSchedule : PartialModel a msg -> Html Msg
 editSchedule model =
@@ -282,7 +278,7 @@ editSchedule model =
 
 
 
-{-| editForm : renders secret update form for updating a preexisting secret
+{-| editForm : renders schedule update form for updating a preexisting schedule
 -}
 editForm : Model msg -> Html Msg
 editForm scheduleModel =
@@ -290,9 +286,9 @@ editForm scheduleModel =
         scheduleUpdate =
             scheduleModel.form
     in
-    div [ class "secret-form", class "edit-form" ]
+    div [ class "schedule-form", class "edit-form" ]
         [ viewNameInput scheduleUpdate.name True
-        , viewValueInput scheduleUpdate.entry "Secret Value (leave blank to make no change)"
+        , viewValueInput scheduleUpdate.entry "cron expression (0 0 * * *)"
         , viewEnabledCheckbox scheduleUpdate
         , viewHelp
         , viewSubmitButtons scheduleModel
