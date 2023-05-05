@@ -55,7 +55,7 @@ module Vela exposing
     , Repository
     , Resource
     , Resources
-    , ScheduleID
+    , ScheduleName
     , Schedule
     , Schedules
     , SchedulesModel
@@ -268,7 +268,7 @@ type alias Payload =
 type alias Target =
     String
 
-type alias ScheduleID =
+type alias ScheduleName =
     String
 
 -- THEME

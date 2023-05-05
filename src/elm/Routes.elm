@@ -14,7 +14,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleID, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
 
 
 
@@ -47,7 +47,7 @@ type Route
     | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) FocusFragment
     | AddSchedule Org Repo
     | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | Schedule Org Repo ScheduleID
+    | Schedule Org Repo ScheduleName
     | Settings
     | Login
     | Logout
@@ -178,8 +178,8 @@ routeToUrl route =
         Schedules org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/schedules" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
-        Schedule org repo scheduleID ->
-            "/" ++ org ++ "/" ++ repo ++ "/schedules/" ++ scheduleID
+        Schedule org repo name ->
+            "/" ++ org ++ "/" ++ repo ++ "/schedules/" ++ name
 
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)

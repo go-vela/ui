@@ -853,7 +853,7 @@ resourceLoaded args =
         Pages.NotFound ->
             False
 
-        Pages.Schedule org repo scheduleID ->
+        Pages.Schedule org repo name ->
             False -- TODO
 
         Pages.Schedules org repo _ _ ->

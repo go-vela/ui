@@ -60,7 +60,7 @@ import Http
 import Http.Detailed
 import Json.Decode exposing (Decoder)
 import Task exposing (Task)
-import Vela exposing (AuthParams, Build, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, Engine, Event, Hook, HookNumber, Hooks, Key, Log, Name, Org, PipelineConfig, Ref, Repo, Repository, Schedule, ScheduleID, Schedules, Secret, Secrets, Service, ServiceNumber, SourceRepositories, Step, StepNumber, Templates, Type, decodeBuild, decodeBuilds, decodeCurrentUser, decodeDeployment, decodeDeployments, decodeHooks, decodeLog, decodePipelineConfig, decodePipelineExpand, decodePipelineTemplates, decodeRepositories, decodeRepository, decodeSchedule, decodeSchedules, decodeSecret, decodeSecrets, decodeService, decodeSourceRepositories, decodeStep)
+import Vela exposing (AuthParams, Build, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, Engine, Event, Hook, HookNumber, Hooks, Key, Log, Name, Org, PipelineConfig, Ref, Repo, Repository, Schedule, ScheduleName, Schedules, Secret, Secrets, Service, ServiceNumber, SourceRepositories, Step, StepNumber, Templates, Type, decodeBuild, decodeBuilds, decodeCurrentUser, decodeDeployment, decodeDeployments, decodeHooks, decodeLog, decodePipelineConfig, decodePipelineExpand, decodePipelineTemplates, decodeRepositories, decodeRepository, decodeSchedule, decodeSchedules, decodeSecret, decodeSecrets, decodeService, decodeSourceRepositories, decodeStep)
 
 
 
@@ -668,7 +668,7 @@ getSchedules model maybePage maybePerPage org repository =
 
 {-| getSchedule : fetches vela builds by repository
 -}
-getSchedule : PartialModel a -> Org -> Repo -> ScheduleID -> Request Schedule
+getSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Request Schedule
 getSchedule model org repo id =
     get model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) decodeSchedule
         |> withAuth model.session
@@ -683,14 +683,14 @@ addSchedule model org repo body =
 
 {-| updateSchedule : updates a schedule
 -}
-updateSchedule : PartialModel a -> Org -> Repo -> ScheduleID -> Http.Body -> Request Schedule
+updateSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Http.Body -> Request Schedule
 updateSchedule model org repo id body =
     put model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) body decodeSchedule
         |> withAuth model.session
 
 {-| deleteSchedule : deletes a schedule
 -}
-deleteSchedule : PartialModel a -> Org -> Repo -> ScheduleID -> Request String
+deleteSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Request String
 deleteSchedule model org repo id =
     delete model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) Json.Decode.string
         |> withAuth model.session

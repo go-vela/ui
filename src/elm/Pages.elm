@@ -9,7 +9,7 @@ module Pages exposing (Page(..), strip, toRoute)
 import Api.Pagination as Pagination
 import Focus exposing (ExpandTemplatesQuery, Fragment)
 import Routes exposing (Route)
-import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleID, Team)
+import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
 
 
 type Page
@@ -36,7 +36,7 @@ type Page
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) (Maybe Fragment)
-    | Schedule Org Repo (Maybe ScheduleID)
+    | Schedule Org Repo (Maybe ScheduleName)
     | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings
     | Login
@@ -124,8 +124,8 @@ toRoute page =
         Schedules org repo maybePage maybePerPage ->
             Routes.Schedules org repo maybePage maybePerPage
 
-        Schedule org repo scheduleID ->
-            case scheduleID of
+        Schedule org repo name ->
+            case name of
                 Just id ->
                     Routes.Schedule org repo id
                 Nothing ->

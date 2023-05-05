@@ -134,12 +134,8 @@ renderSchedule org repo schedule =
 -}
 updateScheduleHref : Org -> Repo -> Schedule -> Html.Attribute msg
 updateScheduleHref org repo s =
-    let
-        idAsString =
-            String.fromInt s.id
-    in
     Routes.href <|
-            Routes.Schedule org repo idAsString
+            Routes.Schedule org repo s.name
 
 
 {-| addSchedule : takes partial model and renders the Add schedule form
