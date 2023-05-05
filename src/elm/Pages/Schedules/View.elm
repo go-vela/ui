@@ -21,56 +21,6 @@ import Table
 import Util exposing (largeLoader)
 import Vela exposing (Org, Repo, Schedule, Schedules, SchedulesModel, SecretType(..))
 
-
-
--- VIEW
-
-{-| viewPreview : renders single schedule item preview
--}
-viewPreview : Org -> Repo -> Schedule -> Html msg
-viewPreview org repo schedule =
-    let
-        id =
-            String.fromInt schedule.id
-
-        name =
-            [ text <| schedule.name ]
-
-        entry =
-            [ text schedule.entry ]
-
-        enabled = schedule.enabled
-
-        redeploy =
-            [ a [ Routes.href <| Routes.Schedule org repo id ] [ text "Edit" ] ]
-
-        markdown =
-            [ div [ class "status", Util.testAttribute "deployment-status", class "-success" ]
-                []
-            , div [ class "info" ]
-                [ div [ class "row -left" ]
-                    [ div [ class "id" ] []
-                    , div [ class "commit-msg" ] [ strong [] name ]
-                    ]
-                , div [ class "row" ]
-                    [ div [ class "git-info" ]
-                        [ div [ class "commit" ] name
-                        , text "on"
-                        , div [ class "branch" ] entry
-                        , text "by"
-                        , div [ class "sender" ] [ text <| Util.boolToYesNo schedule.enabled ]
-                        ]
-                    , div [] redeploy
-                    ]
-                ]
-            ]
-    in
-    div [ class "build-container", Util.testAttribute "deployment" ]
-        [ div [ class "build", class "-success" ] <|
-            markdown
-        ]
-
-
 {-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules
 -}
 viewRepoSchedules : SchedulesModel -> Org -> Repo -> Html msg
@@ -178,32 +128,6 @@ renderSchedule org repo schedule =
             ]
             [ text <| Util.boolToYesNo schedule.enabled ]
         ]
-
-
-{-| renderListCell : takes list of items, text for none and className and renders a table cell
--}
-renderListCell : List String -> String -> String -> List (Html msg)
-renderListCell items none itemClassName =
-    if List.length items == 0 then
-        [ text none ]
-
-    else
-        let
-            content =
-                items
-                    |> List.sort
-                    |> List.indexedMap
-                        (\i item ->
-                            if i + 1 < List.length items then
-                                Just <| item ++ ", "
-
-                            else
-                                Just item
-                        )
-                    |> List.filterMap identity
-                    |> String.concat
-        in
-        [ Html.code [ class itemClassName ] [ span [] [ text content ] ] ]
 
 
 {-| updateScheduleHref : takes schedule and returns href link for routing to view/edit schedule page
