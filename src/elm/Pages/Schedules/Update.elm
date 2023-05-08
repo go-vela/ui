@@ -53,14 +53,14 @@ init scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleR
 -- HELPERS
 
 
-{-| reinitializeScheduleAdd : takes an incoming schdedule and reinitializes the schdedule page input arguments
+{-| reinitializeScheduleAdd : takes an incoming schedule and reinitializes the schdedule page input arguments
 -}
 reinitializeScheduleAdd : Model msg -> Model msg
 reinitializeScheduleAdd schedulesModel =
     { schedulesModel | form = defaultScheduleUpdate, schedule = RemoteData.NotAsked }
 
 
-{-| reinitializeScheduleUpdate : takes an incoming schdedule and reinitializes the schdedule page input arguments
+{-| reinitializeScheduleUpdate : takes an incoming schedule and reinitializes the schdedule page input arguments
 -}
 reinitializeScheduleUpdate : Model msg -> Schedule -> Model msg
 reinitializeScheduleUpdate scheduleModel schedule =
@@ -72,14 +72,14 @@ initScheduleUpdate schedule =
     ScheduleForm schedule.name schedule.entry schedule.enabled
 
 
-{-| updateScheduleModel : makes an update to the appropriate schdedule update
+{-| updateScheduleModel : makes an update to the appropriate schedule update
 -}
 updateScheduleModel : ScheduleForm -> Model msg -> Model msg
 updateScheduleModel schedule scheduleModel =
     { scheduleModel | form = schedule }
 
 
-{-| onChangeStringField : takes field and value and updates the schdedule model
+{-| onChangeStringField : takes field and value and updates the schedule model
 -}
 onChangeStringField : String -> String -> Model msg -> Model msg
 onChangeStringField field value scheduleModel =
@@ -95,7 +95,7 @@ onChangeStringField field value scheduleModel =
             scheduleModel
 
 
-{-| updateScheduleField : takes field and value and updates the schdedule update field
+{-| updateScheduleField : takes field and value and updates the schedule update field
 -}
 updateScheduleField : String -> String -> ScheduleForm -> ScheduleForm
 updateScheduleField field value schedule =
@@ -109,7 +109,7 @@ updateScheduleField field value schedule =
         _ ->
             schedule
 
-{-| onChangeAllowCommand : updates allow\_command field on schdedule update
+{-| onChangeAllowCommand : updates allow\_command field on schedule update
 -}
 onChangeEnable : String -> Model msg -> Model msg
 onChangeEnable bool scheduleModel =
