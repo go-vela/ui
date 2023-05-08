@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( AuthParams
+    ( AddSchedulePayload
+    , AuthParams
     , Build
     , BuildModel
     , BuildNumber
@@ -55,16 +56,10 @@ module Vela exposing
     , Repository
     , Resource
     , Resources
-    , ScheduleName
     , Schedule
+    , ScheduleName
     , Schedules
     , SchedulesModel
-    , AddSchedulePayload
-    , UpdateSchedulePayload
-    , buildUpdateSchedulePayload
-    , decodeSchedule
-    , decodeSchedules
-    , encodeUpdateSchedule
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -83,6 +78,7 @@ module Vela exposing
     , Theme(..)
     , Type
     , UpdateRepositoryPayload
+    , UpdateSchedulePayload
     , UpdateSecretPayload
     , UpdateUserPayload
     , buildDeploymentPayload
@@ -90,6 +86,7 @@ module Vela exposing
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
+    , buildUpdateSchedulePayload
     , buildUpdateSecretPayload
     , decodeBuild
     , decodeBuilds
@@ -103,6 +100,8 @@ module Vela exposing
     , decodePipelineTemplates
     , decodeRepositories
     , decodeRepository
+    , decodeSchedule
+    , decodeSchedules
     , decodeSecret
     , decodeSecrets
     , decodeService
@@ -119,6 +118,7 @@ module Vela exposing
     , encodeEnableRepository
     , encodeTheme
     , encodeUpdateRepository
+    , encodeUpdateSchedule
     , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
@@ -151,10 +151,6 @@ module Vela exposing
     , updateDeploymentsPage
     , updateDeploymentsPager
     , updateDeploymentsPerPage
-    , updateSchedules
-    , updateSchedulesPage
-    , updateSchedulesPager
-    , updateSchedulesPerPage
     , updateHooks
     , updateHooksPage
     , updateHooksPager
@@ -170,6 +166,10 @@ module Vela exposing
     , updateRepoInitialized
     , updateRepoLimit
     , updateRepoTimeout
+    , updateSchedules
+    , updateSchedulesPage
+    , updateSchedulesPager
+    , updateSchedulesPerPage
     )
 
 import Api.Pagination as Pagination
@@ -268,8 +268,11 @@ type alias Payload =
 type alias Target =
     String
 
+
 type alias ScheduleName =
     String
+
+
 
 -- THEME
 
@@ -1330,6 +1333,7 @@ defaultSchedules : SchedulesModel
 defaultSchedules =
     SchedulesModel RemoteData.NotAsked [] Nothing Nothing
 
+
 type alias Builds =
     List Build
 
@@ -1711,7 +1715,9 @@ type alias RepoResourceIdentifier =
     ( Org, Repo, String )
 
 
+
 -- SCHEDULES
+
 
 type alias SchedulesModel =
     { schedules : WebData (List Schedule)
@@ -1720,27 +1726,30 @@ type alias SchedulesModel =
     , maybePerPage : Maybe Pagination.PerPage
     }
 
+
 type alias Schedule =
-  { id: Int
-  , org: String
-  , repo: String
-  , name: String
-  , entry: String
-  , enabled: Bool
-  }
+    { id : Int
+    , org : String
+    , repo : String
+    , name : String
+    , entry : String
+    , enabled : Bool
+    }
+
 
 type alias Schedules =
     List Schedule
 
 
 type alias AddSchedulePayload =
-  { id: Int
-  , org: String
-  , repo: String
-  , name: String
-  , entry: String
-  , enabled: Bool
-  }
+    { id : Int
+    , org : String
+    , repo : String
+    , name : String
+    , entry : String
+    , enabled : Bool
+    }
+
 
 type alias UpdateSchedulePayload =
     { org : Maybe Org
@@ -1749,6 +1758,7 @@ type alias UpdateSchedulePayload =
     , entry : Maybe String
     , enabled : Maybe Bool
     }
+
 
 buildUpdateSchedulePayload :
     Maybe Org
@@ -1771,11 +1781,13 @@ decodeSchedule =
         |> optional "entry" string ""
         |> optional "active" bool False
 
+
 {-| decodeSchedules : decodes json from vela into list of builds
 -}
 decodeSchedules : Decoder Schedules
 decodeSchedules =
     Decode.list decodeSchedule
+
 
 encodeUpdateSchedule : UpdateSchedulePayload -> Encode.Value
 encodeUpdateSchedule secret =
@@ -1793,6 +1805,7 @@ updateSchedules update rm =
             rm.schedules
     in
     { rm | schedules = { sm | schedules = update } }
+
 
 updateSchedulesPager : List WebLink -> RepoModel -> RepoModel
 updateSchedulesPager update rm =
@@ -1819,6 +1832,7 @@ updateSchedulesPerPage maybePerPage rm =
             rm.schedules
     in
     { rm | schedules = { sm | maybePerPage = maybePerPage } }
+
 
 
 -- SECRETS

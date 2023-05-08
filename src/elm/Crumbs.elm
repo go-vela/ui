@@ -337,9 +337,14 @@ toPath page =
                         currentRepo =
                             ( repo, Just <| Pages.Schedules org repo Nothing Nothing )
 
-                        title = if name == "add-schedule" then "Add" else name
+                        title =
+                            if name == "add-schedule" then
+                                "Add"
+
+                            else
+                                name
                     in
-                    [ overviewPage, organizationPage, currentRepo, ("Schedule", Nothing), (title, Nothing) ]
+                    [ overviewPage, organizationPage, currentRepo, ( "Schedule", Nothing ), ( title, Nothing ) ]
 
                 Pages.Schedules org repo _ _ ->
                     let
@@ -350,6 +355,5 @@ toPath page =
                             ( repo, Just <| Pages.Schedules org repo Nothing Nothing )
                     in
                     [ overviewPage, organizationPage, currentRepo ]
-
     in
     pages

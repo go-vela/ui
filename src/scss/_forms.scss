@@ -76,6 +76,7 @@
 
   &.-stack {
     flex-flow: row wrap;
+    margin-bottom: 0.75em;
 
     .form-label {
       flex: 1 0 100%;
@@ -245,8 +246,4 @@
   &.-no-x-pad {
     padding: 0.5rem 0;
   }
-}
-.form-control.-stack {
-  flex-flow: wrap;
-  margin-bottom: 0.75em;
 }

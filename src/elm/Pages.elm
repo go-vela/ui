@@ -127,6 +127,7 @@ toRoute page =
         Schedule org repo name ->
             if name == "add-schedule" then
                 Routes.AddSchedule org repo
+
             else
                 Routes.Schedule org repo name
 

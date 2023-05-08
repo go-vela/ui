@@ -1934,19 +1934,19 @@ update msg model =
 
         SchedulesResponse org repo result ->
             case result of
-            Ok ( meta, schedules ) ->
-                ( { model
-                    | repo =
-                        rm
-                            |> updateOrgRepo org repo
-                            |> updateSchedules (RemoteData.succeed schedules)
-                            |> updateSchedulesPager (Pagination.get meta.headers)
-                  }
-                , Cmd.none
-                )
+                Ok ( meta, schedules ) ->
+                    ( { model
+                        | repo =
+                            rm
+                                |> updateOrgRepo org repo
+                                |> updateSchedules (RemoteData.succeed schedules)
+                                |> updateSchedulesPager (Pagination.get meta.headers)
+                      }
+                    , Cmd.none
+                    )
 
-            Err error ->
-                ( { model | repo = updateSchedules (toFailure error) rm }, addError error )
+                Err error ->
+                    ( { model | repo = updateSchedules (toFailure error) rm }, addError error )
 
         ScheduleResponse response ->
             case response of
@@ -1965,7 +1965,8 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        AddScheduleResponse response ->  --TODO Handle Add
+        AddScheduleResponse response ->
+            --TODO Handle Add
             case response of
                 Ok _ ->
                     let
@@ -2005,22 +2006,22 @@ update msg model =
 
         DeleteScheduleResponse response ->
             case response of
-                  Ok _ ->
-                      let
-                          sm =
-                              model.schedulesModel
+                Ok _ ->
+                    let
+                        sm =
+                            model.schedulesModel
 
-                          alertMessage =
-                              "Schedule Deleted"
+                        alertMessage =
+                            "Schedule Deleted"
 
-                          redirectTo =
-                              Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
-                      in
-                      ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                          |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+                        redirectTo =
+                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
 
-                  Err error ->
-                      ( model, addError error )
+                Err error ->
+                    ( model, addError error )
 
 
 {-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
@@ -2602,11 +2603,11 @@ viewContent model =
                 ( String.join "/" [ org, repo, name ]
                 , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.addSchedule model
                 )
+
             else
                 ( String.join "/" [ org, repo ] ++ " add schedule"
                 , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.editSchedule model
                 )
-
 
         Pages.Schedules org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
@@ -3037,7 +3038,6 @@ setNewPage route model =
         ( Routes.Schedule org repo id, Authenticated _ ) ->
             loadEditSchedulePage model org repo id
 
-
         ( Routes.Settings, Authenticated _ ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
 
@@ -3241,7 +3241,7 @@ loadRepoSubPage model org repo toPage =
             model.secretsModel
 
         schedulesModel =
-                    model.schedulesModel
+            model.schedulesModel
 
         dm =
             model.deploymentModel
@@ -3401,7 +3401,7 @@ loadRepoSubPage model org repo toPage =
                         ( model, fetchSecrets o r )
 
                     Pages.Schedules o r _ _ ->
-                        (model, getSchedules model o r Nothing Nothing)
+                        ( model, getSchedules model o r Nothing Nothing )
 
                     Pages.Hooks o r maybePage maybePerPage ->
                         ( { model
@@ -3474,6 +3474,7 @@ loadRepoSecretsPage :
 loadRepoSecretsPage model maybePage maybePerPage engine org repo =
     loadRepoSubPage model org repo <| Pages.RepoSecrets engine org repo maybePage maybePerPage
 
+
 {-| loadRepoSchedulesPage : takes model org and repo and loads the page for managing repo secrets
 -}
 loadRepoSchedulesPage :
@@ -3496,6 +3497,7 @@ loadAddDeploymentPage :
     -> ( Model, Cmd Msg )
 loadAddDeploymentPage model org repo =
     loadRepoSubPage model org repo <| Pages.AddDeployment org repo
+
 
 {-| loadPromoteDeploymentPage : takes model org and repo and loads the page for managing deployments
 -}
@@ -3640,6 +3642,7 @@ loadAddRepoSecretPage model engine org repo =
         ]
     )
 
+
 {-| loadAddRepoSecretPage : takes model engine org and repo and loads the page for adding secrets
 -}
 loadAddSchedulePage : Model -> Org -> Repo -> ( Model, Cmd Msg )
@@ -3663,6 +3666,7 @@ loadAddSchedulePage model org repo =
         ]
     )
 
+
 {-| loadAddRepoSecretPage : takes model engine org and repo and loads the page for adding secrets
 -}
 loadEditSchedulePage : Model -> Org -> ScheduleName -> Repo -> ( Model, Cmd Msg )
@@ -3682,8 +3686,8 @@ loadEditSchedulePage model org repo id =
             }
       }
     , Cmd.batch
-        [ getCurrentUser model,
-          getSchedule model org repo id
+        [ getCurrentUser model
+        , getSchedule model org repo id
         ]
     )
 
@@ -4413,9 +4417,11 @@ getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.Pe
 getBuilds model org repo maybePage maybePerPage maybeEvent =
     Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
 
+
 getSchedules : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getSchedules model org repo maybePage maybePerPage =
     Api.try (SchedulesResponse org repo) <| Api.getSchedules model maybePage maybePerPage org repo
+
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =
@@ -4553,9 +4559,11 @@ getSecret : Model -> Engine -> Type -> Org -> Key -> Name -> Cmd Msg
 getSecret model engine type_ org key name =
     Api.try SecretResponse <| Api.getSecret model engine type_ org key name
 
+
 getSchedule : Model -> Org -> Repo -> ScheduleName -> Cmd Msg
 getSchedule model org repo id =
     Api.try ScheduleResponse <| Api.getSchedule model org repo id
+
 
 {-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
 -}

@@ -86,7 +86,7 @@ routes =
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuildsPulls (string </> string </> s "pulls" <?> Query.int "page" <?> Query.int "per_page")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
-        , map AddSchedule (string </> string </> s "add-schedule" )
+        , map AddSchedule (string </> string </> s "add-schedule")
         , map Schedules (string </> string </> s "schedules" <?> Query.int "page" <?> Query.int "per_page")
         , map Schedule (string </> string </> s "schedules" </> string)
         , map Build (string </> string </> string </> fragment identity)
@@ -201,7 +201,6 @@ routeToUrl route =
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }
-
 
         Settings ->
             "/account/settings"

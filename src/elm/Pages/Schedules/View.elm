@@ -21,12 +21,12 @@ import Table
 import Util exposing (largeLoader)
 import Vela exposing (Org, Repo, Schedule, Schedules, SchedulesModel, SecretType(..))
 
+
 {-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules
 -}
 viewRepoSchedules : SchedulesModel -> Org -> Repo -> Html msg
 viewRepoSchedules sm org repo =
     let
-
         actions =
             Just <|
                 div [ class "buttons" ]
@@ -82,14 +82,14 @@ viewRepoSchedules sm org repo =
                 rows
                 actions
     in
-      div [] [Table.view cfg]
+    div [] [ Table.view cfg ]
 
 
 {-| schedulesToRows : takes list of schedules and produces list of Table rows
 -}
 schedulesToRows : Org -> Repo -> Schedules -> Table.Rows Schedule msg
 schedulesToRows org repo schedules =
-    List.map (\s -> Table.Row (addKey s) (renderSchedule org repo )) schedules
+    List.map (\s -> Table.Row (addKey s) (renderSchedule org repo)) schedules
 
 
 {-| tableHeaders : returns table headers for schedules table
@@ -135,7 +135,7 @@ renderSchedule org repo schedule =
 updateScheduleHref : Org -> Repo -> Schedule -> Html.Attribute msg
 updateScheduleHref org repo s =
     Routes.href <|
-            Routes.Schedule org repo s.name
+        Routes.Schedule org repo s.name
 
 
 {-| addSchedule : takes partial model and renders the Add schedule form
@@ -144,7 +144,7 @@ addSchedule : PartialModel a msg -> Html Msg
 addSchedule model =
     div [ class "add-schedule", Util.testAttribute "add-schedule" ]
         [ div []
-            [  addForm model.schedulesModel
+            [ addForm model.schedulesModel
             ]
         ]
 
@@ -192,7 +192,6 @@ editSchedule model =
 
         _ ->
             text ""
-
 
 
 {-| editForm : renders schedule update form for updating a preexisting schedule

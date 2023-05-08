@@ -166,7 +166,6 @@ commands page =
             []
 
 
-
 {-| listFavorites : returns cli command for listing favorites
 
     not yet supported
@@ -854,11 +853,15 @@ resourceLoaded args =
             False
 
         Pages.Schedule org repo name ->
-            False -- TODO
+            False
 
+        -- TODO
         Pages.Schedules org repo _ _ ->
-            False -- TODO
+            False
 
+
+
+-- TODO
 
 
 {-| resourceLoading : takes help args and returns if the resource is loading
@@ -945,8 +948,12 @@ resourceLoading args =
             False
 
         Pages.Schedule _ _ _ ->
-            False -- TODO
+            False
 
+        -- TODO
         Pages.Schedules _ _ _ _ ->
-            False -- TODO
+            False
 
+
+
+-- TODO

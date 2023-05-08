@@ -7,12 +7,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api exposing
     ( Request(..)
     , addDeployment
+    , addSchedule
     , addSecret
     , cancelBuild
     , chownRepo
     , deleteRepo
-    , addSchedule
-    , updateSchedule
     , deleteSchedule
     , deleteSecret
     , enableRepository
@@ -33,6 +32,8 @@ module Api exposing
     , getPipelineConfig
     , getPipelineTemplates
     , getRepo
+    , getSchedule
+    , getSchedules
     , getSecret
     , getSecrets
     , getServiceLogs
@@ -47,9 +48,8 @@ module Api exposing
     , tryString
     , updateCurrentUser
     , updateRepository
+    , updateSchedule
     , updateSecret
-    , getSchedules
-    , getSchedule
     )
 
 import Api.Endpoint as Endpoint exposing (Endpoint)
@@ -657,7 +657,9 @@ deleteSecret model engine type_ org key name =
         |> withAuth model.session
 
 
+
 -- SCHEDULES
+
 
 {-| getSchedules : fetches vela builds by repository
 -}
@@ -665,6 +667,7 @@ getSchedules : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPa
 getSchedules model maybePage maybePerPage org repository =
     get model.velaAPI (Endpoint.Schedule org repository Nothing maybePage maybePerPage) decodeSchedules
         |> withAuth model.session
+
 
 {-| getSchedule : fetches vela builds by repository
 -}
@@ -681,12 +684,14 @@ addSchedule model org repo body =
     post model.velaAPI (Endpoint.Schedule org repo Nothing Nothing Nothing) body decodeSchedule
         |> withAuth model.session
 
+
 {-| updateSchedule : updates a schedule
 -}
 updateSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Http.Body -> Request Schedule
 updateSchedule model org repo name body =
     put model.velaAPI (Endpoint.Schedule org repo (Just name) Nothing Nothing) body decodeSchedule
         |> withAuth model.session
+
 
 {-| deleteSchedule : deletes a schedule
 -}

@@ -45,13 +45,13 @@ type alias PartialModel a msg =
 {-| Model : record to hold page input arguments
 -}
 type alias Model msg =
-    { id: Int
+    { id : Int
     , org : Org
     , repo : Repo
     , entry : String
     , enabled : Bool
-    , schedule: WebData Schedule
-    , schedules: WebData Schedules
+    , schedule : WebData Schedule
+    , schedules : WebData Schedules
     , schedulesPager : List WebLink
     , form : ScheduleForm
     , scheduleResponse : ScheduleResponse msg
@@ -77,21 +77,24 @@ defaultScheduleUpdate =
     ScheduleForm "Daily" "0 0 * * *" True
 
 
+
 -- MSG
 
 
 type alias ScheduleResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ) -> msg
 
+
 type alias SchedulesResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Schedules ) -> msg
+
 
 type alias AddScheduleResponse msg =
     Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ) -> msg
 
 
 type alias UpdateScheduleResponse msg =
-   Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ) -> msg
+    Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ) -> msg
 
 
 type alias DeleteScheduleResponse msg =

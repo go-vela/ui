@@ -124,11 +124,12 @@ toUrl api endpoint =
             url api [ "secrets", engine, type_, org, key ] <| Pagination.toQueryParams maybePage maybePerPage
 
         Schedule org repo name maybePage maybePerPage ->
-          case name of
-              Just id ->
-                  url api [ "schedules", org, repo, id ] []
-              Nothing ->
-                  url api [ "schedules", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
+            case name of
+                Just id ->
+                    url api [ "schedules", org, repo, id ] []
+
+                Nothing ->
+                    url api [ "schedules", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
         Secret engine type_ org key name ->
             url api [ "secrets", engine, type_, org, key, name ] []

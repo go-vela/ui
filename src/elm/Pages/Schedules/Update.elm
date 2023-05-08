@@ -7,16 +7,15 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Schedules.Update exposing
     ( deleteScheduleRedirect
     , init
+    , onChangeEnable
+    , onChangeStringField
     , reinitializeScheduleAdd
     , reinitializeScheduleUpdate
     , update
-    , onChangeEnable
-    , onChangeStringField
     )
 
 import Api
 import Http
-
 import Pages.Schedules.Model exposing (AddScheduleResponse, DeleteScheduleResponse, DeleteScheduleState(..), Model, Msg(..), PartialModel, ScheduleForm, ScheduleResponse, SchedulesResponse, UpdateScheduleResponse, defaultScheduleUpdate)
 import RemoteData exposing (RemoteData(..))
 import Routes
@@ -30,7 +29,7 @@ import Vela exposing (Copy, Schedule, UpdateSchedulePayload, buildUpdateSchedule
 
 {-| init : takes msg updates from Main.elm and initializes schedules page input arguments
 -}
-init : ScheduleResponse msg -> AddScheduleResponse msg -> UpdateScheduleResponse msg -> DeleteScheduleResponse msg ->  Model msg
+init : ScheduleResponse msg -> AddScheduleResponse msg -> UpdateScheduleResponse msg -> DeleteScheduleResponse msg -> Model msg
 init scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleResponse =
     Model -1
         ""
@@ -108,6 +107,7 @@ updateScheduleField field value schedule =
 
         _ ->
             schedule
+
 
 {-| onChangeAllowCommand : updates allow\_command field on schedule update
 -}
@@ -269,5 +269,4 @@ update model msg =
 deleteScheduleRedirect : Model msg -> String
 deleteScheduleRedirect { org, repo } =
     Routes.routeToUrl <|
-            Routes.Schedules org repo Nothing Nothing
-
+        Routes.Schedules org repo Nothing Nothing
