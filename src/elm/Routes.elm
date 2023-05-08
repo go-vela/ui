@@ -175,11 +175,11 @@ routeToUrl route =
         AddSchedule org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/add-schedule"
 
-        Schedules org repo maybePage maybePerPage ->
-            "/" ++ org ++ "/" ++ repo ++ "/schedules" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
-
         Schedule org repo name ->
             "/" ++ org ++ "/" ++ repo ++ "/schedules/" ++ name
+
+        Schedules org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/schedules" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)

@@ -172,10 +172,7 @@ addForm scheduleModel =
 -}
 addKey : Schedule -> Schedule
 addKey schedule =
-    let
-      idAsString = String.fromInt schedule.id
-    in
-    { schedule | org = schedule.org ++ "/" ++ schedule.repo ++ "/" ++ idAsString }
+    { schedule | org = schedule.org ++ "/" ++ schedule.repo ++ "/" ++ schedule.name }
 
 
 {-| editSchedule : takes partial model and renders schedule update form for editing a schedule

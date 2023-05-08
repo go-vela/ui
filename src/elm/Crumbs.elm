@@ -329,15 +329,17 @@ toPath page =
                 Pages.NotFound ->
                     [ overviewPage, notFoundPage ]
 
-                Pages.Schedule org repo _ ->
+                Pages.Schedule org repo name ->
                     let
                         organizationPage =
                             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
 
                         currentRepo =
                             ( repo, Just <| Pages.Schedules org repo Nothing Nothing )
+
+                        title = if name == "add-schedule" then "Add" else name
                     in
-                    [ overviewPage, organizationPage, currentRepo, ("Add-Schedule", Nothing) ]
+                    [ overviewPage, organizationPage, currentRepo, ("Schedule", Nothing), (title, Nothing) ]
 
                 Pages.Schedules org repo _ _ ->
                     let

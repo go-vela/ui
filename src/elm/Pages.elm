@@ -36,7 +36,7 @@ type Page
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) (Maybe Fragment)
-    | Schedule Org Repo (Maybe ScheduleName)
+    | Schedule Org Repo ScheduleName
     | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings
     | Login
@@ -125,11 +125,10 @@ toRoute page =
             Routes.Schedules org repo maybePage maybePerPage
 
         Schedule org repo name ->
-            case name of
-                Just id ->
-                    Routes.Schedule org repo id
-                Nothing ->
-                    Routes.AddSchedule org repo
+            if name == "add-schedule" then
+                Routes.AddSchedule org repo
+            else
+                Routes.Schedule org repo name
 
         Settings ->
             Routes.Settings
