@@ -374,12 +374,11 @@ viewBuildTabs model org repo buildNumber currentPage =
 {-| cancelBuildButton : takes org repo and build number and renders button to cancel a build
 -}
 cancelBuildButton : Org -> Repo -> WebData Build -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
-cancelBuildButton org repo build cancelBuild =
+cancelBuildButton org repo build cancelBuild =  
     case build of
         RemoteData.Success b ->
-            case b.status of
-                Vela.Running ->
-                    button
+            let
+                cancelButton =  button
                         [ classList
                             [ ( "button", True )
                             , ( "-outline", True )
@@ -389,7 +388,12 @@ cancelBuildButton org repo build cancelBuild =
                         ]
                         [ text "Cancel Build"
                         ]
-
+            in
+            case b.status of
+                Vela.Running ->
+                    cancelButton
+                Vela.Pending ->
+                    cancelButton
                 _ ->
                     text ""
 
