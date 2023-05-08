@@ -684,8 +684,8 @@ addSchedule model org repo body =
 {-| updateSchedule : updates a schedule
 -}
 updateSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Http.Body -> Request Schedule
-updateSchedule model org repo id body =
-    put model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) body decodeSchedule
+updateSchedule model org repo name body =
+    put model.velaAPI (Endpoint.Schedule org repo (Just name) Nothing Nothing) body decodeSchedule
         |> withAuth model.session
 
 {-| deleteSchedule : deletes a schedule

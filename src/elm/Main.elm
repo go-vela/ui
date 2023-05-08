@@ -1955,10 +1955,10 @@ update msg model =
                         sm =
                             model.schedulesModel
 
-                        updatedSecretsModel =
+                        updatedSchedulesModel =
                             Pages.Schedules.Update.reinitializeScheduleUpdate sm s
                     in
-                    ( { model | schedulesModel = updatedSecretsModel }
+                    ( { model | schedulesModel = updatedSchedulesModel }
                     , Cmd.none
                     )
 
@@ -1984,11 +1984,43 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        UpdateScheduleResponse result ->
-            ( model, Cmd.none ) --TODO Handle Update
+        UpdateScheduleResponse response ->
+            case response of
+                Ok _ ->
+                    let
+                        sm =
+                            model.schedulesModel
 
-        DeleteScheduleResponse result ->
-            ( model, Cmd.none ) --TODO Handle Delete
+                        alertMessage =
+                            "Schedule Modified"
+
+                        redirectTo =
+                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        DeleteScheduleResponse response ->
+            case response of
+                  Ok _ ->
+                      let
+                          sm =
+                              model.schedulesModel
+
+                          alertMessage =
+                              "Schedule Deleted"
+
+                          redirectTo =
+                              Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                      in
+                      ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                          |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+
+                  Err error ->
+                      ( model, addError error )
 
 
 {-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
@@ -3623,6 +3655,7 @@ loadAddSchedulePage model org repo =
             { scheduleModel
                 | org = org
                 , repo = repo
+                , deleteState = Pages.Schedules.Model.NotAsked_
             }
       }
     , Cmd.batch
@@ -3645,6 +3678,7 @@ loadEditSchedulePage model org repo id =
             { scheduleModel
                 | org = org
                 , repo = repo
+                , deleteState = Pages.Schedules.Model.NotAsked_
             }
       }
     , Cmd.batch

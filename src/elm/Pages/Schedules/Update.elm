@@ -211,7 +211,7 @@ update model msg =
                         Api.updateSchedule model
                             scheduleModel.org
                             scheduleModel.repo
-                            (String.fromInt scheduleModel.id)
+                            schedule.name
                             body
                     )
 
@@ -245,7 +245,7 @@ update model msg =
                                         Api.deleteSchedule model
                                             scheduleModel.org
                                             scheduleModel.repo
-                                            (String.fromInt scheduleModel.id)
+                                            schedule.name
 
                                 Deleting ->
                                     Cmd.none
