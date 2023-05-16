@@ -3334,6 +3334,9 @@ loadRepoSubPage model org repo toPage =
                         Pages.RepositoryBuildsPulls o r maybePage maybePerPage ->
                             getBuilds model o r maybePage maybePerPage (Just "pull_request")
 
+                        Pages.RepositoryBuildsTags o r maybePage maybePerPage ->
+                            getBuilds model o r maybePage maybePerPage (Just "tag")
+
                         _ ->
                             getBuilds model org repo Nothing Nothing Nothing
                     , case toPage of
