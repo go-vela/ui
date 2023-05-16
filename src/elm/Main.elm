@@ -3426,7 +3426,7 @@ loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
     loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
 
-{-| loadRepoBuildsPullsPage : takes model org and repo and loads the appropriate builds for the pull_request event only.
+{-| loadRepoBuildsPullsPage : takes model org and repo and loads the appropriate builds for the pull\_request event only.
 
     loadRepoBuildsPullsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
@@ -3435,12 +3435,14 @@ loadRepoBuildsPullsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe
 loadRepoBuildsPullsPage model org repo maybePage maybePerPage =
     loadRepoSubPage model org repo <| Pages.RepositoryBuildsPulls org repo maybePage maybePerPage
 
+
 {-| loadRepoBuildsTagsPage : takes model org and repo and loads the appropriate builds for the tag event only.
-    loadRepoBuildsTagsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
+loadRepoBuildsTagsPage Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 -}
 loadRepoBuildsTagsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadRepoBuildsTagsPage model org repo maybePage maybePerPage =
     loadRepoSubPage model org repo <| Pages.RepositoryBuildsTags org repo maybePage maybePerPage
+
 
 loadRepoDeploymentsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadRepoDeploymentsPage model org repo maybePage maybePerPage =
