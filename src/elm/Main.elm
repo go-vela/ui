@@ -2680,6 +2680,35 @@ viewContent model =
                 ]
             )
 
+        Pages.RepositoryBuildsTags org repo maybePage _ ->
+            let
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.repo.builds.builds, Just "tag" ) of
+                        ( Success result, Nothing ) ->
+                            not <| List.length result == 0
+
+                        ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
+                            True
+
+                        _ ->
+                            False
+            in
+            ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+            , div []
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
+                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
+                    ]
+                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo (Just "tag")
+                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
             , Pages.Build.View.viewBuild
@@ -2983,6 +3012,9 @@ setNewPage route model =
 
         ( Routes.RepositoryBuildsPulls org repo maybePage maybePerPage, Authenticated _ ) ->
             loadRepoBuildsPullsPage model org repo maybePage maybePerPage
+
+        ( Routes.RepositoryBuildsTags org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoBuildsTagsPage model org repo maybePage maybePerPage
 
         ( Routes.RepositoryDeployments org repo maybePage maybePerPage, Authenticated _ ) ->
             loadRepoDeploymentsPage model org repo maybePage maybePerPage
@@ -3391,7 +3423,7 @@ loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
     loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
 
-{-| loadRepoBuildsPullsPage : takes model org and repo and loads the appropriate builds for the pull\_request event only.
+{-| loadRepoBuildsPullsPage : takes model org and repo and loads the appropriate builds for the pull_request event only.
 
     loadRepoBuildsPullsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
 
@@ -3400,6 +3432,12 @@ loadRepoBuildsPullsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe
 loadRepoBuildsPullsPage model org repo maybePage maybePerPage =
     loadRepoSubPage model org repo <| Pages.RepositoryBuildsPulls org repo maybePage maybePerPage
 
+{-| loadRepoBuildsTagsPage : takes model org and repo and loads the appropriate builds for the tag event only.
+    loadRepoBuildsTagsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
+-}
+loadRepoBuildsTagsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadRepoBuildsTagsPage model org repo maybePage maybePerPage =
+    loadRepoSubPage model org repo <| Pages.RepositoryBuildsTags org repo maybePage maybePerPage
 
 loadRepoDeploymentsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadRepoDeploymentsPage model org repo maybePage maybePerPage =

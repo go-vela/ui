@@ -31,6 +31,7 @@ type Page
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | RepositoryBuildsPulls Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | RepositoryBuildsTags Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Build Org Repo BuildNumber FocusFragment
@@ -103,6 +104,9 @@ toRoute page =
 
         RepositoryBuildsPulls org repo maybePage maybePerPage ->
             Routes.RepositoryBuildsPulls org repo maybePage maybePerPage
+
+        RepositoryBuildsTags org repo maybePage maybePerPage ->
+            Routes.RepositoryBuildsTags org repo maybePage maybePerPage
 
         OrgBuilds org maybePage maybePerPage maybeEvent ->
             Routes.OrgBuilds org maybePage maybePerPage maybeEvent
@@ -190,6 +194,9 @@ strip page =
 
         RepositoryBuildsPulls org repo _ _ ->
             RepositoryBuildsPulls org repo Nothing Nothing
+
+        RepositoryBuildsTags org repo _ _ ->
+            RepositoryBuildsTags org repo Nothing Nothing
 
         RepositoryDeployments org repo _ _ ->
             RepositoryDeployments org repo Nothing Nothing
