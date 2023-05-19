@@ -8,7 +8,22 @@ module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
 import Url.Builder as UB exposing (QueryParameter)
-import Vela exposing (AuthParams, BuildNumber, DeploymentId, Engine, Event, HookNumber, Name, Org, Ref, Repo, ScheduleName, ServiceNumber, StepNumber, Type)
+import Vela exposing
+  ( AuthParams
+  , BuildNumber
+  , DeploymentId
+  , Engine
+  , Event
+  , HookNumber
+  , Name
+  , Org
+  , Ref
+  , Repo
+  , ScheduleName
+  , ServiceNumber
+  , StepNumber
+  , Type
+  )
 
 
 {-| apiBase : is the versioned base of all API paths
