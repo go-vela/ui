@@ -277,6 +277,13 @@ toPath page =
                     in
                     [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuildsPulls org repo maybePage maybePerPage ) ]
 
+                Pages.RepositoryBuildsTags org repo maybePage maybePerPage ->
+                    let
+                        organizationPage =
+                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
+                    in
+                    [ overviewPage, organizationPage, ( repo, Just <| Pages.RepositoryBuildsTags org repo maybePage maybePerPage ) ]
+
                 Pages.RepositoryDeployments org repo maybePage maybePerPage ->
                     let
                         organizationPage =
