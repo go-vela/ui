@@ -381,8 +381,8 @@ cancelBuildButton : Org -> Repo -> WebData Build -> (Org -> Repo -> BuildNumber 
 cancelBuildButton org repo build cancelBuild =
     case build of
         RemoteData.Success b ->
-            case b.status of
-                Vela.Running ->
+            let
+                cancelButton =
                     button
                         [ classList
                             [ ( "button", True )
@@ -393,6 +393,13 @@ cancelBuildButton org repo build cancelBuild =
                         ]
                         [ text "Cancel Build"
                         ]
+            in
+            case b.status of
+                Vela.Running ->
+                    cancelButton
+
+                Vela.Pending ->
+                    cancelButton
 
                 _ ->
                     text ""
