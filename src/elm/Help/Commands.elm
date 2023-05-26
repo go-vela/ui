@@ -151,12 +151,12 @@ commands page =
             []
 
         Pages.Schedule org repo name ->
-          case name of
-            "add-schedule" ->
-              [ addSchedule org repo ]
-            _ ->
-              [ viewSchedule org repo name, updateSchedule org repo name ]
+            case name of
+                "add-schedule" ->
+                    [ addSchedule org repo ]
 
+                _ ->
+                    [ viewSchedule org repo name, updateSchedule org repo name ]
 
         Pages.Schedules org repo _ _ ->
             [ listSchedules org repo ]
@@ -735,6 +735,7 @@ listSchedules org repo =
     in
     Command name content docs noIssue
 
+
 {-| viewSchedule : returns cli command for viewing a schedule
 
       vela view schedule --org <org> --repo <repo>  --schedule <name>
@@ -754,6 +755,7 @@ viewSchedule org repo name =
     in
     Command name_ content docs noIssue
 
+
 {-| updateSecret : returns cli command for updating an existing secret
 
     eg.
@@ -764,11 +766,12 @@ updateSchedule : Org -> Repo -> ScheduleName -> Command
 updateSchedule org repo name =
     let
         name_ =
-          case name of
-            "add-schedule" ->
-              "Add Schedule"
-            _ ->
-              "Update " ++ name ++ " Schedule"
+            case name of
+                "add-schedule" ->
+                    "Add Schedule"
+
+                _ ->
+                    "Update " ++ name ++ " Schedule"
 
         content =
             Just <| "vela update schedule " ++ repoArgs org repo ++ " --name " ++ name ++ " --entry '<cron expression>'"
@@ -777,6 +780,7 @@ updateSchedule org repo name =
             Just "/secret/update"
     in
     Command name_ content docs noIssue
+
 
 {-| updateSecret : returns cli command for updating an existing secret
 
@@ -787,7 +791,8 @@ updateSchedule org repo name =
 addSchedule : Org -> Repo -> Command
 addSchedule org repo =
     let
-        name_ = "Add a New Schedule"
+        name_ =
+            "Add a New Schedule"
 
         content =
             Just <| "vela add schedule " ++ repoArgs org repo ++ " --name <name> --entry '<cron expression>'"
@@ -796,6 +801,7 @@ addSchedule org repo =
             Just "/secret/update"
     in
     Command name_ content docs noIssue
+
 
 noCmd : Maybe String
 noCmd =
