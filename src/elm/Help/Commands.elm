@@ -766,12 +766,7 @@ updateSchedule : Org -> Repo -> ScheduleName -> Command
 updateSchedule org repo name =
     let
         name_ =
-            case name of
-                "add-schedule" ->
-                    "Add Schedule"
-
-                _ ->
-                    "Update " ++ name ++ " Schedule"
+            "Update " ++ name ++ " Schedule"
 
         content =
             Just <| "vela update schedule " ++ repoArgs org repo ++ " --name " ++ name ++ " --entry '<cron expression>'"
