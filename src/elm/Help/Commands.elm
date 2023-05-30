@@ -731,7 +731,7 @@ listSchedules org repo =
             Just <| "vela get schedules " ++ repoArgs org repo
 
         docs =
-            Just "/build/get"
+            Just "/schedule/get"
     in
     Command name content docs noIssue
 
@@ -751,7 +751,7 @@ viewSchedule org repo name =
             Just <| "vela view schedule " ++ repoArgs org repo ++ " --name " ++ name
 
         docs =
-            Just "/secret/view"
+            Just "/schedule/view"
     in
     Command name_ content docs noIssue
 
@@ -777,7 +777,7 @@ updateSchedule org repo name =
             Just <| "vela update schedule " ++ repoArgs org repo ++ " --name " ++ name ++ " --entry '<cron expression>'"
 
         docs =
-            Just "/secret/update"
+            Just "/schedule/update"
     in
     Command name_ content docs noIssue
 
@@ -798,7 +798,7 @@ addSchedule org repo =
             Just <| "vela add schedule " ++ repoArgs org repo ++ " --name <name> --entry '<cron expression>'"
 
         docs =
-            Just "/secret/update"
+            Just "/schedule/add"
     in
     Command name_ content docs noIssue
 
