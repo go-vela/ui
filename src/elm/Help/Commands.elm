@@ -715,7 +715,7 @@ addSecretArgs =
     " --name password --value vela --event push"
 
 
-{-| listBuilds : returns cli command for listing builds
+{-| listSchedules : returns cli command for listing schedules
 
     eg.
       vela list schedules --org <org> --repo <repo>
@@ -756,7 +756,7 @@ viewSchedule org repo name =
     Command name_ content docs noIssue
 
 
-{-| updateSecret : returns cli command for updating an existing secret
+{-| updateSchedule : returns cli command for updating an existing schedule
 
     eg.
       vela update schedule --org <org> --repo <repo> --schedule <name> --entry <entry>
@@ -782,7 +782,7 @@ updateSchedule org repo name =
     Command name_ content docs noIssue
 
 
-{-| updateSecret : returns cli command for updating an existing secret
+{-| addSchedule : returns cli command for adding an new schedule
 
     eg.
       vela add schedule --org <org> --repo <repo> --schedule <name> --entry <entry>

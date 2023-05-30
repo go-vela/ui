@@ -714,7 +714,7 @@ deleteSecret model engine type_ org key name =
 -- SCHEDULES
 
 
-{-| getSchedules : fetches vela builds by repository
+{-| getSchedules : fetches vela schedules by repository
 -}
 getSchedules : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Schedules
 getSchedules model maybePage maybePerPage org repository =
@@ -722,7 +722,7 @@ getSchedules model maybePage maybePerPage org repository =
         |> withAuth model.session
 
 
-{-| getSchedule : fetches vela builds by repository
+{-| getSchedule : fetches vela schedules by repository and name
 -}
 getSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Request Schedule
 getSchedule model org repo id =

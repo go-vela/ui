@@ -5,8 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Schedules.Update exposing
-    ( deleteScheduleRedirect
-    , init
+    ( init
     , onChangeEnable
     , onChangeStringField
     , reinitializeScheduleAdd
@@ -109,7 +108,7 @@ updateScheduleField field value schedule =
             schedule
 
 
-{-| onChangeAllowCommand : updates allow\_command field on schedule update
+{-| onChangeEnable : updates enabled field on schedule update
 -}
 onChangeEnable : String -> Model msg -> Model msg
 onChangeEnable bool scheduleModel =
@@ -260,13 +259,3 @@ update model msg =
                     )
     in
     ( { model | schedulesModel = sm }, action )
-
-
-
--- takes scheduleModel and returns the URL to redirect to
-
-
-deleteScheduleRedirect : Model msg -> String
-deleteScheduleRedirect { org, repo } =
-    Routes.routeToUrl <|
-        Routes.Schedules org repo Nothing Nothing

@@ -1782,8 +1782,6 @@ decodeSchedule =
         |> optional "active" bool False
 
 
-{-| decodeSchedules : decodes json from vela into list of builds
--}
 decodeSchedules : Decoder Schedules
 decodeSchedules =
     Decode.list decodeSchedule

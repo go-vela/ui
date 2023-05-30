@@ -219,13 +219,6 @@ viewCancelButton schedulesModel =
 -- HELPERS
 
 
-{-| eventEnabled : takes event and returns if it is enabled
--}
-eventEnabled : String -> List String -> Bool
-eventEnabled event =
-    List.member event
-
-
 schedulesDocsURL : String
 schedulesDocsURL =
     "#TODO"
