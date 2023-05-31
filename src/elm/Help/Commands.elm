@@ -1030,10 +1030,5 @@ resourceLoading args =
         Pages.Schedule _ _ _ ->
             False
 
-        -- TODO
         Pages.Schedules _ _ _ _ ->
             False
-
-
-
--- TODO

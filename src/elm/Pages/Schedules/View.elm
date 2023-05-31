@@ -4,22 +4,51 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Schedules.View exposing (addSchedule, editSchedule, viewRepoSchedules)
+module Pages.Schedules.View exposing
+    ( addSchedule
+    , editSchedule
+    , viewRepoSchedules
+    )
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html exposing (Html, a, button, div, h2, span, strong, td, text, tr)
+import Html
+    exposing
+        ( Html
+        , a
+        , button
+        , div
+        , span
+        , td
+        , text
+        , tr
+        )
 import Html.Attributes exposing (attribute, class, scope)
 import Html.Events exposing (onClick)
 import Http
-import Pages.Schedules.Form exposing (viewEnabledCheckbox, viewHelp, viewNameInput, viewSubmitButtons, viewValueInput)
+import Pages.Schedules.Form
+    exposing
+        ( viewEnabledCheckbox
+        , viewHelp
+        , viewNameInput
+        , viewSubmitButtons
+        , viewValueInput
+        )
 import Pages.Schedules.Model exposing (Model, Msg, PartialModel)
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
 import Table
 import Util exposing (largeLoader)
-import Vela exposing (Org, Repo, Schedule, Schedules, SchedulesModel, SecretType(..))
+import Vela
+    exposing
+        ( Org
+        , Repo
+        , Schedule
+        , Schedules
+        , SchedulesModel
+        , SecretType(..)
+        )
 
 
 {-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules
@@ -97,7 +126,7 @@ schedulesToRows org repo schedules =
 tableHeaders : Table.Columns
 tableHeaders =
     [ ( Nothing, "name" )
-    , ( Nothing, "entry" )
+    , ( Nothing, "cron expression" )
     , ( Nothing, "enabled" )
     ]
 
@@ -115,7 +144,7 @@ renderSchedule org repo schedule =
             ]
             [ a [ updateScheduleHref org repo schedule ] [ text schedule.name ] ]
         , td
-            [ attribute "data-label" "entry"
+            [ attribute "data-label" "cron expression"
             , scope "row"
             , class "break-word"
             , Util.testAttribute <| "schedules-row-key"

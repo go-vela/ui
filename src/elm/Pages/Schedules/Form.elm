@@ -18,7 +18,6 @@ import Html
         ( Html
         , a
         , button
-        , code
         , div
         , em
         , input
@@ -96,7 +95,10 @@ viewInput name val placeholder_ =
 viewValueInput : String -> String -> Html Msg
 viewValueInput val placeholder_ =
     section [ class "form-control", class "-stack" ]
-        [ label [ class "form-label", for <| "schedule-entry" ] [ strong [] [ text "Entry" ] ]
+        [ label [ class "form-label", for <| "schedule-entry" ]
+            [ strong [] [ text "Cron Expression " ]
+            , a [ href "https://crontab.guru/", target "_blank" ] [ text "(help)" ]
+            ]
         , textarea
             [ value val
             , onInput <| OnChangeStringField "entry"
@@ -135,7 +137,7 @@ viewEnabledCheckbox enableUpdate =
                 [ text "State"
                 , span [ class "field-description" ]
                     [ text "( "
-                    , em [] [ text "Disabled schdules will not be run" ]
+                    , em [] [ text "Disabled schedules will not be run" ]
                     , text " )"
                     ]
                 ]
@@ -151,14 +153,14 @@ viewEnabledCheckbox enableUpdate =
 viewSubmitButtons : Model msg -> Html Msg
 viewSubmitButtons schedulesModel =
     div [ class "buttons" ]
-        [ viewUpdateButton schedulesModel
+        [ viewUpdateButton
         , viewCancelButton schedulesModel
         , viewDeleteButton schedulesModel
         ]
 
 
-viewUpdateButton : Model msg -> Html Msg
-viewUpdateButton schedulesModel =
+viewUpdateButton : Html Msg
+viewUpdateButton =
     button
         [ class "button"
         , onClick <| Pages.Schedules.Model.UpdateSchedule

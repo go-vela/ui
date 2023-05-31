@@ -15,11 +15,28 @@ module Pages.Schedules.Update exposing
 
 import Api
 import Http
-import Pages.Schedules.Model exposing (AddScheduleResponse, DeleteScheduleResponse, DeleteScheduleState(..), Model, Msg(..), PartialModel, ScheduleForm, ScheduleResponse, SchedulesResponse, UpdateScheduleResponse, defaultScheduleUpdate)
+import Pages.Schedules.Model
+    exposing
+        ( AddScheduleResponse
+        , DeleteScheduleResponse
+        , DeleteScheduleState(..)
+        , Model
+        , Msg(..)
+        , PartialModel
+        , ScheduleForm
+        , ScheduleResponse
+        , UpdateScheduleResponse
+        , defaultScheduleUpdate
+        )
 import RemoteData exposing (RemoteData(..))
-import Routes
 import Util exposing (stringToMaybe)
-import Vela exposing (Copy, Schedule, UpdateSchedulePayload, buildUpdateSchedulePayload, encodeUpdateSchedule)
+import Vela
+    exposing
+        ( Schedule
+        , UpdateSchedulePayload
+        , buildUpdateSchedulePayload
+        , encodeUpdateSchedule
+        )
 
 
 
