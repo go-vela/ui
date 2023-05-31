@@ -2598,16 +2598,15 @@ viewContent model =
                 ]
             )
 
-        Pages.Schedule org repo name ->
-            if name == "add-schedule" then
-                ( String.join "/" [ org, repo, name ]
-                , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.addSchedule model
-                )
+        Pages.AddSchedule org repo ->
+            ( String.join "/" [ org, repo, "add schedule" ]
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.addSchedule model
+            )
 
-            else
-                ( String.join "/" [ org, repo ] ++ " add schedule"
-                , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.editSchedule model
-                )
+        Pages.Schedule org repo name ->
+            ( String.join "/" [ org, repo, name ]
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.editSchedule model
+            )
 
         Pages.Schedules org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
@@ -3696,7 +3695,7 @@ loadAddSchedulePage model org repo =
             Pages.Schedules.Update.reinitializeScheduleAdd model.schedulesModel
     in
     ( { model
-        | page = Pages.Schedule org repo "add-schedule"
+        | page = Pages.AddSchedule org repo
         , schedulesModel =
             { scheduleModel
                 | org = org

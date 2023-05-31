@@ -150,13 +150,11 @@ commands page =
         Pages.NotFound ->
             []
 
-        Pages.Schedule org repo name ->
-            case name of
-                "add-schedule" ->
-                    [ addSchedule org repo ]
+        Pages.AddSchedule org repo ->
+            [ addSchedule org repo ]
 
-                _ ->
-                    [ viewSchedule org repo name, updateSchedule org repo name ]
+        Pages.Schedule org repo name ->
+            [ viewSchedule org repo name, updateSchedule org repo name ]
 
         Pages.Schedules org repo _ _ ->
             [ listSchedules org repo ]
@@ -934,6 +932,9 @@ resourceLoaded args =
         Pages.NotFound ->
             False
 
+        Pages.AddSchedule org repo ->
+            noBlanks [ org, repo ]
+
         Pages.Schedule org repo name ->
             noBlanks [ org, repo, name ]
 
@@ -1025,6 +1026,9 @@ resourceLoading args =
             False
 
         Pages.NotFound ->
+            False
+
+        Pages.AddSchedule _ _ ->
             False
 
         Pages.Schedule _ _ _ ->
