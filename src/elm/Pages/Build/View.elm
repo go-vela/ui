@@ -11,8 +11,6 @@ module Pages.Build.View exposing
     , wrapWithBuildPreview
     )
 
-import Ansi.Log
-import Array
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
@@ -39,11 +37,12 @@ import List.Extra exposing (unique)
 import Nav exposing (viewBuildTabs)
 import Pages.Build.Logs
     exposing
-        ( bottomTrackerFocusId
-        , decodeAnsi
+        ( LogLine
+        , bottomTrackerFocusId
         , downloadFileName
         , getLog
         , isEmpty
+        , processLog
         , topTrackerFocusId
         )
 import Pages.Build.Model
@@ -710,19 +709,18 @@ viewLines focusLine resourceType resourceID logFocus decodedLog shiftDown =
     let
         lines =
             decodedLog
-                |> decodeAnsi
-                |> Array.indexedMap
+                |> processLog
+                |> List.indexedMap
                     (\idx line ->
                         Just <|
                             viewLine focusLine
                                 resourceType
                                 resourceID
                                 (idx + 1)
-                                (Just line)
+                                line
                                 logFocus
                                 shiftDown
                     )
-                |> Array.toList
 
         -- update resource filename when adding stages/services
         logs =
@@ -761,8 +759,8 @@ viewLines focusLine resourceType resourceID logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : FocusLine msg -> ResourceType -> ResourceID -> Int -> Maybe Ansi.Log.Line -> LogFocus -> Bool -> Html msg
-viewLine focusLine resourceType resourceID lineNumber line logFocus shiftDown =
+viewLine : FocusLine msg -> ResourceType -> ResourceID -> Int -> LogLine msg -> LogFocus -> Bool -> Html msg
+viewLine focusLine resourceType resourceID lineNumber ll logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             resourceID
@@ -770,24 +768,19 @@ viewLine focusLine resourceType resourceID lineNumber line logFocus shiftDown =
                 ++ String.fromInt lineNumber
         , class "line"
         ]
-        [ case line of
-            Just l ->
-                div
-                    [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", resourceType, resourceID, String.fromInt lineNumber ]
-                    , class <| lineFocusStyles logFocus lineNumber
+        [ div
+            [ class "wrapper"
+            , Util.testAttribute <| String.join "-" [ "log", "line", resourceType, resourceID, String.fromInt lineNumber ]
+            , class <| lineFocusStyles logFocus lineNumber
+            ]
+            [ td []
+                [ lineFocusButton focusLine resourceType resourceID logFocus lineNumber shiftDown ]
+            , td [ class "break-text", class "overflow-auto" ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceType, resourceID, String.fromInt lineNumber ] ]
+                    [ ll.view
                     ]
-                    [ td []
-                        [ lineFocusButton focusLine resourceType resourceID logFocus lineNumber shiftDown ]
-                    , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceType, resourceID, String.fromInt lineNumber ] ]
-                            [ Ansi.Log.viewLine l
-                            ]
-                        ]
-                    ]
-
-            Nothing ->
-                text ""
+                ]
+            ]
         ]
 
 

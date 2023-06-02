@@ -36,6 +36,7 @@ module Util exposing
     , secondsToMillis
     , smallLoader
     , smallLoaderWithText
+    , splitIntersperseConcat
     , stringToMaybe
     , successful
     , testAttribute
@@ -271,6 +272,20 @@ existsById item list =
 mergeListsById : List { a | id : comparable } -> List { a | id : comparable } -> List { a | id : comparable }
 mergeListsById listA listB =
     List.filter (\a -> not <| existsById a listB) listA ++ listB
+
+
+{-| splitIntersperseConcat : takes a delimiter and a list of String, separates the list by the delimiter, intersperses the delimiter into the list, then concatenates them together to allow chaining
+-}
+splitIntersperseConcat : String -> List String -> List String
+splitIntersperseConcat sep list =
+    list
+        |> List.map
+            (\x ->
+                x
+                    |> String.split sep
+                    |> List.intersperse sep
+            )
+        |> List.concat
 
 
 {-| oneSecondMillis : single second in milliseconds for clock tick subscriptions
