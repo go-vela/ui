@@ -28,7 +28,7 @@ import Html.Attributes
         , scope
         )
 import Http
-import Pages.Build.Logs exposing (decodeAnsi)
+import Pages.Build.Logs exposing (decodeANSI)
 import RemoteData
 import SvgBuilder exposing (hookStatusToIcon)
 import Table
@@ -203,7 +203,7 @@ renderHookError : Hook -> Html msg
 renderHookError hook =
     let
         lines =
-            decodeAnsi hook.error
+            decodeANSI hook.error
                 |> Array.map
                     (\line ->
                         Just <|

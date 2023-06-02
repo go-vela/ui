@@ -37,8 +37,7 @@ import List.Extra exposing (unique)
 import Nav exposing (viewBuildTabs)
 import Pages.Build.Logs
     exposing
-        ( LogLine
-        , bottomTrackerFocusId
+        ( bottomTrackerFocusId
         , downloadFileName
         , getLog
         , isEmpty
@@ -52,6 +51,7 @@ import Pages.Build.Model
         , FocusLine
         , FocusOn
         , FollowResource
+        , LogLine
         , LogsMsgs
         , Msgs
         , PartialModel

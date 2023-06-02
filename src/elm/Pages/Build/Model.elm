@@ -11,12 +11,14 @@ module Pages.Build.Model exposing
     , FocusLine
     , FocusOn
     , FollowResource
+    , LogLine
     , LogsMsgs
     , Msgs
     , PartialModel
     )
 
 import Browser.Navigation as Navigation
+import Html exposing (Html)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
@@ -101,3 +103,11 @@ type alias Download msg =
 
 type alias FocusOn msg =
     String -> msg
+
+
+type alias LogLine msg =
+    { view : Html msg
+
+    -- commented out to provide a headstart for further development
+    -- , timestamp : Maybe String
+    }
