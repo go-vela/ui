@@ -866,7 +866,11 @@ viewAnsi chunk children =
 viewLogLinks : Ansi.Log.Chunk -> List (Html msg)
 viewLogLinks chunk =
     let
-        -- split the "line" by escape characters
+        -- list of string escape characters that delimit links.
+        -- for example "<https://github.com"> should be split from the quotes, even though " is a valid URL character (see: see: <https://www.rfc-editor.org/rfc/rfc3986#section-2>)
+        linkEscapeCharacters =
+            [ "'", " ", "\"", "\t", "\n" ]
+
         -- its possible this will split a "valid" link containing quote characters, but its a willing risk
         splitIntersperseConcat : String -> List String -> List String
         splitIntersperseConcat sep list =
@@ -879,6 +883,7 @@ viewLogLinks chunk =
                     )
                 |> List.concat
 
+        -- split the "line" by escape characters
         split =
             List.foldl splitIntersperseConcat [ chunk.text ] linkEscapeCharacters
     in
@@ -888,13 +893,20 @@ viewLogLinks chunk =
         (\chunk_ ->
             case Url.fromString chunk_ of
                 Just link ->
-                    -- use toString in href to make the link safe
-                    a [ Util.testAttribute "log-line-link", href <| Url.toString link ] [ text chunk_ ]
+                    viewLogLink link chunk_
 
                 Nothing ->
                     text chunk_
         )
         split
+
+
+{-| viewLogLink : takes a url and label and renders a link
+-}
+viewLogLink : Url.Url -> String -> Html msg
+viewLogLink link txt =
+    -- use toString in href to make the link safe
+    a [ Util.testAttribute "log-line-link", href <| Url.toString link ] [ text txt ]
 
 
 {-| lineFocusButton : renders button for focusing log line ranges
@@ -1124,14 +1136,6 @@ viewError build =
 
 
 -- HELPERS
-
-
-{-| linkEscapeCharacters : list of string escape characters that delimit links.
-for example "<https://github.com"> should be split from the quotes, even though " is a valid URL character (see: see: <https://www.rfc-editor.org/rfc/rfc3986#section-2>)
--}
-linkEscapeCharacters : List String
-linkEscapeCharacters =
-    [ "'", " ", "\"", "\t", "\n" ]
 
 
 {-| statusToClass : takes build status and returns css class
