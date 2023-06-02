@@ -714,7 +714,7 @@ viewLines focusLine resourceType resourceID logFocus decodedLog shiftDown =
     let
         lines =
             decodedLog
-                |> processLog
+                |> processLogLine
                 |> List.indexedMap
                     (\idx line ->
                         Just <|
@@ -762,10 +762,10 @@ viewLines focusLine resourceType resourceID logFocus decodedLog shiftDown =
     )
 
 
-{-| processLog : takes a log as string, splits it by newline, and processes it into a model that can render custom elements like timestamps and links
+{-| processLogLine : takes a log as string, splits it by newline, and processes it into a model that can render custom elements like timestamps and links
 -}
-processLog : String -> List (LogLine msg)
-processLog log =
+processLogLine : String -> List (LogLine msg)
+processLogLine log =
     log
         |> String.split "\n"
         |> List.map
