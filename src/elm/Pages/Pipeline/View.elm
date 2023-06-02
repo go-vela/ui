@@ -11,7 +11,7 @@ import Array
 import Dict
 import Errors exposing (Error)
 import FeatherIcons exposing (Icon)
-import Focus exposing (ResourceID, ResourceType, lineFocusStyles, resourceAndLineToFocusId)
+import Focus exposing (Resource, ResourceID, lineFocusStyles, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html
@@ -403,7 +403,7 @@ viewLine id lineNumber line resource lineFocus focus =
 
 {-| lineFocusButton : renders button for focusing log line ranges.
 -}
-lineFocusButton : ResourceType -> Int -> (Int -> msg) -> Html msg
+lineFocusButton : Resource -> Int -> (Int -> msg) -> Html msg
 lineFocusButton resource lineNumber focus =
     button
         [ Util.onClickPreventDefault <|
