@@ -868,8 +868,19 @@ viewLogLinks chunk =
     let
         -- split the "line" by escape characters
         -- its possible this will split a "valid" link containing quote characters, but its a willing risk
+        splitIntersperseConcat : String -> List String -> List String
+        splitIntersperseConcat sep list =
+            list
+                |> List.map
+                    (\x ->
+                        x
+                            |> String.split sep
+                            |> List.intersperse sep
+                    )
+                |> List.concat
+
         split =
-            List.foldl Util.splitIntersperseConcat [ chunk.text ] linkEscapeCharacters
+            List.foldl splitIntersperseConcat [ chunk.text ] linkEscapeCharacters
     in
     -- "process" each "split chunk" and check for link
     -- for example, this accounts for multiple links contained in a single ANSI background color "chunk"
