@@ -17,7 +17,7 @@ import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
     exposing
-        ( Resource
+        ( ResourceType
         , ResourceID
         , lineFocusStyles
         , lineRangeId
@@ -705,7 +705,7 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
 
 {-| viewLines : takes number, line focus information and click action and renders logs
 -}
-viewLines : FocusLine msg -> Resource -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
+viewLines : FocusLine msg -> ResourceType -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
 viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
     let
         lines =
@@ -761,7 +761,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : FocusLine msg -> Resource -> ResourceID -> Int -> Maybe Ansi.Log.Line -> LogFocus -> Bool -> Html msg
+viewLine : FocusLine msg -> ResourceType -> ResourceID -> Int -> Maybe Ansi.Log.Line -> LogFocus -> Bool -> Html msg
 viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
@@ -793,7 +793,7 @@ viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
 
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
-lineFocusButton : (String -> msg) -> Resource -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
+lineFocusButton : (String -> msg) -> ResourceType -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
 lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|

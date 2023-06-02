@@ -3,7 +3,7 @@ module Focus exposing
     , FocusTarget
     , Fragment
     , RefQuery
-    , Resource
+    , ResourceType
     , ResourceID
     , focusFragmentToFocusId
     , lineFocusStyles
@@ -29,7 +29,7 @@ type alias Fragment =
     String
 
 
-type alias Resource =
+type alias ResourceType =
     String
 
 
@@ -47,28 +47,28 @@ type alias FocusTarget =
 
 {-| resourceFocusFragment : takes resource tag and maybe line numbers and produces URL fragment for focusing line ranges
 -}
-resourceFocusFragment : Resource -> ResourceID -> List String -> String
+resourceFocusFragment : ResourceType -> ResourceID -> List String -> String
 resourceFocusFragment resource resourceId args =
     String.join ":" <| ("#" ++ resource) :: resourceId :: args
 
 
 {-| resourceToFocusId : takes resource and id and returns the resource focus id for auto focusing on page load
 -}
-resourceToFocusId : Resource -> ResourceID -> String
+resourceToFocusId : ResourceType -> ResourceID -> String
 resourceToFocusId resource resourceID =
     String.join "-" [ resource, resourceID ]
 
 
 {-| resourceAndLineToFocusId : takes resource, id and line number and returns the line focus id for auto focusing on page load
 -}
-resourceAndLineToFocusId : Resource -> ResourceID -> Int -> String
+resourceAndLineToFocusId : ResourceType -> ResourceID -> Int -> String
 resourceAndLineToFocusId resource resourceID lineNumber =
     String.join "-" [ resource, resourceID, "line", String.fromInt lineNumber ]
 
 
 {-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus id for auto focusing on page load
 -}
-focusFragmentToFocusId : Resource -> FocusFragment -> String
+focusFragmentToFocusId : ResourceType -> FocusFragment -> String
 focusFragmentToFocusId resource focusFragment =
     let
         parsed =
@@ -108,7 +108,7 @@ parseFocusFragment focusFragment =
 
 {-| lineRangeId : takes resource, line, and focus information and returns the fragment for focusing a range of lines
 -}
-lineRangeId : Resource -> ResourceID -> Int -> LogFocus -> Bool -> String
+lineRangeId : ResourceType -> ResourceID -> Int -> LogFocus -> Bool -> String
 lineRangeId resource resourceID lineNumber lineFocus shiftDown =
     resourceFocusFragment resource resourceID <|
         List.map String.fromInt
