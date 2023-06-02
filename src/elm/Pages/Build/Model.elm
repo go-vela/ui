@@ -107,7 +107,4 @@ type alias FocusOn msg =
 
 type alias LogLine msg =
     { view : Html msg
-
-    -- commented out to provide a headstart for further development
-    -- , timestamp : Maybe String
     }

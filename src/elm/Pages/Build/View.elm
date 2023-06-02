@@ -760,7 +760,7 @@ viewLines focusLine resourceType resourceID logFocus decodedLog shiftDown =
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
 viewLine : FocusLine msg -> ResourceType -> ResourceID -> Int -> LogLine msg -> LogFocus -> Bool -> Html msg
-viewLine focusLine resourceType resourceID lineNumber ll logFocus shiftDown =
+viewLine focusLine resourceType resourceID lineNumber logLine logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             resourceID
@@ -777,7 +777,7 @@ viewLine focusLine resourceType resourceID lineNumber ll logFocus shiftDown =
                 [ lineFocusButton focusLine resourceType resourceID logFocus lineNumber shiftDown ]
             , td [ class "break-text", class "overflow-auto" ]
                 [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceType, resourceID, String.fromInt lineNumber ] ]
-                    [ ll.view
+                    [ logLine.view
                     ]
                 ]
             ]
