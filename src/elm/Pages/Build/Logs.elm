@@ -27,8 +27,8 @@ import Ansi
 import Ansi.Log
 import Array
 import Focus exposing (FocusTarget, parseFocusFragment)
-import Html exposing (Html, a, text)
-import Html.Attributes exposing (href)
+import Html exposing (Html, a, div, span, text)
+import Html.Attributes exposing (classList, href, style)
 import List.Extra exposing (updateIf)
 import Pages.Build.Model exposing (LogLine)
 import RemoteData exposing (WebData)
@@ -88,21 +88,21 @@ processLog log =
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 this function has been modified to allow custom processing
 -}
-viewLogLine : Ansi.Log.Line -> Html.Html msg
+viewLogLine : Ansi.Log.Line -> Html msg
 viewLogLine ( chunks, _ ) =
-    Html.div [] (List.foldl (\c l -> viewChunk c :: l) [ Html.text "\n" ] chunks)
+    div [] (List.foldl (\c l -> viewChunk c :: l) [ text "\n" ] chunks)
 
 
 {-| viewChunk : takes Ansi.Log.Chunk and renders it into Html with ANSI styling
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 this function has been modified to allow custom processing
 -}
-viewChunk : Ansi.Log.Chunk -> Html.Html msg
+viewChunk : Ansi.Log.Chunk -> Html msg
 viewChunk chunk =
     chunk
         |> parseLinks
         -- additional processing and custom rendering could go here
-        |> Html.span (styleAttributes chunk.style)
+        |> span (styleAttributes chunk.style)
 
 
 {-| clickResource : takes resources and resource number, toggles resource view state, and returns whether or not to fetch logs
@@ -457,24 +457,24 @@ defaultPosition =
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 this function has been pulled in unmodified because elm-ansi does not expose it
 -}
-styleAttributes : Ansi.Log.Style -> List (Html.Attribute x)
-styleAttributes style =
-    [ Html.Attributes.style "font-weight"
-        (if style.bold then
+styleAttributes : Ansi.Log.Style -> List (Html.Attribute msg)
+styleAttributes logStyle =
+    [ style "font-weight"
+        (if logStyle.bold then
             "bold"
 
          else
             "normal"
         )
-    , Html.Attributes.style "text-decoration"
-        (if style.underline then
+    , style "text-decoration"
+        (if logStyle.underline then
             "underline"
 
          else
             "none"
         )
-    , Html.Attributes.style "font-style"
-        (if style.italic then
+    , style "font-style"
+        (if logStyle.italic then
             "italic"
 
          else
@@ -483,35 +483,35 @@ styleAttributes style =
     , let
         fgClasses =
             colorClasses "-fg"
-                style.bold
-                (if not style.inverted then
-                    style.foreground
+                logStyle.bold
+                (if not logStyle.inverted then
+                    logStyle.foreground
 
                  else
-                    style.background
+                    logStyle.background
                 )
 
         bgClasses =
             colorClasses "-bg"
-                style.bold
-                (if not style.inverted then
-                    style.background
+                logStyle.bold
+                (if not logStyle.inverted then
+                    logStyle.background
 
                  else
-                    style.foreground
+                    logStyle.foreground
                 )
 
         fgbgClasses =
             List.map (\a -> (\b c -> ( b, c )) a True) (fgClasses ++ bgClasses)
 
         ansiClasses =
-            [ ( "ansi-blink", style.blink )
-            , ( "ansi-faint", style.faint )
-            , ( "ansi-Fraktur", style.fraktur )
-            , ( "ansi-framed", style.framed )
+            [ ( "ansi-blink", logStyle.blink )
+            , ( "ansi-faint", logStyle.faint )
+            , ( "ansi-Fraktur", logStyle.fraktur )
+            , ( "ansi-framed", logStyle.framed )
             ]
       in
-      Html.Attributes.classList (fgbgClasses ++ ansiClasses)
+      classList (fgbgClasses ++ ansiClasses)
     ]
 
 
