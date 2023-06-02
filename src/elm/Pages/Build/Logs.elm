@@ -347,14 +347,6 @@ downloadFileName org repo buildNumber resourceType resourceNumber =
 -- ANSI
 
 
-{-| decodeANSI : takes maybe log parses into ansi decoded log line array
-see: <https://package.elm-lang.org/packages/vito/elm-ansi>
--}
-decodeANSI : String -> Array.Array Ansi.Log.Line
-decodeANSI log =
-    .lines <| Ansi.Log.update log defaultANSILogModel
-
-
 {-| defaultANSILogModel : struct to represent default model required by ANSI parser
 -}
 defaultANSILogModel : Ansi.Log.Model
@@ -392,3 +384,11 @@ defaultPosition =
     { row = 0
     , column = 0
     }
+
+
+{-| decodeANSI : takes maybe log parses into ansi decoded log line array
+see: <https://package.elm-lang.org/packages/vito/elm-ansi>
+-}
+decodeANSI : String -> Array.Array Ansi.Log.Line
+decodeANSI log =
+    .lines <| Ansi.Log.update log defaultANSILogModel
