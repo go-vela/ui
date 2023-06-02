@@ -397,7 +397,7 @@ parseLinksInChunk chunk =
             case Url.fromString chunk_ of
                 Just link ->
                     -- use toString in href to make the link safe
-                    a [ href <| Url.toString link ] [ text chunk_ ]
+                    a [ Util.testAttribute "log-line-link", href <| Url.toString link ] [ text chunk_ ]
 
                 Nothing ->
                     text chunk_
