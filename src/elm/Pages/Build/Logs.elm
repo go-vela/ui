@@ -8,8 +8,8 @@ module Pages.Build.Logs exposing
     ( addLog
     , bottomTrackerFocusId
     , clickResource
-    , decodeANSI
-    , defaultANSILogModel
+    , decodeAnsi
+    , defaultAnsiLogModel
     , downloadFileName
     , expandActive
     , focusAndClear
@@ -347,23 +347,23 @@ downloadFileName org repo buildNumber resourceType resourceNumber =
 -- ANSI
 
 
-{-| defaultANSILogModel : struct to represent default model required by ANSI parser
+{-| defaultAnsiLogModel : struct to represent default model required by ANSI parser
 -}
-defaultANSILogModel : Ansi.Log.Model
-defaultANSILogModel =
+defaultAnsiLogModel : Ansi.Log.Model
+defaultAnsiLogModel =
     { lineDiscipline = Ansi.Log.Cooked
     , lines = Array.empty
     , position = defaultPosition
     , savedPosition = Nothing
-    , style = defaultANSILogStyle
+    , style = defaultAnsiLogStyle
     , remainder = ""
     }
 
 
-{-| defaultANSILogStyle : struct to represent default style required by ANSI model
+{-| defaultAnsiLogStyle : struct to represent default style required by ANSI model
 -}
-defaultANSILogStyle : Ansi.Log.Style
-defaultANSILogStyle =
+defaultAnsiLogStyle : Ansi.Log.Style
+defaultAnsiLogStyle =
     { foreground = Nothing
     , background = Nothing
     , bold = False
@@ -386,9 +386,9 @@ defaultPosition =
     }
 
 
-{-| decodeANSI : takes maybe log parses into ansi decoded log line array
+{-| decodeAnsi : takes maybe log parses into ansi decoded log line array
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 -}
-decodeANSI : String -> Array.Array Ansi.Log.Line
-decodeANSI log =
-    .lines <| Ansi.Log.update log defaultANSILogModel
+decodeAnsi : String -> Array.Array Ansi.Log.Line
+decodeAnsi log =
+    .lines <| Ansi.Log.update log defaultAnsiLogModel

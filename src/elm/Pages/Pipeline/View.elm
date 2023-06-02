@@ -28,7 +28,7 @@ import Html
         )
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
-import Pages.Build.Logs exposing (decodeANSI)
+import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
 import Util
@@ -352,7 +352,7 @@ safeDecodePipelineData incomingConfig currentConfig =
 viewLines : PipelineConfig -> LogFocus -> (Int -> msg) -> List (Html msg)
 viewLines config lineFocus focusLineNumber =
     config.decodedData
-        |> decodeANSI
+        |> decodeAnsi
         |> Array.indexedMap
             (\idx line ->
                 Just <|
