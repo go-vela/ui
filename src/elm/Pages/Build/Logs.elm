@@ -545,7 +545,7 @@ styleAttributes style =
     ]
 
 
-{-| styleAttributes : takes style parameters and renders it into ANSI styled color classes that can be used with the Html style attribute
+{-| colorClasses : takes style parameters and renders it into ANSI styled color classes that can be used with the Html style attribute
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 this function has been pulled unmodified in because elm-ansi does not expose it
 -}
