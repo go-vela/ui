@@ -11,7 +11,7 @@ import Array
 import Dict
 import Errors exposing (Error)
 import FeatherIcons exposing (Icon)
-import Focus exposing (ResourceType, ResourceID, lineFocusStyles, resourceAndLineToFocusId)
+import Focus exposing (ResourceID, ResourceType, lineFocusStyles, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html

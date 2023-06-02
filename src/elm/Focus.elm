@@ -3,8 +3,8 @@ module Focus exposing
     , FocusTarget
     , Fragment
     , RefQuery
-    , ResourceType
     , ResourceID
+    , ResourceType
     , focusFragmentToFocusId
     , lineFocusStyles
     , lineRangeId

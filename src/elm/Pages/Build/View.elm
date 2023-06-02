@@ -17,8 +17,8 @@ import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
     exposing
-        ( ResourceType
-        , ResourceID
+        ( ResourceID
+        , ResourceType
         , lineFocusStyles
         , lineRangeId
         , resourceAndLineToFocusId
