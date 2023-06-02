@@ -839,7 +839,7 @@ viewChunk chunk =
     chunk
         |> parseLinks
         -- additional processing and custom rendering could go here
-        |> span (ansiStyleAttributes chunk.style)
+        |> span (styleAttributesANSI chunk.style)
 
 
 {-| lineFocusButton : renders button for focusing log line ranges
@@ -1178,12 +1178,12 @@ bottomBuildNumberDashes buildNumber =
             "-animation-dashes-2"
 
 
-{-| ansiStyleAttributes : takes Ansi.Log.Style and renders it into ANSI style Html attributes
+{-| styleAttributesANSI : takes Ansi.Log.Style and renders it into ANSI style Html attributes
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 this function has been pulled in unmodified because elm-ansi does not expose it
 -}
-ansiStyleAttributes : Ansi.Log.Style -> List (Html.Attribute msg)
-ansiStyleAttributes logStyle =
+styleAttributesANSI : Ansi.Log.Style -> List (Html.Attribute msg)
+styleAttributesANSI logStyle =
     [ style "font-weight"
         (if logStyle.bold then
             "bold"
@@ -1207,7 +1207,7 @@ ansiStyleAttributes logStyle =
         )
     , let
         fgClasses =
-            ansiColorClasses "-fg"
+            colorClassesANSI "-fg"
                 logStyle.bold
                 (if not logStyle.inverted then
                     logStyle.foreground
@@ -1217,7 +1217,7 @@ ansiStyleAttributes logStyle =
                 )
 
         bgClasses =
-            ansiColorClasses "-bg"
+            colorClassesANSI "-bg"
                 logStyle.bold
                 (if not logStyle.inverted then
                     logStyle.background
@@ -1240,12 +1240,12 @@ ansiStyleAttributes logStyle =
     ]
 
 
-{-| ansiColorClasses : takes style parameters and renders it into ANSI styled color classes that can be used with the Html style attribute
+{-| colorClassesANSI : takes style parameters and renders it into ANSI styled color classes that can be used with the Html style attribute
 see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 this function has been pulled unmodified in because elm-ansi does not expose it
 -}
-ansiColorClasses : String -> Bool -> Maybe Ansi.Color -> List String
-ansiColorClasses suffix bold mc =
+colorClassesANSI : String -> Bool -> Maybe Ansi.Color -> List String
+colorClassesANSI suffix bold mc =
     let
         brightPrefix =
             "ansi-bright-"
