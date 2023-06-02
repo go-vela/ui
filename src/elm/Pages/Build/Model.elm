@@ -17,7 +17,6 @@ module Pages.Build.Model exposing
     , PartialModel
     )
 
-import Ansi.Log
 import Browser.Navigation as Navigation
 import Html exposing (Html)
 import Pages exposing (Page)
