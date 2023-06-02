@@ -811,20 +811,18 @@ processLogLines log =
                         -- this is particularly useful for adding toggleable features like timestamps
                         -- we will most likely need to extend this to accept user preferences
                         -- for example, a user may choose to not render links or timestamps
-                        -- per chunk render processing happens in viewLogLine
-                        viewLogLine logLine
+                        -- per chunk render processing happens in processLogLine
+                        processLogLine logLine
 
                     Nothing ->
                         LogLine (text "")
             )
 
 
-{-| viewLogLine : takes Ansi.Log.Line and renders it into Html after parsing and processing custom rendering rules
-see: <https://package.elm-lang.org/packages/vito/elm-ansi>
-this function has been modified to allow custom processing
+{-| processLogLine : takes Ansi.Log.Line and renders it into Html after parsing and processing custom rendering rules
 -}
-viewLogLine : Ansi.Log.Line -> LogLine msg
-viewLogLine ansiLogLine =
+processLogLine : Ansi.Log.Line -> LogLine msg
+processLogLine ansiLogLine =
     let
         -- per-log line processing goes here
         ( chunks, _ ) =
