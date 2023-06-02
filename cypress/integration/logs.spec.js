@@ -571,7 +571,8 @@ context(
     it('line should contain ansi color and link', () => {
       cy.get('[data-test=log-line-step-2-13]').within(() => {
         cy.get('[data-test=log-line-link]').should('exist');
-        cy.get('[class=ansi-magenta-fg]').should(
+        cy.get('[class=ansi-magenta-fg]').should('exist');
+        cy.get('[class=ansi-magenta-bg]').should(
           'have.css',
           'background-color',
         );
