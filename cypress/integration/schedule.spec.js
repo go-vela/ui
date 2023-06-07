@@ -16,11 +16,13 @@ context('Schedule', () => {
     });
     it('Add Schedule should work as intended', () => {
       cy.get('[id=schedule-name]')
-        .should('exist').should('have.value', 'Daily');
-      cy.get('[id=schedule-entry]').should('exist').should('have.value', '0 0 * * *');
+        .should('exist')
+        .should('have.value', 'Daily');
+      cy.get('[id=schedule-entry]')
+        .should('exist')
+        .should('have.value', '0 0 * * *');
       cy.get('[data-test=schedule-update-button]').should('exist');
       cy.get('[data-test=schedule-delete-button]').should('exist');
-
     });
   });
 });

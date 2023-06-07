@@ -16,9 +16,7 @@ context('Schedules', () => {
     });
 
     it('Add Schedule button should exist', () => {
-      cy.get('[data-test=add-repo-schedule]')
-        .should('exist')
-        .contains('Add');
+      cy.get('[data-test=add-repo-schedule]').should('exist').contains('Add');
     });
     it('schedules table should show 2 rows', () => {
       cy.get('[data-test=schedules-row]').should('have.length', 2);
