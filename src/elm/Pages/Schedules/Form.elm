@@ -164,6 +164,7 @@ viewUpdateButton =
     button
         [ class "button"
         , onClick <| Pages.Schedules.Model.UpdateSchedule
+        , Util.testAttribute "schedule-update-button"
         ]
         [ text "Update" ]
 
