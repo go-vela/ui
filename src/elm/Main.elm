@@ -1079,7 +1079,6 @@ update msg model =
             )
 
         -- Inbound HTTP responses
-
         SchedulesResponse org repo result ->
             case result of
                 Ok ( meta, schedules ) ->
