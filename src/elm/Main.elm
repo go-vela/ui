@@ -338,7 +338,6 @@ type Msg
     | HooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | RedeliverHookResponse Org Repo HookNumber (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | BuildResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | SchedulesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Schedules ))
     | BuildAndPipelineResponse Org Repo (Maybe ExpandTemplatesQuery) (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | DeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
@@ -357,6 +356,7 @@ type Msg
     | SharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- Schedules
+    | SchedulesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Schedules ))
     | ScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | AddScheduleUpdate Pages.Schedules.Model.Msg
     | AddScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
@@ -1079,6 +1079,97 @@ update msg model =
             )
 
         -- Inbound HTTP responses
+
+        SchedulesResponse org repo result ->
+            case result of
+                Ok ( meta, schedules ) ->
+                    ( { model
+                        | repo =
+                            rm
+                                |> updateOrgRepo org repo
+                                |> updateSchedules (RemoteData.succeed schedules)
+                                |> updateSchedulesPager (Pagination.get meta.headers)
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | repo = updateSchedules (toFailure error) rm }, addError error )
+
+        ScheduleResponse response ->
+            case response of
+                Ok ( _, s ) ->
+                    let
+                        sm =
+                            model.schedulesModel
+
+                        updatedSchedulesModel =
+                            Pages.Schedules.Update.reinitializeScheduleUpdate sm s
+                    in
+                    ( { model | schedulesModel = updatedSchedulesModel }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( model, addError error )
+
+        AddScheduleResponse response ->
+            case response of
+                Ok _ ->
+                    let
+                        sm =
+                            model.schedulesModel
+
+                        alertMessage =
+                            "Schedule Added"
+
+                        redirectTo =
+                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        UpdateScheduleResponse response ->
+            case response of
+                Ok _ ->
+                    let
+                        sm =
+                            model.schedulesModel
+
+                        alertMessage =
+                            "Schedule Modified"
+
+                        redirectTo =
+                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        DeleteScheduleResponse response ->
+            case response of
+                Ok _ ->
+                    let
+                        sm =
+                            model.schedulesModel
+
+                        alertMessage =
+                            "Schedule Deleted"
+
+                        redirectTo =
+                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
         LogoutResponse _ ->
             -- ignoring outcome of request and proceeding to logout
             ( { model | session = Unauthenticated }
@@ -1931,97 +2022,6 @@ update msg model =
         -- NoOp
         NoOp ->
             ( model, Cmd.none )
-
-        SchedulesResponse org repo result ->
-            case result of
-                Ok ( meta, schedules ) ->
-                    ( { model
-                        | repo =
-                            rm
-                                |> updateOrgRepo org repo
-                                |> updateSchedules (RemoteData.succeed schedules)
-                                |> updateSchedulesPager (Pagination.get meta.headers)
-                      }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( { model | repo = updateSchedules (toFailure error) rm }, addError error )
-
-        ScheduleResponse response ->
-            case response of
-                Ok ( _, s ) ->
-                    let
-                        sm =
-                            model.schedulesModel
-
-                        updatedSchedulesModel =
-                            Pages.Schedules.Update.reinitializeScheduleUpdate sm s
-                    in
-                    ( { model | schedulesModel = updatedSchedulesModel }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( model, addError error )
-
-        AddScheduleResponse response ->
-            --TODO Handle Add
-            case response of
-                Ok _ ->
-                    let
-                        sm =
-                            model.schedulesModel
-
-                        alertMessage =
-                            "Schedule Added"
-
-                        redirectTo =
-                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
-                    in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
-
-                Err error ->
-                    ( model, addError error )
-
-        UpdateScheduleResponse response ->
-            case response of
-                Ok _ ->
-                    let
-                        sm =
-                            model.schedulesModel
-
-                        alertMessage =
-                            "Schedule Modified"
-
-                        redirectTo =
-                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
-                    in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
-
-                Err error ->
-                    ( model, addError error )
-
-        DeleteScheduleResponse response ->
-            case response of
-                Ok _ ->
-                    let
-                        sm =
-                            model.schedulesModel
-
-                        alertMessage =
-                            "Schedule Deleted"
-
-                        redirectTo =
-                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
-                    in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
-
-                Err error ->
-                    ( model, addError error )
 
 
 {-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
@@ -3517,7 +3517,7 @@ loadRepoSecretsPage model maybePage maybePerPage engine org repo =
     loadRepoSubPage model org repo <| Pages.RepoSecrets engine org repo maybePage maybePerPage
 
 
-{-| loadRepoSchedulesPage : takes model org and repo and loads the page for managing repo secrets
+{-| loadRepoSchedulesPage : takes model org and repo and loads the page for managing repo schedules
 -}
 loadRepoSchedulesPage :
     Model
@@ -3685,7 +3685,7 @@ loadAddRepoSecretPage model engine org repo =
     )
 
 
-{-| loadAddRepoSecretPage : takes model engine org and repo and loads the page for adding secrets
+{-| loadAddSchedulePage : takes model org and repo and loads the page for adding schedules
 -}
 loadAddSchedulePage : Model -> Org -> Repo -> ( Model, Cmd Msg )
 loadAddSchedulePage model org repo =
@@ -3709,11 +3709,11 @@ loadAddSchedulePage model org repo =
     )
 
 
-{-| loadAddRepoSecretPage : takes model engine org and repo and loads the page for adding secrets
+{-| loadEditSchedulePage : takes model org and repo and loads the page for editing schedules
 -}
 loadEditSchedulePage : Model -> Org -> ScheduleName -> Repo -> ( Model, Cmd Msg )
 loadEditSchedulePage model org repo id =
-    -- Fetch secrets from Api
+    -- Fetch schedules from Api
     let
         scheduleModel =
             model.schedulesModel
