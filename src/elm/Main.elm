@@ -124,7 +124,7 @@ import Time
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
 import Util
-import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedule, ScheduleName, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout, updateSchedules, updateSchedulesPager)
+import Vela exposing (AuthParams, Build, BuildModel, BuildNumber, Builds, CurrentUser, Deployment, DeploymentId, EnableRepositoryPayload, Engine, Event, Favicon, Field, FocusFragment, HookNumber, Hooks, Key, Log, Logs, Name, Org, PipelineConfig, PipelineModel, PipelineTemplates, Ref, Repo, RepoModel, RepoResourceIdentifier, RepoSearchFilters, Repositories, Repository, Schedule, ScheduleName, Schedules, Secret, SecretType, Secrets, ServiceNumber, Services, SourceRepositories, StepNumber, Steps, Team, Templates, Theme(..), Type, UpdateRepositoryPayload, UpdateUserPayload, buildUpdateFavoritesPayload, buildUpdateRepoBoolPayload, buildUpdateRepoIntPayload, buildUpdateRepoStringPayload, decodeTheme, defaultEnableRepositoryPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeEnableRepository, encodeTheme, encodeUpdateRepository, encodeUpdateUser, isComplete, secretTypeToString, statusToFavicon, stringToTheme, updateBuild, updateBuildNumber, updateBuildPipelineConfig, updateBuildPipelineExpand, updateBuildPipelineFocusFragment, updateBuildPipelineLineFocus, updateBuildServices, updateBuildServicesFocusFragment, updateBuildServicesFollowing, updateBuildServicesLogs, updateBuildSteps, updateBuildStepsFocusFragment, updateBuildStepsFollowing, updateBuildStepsLogs, updateBuilds, updateBuildsEvent, updateBuildsPage, updateBuildsPager, updateBuildsPerPage, updateBuildsShowTimeStamp, updateDeployments, updateDeploymentsPage, updateDeploymentsPager, updateDeploymentsPerPage, updateHooks, updateHooksPage, updateHooksPager, updateHooksPerPage, updateOrgRepo, updateOrgReposPage, updateOrgReposPager, updateOrgReposPerPage, updateOrgRepositories, updateRepo, updateRepoCounter, updateRepoEnabling, updateRepoInitialized, updateRepoLimit, updateRepoTimeout, updateSchedules, updateSchedulesPage, updateSchedulesPager, updateSchedulesPerPage)
 
 
 
@@ -571,6 +571,11 @@ update msg model =
                     in
                     ( { model | secretsModel = loadingSecrets }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.SharedSecrets engine org team (Just pageNumber) maybePerPage
+                    )
+
+                Pages.Schedules org repo _ maybePerPage ->
+                    ( { model | repo = updateSchedules Loading rm }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Schedules org repo (Just pageNumber) maybePerPage
                     )
 
                 _ ->
@@ -3367,6 +3372,19 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateHooksPage Nothing
                                                 |> updateHooksPerPage Nothing
                                )
+                            -- update schedules pagination
+                            |> (\rm_ ->
+                                    case toPage of
+                                        Pages.Schedules _ _ maybePage maybePerPage ->
+                                            rm_
+                                                |> updateSchedulesPage maybePage
+                                                |> updateSchedulesPerPage maybePerPage
+
+                                        _ ->
+                                            rm_
+                                                |> updateSchedulesPage Nothing
+                                                |> updateSchedulesPerPage Nothing
+                               )
                   }
                 , Cmd.batch
                     [ getCurrentUser model
@@ -3433,8 +3451,15 @@ loadRepoSubPage model org repo toPage =
                     Pages.RepoSecrets _ o r _ _ ->
                         ( model, fetchSecrets o r )
 
-                    Pages.Schedules o r _ _ ->
-                        ( model, getSchedules model o r Nothing Nothing )
+                    Pages.Schedules o r maybePage maybePerPage ->
+                        ( { model
+                            | repo =
+                                rm
+                                    |> updateSchedulesPage maybePage
+                                    |> updateSchedulesPerPage maybePerPage
+                          }
+                        , getSchedules model o r maybePage maybePerPage
+                        )
 
                     Pages.Hooks o r maybePage maybePerPage ->
                         ( { model
