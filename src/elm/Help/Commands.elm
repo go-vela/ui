@@ -20,7 +20,20 @@ module Help.Commands exposing
 import Pages exposing (Page)
 import String.Extra
 import Util exposing (anyBlank, noBlanks)
-import Vela exposing (BuildNumber, Copy, Engine, Key, Name, Org, Repo, ScheduleName, SecretType, StepNumber, secretTypeToString)
+import Vela
+    exposing
+        ( BuildNumber
+        , Copy
+        , Engine
+        , Key
+        , Name
+        , Org
+        , Repo
+        , ScheduleName
+        , SecretType
+        , StepNumber
+        , secretTypeToString
+        )
 
 
 {-| Model : wrapper for help args, meant to slim down the input required to render contextual help for each page
