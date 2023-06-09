@@ -232,13 +232,13 @@ renderDeployment org repo deployment =
         ]
 
 
-{-| redeployButton : copy button PLACEHOLDER
+{-| redeployButton : takes org, repo and deployment and renders a button to redirect to the promote deployment page
 -}
 redeployButton : Org -> Repo -> Deployment -> Html msg
 redeployButton org repo deployment =
     a
         [ class "copy-button"
-        , attribute "aria-label" <| "redeploy deployment " ++ deployment.description
+        , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
         , class "button"
         , class "-icon"
         , Routes.href <| Routes.PromoteDeployment org repo (String.fromInt deployment.id)
