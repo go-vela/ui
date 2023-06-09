@@ -299,9 +299,9 @@ secretsToRowsForSharedSecrets type_ secrets =
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Just "col-btn", "" )
-    , ( Just "secret-name", "name" )
-    , ( Just "secret-key", "key" )
+    [ ( Just "-icon", "" )
+    , ( Nothing, "name" )
+    , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
@@ -313,10 +313,10 @@ tableHeaders =
 -}
 tableHeadersForSharedSecrets : Table.Columns
 tableHeadersForSharedSecrets =
-    [ ( Just "col-btn", "" )
-    , ( Just "secret-name", "name" )
+    [ ( Just "-icon", "" )
+    , ( Nothing, "name" )
     , ( Nothing, "team" )
-    , ( Just "secret-key", "key" )
+    , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
@@ -350,7 +350,7 @@ renderSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ fakeInput "" secret.key
+            [ readonlyInput "" secret.key
             ]
         , td
             [ attribute "data-label" "type"
@@ -413,7 +413,7 @@ renderSharedSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ fakeInput secret.key ""
+            [ readonlyInput secret.key ""
             ]
         , td
             [ attribute "data-label" "type"
@@ -456,13 +456,14 @@ renderListCell items none itemClassName =
             |> List.sort
             |> List.map
                 (\item ->
-                    fakeInput itemClassName item
+                    readonlyInput itemClassName item
                 )
 
 
-fakeInput : String -> String -> Html msg
-fakeInput className txt = 
-    div [class className] [Html.input [ Html.Attributes.size (min 32 <| String.length txt), Html.Attributes.value txt ] [ text txt ]]
+readonlyInput : String -> String -> Html msg
+readonlyInput className txt =
+    div [ class className ] [ Html.input [ Html.Attributes.size (min 32 <| String.length txt), Html.Attributes.value txt ] [ text txt ] ]
+
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
 -}
