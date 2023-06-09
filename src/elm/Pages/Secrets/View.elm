@@ -8,8 +8,8 @@ module Pages.Secrets.View exposing (addSecret, editSecret, viewOrgSecrets, viewR
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html exposing (Html, a, button, div, h2, span, td, text, tr)
-import Html.Attributes exposing (attribute, class, scope)
+import Html exposing (Html, a, button, div, h2, input, span, td, text, tr)
+import Html.Attributes exposing (attribute, class, readonly, scope, size, type_, value)
 import Html.Events exposing (onClick)
 import Http
 import Pages.Secrets.Form exposing (viewAllowCommandCheckbox, viewEventsSelect, viewHelp, viewImagesInput, viewInput, viewNameInput, viewSubmitButtons, viewValueInput)
@@ -31,7 +31,6 @@ import Vela
         , SecretType(..)
         , Secrets
         , secretTypeToString
-        , secretsErrorLabel
         )
 
 
@@ -350,7 +349,7 @@ renderSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ readonlyInput "" secret.key
+            [ readonlyInput "" secret.key 18 32
             ]
         , td
             [ attribute "data-label" "type"
@@ -413,7 +412,7 @@ renderSharedSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ readonlyInput secret.key ""
+            [ readonlyInput secret.key "" 18 32
             ]
         , td
             [ attribute "data-label" "type"
@@ -456,13 +455,8 @@ renderListCell items none itemClassName =
             |> List.sort
             |> List.map
                 (\item ->
-                    readonlyInput itemClassName item
+                    readonlyInput itemClassName item 18 32
                 )
-
-
-readonlyInput : String -> String -> Html msg
-readonlyInput className txt =
-    div [ class className ] [ Html.input [ Html.Attributes.size (min 32 <| String.length txt), Html.Attributes.value txt ] [ text txt ] ]
 
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
@@ -524,6 +518,17 @@ copyButton copyYaml =
             |> FeatherIcons.withSize 18
             |> FeatherIcons.toHtml []
         ]
+
+
+{-| readonlyInput : takes classname, text and size constraints and renders a readonly input element
+-}
+readonlyInput : String -> String -> Int -> Int -> Html msg
+readonlyInput className text_ minSize maxSize =
+    let
+        size_ =
+            clamp minSize maxSize <| String.length text_
+    in
+    div [ class className ] [ input [ type_ "text", readonly True, size size_, value text_ ] [ text text_ ] ]
 
 
 

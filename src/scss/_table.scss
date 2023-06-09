@@ -9,9 +9,6 @@
 
   background-color: var(--color-bg-dark);
   border-collapse: collapse;
-
-  // table-layout: fixed;
-  // width: 100%;
 }
 
 .table-base thead {
@@ -47,17 +44,17 @@
 
 .table-base th {
   padding: 0.625em;
+  overflow: hidden;
 
   font-weight: bold;
   white-space: nowrap;
   text-align: left;
-
-  overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .table-base td {
   padding: 0.625em;
+
   vertical-align: top;
 }
 
@@ -65,13 +62,15 @@
   max-width: 15rem;
 }
 
-.table-base tr input {
-  color: var(--color-text);
-  background-color: var(--color-bg);
-  border: none;
+.table-base td input {
+  width: stretch;
   margin: 0.2rem 0;
   padding: 0.5rem;
-  width: stretch;
+
+  color: var(--color-text);
+
+  background-color: var(--color-bg);
+  border: none;
 }
 
 .table-base .source-id {
