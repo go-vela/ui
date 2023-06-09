@@ -573,7 +573,70 @@ update msg model =
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.SharedSecrets engine org team (Just pageNumber) maybePerPage
                     )
 
-                _ ->
+                Pages.Overview ->
+                    ( model, Cmd.none )
+
+                Pages.SourceRepositories ->
+                    ( model, Cmd.none )
+
+                Pages.AddOrgSecret _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.AddRepoSecret _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.AddDeployment _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.PromoteDeployment _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.AddSharedSecret _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.OrgSecret _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.RepoSecret _ _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.SharedSecret _ _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.RepoSettings _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.RepositoryBuildsPulls _ _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.RepositoryBuildsTags _ _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.Build _ _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.BuildServices _ _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.BuildPipeline _ _ _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.AddSchedule _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.Schedule _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.Schedules _ _ _ _ ->
+                    ( model, Cmd.none )
+
+                Pages.Settings ->
+                    ( model, Cmd.none )
+
+                Pages.Login ->
+                    ( model, Cmd.none )
+
+                Pages.NotFound ->
                     ( model, Cmd.none )
 
         ShowHideHelp show ->
@@ -909,7 +972,16 @@ update msg model =
                         Vela.ConfirmDisable ->
                             ( Vela.Disabling, Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo )
 
-                        _ ->
+                        Vela.Disabling ->
+                            ( repo.enabling, Cmd.none )
+
+                        Vela.Disabled ->
+                            ( repo.enabling, Cmd.none )
+
+                        Vela.Enabling ->
+                            ( repo.enabling, Cmd.none )
+
+                        Vela.NotAsked_ ->
                             ( repo.enabling, Cmd.none )
             in
             ( { model
@@ -2128,6 +2200,7 @@ refreshFavicon page currentFavicon build =
     let
         onBuild =
             case page of
+                -- the following pages are build related and should update the favicon
                 Pages.Build _ _ _ _ ->
                     True
 
@@ -2137,7 +2210,86 @@ refreshFavicon page currentFavicon build =
                 Pages.BuildPipeline _ _ _ _ _ ->
                     True
 
-                _ ->
+                -- the following pages are not build related
+                Pages.Overview ->
+                    False
+
+                Pages.SourceRepositories ->
+                    False
+
+                Pages.OrgRepositories _ _ _ ->
+                    False
+
+                Pages.Hooks _ _ _ _ ->
+                    False
+
+                Pages.OrgSecrets _ _ _ _ ->
+                    False
+
+                Pages.RepoSecrets _ _ _ _ _ ->
+                    False
+
+                Pages.SharedSecrets _ _ _ _ _ ->
+                    False
+
+                Pages.AddOrgSecret _ _ ->
+                    False
+
+                Pages.AddRepoSecret _ _ _ ->
+                    False
+
+                Pages.AddDeployment _ _ ->
+                    False
+
+                Pages.PromoteDeployment _ _ _ ->
+                    False
+
+                Pages.AddSharedSecret _ _ _ ->
+                    False
+
+                Pages.OrgSecret _ _ _ ->
+                    False
+
+                Pages.RepoSecret _ _ _ _ ->
+                    False
+
+                Pages.SharedSecret _ _ _ _ ->
+                    False
+
+                Pages.RepoSettings _ _ ->
+                    False
+
+                Pages.RepositoryBuilds _ _ _ _ _ ->
+                    False
+
+                Pages.RepositoryBuildsPulls _ _ _ _ ->
+                    False
+
+                Pages.RepositoryBuildsTags _ _ _ _ ->
+                    False
+
+                Pages.OrgBuilds _ _ _ _ ->
+                    False
+
+                Pages.RepositoryDeployments _ _ _ _ ->
+                    False
+
+                Pages.AddSchedule _ _ ->
+                    False
+
+                Pages.Schedule _ _ _ ->
+                    False
+
+                Pages.Schedules _ _ _ _ ->
+                    False
+
+                Pages.Settings ->
+                    False
+
+                Pages.Login ->
+                    False
+
+                Pages.NotFound ->
                     False
     in
     if onBuild then
@@ -2224,7 +2376,64 @@ refreshPage model =
                 [ getSharedSecrets model maybePage maybePerPage engine org team
                 ]
 
-        _ ->
+        Pages.Overview ->
+            Cmd.none
+
+        Pages.SourceRepositories ->
+            Cmd.none
+
+        Pages.OrgRepositories _ _ _ ->
+            Cmd.none
+
+        Pages.AddOrgSecret _ _ ->
+            Cmd.none
+
+        Pages.AddRepoSecret _ _ _ ->
+            Cmd.none
+
+        Pages.AddDeployment _ _ ->
+            Cmd.none
+
+        Pages.PromoteDeployment _ _ _ ->
+            Cmd.none
+
+        Pages.AddSharedSecret _ _ _ ->
+            Cmd.none
+
+        Pages.OrgSecret _ _ _ ->
+            Cmd.none
+
+        Pages.RepoSecret _ _ _ _ ->
+            Cmd.none
+
+        Pages.SharedSecret _ _ _ _ ->
+            Cmd.none
+
+        Pages.RepoSettings _ _ ->
+            Cmd.none
+
+        Pages.RepositoryBuildsPulls _ _ _ _ ->
+            Cmd.none
+
+        Pages.RepositoryBuildsTags _ _ _ _ ->
+            Cmd.none
+
+        Pages.AddSchedule _ _ ->
+            Cmd.none
+
+        Pages.Schedule _ _ _ ->
+            Cmd.none
+
+        Pages.Schedules _ _ _ _ ->
+            Cmd.none
+
+        Pages.Settings ->
+            Cmd.none
+
+        Pages.Login ->
+            Cmd.none
+
+        Pages.NotFound ->
             Cmd.none
 
 
@@ -2242,7 +2451,91 @@ refreshPageHidden model _ =
                 [ refreshBuild model org repo buildNumber
                 ]
 
-        _ ->
+        Pages.Overview ->
+            Cmd.none
+
+        Pages.SourceRepositories ->
+            Cmd.none
+
+        Pages.OrgRepositories _ _ _ ->
+            Cmd.none
+
+        Pages.Hooks _ _ _ _ ->
+            Cmd.none
+
+        Pages.OrgSecrets _ _ _ _ ->
+            Cmd.none
+
+        Pages.RepoSecrets _ _ _ _ _ ->
+            Cmd.none
+
+        Pages.SharedSecrets _ _ _ _ _ ->
+            Cmd.none
+
+        Pages.AddOrgSecret _ _ ->
+            Cmd.none
+
+        Pages.AddRepoSecret _ _ _ ->
+            Cmd.none
+
+        Pages.AddDeployment _ _ ->
+            Cmd.none
+
+        Pages.PromoteDeployment _ _ _ ->
+            Cmd.none
+
+        Pages.AddSharedSecret _ _ _ ->
+            Cmd.none
+
+        Pages.OrgSecret _ _ _ ->
+            Cmd.none
+
+        Pages.RepoSecret _ _ _ _ ->
+            Cmd.none
+
+        Pages.SharedSecret _ _ _ _ ->
+            Cmd.none
+
+        Pages.RepoSettings _ _ ->
+            Cmd.none
+
+        Pages.RepositoryBuilds _ _ _ _ _ ->
+            Cmd.none
+
+        Pages.RepositoryBuildsPulls _ _ _ _ ->
+            Cmd.none
+
+        Pages.RepositoryBuildsTags _ _ _ _ ->
+            Cmd.none
+
+        Pages.OrgBuilds _ _ _ _ ->
+            Cmd.none
+
+        Pages.RepositoryDeployments _ _ _ _ ->
+            Cmd.none
+
+        Pages.BuildServices _ _ _ _ ->
+            Cmd.none
+
+        Pages.BuildPipeline _ _ _ _ _ ->
+            Cmd.none
+
+        Pages.AddSchedule _ _ ->
+            Cmd.none
+
+        Pages.Schedule _ _ _ ->
+            Cmd.none
+
+        Pages.Schedules _ _ _ _ ->
+            Cmd.none
+
+        Pages.Settings ->
+            Cmd.none
+
+        Pages.Login ->
+            Cmd.none
+
+        Pages.NotFound ->
             Cmd.none
 
 
@@ -3207,7 +3500,223 @@ loadOrgSubPage model org toPage =
                                                 |> updateBuildsPerPage maybePerPage
                                                 |> updateBuildsEvent maybeEvent
 
-                                        _ ->
+                                        Pages.Overview ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.SourceRepositories ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.Hooks _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.OrgSecrets _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.RepoSecrets _ _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.SharedSecrets _ _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.AddOrgSecret _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.AddRepoSecret _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.AddDeployment _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.PromoteDeployment _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.AddSharedSecret _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.OrgSecret _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.RepoSecret _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.SharedSecret _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.RepoSettings _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.RepositoryBuilds _ _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.RepositoryBuildsPulls _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.RepositoryBuildsTags _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.RepositoryDeployments _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.Build _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.BuildServices _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.BuildPipeline _ _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.AddSchedule _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.Schedule _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.Schedules _ _ _ _ ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.Settings ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.Login ->
+                                            rm_
+                                                |> updateBuildsPage Nothing
+                                                |> updateBuildsPerPage Nothing
+                                                |> updateBuildsEvent Nothing
+                                                |> updateOrgReposPage Nothing
+                                                |> updateOrgReposPerPage Nothing
+
+                                        Pages.NotFound ->
                                             rm_
                                                 |> updateBuildsPage Nothing
                                                 |> updateBuildsPerPage Nothing

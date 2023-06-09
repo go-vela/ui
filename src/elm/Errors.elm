@@ -85,7 +85,7 @@ errorBodyToString body =
         Ok error ->
             error
 
-        _ ->
+        Err _ ->
             ""
 
 

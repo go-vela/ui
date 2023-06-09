@@ -63,7 +63,7 @@ starToggleAriaLabel org repo favorited =
 isFavorited : WebData CurrentUser -> String -> Bool
 isFavorited user favorite =
     case user of
-        RemoteData.Success u ->
+        Success u ->
             List.member favorite u.favorites
 
         _ ->
