@@ -6,10 +6,10 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Deployments.View exposing (addDeployment, promoteDeployment, viewDeployments)
 
-import Errors exposing (viewResourceError)
 import FeatherIcons
-import Html exposing (Html, a, div, h2, strong, text)
-import Html.Attributes exposing (class)
+import Html exposing (Html, a, div, h2, span, td, text, tr)
+import Html.Attributes exposing (attribute, class, scope)
+import Http
 import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
     exposing
@@ -20,7 +20,8 @@ import Pages.Deployments.Model
 import RemoteData
 import Routes
 import Svg.Attributes
-import SvgBuilder exposing (buildStatusToIcon)
+import SvgBuilder exposing (hookSuccess)
+import Table
 import Util exposing (largeLoader)
 import Vela exposing (Deployment, DeploymentsModel, Org, Repo)
 
@@ -61,62 +62,6 @@ addForm deploymentModel =
         ]
 
 
-{-| viewPreview : renders single deployment item preview
--}
-viewPreview : Org -> Repo -> Deployment -> Html msg
-viewPreview org repo deployment =
-    let
-        deploymentId =
-            String.fromInt deployment.id
-
-        status =
-            [ buildStatusToIcon Vela.Success ]
-
-        commit =
-            [ text <| deployment.target ++ " (" ++ Util.trimCommitHash deployment.commit ++ ")" ]
-
-        ref =
-            [ text deployment.ref ]
-
-        sender =
-            [ text deployment.user ]
-
-        description =
-            [ text ("- " ++ deployment.description) ]
-
-        id =
-            [ text ("#" ++ deploymentId) ]
-
-        redeploy =
-            [ a [ Routes.href <| Routes.PromoteDeployment org repo deploymentId ] [ text "Redeploy" ] ]
-
-        markdown =
-            [ div [ class "status", Util.testAttribute "deployment-status", class "-success" ]
-                status
-            , div [ class "info" ]
-                [ div [ class "row -left" ]
-                    [ div [ class "id" ] id
-                    , div [ class "commit-msg" ] [ strong [] description ]
-                    ]
-                , div [ class "row" ]
-                    [ div [ class "git-info" ]
-                        [ div [ class "commit" ] commit
-                        , text "on"
-                        , div [ class "branch" ] ref
-                        , text "by"
-                        , div [ class "sender" ] sender
-                        ]
-                    , div [] redeploy
-                    ]
-                ]
-            ]
-    in
-    div [ class "build-container", Util.testAttribute "deployment" ]
-        [ div [ class "build", class "-success" ] <|
-            markdown
-        ]
-
-
 {-| viewDeployments : renders a list of deployments
 -}
 viewDeployments : DeploymentsModel -> Org -> Repo -> Html msg
@@ -137,36 +82,50 @@ viewDeployments deploymentsModel org repo =
                     |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
                 ]
 
-        none : Html msg
-        none =
-            div []
-                [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
-                , h2 [] [ text "No deployments found." ]
-                ]
-    in
-    case deploymentsModel.deployments of
-        RemoteData.Success deployments ->
-            if List.length deployments == 0 then
-                none
-
-            else
-                let
-                    deploymentList =
-                        div [ Util.testAttribute "deployments" ] <| List.map (viewPreview org repo) deployments
-                in
-                div []
-                    [ div [ class "buttons", class "add-deployment-buttons" ] [ text "", addButton ]
-                    , deploymentList
+        actions =
+            Just <|
+                div [ class "buttons" ]
+                    [ addButton
                     ]
 
-        RemoteData.Loading ->
-            largeLoader
+        ( noRowsView, rows ) =
+            case deploymentsModel.deployments of
+                RemoteData.Success s ->
+                    ( text "No deployments found for this repo"
+                    , deploymentsToRows org repo s
+                    )
 
-        RemoteData.NotAsked ->
-            largeLoader
+                RemoteData.Failure error ->
+                    ( span [ Util.testAttribute "repo-deployments-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No deployments found for this repo, most likely due to not having access to the source control repo"
 
-        RemoteData.Failure _ ->
-            viewResourceError { resourceLabel = "deployments for this repository", testLabel = "deployments" }
+                                        _ ->
+                                            "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No deployments found for this repo, there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                _ ->
+                    ( largeLoader, [] )
+
+        cfg =
+            Table.Config
+                "Deployments"
+                "deployments"
+                noRowsView
+                tableHeaders
+                rows
+                actions
+    in
+    div [] [ Table.view cfg ]
 
 
 
@@ -181,4 +140,111 @@ promoteDeployment model =
         [ div []
             [ addForm model.deploymentModel
             ]
+        ]
+
+
+
+-- TABLE
+
+
+{-| deploymentsToRows : takes list of deployments and produces list of Table rows
+-}
+deploymentsToRows : Org -> Repo -> List Deployment -> Table.Rows Deployment msg
+deploymentsToRows org repo deployments =
+    List.map (\deployment -> Table.Row deployment (renderDeployment org repo)) deployments
+
+
+{-| tableHeaders : returns table headers for deployments table
+-}
+tableHeaders : Table.Columns
+tableHeaders =
+    [ ( Just "-icon", "" )
+    , ( Nothing, "number" )
+    , ( Nothing, "target" )
+    , ( Nothing, "commit" )
+    , ( Nothing, "ref" )
+    , ( Nothing, "description" )
+    , ( Nothing, "user" )
+    , ( Just "-icon", "" )
+    ]
+
+
+{-| renderDeployment : takes deployment and renders a table row
+-}
+renderDeployment : Org -> Repo -> Deployment -> Html msg
+renderDeployment org repo deployment =
+    tr [ Util.testAttribute <| "deployments-row" ]
+        [ td
+            [ attribute "data-label" "deployment-icon"
+            , scope "row"
+            , class "break-word"
+            , class "-icon"
+            ]
+            [ hookSuccess ]
+        , td
+            [ attribute "data-label" ""
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "deployments-row-id"
+            ]
+            [ text <| String.fromInt deployment.id ]
+        , td
+            [ attribute "data-label" "target"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "deployments-row-target"
+            ]
+            [ text deployment.target ]
+        , td
+            [ attribute "data-label" "commit"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "deployments-row-commit"
+            ]
+            [ a [] [ text <| Util.trimCommitHash deployment.commit ] ]
+        , td
+            [ attribute "data-label" "ref"
+            , scope "row"
+            , class "break-word"
+            , class "ref"
+            , Util.testAttribute <| "deployments-row-ref"
+            ]
+            [ text <| deployment.ref ]
+        , td
+            [ attribute "data-label" "description"
+            , scope "row"
+            , class "break-word"
+            , class "description"
+            ]
+            [ text deployment.description ]
+        , td
+            [ attribute "data-label" "user"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text deployment.user ]
+        , td
+            [ attribute "data-label" "redeploy"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ redeployButton org repo deployment ]
+        ]
+
+
+{-| redeployButton : copy button PLACEHOLDER
+-}
+redeployButton : Org -> Repo -> Deployment -> Html msg
+redeployButton org repo deployment =
+    a
+        [ class "copy-button"
+        , attribute "aria-label" <| "redeploy deployment " ++ deployment.description
+        , class "button"
+        , class "-icon"
+        , Routes.href <| Routes.PromoteDeployment org repo (String.fromInt deployment.id)
+        , Util.testAttribute "copy-hook"
+        ]
+        [ FeatherIcons.repeat
+            |> FeatherIcons.withSize 18
+            |> FeatherIcons.toHtml []
         ]

@@ -50,6 +50,14 @@
   text-align: left;
 }
 
+.table-base td.ref {
+  max-width: 15rem;
+}
+
+.table-base td.description {
+  max-width: 15rem;
+}
+
 .table-base td {
   padding: 0.625em;
 }
