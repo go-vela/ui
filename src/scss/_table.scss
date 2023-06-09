@@ -10,8 +10,8 @@
   background-color: var(--color-bg-dark);
   border-collapse: collapse;
 
-  table-layout: fixed;
-  width: 100%;
+  // table-layout: fixed;
+  // width: 100%;
 }
 
 .table-base thead {
@@ -61,21 +61,35 @@
   vertical-align: top;
 }
 
-.table-base td.name {
-  padding: 0.625em;
-  max-width: 15rem;
-  min-width: 10rem;
-}
-
 .table-base .col-btn {
   width: 4rem;
 }
 
-.table-base .col-lrg {
-  min-width: 10rem;
+.table-base th.secret-name {
+  // width: 20%;
+  // max-width: 15rem;
+}
+.table-base td.secret-name {
+  // width: 20%;
+  max-width: 15rem;
 }
 
-.table-base tr input {
+.table-base th.hook-source {
+  // width: 40%;
+}
+
+.table-base th.hook-host {
+  // width: 10%;
+}
+
+.table-base th.key {
+  // width: 20%;
+}
+
+.table-base td .secret-event {
+  width: 100%;
+}
+  .table-base tr input {
   color: var(--color-text);
   background-color: var(--color-bg);
   border: none;

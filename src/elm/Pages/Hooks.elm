@@ -123,7 +123,7 @@ hooksToRows now hooks org repo redeliverHook =
 tableHeaders : Table.Columns
 tableHeaders =
     [ ( Just "-icon", "" )
-    , ( Nothing, "source" )
+    , ( Just "hook-source", "source" )
     , ( Nothing, "created" )
     , ( Nothing, "host" )
     , ( Nothing, "event" )
@@ -146,7 +146,6 @@ renderHook now org repo redeliverHook hook =
         , td
             [ attribute "data-label" "source-id"
             , scope "row"
-            , class "no-wrap"
             ]
             [ small [] [ code [ class "source-id", class "break-word" ] [ text hook.source_id ] ] ]
         , td
