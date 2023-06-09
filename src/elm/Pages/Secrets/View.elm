@@ -349,7 +349,7 @@ renderSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ readonlyInput "" secret.key 18 32
+            [ readonlyInput "" secret.key
             ]
         , td
             [ attribute "data-label" "type"
@@ -412,7 +412,7 @@ renderSharedSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ readonlyInput secret.key "" 18 32
+            [ readonlyInput "" secret.key
             ]
         , td
             [ attribute "data-label" "type"
@@ -455,7 +455,7 @@ renderListCell items none itemClassName =
             |> List.sort
             |> List.map
                 (\item ->
-                    readonlyInput itemClassName item 18 32
+                    readonlyInput itemClassName item
                 )
 
 
@@ -522,11 +522,12 @@ copyButton copyYaml =
 
 {-| readonlyInput : takes classname, text and size constraints and renders a readonly input element
 -}
-readonlyInput : String -> String -> Int -> Int -> Html msg
-readonlyInput className text_ minSize maxSize =
+readonlyInput : String -> String -> Html msg
+readonlyInput className text_ =
     let
+        -- allow a max size of 32
         size_ =
-            clamp minSize maxSize <| String.length text_
+            min 32 <| String.length text_
     in
     div [ class className ] [ input [ type_ "text", readonly True, size size_, value text_ ] [ text text_ ] ]
 
