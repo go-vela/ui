@@ -525,9 +525,9 @@ copyButton copyYaml =
 readonlyInput : String -> String -> Html msg
 readonlyInput className text_ =
     let
-        -- allow a max size of 32
+        -- set a max size
         size_ =
-            min 32 <| String.length text_
+            min 24 <| String.length text_
     in
     div [ class className ] [ input [ type_ "text", readonly True, size size_, value text_ ] [ text text_ ] ]
 
