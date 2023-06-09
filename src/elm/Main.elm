@@ -2586,7 +2586,7 @@ viewContent model =
 
         Pages.PromoteDeployment org repo buildNumber ->
             ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
-            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
+            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.promoteDeployment model
             )
 
         Pages.RepositoryDeployments org repo maybePage _ ->
