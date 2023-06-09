@@ -163,23 +163,20 @@ toPath page =
 
                 Pages.AddOrgSecret engine org ->
                     let
-                        organizationPage =
-                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-
                         orgSecrets =
-                            ( "Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
                     in
-                    [ overviewPage, organizationPage, orgSecrets, ( "Add", Nothing ) ]
+                    [ overviewPage, orgSecrets, ( "Secret", Nothing ), ( "Add", Nothing ) ]
 
                 Pages.AddRepoSecret engine org repo ->
                     let
-                        organizationPage =
-                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
-                        currentRepo =
+                        repoSecrets =
                             ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
                     in
-                    [ overviewPage, organizationPage, currentRepo, ( "Add", Nothing ) ]
+                    [ overviewPage, orgSecrets, repoSecrets, ( "Secret", Nothing ), ( "Add", Nothing ) ]
 
                 Pages.AddDeployment org repo ->
                     let
@@ -189,7 +186,7 @@ toPath page =
                         currentRepo =
                             ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
                     in
-                    [ overviewPage, orgPage, currentRepo, ( "Add Deployment", Nothing ) ]
+                    [ overviewPage, orgPage, currentRepo, ( "Deployment", Nothing ), ( "Add", Nothing ) ]
 
                 Pages.PromoteDeployment org repo _ ->
                     let
@@ -199,12 +196,12 @@ toPath page =
                         currentRepo =
                             ( repo, Just <| Pages.RepositoryDeployments org repo Nothing Nothing )
                     in
-                    [ overviewPage, orgPage, currentRepo, ( "Add Deployment", Nothing ) ]
+                    [ overviewPage, orgPage, currentRepo, ( "Deployment", Nothing ), ( "Add", Nothing ) ]
 
                 Pages.AddSharedSecret engine org team ->
                     let
-                        organizationPage =
-                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         teamPage =
                             ( team, Nothing )
@@ -212,38 +209,35 @@ toPath page =
                         sharedSecrets =
                             ( "Shared Secrets", Just <| Pages.SharedSecrets engine org team Nothing Nothing )
                     in
-                    [ overviewPage, organizationPage, teamPage, sharedSecrets, ( "Add", Nothing ) ]
+                    [ overviewPage, orgSecrets, teamPage, sharedSecrets, ( "Add", Nothing ) ]
 
                 Pages.OrgSecret engine org name ->
                     let
-                        organizationPage =
-                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-
                         orgSecrets =
-                            ( "Secrets", Just <| Pages.OrgSecrets engine org Nothing Nothing )
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )
                     in
-                    [ overviewPage, organizationPage, orgSecrets, nameCrumb ]
+                    [ overviewPage, orgSecrets, ( "Secret", Nothing ), nameCrumb ]
 
                 Pages.RepoSecret engine org repo name ->
                     let
-                        organizationPage =
-                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
-                        currentRepo =
+                        repoSecrets =
                             ( repo, Just <| Pages.RepoSecrets engine org repo Nothing Nothing )
 
                         nameCrumb =
                             ( name, Nothing )
                     in
-                    [ overviewPage, organizationPage, currentRepo, nameCrumb ]
+                    [ overviewPage, orgSecrets, repoSecrets, ( "Secret", Nothing ), nameCrumb ]
 
                 Pages.SharedSecret engine org team name ->
                     let
-                        organizationPage =
-                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
+                        orgSecrets =
+                            ( org, Just <| Pages.OrgSecrets engine org Nothing Nothing )
 
                         teamPage =
                             ( team, Nothing )
@@ -254,7 +248,7 @@ toPath page =
                         nameCrumb =
                             ( name, Nothing )
                     in
-                    [ overviewPage, organizationPage, teamPage, sharedSecrets, nameCrumb ]
+                    [ overviewPage, orgSecrets, teamPage, sharedSecrets, nameCrumb ]
 
                 Pages.OrgBuilds org _ _ _ ->
                     let
