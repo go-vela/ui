@@ -92,10 +92,7 @@ context('Crumbs', () => {
     });
     it('repo crumb should redirect to repo builds', () => {
       cy.get('[data-test=crumb-octocat]').click();
-      cy.location('pathname').should(
-        'eq',
-        '/github/octocat',
-      );
+      cy.location('pathname').should('eq', '/github/octocat');
     });
     it('Repo Secrets crumb should redirect to repo secrets', () => {
       cy.get('[data-test=crumb-repo-secrets]').click();
