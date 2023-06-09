@@ -9,6 +9,9 @@
 
   background-color: var(--color-bg-dark);
   border-collapse: collapse;
+
+  table-layout: fixed;
+  width: 100%;
 }
 
 .table-base thead {
@@ -48,10 +51,38 @@
   font-weight: bold;
   white-space: nowrap;
   text-align: left;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table-base td {
   padding: 0.625em;
+  vertical-align: top;
+}
+
+.table-base td.name {
+  padding: 0.625em;
+  max-width: 15rem;
+  min-width: 10rem;
+}
+
+.table-base .col-btn {
+  width: 4rem;
+}
+
+.table-base .col-lrg {
+  min-width: 10rem;
+}
+
+.table-base tr input {
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  border: none;
+  flex: 1;
+  margin: 0.2rem 0;
+  padding: 0.5rem;
+  width: stretch;
 }
 
 .table-base .source-id {

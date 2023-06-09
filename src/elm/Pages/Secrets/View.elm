@@ -299,13 +299,13 @@ secretsToRowsForSharedSecrets type_ secrets =
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Nothing, "" )
-    , ( Nothing, "name" )
+    [ ( Just "col-btn", "" )
+    , ( Just "col-lrg", "name" )
     , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
-    , ( Nothing, "allow command" )
+    , ( Just "overflow-ellipsis", "allow commands" )
     ]
 
 
@@ -320,7 +320,7 @@ tableHeadersForSharedSecrets =
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
-    , ( Nothing, "allow command" )
+    , ( Nothing, "allow commands" )
     ]
 
 
@@ -340,16 +340,18 @@ renderSecret type_ secret =
             [ attribute "data-label" "name"
             , scope "row"
             , class "break-word"
+            , class "name"
             , Util.testAttribute <| "secrets-row-name"
             ]
             [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
         , td
             [ attribute "data-label" "key"
-            , scope "row"
+            , scope "row" -- vader
             , class "break-word"
+            , class "key"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ text <| secret.key ]
+            [ Html.input [ Html.Attributes.readonly True, Html.Attributes.value secret.key ] [ text <| secret.key ] ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
@@ -369,7 +371,7 @@ renderSecret type_ secret =
             , class "break-word"
             ]
           <|
-            renderListCell secret.images "no images" "secret-image"
+            renderListCell secret.images "all images" "secret-image"
         , td
             [ attribute "data-label" "allow command"
             , scope "row"
@@ -443,8 +445,8 @@ renderSharedSecret type_ secret =
 
 {-| renderListCell : takes list of items, text for none and className and renders a table cell
 -}
-renderListCell : List String -> String -> String -> List (Html msg)
-renderListCell items none itemClassName =
+renderListCellBak : List String -> String -> String -> List (Html msg)
+renderListCellBak items none itemClassName =
     if List.length items == 0 then
         [ text none ]
 
@@ -465,6 +467,31 @@ renderListCell items none itemClassName =
                     |> String.concat
         in
         [ Html.code [ class itemClassName ] [ span [] [ text content ] ] ]
+
+
+{-| renderListCell2 : takes list of items, text for none and className and renders a table cell
+-}
+renderListCell : List String -> String -> String -> List (Html msg)
+renderListCell items none itemClassName =
+    if List.length items == 0 then
+        [ text none ]
+
+    else
+        let
+            content =
+                items
+                    |> List.sort
+                    |> List.indexedMap
+                        (\i item ->
+                            Html.input [ class itemClassName, Html.Attributes.value item ] [ text item ]
+                        )
+        in
+        content
+
+
+
+-- [div [ class "list" ] content]
+-- [ Html.code [ class itemClassName ] [ span [] [ text content ] ] ]
 
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
