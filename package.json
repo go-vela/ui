@@ -18,6 +18,8 @@
     "cypress": "5.6.0",
     "cypress-axe": "0.14.0",
     "elm": "0.19.1-5",
+    "elm-format": "0.8.7",
+    "elm-test": "0.19.1-revision12",
     "make-dir-cli": "3.0.0",
     "ncp": "2.0.0",
     "parcel": "2.8.3",
@@ -58,6 +60,7 @@
     "lint:css": "stylelint --cache --cache-location 'node_modules/' 'src/scss/**/*.scss'",
     "lint:css-fix": "npm run lint:css -- --fix",
     "lint:elm": "elm-format --validate src/ tests/",
+    "lint:elm-fix": "elm-format --yes src/ tests/",
     "lint:fix": "npm run lint:css-fix && npm run lint:prettier-fix",
     "lint": "npm run lint:css && npm run lint:prettier"
   },

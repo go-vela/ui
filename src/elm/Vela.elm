@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( AuthParams
+    ( AddSchedulePayload
+    , AuthParams
     , Build
     , BuildModel
     , BuildNumber
@@ -55,6 +56,10 @@ module Vela exposing
     , Repository
     , Resource
     , Resources
+    , Schedule
+    , ScheduleName
+    , Schedules
+    , SchedulesModel
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -73,6 +78,7 @@ module Vela exposing
     , Theme(..)
     , Type
     , UpdateRepositoryPayload
+    , UpdateSchedulePayload
     , UpdateSecretPayload
     , UpdateUserPayload
     , buildDeploymentPayload
@@ -80,6 +86,7 @@ module Vela exposing
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
+    , buildUpdateSchedulePayload
     , buildUpdateSecretPayload
     , decodeBuild
     , decodeBuilds
@@ -93,6 +100,8 @@ module Vela exposing
     , decodePipelineTemplates
     , decodeRepositories
     , decodeRepository
+    , decodeSchedule
+    , decodeSchedules
     , decodeSecret
     , decodeSecrets
     , decodeService
@@ -109,6 +118,7 @@ module Vela exposing
     , encodeEnableRepository
     , encodeTheme
     , encodeUpdateRepository
+    , encodeUpdateSchedule
     , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
@@ -156,6 +166,10 @@ module Vela exposing
     , updateRepoInitialized
     , updateRepoLimit
     , updateRepoTimeout
+    , updateSchedules
+    , updateSchedulesPage
+    , updateSchedulesPager
+    , updateSchedulesPerPage
     )
 
 import Api.Pagination as Pagination
@@ -252,6 +266,10 @@ type alias Payload =
 
 
 type alias Target =
+    String
+
+
+type alias ScheduleName =
     String
 
 
@@ -361,6 +379,7 @@ type alias RepoModel =
     , orgRepos : OrgReposModel
     , hooks : HooksModel
     , builds : BuildsModel
+    , schedules : SchedulesModel
     , deployments : DeploymentsModel
     , build : BuildModel
     , initialized : Bool
@@ -415,7 +434,7 @@ defaultBuildModel =
 
 defaultRepoModel : RepoModel
 defaultRepoModel =
-    RepoModel "" "" NotAsked defaultOrgReposModel defaultHooks defaultBuilds defaultDeployments defaultBuildModel False
+    RepoModel "" "" NotAsked defaultOrgReposModel defaultHooks defaultBuilds defaultSchedules defaultDeployments defaultBuildModel False
 
 
 defaultStepsModel : StepsModel
@@ -1310,6 +1329,11 @@ defaultDeployments =
     DeploymentsModel RemoteData.NotAsked [] Nothing Nothing
 
 
+defaultSchedules : SchedulesModel
+defaultSchedules =
+    SchedulesModel RemoteData.NotAsked [] Nothing Nothing
+
+
 type alias Builds =
     List Build
 
@@ -1689,6 +1713,123 @@ type alias Hooks =
 
 type alias RepoResourceIdentifier =
     ( Org, Repo, String )
+
+
+
+-- SCHEDULES
+
+
+type alias SchedulesModel =
+    { schedules : WebData (List Schedule)
+    , pager : List WebLink
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
+    }
+
+
+type alias Schedule =
+    { id : Int
+    , org : String
+    , repo : String
+    , name : String
+    , entry : String
+    , enabled : Bool
+    }
+
+
+type alias Schedules =
+    List Schedule
+
+
+type alias AddSchedulePayload =
+    { id : Int
+    , org : String
+    , repo : String
+    , name : String
+    , entry : String
+    , enabled : Bool
+    }
+
+
+type alias UpdateSchedulePayload =
+    { org : Maybe Org
+    , repo : Maybe Repo
+    , name : Maybe Name
+    , entry : Maybe String
+    , enabled : Maybe Bool
+    }
+
+
+buildUpdateSchedulePayload :
+    Maybe Org
+    -> Maybe Repo
+    -> Maybe Name
+    -> Maybe String
+    -> Maybe Bool
+    -> UpdateSchedulePayload
+buildUpdateSchedulePayload org repo name entry enabled =
+    UpdateSchedulePayload org repo name entry enabled
+
+
+decodeSchedule : Decoder Schedule
+decodeSchedule =
+    Decode.succeed Schedule
+        |> optional "id" int -1
+        |> optional "repo.org" string ""
+        |> optional "repo.repo" string ""
+        |> optional "name" string ""
+        |> optional "entry" string ""
+        |> optional "active" bool False
+
+
+decodeSchedules : Decoder Schedules
+decodeSchedules =
+    Decode.list decodeSchedule
+
+
+encodeUpdateSchedule : UpdateSchedulePayload -> Encode.Value
+encodeUpdateSchedule secret =
+    Encode.object
+        [ ( "name", encodeOptional Encode.string secret.name )
+        , ( "entry", encodeOptional Encode.string secret.entry )
+        , ( "enabled", encodeOptional Encode.bool secret.enabled )
+        ]
+
+
+updateSchedules : WebData Schedules -> RepoModel -> RepoModel
+updateSchedules update rm =
+    let
+        sm =
+            rm.schedules
+    in
+    { rm | schedules = { sm | schedules = update } }
+
+
+updateSchedulesPager : List WebLink -> RepoModel -> RepoModel
+updateSchedulesPager update rm =
+    let
+        sm =
+            rm.schedules
+    in
+    { rm | schedules = { sm | pager = update } }
+
+
+updateSchedulesPage : Maybe Pagination.Page -> RepoModel -> RepoModel
+updateSchedulesPage maybePage rm =
+    let
+        sm =
+            rm.schedules
+    in
+    { rm | schedules = { sm | maybePage = maybePage } }
+
+
+updateSchedulesPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
+updateSchedulesPerPage maybePerPage rm =
+    let
+        sm =
+            rm.schedules
+    in
+    { rm | schedules = { sm | maybePerPage = maybePerPage } }
 
 
 
