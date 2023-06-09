@@ -167,5 +167,3 @@ viewDeployments deploymentsModel org repo =
 
         RemoteData.Failure _ ->
             viewResourceError { resourceLabel = "deployments for this repository", testLabel = "deployments" }
-
-
