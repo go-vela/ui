@@ -20,19 +20,7 @@ module Help.Commands exposing
 import Pages exposing (Page)
 import String.Extra
 import Util exposing (anyBlank, noBlanks)
-import Vela
-    exposing
-        ( BuildNumber
-        , Copy
-        , Engine
-        , Key
-        , Name
-        , Org
-        , Repo
-        , SecretType
-        , StepNumber
-        , secretTypeToString
-        )
+import Vela exposing (BuildNumber, Copy, Engine, Key, Name, Org, Repo, ScheduleName, SecretType, StepNumber, secretTypeToString)
 
 
 {-| Model : wrapper for help args, meant to slim down the input required to render contextual help for each page
@@ -161,6 +149,15 @@ commands page =
 
         Pages.NotFound ->
             []
+
+        Pages.AddSchedule org repo ->
+            [ addSchedule org repo ]
+
+        Pages.Schedule org repo name ->
+            [ viewSchedule org repo name, updateSchedule org repo name ]
+
+        Pages.Schedules org repo _ _ ->
+            [ listSchedules org repo ]
 
 
 {-| listFavorites : returns cli command for listing favorites
@@ -716,6 +713,89 @@ addSecretArgs =
     " --name password --value vela --event push"
 
 
+{-| listSchedules : returns cli command for listing schedules
+
+    eg.
+      vela list schedules --org <org> --repo <repo>
+
+-}
+listSchedules : Org -> Repo -> Command
+listSchedules org repo =
+    let
+        name =
+            "List Schedules"
+
+        content =
+            Just <| "vela get schedules " ++ repoArgs org repo
+
+        docs =
+            Just "/schedule/get"
+    in
+    Command name content docs noIssue
+
+
+{-| viewSchedule : returns cli command for viewing a schedule
+
+      vela view schedule --org <org> --repo <repo>  --schedule <name>
+
+-}
+viewSchedule : Org -> Repo -> ScheduleName -> Command
+viewSchedule org repo name =
+    let
+        name_ =
+            "View " ++ name ++ " Schedule"
+
+        content =
+            Just <| "vela view schedule " ++ repoArgs org repo ++ " --name " ++ name
+
+        docs =
+            Just "/schedule/view"
+    in
+    Command name_ content docs noIssue
+
+
+{-| updateSchedule : returns cli command for updating an existing schedule
+
+    eg.
+      vela update schedule --org <org> --repo <repo> --schedule <name> --entry <entry>
+
+-}
+updateSchedule : Org -> Repo -> ScheduleName -> Command
+updateSchedule org repo name =
+    let
+        name_ =
+            "Update " ++ name ++ " Schedule"
+
+        content =
+            Just <| "vela update schedule " ++ repoArgs org repo ++ " --name " ++ name ++ " --entry '<cron expression>'"
+
+        docs =
+            Just "/schedule/update"
+    in
+    Command name_ content docs noIssue
+
+
+{-| addSchedule : returns cli command for adding an new schedule
+
+    eg.
+      vela add schedule --org <org> --repo <repo> --schedule <name> --entry <entry>
+
+-}
+addSchedule : Org -> Repo -> Command
+addSchedule org repo =
+    let
+        name_ =
+            "Add a New Schedule"
+
+        content =
+            Just <| "vela add schedule " ++ repoArgs org repo ++ " --name <name> --entry '<cron expression>'"
+
+        docs =
+            Just "/schedule/add"
+    in
+    Command name_ content docs noIssue
+
+
 noCmd : Maybe String
 noCmd =
     Nothing
@@ -852,6 +932,15 @@ resourceLoaded args =
         Pages.NotFound ->
             False
 
+        Pages.AddSchedule org repo ->
+            noBlanks [ org, repo ]
+
+        Pages.Schedule org repo name ->
+            noBlanks [ org, repo, name ]
+
+        Pages.Schedules org repo _ _ ->
+            noBlanks [ org, repo ]
+
 
 {-| resourceLoading : takes help args and returns if the resource is loading
 -}
@@ -937,4 +1026,13 @@ resourceLoading args =
             False
 
         Pages.NotFound ->
+            False
+
+        Pages.AddSchedule _ _ ->
+            False
+
+        Pages.Schedule _ _ _ ->
+            False
+
+        Pages.Schedules _ _ _ _ ->
             False

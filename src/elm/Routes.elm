@@ -14,7 +14,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
 
 
 
@@ -46,6 +46,9 @@ type Route
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) FocusFragment
+    | AddSchedule Org Repo
+    | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | Schedule Org Repo ScheduleName
     | Settings
     | Login
     | Logout
@@ -85,6 +88,9 @@ routes =
         , map RepositoryBuildsPulls (string </> string </> s "pulls" <?> Query.int "page" <?> Query.int "per_page")
         , map RepositoryBuildsTags (string </> string </> s "tags" <?> Query.int "page" <?> Query.int "per_page")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
+        , map AddSchedule (string </> string </> s "add-schedule")
+        , map Schedules (string </> string </> s "schedules" <?> Query.int "page" <?> Query.int "per_page")
+        , map Schedule (string </> string </> s "schedules" </> string)
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
@@ -170,6 +176,15 @@ routeToUrl route =
 
         RepositoryDeployments org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/deployments" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
+
+        AddSchedule org repo ->
+            "/" ++ org ++ "/" ++ repo ++ "/add-schedule"
+
+        Schedule org repo name ->
+            "/" ++ org ++ "/" ++ repo ++ "/schedules/" ++ name
+
+        Schedules org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/schedules" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
