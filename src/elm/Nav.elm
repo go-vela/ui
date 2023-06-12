@@ -143,17 +143,6 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
         Pages.RepoSecrets _ org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
-        Pages.SharedSecrets engine org team _ _ ->
-            div [ class "buttons" ]
-                [ a
-                    [ class "button"
-                    , class "-outline"
-                    , Routes.href <|
-                        Routes.AddSharedSecret engine org team
-                    ]
-                    [ text "Add Shared Secret" ]
-                ]
-
         Pages.Build org repo _ _ ->
             div [ class "buttons" ]
                 [ cancelBuildButton org repo model.repo.build.build cancelBuild
