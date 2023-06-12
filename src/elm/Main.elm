@@ -2653,7 +2653,7 @@ viewContent model =
         Pages.SharedSecrets engine org team _ _ ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
-                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
+                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
                 , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
                 ]
             )
