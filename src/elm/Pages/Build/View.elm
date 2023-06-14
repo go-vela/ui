@@ -18,8 +18,8 @@ import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
     exposing
-        ( Resource
-        , ResourceID
+        ( ResourceID
+        , ResourceType
         , lineFocusStyles
         , lineRangeId
         , resourceAndLineToFocusId
@@ -679,8 +679,8 @@ viewServiceLogs msgs shift rm service =
 
 {-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource
 -}
-viewLogLines : LogsMsgs msg -> FollowResource msg -> Org -> Repo -> BuildNumber -> String -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
-viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus maybeLog following shiftDown =
+viewLogLines : LogsMsgs msg -> FollowResource msg -> Org -> Repo -> BuildNumber -> ResourceType -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
+viewLogLines msgs followMsg org repo buildNumber resourceType resourceID logFocus maybeLog following shiftDown =
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ resourceID
@@ -690,13 +690,13 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
             RemoteData.Success l ->
                 let
                     fileName =
-                        downloadFileName org repo buildNumber resource resourceID
+                        downloadFileName org repo buildNumber resourceType resourceID
 
                     ( logs, numLines ) =
-                        viewLines msgs.focusLine resource resourceID logFocus l.decodedLogs shiftDown
+                        viewLines msgs.focusLine resourceType resourceID logFocus l.decodedLogs shiftDown
                 in
-                [ logsHeader msgs resource resourceID fileName l
-                , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
+                [ logsHeader msgs resourceType resourceID fileName l
+                , logsSidebar msgs.focusOn followMsg resourceType resourceID following numLines
                 , logs
                 ]
 
@@ -709,8 +709,8 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
 
 {-| viewLines : takes number, line focus information and click action and renders logs
 -}
-viewLines : FocusLine msg -> Resource -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
-viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
+viewLines : FocusLine msg -> ResourceType -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
+viewLines focusLine resourceType resourceID logFocus decodedLog shiftDown =
     let
         lines =
             decodedLog
@@ -720,7 +720,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
                     (\idx logLine ->
                         Just <|
                             viewLine focusLine
-                                resource
+                                resourceType
                                 resourceID
                                 (idx + 1)
                                 logLine
@@ -736,7 +736,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        topTrackerFocusId resource resourceID
+                        topTrackerFocusId resourceType resourceID
                     , Util.testAttribute <| "top-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
@@ -747,7 +747,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        bottomTrackerFocusId resource resourceID
+                        bottomTrackerFocusId resourceType resourceID
                     , Util.testAttribute <| "bottom-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
@@ -764,8 +764,8 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : FocusLine msg -> Resource -> ResourceID -> Int -> LogLine msg -> LogFocus -> Bool -> Html msg
-viewLine focusLine resource resourceID lineNumber logLine logFocus shiftDown =
+viewLine : FocusLine msg -> ResourceType -> ResourceID -> Int -> LogLine msg -> LogFocus -> Bool -> Html msg
+viewLine focusLine resourceType resourceID lineNumber logLine logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             resourceID
@@ -775,13 +775,13 @@ viewLine focusLine resource resourceID lineNumber logLine logFocus shiftDown =
         ]
         [ div
             [ class "wrapper"
-            , Util.testAttribute <| String.join "-" [ "log", "line", resource, resourceID, String.fromInt lineNumber ]
+            , Util.testAttribute <| String.join "-" [ "log", "line", resourceType, resourceID, String.fromInt lineNumber ]
             , class <| lineFocusStyles logFocus lineNumber
             ]
             [ td []
-                [ lineFocusButton focusLine resource resourceID logFocus lineNumber shiftDown ]
+                [ lineFocusButton focusLine resourceType resourceID logFocus lineNumber shiftDown ]
             , td [ class "break-text", class "overflow-auto" ]
-                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, resourceID, String.fromInt lineNumber ] ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceType, resourceID, String.fromInt lineNumber ] ]
                     [ logLine.view
                     ]
                 ]
@@ -911,18 +911,18 @@ viewLogLink link txt =
 
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
-lineFocusButton : (String -> msg) -> Resource -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
-lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
+lineFocusButton : (String -> msg) -> ResourceType -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
+lineFocusButton focusLogs resourceType resourceID logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             focusLogs <|
-                lineRangeId resource resourceID lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, resourceID, String.fromInt lineNumber ]
-        , id <| resourceAndLineToFocusId resource resourceID lineNumber
+                lineRangeId resourceType resourceID lineNumber logFocus shiftDown
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resourceType, resourceID, String.fromInt lineNumber ]
+        , id <| resourceAndLineToFocusId resourceType resourceID lineNumber
         , class "line-number"
         , class "button"
         , class "-link"
-        , attribute "aria-label" <| "focus " ++ resource ++ " " ++ resourceID
+        , attribute "aria-label" <| "focus " ++ resourceType ++ " " ++ resourceID
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
@@ -955,16 +955,16 @@ expandAllButton expandAll org repo buildNumber =
 
 {-| logsHeader : takes number, filename and decoded log and renders logs header
 -}
-logsHeader : LogsMsgs msg -> String -> String -> String -> Log -> Html msg
-logsHeader msgs resource number fileName log =
+logsHeader : LogsMsgs msg -> ResourceType -> String -> String -> Log -> Html msg
+logsHeader msgs resourceType number fileName log =
     div [ class "logs-header", class "buttons", Util.testAttribute <| "logs-header-actions-" ++ number ]
-        [ downloadLogsButton msgs.download resource number fileName log ]
+        [ downloadLogsButton msgs.download resourceType number fileName log ]
 
 
 {-| logsSidebar : takes number/following and renders the logs sidebar
 -}
-logsSidebar : FocusOn msg -> FollowResource msg -> String -> String -> Int -> Int -> Html msg
-logsSidebar focusOn followMsg resource number following numLines =
+logsSidebar : FocusOn msg -> FollowResource msg -> ResourceType -> String -> Int -> Int -> Html msg
+logsSidebar focusOn followMsg resourceType number following numLines =
     let
         long =
             numLines > 25
@@ -977,54 +977,54 @@ logsSidebar focusOn followMsg resource number following numLines =
                 ]
               <|
                 (if long then
-                    [ jumpToTopButton focusOn resource number
-                    , jumpToBottomButton focusOn resource number
+                    [ jumpToTopButton focusOn resourceType number
+                    , jumpToBottomButton focusOn resourceType number
                     ]
 
                  else
                     []
                 )
-                    ++ [ followButton followMsg resource number following ]
+                    ++ [ followButton followMsg resourceType number following ]
             ]
         ]
 
 
 {-| jumpToBottomButton : renders action button for jumping to the bottom of a log
 -}
-jumpToBottomButton : FocusOn msg -> String -> String -> Html msg
-jumpToBottomButton focusOn resource number =
+jumpToBottomButton : FocusOn msg -> ResourceType -> String -> Html msg
+jumpToBottomButton focusOn resourceType number =
     button
         [ class "button"
         , class "-icon"
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ number
-        , onClick <| focusOn <| bottomTrackerFocusId resource number
-        , attribute "aria-label" <| "jump to bottom of logs for " ++ resource ++ " " ++ number
+        , onClick <| focusOn <| bottomTrackerFocusId resourceType number
+        , attribute "aria-label" <| "jump to bottom of logs for " ++ resourceType ++ " " ++ number
         ]
         [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| jumpToTopButton : renders action button for jumping to the top of a log
 -}
-jumpToTopButton : FocusOn msg -> String -> String -> Html msg
-jumpToTopButton focusOn resource number =
+jumpToTopButton : FocusOn msg -> ResourceType -> String -> Html msg
+jumpToTopButton focusOn resourceType number =
     button
         [ class "button"
         , class "-icon"
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ number
-        , onClick <| focusOn <| topTrackerFocusId resource number
-        , attribute "aria-label" <| "jump to top of logs for " ++ resource ++ " " ++ number
+        , onClick <| focusOn <| topTrackerFocusId resourceType number
+        , attribute "aria-label" <| "jump to top of logs for " ++ resourceType ++ " " ++ number
         ]
         [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| downloadLogsButton : renders action button for downloading a log
 -}
-downloadLogsButton : Download msg -> String -> String -> String -> Log -> Html msg
-downloadLogsButton download resource number fileName log =
+downloadLogsButton : Download msg -> ResourceType -> String -> String -> Log -> Html msg
+downloadLogsButton download resourceType number fileName log =
     let
         logEmpty =
             isEmpty log
@@ -1037,28 +1037,28 @@ downloadLogsButton download resource number fileName log =
         , Util.attrIf logEmpty <| Util.ariaHidden
         , Util.testAttribute <| "download-logs-" ++ number
         , onClick <| download fileName log.rawData
-        , attribute "aria-label" <| "download logs for " ++ resource ++ " " ++ number
+        , attribute "aria-label" <| "download logs for " ++ resourceType ++ " " ++ number
         ]
-        [ text <| "download " ++ resource ++ " logs" ]
+        [ text <| "download " ++ resourceType ++ " logs" ]
 
 
 {-| followButton : renders button for following logs
 -}
-followButton : FollowResource msg -> String -> String -> Int -> Html msg
-followButton followStep resource number following =
+followButton : FollowResource msg -> ResourceType -> String -> Int -> Html msg
+followButton followStep resourceType number following =
     let
         num =
             Maybe.withDefault 0 <| String.toInt number
 
         ( tooltip, icon, toFollow ) =
             if following == 0 then
-                ( "start following " ++ resource ++ " logs", FeatherIcons.play, num )
+                ( "start following " ++ resourceType ++ " logs", FeatherIcons.play, num )
 
             else if following == num then
-                ( "stop following " ++ resource ++ " logs", FeatherIcons.pause, 0 )
+                ( "stop following " ++ resourceType ++ " logs", FeatherIcons.pause, 0 )
 
             else
-                ( "start following " ++ resource ++ " logs", FeatherIcons.play, num )
+                ( "start following " ++ resourceType ++ " logs", FeatherIcons.play, num )
     in
     button
         [ class "button"
@@ -1067,7 +1067,7 @@ followButton followStep resource number following =
         , attribute "data-tooltip" tooltip
         , Util.testAttribute <| "follow-logs-" ++ number
         , onClick <| followStep toFollow
-        , attribute "aria-label" <| tooltip ++ " for " ++ resource ++ " " ++ number
+        , attribute "aria-label" <| tooltip ++ " for " ++ resourceType ++ " " ++ number
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
