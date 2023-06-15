@@ -1440,7 +1440,8 @@ details.build-toggle {
 }
 
 .manage-secret .header,
-.manage-deployment .header {
+.manage-deployment .header,
+.manage-schedule .header {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -1451,20 +1452,23 @@ details.build-toggle {
 }
 
 .manage-secret h2,
-.manage-deployment h2 {
+.manage-deployment h2,
+.manage-schedule h2 {
   margin: 0;
 
   border-bottom: 2px solid var(--color-secondary);
 }
 
 .secret-form,
-.deployment-form {
+.deployment-form,
+.schedule-form {
   margin-bottom: 0.5rem;
   padding-top: 1rem;
 }
 
 .secret-form section,
-.deployment-form section {
+.deployment-form section,
+.schedule-form section {
   justify-content: flex-start;
   margin-bottom: 1rem;
 }
@@ -1547,7 +1551,8 @@ details.build-toggle {
 
 .manage-secret textarea,
 .update-secret textarea,
-.manage-deployment textarea {
+.manage-deployment textarea,
+.manage-schedule textarea {
   width: 70%;
   margin-bottom: 0.5rem;
   padding: 0.5rem;
@@ -1567,17 +1572,20 @@ details.build-toggle {
 }
 
 .manage-secret textarea,
-.manage-deployment textarea {
+.manage-deployment textarea,
+.manage-schedule textarea {
   max-width: 70%;
 }
 
 .secret-form .help,
-.deployment-form .help {
+.deployment-form .help,
+.schedule-form .help {
   padding-bottom: 1rem;
 }
 
 .secret-form .form-action,
-.deployment-form .form-action {
+.deployment-form .form-action,
+.schedule-form .form-action {
   padding-left: 1rem;
 }
 

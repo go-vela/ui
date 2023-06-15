@@ -74,7 +74,7 @@ type alias ScheduleForm =
 
 defaultScheduleUpdate : ScheduleForm
 defaultScheduleUpdate =
-    ScheduleForm "Daily" "0 0 * * *" True
+    ScheduleForm "" "0 0 * * *" True
 
 
 
