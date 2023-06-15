@@ -18,6 +18,7 @@ import Html
         , a
         , button
         , div
+        , h2
         , span
         , td
         , text
@@ -171,9 +172,10 @@ updateScheduleHref org repo s =
 -}
 addSchedule : PartialModel a msg -> Html Msg
 addSchedule model =
-    div [ class "add-schedule", Util.testAttribute "add-schedule" ]
+    div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
         [ div []
-            [ addForm model.schedulesModel
+            [ h2 [] [ text "Add Schedule" ]
+            , addForm model.schedulesModel
             ]
         ]
 
