@@ -214,7 +214,8 @@ editSchedule model =
         Success _ ->
             div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
                 [ div []
-                    [ editForm model.schedulesModel
+                    [ h2 [] [ text "View/Edit Schedule" ]
+                    , editForm model.schedulesModel
                     ]
                 ]
 
