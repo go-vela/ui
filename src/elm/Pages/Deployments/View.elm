@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Deployments.View exposing (addDeployment, promoteDeployment, viewDeployments)
+module Pages.Deployments.View exposing (addDeployment, viewDeployments)
 
 import Errors exposing (viewResourceError)
 import FeatherIcons
@@ -167,18 +167,3 @@ viewDeployments deploymentsModel org repo =
 
         RemoteData.Failure _ ->
             viewResourceError { resourceLabel = "deployments for this repository", testLabel = "deployments" }
-
-
-
--- Promote Deployment
-
-
-{-| promoteDeployment : takes partial model and renders deployment form for promoting a deployment
--}
-promoteDeployment : PartialModel a msg -> Html Msg
-promoteDeployment model =
-    div [ class "manage-deployment", Util.testAttribute "add-deployment" ]
-        [ div []
-            [ addForm model.deploymentModel
-            ]
-        ]
