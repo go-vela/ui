@@ -232,7 +232,9 @@ import Vela
         , updateRepoLimit
         , updateRepoTimeout
         , updateSchedules
+        , updateSchedulesPage
         , updateSchedulesPager
+        , updateSchedulesPerPage
         )
 
 
@@ -680,6 +682,11 @@ update msg model =
                     in
                     ( { model | secretsModel = loadingSecrets }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.SharedSecrets engine org team (Just pageNumber) maybePerPage
+                    )
+
+                Pages.Schedules org repo _ maybePerPage ->
+                    ( { model | repo = updateSchedules Loading rm }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Schedules org repo (Just pageNumber) maybePerPage
                     )
 
                 _ ->
@@ -3476,6 +3483,19 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateHooksPage Nothing
                                                 |> updateHooksPerPage Nothing
                                )
+                            -- update schedules pagination
+                            |> (\rm_ ->
+                                    case toPage of
+                                        Pages.Schedules _ _ maybePage maybePerPage ->
+                                            rm_
+                                                |> updateSchedulesPage maybePage
+                                                |> updateSchedulesPerPage maybePerPage
+
+                                        _ ->
+                                            rm_
+                                                |> updateSchedulesPage Nothing
+                                                |> updateSchedulesPerPage Nothing
+                               )
                   }
                 , Cmd.batch
                     [ getCurrentUser model
@@ -3542,8 +3562,15 @@ loadRepoSubPage model org repo toPage =
                     Pages.RepoSecrets _ o r _ _ ->
                         ( model, fetchSecrets o r )
 
-                    Pages.Schedules o r _ _ ->
-                        ( model, getSchedules model o r Nothing Nothing )
+                    Pages.Schedules o r maybePage maybePerPage ->
+                        ( { model
+                            | repo =
+                                rm
+                                    |> updateSchedulesPage maybePage
+                                    |> updateSchedulesPerPage maybePerPage
+                          }
+                        , getSchedules model o r maybePage maybePerPage
+                        )
 
                     Pages.Hooks o r maybePage maybePerPage ->
                         ( { model
