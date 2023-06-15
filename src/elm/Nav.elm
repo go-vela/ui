@@ -214,10 +214,58 @@ viewUtil model =
             Pages.BuildPipeline _ _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
-            Pages.AddDeployment org repo ->
-                viewRepoTabs rm org repo model.page
+            Pages.AddDeployment _ _ ->
+                text ""
 
-            _ ->
+            Pages.PromoteDeployment _ _ _ ->
+                text ""
+
+            Pages.Overview ->
+                text ""
+
+            Pages.SourceRepositories ->
+                text ""
+
+            Pages.SharedSecrets _ _ _ _ _ ->
+                text ""
+
+            Pages.AddOrgSecret _ _ ->
+                text ""
+
+            Pages.AddRepoSecret _ _ _ ->
+                text ""
+
+            Pages.AddSharedSecret _ _ _ ->
+                text ""
+
+            Pages.OrgSecret _ _ _ ->
+                text ""
+
+            Pages.RepoSecret _ _ _ _ ->
+                text ""
+
+            Pages.SharedSecret _ _ _ _ ->
+                text ""
+
+            Pages.RepositoryBuildsPulls _ _ _ _ ->
+                text ""
+
+            Pages.RepositoryBuildsTags _ _ _ _ ->
+                text ""
+
+            Pages.AddSchedule _ _ ->
+                text ""
+
+            Pages.Schedule _ _ _ ->
+                text ""
+
+            Pages.Settings ->
+                text ""
+
+            Pages.Login ->
+                text ""
+
+            Pages.NotFound ->
                 text ""
         ]
 
