@@ -8,7 +8,7 @@ module Pages.Deployments.View exposing (addDeployment, viewDeployments)
 
 import FeatherIcons
 import Html exposing (Html, a, div, h2, span, td, text, tr)
-import Html.Attributes exposing (attribute, class, scope)
+import Html.Attributes exposing (attribute, class, href, scope)
 import Http
 import Pages.Deployments.Form exposing (viewDeployEnabled, viewHelp, viewParameterInput, viewSubmitButtons, viewValueInput)
 import Pages.Deployments.Model
@@ -23,7 +23,7 @@ import Svg.Attributes
 import SvgBuilder exposing (hookSuccess)
 import Table
 import Util exposing (largeLoader)
-import Vela exposing (Deployment, DeploymentsModel, Org, Repo)
+import Vela exposing (Deployment, Org, Repo, RepoModel, Repository)
 
 
 
@@ -64,8 +64,8 @@ addForm deploymentModel =
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : DeploymentsModel -> Org -> Repo -> Html msg
-viewDeployments deploymentsModel org repo =
+viewDeployments : RepoModel -> Org -> Repo -> Html msg
+viewDeployments repoModel org repo =
     let
         addButton =
             a
@@ -89,13 +89,13 @@ viewDeployments deploymentsModel org repo =
                     ]
 
         ( noRowsView, rows ) =
-            case deploymentsModel.deployments of
-                RemoteData.Success s ->
+            case ( repoModel.repo, repoModel.deployments.deployments ) of
+                ( RemoteData.Success repo_, RemoteData.Success s ) ->
                     ( text "No deployments found for this repo"
-                    , deploymentsToRows org repo s
+                    , deploymentsToRows repo_ s
                     )
 
-                RemoteData.Failure error ->
+                ( _, RemoteData.Failure error ) ->
                     ( span [ Util.testAttribute "repo-deployments-error" ]
                         [ text <|
                             case error of
@@ -106,6 +106,24 @@ viewDeployments deploymentsModel org repo =
 
                                         _ ->
                                             "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No deployments found for this repo, there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                ( RemoteData.Failure error, _ ) ->
+                    ( span [ Util.testAttribute "repo-deployments-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No repo found, most likely due to not having access to the source control provider"
+
+                                        _ ->
+                                            "No repo found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
                                     "No deployments found for this repo, there was an error with the server"
@@ -134,9 +152,9 @@ viewDeployments deploymentsModel org repo =
 
 {-| deploymentsToRows : takes list of deployments and produces list of Table rows
 -}
-deploymentsToRows : Org -> Repo -> List Deployment -> Table.Rows Deployment msg
-deploymentsToRows org repo deployments =
-    List.map (\deployment -> Table.Row deployment (renderDeployment org repo)) deployments
+deploymentsToRows : Repository -> List Deployment -> Table.Rows Deployment msg
+deploymentsToRows repo_ deployments =
+    List.map (\deployment -> Table.Row deployment (renderDeployment repo_)) deployments
 
 
 {-| tableHeaders : returns table headers for deployments table
@@ -150,14 +168,14 @@ tableHeaders =
     , ( Nothing, "ref" )
     , ( Nothing, "description" )
     , ( Nothing, "user" )
-    , ( Just "-icon", "" )
+    , ( Nothing, "" )
     ]
 
 
 {-| renderDeployment : takes deployment and renders a table row
 -}
-renderDeployment : Org -> Repo -> Deployment -> Html msg
-renderDeployment org repo deployment =
+renderDeployment : Repository -> Deployment -> Html msg
+renderDeployment repo_ deployment =
     tr [ Util.testAttribute <| "deployments-row" ]
         [ td
             [ attribute "data-label" "deployment-icon"
@@ -186,7 +204,9 @@ renderDeployment org repo deployment =
             , class "break-word"
             , Util.testAttribute <| "deployments-row-commit"
             ]
-            [ a [] [ text <| Util.trimCommitHash deployment.commit ] ]
+            [ a [ href <| Util.buildRefURL repo_.clone deployment.commit ]
+                [ text <| Util.trimCommitHash deployment.commit ]
+            ]
         , td
             [ attribute "data-label" "ref"
             , scope "row"
@@ -194,7 +214,7 @@ renderDeployment org repo deployment =
             , class "ref"
             , Util.testAttribute <| "deployments-row-ref"
             ]
-            [ text <| deployment.ref ]
+            [ span [ class "list-item" ] [ text <| deployment.ref ] ]
         , td
             [ attribute "data-label" "description"
             , scope "row"
@@ -213,23 +233,19 @@ renderDeployment org repo deployment =
             , scope "row"
             , class "break-word"
             ]
-            [ redeployButton org repo deployment ]
+            [ redeployLink repo_.org repo_.name deployment ]
         ]
 
 
-{-| redeployButton : takes org, repo and deployment and renders a button to redirect to the promote deployment page
+{-| redeployLink : takes org, repo and deployment and renders a link to redirect to the promote deployment page
 -}
-redeployButton : Org -> Repo -> Deployment -> Html msg
-redeployButton org repo deployment =
+redeployLink : Org -> Repo -> Deployment -> Html msg
+redeployLink org repo deployment =
     a
-        [ class "copy-button"
+        [ class "redeploy-link"
         , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
-        , class "button"
-        , class "-icon"
         , Routes.href <| Routes.PromoteDeployment org repo (String.fromInt deployment.id)
-        , Util.testAttribute "copy-hook"
+        , Util.testAttribute "redeploy-deployment"
         ]
-        [ FeatherIcons.repeat
-            |> FeatherIcons.withSize 18
-            |> FeatherIcons.toHtml []
+        [ text "Redeploy"
         ]
