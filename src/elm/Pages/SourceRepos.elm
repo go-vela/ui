@@ -154,17 +154,17 @@ viewSourceOrg user filters org repos actions =
     viewSourceOrgDetails filters org repos_ filtered content search actions.enableRepos
 
 
-{-| viewSourceOrgSkeleton : renders the source repositories by org as an html details element
+{-| viewSourceOrgSkeleton : renders the source repositories by org as an html details element skeleton
 -}
 viewSourceOrgSkeleton : Bool -> Html msg
 viewSourceOrgSkeleton first =
     details [ class "details", class "-with-border" ]
         [ summary [ class "summary", Util.testAttribute <| "source-org-skeleton", class "details-skeleton" ]
             [ if first then
-                span [] [ text "Loading all available repositories, this may take awhile", span [ class "loading-ellipsis" ] [] ]
+                span [] [ text "Loading all available source control repositories, this may take awhile", span [ class "loading-ellipsis" ] [] ]
 
               else
-                text ""
+                Util.smallLoader
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand -disabled" |> FeatherIcons.toHtml []
             ]
         ]
