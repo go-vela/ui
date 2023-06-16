@@ -979,15 +979,6 @@ details.build-toggle {
   background: var(--color-focus);
 }
 
-.line a {
-  text-decoration: none;
-
-  &:hover,
-  &:focus {
-    text-decoration: underline;
-  }
-}
-
 .logs-table {
   display: block;
   width: 100%;
