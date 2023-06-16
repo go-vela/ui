@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Deployments.View exposing (addDeployment, promoteDeployment, viewDeployments)
+module Pages.Deployments.View exposing (addDeployment, viewDeployments)
 
 import FeatherIcons
 import Html exposing (Html, a, div, h2, span, td, text, tr)
@@ -126,21 +126,6 @@ viewDeployments deploymentsModel org repo =
                 actions
     in
     div [] [ Table.view cfg ]
-
-
-
--- Promote Deployment
-
-
-{-| promoteDeployment : takes partial model and renders deployment form for promoting a deployment
--}
-promoteDeployment : PartialModel a msg -> Html Msg
-promoteDeployment model =
-    div [ class "manage-deployment", Util.testAttribute "add-deployment" ]
-        [ div []
-            [ addForm model.deploymentModel
-            ]
-        ]
 
 
 
