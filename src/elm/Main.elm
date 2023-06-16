@@ -3202,7 +3202,14 @@ setNewPage route model =
            browser's back button
         --}
         ( _, Unauthenticated ) ->
-            ( { model | page = if model.authRedirect then model.page else Pages.Login  }
+            ( { model
+                | page =
+                    if model.authRedirect then
+                        model.page
+
+                    else
+                        Pages.Login
+              }
             , Interop.setRedirect <| Encode.string <| Url.toString model.entryURL
             )
 
