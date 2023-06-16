@@ -34,6 +34,7 @@ import Html.Attributes
         , class
         )
 import Html.Events exposing (onClick)
+import List.Extra
 import RemoteData exposing (WebData)
 import Routes
 import Search
@@ -94,55 +95,43 @@ view model actions =
     let
         ( sourceRepos, filters ) =
             ( model.sourceRepos, model.filters )
-
-        loading =
-            div []
-                [ h1 []
-                    [ text "Loading your Repositories"
-                    , span [ class "loading-ellipsis" ] []
-                    ]
-                , p []
-                    [ text <|
-                        "Hang tight while we grab the list of repositories that you have access to from GitHub. If you have access to a lot of organizations and repositories this might take a little while."
-                    ]
-                ]
     in
-    case sourceRepos of
-        RemoteData.Success repos ->
-            div [ class "source-repos", Util.testAttribute "source-repos" ]
-                [ repoSearchBarGlobal filters actions.search
-                , viewSourceRepos model repos actions
-                ]
-
-        RemoteData.Loading ->
-            loading
-
-        RemoteData.NotAsked ->
-            loading
-
-        RemoteData.Failure _ ->
-            viewResourceError { resourceLabel = "your available repositories", testLabel = "repos" }
+    div [ class "source-repos", Util.testAttribute "source-repos" ]
+        [ repoSearchBarGlobal filters actions.search
+        , viewSourceRepos model sourceRepos actions
+        ]
 
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
-viewSourceRepos : PartialModel -> SourceRepositories -> Msgs msg -> Html msg
+viewSourceRepos : PartialModel -> WebData SourceRepositories -> Msgs msg -> Html msg
 viewSourceRepos model sourceRepos actions =
     let
         filters =
             model.filters
     in
-    if shouldSearch <| searchFilterGlobal filters then
-        -- Search and render repos using the global filter
-        searchReposGlobal model sourceRepos actions.enableRepo actions.toggleFavorite
+    case sourceRepos of
+        RemoteData.Success repos ->
+            if shouldSearch <| searchFilterGlobal filters then
+                -- Search and render repos using the global filter
+                searchReposGlobal model repos actions.enableRepo actions.toggleFavorite
 
-    else
-        -- Render repos normally
-        sourceRepos
-            |> Dict.toList
-            |> Util.filterEmptyLists
-            |> List.map (\( org, repos_ ) -> viewSourceOrg model.user filters org repos_ actions)
-            |> div [ class "repo-list" ]
+            else
+                -- Render repos normally
+                repos
+                    |> Dict.toList
+                    |> Util.filterEmptyLists
+                    |> List.map (\( org, repos_ ) -> viewSourceOrg model.user filters org repos_ actions)
+                    |> div [ class "repo-list" ]
+
+        RemoteData.Loading ->
+            div [ class "repo-list" ] <| List.Extra.initialize 8 (\i -> viewSourceOrgSkeleton (i == 0))
+
+        RemoteData.NotAsked ->
+            div [ class "repo-list" ] <| List.Extra.initialize 8 (\i -> viewSourceOrgSkeleton (i == 0))
+
+        RemoteData.Failure _ ->
+            viewResourceError { resourceLabel = "your available repositories", testLabel = "repos" }
 
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
@@ -163,6 +152,22 @@ viewSourceOrg user filters org repos actions =
                 ( repos, False, List.map (viewSourceRepo user enableRepo toggleFavorite) repos )
     in
     viewSourceOrgDetails filters org repos_ filtered content search actions.enableRepos
+
+
+{-| viewSourceOrgSkeleton : renders the source repositories by org as an html details element
+-}
+viewSourceOrgSkeleton : Bool -> Html msg
+viewSourceOrgSkeleton first =
+    details [ class "details", class "-with-border" ]
+        [ summary [ class "summary", Util.testAttribute <| "source-org-skeleton", class "details-skeleton" ]
+            [ if first then
+                span [] [ text "Loading all available repositories, this may take awhile", span [ class "loading-ellipsis" ] [] ]
+
+              else
+                text ""
+            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand -disabled" |> FeatherIcons.toHtml []
+            ]
+        ]
 
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element
