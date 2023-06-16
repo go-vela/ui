@@ -161,7 +161,7 @@ viewSourceOrgSkeleton first =
     details [ class "details", class "-with-border" ]
         [ summary [ class "summary", Util.testAttribute <| "source-org-skeleton", class "details-skeleton" ]
             [ if first then
-                span [] [ text "Loading all available source control repositories, this may take awhile", span [ class "loading-ellipsis" ] [] ]
+                span [] [ text "Loading all source control repositories you have access to, this may take awhile", span [ class "loading-ellipsis" ] [] ]
 
               else
                 Util.smallLoader
