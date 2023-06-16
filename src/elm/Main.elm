@@ -257,7 +257,7 @@ type alias Flags =
 type alias Model =
     { page : Page
     , session : Session
-    , authRedirect : Bool
+    , fetchingToken : Bool
     , user : WebData CurrentUser
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
@@ -311,7 +311,7 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , session = Unauthenticated
-            , authRedirect = String.length flags.velaRedirect == 0
+            , fetchingToken = String.length flags.velaRedirect == 0
             , user = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
@@ -355,12 +355,11 @@ init flags url navKey =
 
         fetchToken : Cmd Msg
         fetchToken =
-            case String.length model.velaRedirect of
-                0 ->
-                    getToken model
+            if model.fetchingToken then
+                getToken model
 
-                _ ->
-                    Cmd.none
+            else
+                Cmd.none
     in
     ( newModel
     , Cmd.batch
@@ -1329,7 +1328,7 @@ update msg model =
                                 Authenticated _ ->
                                     []
                     in
-                    ( { model | session = Authenticated newSessionDetails, authRedirect = False }
+                    ( { model | session = Authenticated newSessionDetails, fetchingToken = False }
                     , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
                     )
 
@@ -1360,12 +1359,12 @@ update msg model =
                                                     , redirectPage
                                                     ]
                                     in
-                                    ( { model | session = Unauthenticated, authRedirect = False }
+                                    ( { model | session = Unauthenticated, fetchingToken = False }
                                     , Cmd.batch actions
                                     )
 
                                 _ ->
-                                    ( { model | session = Unauthenticated, authRedirect = False }
+                                    ( { model | session = Unauthenticated, fetchingToken = False }
                                     , Cmd.batch
                                         [ addError error
                                         , redirectPage
@@ -1373,7 +1372,7 @@ update msg model =
                                     )
 
                         _ ->
-                            ( { model | session = Unauthenticated, authRedirect = False }
+                            ( { model | session = Unauthenticated, fetchingToken = False }
                             , Cmd.batch
                                 [ addError error
                                 , redirectPage
@@ -3204,7 +3203,7 @@ setNewPage route model =
         ( _, Unauthenticated ) ->
             ( { model
                 | page =
-                    if model.authRedirect then
+                    if model.fetchingToken then
                         model.page
 
                     else
