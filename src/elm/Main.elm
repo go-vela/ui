@@ -3198,9 +3198,10 @@ setNewPage route model =
 
            Note: we're not using .pushUrl to retain ability for user to use
            browser's back button
+           Note: we retain the current page to avoid blipping content when the user refreshes the page
         --}
         ( _, Unauthenticated ) ->
-            ( { model | page = Pages.Login }
+            ( { model | page = model.page }
             , Interop.setRedirect <| Encode.string <| Url.toString model.entryURL
             )
 
