@@ -31,7 +31,6 @@ import Vela
         , SecretType(..)
         , Secrets
         , secretTypeToString
-        , secretsErrorLabel
         )
 
 
@@ -299,13 +298,13 @@ secretsToRowsForSharedSecrets type_ secrets =
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Nothing, "" )
+    [ ( Just "-icon", "" )
     , ( Nothing, "name" )
     , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
-    , ( Nothing, "allow command" )
+    , ( Nothing, "allow commands" )
     ]
 
 
@@ -313,14 +312,14 @@ tableHeaders =
 -}
 tableHeadersForSharedSecrets : Table.Columns
 tableHeadersForSharedSecrets =
-    [ ( Nothing, "" )
+    [ ( Just "-icon", "" )
     , ( Nothing, "name" )
     , ( Nothing, "team" )
     , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
-    , ( Nothing, "allow command" )
+    , ( Nothing, "allow commands" )
     ]
 
 
@@ -340,6 +339,7 @@ renderSecret type_ secret =
             [ attribute "data-label" "name"
             , scope "row"
             , class "break-word"
+            , class "secret-name"
             , Util.testAttribute <| "secrets-row-name"
             ]
             [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
@@ -349,7 +349,8 @@ renderSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ text <| secret.key ]
+            [ listItemView "" secret.key
+            ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
@@ -369,7 +370,7 @@ renderSecret type_ secret =
             , class "break-word"
             ]
           <|
-            renderListCell secret.images "no images" "secret-image"
+            renderListCell secret.images "all images" "secret-image"
         , td
             [ attribute "data-label" "allow command"
             , scope "row"
@@ -411,7 +412,8 @@ renderSharedSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ text <| secret.key ]
+            [ listItemView "" secret.key
+            ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
@@ -431,7 +433,7 @@ renderSharedSecret type_ secret =
             , class "break-word"
             ]
           <|
-            renderListCell secret.images "no images" "secret-image"
+            renderListCell secret.images "all images" "secret-image"
         , td
             [ attribute "data-label" "allow command"
             , scope "row"
@@ -449,22 +451,24 @@ renderListCell items none itemClassName =
         [ text none ]
 
     else
-        let
-            content =
-                items
-                    |> List.sort
-                    |> List.indexedMap
-                        (\i item ->
-                            if i + 1 < List.length items then
-                                Just <| item ++ ", "
+        items
+            |> List.sort
+            |> List.map
+                (\item ->
+                    listItemView itemClassName item
+                )
 
-                            else
-                                Just item
-                        )
-                    |> List.filterMap identity
-                    |> String.concat
-        in
-        [ Html.code [ class itemClassName ] [ span [] [ text content ] ] ]
+
+{-| listItemView : takes classname, text and size constraints and renders a list element
+-}
+listItemView : String -> String -> Html msg
+listItemView className text_ =
+    div [ class className ]
+        [ span
+            [ class "list-item"
+            ]
+            [ text text_ ]
+        ]
 
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
