@@ -257,6 +257,7 @@ type alias Flags =
 type alias Model =
     { page : Page
     , session : Session
+    , authRedirect : Bool
     , user : WebData CurrentUser
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
@@ -310,6 +311,7 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , session = Unauthenticated
+            , authRedirect = String.length flags.velaRedirect == 0
             , user = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
@@ -1327,7 +1329,7 @@ update msg model =
                                 Authenticated _ ->
                                     []
                     in
-                    ( { model | session = Authenticated newSessionDetails }
+                    ( { model | session = Authenticated newSessionDetails, authRedirect = False }
                     , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
                     )
 
@@ -1358,12 +1360,12 @@ update msg model =
                                                     , redirectPage
                                                     ]
                                     in
-                                    ( { model | session = Unauthenticated }
+                                    ( { model | session = Unauthenticated, authRedirect = False }
                                     , Cmd.batch actions
                                     )
 
                                 _ ->
-                                    ( { model | session = Unauthenticated }
+                                    ( { model | session = Unauthenticated, authRedirect = False }
                                     , Cmd.batch
                                         [ addError error
                                         , redirectPage
@@ -1371,7 +1373,7 @@ update msg model =
                                     )
 
                         _ ->
-                            ( { model | session = Unauthenticated }
+                            ( { model | session = Unauthenticated, authRedirect = False }
                             , Cmd.batch
                                 [ addError error
                                 , redirectPage
@@ -3198,10 +3200,9 @@ setNewPage route model =
 
            Note: we're not using .pushUrl to retain ability for user to use
            browser's back button
-           Note: we retain the current page to avoid blipping content when the user refreshes the page
         --}
         ( _, Unauthenticated ) ->
-            ( { model | page = model.page }
+            ( { model | page = if model.authRedirect then model.page else Pages.Login  }
             , Interop.setRedirect <| Encode.string <| Url.toString model.entryURL
             )
 
