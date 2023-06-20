@@ -48,7 +48,6 @@ import Vela
         , Schedule
         , Schedules
         , SchedulesModel
-        , SecretType(..)
         )
 
 

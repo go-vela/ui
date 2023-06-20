@@ -6,8 +6,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 module Pages.Schedules.Update exposing
     ( init
-    , onChangeEnable
-    , onChangeStringField
     , reinitializeScheduleAdd
     , reinitializeScheduleUpdate
     , update
