@@ -71,6 +71,7 @@ viewNameInput val disable =
             []
         ]
 
+
 {-| viewValueInput : renders value input box
 -}
 viewValueInput : String -> String -> Html Msg
