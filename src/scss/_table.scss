@@ -52,14 +52,16 @@
   text-overflow: ellipsis;
 }
 
+.table-base td.name,
+.table-base td.ref,
+.table-base td.description {
+  max-width: 15rem;
+}
+
 .table-base td {
   padding: 0.625em;
 
   vertical-align: top;
-}
-
-.table-base td.secret-name {
-  max-width: 15rem;
 }
 
 .table-base td .list-item {
@@ -170,12 +172,27 @@
   }
 
   .table-base td {
-    display: block;
+    display: flex;
+    justify-content: space-between;
 
     font-size: 0.8em;
     text-align: right;
 
     border-bottom: 1px solid var(--color-bg-light);
+  }
+
+  .table-base td.name,
+  .table-base td.ref,
+  .table-base td.description {
+    max-width: initial;
+  }
+
+  .table-base td a {
+    max-width: 8rem;
+  }
+
+  .table-base td .list-item {
+    font-size: 0.9rem;
   }
 
   .table-base td::before {
