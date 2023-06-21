@@ -69,6 +69,7 @@
     "url": "git+https://github.com/go-vela/ui.git"
   },
   "browserslist": [
+    "last 3 versions",
     ">0.2%",
     "not dead",
     "not ie <= 11",
