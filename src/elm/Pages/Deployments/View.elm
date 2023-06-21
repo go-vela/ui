@@ -185,7 +185,7 @@ renderDeployment repo_ deployment =
             ]
             [ hookSuccess ]
         , td
-            [ attribute "data-label" ""
+            [ attribute "data-label" "id"
             , scope "row"
             , class "break-word"
             , Util.testAttribute <| "deployments-row-id"
