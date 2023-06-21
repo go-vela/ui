@@ -7,7 +7,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.Schedules.Form exposing
     ( viewEnabledCheckbox
     , viewHelp
-    , viewInput
     , viewNameInput
     , viewSubmitButtons
     , viewValueInput
@@ -68,23 +67,6 @@ viewNameInput val disable =
             , class "schedule-name"
             , placeholder "Schedule Name"
             , id "schedule-name"
-            ]
-            []
-        ]
-
-
-{-| viewInput : renders value input box
--}
-viewInput : String -> String -> String -> Html Msg
-viewInput name val placeholder_ =
-    section [ class "form-control", class "-stack" ]
-        [ label [ class "form-label", for <| name ] [ strong [] [ text name ] ]
-        , input
-            [ value val
-            , onInput <| OnChangeStringField name
-            , class "schedule-name"
-            , placeholder placeholder_
-            , id name
             ]
             []
         ]
