@@ -137,6 +137,9 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
         Pages.RepositoryDeployments org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
+        Pages.Schedules org repo _ _ ->
+            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+
         Pages.RepoSettings org repo ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
@@ -164,7 +167,58 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
         Pages.Hooks org repo _ _ ->
             starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
 
-        _ ->
+        Pages.OrgSecrets _ _ _ _ ->
+            text ""
+
+        Pages.SharedSecrets _ _ _ _ _ ->
+            text ""
+
+        Pages.AddOrgSecret _ _ ->
+            text ""
+
+        Pages.AddRepoSecret _ _ _ ->
+            text ""
+
+        Pages.AddDeployment _ _ ->
+            text ""
+
+        Pages.PromoteDeployment _ _ _ ->
+            text ""
+
+        Pages.AddSharedSecret _ _ _ ->
+            text ""
+
+        Pages.OrgSecret _ _ _ ->
+            text ""
+
+        Pages.RepoSecret _ _ _ _ ->
+            text ""
+
+        Pages.SharedSecret _ _ _ _ ->
+            text ""
+
+        Pages.RepositoryBuildsPulls _ _ _ _ ->
+            text ""
+
+        Pages.RepositoryBuildsTags _ _ _ _ ->
+            text ""
+
+        Pages.OrgBuilds _ _ _ _ ->
+            text ""
+
+        Pages.AddSchedule _ _ ->
+            text ""
+
+        Pages.Schedule _ _ _ ->
+            text ""
+
+        Pages.Settings ->
+            text ""
+
+        Pages.Login ->
+            text ""
+
+        Pages.NotFound ->
             text ""
 
 
