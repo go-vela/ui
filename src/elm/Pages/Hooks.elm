@@ -174,7 +174,7 @@ renderHook now org repo redeliverHook hook =
             ]
             [ text hook.branch ]
         , td
-            [ attribute "data-label" "redeliver"
+            [ attribute "data-label" ""
             , scope "row"
             , class "break-word"
             ]
