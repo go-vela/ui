@@ -329,7 +329,7 @@ renderSecret : SecretType -> Secret -> Html Msg
 renderSecret type_ secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td
-            [ attribute "data-label" ""
+            [ attribute "data-label" "copy yaml"
             , scope "row"
             , class "break-word"
             , Util.testAttribute <| "secrets-row-copy"
@@ -339,7 +339,7 @@ renderSecret type_ secret =
             [ attribute "data-label" "name"
             , scope "row"
             , class "break-word"
-            , class "secret-name"
+            , class "name"
             , Util.testAttribute <| "secrets-row-name"
             ]
             [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
@@ -362,15 +362,13 @@ renderSecret type_ secret =
             , scope "row"
             , class "break-word"
             ]
-          <|
-            renderListCell secret.events "no events" "secret-event"
+            [ renderListCell secret.events "no events" "secret-event" ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
             , class "break-word"
             ]
-          <|
-            renderListCell secret.images "all images" "secret-image"
+            [ renderListCell secret.images "all images" "secret-image" ]
         , td
             [ attribute "data-label" "allow command"
             , scope "row"
@@ -386,7 +384,7 @@ renderSharedSecret : SecretType -> Secret -> Html Msg
 renderSharedSecret type_ secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td
-            [ attribute "data-label" ""
+            [ attribute "data-label" "copy yaml"
             , scope "row"
             , class "break-word"
             , Util.testAttribute <| "secrets-row-copy"
@@ -425,15 +423,13 @@ renderSharedSecret type_ secret =
             , scope "row"
             , class "break-word"
             ]
-          <|
-            renderListCell secret.events "no events" "secret-event"
+            [ renderListCell secret.events "no events" "secret-event" ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
             , class "break-word"
             ]
-          <|
-            renderListCell secret.images "all images" "secret-image"
+            [ renderListCell secret.images "all images" "secret-image" ]
         , td
             [ attribute "data-label" "allow command"
             , scope "row"
@@ -445,18 +441,19 @@ renderSharedSecret type_ secret =
 
 {-| renderListCell : takes list of items, text for none and className and renders a table cell
 -}
-renderListCell : List String -> String -> String -> List (Html msg)
+renderListCell : List String -> String -> String -> Html msg
 renderListCell items none itemClassName =
-    if List.length items == 0 then
-        [ text none ]
+    div [] <|
+        if List.length items == 0 then
+            [ text none ]
 
-    else
-        items
-            |> List.sort
-            |> List.map
-                (\item ->
-                    listItemView itemClassName item
-                )
+        else
+            items
+                |> List.sort
+                |> List.map
+                    (\item ->
+                        listItemView itemClassName item
+                    )
 
 
 {-| listItemView : takes classname, text and size constraints and renders a list element

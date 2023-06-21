@@ -178,7 +178,7 @@ renderDeployment : Repository -> Deployment -> Html msg
 renderDeployment repo_ deployment =
     tr [ Util.testAttribute <| "deployments-row" ]
         [ td
-            [ attribute "data-label" "deployment-icon"
+            [ attribute "data-label" ""
             , scope "row"
             , class "break-word"
             , class "-icon"
@@ -229,7 +229,7 @@ renderDeployment repo_ deployment =
             ]
             [ text deployment.user ]
         , td
-            [ attribute "data-label" "redeploy"
+            [ attribute "data-label" ""
             , scope "row"
             , class "break-word"
             ]
