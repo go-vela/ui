@@ -595,20 +595,13 @@ viewBuildServices model msgs org repo buildNumber =
 viewService : PartialModel a -> Msgs msg -> RepoModel -> Service -> Html msg
 viewService model msgs rm service =
     div
-        [ serviceClasses
+        [ class "service"
         , Util.testAttribute "service"
         ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStatusIcon service.status ] ]
         , viewServiceDetails model msgs rm service
         ]
-
-
-{-| serviceClasses : returns css classes for a particular service
--}
-serviceClasses : Html.Attribute msg
-serviceClasses =
-    classList [ ( "service", True ) ]
 
 
 {-| viewServiceDetails : renders build services detailed information
@@ -875,13 +868,12 @@ viewLogLinks chunk =
         splitIntersperseConcat : String -> List String -> List String
         splitIntersperseConcat sep list =
             list
-                |> List.map
+                |> List.concatMap
                     (\x ->
                         x
                             |> String.split sep
                             |> List.intersperse sep
                     )
-                |> List.concat
 
         -- split the "line" by escape characters
         split =
