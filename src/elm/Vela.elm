@@ -1788,11 +1788,11 @@ decodeSchedules =
 
 
 encodeUpdateSchedule : UpdateSchedulePayload -> Encode.Value
-encodeUpdateSchedule secret =
+encodeUpdateSchedule schedule =
     Encode.object
-        [ ( "name", encodeOptional Encode.string secret.name )
-        , ( "entry", encodeOptional Encode.string secret.entry )
-        , ( "enabled", encodeOptional Encode.bool secret.enabled )
+        [ ( "name", encodeOptional Encode.string schedule.name )
+        , ( "entry", encodeOptional Encode.string schedule.entry )
+        , ( "active", encodeOptional Encode.bool schedule.enabled )
         ]
 
 
