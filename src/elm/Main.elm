@@ -952,7 +952,7 @@ update msg model =
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
 
         FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+            ( { model | sourceRepos = Loading }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
 
         ToggleFavorite org repo ->
             let

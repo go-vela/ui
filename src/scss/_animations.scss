@@ -88,13 +88,10 @@
 }
 @keyframes shimmer {
   0% {
-    // width: 100%;
-
     opacity: 1;
   }
 
   100% {
-    // width: 50%;
     transform: translateX(100%);
     opacity: 0;
   }
