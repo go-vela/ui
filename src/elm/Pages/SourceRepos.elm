@@ -7,7 +7,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.SourceRepos exposing (Msgs, PartialModel, view)
 
 import Dict
-import Errors exposing (viewResourceError)
 import Favorites
     exposing
         ( ToggleFavorite
@@ -22,8 +21,6 @@ import Html
         , button
         , details
         , div
-        , h1
-        , p
         , span
         , summary
         , text
@@ -96,7 +93,7 @@ view model actions =
         ( sourceRepos, filters ) =
             ( model.sourceRepos, model.filters )
     in
-    div [ class "source-repos", Util.testAttribute "source-repos" ]
+    div [ Util.testAttribute "source-repos" ]
         [ repoSearchBarGlobal filters actions.search
         , viewSourceRepos model sourceRepos actions
         ]
@@ -122,16 +119,73 @@ viewSourceRepos model sourceRepos actions =
                     |> Dict.toList
                     |> Util.filterEmptyLists
                     |> List.map (\( org, repos_ ) -> viewSourceOrg model.user filters org repos_ actions)
-                    |> div [ class "repo-list" ]
+                    |> span []
 
         RemoteData.Loading ->
-            div [ class "repo-list" ] <| List.Extra.initialize 8 (\i -> viewSourceOrgSkeleton (i == 0))
+            span [] viewLoadingSourceOrgs
 
         RemoteData.NotAsked ->
-            div [ class "repo-list" ] <| List.Extra.initialize 8 (\i -> viewSourceOrgSkeleton (i == 0))
+            span [] viewLoadingSourceOrgs
 
         RemoteData.Failure _ ->
-            viewResourceError { resourceLabel = "your available repositories", testLabel = "repos" }
+            viewErrorSourceOrg
+
+
+{-| viewLoadingSourceOrgs : renders 8 source org loading skeletons
+-}
+viewLoadingSourceOrgs : List (Html msg)
+viewLoadingSourceOrgs =
+    List.Extra.initialize 8
+        viewLoadingSourceOrg
+
+
+{-| viewLoadingSourceOrg : renders a loading indicator in the form of a source org skeleton
+-}
+viewLoadingSourceOrg : Int -> Html msg
+viewLoadingSourceOrg idx =
+    let
+        icon =
+            FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml []
+
+        content =
+            if idx == 0 then
+                span []
+                    [ text "Loading all source control repositories you have access to, this may take awhile"
+                    , span [ class "loading-ellipsis" ] []
+                    ]
+
+            else
+                text ""
+
+        animation =
+            div [ class "loading-shimmer" ] []
+    in
+    div [ class "loading-skeleton" ]
+        [ animation
+        , div []
+            [ icon
+            , content
+            ]
+        ]
+
+
+{-| viewErrorSourceOrg : renders an error in the form of a source org when unable to fetch source repositories
+-}
+viewErrorSourceOrg : Html msg
+viewErrorSourceOrg =
+    let
+        icon =
+            FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml []
+
+        content =
+            text "There was an error fetching your available repositories, please refresh or try again later!"
+    in
+    div [ class "loading-skeleton" ]
+        [ div []
+            [ icon
+            , content
+            ]
+        ]
 
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
@@ -152,22 +206,6 @@ viewSourceOrg user filters org repos actions =
                 ( repos, False, List.map (viewSourceRepo user enableRepo toggleFavorite) repos )
     in
     viewSourceOrgDetails filters org repos_ filtered content search actions.enableRepos
-
-
-{-| viewSourceOrgSkeleton : renders the source repositories by org as an html details element skeleton
--}
-viewSourceOrgSkeleton : Bool -> Html msg
-viewSourceOrgSkeleton first =
-    details [ class "details", class "-with-border" ]
-        [ summary [ class "summary", Util.testAttribute <| "source-org-skeleton", class "details-skeleton" ]
-            [ if first then
-                span [] [ text "Loading all source control repositories you have access to, this may take awhile", span [ class "loading-ellipsis" ] [] ]
-
-              else
-                Util.smallLoader
-            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand -disabled" |> FeatherIcons.toHtml []
-            ]
-        ]
 
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element

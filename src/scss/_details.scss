@@ -47,14 +47,6 @@
     }
   }
 
-  .details-skeleton {
-    svg {
-      color: var(--color-bg-light);
-    }
-
-    pointer-events: none;
-  }
-
   .details-icon-expand {
     position: absolute;
     top: 0.2em;

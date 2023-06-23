@@ -32,6 +32,7 @@ import Html.Attributes
 import Html.Events exposing (onInput)
 import Util
 import Vela exposing (Org, RepoSearchFilters, SearchFilter)
+import Html.Attributes exposing (disabled)
 
 
 {-| Search : takes org and repo and searches/filters based on user input
@@ -63,8 +64,8 @@ homeSearchBar filter search =
 
 {-| repoSearchBarGlobal : renders a input bar for searching across all repos
 -}
-repoSearchBarGlobal : RepoSearchFilters -> Search msg -> Html msg
-repoSearchBarGlobal searchFilters search =
+repoSearchBarGlobal : RepoSearchFilters -> Search msg  -> Html msg
+repoSearchBarGlobal searchFilters search   =
     div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "global-search-bar" ]
         [ input
             [ Util.testAttribute "global-search-input"
