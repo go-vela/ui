@@ -257,6 +257,7 @@ type alias Flags =
 type alias Model =
     { page : Page
     , session : Session
+    , fetchingToken : Bool
     , user : WebData CurrentUser
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
@@ -310,6 +311,7 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , session = Unauthenticated
+            , fetchingToken = String.length flags.velaRedirect == 0
             , user = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
@@ -353,12 +355,11 @@ init flags url navKey =
 
         fetchToken : Cmd Msg
         fetchToken =
-            case String.length model.velaRedirect of
-                0 ->
-                    getToken model
+            if model.fetchingToken then
+                getToken model
 
-                _ ->
-                    Cmd.none
+            else
+                Cmd.none
     in
     ( newModel
     , Cmd.batch
@@ -1327,7 +1328,7 @@ update msg model =
                                 Authenticated _ ->
                                     []
                     in
-                    ( { model | session = Authenticated newSessionDetails }
+                    ( { model | session = Authenticated newSessionDetails, fetchingToken = False }
                     , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
                     )
 
@@ -1358,12 +1359,12 @@ update msg model =
                                                     , redirectPage
                                                     ]
                                     in
-                                    ( { model | session = Unauthenticated }
+                                    ( { model | session = Unauthenticated, fetchingToken = False }
                                     , Cmd.batch actions
                                     )
 
                                 _ ->
-                                    ( { model | session = Unauthenticated }
+                                    ( { model | session = Unauthenticated, fetchingToken = False }
                                     , Cmd.batch
                                         [ addError error
                                         , redirectPage
@@ -1371,7 +1372,7 @@ update msg model =
                                     )
 
                         _ ->
-                            ( { model | session = Unauthenticated }
+                            ( { model | session = Unauthenticated, fetchingToken = False }
                             , Cmd.batch
                                 [ addError error
                                 , redirectPage
@@ -2708,7 +2709,7 @@ viewContent model =
         Pages.RepositoryDeployments org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
             , div []
-                [ lazy3 Pages.Deployments.View.viewDeployments model.repo.deployments org repo
+                [ lazy3 Pages.Deployments.View.viewDeployments model.repo org repo
                 , Pager.view model.repo.deployments.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3200,7 +3201,14 @@ setNewPage route model =
            browser's back button
         --}
         ( _, Unauthenticated ) ->
-            ( { model | page = Pages.Login }
+            ( { model
+                | page =
+                    if model.fetchingToken then
+                        model.page
+
+                    else
+                        Pages.Login
+              }
             , Interop.setRedirect <| Encode.string <| Url.toString model.entryURL
             )
 

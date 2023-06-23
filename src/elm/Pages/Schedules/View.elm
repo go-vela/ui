@@ -48,7 +48,6 @@ import Vela
         , Schedule
         , Schedules
         , SchedulesModel
-        , SecretType(..)
         )
 
 
@@ -141,6 +140,7 @@ renderSchedule org repo schedule =
             [ attribute "data-label" "name"
             , scope "row"
             , class "break-word"
+            , class "name"
             , Util.testAttribute <| "schedules-row-name"
             ]
             [ a [ updateScheduleHref org repo schedule ] [ text schedule.name ] ]
