@@ -872,6 +872,39 @@ type alias Repository =
     , pipeline_type : String
     }
 
+type alias Worker =
+    { id : Int
+	, host_name : String
+    , address : String
+    , routes : String
+    , active : Bool
+    , status : String
+    , last_status_update : Int
+    , running_build_ids : String
+    , last_build_started : Int
+    , last_build_finished : Int
+    , last_checked_in : Int
+    , build_limit : Int
+    }
+
+decodeWorkers : Decoder (List Worker)
+decodeWorkers =
+    Decode.list decodeWorker
+
+decodeWorker : Decoder Worker
+decodeWorker =
+    Decode.succeed Worker
+        |> optional "id" int -1
+        |> required "hostname" string
+        |> required "address" string
+        |> optional "routes" string ""
+        |> optional "active" bool False
+        |> optional "status" bool False
+        |> optional "last_status_update_at" int -1
+        |> optional "running_build_ids" int -1
+        |> optional "last_build_started_at" int -1
+        |> optional "last_build_finished_at" int -1
+        |> optional "build_limit" int -1
 
 type alias Enabled =
     WebData Bool

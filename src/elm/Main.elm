@@ -3004,6 +3004,8 @@ viewHeader session { feedbackLink, docsLink, theme, help, showId } =
                             [ li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
                             , li [ class "identity-menu-item" ]
+                                [ a [ Routes.href Routes.Admin, Util.testAttribute "admin-link", attribute "role" "menuitem" ] [ text "Admin Page" ] ]
+                            , li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
                         ]

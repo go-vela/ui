@@ -50,6 +50,7 @@ type Route
     | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Schedule Org Repo ScheduleName
     | Settings
+    | Admin
     | Login
     | Logout
     | Authenticate AuthParams
@@ -69,6 +70,7 @@ routes =
         , map Login (s "account" </> s "login")
         , map Logout (s "account" </> s "logout")
         , map Settings (s "account" </> s "settings")
+        , map Admin ("admin")
         , parseAuth
         , map Hooks (string </> string </> s "hooks" <?> Query.int "page" <?> Query.int "per_page")
         , map OrgSecrets (s "-" </> s "secrets" </> string </> s "org" </> string <?> Query.int "page" <?> Query.int "per_page")
@@ -215,6 +217,9 @@ routeToUrl route =
 
         Logout ->
             "/account/logout"
+
+        Admin ->
+            "/admin"
 
         NotFound ->
             "/404"

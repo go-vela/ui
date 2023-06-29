@@ -66,6 +66,7 @@ type Endpoint
     | PipelineConfig Org Repo Ref
     | ExpandPipelineConfig Org Repo Ref
     | PipelineTemplates Org Repo Ref
+    | Workers
 
 
 {-| toUrl : turns and Endpoint into a URL string
@@ -170,6 +171,8 @@ toUrl api endpoint =
         Deployments maybePage maybePerPage org repo ->
             url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
+        Workers 
+            url api [ "workers" ] []
 
 {-| url : creates a URL string with the given path segments and query parameters
 -}
