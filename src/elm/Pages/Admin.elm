@@ -4,17 +4,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-module Pages.Hooks exposing (view)
+module Pages.Admin exposing (view)
 
-import Ansi.Log
-import Array
 import Html
     exposing
         ( Html
-        , a
-        , code
         , div
-        , small
         , span
         , td
         , text
@@ -24,39 +19,28 @@ import Html.Attributes
     exposing
         ( attribute
         , class
-        , href
         , scope
         )
 import Http
-import Pages.Build.Logs exposing (decodeAnsi)
 import RemoteData
-import SvgBuilder exposing (hookStatusToIcon)
 import Table
 import Time exposing (Posix)
 import Util
 import Vela
     exposing
-        ( Hook
-        , HookNumber
-        , Hooks
-        , HooksModel
-        , Org
-        , Repo
+        ( Worker
+        , WorkerModel
+        , Workers
         )
+import Html exposing (code)
 
 
 {-| PartialModel : type alias for passing in the main model with partial fields
 -}
 type alias PartialModel =
-    { hooks : HooksModel
+    { workers : WorkerModel
     , time : Posix
-    , org : Org
-    , repo : Repo
     }
-
-
-type alias RedeliverHook msg =
-    Org -> Repo -> HookNumber -> msg
 
 
 
@@ -65,30 +49,30 @@ type alias RedeliverHook msg =
 
 {-| view : renders hooks
 -}
-view : PartialModel -> RedeliverHook msg -> Html msg
-view { hooks, time, org, repo } redeliverHook =
+view : PartialModel -> Html msg
+view { workers, time } =
     let
         ( noRowsView, rows ) =
-            case hooks.hooks of
-                RemoteData.Success hooks_ ->
-                    ( text "No hooks found for this repo"
-                    , hooksToRows time hooks_ org repo redeliverHook
+            case workers.workers of
+                RemoteData.Success workers_ ->
+                    ( text "No workers found"
+                    , workersToRows time workers_
                     )
 
                 RemoteData.Failure error ->
-                    ( span [ Util.testAttribute "hooks-error" ]
+                    ( span [ Util.testAttribute "workers-error" ]
                         [ text <|
                             case error of
                                 Http.BadStatus statusCode ->
                                     case statusCode of
                                         401 ->
-                                            "No hooks found for this repo, most likely due to not having sufficient permissions to the source control repo"
+                                            "No workers found, most likely due to not having sufficient permissions to view workers"
 
                                         _ ->
-                                            "No hooks found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+                                            "No workers found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
-                                    "No hooks found for this repo, there was an error with the server"
+                                    "No workers found, there was an error with the server"
                         ]
                     , []
                     )
@@ -98,8 +82,8 @@ view { hooks, time, org, repo } redeliverHook =
 
         cfg =
             Table.Config
-                "Hooks"
-                "hooks"
+                "Workers"
+                "workers"
                 noRowsView
                 tableHeaders
                 rows
@@ -108,12 +92,12 @@ view { hooks, time, org, repo } redeliverHook =
     div [] [ Table.view cfg ]
 
 
-{-| hooksToRows : takes list of hooks and produces list of Table rows
+{-| workersToRows : takes list of workers and produces list of Table rows
 -}
-hooksToRows : Posix -> Hooks -> Org -> Repo -> RedeliverHook msg -> Table.Rows Hook msg
-hooksToRows now hooks org repo redeliverHook =
-    hooks
-        |> List.map (\hook -> [ Just <| Table.Row hook (renderHook now org repo redeliverHook), hookErrorRow hook ])
+workersToRows : Posix -> Workers -> Table.Rows Worker msg
+workersToRows now workers =
+    workers
+        |> List.map (\worker -> [ Just <| Table.Row worker (renderWorker now), workerErrorRow worker ])
         |> List.concat
         |> List.filterMap identity
 
@@ -122,95 +106,134 @@ hooksToRows now hooks org repo redeliverHook =
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Just "-icon", "" )
-    , ( Nothing, "source" )
-    , ( Nothing, "created" )
-    , ( Nothing, "host" )
-    , ( Nothing, "event" )
-    , ( Nothing, "branch" )
+    [ ( Nothing, "hostname")
+    , ( Nothing, "address" )
+    , ( Nothing, "routes" )
+    , ( Nothing, "active" )
+    , ( Nothing, "status" )
+    , ( Nothing, "last status update" )
+    , ( Nothing, "running build ids" )
+    , ( Nothing, "last build start" )
+    , ( Nothing, "last build finish" )
+    , ( Nothing, "last check in" )
+    , ( Nothing, "build limit" )
     ]
 
 
 {-| renderHook : takes hook and renders a table row
 -}
-renderHook : Posix -> Org -> Repo -> RedeliverHook msg -> Hook -> Html msg
-renderHook now org repo redeliverHook hook =
-    tr [ Util.testAttribute <| "hooks-row", hookStatusToRowClass hook.status ]
+renderWorker : Posix -> Worker -> Html msg
+renderWorker now worker =
+    tr [ Util.testAttribute <| "worker-row", workerStatusToRowClass worker.status ]
         [ td
-            [ attribute "data-label" "status"
+            [ attribute "data-label" "hostname"
             , scope "row"
             , class "break-word"
-            , class "-icon"
             ]
-            [ hookStatusToIcon hook.status ]
+            [ text worker.host_name ]
         , td
-            [ attribute "data-label" "source-id"
+            [ attribute "data-label" "address"
             , scope "row"
             , class "no-wrap"
             ]
-            [ small [] [ code [ class "source-id", class "break-word" ] [ text hook.source_id ] ] ]
+            [ text worker.address ]
         , td
-            [ attribute "data-label" "created"
+            [ attribute "data-label" "routes"
             , scope "row"
             , class "break-word"
             ]
-            [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
+            [ renderListCell worker.routes "no routes" "routes" ]
         , td
-            [ attribute "data-label" "host"
+            [ attribute "data-label" "active"
             , scope "row"
             , class "break-word"
             ]
-            [ text hook.host ]
+            [ text <| Util.boolToYesNo worker.active ]
         , td
-            [ attribute "data-label" "event"
+            [ attribute "data-label" "status"
             , scope "row"
             , class "break-word"
             ]
-            [ text hook.event ]
+            [ text worker.status ]
         , td
-            [ attribute "data-label" "branch"
+            [ attribute "data-label" "last_status_update"
             , scope "row"
             , class "break-word"
             ]
-            [ text hook.branch ]
+            [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis worker.last_status_update) ]
         , td
-            [ attribute "data-label" ""
+            [ attribute "data-label" "running_build_ids"
             , scope "row"
             , class "break-word"
             ]
-            [ a
-                [ href "#"
-                , class "break-word"
-                , Util.onClickPreventDefault <| redeliverHook org repo <| String.fromInt hook.number
-                , Util.testAttribute <| "redeliver-hook-" ++ String.fromInt hook.number
-                ]
-                [ text "Redeliver Hook"
-                ]
+            [ renderListCell worker.running_build_ids "no running builds" "running-builds"]
+        , td
+            [ attribute "data-label" "last_build_started"
+            , scope "row"
+            , class "break-word"
             ]
+            [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis worker.last_build_started) ]
+        , td
+            [ attribute "data-label" "last_build_finished"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis worker.last_build_finished) ]
+        , td
+            [ attribute "data-label" "last_checked_in"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis worker.last_checked_in) ]
+        , td
+            [ attribute "data-label" "build_limit"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| String.fromInt worker.build_limit ]
         ]
 
+renderListCell : List String -> String -> String -> Html msg
+renderListCell items none itemClassName =
+    div [] <|
+        if List.length items == 0 then
+            [ text none ]
 
-hookErrorRow : Hook -> Maybe (Table.Row Hook msg)
-hookErrorRow hook =
-    if not <| String.isEmpty hook.error then
-        Just <| Table.Row hook renderHookError
+        else
+            items
+                |> List.sort
+                |> List.map
+                    (\item ->
+                        listItemView itemClassName item
+                    )
+
+
+{-| listItemView : takes classname, text and size constraints and renders a list element
+-}
+listItemView : String -> String -> Html msg
+listItemView className text_ =
+    div [ class className ]
+        [ span
+            [ class "list-item"
+            ]
+            [ text text_ ]
+        ]
+
+workerErrorRow : Worker -> Maybe (Table.Row Worker msg)
+workerErrorRow worker =
+    if not worker.active then
+        Just <| Table.Row worker renderWorkerError
 
     else
         Nothing
 
 
-renderHookError : Hook -> Html msg
-renderHookError hook =
+renderWorkerError : Worker -> Html msg
+renderWorkerError worker =
     let
         lines =
-            decodeAnsi hook.error
-                |> Array.map
-                    (\line ->
-                        Just <|
-                            Ansi.Log.viewLine line
-                    )
-                |> Array.toList
-                |> List.filterMap identity
+            [ text worker.host_name
+            ]
     in
     tr [ class "error-data", Util.testAttribute "hooks-error" ]
         [ td [ attribute "colspan" "6" ]
@@ -220,10 +243,10 @@ renderHookError hook =
         ]
 
 
-{-| hookStatusToRowClass : takes hook status string and returns style class
+{-| workerStatusToRowClass : takes worker status string and returns style class
 -}
-hookStatusToRowClass : String -> Html.Attribute msg
-hookStatusToRowClass status =
+workerStatusToRowClass : String -> Html.Attribute msg
+workerStatusToRowClass status =
     case status of
         "success" ->
             class "-success"

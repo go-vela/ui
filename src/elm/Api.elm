@@ -115,8 +115,8 @@ import Vela
         , decodeService
         , decodeSourceRepositories
         , decodeStep
-        , decodeWorkers
         , decodeWorker
+        , decodeWorkers
         )
 
 
@@ -757,9 +757,10 @@ deleteSchedule model org repo id =
     delete model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) Json.Decode.string
         |> withAuth model.session
 
+
 {-| getWorkers : fetches workers for admin page
 -}
 getWorkers : PartialModel a -> Request (List Worker)
 getWorkers model =
-    get model.velaAPI (Endpoint.Workers) decodeWorkers
+    get model.velaAPI Endpoint.Workers decodeWorkers
         |> withAuth model.session

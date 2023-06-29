@@ -218,6 +218,9 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
         Pages.Login ->
             text ""
 
+        Pages.Admin ->
+            text ""
+
         Pages.NotFound ->
             text ""
 
@@ -317,6 +320,9 @@ viewUtil model =
                 text ""
 
             Pages.Login ->
+                text ""
+
+            Pages.Admin ->
                 text ""
 
             Pages.NotFound ->

@@ -76,6 +76,7 @@ import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page)
+import Pages.Admin
 import Pages.Build.Logs
     exposing
         ( addLog
@@ -174,6 +175,8 @@ import Vela
         , Type
         , UpdateRepositoryPayload
         , UpdateUserPayload
+        , WorkerModel
+        , Worker
         , buildUpdateFavoritesPayload
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
@@ -184,6 +187,7 @@ import Vela
         , defaultPipeline
         , defaultPipelineTemplates
         , defaultRepoModel
+        , defaultWorkerModel
         , encodeEnableRepository
         , encodeTheme
         , encodeUpdateRepository
@@ -286,6 +290,7 @@ type alias Model =
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int
+    , workers : WorkerModel
     }
 
 
@@ -340,6 +345,7 @@ init flags url navKey =
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
+            , workers = defaultWorkerModel
             }
 
         ( newModel, newPage ) =
@@ -431,6 +437,7 @@ type Msg
     | ExpandPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
       -- Inbound HTTP responses
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | WorkersResponse (Result (Http.Detailed.Error String) (Http.Metadata, List Worker))
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
@@ -499,6 +506,9 @@ update msg model =
     let
         rm =
             model.repo
+
+        wm =
+            model.workers
 
         pipeline =
             model.pipeline
@@ -1420,6 +1430,14 @@ update msg model =
 
                 Err error ->
                     ( { model | repo = updateRepo (toFailure error) rm }, addError error )
+
+        WorkersResponse response ->
+            case response of
+                Ok ( _, workerResponse ) ->
+                    ( { model | workers = {wm | workers = RemoteData.succeed workerResponse} }, Cmd.none)
+
+                Err error ->
+                    ( model, addError error)
 
         OrgRepositoriesResponse response ->
             case response of
@@ -2889,6 +2907,16 @@ viewContent model =
             , Pages.Settings.view model.session model.time (Pages.Settings.Msgs Copy)
             )
 
+        Pages.Admin ->
+            ( "Admin"
+            , div []
+                [ Pages.Admin.view
+                    { workers = model.workers
+                    , time = model.time
+                    }
+                ]
+            )
+
         Pages.Login ->
             ( "Login"
             , viewLogin
@@ -3189,6 +3217,9 @@ setNewPage route model =
 
         ( Routes.Settings, Authenticated _ ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
+
+        ( Routes.Admin, Authenticated _ ) ->
+            ( { model | page = Pages.Admin, showIdentity = False }, getWorkers model)
 
         ( Routes.Logout, Authenticated _ ) ->
             ( model, getLogout model )
@@ -4563,6 +4594,10 @@ getToken model =
 getLogout : Model -> Cmd Msg
 getLogout model =
     Api.try LogoutResponse <| Api.getLogout model
+
+getWorkers : Model -> Cmd Msg
+getWorkers model =
+    Api.try WorkersResponse <| Api.getWorkers model
 
 
 getCurrentUser : Model -> Cmd Msg

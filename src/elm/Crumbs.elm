@@ -398,6 +398,9 @@ toPath page =
                     in
                     [ overviewCrumbLink, settingsCrumbStatic ]
 
+                Pages.Admin ->
+                    []
+
                 Pages.NotFound ->
                     let
                         notFoundCrumbStatic =
