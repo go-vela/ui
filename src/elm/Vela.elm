@@ -366,6 +366,20 @@ type alias AuthParams =
     }
 
 
+{-| WorkerModel : model to contain worker information that is crucial for rendering admin page
+-}
+type alias WorkerModel =
+    { org : Org
+    , name : Repo
+    , repo : WebData Repository
+    , orgRepos : OrgReposModel
+    , hooks : HooksModel
+    , builds : BuildsModel
+    , schedules : SchedulesModel
+    , deployments : DeploymentsModel
+    , build : BuildModel
+    , initialized : Bool
+    }
 
 -- REPOSITORY
 

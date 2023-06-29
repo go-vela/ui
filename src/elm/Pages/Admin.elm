@@ -36,8 +36,12 @@ import Time exposing (Posix)
 import Util
 import Vela
     exposing
-        ( Worker,
-        Workers
+        ( Hook
+        , HookNumber
+        , Hooks
+        , HooksModel
+        , Org
+        , Repo
         )
 
 
