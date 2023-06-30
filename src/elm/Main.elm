@@ -2358,6 +2358,11 @@ refreshPage model =
             Cmd.batch
                 [ getSharedSecrets model maybePage maybePerPage engine org team
                 ]
+        
+        Pages.Admin ->
+            Cmd.batch
+                [ getWorkers model
+                ]
 
         _ ->
             Cmd.none
