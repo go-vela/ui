@@ -1115,7 +1115,7 @@ viewError build =
 
         Vela.Canceled ->
             div [ class "error", Util.testAttribute "build-error" ]
-                [ span [ class "label" ] [ text "error:" ]
+                [ span [ class "label" ] [ text "msg:" ]
                 , span [ class "message" ]
                     [ text <|
                         if String.isEmpty build.error then
