@@ -12,6 +12,7 @@ module Util exposing
     , boolToYesNo
     , buildRefURL
     , dispatch
+    , dropRight
     , extractFocusIdFromRange
     , filterEmptyList
     , filterEmptyLists
@@ -28,6 +29,7 @@ module Util exposing
     , mergeListsById
     , noBlanks
     , onClickPreventDefault
+    , onKeyDown
     , oneSecondMillis
     , open
     , overwriteById
@@ -51,7 +53,7 @@ import DateFormat.Relative exposing (defaultRelativeOptions, relativeTimeWithOpt
 import Filesize
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
-import Html.Events exposing (custom)
+import Html.Events exposing (custom, on)
 import Json.Decode as Decode
 import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
@@ -232,6 +234,13 @@ filterEmptyLists =
     List.filter (\( _, list ) -> List.isEmpty list == False)
 
 
+{-| dropRight : drops the rightmost element from a list
+-}
+dropRight : List a -> List a
+dropRight list =
+    List.take (List.length list - 1) list
+
+
 {-| anyBlank : takes list of strings, returns true if any are blank
 -}
 anyBlank : List String -> Bool
@@ -335,6 +344,13 @@ open isOpen =
 ariaHidden : Html.Attribute msg
 ariaHidden =
     attribute "aria-hidden" "true"
+
+
+{-| ariaHidden: returns the html attribute for applying keydown handlers
+-}
+onKeyDown : (Int -> msg) -> Html.Attribute msg
+onKeyDown tagger =
+    on "keydown" (Decode.map tagger Html.Events.keyCode)
 
 
 {-| smallLoader : renders a small loading spinner for better transitioning UX

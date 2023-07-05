@@ -4539,7 +4539,7 @@ initSecretsModel =
 
 initSchedulesModel : Pages.Schedules.Model.Model Msg
 initSchedulesModel =
-    Pages.Schedules.Update.init ScheduleResponse AddScheduleResponse UpdateScheduleResponse DeleteScheduleResponse
+    Pages.Schedules.Update.init ScheduleResponse AddScheduleResponse UpdateScheduleResponse DeleteScheduleResponse FocusOn
 
 
 initDeploymentsModel : Pages.Deployments.Model.Model Msg

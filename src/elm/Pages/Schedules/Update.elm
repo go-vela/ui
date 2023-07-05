@@ -13,13 +13,16 @@ module Pages.Schedules.Update exposing
 
 import Api
 import Http
+import List.Extra
 import Pages.Schedules.Model
     exposing
         ( AddScheduleResponse
         , DeleteScheduleResponse
         , DeleteScheduleState(..)
+        , Frequency(..)
         , Model
         , Msg(..)
+        , MultiSelectConfig
         , PartialModel
         , ScheduleForm
         , ScheduleResponse
@@ -43,8 +46,8 @@ import Vela
 
 {-| init : takes msg updates from Main.elm and initializes schedules page input arguments
 -}
-init : ScheduleResponse msg -> AddScheduleResponse msg -> UpdateScheduleResponse msg -> DeleteScheduleResponse msg -> Model msg
-init scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleResponse =
+init : ScheduleResponse msg -> AddScheduleResponse msg -> UpdateScheduleResponse msg -> DeleteScheduleResponse msg -> (String -> msg) -> Model msg
+init scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleResponse focusOn =
     Model -1
         ""
         ""
@@ -54,12 +57,33 @@ init scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleR
         NotAsked
         []
         defaultScheduleUpdate
+        False
+        (Just Hourly)
+        (MultiSelectConfig "Seconds"
+            False
+            (List.Extra.initialize 60 (\idx -> String.fromInt idx))
+            [ "0" ]
+            ""
+        )
+        (MultiSelectConfig "Minutes"
+            False
+            (List.Extra.initialize 60 (\idx -> String.fromInt idx))
+            [ "0" ]
+            ""
+        )
+        (MultiSelectConfig "Hours"
+            False
+            (List.Extra.initialize 60 (\idx -> String.fromInt idx))
+            [ "0" ]
+            ""
+        )
         scheduleResponse
         addScheduleResponse
         deleteScheduleResponse
         updateScheduleResponse
         []
         NotAsked_
+        focusOn
 
 
 
@@ -178,6 +202,9 @@ update model msg =
         scheduleModel =
             model.schedulesModel
 
+        seconds =
+            scheduleModel.seconds
+
         ( sm, action ) =
             case msg of
                 OnChangeStringField field value ->
@@ -271,6 +298,176 @@ update model msg =
                         | deleteState = NotAsked_
                       }
                     , Cmd.none
+                    )
+
+                Pages.Schedules.Model.ToggleUseEditor value ->
+                    ( { scheduleModel
+                        | useEditor = value
+                      }
+                    , Cmd.none
+                    )
+
+                Pages.Schedules.Model.ChangeFrequencySelection selected ->
+                    ( { scheduleModel
+                        | frequency = Just selected
+                      }
+                    , Cmd.none
+                    )
+
+                Pages.Schedules.Model.MultiSelectOnClickSelect show ->
+                    let
+                        _ =
+                            Debug.log "multiselect-showhide" show
+                    in
+                    ( { scheduleModel | seconds = { seconds | showOptions = show } }
+                    , Cmd.none
+                    )
+
+                Pages.Schedules.Model.MultiSelectOnClickSelectedOptionRemove value ->
+                    let
+                        _ =
+                            Debug.log "multiselect-remove" value
+
+                        newSeconds =
+                            List.Extra.remove value seconds.selected
+                    in
+                    ( { scheduleModel | seconds = { seconds | selected = newSeconds } }
+                    , Cmd.none
+                    )
+
+                Pages.Schedules.Model.MultiSelectOnClickOption value ->
+                    let
+                        _ =
+                            Debug.log "multiselect-changeselection" value
+
+                        newSeconds =
+                            List.Extra.unique <| List.sortBy (\s -> Maybe.withDefault -1 <| String.toInt s) <| value :: seconds.selected
+                    in
+                    ( { scheduleModel | seconds = { seconds | selected = newSeconds, showOptions = False, inputValue = "" } }
+                    , Util.dispatch <| scheduleModel.focusOn <| "multiselect-inputbox"
+                    )
+
+                Pages.Schedules.Model.MultiSelectOnInputFilter value ->
+                    let
+                        _ =
+                            Debug.log "multiselect-changeinput" value
+
+                        -- newSeconds =
+                        --     List.Extra.unique <| List.sortBy (\s -> Maybe.withDefault -1 <| String.toInt s) <| value :: scheduleModel.seconds
+                    in
+                    ( { scheduleModel | seconds = { seconds | inputValue = String.replace " " "" value, showOptions = seconds.inputValue /= value } }
+                    , Cmd.none
+                    )
+
+                Pages.Schedules.Model.MultiSelectOnClickSelectedOptionsClear ->
+                    let
+                        _ =
+                            Debug.log "multiselect-clear" ""
+
+                        newSeconds =
+                            []
+                    in
+                    ( { scheduleModel | seconds = { seconds | selected = newSeconds } }
+                    , Util.dispatch <| scheduleModel.focusOn <| "multiselect-inputbox"
+                    )
+
+                Pages.Schedules.Model.MultiSelectOnKeyDownFilter keycode ->
+                    let
+                        _ =
+                            Debug.log "multiselect-input-keydown" keycode
+
+                        ( newSeconds, show, cmd ) =
+                            case keycode of
+                                8 ->
+                                    -- backspace
+                                    if String.length seconds.inputValue == 0 then
+                                        ( Util.dropRight seconds.selected
+                                        , seconds.showOptions
+                                        , Util.dispatch <| scheduleModel.focusOn <| "multiselect-inputbox"
+                                        )
+
+                                    else
+                                        ( seconds.selected
+                                        , seconds.showOptions
+                                        , Cmd.none
+                                        )
+
+                                9 ->
+                                    -- tab
+                                    ( seconds.selected
+                                    , seconds.showOptions
+                                      -- try focusing on the first option, if it doesnt exist, focus on the input
+                                    , Cmd.batch
+                                        [ if seconds.showOptions then
+                                            Util.dispatch <| scheduleModel.focusOn <| "select-option-0"
+
+                                          else
+                                            Cmd.none
+                                        ]
+                                    )
+
+                                32 ->
+                                    -- spacebar
+                                    ( seconds.selected
+                                    , not seconds.showOptions
+                                      -- try focusing on the first option, if it doesnt exist, focus on the input
+                                    , Cmd.batch
+                                        -- [ if not seconds.showOptions then Util.dispatch <| scheduleModel.focusOn <| "select-option-0" else Cmd.none
+                                        [ Util.dispatch <| scheduleModel.focusOn <| "select-option-0"
+                                        ]
+                                    )
+
+                                _ ->
+                                    ( seconds.selected, seconds.showOptions, Cmd.none )
+                    in
+                    let
+                        _ =
+                            Debug.log "setting show to" <| show
+                    in
+                    ( { scheduleModel | seconds = { seconds | selected = newSeconds, showOptions = show } }
+                      -- , Cmd.none
+                    , cmd
+                    )
+
+                Pages.Schedules.Model.MultiSelectOnKeyDownOption opt keycode ->
+                    let
+                        _ =
+                            Debug.log "multiselect-option-keydown" <| opt ++ "-" ++ String.fromInt keycode
+
+                        ( newModel, cmd ) =
+                            case keycode of
+                                13 ->
+                                    -- return
+                                    ( { scheduleModel
+                                        | seconds =
+                                            { seconds
+                                                | showOptions = False
+                                                , inputValue = ""
+                                                , selected = List.Extra.unique <| List.sortBy (\s -> Maybe.withDefault -1 <| String.toInt s) <| opt :: seconds.selected
+                                            }
+                                      }
+                                    , Util.dispatch <| scheduleModel.focusOn <| "multiselect-inputbox"
+                                    )
+
+                                32 ->
+                                    -- spacebar
+                                    ( { scheduleModel
+                                        | seconds =
+                                            { seconds
+                                                | showOptions = False
+                                                , inputValue = ""
+                                                , selected = List.Extra.unique <| List.sortBy (\s -> Maybe.withDefault -1 <| String.toInt s) <| opt :: seconds.selected
+                                            }
+                                      }
+                                    , Util.dispatch <| scheduleModel.focusOn <| "multiselect-inputbox"
+                                    )
+
+                                _ ->
+                                    ( scheduleModel, Cmd.none )
+                    in
+                    ( newModel
+                      -- , Cmd.none
+                    , cmd
                     )
     in
     ( { model | schedulesModel = sm }, action )

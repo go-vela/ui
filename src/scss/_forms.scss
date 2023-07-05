@@ -158,9 +158,15 @@
 // focus styles
 .form-control [type='checkbox']:focus + .form-label::before,
 .form-control [type='radio']:focus + .form-label::before,
-.form-control input:focus:not([type='checkbox']):not([type='radio']) {
+.form-control input:focus:not([type='checkbox']):not([type='radio']):not([type='multiselect-filter']) {
   outline: var(--color-secondary) dotted var(--line-width);
   outline-offset: var(--line-width);
+}
+
+.form-control input:focus[type='multiselect-filter'] {
+  outline: none;
+  outline-offset: none;
+  border: none;
 }
 
 // disabled styles

@@ -24,18 +24,28 @@ import Html
         , text
         , tr
         )
-import Html.Attributes exposing (attribute, class, scope)
-import Html.Events exposing (onClick)
+import Html.Attributes
+    exposing
+        ( attribute
+        , class
+        , scope
+        )
+import Html.Events
+    exposing
+        ( onClick
+        )
 import Http
 import Pages.Schedules.Form
     exposing
-        ( viewEnabledCheckbox
+        ( viewEditor
+        , viewEditorToggle
+        , viewEnabledCheckbox
         , viewHelp
         , viewNameInput
         , viewSubmitButtons
         , viewValueInput
         )
-import Pages.Schedules.Model exposing (Model, Msg, PartialModel)
+import Pages.Schedules.Model exposing (Frequency(..), Model, Msg, PartialModel)
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
@@ -180,6 +190,11 @@ addSchedule model =
         ]
 
 
+defaultSchedulePlaceholder : String
+defaultSchedulePlaceholder =
+    "(0 0 * * *) runs at midnight (UTC) every day"
+
+
 {-| addForm : renders schedule update form for adding a new schedule
 -}
 addForm : Model msg -> Html Msg
@@ -190,7 +205,13 @@ addForm scheduleModel =
     in
     div [ class "schedule-form" ]
         [ viewNameInput s.name False
-        , viewValueInput s.entry "cron expression (0 0 * * *)"
+        , viewValueInput s.entry defaultSchedulePlaceholder scheduleModel.useEditor
+        , viewEditorToggle scheduleModel
+        , if scheduleModel.useEditor then
+            viewEditor scheduleModel
+
+          else
+            text ""
         , viewEnabledCheckbox s
         , viewHelp
         , div [ class "form-action" ]
@@ -236,7 +257,7 @@ editForm scheduleModel =
     in
     div [ class "schedule-form", class "edit-form" ]
         [ viewNameInput scheduleUpdate.name True
-        , viewValueInput scheduleUpdate.entry "cron expression (0 0 * * *)"
+        , viewValueInput scheduleUpdate.entry defaultSchedulePlaceholder scheduleModel.useEditor
         , viewEnabledCheckbox scheduleUpdate
         , viewHelp
         , viewSubmitButtons scheduleModel

@@ -8,14 +8,19 @@ module Pages.Schedules.Model exposing
     ( AddScheduleResponse
     , DeleteScheduleResponse
     , DeleteScheduleState(..)
+    , Frequency(..)
     , Model
     , Msg(..)
+    , MultiSelectConfig
+    , MultiSelectMsgs
     , PartialModel
     , ScheduleForm
     , ScheduleResponse
     , SchedulesResponse
     , UpdateScheduleResponse
+    , allFrequencyTags
     , defaultScheduleUpdate
+    , frequencyToString
     )
 
 import Auth.Session exposing (Session)
@@ -29,6 +34,52 @@ import Vela exposing (Org, Repo, Schedule, Schedules)
 
 
 -- TYPES
+-- EDITOR TYPES
+
+
+type Frequency
+    = Minutely
+    | Hourly
+    | Daily
+    | Weekly
+    | Monthly
+
+
+frequencyToString : Frequency -> String
+frequencyToString frequency =
+    case frequency of
+        Hourly ->
+            "Hourly"
+
+        Minutely ->
+            "Minutely"
+
+        Daily ->
+            "Daily"
+
+        Weekly ->
+            "Weekly"
+
+        Monthly ->
+            "Monthly"
+
+
+allFrequencyTags : List Frequency
+allFrequencyTags =
+    [ Minutely, Hourly, Daily, Weekly, Monthly ]
+
+
+type alias MultiSelectConfig =
+    { label : String
+    , showOptions : Bool
+    , options : List String
+    , selected : List String
+    , inputValue : String
+    }
+
+
+
+-- END EDITOR
 
 
 {-| PartialModel : an abbreviated version of the main model
@@ -54,12 +105,18 @@ type alias Model msg =
     , schedules : WebData Schedules
     , schedulesPager : List WebLink
     , form : ScheduleForm
+    , useEditor : Bool
+    , frequency : Maybe Frequency
+    , seconds : MultiSelectConfig
+    , minutes : MultiSelectConfig
+    , hours : MultiSelectConfig
     , scheduleResponse : ScheduleResponse msg
     , addScheduleResponse : AddScheduleResponse msg
     , deleteScheduleResponse : DeleteScheduleResponse msg
     , updateScheduleResponse : AddScheduleResponse msg
     , pager : List WebLink
     , deleteState : DeleteScheduleState
+    , focusOn : String -> msg
     }
 
 
@@ -74,7 +131,7 @@ type alias ScheduleForm =
 
 defaultScheduleUpdate : ScheduleForm
 defaultScheduleUpdate =
-    ScheduleForm "" "0 0 * * *" True
+    ScheduleForm "" "" True
 
 
 
@@ -108,6 +165,27 @@ type Msg
     | UpdateSchedule
     | DeleteSchedule
     | CancelDeleteSchedule
+    | ToggleUseEditor Bool
+    | ChangeFrequencySelection Frequency
+      -- multiselect
+    | MultiSelectOnClickSelect Bool
+    | MultiSelectOnClickSelectedOptionsClear
+    | MultiSelectOnClickSelectedOptionRemove String
+    | MultiSelectOnClickOption String
+    | MultiSelectOnKeyDownOption String Int
+    | MultiSelectOnInputFilter String
+    | MultiSelectOnKeyDownFilter Int
+
+
+type alias MultiSelectMsgs msg =
+    { onClickSelect : Bool -> msg
+    , onClickSelectedOptionsClear : msg
+    , onClickSelectedOptionRemove : String -> msg
+    , onClickOption : String -> msg
+    , onKeyDownOption : String -> Int -> msg
+    , onInputFilter : String -> msg
+    , onKeyDownFilter : Int -> msg
+    }
 
 
 type DeleteScheduleState
