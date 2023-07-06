@@ -40,6 +40,7 @@ import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
 import Table
+import Time exposing (Zone)
 import Util exposing (largeLoader)
 import Vela
     exposing
@@ -53,8 +54,8 @@ import Vela
 
 {-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules
 -}
-viewRepoSchedules : SchedulesModel -> Org -> Repo -> Html msg
-viewRepoSchedules sm org repo =
+viewRepoSchedules : Zone -> SchedulesModel -> Org -> Repo -> Html msg
+viewRepoSchedules zone sm org repo =
     let
         actions =
             Just <|
@@ -78,7 +79,7 @@ viewRepoSchedules sm org repo =
             case sm.schedules of
                 Success s ->
                     ( text "No schedules found for this repo"
-                    , schedulesToRows org repo s
+                    , schedulesToRows zone org repo s
                     )
 
                 Failure error ->
@@ -116,9 +117,9 @@ viewRepoSchedules sm org repo =
 
 {-| schedulesToRows : takes list of schedules and produces list of Table rows
 -}
-schedulesToRows : Org -> Repo -> Schedules -> Table.Rows Schedule msg
-schedulesToRows org repo schedules =
-    List.map (\s -> Table.Row (addKey s) (renderSchedule org repo)) schedules
+schedulesToRows : Zone -> Org -> Repo -> Schedules -> Table.Rows Schedule msg
+schedulesToRows zone org repo schedules =
+    List.map (\s -> Table.Row (addKey s) (renderSchedule zone org repo)) schedules
 
 
 {-| tableHeaders : returns table headers for schedules table
@@ -126,15 +127,18 @@ schedulesToRows org repo schedules =
 tableHeaders : Table.Columns
 tableHeaders =
     [ ( Nothing, "name" )
-    , ( Nothing, "cron expression" )
+    , ( Nothing, "entry" )
     , ( Nothing, "enabled" )
+    , ( Nothing, "last scheduled at" )
+    , ( Nothing, "updated by" )
+    , ( Nothing, "updated at" )
     ]
 
 
 {-| renderSchedule : takes schedule and renders a table row
 -}
-renderSchedule : Org -> Repo -> Schedule -> Html msg
-renderSchedule org repo schedule =
+renderSchedule : Zone -> Org -> Repo -> Schedule -> Html msg
+renderSchedule zone org repo schedule =
     tr [ Util.testAttribute <| "schedules-row" ]
         [ td
             [ attribute "data-label" "name"
@@ -157,6 +161,24 @@ renderSchedule org repo schedule =
             , class "break-word"
             ]
             [ text <| Util.boolToYesNo schedule.enabled ]
+        , td
+            [ attribute "data-label" "scheduled at"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| Util.humanReadableWithDefault zone schedule.scheduled_at ]
+        , td
+            [ attribute "data-label" "updated by"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| schedule.updated_by ]
+        , td
+            [ attribute "data-label" "update at"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text <| Util.humanReadableWithDefault zone schedule.updated_at ]
         ]
 
 
