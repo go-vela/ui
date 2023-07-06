@@ -36,7 +36,7 @@ import Pages.Schedules.Form
         , viewValueInput
         )
 import Pages.Schedules.Model exposing (Model, Msg, PartialModel)
-import RemoteData exposing (RemoteData(..))
+import RemoteData exposing (RemoteData(..), WebData)
 import Routes
 import Svg.Attributes
 import Table
@@ -48,14 +48,13 @@ import Vela
         , Repo
         , Schedule
         , Schedules
-        , SchedulesModel
         )
 
 
 {-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules
 -}
-viewRepoSchedules : Zone -> SchedulesModel -> Org -> Repo -> Html msg
-viewRepoSchedules zone sm org repo =
+viewRepoSchedules : Zone -> WebData Schedules -> Org -> Repo -> Html msg
+viewRepoSchedules zone schedules org repo =
     let
         actions =
             Just <|
@@ -76,7 +75,7 @@ viewRepoSchedules zone sm org repo =
                     ]
 
         ( noRowsView, rows ) =
-            case sm.schedules of
+            case schedules of
                 Success s ->
                     ( text "No schedules found for this repo"
                     , schedulesToRows zone org repo s
@@ -174,7 +173,7 @@ renderSchedule zone org repo schedule =
             ]
             [ text <| schedule.updated_by ]
         , td
-            [ attribute "data-label" "update at"
+            [ attribute "data-label" "updated at"
             , scope "row"
             , class "break-word"
             ]

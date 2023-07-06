@@ -2727,7 +2727,7 @@ viewContent model =
         Pages.Schedules org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
             , div []
-                [ lazy4 Pages.Schedules.View.viewRepoSchedules model.zone model.repo.schedules org repo
+                [ lazy4 Pages.Schedules.View.viewRepoSchedules model.zone model.repo.schedules.schedules org repo
                 , Pager.view model.repo.schedules.pager Pager.defaultLabels GotoPage
                 ]
             )
