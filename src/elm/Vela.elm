@@ -1734,6 +1734,11 @@ type alias Schedule =
     , name : String
     , entry : String
     , enabled : Bool
+    , created_at : Int
+    , created_by : String
+    , scheduled_at : Int
+    , updated_at : Int
+    , updated_by : String
     }
 
 
@@ -1780,6 +1785,11 @@ decodeSchedule =
         |> optional "name" string ""
         |> optional "entry" string ""
         |> optional "active" bool False
+        |> optional "created_at" int 0
+        |> optional "created_by" string ""
+        |> optional "scheduled_at" int 0
+        |> optional "updated_at" int 0
+        |> optional "updated_by" string ""
 
 
 decodeSchedules : Decoder Schedules
