@@ -347,6 +347,12 @@ context('Builds', () => {
       cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
       cy.url().should('contain', '?event=comment');
     });
+
+    it('should only show two schedule event', () => {
+      cy.get('[data-test=build-filter-schedule]').click({ force: true });
+      cy.get('[data-test=build]').should('be.visible').should('have.length', 2);
+      cy.url().should('contain', '?event=schedule');
+    });
   });
 
   context('build filter /pulls shortcut', () => {
