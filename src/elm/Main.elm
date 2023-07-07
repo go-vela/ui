@@ -65,7 +65,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7, lazy8)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
@@ -2727,7 +2727,7 @@ viewContent model =
         Pages.Schedules org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
             , div []
-                [ lazy3 Pages.Schedules.View.viewRepoSchedules model.repo.schedules org repo
+                [ lazy4 Pages.Schedules.View.viewRepoSchedules model.zone model.repo.schedules.schedules org repo
                 , Pager.view model.repo.schedules.pager Pager.defaultLabels GotoPage
                 ]
             )
