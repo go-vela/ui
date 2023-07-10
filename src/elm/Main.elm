@@ -1046,7 +1046,8 @@ update msg model =
                     if Pages.RepoSettings.validEventsUpdate rm.repo payload then
                         let
                             body : Http.Body
-                            body = Http.jsonBody <| encodeUpdateRepository payload
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
                         in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
@@ -1067,7 +1068,8 @@ update msg model =
                     if Pages.RepoSettings.validAccessUpdate rm.repo payload then
                         let
                             body : Http.Body
-                            body = Http.jsonBody <| encodeUpdateRepository payload
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
                         in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
@@ -1088,7 +1090,8 @@ update msg model =
                     if Pages.RepoSettings.validPipelineTypeUpdate rm.repo payload then
                         let
                             body : Http.Body
-                            body = Http.jsonBody <| encodeUpdateRepository payload
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
                         in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
@@ -2447,7 +2450,6 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
 
                 _ ->
                     []
-            
     in
     if shouldRefresh model.repo.build then
         getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
@@ -2469,7 +2471,6 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
 
                 _ ->
                     []
-            
     in
     if shouldRefresh model.repo.build then
         getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
@@ -2877,14 +2878,14 @@ viewBuildsFilter shouldRender org repo maybeEvent =
     if shouldRender then
         let
             eventEnum : List String
-            eventEnum = 
+            eventEnum =
                 [ "all"
                 , "push"
                 , "pull_request"
                 , "tag"
                 , "deployment"
                 , "schedule"
-                , "comment" 
+                , "comment"
                 ]
         in
         div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
