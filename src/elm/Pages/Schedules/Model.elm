@@ -41,7 +41,6 @@ type alias PartialModel a msg =
         , session : Session
         , page : Page
         , zone : Zone
-        , velaScheduleAllowlist : String
         , schedulesModel : Model msg
     }
 

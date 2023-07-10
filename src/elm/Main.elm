@@ -247,7 +247,6 @@ type alias Flags =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
-    , velaScheduleAllowlist : String
     }
 
 
@@ -265,7 +264,6 @@ type alias Model =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
-    , velaScheduleAllowlist : String
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
@@ -318,7 +316,6 @@ init flags url navKey =
             , velaRedirect = flags.velaRedirect
             , velaLogBytesLimit = flags.velaLogBytesLimit
             , velaMaxBuildLimit = flags.velaMaxBuildLimit
-            , velaScheduleAllowlist = flags.velaScheduleAllowlist
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = utc
@@ -334,8 +331,8 @@ init flags url navKey =
             , showIdentity = False
             , buildMenuOpen = []
             , favicon = defaultFavicon
-            , secretsModel = initSecretsModel
             , schedulesModel = initSchedulesModel
+            , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
