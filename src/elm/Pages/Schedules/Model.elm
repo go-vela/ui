@@ -45,11 +45,8 @@ type alias PartialModel a msg =
 {-| Model : record to hold page input arguments
 -}
 type alias Model msg =
-    { id : Int
-    , org : Org
+    { org : Org
     , repo : Repo
-    , entry : String
-    , enabled : Bool
     , schedule : WebData Schedule
     , schedules : WebData Schedules
     , schedulesPager : List WebLink
@@ -58,7 +55,6 @@ type alias Model msg =
     , addScheduleResponse : AddScheduleResponse msg
     , deleteScheduleResponse : DeleteScheduleResponse msg
     , updateScheduleResponse : AddScheduleResponse msg
-    , pager : List WebLink
     , deleteState : DeleteScheduleState
     }
 
