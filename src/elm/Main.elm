@@ -3409,27 +3409,23 @@ loadRepoSubPage model org repo toPage =
                             , type_ = Vela.RepoSecret
                         }
                     , schedulesModel =
+                        let
+                            -- update schedules pagination
+                            ( maybePage, maybePerPage ) =
+                                case toPage of
+                                    Pages.Schedules _ _ maybePage_ maybePerPage_ ->
+                                        ( maybePage_, maybePerPage_ )
+
+                                    _ ->
+                                        ( Nothing, Nothing )
+                        in
                         { schedulesModel
                             | schedules = Loading
                             , schedule = Loading
                             , org = org
                             , repo = repo
-
-                            -- update schedules pagination
-                            , maybePage =
-                                case toPage of
-                                    Pages.Schedules _ _ maybePage maybePerPage ->
-                                        maybePage
-
-                                    _ ->
-                                        Nothing
-                            , maybePerPage =
-                                case toPage of
-                                    Pages.Schedules _ _ maybePage maybePerPage ->
-                                        maybePerPage
-
-                                    _ ->
-                                        Nothing
+                            , maybePage = maybePage
+                            , maybePerPage = maybePerPage
                         }
                     , deploymentModel =
                         let
