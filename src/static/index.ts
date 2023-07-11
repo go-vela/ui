@@ -52,7 +52,9 @@ const flags: Flags = {
       envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
       maximumBuildLimit,
   ),
+
   velaScheduleAllowlist:
+    Cypress.env('VELA_SCHEDULE_ALLOWLIST') ||
     process.env.VELA_SCHEDULE_ALLOWLIST ||
     envOrNull('VELA_SCHEDULE_ALLOWLIST', '$VELA_SCHEDULE_ALLOWLIST') ||
     scheduleAllowlist,

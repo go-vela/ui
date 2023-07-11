@@ -1451,7 +1451,8 @@ details.build-toggle {
 }
 
 .manage-schedule .not-allowed {
-  margin-top: 1rem;
+  display: inline-block;
+  margin-top: 0.6rem;
 }
 
 .secret-form,

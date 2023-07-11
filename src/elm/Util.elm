@@ -531,9 +531,15 @@ stringToAllowlist : String -> List ( String, String )
 stringToAllowlist src =
     let
         toOrgRepoPair fullRepo =
-            case String.split "/" fullRepo of
+            case String.split "/" <| String.trim fullRepo of
+                "" :: "" :: _ ->
+                    ( "", "" )
+
                 org :: repo :: _ ->
                     ( org, repo )
+
+                "" :: _ ->
+                    ( "", "" )
 
                 org :: _ ->
                     ( org, "*" )

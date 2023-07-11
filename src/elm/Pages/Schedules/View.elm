@@ -214,7 +214,7 @@ addSchedule model =
             else
                 div []
                     [ h2 [] [ text "Add Schedule" ]
-                    , text "Sorry, Administrators have not enabled Schedules for this repository."
+                    , viewSchedulesNotAllowedSpan
                     ]
     in
     div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
@@ -236,7 +236,13 @@ addForm scheduleModel =
         , viewEnabledCheckbox s
         , viewHelp
         , div [ class "form-action" ]
-            [ button [ class "button", class "-outline", onClick <| Pages.Schedules.Model.AddSchedule ] [ text "Add" ]
+            [ button
+                [ class "button"
+                , class "-outline"
+                , onClick <| Pages.Schedules.Model.AddSchedule
+                , Util.testAttribute "schedule-add-button"
+                ]
+                [ text "Add" ]
             ]
         ]
 
@@ -300,4 +306,6 @@ editForm scheduleModel =
 -}
 viewSchedulesNotAllowedSpan : Html msg
 viewSchedulesNotAllowedSpan =
-    span [ class "not-allowed" ] [ text "Sorry, Administrators have not enabled Schedules for this repository." ]
+    span [ class "not-allowed", Util.testAttribute "repo-schedule-not-allowed" ]
+        [ text "Sorry, Administrators have not enabled Schedules for this repository."
+        ]
