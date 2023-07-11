@@ -48,7 +48,6 @@ init scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleR
     Model
         ""
         ""
-        False
         NotAsked
         NotAsked
         []
