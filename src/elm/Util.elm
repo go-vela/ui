@@ -536,24 +536,25 @@ stringToAllowlist src =
             (\orgRepo ->
                 case String.split "/" <| String.trim orgRepo of
                     -- split org/repo
+                    -- deny empty values by default
                     "" :: "" :: _ ->
                         ( "", "" )
 
-                    -- deny empty values by default
+                    -- permit valid org/repo
                     org :: repo :: _ ->
                         ( org, repo )
 
+                    -- deny empty orgs by default
                     "" :: _ ->
                         ( "", "" )
 
-                    -- deny empty values by default
+                    -- allow org wildcards when only an org is provided
                     org :: _ ->
                         ( org, "*" )
 
-                    -- allow org wildcards
+                    -- deny unparsed values by default
                     _ ->
                         ( "", "" )
-             -- deny unparsed values by default
             )
 
 
