@@ -49,7 +49,8 @@ import Vela
 
 type alias PartialModel a =
     { a
-        | page : Page
+        | velaScheduleAllowlist : List ( Org, Repo )
+        , page : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
         , repo : RepoModel
@@ -77,6 +78,7 @@ type alias Tab =
     , currentPage : Page
     , toPage : Page
     , isAlerting : Bool
+    , show : Bool
     }
 
 
@@ -242,22 +244,22 @@ viewUtil model =
                 viewOrgTabs rm org model.page
 
             Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoTabs rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.RepositoryDeployments org repo _ _ ->
-                viewRepoTabs rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.RepoSecrets _ org repo _ _ ->
-                viewRepoTabs rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.Schedules org repo _ _ ->
-                viewRepoTabs rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.Hooks org repo _ _ ->
-                viewRepoTabs rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.RepoSettings org repo ->
-                viewRepoTabs rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.Build _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
@@ -329,7 +331,7 @@ viewUtil model =
 viewTabs : List Tab -> String -> Html msg
 viewTabs tabs testLabel =
     tabs
-        |> List.map viewTab
+        |> List.filterMap viewTab
         |> List.intersperse viewSpacer
         |> (\t -> t ++ [ viewFiller ])
         |> div [ class "jump-bar", Util.testAttribute testLabel ]
@@ -337,18 +339,23 @@ viewTabs tabs testLabel =
 
 {-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style
 -}
-viewTab : Tab -> Html msg
-viewTab { name, currentPage, toPage, isAlerting } =
-    a
-        [ classList
-            [ ( "jump", True )
-            , ( "alerting", isAlerting )
-            ]
-        , viewingTab currentPage toPage
-        , Routes.href <| Pages.toRoute toPage
-        , Util.testAttribute <| "jump-" ++ name
-        ]
-        [ text name ]
+viewTab : Tab -> Maybe (Html msg)
+viewTab { name, currentPage, toPage, isAlerting, show } =
+    if show then
+        Just <|
+            a
+                [ classList
+                    [ ( "jump", True )
+                    , ( "alerting", isAlerting )
+                    ]
+                , viewingTab currentPage toPage
+                , Routes.href <| Pages.toRoute toPage
+                , Util.testAttribute <| "jump-" ++ name
+                ]
+                [ text name ]
+
+    else
+        Nothing
 
 
 {-| viewSpacer : renders horizontal spacer between tabs
@@ -384,9 +391,9 @@ viewOrgTabs : RepoModel -> Org -> Page -> Html msg
 viewOrgTabs rm org currentPage =
     let
         tabs =
-            [ Tab "Repositories" currentPage (Pages.OrgRepositories org Nothing Nothing) False
-            , Tab "Builds" currentPage (Pages.OrgBuilds org rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
-            , Tab "Secrets" currentPage (Pages.OrgSecrets "native" org Nothing Nothing) False
+            [ Tab "Repositories" currentPage (Pages.OrgRepositories org Nothing Nothing) False True
+            , Tab "Builds" currentPage (Pages.OrgBuilds org rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False True
+            , Tab "Secrets" currentPage (Pages.OrgSecrets "native" org Nothing Nothing) False True
             ]
     in
     viewTabs tabs "jump-bar-repo"
@@ -398,8 +405,8 @@ viewOrgTabs rm org currentPage =
 
 {-| viewRepoTabs : takes RepoModel and current page and renders navigation tabs
 -}
-viewRepoTabs : RepoModel -> Org -> Repo -> Page -> Html msg
-viewRepoTabs rm org repo currentPage =
+viewRepoTabs : RepoModel -> Org -> Repo -> Page -> List ( Org, Repo ) -> Html msg
+viewRepoTabs rm org repo currentPage scheduleAllowlist =
     let
         lastHook =
             case rm.hooks.hooks of
@@ -430,13 +437,16 @@ viewRepoTabs rm org repo currentPage =
                 _ ->
                     False
 
+        showSchedules =
+            Util.checkScheduleAllowlist org repo scheduleAllowlist
+
         tabs =
-            [ Tab "Builds" currentPage (Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False
-            , Tab "Deployments" currentPage (Pages.RepositoryDeployments org repo rm.builds.maybePage rm.builds.maybePerPage) False
-            , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False
-            , Tab "Schedules" currentPage (Pages.Schedules org repo Nothing Nothing) False
-            , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting
-            , Tab "Settings" currentPage (Pages.RepoSettings org repo) False
+            [ Tab "Builds" currentPage (Pages.RepositoryBuilds org repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False True
+            , Tab "Deployments" currentPage (Pages.RepositoryDeployments org repo rm.builds.maybePage rm.builds.maybePerPage) False True
+            , Tab "Secrets" currentPage (Pages.RepoSecrets "native" org repo Nothing Nothing) False True
+            , Tab "Schedules" currentPage (Pages.Schedules org repo Nothing Nothing) False showSchedules
+            , Tab "Audit" currentPage (Pages.Hooks org repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting True
+            , Tab "Settings" currentPage (Pages.RepoSettings org repo) False True
             ]
     in
     viewTabs tabs "jump-bar-repo"
@@ -458,9 +468,9 @@ viewBuildTabs model org repo buildNumber currentPage =
             model.pipeline
 
         tabs =
-            [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False
-            , Tab "Services" currentPage (Pages.BuildServices org repo buildNumber bm.services.focusFragment) False
-            , Tab "Pipeline" currentPage (Pages.BuildPipeline org repo buildNumber pipeline.expand pipeline.focusFragment) False
+            [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False True
+            , Tab "Services" currentPage (Pages.BuildServices org repo buildNumber bm.services.focusFragment) False True
+            , Tab "Pipeline" currentPage (Pages.BuildPipeline org repo buildNumber pipeline.expand pipeline.focusFragment) False True
             ]
     in
     viewTabs tabs "jump-bar-build"

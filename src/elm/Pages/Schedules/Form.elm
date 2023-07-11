@@ -64,9 +64,9 @@ viewNameInput val disable =
             , value val
             , onInput <|
                 OnChangeStringField "name"
-            , class "schedule-name"
             , placeholder "Schedule Name"
             , id "schedule-name"
+            , Util.testAttribute "schedule-name"
             ]
             []
         ]
@@ -84,10 +84,10 @@ viewValueInput val placeholder_ =
         , textarea
             [ value val
             , onInput <| OnChangeStringField "entry"
-            , class "schedule-entry"
             , class "form-control"
             , placeholder placeholder_
             , id "schedule-entry"
+            , Util.testAttribute "schedule-entry"
             ]
             []
         ]

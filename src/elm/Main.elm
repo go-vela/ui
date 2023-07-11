@@ -247,6 +247,7 @@ type alias Flags =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
+    , velaScheduleAllowlist : String
     }
 
 
@@ -264,6 +265,7 @@ type alias Model =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
+    , velaScheduleAllowlist : List ( Org, Repo )
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
@@ -316,6 +318,7 @@ init flags url navKey =
             , velaRedirect = flags.velaRedirect
             , velaLogBytesLimit = flags.velaLogBytesLimit
             , velaMaxBuildLimit = flags.velaMaxBuildLimit
+            , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = utc
@@ -2677,10 +2680,18 @@ viewContent model =
             )
 
         Pages.Schedules org repo maybePage _ ->
+            let
+                viewPager =
+                    if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+                        Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
+
+                    else
+                        text ""
+            in
             ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
             , div []
                 [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
-                , Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
+                , viewPager
                 ]
             )
 
@@ -3499,7 +3510,11 @@ loadRepoSubPage model org repo toPage =
                             Cmd.none
                     , case toPage of
                         Pages.Schedules o r maybePage maybePerPage ->
-                            getSchedules model o r maybePage maybePerPage
+                            if Util.checkScheduleAllowlist o r model.velaScheduleAllowlist then
+                                getSchedules model o r maybePage maybePerPage
+
+                            else
+                                Cmd.none
 
                         _ ->
                             Cmd.none
@@ -3537,7 +3552,11 @@ loadRepoSubPage model org repo toPage =
                                     , maybePerPage = maybePerPage
                                 }
                           }
-                        , getSchedules model o r maybePage maybePerPage
+                        , if Util.checkScheduleAllowlist o r model.velaScheduleAllowlist then
+                            getSchedules model o r maybePage maybePerPage
+
+                          else
+                            Cmd.none
                         )
 
                     Pages.Hooks o r maybePage maybePerPage ->
@@ -3826,7 +3845,11 @@ loadEditSchedulePage model org repo id =
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSchedule model org repo id
+        , if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+            getSchedule model org repo id
+
+          else
+            Cmd.none
         ]
     )
 

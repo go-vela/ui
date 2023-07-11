@@ -56,51 +56,64 @@ import Vela
 viewRepoSchedules : PartialModel a msg -> Org -> Repo -> Html msg
 viewRepoSchedules model org repo =
     let
+        schedulesAllowed =
+            Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist
+
         actions =
-            Just <|
-                div [ class "buttons" ]
-                    [ a
-                        [ class "button"
-                        , class "button-with-icon"
-                        , class "-outline"
-                        , Util.testAttribute "add-repo-schedule"
-                        , Routes.href <|
-                            Routes.AddSchedule org repo
+            if schedulesAllowed then
+                Just <|
+                    div [ class "buttons" ]
+                        [ a
+                            [ class "button"
+                            , class "button-with-icon"
+                            , class "-outline"
+                            , Util.testAttribute "add-repo-schedule"
+                            , Routes.href <|
+                                Routes.AddSchedule org repo
+                            ]
+                            [ text <| "Add Schedule"
+                            , FeatherIcons.plus
+                                |> FeatherIcons.withSize 18
+                                |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
+                            ]
                         ]
-                        [ text "Add Schedule"
-                        , FeatherIcons.plus
-                            |> FeatherIcons.withSize 18
-                            |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-                        ]
-                    ]
+
+            else
+                Nothing
 
         ( noRowsView, rows ) =
-            case model.schedulesModel.schedules of
-                Success s ->
-                    ( text "No schedules found for this repo"
-                    , schedulesToRows model.zone org repo s
-                    )
+            if schedulesAllowed then
+                case model.schedulesModel.schedules of
+                    Success s ->
+                        ( text "No schedules found for this repo"
+                        , schedulesToRows model.zone org repo s
+                        )
 
-                Failure error ->
-                    ( span [ Util.testAttribute "repo-schedule-error" ]
-                        [ text <|
-                            case error of
-                                Http.BadStatus statusCode ->
-                                    case statusCode of
-                                        401 ->
-                                            "No schedules found for this repo, most likely due to not being an admin of the source control repo"
+                    Failure error ->
+                        ( span [ Util.testAttribute "repo-schedule-error" ]
+                            [ text <|
+                                case error of
+                                    Http.BadStatus statusCode ->
+                                        case statusCode of
+                                            401 ->
+                                                "No schedules found for this repo, most likely due to not being an admin of the source control repo"
 
-                                        _ ->
-                                            "No schedules found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+                                            _ ->
+                                                "No schedules found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
-                                _ ->
-                                    "No schedules found for this repo, there was an error with the server"
-                        ]
-                    , []
-                    )
+                                    _ ->
+                                        "No schedules found for this repo, there was an error with the server"
+                            ]
+                        , []
+                        )
 
-                _ ->
-                    ( largeLoader, [] )
+                    _ ->
+                        ( largeLoader, [] )
+
+            else
+                ( viewSchedulesNotAllowedSpan
+                , []
+                )
 
         cfg =
             Table.Config
@@ -196,7 +209,11 @@ addSchedule model =
     div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
         [ div []
             [ h2 [] [ text "Add Schedule" ]
-            , addForm model.schedulesModel
+            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
+                addForm model.schedulesModel
+
+              else
+                viewSchedulesNotAllowedSpan
             ]
         ]
 
@@ -215,7 +232,13 @@ addForm scheduleModel =
         , viewEnabledCheckbox s
         , viewHelp
         , div [ class "form-action" ]
-            [ button [ class "button", class "-outline", onClick <| Pages.Schedules.Model.AddSchedule ] [ text "Add" ]
+            [ button
+                [ class "button"
+                , class "-outline"
+                , onClick <| Pages.Schedules.Model.AddSchedule
+                , Util.testAttribute "schedule-add-button"
+                ]
+                [ text "Add" ]
             ]
         ]
 
@@ -231,20 +254,24 @@ addKey schedule =
 -}
 editSchedule : PartialModel a msg -> Html Msg
 editSchedule model =
-    case model.schedulesModel.schedule of
-        Success _ ->
-            div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
-                [ div []
-                    [ h2 [] [ text "View/Edit Schedule" ]
-                    , editForm model.schedulesModel
-                    ]
-                ]
+    div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
+        [ div []
+            [ h2 [] [ text "View/Edit Schedule" ]
+            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
+                case model.schedulesModel.schedule of
+                    Success _ ->
+                        editForm model.schedulesModel
 
-        Failure _ ->
-            viewResourceError { resourceLabel = "schedule", testLabel = "schedule" }
+                    Failure _ ->
+                        viewResourceError { resourceLabel = "schedule", testLabel = "schedule" }
 
-        _ ->
-            text ""
+                    _ ->
+                        text ""
+
+              else
+                viewSchedulesNotAllowedSpan
+            ]
+        ]
 
 
 {-| editForm : renders schedule update form for updating a preexisting schedule
@@ -261,4 +288,13 @@ editForm scheduleModel =
         , viewEnabledCheckbox scheduleUpdate
         , viewHelp
         , viewSubmitButtons scheduleModel
+        ]
+
+
+{-| viewSchedulesNotAllowedSpan : renders a warning that schedules have not been enabled for the current repository.
+-}
+viewSchedulesNotAllowedSpan : Html msg
+viewSchedulesNotAllowedSpan =
+    span [ class "not-allowed", Util.testAttribute "repo-schedule-not-allowed" ]
+        [ text "Sorry, Administrators have not enabled Schedules for this repository."
         ]
