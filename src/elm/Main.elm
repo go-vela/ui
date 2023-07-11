@@ -688,9 +688,7 @@ update msg model =
                     )
 
                 Pages.Schedules org repo _ maybePerPage ->
-                    ( { model
-                        | schedulesModel = { sm | schedules = Loading }
-                      }
+                    ( { model | schedulesModel = { sm | schedules = Loading } }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Schedules org repo (Just pageNumber) maybePerPage
                     )
 
@@ -1216,9 +1214,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model
-                        | schedulesModel = { sm | schedules = toFailure error }
-                      }
+                    ( { model | schedulesModel = { sm | schedules = toFailure error } }
                     , addError error
                     )
 
@@ -3580,10 +3576,6 @@ loadRepoSubPage model org repo toPage =
                         ( model, fetchSecrets o r )
 
                     Pages.Schedules o r maybePage maybePerPage ->
-                        let
-                            allowed =
-                                Util.checkScheduleAllowlist o r model.velaScheduleAllowlist
-                        in
                         ( { model
                             | schedulesModel =
                                 { schedulesModel
@@ -3591,7 +3583,7 @@ loadRepoSubPage model org repo toPage =
                                     , maybePerPage = maybePerPage
                                 }
                           }
-                        , if allowed then
+                        , if Util.checkScheduleAllowlist o r model.velaScheduleAllowlist then
                             getSchedules model o r maybePage maybePerPage
 
                           else
@@ -3864,9 +3856,7 @@ loadAddSchedulePage model org repo =
                 , deleteState = Pages.Schedules.Model.NotAsked_
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 
@@ -3878,9 +3868,6 @@ loadEditSchedulePage model org repo id =
     let
         scheduleModel =
             model.schedulesModel
-
-        allowed =
-            Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist
     in
     ( { model
         | page = Pages.Schedule org repo id
@@ -3893,7 +3880,7 @@ loadEditSchedulePage model org repo id =
       }
     , Cmd.batch
         [ getCurrentUser model
-        , if allowed then
+        , if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
             getSchedule model org repo id
 
           else

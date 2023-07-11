@@ -231,9 +231,6 @@ viewUtil model =
     let
         rm =
             model.repo
-
-        scheduleAllowlist =
-            model.velaScheduleAllowlist
     in
     div [ class "util" ]
         [ case model.page of
@@ -247,22 +244,22 @@ viewUtil model =
                 viewOrgTabs rm org model.page
 
             Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoTabs scheduleAllowlist rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.RepositoryDeployments org repo _ _ ->
-                viewRepoTabs scheduleAllowlist rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.RepoSecrets _ org repo _ _ ->
-                viewRepoTabs scheduleAllowlist rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.Schedules org repo _ _ ->
-                viewRepoTabs scheduleAllowlist rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.Hooks org repo _ _ ->
-                viewRepoTabs scheduleAllowlist rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.RepoSettings org repo ->
-                viewRepoTabs scheduleAllowlist rm org repo model.page
+                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
 
             Pages.Build _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
@@ -408,8 +405,8 @@ viewOrgTabs rm org currentPage =
 
 {-| viewRepoTabs : takes RepoModel and current page and renders navigation tabs
 -}
-viewRepoTabs : List ( Org, Repo ) -> RepoModel -> Org -> Repo -> Page -> Html msg
-viewRepoTabs scheduleAllowlist rm org repo currentPage =
+viewRepoTabs : RepoModel -> Org -> Repo -> Page -> List ( Org, Repo ) -> Html msg
+viewRepoTabs rm org repo currentPage scheduleAllowlist =
     let
         lastHook =
             case rm.hooks.hooks of
