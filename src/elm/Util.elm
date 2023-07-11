@@ -529,27 +529,32 @@ formatFilesize =
 -}
 stringToAllowlist : String -> List ( String, String )
 stringToAllowlist src =
-    let
-        toOrgRepoPair fullRepo =
-            case String.split "/" <| String.trim fullRepo of
-                "" :: "" :: _ ->
-                    ( "", "" )
-
-                org :: repo :: _ ->
-                    ( org, repo )
-
-                "" :: _ ->
-                    ( "", "" )
-
-                org :: _ ->
-                    ( org, "*" )
-
-                _ ->
-                    ( "", "" )
-    in
     src
         |> String.split ","
-        |> List.map toOrgRepoPair
+        -- split comma separated list
+        |> List.map
+            (\orgRepo ->
+                case String.split "/" <| String.trim orgRepo of
+                    -- split org/repo
+                    "" :: "" :: _ ->
+                        ( "", "" )
+
+                    -- deny empty values by default
+                    org :: repo :: _ ->
+                        ( org, repo )
+
+                    "" :: _ ->
+                        ( "", "" )
+
+                    -- deny empty values by default
+                    org :: _ ->
+                        ( org, "*" )
+
+                    -- allow org wildcards
+                    _ ->
+                        ( "", "" )
+             -- deny unparsed values by default
+            )
 
 
 {-| checkScheduleAllowlist : takes org, repo and allowlist and checks if the repo exists in the list, accounting for wildcards (\*)

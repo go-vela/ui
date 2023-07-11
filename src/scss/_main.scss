@@ -706,14 +706,12 @@ details.build-toggle {
 }
 
 .build-animation.-bottom.-running {
-  animation:
-    build-status-parallax-running 26s linear 26s infinite,
+  animation: build-status-parallax-running 26s linear 26s infinite,
     build-status-parallax-start 26s linear none;
 }
 
 .build-animation.-top.-running {
-  animation:
-    build-status-parallax-running 22s linear 22s infinite,
+  animation: build-status-parallax-running 22s linear 22s infinite,
     build-status-parallax-start 22s linear none;
 }
 
@@ -1219,9 +1217,7 @@ details.build-toggle {
   margin: 1em 1em 0 1em;
 
   // stylelint-disable
-  transition:
-    max-height 1.2s,
-    margin-top 1.2s;
+  transition: max-height 1.2s, margin-top 1.2s;
   // stylelint-enable
 }
 
