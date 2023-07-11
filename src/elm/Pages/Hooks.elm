@@ -113,8 +113,7 @@ view { hooks, time, org, repo } redeliverHook =
 hooksToRows : Posix -> Hooks -> Org -> Repo -> RedeliverHook msg -> Table.Rows Hook msg
 hooksToRows now hooks org repo redeliverHook =
     hooks
-        |> List.map (\hook -> [ Just <| Table.Row hook (renderHook now org repo redeliverHook), hookErrorRow hook ])
-        |> List.concat
+        |> List.concatMap (\hook -> [ Just <| Table.Row hook (renderHook now org repo redeliverHook), hookErrorRow hook ])
         |> List.filterMap identity
 
 

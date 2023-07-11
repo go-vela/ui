@@ -357,8 +357,7 @@ searchReposGlobal model repos enableRepo toggleFavorite =
             repos
                 |> Dict.toList
                 |> Util.filterEmptyLists
-                |> List.map (\( _, repos_ ) -> repos_)
-                |> List.concat
+                |> List.concatMap (\( _, repos_ ) -> repos_)
                 |> List.filter (\repo -> filterRepo filters Nothing <| repo.org ++ "/" ++ repo.name)
     in
     div [ class "filtered-repos" ] <|
