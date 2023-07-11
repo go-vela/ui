@@ -24,7 +24,7 @@
     "ncp": "2.0.0",
     "parcel": "2.8.3",
     "postcss": "8.4.24",
-    "prettier": "2.8.8",
+    "prettier": "3.0.0",
     "rimraf": "5.0.1",
     "start-server-and-test": "2.0.0",
     "stylelint": "15.8.0",
