@@ -207,17 +207,14 @@ updateScheduleHref org repo s =
 addSchedule : PartialModel a msg -> Html Msg
 addSchedule model =
     div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
-        [ if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
-            div []
-                [ h2 [] [ text "Add Schedule" ]
-                , addForm model.schedulesModel
-                ]
+        [ div []
+            [ h2 [] [ text "Add Schedule" ]
+            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
+                addForm model.schedulesModel
 
-          else
-            div []
-                [ h2 [] [ text "Add Schedule" ]
-                , viewSchedulesNotAllowedSpan
-                ]
+              else
+                viewSchedulesNotAllowedSpan
+            ]
         ]
 
 
@@ -258,25 +255,22 @@ addKey schedule =
 editSchedule : PartialModel a msg -> Html Msg
 editSchedule model =
     div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
-        [ if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
-            case model.schedulesModel.schedule of
-                Success _ ->
-                    div []
-                        [ h2 [] [ text "View/Edit Schedule" ]
-                        , editForm model.schedulesModel
-                        ]
+        [ div []
+            [ h2 [] [ text "View/Edit Schedule" ]
+            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
+                case model.schedulesModel.schedule of
+                    Success _ ->
+                        editForm model.schedulesModel
 
-                Failure _ ->
-                    viewResourceError { resourceLabel = "schedule", testLabel = "schedule" }
+                    Failure _ ->
+                        viewResourceError { resourceLabel = "schedule", testLabel = "schedule" }
 
-                _ ->
-                    text ""
+                    _ ->
+                        text ""
 
-          else
-            div []
-                [ h2 [] [ text "View/Edit Schedule" ]
-                , viewSchedulesNotAllowedSpan
-                ]
+              else
+                viewSchedulesNotAllowedSpan
+            ]
         ]
 
 
