@@ -1147,10 +1147,11 @@ details.build-toggle {
   max-height: 100px;
   margin: 1em 1em 0 1em;
 
-  // stylelint-disable-next-line
+  // stylelint-disable
   transition:
     max-height 1.2s,
     margin-top 1.2s;
+  // stylelint-enable
 }
 
 .alert-container {
