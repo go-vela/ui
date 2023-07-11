@@ -67,7 +67,7 @@ viewRepoSchedules model org repo =
                         , Routes.href <|
                             Routes.AddSchedule org repo
                         ]
-                        [ text "Add Schedule"
+                        [ text <| "Add Schedule"
                         , FeatherIcons.plus
                             |> FeatherIcons.withSize 18
                             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]

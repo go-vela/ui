@@ -11,6 +11,7 @@ module Util exposing
     , base64Decode
     , boolToYesNo
     , buildRefURL
+    , checkScheduleAllowlist
     , dispatch
     , extractFocusIdFromRange
     , filterEmptyList
@@ -36,6 +37,7 @@ module Util exposing
     , secondsToMillis
     , smallLoader
     , smallLoaderWithText
+    , stringToAllowlist
     , stringToMaybe
     , successful
     , testAttribute
@@ -521,3 +523,40 @@ see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesiz
 formatFilesize : Int -> String
 formatFilesize =
     Filesize.format
+
+
+{-| stringToAllowlist : takes a comma-separated string list of org/repo pairs and parses it into a list of tuples
+-}
+stringToAllowlist : String -> List ( String, String )
+stringToAllowlist src =
+    let
+        toOrgRepoPair fullRepo =
+            case String.split "/" fullRepo of
+                org :: repo :: _ ->
+                    ( org, repo )
+
+                org :: _ ->
+                    ( org, "*" )
+
+                _ ->
+                    ( "*", "*" )
+    in
+    src
+        |> String.split ","
+        |> List.map toOrgRepoPair
+
+
+{-| checkScheduleAllowlist : takes org, repo and allowlist and checks if the repo exists in the list, accounting for wildcards (\*)
+-}
+checkScheduleAllowlist : String -> String -> List ( String, String ) -> Bool
+checkScheduleAllowlist org repo allowlist =
+    List.any (checkMatch ( org, repo )) allowlist
+
+
+{-| checkMatch : takes two pairs of org and repo and checks if the inPair matches the allowlist srcPair
+-}
+checkMatch : ( String, String ) -> ( String, String ) -> Bool
+checkMatch ( inOrg, inRepo ) ( srcOrg, srcRepo ) =
+    (srcOrg == "*" && srcRepo == "*")
+        || (srcOrg == inOrg && srcRepo == "*")
+        || (srcOrg == inOrg && srcRepo == inRepo)

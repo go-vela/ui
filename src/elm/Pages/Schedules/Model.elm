@@ -38,6 +38,7 @@ import Vela exposing (Org, Repo, Schedule, Schedules)
 type alias PartialModel a msg =
     { a
         | velaAPI : String
+        , velaScheduleAllowlist : List ( Org, Repo )
         , session : Session
         , page : Page
         , zone : Zone
