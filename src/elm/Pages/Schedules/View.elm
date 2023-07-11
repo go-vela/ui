@@ -53,8 +53,8 @@ import Vela
 
 {-| viewRepoSchedules : takes schedules model and renders table for viewing repo schedules
 -}
-viewRepoSchedules : Zone -> WebData Schedules -> Org -> Repo -> Html msg
-viewRepoSchedules zone schedules org repo =
+viewRepoSchedules : PartialModel a msg -> Org -> Repo -> Html msg
+viewRepoSchedules model org repo =
     let
         actions =
             Just <|
@@ -75,10 +75,10 @@ viewRepoSchedules zone schedules org repo =
                     ]
 
         ( noRowsView, rows ) =
-            case schedules of
+            case model.schedulesModel.schedules of
                 Success s ->
                     ( text "No schedules found for this repo"
-                    , schedulesToRows zone org repo s
+                    , schedulesToRows model.zone org repo s
                     )
 
                 Failure error ->
