@@ -65,7 +65,7 @@ import Html.Attributes
         , type_
         )
 import Html.Events exposing (onClick)
-import Html.Lazy exposing (lazy, lazy2, lazy3, lazy4, lazy5, lazy7, lazy8)
+import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
@@ -231,10 +231,6 @@ import Vela
         , updateRepoInitialized
         , updateRepoLimit
         , updateRepoTimeout
-        , updateSchedules
-        , updateSchedulesPage
-        , updateSchedulesPager
-        , updateSchedulesPerPage
         )
 
 
@@ -335,8 +331,8 @@ init flags url navKey =
             , showIdentity = False
             , buildMenuOpen = []
             , favicon = defaultFavicon
-            , secretsModel = initSecretsModel
             , schedulesModel = initSchedulesModel
+            , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
@@ -499,6 +495,9 @@ update msg model =
     let
         rm =
             model.repo
+
+        sm =
+            model.schedulesModel
 
         pipeline =
             model.pipeline
@@ -686,7 +685,7 @@ update msg model =
                     )
 
                 Pages.Schedules org repo _ maybePerPage ->
-                    ( { model | repo = updateSchedules Loading rm }
+                    ( { model | schedulesModel = { sm | schedules = Loading } }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Schedules org repo (Just pageNumber) maybePerPage
                     )
 
@@ -1198,25 +1197,24 @@ update msg model =
             case result of
                 Ok ( meta, schedules ) ->
                     ( { model
-                        | repo =
-                            rm
-                                |> updateOrgRepo org repo
-                                |> updateSchedules (RemoteData.succeed schedules)
-                                |> updateSchedulesPager (Pagination.get meta.headers)
+                        | schedulesModel =
+                            { sm
+                                | org = org
+                                , repo = repo
+                                , schedules = RemoteData.succeed schedules
+                                , pager = Pagination.get meta.headers
+                            }
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | repo = updateSchedules (toFailure error) rm }, addError error )
+                    ( { model | schedulesModel = { sm | schedules = toFailure error } }, addError error )
 
         ScheduleResponse response ->
             case response of
                 Ok ( _, s ) ->
                     let
-                        sm =
-                            model.schedulesModel
-
                         updatedSchedulesModel =
                             Pages.Schedules.Update.reinitializeScheduleUpdate sm s
                     in
@@ -1231,9 +1229,6 @@ update msg model =
             case response of
                 Ok _ ->
                     let
-                        sm =
-                            model.schedulesModel
-
                         alertMessage =
                             "Schedule Added"
 
@@ -1250,9 +1245,6 @@ update msg model =
             case response of
                 Ok _ ->
                     let
-                        sm =
-                            model.schedulesModel
-
                         alertMessage =
                             "Schedule Modified"
 
@@ -1269,9 +1261,6 @@ update msg model =
             case response of
                 Ok _ ->
                     let
-                        sm =
-                            model.schedulesModel
-
                         alertMessage =
                             "Schedule Deleted"
 
@@ -2690,8 +2679,8 @@ viewContent model =
         Pages.Schedules org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
             , div []
-                [ lazy4 Pages.Schedules.View.viewRepoSchedules model.zone model.repo.schedules.schedules org repo
-                , Pager.view model.repo.schedules.pager Pager.defaultLabels GotoPage
+                [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
+                , Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -3391,11 +3380,23 @@ loadRepoSubPage model org repo toPage =
                             , type_ = Vela.RepoSecret
                         }
                     , schedulesModel =
+                        let
+                            -- update schedules pagination
+                            ( maybePage, maybePerPage ) =
+                                case toPage of
+                                    Pages.Schedules _ _ maybePage_ maybePerPage_ ->
+                                        ( maybePage_, maybePerPage_ )
+
+                                    _ ->
+                                        ( Nothing, Nothing )
+                        in
                         { schedulesModel
                             | schedules = Loading
                             , schedule = Loading
                             , org = org
                             , repo = repo
+                            , maybePage = maybePage
+                            , maybePerPage = maybePerPage
                         }
                     , deploymentModel =
                         let
@@ -3461,19 +3462,6 @@ loadRepoSubPage model org repo toPage =
                                             rm_
                                                 |> updateHooksPage Nothing
                                                 |> updateHooksPerPage Nothing
-                               )
-                            -- update schedules pagination
-                            |> (\rm_ ->
-                                    case toPage of
-                                        Pages.Schedules _ _ maybePage maybePerPage ->
-                                            rm_
-                                                |> updateSchedulesPage maybePage
-                                                |> updateSchedulesPerPage maybePerPage
-
-                                        _ ->
-                                            rm_
-                                                |> updateSchedulesPage Nothing
-                                                |> updateSchedulesPerPage Nothing
                                )
                   }
                 , Cmd.batch
@@ -3543,10 +3531,11 @@ loadRepoSubPage model org repo toPage =
 
                     Pages.Schedules o r maybePage maybePerPage ->
                         ( { model
-                            | repo =
-                                rm
-                                    |> updateSchedulesPage maybePage
-                                    |> updateSchedulesPerPage maybePerPage
+                            | schedulesModel =
+                                { schedulesModel
+                                    | maybePage = maybePage
+                                    , maybePerPage = maybePerPage
+                                }
                           }
                         , getSchedules model o r maybePage maybePerPage
                         )

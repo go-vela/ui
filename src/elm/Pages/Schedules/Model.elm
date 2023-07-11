@@ -18,12 +18,14 @@ module Pages.Schedules.Model exposing
     , defaultScheduleUpdate
     )
 
+import Api.Pagination as Pagination
 import Auth.Session exposing (Session)
 import Http
 import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
+import Time exposing (Zone)
 import Vela exposing (Org, Repo, Schedule, Schedules)
 
 
@@ -38,6 +40,7 @@ type alias PartialModel a msg =
         | velaAPI : String
         , session : Session
         , page : Page
+        , zone : Zone
         , schedulesModel : Model msg
     }
 
@@ -49,7 +52,9 @@ type alias Model msg =
     , repo : Repo
     , schedule : WebData Schedule
     , schedules : WebData Schedules
-    , schedulesPager : List WebLink
+    , pager : List WebLink
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
     , form : ScheduleForm
     , scheduleResponse : ScheduleResponse msg
     , addScheduleResponse : AddScheduleResponse msg

@@ -51,6 +51,8 @@ init scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleR
         NotAsked
         NotAsked
         []
+        Nothing
+        Nothing
         defaultScheduleUpdate
         scheduleResponse
         addScheduleResponse
