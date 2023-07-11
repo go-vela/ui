@@ -51,7 +51,6 @@ type alias PartialModel a msg =
 type alias Model msg =
     { org : Org
     , repo : Repo
-    , allowed : Bool
     , schedule : WebData Schedule
     , schedules : WebData Schedules
     , pager : List WebLink

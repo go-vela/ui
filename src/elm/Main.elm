@@ -689,11 +689,7 @@ update msg model =
 
                 Pages.Schedules org repo _ maybePerPage ->
                     ( { model
-                        | schedulesModel =
-                            { sm
-                                | allowed = Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist
-                                , schedules = Loading
-                            }
+                        | schedulesModel = { sm | schedules = Loading }
                       }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Schedules org repo (Just pageNumber) maybePerPage
                     )
@@ -1212,7 +1208,6 @@ update msg model =
                             { sm
                                 | org = org
                                 , repo = repo
-                                , allowed = Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist
                                 , schedules = RemoteData.succeed schedules
                                 , pager = Pagination.get meta.headers
                             }
@@ -1222,11 +1217,7 @@ update msg model =
 
                 Err error ->
                     ( { model
-                        | schedulesModel =
-                            { sm
-                                | allowed = Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist
-                                , schedules = toFailure error
-                            }
+                        | schedulesModel = { sm | schedules = toFailure error }
                       }
                     , addError error
                     )
@@ -1236,11 +1227,7 @@ update msg model =
                 Ok ( _, s ) ->
                     let
                         updatedSchedulesModel =
-                            Pages.Schedules.Update.reinitializeScheduleUpdate
-                                { sm
-                                    | allowed = Util.checkScheduleAllowlist sm.org sm.repo model.velaScheduleAllowlist
-                                }
-                                s
+                            Pages.Schedules.Update.reinitializeScheduleUpdate sm s
                     in
                     ( { model | schedulesModel = updatedSchedulesModel }
                     , Cmd.none
@@ -2738,7 +2725,7 @@ viewContent model =
         Pages.Schedules org repo maybePage _ ->
             let
                 viewPager =
-                    if model.schedulesModel.allowed then
+                    if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
                         Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
 
                     else
@@ -3454,7 +3441,6 @@ loadRepoSubPage model org repo toPage =
                             , schedule = Loading
                             , org = org
                             , repo = repo
-                            , allowed = Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist
                             , maybePage = maybePage
                             , maybePerPage = maybePerPage
                         }
@@ -3603,7 +3589,6 @@ loadRepoSubPage model org repo toPage =
                                 { schedulesModel
                                     | maybePage = maybePage
                                     , maybePerPage = maybePerPage
-                                    , allowed = allowed
                                 }
                           }
                         , if allowed then
@@ -3876,7 +3861,6 @@ loadAddSchedulePage model org repo =
             { scheduleModel
                 | org = org
                 , repo = repo
-                , allowed = Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist
                 , deleteState = Pages.Schedules.Model.NotAsked_
             }
       }
@@ -3904,7 +3888,6 @@ loadEditSchedulePage model org repo id =
             { scheduleModel
                 | org = org
                 , repo = repo
-                , allowed = allowed
                 , deleteState = Pages.Schedules.Model.NotAsked_
             }
       }

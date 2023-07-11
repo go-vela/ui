@@ -57,7 +57,7 @@ viewRepoSchedules : PartialModel a msg -> Org -> Repo -> Html msg
 viewRepoSchedules model org repo =
     let
         actions =
-            if model.schedulesModel.allowed then
+            if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
                 Just <|
                     div [ class "buttons" ]
                         [ a
@@ -79,7 +79,7 @@ viewRepoSchedules model org repo =
                 Nothing
 
         ( noRowsView, rows ) =
-            if model.schedulesModel.allowed then
+            if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
                 case model.schedulesModel.schedules of
                     Success s ->
                         ( text "No schedules found for this repo"
@@ -205,7 +205,7 @@ addSchedule : PartialModel a msg -> Html Msg
 addSchedule model =
     let
         content =
-            if model.schedulesModel.allowed then
+            if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
                 div []
                     [ h2 [] [ text "Add Schedule" ]
                     , addForm model.schedulesModel
@@ -254,7 +254,7 @@ editSchedule : PartialModel a msg -> Html Msg
 editSchedule model =
     let
         content =
-            if model.schedulesModel.allowed then
+            if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
                 case model.schedulesModel.schedule of
                     Success _ ->
                         div []
