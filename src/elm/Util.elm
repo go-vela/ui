@@ -545,7 +545,7 @@ stringToAllowlist src =
                     ( org, "*" )
 
                 _ ->
-                    ( "*", "*" )
+                    ( "", "" )
     in
     src
         |> String.split ","
