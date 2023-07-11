@@ -1214,9 +1214,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | schedulesModel = { sm | schedules = toFailure error } }
-                    , addError error
-                    )
+                    ( { model | schedulesModel = { sm | schedules = toFailure error } }, addError error )
 
         ScheduleResponse response ->
             case response of
