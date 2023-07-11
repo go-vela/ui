@@ -1450,6 +1450,10 @@ details.build-toggle {
   border-bottom: 2px solid var(--color-secondary);
 }
 
+.manage-schedule .not-allowed {
+  margin-top: 1rem;
+}
+
 .secret-form,
 .deployment-form,
 .schedule-form {
