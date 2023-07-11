@@ -935,12 +935,7 @@ update msg model =
                 url =
                     lineRangeId "config" "0" line pipeline.lineFocus model.shift
             in
-            ( { model
-                | pipeline =
-                    { pipeline
-                        | lineFocus = pipeline.lineFocus
-                    }
-              }
+            ( { model | pipeline = pipeline }
             , Navigation.pushUrl model.navigationKey <| url
             )
 
@@ -954,7 +949,7 @@ update msg model =
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
 
         FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+            ( { model | sourceRepos = Loading }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
 
         ToggleFavorite org repo ->
             let
@@ -1049,12 +1044,13 @@ update msg model =
                 payload =
                     buildUpdateRepoBoolPayload field value
 
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
                 cmd =
                     if Pages.RepoSettings.validEventsUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1070,12 +1066,13 @@ update msg model =
                 payload =
                     buildUpdateRepoStringPayload field value
 
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
                 cmd =
                     if Pages.RepoSettings.validAccessUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1091,12 +1088,13 @@ update msg model =
                 payload =
                     buildUpdateRepoStringPayload field value
 
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
                 cmd =
                     if Pages.RepoSettings.validPipelineTypeUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1300,19 +1298,20 @@ update msg model =
                         newSessionDetails =
                             SessionDetails token payload.exp payload.sub
 
-                        redirectTo : String
-                        redirectTo =
-                            case model.velaRedirect of
-                                "" ->
-                                    Url.toString model.entryURL
-
-                                _ ->
-                                    model.velaRedirect
-
                         actions : List (Cmd Msg)
                         actions =
                             case currentSession of
                                 Unauthenticated ->
+                                    let
+                                        redirectTo : String
+                                        redirectTo =
+                                            case model.velaRedirect of
+                                                "" ->
+                                                    Url.toString model.entryURL
+
+                                                _ ->
+                                                    model.velaRedirect
+                                    in
                                     [ Interop.setRedirect Encode.null
                                     , Navigation.pushUrl model.navigationKey redirectTo
                                     ]
@@ -2040,31 +2039,13 @@ update msg model =
 
         -- Components
         SecretsUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Secrets.Update.update model m
-            in
-            ( newModel
-            , action
-            )
+            Pages.Secrets.Update.update model m
 
         AddDeploymentUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Deployments.Update.update model m
-            in
-            ( newModel
-            , action
-            )
+            Pages.Deployments.Update.update model m
 
         AddScheduleUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Schedules.Update.update model m
-            in
-            ( newModel
-            , action
-            )
+            Pages.Schedules.Update.update model m
 
         -- Other
         HandleError error ->
@@ -2313,9 +2294,7 @@ refreshPage model =
                 ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
-            Cmd.batch
-                [ getHooks model org repo maybePage maybePerPage
-                ]
+            getHooks model org repo maybePage maybePerPage
 
         Pages.OrgSecrets engine org maybePage maybePerPage ->
             Cmd.batch
@@ -2324,14 +2303,10 @@ refreshPage model =
                 ]
 
         Pages.RepoSecrets engine org repo maybePage maybePerPage ->
-            Cmd.batch
-                [ getRepoSecrets model maybePage maybePerPage engine org repo
-                ]
+            getRepoSecrets model maybePage maybePerPage engine org repo
 
         Pages.SharedSecrets engine org team maybePage maybePerPage ->
-            Cmd.batch
-                [ getSharedSecrets model maybePage maybePerPage engine org team
-                ]
+            getSharedSecrets model maybePage maybePerPage engine org team
 
         _ ->
             Cmd.none
@@ -2347,9 +2322,7 @@ refreshPageHidden model _ =
     in
     case page of
         Pages.Build org repo buildNumber _ ->
-            Cmd.batch
-                [ refreshBuild model org repo buildNumber
-                ]
+            refreshBuild model org repo buildNumber
 
         _ ->
             Cmd.none
@@ -2378,12 +2351,8 @@ refreshData model =
 -}
 refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuild model org repo buildNumber =
-    let
-        refresh =
-            getBuild model org repo buildNumber
-    in
     if shouldRefresh model.repo.build then
-        refresh
+        getBuild model org repo buildNumber
 
     else
         Cmd.none
@@ -2473,12 +2442,9 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
 
                 _ ->
                     []
-
-        refresh =
-            getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
     in
     if shouldRefresh model.repo.build then
-        refresh
+        getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
 
     else
         Cmd.none
@@ -2497,12 +2463,9 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
 
                 _ ->
                     []
-
-        refresh =
-            getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
     in
     if shouldRefresh model.repo.build then
-        refresh
+        getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
 
     else
         Cmd.none
@@ -2903,10 +2866,6 @@ viewContent model =
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
 viewBuildsFilter shouldRender org repo maybeEvent =
     let
-        eventEnum : List String
-        eventEnum =
-            [ "all", "push", "pull_request", "tag", "deployment", "schedule", "comment" ]
-
         eventToMaybe : String -> Maybe Event
         eventToMaybe event =
             case event of
@@ -2917,6 +2876,18 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                     Just event
     in
     if shouldRender then
+        let
+            eventEnum : List String
+            eventEnum =
+                [ "all"
+                , "push"
+                , "pull_request"
+                , "tag"
+                , "deployment"
+                , "schedule"
+                , "comment"
+                ]
+        in
         div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
             div [] [ text "Filter by Event:" ]
                 :: List.map
@@ -3293,7 +3264,7 @@ loadOrgSubPage model org toPage =
 
         fetchSecrets : Org -> Cmd Msg
         fetchSecrets o =
-            Cmd.batch [ getAllOrgSecrets model "native" o ]
+            getAllOrgSecrets model "native" o
 
         -- update model and dispatch cmds depending on initialization state and destination
         ( loadModel, loadCmd ) =
@@ -3805,9 +3776,7 @@ loadAddOrgSecretPage model engine org =
                 , type_ = Vela.OrgSecret
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 
@@ -3830,9 +3799,7 @@ loadAddRepoSecretPage model engine org repo =
                 , type_ = Vela.RepoSecret
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 
@@ -3854,9 +3821,7 @@ loadAddSchedulePage model org repo =
                 , deleteState = Pages.Schedules.Model.NotAsked_
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 
@@ -3909,9 +3874,7 @@ loadAddSharedSecretPage model engine org team =
                 , form = secretsModel.form
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 

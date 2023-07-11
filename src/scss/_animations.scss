@@ -86,3 +86,17 @@
     opacity: 0;
   }
 }
+@keyframes shimmer {
+  0% {
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
