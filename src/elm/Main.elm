@@ -3854,7 +3854,9 @@ loadAddSchedulePage model org repo =
                 , deleteState = Pages.Schedules.Model.NotAsked_
             }
       }
-    , getCurrentUser model
+    , Cmd.batch
+        [ getCurrentUser model
+        ]
     )
 
 

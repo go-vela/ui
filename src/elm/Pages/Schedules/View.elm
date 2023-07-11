@@ -56,8 +56,11 @@ import Vela
 viewRepoSchedules : PartialModel a msg -> Org -> Repo -> Html msg
 viewRepoSchedules model org repo =
     let
+        schedulesAllowed =
+            Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist
+
         actions =
-            if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+            if schedulesAllowed then
                 Just <|
                     div [ class "buttons" ]
                         [ a
@@ -79,7 +82,7 @@ viewRepoSchedules model org repo =
                 Nothing
 
         ( noRowsView, rows ) =
-            if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+            if schedulesAllowed then
                 case model.schedulesModel.schedules of
                     Success s ->
                         ( text "No schedules found for this repo"
@@ -203,22 +206,18 @@ updateScheduleHref org repo s =
 -}
 addSchedule : PartialModel a msg -> Html Msg
 addSchedule model =
-    let
-        content =
-            if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
-                div []
-                    [ h2 [] [ text "Add Schedule" ]
-                    , addForm model.schedulesModel
-                    ]
-
-            else
-                div []
-                    [ h2 [] [ text "Add Schedule" ]
-                    , viewSchedulesNotAllowedSpan
-                    ]
-    in
     div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
-        [ content
+        [ if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
+            div []
+                [ h2 [] [ text "Add Schedule" ]
+                , addForm model.schedulesModel
+                ]
+
+          else
+            div []
+                [ h2 [] [ text "Add Schedule" ]
+                , viewSchedulesNotAllowedSpan
+                ]
         ]
 
 
@@ -258,30 +257,26 @@ addKey schedule =
 -}
 editSchedule : PartialModel a msg -> Html Msg
 editSchedule model =
-    let
-        content =
-            if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
-                case model.schedulesModel.schedule of
-                    Success _ ->
-                        div []
-                            [ h2 [] [ text "View/Edit Schedule" ]
-                            , editForm model.schedulesModel
-                            ]
-
-                    Failure _ ->
-                        viewResourceError { resourceLabel = "schedule", testLabel = "schedule" }
-
-                    _ ->
-                        text ""
-
-            else
-                div []
-                    [ h2 [] [ text "View/Edit Schedule" ]
-                    , viewSchedulesNotAllowedSpan
-                    ]
-    in
     div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
-        [ content
+        [ if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
+            case model.schedulesModel.schedule of
+                Success _ ->
+                    div []
+                        [ h2 [] [ text "View/Edit Schedule" ]
+                        , editForm model.schedulesModel
+                        ]
+
+                Failure _ ->
+                    viewResourceError { resourceLabel = "schedule", testLabel = "schedule" }
+
+                _ ->
+                    text ""
+
+          else
+            div []
+                [ h2 [] [ text "View/Edit Schedule" ]
+                , viewSchedulesNotAllowedSpan
+                ]
         ]
 
 
