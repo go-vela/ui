@@ -25,7 +25,7 @@ import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
-import Time exposing (Zone)
+import Time exposing (Posix, Zone)
 import Vela exposing (Org, Repo, Schedule, Schedules)
 
 
@@ -41,6 +41,7 @@ type alias PartialModel a msg =
         , velaScheduleAllowlist : List ( Org, Repo )
         , session : Session
         , page : Page
+        , time : Posix
         , zone : Zone
         , schedulesModel : Model msg
     }
@@ -76,7 +77,7 @@ type alias ScheduleForm =
 
 defaultScheduleUpdate : ScheduleForm
 defaultScheduleUpdate =
-    ScheduleForm "" "0 0 * * *" True
+    ScheduleForm "" "" True
 
 
 

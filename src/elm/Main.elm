@@ -2693,12 +2693,12 @@ viewContent model =
 
         Pages.AddSchedule org repo ->
             ( String.join "/" [ org, repo, "add schedule" ]
-            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.addSchedule model
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewAddSchedule model
             )
 
         Pages.Schedule org repo name ->
             ( String.join "/" [ org, repo, name ]
-            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.editSchedule model
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewEditSchedule model
             )
 
         Pages.Schedules org repo maybePage _ ->

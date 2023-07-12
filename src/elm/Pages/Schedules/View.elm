@@ -5,8 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Schedules.View exposing
-    ( addSchedule
-    , editSchedule
+    ( viewAddSchedule
+    , viewEditSchedule
     , viewRepoSchedules
     )
 
@@ -16,7 +16,6 @@ import Html
     exposing
         ( Html
         , a
-        , button
         , div
         , h2
         , span
@@ -25,18 +24,14 @@ import Html
         , tr
         )
 import Html.Attributes exposing (attribute, class, scope)
-import Html.Events exposing (onClick)
 import Http
 import Pages.Schedules.Form
     exposing
-        ( viewEnabledCheckbox
-        , viewHelp
-        , viewNameInput
-        , viewSubmitButtons
-        , viewValueInput
+        ( viewAddForm
+        , viewEditForm
         )
-import Pages.Schedules.Model exposing (Model, Msg, PartialModel)
-import RemoteData exposing (RemoteData(..), WebData)
+import Pages.Schedules.Model exposing (Msg, PartialModel)
+import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
 import Table
@@ -202,47 +197,6 @@ updateScheduleHref org repo s =
         Routes.Schedule org repo s.name
 
 
-{-| addSchedule : takes partial model and renders the Add schedule form
--}
-addSchedule : PartialModel a msg -> Html Msg
-addSchedule model =
-    div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
-        [ div []
-            [ h2 [] [ text "Add Schedule" ]
-            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
-                addForm model.schedulesModel
-
-              else
-                viewSchedulesNotAllowedSpan
-            ]
-        ]
-
-
-{-| addForm : renders schedule update form for adding a new schedule
--}
-addForm : Model msg -> Html Msg
-addForm scheduleModel =
-    let
-        s =
-            scheduleModel.form
-    in
-    div [ class "schedule-form" ]
-        [ viewNameInput s.name False
-        , viewValueInput s.entry "cron expression (0 0 * * *)"
-        , viewEnabledCheckbox s
-        , viewHelp
-        , div [ class "form-action" ]
-            [ button
-                [ class "button"
-                , class "-outline"
-                , onClick <| Pages.Schedules.Model.AddSchedule
-                , Util.testAttribute "schedule-add-button"
-                ]
-                [ text "Add" ]
-            ]
-        ]
-
-
 {-| addKey : helper to create Schedule key
 -}
 addKey : Schedule -> Schedule
@@ -250,17 +204,42 @@ addKey schedule =
     { schedule | org = schedule.org ++ "/" ++ schedule.repo ++ "/" ++ schedule.name }
 
 
-{-| editSchedule : takes partial model and renders schedule update form for editing a schedule
+{-| viewSchedulesNotAllowedSpan : renders a warning that schedules have not been enabled for the current repository.
 -}
-editSchedule : PartialModel a msg -> Html Msg
-editSchedule model =
+viewSchedulesNotAllowedSpan : Html msg
+viewSchedulesNotAllowedSpan =
+    span [ class "not-allowed", Util.testAttribute "repo-schedule-not-allowed" ]
+        [ text "Sorry, Administrators have not enabled Schedules for this repository."
+        ]
+
+
+{-| viewAddSchedule : takes partial model and renders the Add schedule form
+-}
+viewAddSchedule : PartialModel a msg -> Html Msg
+viewAddSchedule model =
+    div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
+        [ div []
+            [ h2 [] [ text "Add Schedule" ]
+            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
+                viewAddForm model
+
+              else
+                viewSchedulesNotAllowedSpan
+            ]
+        ]
+
+
+{-| viewEditSchedule : takes partial model and renders schedule update form for editing a schedule
+-}
+viewEditSchedule : PartialModel a msg -> Html Msg
+viewEditSchedule model =
     div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
         [ div []
             [ h2 [] [ text "View/Edit Schedule" ]
             , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
                 case model.schedulesModel.schedule of
                     Success _ ->
-                        editForm model.schedulesModel
+                        viewEditForm model
 
                     Failure _ ->
                         viewResourceError { resourceLabel = "schedule", testLabel = "schedule" }
@@ -271,30 +250,4 @@ editSchedule model =
               else
                 viewSchedulesNotAllowedSpan
             ]
-        ]
-
-
-{-| editForm : renders schedule update form for updating a preexisting schedule
--}
-editForm : Model msg -> Html Msg
-editForm scheduleModel =
-    let
-        scheduleUpdate =
-            scheduleModel.form
-    in
-    div [ class "schedule-form", class "edit-form" ]
-        [ viewNameInput scheduleUpdate.name True
-        , viewValueInput scheduleUpdate.entry "cron expression (0 0 * * *)"
-        , viewEnabledCheckbox scheduleUpdate
-        , viewHelp
-        , viewSubmitButtons scheduleModel
-        ]
-
-
-{-| viewSchedulesNotAllowedSpan : renders a warning that schedules have not been enabled for the current repository.
--}
-viewSchedulesNotAllowedSpan : Html msg
-viewSchedulesNotAllowedSpan =
-    span [ class "not-allowed", Util.testAttribute "repo-schedule-not-allowed" ]
-        [ text "Sorry, Administrators have not enabled Schedules for this repository."
         ]
