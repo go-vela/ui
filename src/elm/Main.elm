@@ -1216,10 +1216,10 @@ update msg model =
 
         ScheduleResponse response ->
             case response of
-                Ok ( _, s ) ->
+                Ok ( _, schedule ) ->
                     let
                         updatedSchedulesModel =
-                            Pages.Schedules.Update.reinitializeScheduleUpdate sm s
+                            Pages.Schedules.Update.reinitializeScheduleUpdate sm schedule
                     in
                     ( { model | schedulesModel = updatedSchedulesModel }
                     , Cmd.none
@@ -1230,32 +1230,26 @@ update msg model =
 
         AddScheduleResponse response ->
             case response of
-                Ok _ ->
+                Ok ( _, schedule ) ->
                     let
-                        alertMessage =
-                            "Schedule Added"
-
-                        redirectTo =
-                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                        updatedSchedulesModel =
+                            Pages.Schedules.Update.reinitializeScheduleAdd sm
                     in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+                    ( { model | schedulesModel = updatedSchedulesModel }, Cmd.none )
+                        |> addScheduleResponseAlert schedule
 
                 Err error ->
                     ( model, addError error )
 
         UpdateScheduleResponse response ->
             case response of
-                Ok _ ->
+                Ok ( _, schedule ) ->
                     let
-                        alertMessage =
-                            "Schedule Modified"
-
-                        redirectTo =
-                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                        updatedSchedulesModel =
+                            Pages.Schedules.Update.reinitializeScheduleUpdate sm schedule
                     in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+                    ( { model | schedulesModel = updatedSchedulesModel }, Cmd.none )
+                        |> updateScheduleResponseAlert schedule
 
                 Err error ->
                     ( model, addError error )
@@ -1265,7 +1259,7 @@ update msg model =
                 Ok _ ->
                     let
                         alertMessage =
-                            "Schedule Deleted"
+                            sm.form.name ++ " removed from repo schedules."
 
                         redirectTo =
                             Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
@@ -2157,6 +2151,34 @@ updateSecretResponseAlert secret =
 
         msg =
             String.Extra.toSentenceCase <| type_ ++ " secret " ++ secret.name ++ " updated."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| addScheduleResponseAlert : takes schedule and produces Toasty alert for when adding a schedule
+-}
+addScheduleResponseAlert :
+    Schedule
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+addScheduleResponseAlert schedule =
+    let
+        msg =
+            schedule.name ++ " added to repo schedules."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| updateScheduleResponseAlert : takes schedule and produces Toasty alert for when updating a schedule
+-}
+updateScheduleResponseAlert :
+    Schedule
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+updateScheduleResponseAlert schedule =
+    let
+        msg =
+            "Repo schedule " ++ schedule.name ++ " updated."
     in
     Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
