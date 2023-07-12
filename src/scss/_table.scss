@@ -77,6 +77,10 @@
   background-color: var(--color-bg);
 }
 
+td .key .list-item {
+  max-width: 24rem;
+}
+
 .table-base .source-id {
   padding: 0.2rem 1rem;
 
