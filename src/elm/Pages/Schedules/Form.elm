@@ -103,12 +103,12 @@ viewValueInput val placeholder_ time =
     section [ class "form-control", class "-stack" ]
         [ label [ class "form-label", for <| "schedule-entry" ]
             [ strong [] [ text "Cron Expression " ]
+            , viewCronHelpLink
             , span [ class "field-description" ]
                 [ text "( "
                 , em [] [ text <| "Expressions are evaluated in UTC, time now is " ++ time ]
                 , text " )"
                 ]
-            , viewCronHelpLink
             ]
         , textarea
             [ value val
@@ -126,7 +126,7 @@ viewValueInput val placeholder_ time =
 -}
 viewCronHelpLink : Html msg
 viewCronHelpLink =
-    a [ href "https://crontab.guru/", target "_blank" ] [ text "help" ]
+    a [ class "field-help-link", href "https://crontab.guru/", target "_blank" ] [ text "help" ]
 
 
 {-| radio : takes current value, field id, title for label, and click action and renders an input radio.

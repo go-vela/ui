@@ -1687,9 +1687,12 @@ details.build-toggle {
 
 // Secrets Section end
 
+.field-help-link {
+  margin-left: 0.6rem;
+}
+
 .field-description {
-  margin-right: 0.6rem;
-  margin-left: 1rem;
+  margin: 0 0.6rem;
 
   font-weight: 300;
   font-size: 1rem;
