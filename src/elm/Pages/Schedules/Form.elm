@@ -5,11 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Schedules.Form exposing
-    ( viewEnabledCheckbox
-    , viewHelp
-    , viewNameInput
-    , viewSubmitButtons
-    , viewValueInput
+    ( viewAddForm
+    , viewEditForm
     )
 
 import Html
@@ -41,16 +38,43 @@ import Html.Attributes
         , value
         )
 import Html.Events exposing (onClick, onInput)
-import Pages.Schedules.Model exposing (DeleteScheduleState(..), Model, Msg(..), ScheduleForm)
+import Pages.Schedules.Model exposing (DeleteScheduleState(..), Model, Msg(..), PartialModel, ScheduleForm)
 import Util
 import Vela exposing (Field)
 
 
-{-| viewHelp : renders help msg pointing to Vela docs
+{-| viewAddForm : renders schedule update form for adding a new schedule
 -}
-viewHelp : Html Msg
-viewHelp =
-    div [ class "help" ] [ text "Need help? Visit our ", a [ href schedulesDocsURL, target "_blank" ] [ text "docs" ], text "!" ]
+viewAddForm : PartialModel a msg -> Html Msg
+viewAddForm model =
+    let
+        sm =
+            model.schedulesModel
+    in
+    div [ class "schedule-form" ]
+        [ viewNameInput sm.form.name False
+        , viewValueInput sm.form.entry "0 0 * * * (runs at 00:00 AM in UTC)" (Util.toUtcString model.time)
+        , viewEnabledCheckbox sm.form
+        , viewHelp
+        , viewAddButton
+        ]
+
+
+{-| viewEditForm : renders schedule update form for updating a preexisting schedule
+-}
+viewEditForm : PartialModel a msg -> Html Msg
+viewEditForm model =
+    let
+        sm =
+            model.schedulesModel
+    in
+    div [ class "schedule-form", class "edit-form" ]
+        [ viewNameInput sm.form.name True
+        , viewValueInput sm.form.entry "0 0 * * * (runs at 00:00 AM in UTC)" (Util.toUtcString model.time)
+        , viewEnabledCheckbox sm.form
+        , viewHelp
+        , viewEditFormSubmitButtons sm
+        ]
 
 
 {-| viewNameInput : renders name input box
@@ -144,8 +168,32 @@ viewEnabledCheckbox enableUpdate =
         ]
 
 
-viewSubmitButtons : Model msg -> Html Msg
-viewSubmitButtons schedulesModel =
+{-| viewHelp : renders help msg pointing to Vela docs
+-}
+viewHelp : Html Msg
+viewHelp =
+    div [ class "help" ] [ text "Need help? Visit our ", a [ href schedulesDocsURL, target "_blank" ] [ text "docs" ], text "!" ]
+
+
+{-| viewAddButton : renders submit button for adding a schedule
+-}
+viewAddButton : Html Msg
+viewAddButton =
+    div [ class "form-action" ]
+        [ button
+            [ class "button"
+            , class "-outline"
+            , onClick <| Pages.Schedules.Model.AddSchedule
+            , Util.testAttribute "schedule-add-button"
+            ]
+            [ text "Add" ]
+        ]
+
+
+{-| viewEditFormSubmitButtons : renders all submit buttons for view/edit schedule
+-}
+viewEditFormSubmitButtons : Model msg -> Html Msg
+viewEditFormSubmitButtons schedulesModel =
     div [ class "buttons" ]
         [ viewUpdateButton
         , viewCancelButton schedulesModel
@@ -153,6 +201,8 @@ viewSubmitButtons schedulesModel =
         ]
 
 
+{-| viewUpdateButton : renders submit button for updating a schedule
+-}
 viewUpdateButton : Html Msg
 viewUpdateButton =
     button
@@ -163,6 +213,8 @@ viewUpdateButton =
         [ text "Update" ]
 
 
+{-| viewDeleteButton : renders submit button for deleting a schedule
+-}
 viewDeleteButton : Model msg -> Html Msg
 viewDeleteButton schedulesModel =
     let
@@ -193,6 +245,8 @@ viewDeleteButton schedulesModel =
         [ text deleteButtonText ]
 
 
+{-| viewCancelButton : renders submit button for canceling a schedule deletion
+-}
 viewCancelButton : Model msg -> Html Msg
 viewCancelButton schedulesModel =
     case schedulesModel.deleteState of
@@ -216,6 +270,8 @@ viewCancelButton schedulesModel =
 -- HELPERS
 
 
+{-| schedulesDocsURL : returns the Vela docs URL for schedules
+-}
 schedulesDocsURL : String
 schedulesDocsURL =
     "https://go-vela.github.io/docs/usage/schedules/"
