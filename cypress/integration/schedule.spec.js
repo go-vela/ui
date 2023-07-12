@@ -33,7 +33,10 @@ context('Add Schedule', () => {
         it('default entry value should show', () => {
           cy.get('[data-test=schedule-entry]')
             .should('exist')
-            .should('have.value', '0 0 * * *');
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('0 0 * * *');
+            });
         });
         it('add button should show', () => {
           cy.get('[data-test=schedule-add-button]').should('exist');
@@ -60,7 +63,10 @@ context('Add Schedule', () => {
         it('default entry value should show', () => {
           cy.get('[data-test=schedule-entry]')
             .should('exist')
-            .should('have.value', '0 0 * * *');
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('0 0 * * *');
+            });
         });
         it('add button should show', () => {
           cy.get('[data-test=schedule-add-button]').should('exist');
@@ -119,8 +125,11 @@ context('View/Edit Schedule', () => {
         it('default entry value should show', () => {
           cy.get('[data-test=schedule-entry]')
             .should('exist')
-            .should('have.value', '0 0 * * *');
-        });
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('0 0 * * *');
+            });
+          });
         it('update button should show', () => {
           cy.get('[data-test=schedule-update-button]').should('exist');
         });
@@ -146,8 +155,11 @@ context('View/Edit Schedule', () => {
         it('default entry value should show', () => {
           cy.get('[data-test=schedule-entry]')
             .should('exist')
-            .should('have.value', '0 0 * * *');
-        });
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('0 0 * * *');
+            });
+          });
         it('update button should show', () => {
           cy.get('[data-test=schedule-update-button]').should('exist');
         });
