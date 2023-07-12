@@ -53,7 +53,7 @@ viewAddForm model =
     in
     div [ class "schedule-form" ]
         [ viewNameInput sm.form.name False
-        , viewValueInput sm.form.entry "0 0 * * * (runs at 00:00 AM in UTC)" (Util.toUtcString model.time)
+        , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.time)
         , viewEnabledCheckbox sm.form
         , viewHelp
         , viewAddButton
