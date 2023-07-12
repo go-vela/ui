@@ -147,9 +147,9 @@ relativeTimeNoSeconds now then_ =
 -}
 toUtcString : Time.Posix -> String
 toUtcString time =
-    String.fromInt (toHour utc time)
+    toTwoDigits (toHour utc time)
         ++ ":"
-        ++ String.fromInt (toMinute utc time)
+        ++ toTwoDigits (toMinute utc time)
 
 
 {-| noSomeSecondsAgo : helper for configurating DateFormat.Relative.relativeTime
