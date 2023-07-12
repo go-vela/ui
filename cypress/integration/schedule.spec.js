@@ -129,7 +129,7 @@ context('View/Edit Schedule', () => {
             .then(placeholder => {
               expect(placeholder).to.include('0 0 * * *');
             });
-          });
+        });
         it('update button should show', () => {
           cy.get('[data-test=schedule-update-button]').should('exist');
         });
@@ -159,7 +159,7 @@ context('View/Edit Schedule', () => {
             .then(placeholder => {
               expect(placeholder).to.include('0 0 * * *');
             });
-          });
+        });
         it('update button should show', () => {
           cy.get('[data-test=schedule-update-button]').should('exist');
         });
