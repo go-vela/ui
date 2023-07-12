@@ -35,8 +35,8 @@ import Pages.Schedules.Form
         , viewSubmitButtons
         , viewValueInput
         )
-import Pages.Schedules.Model exposing (Model, Msg, PartialModel)
-import RemoteData exposing (RemoteData(..), WebData)
+import Pages.Schedules.Model exposing (Msg, PartialModel)
+import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
 import Table
@@ -210,7 +210,7 @@ addSchedule model =
         [ div []
             [ h2 [] [ text "Add Schedule" ]
             , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
-                addForm model.schedulesModel
+                addForm model
 
               else
                 viewSchedulesNotAllowedSpan
@@ -220,15 +220,15 @@ addSchedule model =
 
 {-| addForm : renders schedule update form for adding a new schedule
 -}
-addForm : Model msg -> Html Msg
-addForm scheduleModel =
+addForm : PartialModel a msg -> Html Msg
+addForm model =
     let
         s =
-            scheduleModel.form
+            model.schedulesModel.form
     in
     div [ class "schedule-form" ]
         [ viewNameInput s.name False
-        , viewValueInput s.entry "cron expression (0 0 * * *)"
+        , viewValueInput s.entry "0 0 * * * (runs at 00:00 AM in UTC)" (Util.toUtcString model.time)
         , viewEnabledCheckbox s
         , viewHelp
         , div [ class "form-action" ]
@@ -260,7 +260,7 @@ editSchedule model =
             , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
                 case model.schedulesModel.schedule of
                     Success _ ->
-                        editForm model.schedulesModel
+                        editForm model
 
                     Failure _ ->
                         viewResourceError { resourceLabel = "schedule", testLabel = "schedule" }
@@ -276,18 +276,18 @@ editSchedule model =
 
 {-| editForm : renders schedule update form for updating a preexisting schedule
 -}
-editForm : Model msg -> Html Msg
-editForm scheduleModel =
+editForm : PartialModel a msg -> Html Msg
+editForm model =
     let
-        scheduleUpdate =
-            scheduleModel.form
+        sm =
+            model.schedulesModel
     in
     div [ class "schedule-form", class "edit-form" ]
-        [ viewNameInput scheduleUpdate.name True
-        , viewValueInput scheduleUpdate.entry "cron expression (0 0 * * *)"
-        , viewEnabledCheckbox scheduleUpdate
+        [ viewNameInput sm.form.name True
+        , viewValueInput sm.form.entry "0 0 * * * (runs at 00:00 AM in UTC)" (Util.toUtcString model.time)
+        , viewEnabledCheckbox sm.form
         , viewHelp
-        , viewSubmitButtons scheduleModel
+        , viewSubmitButtons sm
         ]
 
 

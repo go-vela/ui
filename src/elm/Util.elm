@@ -41,6 +41,7 @@ module Util exposing
     , stringToMaybe
     , successful
     , testAttribute
+    , toUtcString
     , trimCommitHash
     , yesNoToBool
     )
@@ -59,7 +60,7 @@ import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import String.Extra
 import Task exposing (perform, succeed)
-import Time exposing (Posix, Zone, posixToMillis)
+import Time exposing (Posix, Zone, posixToMillis, toHour, toMinute, utc)
 
 
 {-| testAttribute : returns an html attribute that produces msgs for selecting the element during automated testing
@@ -140,6 +141,15 @@ humanReadableDateTimeFormatter =
 relativeTimeNoSeconds : Posix -> Posix -> String
 relativeTimeNoSeconds now then_ =
     relativeTimeWithOptions { defaultRelativeOptions | someSecondsAgo = noSomeSecondsAgo } now then_
+
+
+{-| toUtcString : helper for using Time to convert Posix to a UTC string in the format HH:MM
+-}
+toUtcString : Time.Posix -> String
+toUtcString time =
+    String.fromInt (toHour utc time)
+        ++ ":"
+        ++ String.fromInt (toMinute utc time)
 
 
 {-| noSomeSecondsAgo : helper for configurating DateFormat.Relative.relativeTime

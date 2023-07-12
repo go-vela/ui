@@ -74,12 +74,17 @@ viewNameInput val disable =
 
 {-| viewValueInput : renders value input box
 -}
-viewValueInput : String -> String -> Html Msg
-viewValueInput val placeholder_ =
+viewValueInput : String -> String -> String -> Html Msg
+viewValueInput val placeholder_ time =
     section [ class "form-control", class "-stack" ]
         [ label [ class "form-label", for <| "schedule-entry" ]
             [ strong [] [ text "Cron Expression " ]
-            , a [ href "https://crontab.guru/", target "_blank" ] [ text "(help)" ]
+            , span [ class "field-description" ]
+                [ text "( "
+                , em [] [ text <| "Expressions are evaluated in UTC, time now is " ++ time ]
+                , text " )"
+                ]
+            , viewCronHelpLink
             ]
         , textarea
             [ value val
@@ -91,6 +96,13 @@ viewValueInput val placeholder_ =
             ]
             []
         ]
+
+
+{-| viewCronHelpLink : renders cron help link
+-}
+viewCronHelpLink : Html msg
+viewCronHelpLink =
+    a [ href "https://crontab.guru/", target "_blank" ] [ text "help" ]
 
 
 {-| radio : takes current value, field id, title for label, and click action and renders an input radio.
