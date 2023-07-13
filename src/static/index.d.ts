@@ -57,6 +57,10 @@ export type Flags = {
   readonly velaRedirect: string;
   /** @property velaLogBytesLimit: number */
   readonly velaLogBytesLimit: number;
+  /** @property velaMaxBuildLimit: number */
+  readonly velaMaxBuildLimit: number;
+  /** @property velaScheduleAllowlist: string */
+  readonly velaScheduleAllowlist: string;
 };
 
 /**

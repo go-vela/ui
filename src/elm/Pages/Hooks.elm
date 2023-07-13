@@ -8,13 +8,14 @@ module Pages.Hooks exposing (view)
 
 import Ansi.Log
 import Array
-import Errors exposing (viewResourceError)
 import Html
     exposing
         ( Html
+        , a
         , code
         , div
         , small
+        , span
         , td
         , text
         , tr
@@ -23,8 +24,10 @@ import Html.Attributes
     exposing
         ( attribute
         , class
+        , href
         , scope
         )
+import Http
 import Pages.Build.Logs exposing (decodeAnsi)
 import RemoteData
 import SvgBuilder exposing (hookStatusToIcon)
@@ -34,8 +37,11 @@ import Util
 import Vela
     exposing
         ( Hook
+        , HookNumber
         , Hooks
         , HooksModel
+        , Org
+        , Repo
         )
 
 
@@ -44,7 +50,13 @@ import Vela
 type alias PartialModel =
     { hooks : HooksModel
     , time : Posix
+    , org : Org
+    , repo : Repo
     }
+
+
+type alias RedeliverHook msg =
+    Org -> Repo -> HookNumber -> msg
 
 
 
@@ -53,39 +65,55 @@ type alias PartialModel =
 
 {-| view : renders hooks
 -}
-view : PartialModel -> Html msg
-view { hooks, time } =
-    case hooks.hooks of
-        RemoteData.Success hooks_ ->
-            div []
-                [ Table.view
-                    (Table.Config
-                        "Hooks"
-                        "hooks"
-                        "No hooks found for this organization/repo"
-                        tableHeaders
-                        (hooksToRows time hooks_)
-                        Nothing
+view : PartialModel -> RedeliverHook msg -> Html msg
+view { hooks, time, org, repo } redeliverHook =
+    let
+        ( noRowsView, rows ) =
+            case hooks.hooks of
+                RemoteData.Success hooks_ ->
+                    ( text "No hooks found for this repo"
+                    , hooksToRows time hooks_ org repo redeliverHook
                     )
-                ]
 
-        RemoteData.Loading ->
-            Util.largeLoader
+                RemoteData.Failure error ->
+                    ( span [ Util.testAttribute "hooks-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No hooks found for this repo, most likely due to not having sufficient permissions to the source control repo"
 
-        RemoteData.NotAsked ->
-            Util.largeLoader
+                                        _ ->
+                                            "No hooks found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
-        RemoteData.Failure _ ->
-            viewResourceError { resourceLabel = "hooks for this repository", testLabel = "hooks" }
+                                _ ->
+                                    "No hooks found for this repo, there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                _ ->
+                    ( Util.largeLoader, [] )
+
+        cfg =
+            Table.Config
+                "Hooks"
+                "hooks"
+                noRowsView
+                tableHeaders
+                rows
+                Nothing
+    in
+    div [] [ Table.view cfg ]
 
 
 {-| hooksToRows : takes list of hooks and produces list of Table rows
 -}
-hooksToRows : Posix -> Hooks -> Table.Rows Hook msg
-hooksToRows now hooks =
+hooksToRows : Posix -> Hooks -> Org -> Repo -> RedeliverHook msg -> Table.Rows Hook msg
+hooksToRows now hooks org repo redeliverHook =
     hooks
-        |> List.map (\hook -> [ Just <| Table.Row hook (renderHook now), hookErrorRow hook ])
-        |> List.concat
+        |> List.concatMap (\hook -> [ Just <| Table.Row hook (renderHook now org repo redeliverHook), hookErrorRow hook ])
         |> List.filterMap identity
 
 
@@ -104,8 +132,8 @@ tableHeaders =
 
 {-| renderHook : takes hook and renders a table row
 -}
-renderHook : Posix -> Hook -> Html msg
-renderHook now hook =
+renderHook : Posix -> Org -> Repo -> RedeliverHook msg -> Hook -> Html msg
+renderHook now org repo redeliverHook hook =
     tr [ Util.testAttribute <| "hooks-row", hookStatusToRowClass hook.status ]
         [ td
             [ attribute "data-label" "status"
@@ -144,6 +172,20 @@ renderHook now hook =
             , class "break-word"
             ]
             [ text hook.branch ]
+        , td
+            [ attribute "data-label" ""
+            , scope "row"
+            , class "break-word"
+            ]
+            [ a
+                [ href "#"
+                , class "break-word"
+                , Util.onClickPreventDefault <| redeliverHook org repo <| String.fromInt hook.number
+                , Util.testAttribute <| "redeliver-hook-" ++ String.fromInt hook.number
+                ]
+                [ text "Redeliver Hook"
+                ]
+            ]
         ]
 
 

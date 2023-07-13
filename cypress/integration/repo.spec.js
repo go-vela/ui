@@ -56,6 +56,15 @@ context('Repo', () => {
             cy.location('pathname').should('eq', '/github/octocat/settings');
           });
         });
+        context('click schedules in nav tabs', () => {
+          beforeEach(() => {
+            cy.get('[data-test=jump-Schedules]').click();
+          });
+
+          it('loads repo schedules', () => {
+            cy.location('pathname').should('eq', '/github/octocat/schedules');
+          });
+        });
         context('click audit in nav tabs, again', () => {
           beforeEach(() => {
             cy.get('[data-test=jump-Audit]').click();

@@ -7,7 +7,6 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages.SourceRepos exposing (Msgs, PartialModel, view)
 
 import Dict
-import Errors exposing (viewResourceError)
 import Favorites
     exposing
         ( ToggleFavorite
@@ -22,8 +21,6 @@ import Html
         , button
         , details
         , div
-        , h1
-        , p
         , span
         , summary
         , text
@@ -34,6 +31,7 @@ import Html.Attributes
         , class
         )
 import Html.Events exposing (onClick)
+import List.Extra
 import RemoteData exposing (WebData)
 import Routes
 import Search
@@ -94,55 +92,100 @@ view model actions =
     let
         ( sourceRepos, filters ) =
             ( model.sourceRepos, model.filters )
-
-        loading =
-            div []
-                [ h1 []
-                    [ text "Loading your Repositories"
-                    , span [ class "loading-ellipsis" ] []
-                    ]
-                , p []
-                    [ text <|
-                        "Hang tight while we grab the list of repositories that you have access to from GitHub. If you have access to a lot of organizations and repositories this might take a little while."
-                    ]
-                ]
     in
-    case sourceRepos of
-        RemoteData.Success repos ->
-            div [ class "source-repos", Util.testAttribute "source-repos" ]
-                [ repoSearchBarGlobal filters actions.search
-                , viewSourceRepos model repos actions
-                ]
-
-        RemoteData.Loading ->
-            loading
-
-        RemoteData.NotAsked ->
-            loading
-
-        RemoteData.Failure _ ->
-            viewResourceError { resourceLabel = "your available repositories", testLabel = "repos" }
+    div [ Util.testAttribute "source-repos" ]
+        [ repoSearchBarGlobal filters actions.search
+        , viewSourceRepos model sourceRepos actions
+        ]
 
 
 {-| viewSourceRepos : takes model and source repos and renders them based on user search
 -}
-viewSourceRepos : PartialModel -> SourceRepositories -> Msgs msg -> Html msg
+viewSourceRepos : PartialModel -> WebData SourceRepositories -> Msgs msg -> Html msg
 viewSourceRepos model sourceRepos actions =
     let
         filters =
             model.filters
     in
-    if shouldSearch <| searchFilterGlobal filters then
-        -- Search and render repos using the global filter
-        searchReposGlobal model sourceRepos actions.enableRepo actions.toggleFavorite
+    case sourceRepos of
+        RemoteData.Success repos ->
+            if shouldSearch <| searchFilterGlobal filters then
+                -- Search and render repos using the global filter
+                searchReposGlobal model repos actions.enableRepo actions.toggleFavorite
 
-    else
-        -- Render repos normally
-        sourceRepos
-            |> Dict.toList
-            |> Util.filterEmptyLists
-            |> List.map (\( org, repos_ ) -> viewSourceOrg model.user filters org repos_ actions)
-            |> div [ class "repo-list" ]
+            else
+                -- Render repos normally
+                repos
+                    |> Dict.toList
+                    |> Util.filterEmptyLists
+                    |> List.map (\( org, repos_ ) -> viewSourceOrg model.user filters org repos_ actions)
+                    |> span []
+
+        RemoteData.Loading ->
+            span [] viewLoadingSourceOrgs
+
+        RemoteData.NotAsked ->
+            span [] viewLoadingSourceOrgs
+
+        RemoteData.Failure _ ->
+            viewErrorSourceOrg
+
+
+{-| viewLoadingSourceOrgs : renders 8 source org loading skeletons
+-}
+viewLoadingSourceOrgs : List (Html msg)
+viewLoadingSourceOrgs =
+    List.Extra.initialize 8
+        viewLoadingSourceOrg
+
+
+{-| viewLoadingSourceOrg : renders a loading indicator in the form of a source org skeleton
+-}
+viewLoadingSourceOrg : Int -> Html msg
+viewLoadingSourceOrg idx =
+    let
+        icon =
+            FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml []
+
+        content =
+            if idx == 0 then
+                span []
+                    [ text "Loading all source control repositories you have access to, this may take awhile"
+                    , span [ class "loading-ellipsis" ] []
+                    ]
+
+            else
+                text ""
+
+        animation =
+            div [ class "loading-shimmer" ] []
+    in
+    div [ class "loading-skeleton" ]
+        [ animation
+        , div []
+            [ icon
+            , content
+            ]
+        ]
+
+
+{-| viewErrorSourceOrg : renders an error in the form of a source org when unable to fetch source repositories
+-}
+viewErrorSourceOrg : Html msg
+viewErrorSourceOrg =
+    let
+        icon =
+            FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.toHtml []
+
+        content =
+            text "There was an error fetching your available repositories, please refresh or try again later!"
+    in
+    div [ class "loading-skeleton" ]
+        [ div []
+            [ icon
+            , content
+            ]
+        ]
 
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
@@ -314,8 +357,7 @@ searchReposGlobal model repos enableRepo toggleFavorite =
             repos
                 |> Dict.toList
                 |> Util.filterEmptyLists
-                |> List.map (\( _, repos_ ) -> repos_)
-                |> List.concat
+                |> List.concatMap (\( _, repos_ ) -> repos_)
                 |> List.filter (\repo -> filterRepo filters Nothing <| repo.org ++ "/" ++ repo.name)
     in
     div [ class "filtered-repos" ] <|

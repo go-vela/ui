@@ -9,6 +9,7 @@ module Pages.Build.Logs exposing
     , bottomTrackerFocusId
     , clickResource
     , decodeAnsi
+    , defaultAnsiLogModel
     , downloadFileName
     , expandActive
     , focusAndClear
@@ -80,9 +81,8 @@ merge logFocus refresh current incoming =
                                                 , logFocus = f
                                             }
                                     in
-                                    Just <| Maybe.withDefault s <| overwriteById s resources
+                                    Maybe.withDefault s <| overwriteById s resources
                                 )
-                            |> List.filterMap identity
                     )
     in
     -- when not an automatic refresh, respect the url focus
@@ -346,23 +346,23 @@ downloadFileName org repo buildNumber resourceType resourceNumber =
 -- ANSI
 
 
-{-| defaultLogModel : struct to represent default model required by ANSI parser
+{-| defaultAnsiLogModel : struct to represent default model required by ANSI parser
 -}
-defaultLogModel : Ansi.Log.Model
-defaultLogModel =
+defaultAnsiLogModel : Ansi.Log.Model
+defaultAnsiLogModel =
     { lineDiscipline = Ansi.Log.Cooked
     , lines = Array.empty
     , position = defaultPosition
     , savedPosition = Nothing
-    , style = defaultLogStyle
+    , style = defaultAnsiLogStyle
     , remainder = ""
     }
 
 
-{-| defaultLogStyle : struct to represent default style required by ANSI model
+{-| defaultAnsiLogStyle : struct to represent default style required by ANSI model
 -}
-defaultLogStyle : Ansi.Log.Style
-defaultLogStyle =
+defaultAnsiLogStyle : Ansi.Log.Style
+defaultAnsiLogStyle =
     { foreground = Nothing
     , background = Nothing
     , bold = False
@@ -390,4 +390,4 @@ see: <https://package.elm-lang.org/packages/vito/elm-ansi>
 -}
 decodeAnsi : String -> Array.Array Ansi.Log.Line
 decodeAnsi log =
-    .lines <| Ansi.Log.update log defaultLogModel
+    .lines <| Ansi.Log.update log defaultAnsiLogModel

@@ -11,6 +11,7 @@ import FeatherIcons
 import Html exposing (Html, a, button, div, h2, span, td, text, tr)
 import Html.Attributes exposing (attribute, class, scope)
 import Html.Events exposing (onClick)
+import Http
 import Pages.Secrets.Form exposing (viewAllowCommandCheckbox, viewEventsSelect, viewHelp, viewImagesInput, viewInput, viewNameInput, viewSubmitButtons, viewValueInput)
 import Pages.Secrets.Model
     exposing
@@ -30,7 +31,6 @@ import Vela
         , SecretType(..)
         , Secrets
         , secretTypeToString
-        , secretsErrorLabel
         )
 
 
@@ -63,33 +63,45 @@ viewRepoSecrets model =
                             |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
                         ]
                     ]
-    in
-    case secretsModel.repoSecrets of
-        Success s ->
-            div []
-                [ Table.view
-                    (Table.Config
-                        "Repo Secrets"
-                        "repo-secrets"
-                        "No secrets found for this repository"
-                        tableHeaders
-                        (secretsToRows Vela.RepoSecret s)
-                        actions
+
+        ( noRowsView, rows ) =
+            case secretsModel.repoSecrets of
+                Success s ->
+                    ( text "No secrets found for this repo"
+                    , secretsToRows Vela.RepoSecret s
                     )
-                ]
 
-        RemoteData.Failure _ ->
-            viewResourceError
-                { resourceLabel =
-                    secretsErrorLabel Vela.RepoSecret
-                        secretsModel.org
-                    <|
-                        Just secretsModel.repo
-                , testLabel = "repo-secrets"
-                }
+                Failure error ->
+                    ( span [ Util.testAttribute "repo-secrets-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No secrets found for this repo, most likely due to not being an admin of the source control repo"
 
-        _ ->
-            div [] [ largeLoader ]
+                                        _ ->
+                                            "No secrets found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No secrets found for this repo, there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                _ ->
+                    ( largeLoader, [] )
+
+        cfg =
+            Table.Config
+                "Repo Secrets"
+                "repo-secrets"
+                noRowsView
+                tableHeaders
+                rows
+                actions
+    in
+    div [] [ Table.view cfg ]
 
 
 {-| viewOrgSecrets : takes secrets model and renders table for viewing org secrets
@@ -139,33 +151,45 @@ viewOrgSecrets model showManage showAdd =
                     [ manageButton
                     , addButton
                     ]
-    in
-    case secretsModel.orgSecrets of
-        Success s ->
-            div []
-                [ Table.view
-                    (Table.Config
-                        "Org Secrets"
-                        "org-secrets"
-                        "No secrets found for this org"
-                        tableHeaders
-                        (secretsToRows Vela.OrgSecret s)
-                        actions
+
+        ( noRowsView, rows ) =
+            case secretsModel.orgSecrets of
+                Success s ->
+                    ( text "No secrets found for this org"
+                    , secretsToRows Vela.OrgSecret s
                     )
-                ]
 
-        RemoteData.Failure _ ->
-            viewResourceError
-                { resourceLabel =
-                    secretsErrorLabel Vela.OrgSecret
-                        secretsModel.org
-                    <|
-                        Nothing
-                , testLabel = "org-secrets"
-                }
+                Failure error ->
+                    ( span [ Util.testAttribute "org-secrets-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No secrets found for this org, most likely due to not being an admin of the source control org"
 
-        _ ->
-            div [] [ largeLoader ]
+                                        _ ->
+                                            "No secrets found for this org, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No secrets found for this org, there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                _ ->
+                    ( largeLoader, [] )
+
+        cfg =
+            Table.Config
+                "Org Secrets"
+                "org-secrets"
+                noRowsView
+                tableHeaders
+                rows
+                actions
+    in
+    div [] [ Table.view cfg ]
 
 
 {-| viewSharedSecrets : takes secrets model and renders table for viewing shared secrets
@@ -215,51 +239,72 @@ viewSharedSecrets model showManage showAdd =
                     [ manageButton
                     , addButton
                     ]
-    in
-    case secretsModel.sharedSecrets of
-        Success s ->
-            div []
-                [ Table.view
-                    (Table.Config
-                        "Shared Secrets"
-                        "shared-secrets"
-                        "No secrets found for this org/team"
-                        tableHeadersForSharedSecrets
-                        (secretsToRowsForSharedSecrets Vela.SharedSecret s)
-                        actions
+
+        ( noRowsView, rows ) =
+            case secretsModel.sharedSecrets of
+                Success s ->
+                    ( text "No shared secrets found for this org/team, it is possible that no teams exist or you are not an admin of the source control org"
+                    , secretsToRowsForSharedSecrets Vela.SharedSecret s
                     )
-                ]
 
-        RemoteData.Failure _ ->
-            div [] [ text "Unable to load Shared Secrets; Most likely due to not being a member of any team in this org" ]
+                Failure error ->
+                    ( span [ Util.testAttribute "shared-secrets-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No shared secrets found for this org/team, it is possible that no teams exist or you are not an admin of the source control org"
 
-        _ ->
-            div [] [ text "Loading Shared Secrets", largeLoader ]
+                                        _ ->
+                                            "No shared secrets found for this org/team, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No shared secrets found for this org/team, there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                _ ->
+                    ( largeLoader, [] )
+
+        cfg =
+            Table.Config
+                "Shared Secrets"
+                "shared-secrets"
+                noRowsView
+                tableHeadersForSharedSecrets
+                rows
+                actions
+    in
+    div [] [ Table.view cfg ]
 
 
 {-| secretsToRows : takes list of secrets and produces list of Table rows
 -}
 secretsToRows : SecretType -> Secrets -> Table.Rows Secret Msg
 secretsToRows type_ secrets =
-    List.map (\secret -> Table.Row secret (renderSecret type_)) secrets
+    List.map (\secret -> Table.Row (addKey secret) (renderSecret type_)) secrets
 
 
-{-| secretsToRows : takes list of secrets and produces list of Table rows
+{-| secretsToRowsForSharedSecrets : takes list of shared secrets and produces list of Table rows
 -}
 secretsToRowsForSharedSecrets : SecretType -> Secrets -> Table.Rows Secret Msg
 secretsToRowsForSharedSecrets type_ secrets =
-    List.map (\secret -> Table.Row secret (renderSharedSecret type_)) secrets
+    List.map (\secret -> Table.Row (addKey secret) (renderSharedSecret type_)) secrets
 
 
 {-| tableHeaders : returns table headers for secrets table
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Nothing, "name" )
+    [ ( Just "-icon", "" )
+    , ( Nothing, "name" )
+    , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
-    , ( Nothing, "allow command" )
+    , ( Nothing, "allow commands" )
     ]
 
 
@@ -267,27 +312,45 @@ tableHeaders =
 -}
 tableHeadersForSharedSecrets : Table.Columns
 tableHeadersForSharedSecrets =
-    [ ( Nothing, "name" )
+    [ ( Just "-icon", "" )
+    , ( Nothing, "name" )
     , ( Nothing, "team" )
+    , ( Nothing, "key" )
     , ( Nothing, "type" )
     , ( Nothing, "events" )
     , ( Nothing, "images" )
-    , ( Nothing, "allow command" )
+    , ( Nothing, "allow commands" )
     ]
 
 
 {-| renderSecret : takes secret and secret type and renders a table row
 -}
-renderSecret : SecretType -> Secret -> Html msg
+renderSecret : SecretType -> Secret -> Html Msg
 renderSecret type_ secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td
+            [ attribute "data-label" "copy yaml"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "secrets-row-copy"
+            ]
+            [ copyButton (copySecret secret) ]
+        , td
             [ attribute "data-label" "name"
             , scope "row"
             , class "break-word"
+            , class "name"
             , Util.testAttribute <| "secrets-row-name"
             ]
             [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
+        , td
+            [ attribute "data-label" "key"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "secrets-row-key"
+            ]
+            [ listItemView "key" secret.key
+            ]
         , td
             [ attribute "data-label" "type"
             , scope "row"
@@ -299,15 +362,13 @@ renderSecret type_ secret =
             , scope "row"
             , class "break-word"
             ]
-          <|
-            renderListCell secret.events "no events" "secret-event"
+            [ renderListCell secret.events "no events" "secret-event" ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
             , class "break-word"
             ]
-          <|
-            renderListCell secret.images "no images" "secret-image"
+            [ renderListCell secret.images "all images" "secret-image" ]
         , td
             [ attribute "data-label" "allow command"
             , scope "row"
@@ -319,10 +380,17 @@ renderSecret type_ secret =
 
 {-| renderSecret : takes secret and secret type and renders a table row
 -}
-renderSharedSecret : SecretType -> Secret -> Html msg
+renderSharedSecret : SecretType -> Secret -> Html Msg
 renderSharedSecret type_ secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td
+            [ attribute "data-label" "copy yaml"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "secrets-row-copy"
+            ]
+            [ copyButton (copySecret secret) ]
+        , td
             [ attribute "data-label" "name"
             , scope "row"
             , class "break-word"
@@ -337,6 +405,14 @@ renderSharedSecret type_ secret =
             ]
             [ a [ Routes.href <| Routes.SharedSecrets "native" (percentEncode secret.org) (percentEncode secret.team) Nothing Nothing ] [ text secret.team ] ]
         , td
+            [ attribute "data-label" "key"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "secrets-row-key"
+            ]
+            [ listItemView "key" secret.key
+            ]
+        , td
             [ attribute "data-label" "type"
             , scope "row"
             , class "break-word"
@@ -347,15 +423,13 @@ renderSharedSecret type_ secret =
             , scope "row"
             , class "break-word"
             ]
-          <|
-            renderListCell secret.events "no events" "secret-event"
+            [ renderListCell secret.events "no events" "secret-event" ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
             , class "break-word"
             ]
-          <|
-            renderListCell secret.images "no images" "secret-image"
+            [ renderListCell secret.images "all images" "secret-image" ]
         , td
             [ attribute "data-label" "allow command"
             , scope "row"
@@ -367,28 +441,31 @@ renderSharedSecret type_ secret =
 
 {-| renderListCell : takes list of items, text for none and className and renders a table cell
 -}
-renderListCell : List String -> String -> String -> List (Html msg)
+renderListCell : List String -> String -> String -> Html msg
 renderListCell items none itemClassName =
-    if List.length items == 0 then
-        [ text none ]
+    div [] <|
+        if List.length items == 0 then
+            [ text none ]
 
-    else
-        let
-            content =
-                items
-                    |> List.sort
-                    |> List.indexedMap
-                        (\i item ->
-                            if i + 1 < List.length items then
-                                Just <| item ++ ", "
+        else
+            items
+                |> List.sort
+                |> List.map
+                    (\item ->
+                        listItemView itemClassName item
+                    )
 
-                            else
-                                Just item
-                        )
-                    |> List.filterMap identity
-                    |> String.concat
-        in
-        [ Html.code [ class itemClassName ] [ span [] [ text content ] ] ]
+
+{-| listItemView : takes classname, text and size constraints and renders a list element
+-}
+listItemView : String -> String -> Html msg
+listItemView className text_ =
+    div [ class className ]
+        [ span
+            [ class "list-item"
+            ]
+            [ text text_ ]
+        ]
 
 
 {-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
@@ -412,6 +489,44 @@ updateSecretHref type_ secret =
 
             Vela.SharedSecret ->
                 Routes.SharedSecret "native" secret.org encodedTeam encodedName
+
+
+{-| copySecret : takes a secret and returns the yaml struct of the secret
+-}
+copySecret : Secret -> String
+copySecret secret =
+    let
+        yaml =
+            "- name: " ++ secret.name ++ "\n  key: " ++ secret.key ++ "\n  engine: native\n  type: "
+    in
+    case secret.type_ of
+        Vela.OrgSecret ->
+            yaml ++ "org"
+
+        Vela.RepoSecret ->
+            yaml ++ "repo"
+
+        Vela.SharedSecret ->
+            yaml ++ "shared"
+
+
+{-| copyButton : copy button that copys secret yaml to clipboard
+-}
+copyButton : String -> Html Msg
+copyButton copyYaml =
+    button
+        [ class "copy-button"
+        , attribute "aria-label" <| "copy secret yaml to clipboard "
+        , class "button"
+        , class "-icon"
+        , Html.Events.onClick <| Pages.Secrets.Model.Copy copyYaml
+        , attribute "data-clipboard-text" copyYaml
+        , Util.testAttribute "copy-secret"
+        ]
+        [ FeatherIcons.copy
+            |> FeatherIcons.withSize 18
+            |> FeatherIcons.toHtml []
+        ]
 
 
 
@@ -472,6 +587,21 @@ addForm secretsModel =
             [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.AddSecret secretsModel.engine ] [ text "Add" ]
             ]
         ]
+
+
+{-| addKey : helper to create secret key
+-}
+addKey : Secret -> Secret
+addKey secret =
+    case secret.type_ of
+        SharedSecret ->
+            { secret | key = secret.org ++ "/" ++ secret.team ++ "/" ++ secret.name }
+
+        OrgSecret ->
+            { secret | key = secret.org ++ "/" ++ secret.name }
+
+        RepoSecret ->
+            { secret | key = secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name }
 
 
 

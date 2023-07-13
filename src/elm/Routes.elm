@@ -7,14 +7,14 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Routes exposing (Route(..), href, match, routeToUrl)
 
 import Api.Pagination as Pagination
-import Focus exposing (ExpandTemplatesQuery, RefQuery)
+import Focus exposing (ExpandTemplatesQuery)
 import Html
 import Html.Attributes as Attr
 import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
 
 
 
@@ -37,15 +37,18 @@ type Route
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
+    | RepositoryBuildsPulls Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | RepositoryBuildsTags Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | AddDeploymentRoute Org Repo
     | PromoteDeployment Org Repo BuildNumber
     | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
-    | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
-    | BuildGraph Org Repo BuildNumber
-    | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) FocusFragment
+    | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) FocusFragment
+    | AddSchedule Org Repo
+    | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | Schedule Org Repo ScheduleName
     | Settings
     | Login
     | Logout
@@ -82,12 +85,15 @@ routes =
         , map PromoteDeployment (string </> string </> s "deployment" </> string)
         , map OrgBuilds (string </> s "builds" <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
         , map RepositoryBuilds (string </> string <?> Query.int "page" <?> Query.int "per_page" <?> Query.string "event")
+        , map RepositoryBuildsPulls (string </> string </> s "pulls" <?> Query.int "page" <?> Query.int "per_page")
+        , map RepositoryBuildsTags (string </> string </> s "tags" <?> Query.int "page" <?> Query.int "per_page")
         , map RepositoryDeployments (string </> string </> s "deployments" <?> Query.int "page" <?> Query.int "per_page")
-        , map Pipeline (string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
+        , map AddSchedule (string </> string </> s "add-schedule")
+        , map Schedules (string </> string </> s "schedules" <?> Query.int "page" <?> Query.int "per_page")
+        , map Schedule (string </> string </> s "schedules" </> string)
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
-        , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "ref" <?> Query.string "expand" </> fragment identity)
-        , map BuildGraph (string </> string </> string </> s "graph")
+        , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
         , map NotFound (s "404")
         ]
 
@@ -162,8 +168,23 @@ routeToUrl route =
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             "/" ++ org ++ "/" ++ repo ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage ++ eventToQueryParam maybeEvent)
 
+        RepositoryBuildsPulls org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/pulls" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
+
+        RepositoryBuildsTags org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/tags" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
+
         RepositoryDeployments org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/deployments" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
+
+        AddSchedule org repo ->
+            "/" ++ org ++ "/" ++ repo ++ "/add-schedule"
+
+        Schedule org repo name ->
+            "/" ++ org ++ "/" ++ repo ++ "/schedules/" ++ name
+
+        Schedules org repo maybePage maybePerPage ->
+            "/" ++ org ++ "/" ++ repo ++ "/schedules" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
 
         Hooks org repo maybePage maybePerPage ->
             "/" ++ org ++ "/" ++ repo ++ "/hooks" ++ UB.toQuery (Pagination.toQueryParams maybePage maybePerPage)
@@ -180,14 +201,8 @@ routeToUrl route =
         BuildServices org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/services" ++ Maybe.withDefault "" lineFocus
 
-        BuildPipeline org repo buildNumber ref expand lineFocus ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
-
-        BuildGraph org repo buildNumber ->
-            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/graph"
-
-        Pipeline org repo ref expand lineFocus ->
-            "/" ++ org ++ "/" ++ repo ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam ref "ref", maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
+        BuildPipeline org repo buildNumber expand lineFocus ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

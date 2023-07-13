@@ -10,8 +10,7 @@ module.exports = {
   ignoreFiles: ['src/scss/_reset.scss'],
   extends: [
     'stylelint-config-recommended-scss',
-    'stylelint-a11y/recommended',
-    'stylelint-config-prettier',
+    '@double-great/stylelint-a11y/recommended.cjs',
   ],
   plugins: [
     'stylelint-color-format',
@@ -23,8 +22,8 @@ module.exports = {
   rules: {
     'color-named': 'never',
     'color-no-hex': true,
+    'keyframe-block-no-duplicate-selectors': null, // we use duplicate selectors on purpose - it's a thing
     'declaration-no-important': true,
-    'declaration-colon-space-after': 'always',
     'declaration-empty-line-before': null,
     'font-weight-notation': 'named-where-possible',
     'no-descending-specificity': null,
@@ -46,14 +45,13 @@ module.exports = {
       2,
       { ignore: ['blockless-at-rules', 'pseudo-classes'] },
     ],
-    'number-leading-zero': 'always',
     'length-zero-no-unit': true,
     // mostly disallows traditional BEM naming
     // since we're going for http://www.cutestrap.com/features/popsicle
     'selector-class-pattern': '^((?!(-|_)\\2{1,})[a-z0-9\\-])*$',
     'selector-max-compound-selectors': 3,
     'selector-max-specificity': [
-      // setting for interim, try to lower especially last numer (id,class,type)
+      // setting for interim, try to lower especially last number (id,class,type)
       '0,3,3',
       { ignoreSelectors: ['/:.*/', '/^\\.-[^-].*/'] },
     ],

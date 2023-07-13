@@ -7,10 +7,12 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Api exposing
     ( Request(..)
     , addDeployment
+    , addSchedule
     , addSecret
     , cancelBuild
     , chownRepo
     , deleteRepo
+    , deleteSchedule
     , deleteSecret
     , enableRepository
     , expandPipelineConfig
@@ -31,12 +33,15 @@ module Api exposing
     , getPipelineConfig
     , getPipelineTemplates
     , getRepo
+    , getSchedule
+    , getSchedules
     , getSecret
     , getSecrets
     , getServiceLogs
     , getSourceRepositories
     , getStepLogs
     , getToken
+    , redeliverHook
     , repairRepo
     , restartBuild
     , try
@@ -44,6 +49,7 @@ module Api exposing
     , tryString
     , updateCurrentUser
     , updateRepository
+    , updateSchedule
     , updateSecret
     )
 
@@ -67,13 +73,20 @@ import Vela
         , DeploymentId
         , Engine
         , Event
+        , Hook
+        , HookNumber
         , Hooks
         , Key
         , Log
         , Name
         , Org
+        , PipelineConfig
+        , Ref
         , Repo
         , Repository
+        , Schedule
+        , ScheduleName
+        , Schedules
         , Secret
         , Secrets
         , Service
@@ -92,9 +105,12 @@ import Vela
         , decodeHooks
         , decodeLog
         , decodePipelineConfig
+        , decodePipelineExpand
         , decodePipelineTemplates
         , decodeRepositories
         , decodeRepository
+        , decodeSchedule
+        , decodeSchedules
         , decodeSecret
         , decodeSecrets
         , decodeService
@@ -511,7 +527,7 @@ updateRepository model org repo body =
 
 {-| getPipelineConfig : fetches vela pipeline by repository
 -}
-getPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Request String
+getPipelineConfig : PartialModel a -> Org -> Repo -> Ref -> Request PipelineConfig
 getPipelineConfig model org repository ref =
     get model.velaAPI (Endpoint.PipelineConfig org repository ref) decodePipelineConfig
         |> withAuth model.session
@@ -519,15 +535,15 @@ getPipelineConfig model org repository ref =
 
 {-| expandPipelineConfig : expands vela pipeline by repository
 -}
-expandPipelineConfig : PartialModel a -> Org -> Repo -> Maybe String -> Request String
+expandPipelineConfig : PartialModel a -> Org -> Repo -> Ref -> Request String
 expandPipelineConfig model org repository ref =
-    post model.velaAPI (Endpoint.ExpandPipelineConfig org repository ref) Http.emptyBody decodePipelineConfig
+    post model.velaAPI (Endpoint.ExpandPipelineConfig org repository ref) Http.emptyBody decodePipelineExpand
         |> withAuth model.session
 
 
 {-| getPipelineTemplates : fetches vela pipeline templates by repository
 -}
-getPipelineTemplates : PartialModel a -> Org -> Repo -> Maybe String -> Request Templates
+getPipelineTemplates : PartialModel a -> Org -> Repo -> Ref -> Request Templates
 getPipelineTemplates model org repository ref =
     get model.velaAPI (Endpoint.PipelineTemplates org repository ref) decodePipelineTemplates
         |> withAuth model.session
@@ -617,6 +633,14 @@ getHooks model maybePage maybePerPage org repository =
         |> withAuth model.session
 
 
+{-| redeliverHook : redelivers a hook
+-}
+redeliverHook : PartialModel a -> Org -> Repo -> HookNumber -> Request String
+redeliverHook model org repository hookNumber =
+    post model.velaAPI (Endpoint.Hook org repository hookNumber) Http.emptyBody Json.Decode.string
+        |> withAuth model.session
+
+
 {-| getAllSecrets : fetches secrets for the given type org and key
 -}
 getAllSecrets : PartialModel a -> Engine -> Type -> Org -> Key -> Request Secret
@@ -689,9 +713,45 @@ deleteSecret model engine type_ org key name =
         |> withAuth model.session
 
 
-{-| getBuildGraph : fetches vela build graph by repository and build number
+
+-- SCHEDULES
+
+
+{-| getSchedules : fetches vela schedules by repository
 -}
-getBuildGraph : PartialModel a -> Org -> Repo -> BuildNumber -> Request BuildGraph
-getBuildGraph model org repository buildNumber =
-    get model.velaAPI (Endpoint.BuildGraph org repository buildNumber) decodeBuildGraph
+getSchedules : PartialModel a -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Org -> Repo -> Request Schedules
+getSchedules model maybePage maybePerPage org repository =
+    get model.velaAPI (Endpoint.Schedule org repository Nothing maybePage maybePerPage) decodeSchedules
+        |> withAuth model.session
+
+
+{-| getSchedule : fetches vela schedules by repository and name
+-}
+getSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Request Schedule
+getSchedule model org repo id =
+    get model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) decodeSchedule
+        |> withAuth model.session
+
+
+{-| addSchedule : adds a schedule
+-}
+addSchedule : PartialModel a -> Org -> Repo -> Http.Body -> Request Schedule
+addSchedule model org repo body =
+    post model.velaAPI (Endpoint.Schedule org repo Nothing Nothing Nothing) body decodeSchedule
+        |> withAuth model.session
+
+
+{-| updateSchedule : updates a schedule
+-}
+updateSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Http.Body -> Request Schedule
+updateSchedule model org repo name body =
+    put model.velaAPI (Endpoint.Schedule org repo (Just name) Nothing Nothing) body decodeSchedule
+        |> withAuth model.session
+
+
+{-| deleteSchedule : deletes a schedule
+-}
+deleteSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Request String
+deleteSchedule model org repo id =
+    delete model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) Json.Decode.string
         |> withAuth model.session

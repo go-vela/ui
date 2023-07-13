@@ -510,3 +510,73 @@ context('visit Build with steps and large logs', () => {
     cy.get('[data-test=download-logs-1]').should('exist');
   });
 });
+context(
+  'visit Build with steps and linked logs using url line fragment',
+  () => {
+    beforeEach(() => {
+      cy.server();
+      cy.stubBuild();
+      cy.stubStepsWithLinkedLogs();
+      cy.login('/github/octocat/1');
+      cy.get('[data-test=step-header-2]').click({ force: true });
+      cy.get('[data-test=logs-1]').as('logs');
+      cy.get('[data-test=step-header-2]').click({ force: true });
+      cy.visit('/github/octocat/1#step:2:31');
+      cy.reload();
+      cy.wait('@getLogs-2');
+    });
+
+    it('lines should not contain link', () => {
+      cy.get('[data-test=log-line-step-2-1]').within(() => {
+        cy.get('[data-test=log-line-link]').should('not.exist');
+      });
+      cy.get('[data-test=log-line-step-2-2]').within(() => {
+        cy.get('[data-test=log-line-link]').should('not.exist');
+      });
+      cy.get('[data-test=log-line-step-2-3]').within(() => {
+        cy.get('[data-test=log-line-link]').should('not.exist');
+      });
+    });
+
+    it('lines should contain https link', () => {
+      cy.get('[data-test=log-line-step-2-4]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+      });
+      cy.get('[data-test=log-line-step-2-5]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+      });
+      cy.get('[data-test=log-line-step-2-6]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+      });
+      cy.get('[data-test=log-line-step-2-7]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+      });
+      cy.get('[data-test=log-line-step-2-8]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+      });
+      cy.get('[data-test=log-line-step-2-9]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+      });
+      cy.get('[data-test=log-line-step-2-10]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+      });
+      cy.get('[data-test=log-line-step-2-11]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+      });
+      cy.get('[data-test=log-line-step-2-12]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+      });
+    });
+
+    it('line should contain ansi color and link', () => {
+      cy.get('[data-test=log-line-step-2-13]').within(() => {
+        cy.get('[data-test=log-line-link]').should('exist');
+        cy.get('[class=ansi-magenta-bg]').should('exist');
+        cy.get('[class=ansi-magenta-bg]').should(
+          'have.css',
+          'background-color',
+        );
+      });
+    });
+  },
+);

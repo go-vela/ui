@@ -7,10 +7,9 @@ Use of this source code is governed by the LICENSE file in this repository.
 module Pages exposing (Page(..), strip, toRoute)
 
 import Api.Pagination as Pagination
-import Focus exposing (ExpandTemplatesQuery, Fragment, RefQuery)
-import Maybe.Extra
+import Focus exposing (ExpandTemplatesQuery, Fragment)
 import Routes exposing (Route)
-import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, Team)
+import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
 
 
 type Page
@@ -31,13 +30,16 @@ type Page
     | SharedSecret Engine Org Team Name
     | RepoSettings Org Repo
     | RepositoryBuilds Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
+    | RepositoryBuildsPulls Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | RepositoryBuildsTags Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | OrgBuilds Org (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event)
     | RepositoryDeployments Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
-    | BuildPipeline Org Repo BuildNumber (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
-    | BuildGraph Org Repo BuildNumber
-    | Pipeline Org Repo (Maybe RefQuery) (Maybe ExpandTemplatesQuery) (Maybe Fragment)
+    | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) (Maybe Fragment)
+    | AddSchedule Org Repo
+    | Schedule Org Repo ScheduleName
+    | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Settings
     | Login
     | NotFound
@@ -103,6 +105,12 @@ toRoute page =
         RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
             Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
+        RepositoryBuildsPulls org repo maybePage maybePerPage ->
+            Routes.RepositoryBuildsPulls org repo maybePage maybePerPage
+
+        RepositoryBuildsTags org repo maybePage maybePerPage ->
+            Routes.RepositoryBuildsTags org repo maybePage maybePerPage
+
         OrgBuilds org maybePage maybePerPage maybeEvent ->
             Routes.OrgBuilds org maybePage maybePerPage maybeEvent
 
@@ -115,14 +123,17 @@ toRoute page =
         BuildServices org repo buildNumber logFocus ->
             Routes.BuildServices org repo buildNumber logFocus
 
-        BuildPipeline org repo buildNumber ref expanded lineFocus ->
-            Routes.BuildPipeline org repo buildNumber ref expanded lineFocus
+        BuildPipeline org repo buildNumber expanded lineFocus ->
+            Routes.BuildPipeline org repo buildNumber expanded lineFocus
 
-        BuildGraph org repo buildNumber ->
-            Routes.BuildGraph org repo buildNumber
+        AddSchedule org repo ->
+            Routes.AddSchedule org repo
 
-        Pipeline org repo ref expanded lineFocus ->
-            Routes.Pipeline org repo ref expanded lineFocus
+        Schedules org repo maybePage maybePerPage ->
+            Routes.Schedules org repo maybePage maybePerPage
+
+        Schedule org repo name ->
+            Routes.Schedule org repo name
 
         Settings ->
             Routes.Settings
@@ -193,6 +204,12 @@ strip page =
         RepositoryBuilds org repo _ _ _ ->
             RepositoryBuilds org repo Nothing Nothing Nothing
 
+        RepositoryBuildsPulls org repo _ _ ->
+            RepositoryBuildsPulls org repo Nothing Nothing
+
+        RepositoryBuildsTags org repo _ _ ->
+            RepositoryBuildsTags org repo Nothing Nothing
+
         RepositoryDeployments org repo _ _ ->
             RepositoryDeployments org repo Nothing Nothing
 
@@ -202,14 +219,17 @@ strip page =
         BuildServices org repo buildNumber _ ->
             BuildServices org repo buildNumber Nothing
 
-        BuildPipeline org repo buildNumber _ _ _ ->
-            BuildPipeline org repo buildNumber Nothing Nothing Nothing
+        BuildPipeline org repo buildNumber _ _ ->
+            BuildPipeline org repo buildNumber Nothing Nothing
 
-        BuildGraph org repo buildNumber ->
-            BuildGraph org repo buildNumber
+        AddSchedule org repo ->
+            AddSchedule org repo
 
-        Pipeline org repo _ _ _ ->
-            Pipeline org repo Nothing Nothing Nothing
+        Schedules org repo _ _ ->
+            Schedules org repo Nothing Nothing
+
+        Schedule org repo id ->
+            Schedule org repo id
 
         Settings ->
             Settings

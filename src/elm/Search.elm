@@ -25,6 +25,7 @@ import Html.Attributes
         ( attribute
         , autofocus
         , class
+        , disabled
         , id
         , placeholder
         , value

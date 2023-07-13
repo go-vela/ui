@@ -11,12 +11,14 @@ module Pages.Build.Model exposing
     , FocusLine
     , FocusOn
     , FollowResource
+    , LogLine
     , LogsMsgs
     , Msgs
     , PartialModel
     )
 
 import Browser.Navigation as Navigation
+import Html exposing (Html)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
@@ -31,7 +33,8 @@ import Vela exposing (BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoMo
 -}
 type alias PartialModel a =
     { a
-        | navigationKey : Navigation.Key
+        | velaScheduleAllowlist : List ( Org, Repo )
+        , navigationKey : Navigation.Key
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
         , page : Page
@@ -101,3 +104,8 @@ type alias Download msg =
 
 type alias FocusOn msg =
     String -> msg
+
+
+type alias LogLine msg =
+    { view : Html msg
+    }

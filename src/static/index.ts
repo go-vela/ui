@@ -18,6 +18,7 @@ const feedbackURL: string =
 const docsURL: string = 'https://go-vela.github.io/docs';
 const defaultLogBytesLimit: number = 2000000; // 2mb
 const maximumBuildLimit: number = 30;
+const scheduleAllowlist: string = '*';
 
 // setup for auth redirect
 const redirectKey: string = 'vela-redirect';
@@ -55,6 +56,12 @@ const flags: Flags = {
       envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
       maximumBuildLimit,
   ),
+
+  velaScheduleAllowlist:
+    (window.Cypress && window.Cypress.env('VELA_SCHEDULE_ALLOWLIST')) ||
+    process.env.VELA_SCHEDULE_ALLOWLIST ||
+    envOrNull('VELA_SCHEDULE_ALLOWLIST', '$VELA_SCHEDULE_ALLOWLIST') ||
+    scheduleAllowlist,
 };
 
 // create the configuration object for Elm

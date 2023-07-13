@@ -9,9 +9,10 @@ context('Pipeline', () => {
     () => {
       beforeEach(() => {
         cy.server();
+        cy.stubBuild();
         cy.stubPipelineErrors();
         cy.stubPipelineTemplatesErrors();
-        cy.login('/github/octocat/pipeline');
+        cy.login('/github/octocat/1/pipeline');
       });
       it('pipeline configuration error should show', () => {
         cy.get('[data-test=pipeline-configuration-error]').should('be.visible');
@@ -32,16 +33,17 @@ context('Pipeline', () => {
   context('logged in and server returning empty pipeline templates', () => {
     beforeEach(() => {
       cy.server();
-      cy.stubPipelineConfiguration();
+      cy.stubBuild();
+      cy.stubPipeline();
       cy.stubPipelineTemplatesEmpty();
-      cy.login('/github/octocat/pipeline');
+      cy.login('/github/octocat/1/pipeline');
     });
     it('templates should not show', () => {
       cy.get('[data-test=pipeline-templates]').should('not.be.visible');
     });
 
-    it('expand templates should not be visible', () => {
-      cy.get('[data-test=pipeline-templates-expand]').should('not.be.visible');
+    it('expand pipeline should be visible', () => {
+      cy.get('[data-test=pipeline-expand]').should('be.visible');
     });
 
     it('pipeline configuration data should show', () => {
@@ -57,10 +59,11 @@ context('Pipeline', () => {
     () => {
       beforeEach(() => {
         cy.server();
-        cy.stubPipelineConfiguration();
-        cy.stubPipelineConfigurationExpand();
+        cy.stubBuild();
+        cy.stubPipeline();
+        cy.stubPipelineExpand();
         cy.stubPipelineTemplates();
-        cy.login('/github/octocat/pipeline');
+        cy.login('/github/octocat/1/pipeline');
       });
 
       it('should show 3 templates', () => {
@@ -85,12 +88,12 @@ context('Pipeline', () => {
       });
 
       it('expand templates should be visible', () => {
-        cy.get('[data-test=pipeline-templates-expand]').should('exist');
+        cy.get('[data-test=pipeline-expand]').should('exist');
       });
 
       context('click expand templates', () => {
         beforeEach(() => {
-          cy.get('[data-test=pipeline-templates-expand-toggle]').click({
+          cy.get('[data-test=pipeline-expand-toggle]').click({
             force: true,
           });
         });
@@ -102,9 +105,7 @@ context('Pipeline', () => {
         });
 
         it('should show revert expansion button', () => {
-          cy.get('[data-test=pipeline-templates-expand-toggle]').contains(
-            'revert',
-          );
+          cy.get('[data-test=pipeline-expand-toggle]').contains('revert');
         });
 
         it('pipeline configuration data should show', () => {
@@ -250,10 +251,11 @@ context('Pipeline', () => {
     () => {
       beforeEach(() => {
         cy.server();
-        cy.stubPipelineConfiguration();
-        cy.stubPipelineConfigurationExpandErrors();
+        cy.stubBuild();
+        cy.stubPipeline();
+        cy.stubPipelineExpandErrors();
         cy.stubPipelineTemplates();
-        cy.login('/github/octocat/pipeline');
+        cy.login('/github/octocat/1/pipeline');
       });
 
       it('should show 3 templates', () => {
@@ -267,9 +269,9 @@ context('Pipeline', () => {
           .children()
           .should('be.visible');
       });
-      context('click expand templates', () => {
+      context('click expand pipeline', () => {
         beforeEach(() => {
-          cy.get('[data-test=pipeline-templates-expand-toggle]').click({
+          cy.get('[data-test=pipeline-expand-toggle]').click({
             force: true,
           });
         });
@@ -293,9 +295,9 @@ context('Pipeline', () => {
           );
         });
 
-        context('click expand templates again', () => {
+        context('click expand pipeline again', () => {
           beforeEach(() => {
-            cy.get('[data-test=pipeline-templates-expand-toggle]').click({
+            cy.get('[data-test=pipeline-expand-toggle]').click({
               force: true,
             });
           });

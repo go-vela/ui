@@ -13,14 +13,15 @@ module Pages.Build.View exposing
     , wrapWithBuildPreview
     )
 
+import Ansi
 import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
     exposing
-        ( Resource
-        , ResourceID
+        ( ResourceID
+        , ResourceType
         , lineFocusStyles
         , lineRangeId
         , resourceAndLineToFocusId
@@ -34,6 +35,7 @@ import Html.Attributes
         , classList
         , href
         , id
+        , style
         , title
         )
 import Html.Events exposing (onClick)
@@ -42,7 +44,7 @@ import Nav exposing (viewBuildTabs)
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
-        , decodeAnsi
+        , defaultAnsiLogModel
         , downloadFileName
         , getLog
         , isEmpty
@@ -55,6 +57,7 @@ import Pages.Build.Model
         , FocusLine
         , FocusOn
         , FollowResource
+        , LogLine
         , LogsMsgs
         , Msgs
         , PartialModel
@@ -66,6 +69,7 @@ import Svg
 import Svg.Attributes
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone)
+import Url
 import Util exposing (getNameFromRef)
 import Vela
     exposing
@@ -258,6 +262,14 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                     , text <| ")"
                     ]
 
+                "deployment" ->
+                    [ repoLink
+                    , text <| String.replace "_" " " build.event
+                    , text " ("
+                    , a [ href <| Util.buildRefURL build.clone build.commit ] [ text <| Util.trimCommitHash build.commit ]
+                    , text <| ")"
+                    ]
+
                 _ ->
                     [ repoLink
                     , text <| String.replace "_" " " build.event
@@ -267,7 +279,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                     ]
 
         branch =
-            [ a [ href <| Util.buildBranchUrl build.clone build.branch ] [ text build.branch ] ]
+            [ a [ href <| Util.buildRefURL build.clone build.branch ] [ text build.branch ] ]
 
         sender =
             [ text build.sender ]
@@ -317,7 +329,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                     runtime
 
                 _ ->
-                    if build.finished /= 0 then
+                    if build.started /= 0 && build.finished /= 0 then
                         runtime
 
                     else
@@ -626,20 +638,13 @@ viewBuildServices model msgs org repo buildNumber =
 viewService : PartialModel a -> Msgs msg -> RepoModel -> Service -> Html msg
 viewService model msgs rm service =
     div
-        [ serviceClasses
+        [ class "service"
         , Util.testAttribute "service"
         ]
         [ div [ class "-status" ]
             [ div [ class "-icon-container" ] [ viewStatusIcon service.status ] ]
         , viewServiceDetails model msgs rm service
         ]
-
-
-{-| serviceClasses : returns css classes for a particular service
--}
-serviceClasses : Html.Attribute msg
-serviceClasses =
-    classList [ ( "service", True ) ]
 
 
 {-| viewServiceDetails : renders build services detailed information
@@ -710,8 +715,8 @@ viewServiceLogs msgs shift rm service =
 
 {-| viewLogLines : takes number linefocus log and clickAction shiftDown and renders logs for a build resource
 -}
-viewLogLines : LogsMsgs msg -> FollowResource msg -> Org -> Repo -> BuildNumber -> String -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
-viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus maybeLog following shiftDown =
+viewLogLines : LogsMsgs msg -> FollowResource msg -> Org -> Repo -> BuildNumber -> ResourceType -> ResourceID -> LogFocus -> Maybe (WebData Log) -> Int -> Bool -> Html msg
+viewLogLines msgs followMsg org repo buildNumber resourceType resourceID logFocus maybeLog following shiftDown =
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ resourceID
@@ -721,13 +726,13 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
             RemoteData.Success l ->
                 let
                     fileName =
-                        downloadFileName org repo buildNumber resource resourceID
+                        downloadFileName org repo buildNumber resourceType resourceID
 
                     ( logs, numLines ) =
-                        viewLines msgs.focusLine resource resourceID logFocus l.decodedLogs shiftDown
+                        viewLines msgs.focusLine resourceType resourceID logFocus l.decodedLogs shiftDown
                 in
-                [ logsHeader msgs resource resourceID fileName l
-                , logsSidebar msgs.focusOn followMsg resource resourceID following numLines
+                [ logsHeader msgs resourceType resourceID fileName l
+                , logsSidebar msgs.focusOn followMsg resourceType resourceID following numLines
                 , logs
                 ]
 
@@ -740,26 +745,25 @@ viewLogLines msgs followMsg org repo buildNumber resource resourceID logFocus ma
 
 {-| viewLines : takes number, line focus information and click action and renders logs
 -}
-viewLines : FocusLine msg -> Resource -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
-viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
+viewLines : FocusLine msg -> ResourceType -> ResourceID -> LogFocus -> String -> Bool -> ( Html msg, Int )
+viewLines focusLine resourceType resourceID logFocus decodedLog shiftDown =
     let
         lines =
             decodedLog
-                |> decodeAnsi
-                |> Array.indexedMap
-                    (\idx line ->
+                -- this is where link parsing happens
+                |> processLogLines
+                |> List.indexedMap
+                    (\idx logLine ->
                         Just <|
                             viewLine focusLine
-                                resource
+                                resourceType
                                 resourceID
                                 (idx + 1)
-                                (Just line)
+                                logLine
                                 logFocus
                                 shiftDown
                     )
-                |> Array.toList
 
-        -- update resource filename when adding stages/services
         logs =
             lines
                 |> List.filterMap identity
@@ -768,7 +772,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        topTrackerFocusId resource resourceID
+                        topTrackerFocusId resourceType resourceID
                     , Util.testAttribute <| "top-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
@@ -779,7 +783,7 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
             tr [ class "line", class "tracker" ]
                 [ a
                     [ id <|
-                        bottomTrackerFocusId resource resourceID
+                        bottomTrackerFocusId resourceType resourceID
                     , Util.testAttribute <| "bottom-log-tracker-" ++ resourceID
                     , Html.Attributes.tabindex -1
                     ]
@@ -796,8 +800,8 @@ viewLines focusLine resource resourceID logFocus decodedLog shiftDown =
 
 {-| viewLine : takes log line and focus information and renders line number button and log
 -}
-viewLine : FocusLine msg -> Resource -> ResourceID -> Int -> Maybe Ansi.Log.Line -> LogFocus -> Bool -> Html msg
-viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
+viewLine : FocusLine msg -> ResourceType -> ResourceID -> Int -> LogLine msg -> LogFocus -> Bool -> Html msg
+viewLine focusLine resourceType resourceID lineNumber logLine logFocus shiftDown =
     tr
         [ Html.Attributes.id <|
             resourceID
@@ -805,41 +809,155 @@ viewLine focusLine resource resourceID lineNumber line logFocus shiftDown =
                 ++ String.fromInt lineNumber
         , class "line"
         ]
-        [ case line of
-            Just l ->
-                div
-                    [ class "wrapper"
-                    , Util.testAttribute <| String.join "-" [ "log", "line", resource, resourceID, String.fromInt lineNumber ]
-                    , class <| lineFocusStyles logFocus lineNumber
+        [ div
+            [ class "wrapper"
+            , Util.testAttribute <| String.join "-" [ "log", "line", resourceType, resourceID, String.fromInt lineNumber ]
+            , class <| lineFocusStyles logFocus lineNumber
+            ]
+            [ td []
+                [ lineFocusButton focusLine resourceType resourceID logFocus lineNumber shiftDown ]
+            , td [ class "break-text", class "overflow-auto" ]
+                [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resourceType, resourceID, String.fromInt lineNumber ] ]
+                    [ logLine.view
                     ]
-                    [ td []
-                        [ lineFocusButton focusLine resource resourceID logFocus lineNumber shiftDown ]
-                    , td [ class "break-text", class "overflow-auto" ]
-                        [ code [ Util.testAttribute <| String.join "-" [ "log", "data", resource, resourceID, String.fromInt lineNumber ] ]
-                            [ Ansi.Log.viewLine l
-                            ]
-                        ]
-                    ]
-
-            Nothing ->
-                text ""
+                ]
+            ]
         ]
+
+
+{-| processLogLines : takes a log as string, splits it by newline, and processes it into a model that can render custom elements like timestamps and links
+-}
+processLogLines : String -> List (LogLine msg)
+processLogLines log =
+    log
+        |> String.split "\n"
+        |> List.map
+            (\log_ ->
+                let
+                    -- first we convert the individual log line into an Ansi.Log.Model
+                    -- this lets us preserve the original ANSI style while applying our own processing
+                    -- we use List.head to ignore extra empty lines generated by Ansi.Log.update, since we already split by newline
+                    ansiLogLine =
+                        List.head <| Array.toList <| .lines <| Ansi.Log.update log_ defaultAnsiLogModel
+                in
+                -- next we take the decoded log line, run custom processing like link parsing, then render it to Html
+                case ansiLogLine of
+                    Just logLine ->
+                        -- pack the log line into a struct to make it more flexible when rendering later
+                        -- this is particularly useful for adding toggleable features like timestamps
+                        -- we will most likely need to extend this to accept user preferences
+                        -- for example, a user may choose to not render links or timestamps
+                        -- per chunk render processing happens in processLogLine
+                        processLogLine logLine
+
+                    Nothing ->
+                        LogLine (text "")
+            )
+
+
+{-| processLogLine : takes Ansi.Log.Line and renders it into Html after parsing and processing custom rendering rules
+-}
+processLogLine : Ansi.Log.Line -> LogLine msg
+processLogLine ansiLogLine =
+    let
+        -- per-log line processing goes here
+        ( chunks, _ ) =
+            ansiLogLine
+
+        -- a single div is rendered containing a styled span for each ansi "chunk"
+        view =
+            div [] <|
+                List.foldl
+                    (\c l ->
+                        -- potential here to read metadata from "chunks" and store in LogLine
+                        viewChunk c :: l
+                    )
+                    [ text "\n" ]
+                    chunks
+    in
+    LogLine view
+
+
+{-| viewChunk : takes Ansi.Log.Chunk and renders it into Html with ANSI styling
+see: <https://package.elm-lang.org/packages/vito/elm-ansi>
+this function has been modified to allow custom processing
+-}
+viewChunk : Ansi.Log.Chunk -> Html msg
+viewChunk chunk =
+    chunk
+        -- per-chunk processing goes here
+        |> viewLogLinks
+        |> viewAnsi chunk
+
+
+{-| viewAnsi : takes Ansi.Log.Chunk and Html children and renders wraps them with ANSI styling
+-}
+viewAnsi : Ansi.Log.Chunk -> List (Html msg) -> Html msg
+viewAnsi chunk children =
+    span (styleAttributesAnsi chunk.style) children
+
+
+{-| viewLogLinks : takes Ansi.Log.Chunk and performs additional processing to parse links
+-}
+viewLogLinks : Ansi.Log.Chunk -> List (Html msg)
+viewLogLinks chunk =
+    let
+        -- list of string escape characters that delimit links.
+        -- for example "<https://github.com"> should be split from the quotes, even though " is a valid URL character (see: see: <https://www.rfc-editor.org/rfc/rfc3986#section-2>)
+        linkEscapeCharacters =
+            [ "'", " ", "\"", "\t", "\n" ]
+
+        -- its possible this will split a "valid" link containing quote characters, but its a willing risk
+        splitIntersperseConcat : String -> List String -> List String
+        splitIntersperseConcat sep list =
+            list
+                |> List.concatMap
+                    (\x ->
+                        x
+                            |> String.split sep
+                            |> List.intersperse sep
+                    )
+
+        -- split the "line" by escape characters
+        split =
+            List.foldl splitIntersperseConcat [ chunk.text ] linkEscapeCharacters
+    in
+    -- "process" each "split chunk" and check for link
+    -- for example, this accounts for multiple links contained in a single ANSI background color "chunk"
+    List.map
+        (\chunk_ ->
+            case Url.fromString chunk_ of
+                Just link ->
+                    viewLogLink link chunk_
+
+                Nothing ->
+                    text chunk_
+        )
+        split
+
+
+{-| viewLogLink : takes a url and label and renders a link
+-}
+viewLogLink : Url.Url -> String -> Html msg
+viewLogLink link txt =
+    -- use toString in href to make the link safe
+    a [ Util.testAttribute "log-line-link", href <| Url.toString link ] [ text txt ]
 
 
 {-| lineFocusButton : renders button for focusing log line ranges
 -}
-lineFocusButton : (String -> msg) -> Resource -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
-lineFocusButton focusLogs resource resourceID logFocus lineNumber shiftDown =
+lineFocusButton : (String -> msg) -> ResourceType -> ResourceID -> LogFocus -> Int -> Bool -> Html msg
+lineFocusButton focusLogs resourceType resourceID logFocus lineNumber shiftDown =
     button
         [ Util.onClickPreventDefault <|
             focusLogs <|
-                lineRangeId resource resourceID lineNumber logFocus shiftDown
-        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resource, resourceID, String.fromInt lineNumber ]
-        , id <| resourceAndLineToFocusId resource resourceID lineNumber
+                lineRangeId resourceType resourceID lineNumber logFocus shiftDown
+        , Util.testAttribute <| String.join "-" [ "log", "line", "num", resourceType, resourceID, String.fromInt lineNumber ]
+        , id <| resourceAndLineToFocusId resourceType resourceID lineNumber
         , class "line-number"
         , class "button"
         , class "-link"
-        , attribute "aria-label" <| "focus " ++ resource ++ " " ++ resourceID
+        , attribute "aria-label" <| "focus " ++ resourceType ++ " " ++ resourceID
         ]
         [ span [] [ text <| String.fromInt lineNumber ] ]
 
@@ -872,16 +990,16 @@ expandAllButton expandAll org repo buildNumber =
 
 {-| logsHeader : takes number, filename and decoded log and renders logs header
 -}
-logsHeader : LogsMsgs msg -> String -> String -> String -> Log -> Html msg
-logsHeader msgs resource number fileName log =
+logsHeader : LogsMsgs msg -> ResourceType -> String -> String -> Log -> Html msg
+logsHeader msgs resourceType number fileName log =
     div [ class "logs-header", class "buttons", Util.testAttribute <| "logs-header-actions-" ++ number ]
-        [ downloadLogsButton msgs.download resource number fileName log ]
+        [ downloadLogsButton msgs.download resourceType number fileName log ]
 
 
 {-| logsSidebar : takes number/following and renders the logs sidebar
 -}
-logsSidebar : FocusOn msg -> FollowResource msg -> String -> String -> Int -> Int -> Html msg
-logsSidebar focusOn followMsg resource number following numLines =
+logsSidebar : FocusOn msg -> FollowResource msg -> ResourceType -> String -> Int -> Int -> Html msg
+logsSidebar focusOn followMsg resourceType number following numLines =
     let
         long =
             numLines > 25
@@ -894,54 +1012,54 @@ logsSidebar focusOn followMsg resource number following numLines =
                 ]
               <|
                 (if long then
-                    [ jumpToTopButton focusOn resource number
-                    , jumpToBottomButton focusOn resource number
+                    [ jumpToTopButton focusOn resourceType number
+                    , jumpToBottomButton focusOn resourceType number
                     ]
 
                  else
                     []
                 )
-                    ++ [ followButton followMsg resource number following ]
+                    ++ [ followButton followMsg resourceType number following ]
             ]
         ]
 
 
 {-| jumpToBottomButton : renders action button for jumping to the bottom of a log
 -}
-jumpToBottomButton : FocusOn msg -> String -> String -> Html msg
-jumpToBottomButton focusOn resource number =
+jumpToBottomButton : FocusOn msg -> ResourceType -> String -> Html msg
+jumpToBottomButton focusOn resourceType number =
     button
         [ class "button"
         , class "-icon"
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to bottom"
         , Util.testAttribute <| "jump-to-bottom-" ++ number
-        , onClick <| focusOn <| bottomTrackerFocusId resource number
-        , attribute "aria-label" <| "jump to bottom of logs for " ++ resource ++ " " ++ number
+        , onClick <| focusOn <| bottomTrackerFocusId resourceType number
+        , attribute "aria-label" <| "jump to bottom of logs for " ++ resourceType ++ " " ++ number
         ]
         [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| jumpToTopButton : renders action button for jumping to the top of a log
 -}
-jumpToTopButton : FocusOn msg -> String -> String -> Html msg
-jumpToTopButton focusOn resource number =
+jumpToTopButton : FocusOn msg -> ResourceType -> String -> Html msg
+jumpToTopButton focusOn resourceType number =
     button
         [ class "button"
         , class "-icon"
         , class "tooltip-left"
         , attribute "data-tooltip" "jump to top"
         , Util.testAttribute <| "jump-to-top-" ++ number
-        , onClick <| focusOn <| topTrackerFocusId resource number
-        , attribute "aria-label" <| "jump to top of logs for " ++ resource ++ " " ++ number
+        , onClick <| focusOn <| topTrackerFocusId resourceType number
+        , attribute "aria-label" <| "jump to top of logs for " ++ resourceType ++ " " ++ number
         ]
         [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| downloadLogsButton : renders action button for downloading a log
 -}
-downloadLogsButton : Download msg -> String -> String -> String -> Log -> Html msg
-downloadLogsButton download resource number fileName log =
+downloadLogsButton : Download msg -> ResourceType -> String -> String -> Log -> Html msg
+downloadLogsButton download resourceType number fileName log =
     let
         logEmpty =
             isEmpty log
@@ -954,28 +1072,28 @@ downloadLogsButton download resource number fileName log =
         , Util.attrIf logEmpty <| Util.ariaHidden
         , Util.testAttribute <| "download-logs-" ++ number
         , onClick <| download fileName log.rawData
-        , attribute "aria-label" <| "download logs for " ++ resource ++ " " ++ number
+        , attribute "aria-label" <| "download logs for " ++ resourceType ++ " " ++ number
         ]
-        [ text <| "download " ++ resource ++ " logs" ]
+        [ text <| "download " ++ resourceType ++ " logs" ]
 
 
 {-| followButton : renders button for following logs
 -}
-followButton : FollowResource msg -> String -> String -> Int -> Html msg
-followButton followStep resource number following =
+followButton : FollowResource msg -> ResourceType -> String -> Int -> Html msg
+followButton followStep resourceType number following =
     let
         num =
             Maybe.withDefault 0 <| String.toInt number
 
         ( tooltip, icon, toFollow ) =
             if following == 0 then
-                ( "start following " ++ resource ++ " logs", FeatherIcons.play, num )
+                ( "start following " ++ resourceType ++ " logs", FeatherIcons.play, num )
 
             else if following == num then
-                ( "stop following " ++ resource ++ " logs", FeatherIcons.pause, 0 )
+                ( "stop following " ++ resourceType ++ " logs", FeatherIcons.pause, 0 )
 
             else
-                ( "start following " ++ resource ++ " logs", FeatherIcons.play, num )
+                ( "start following " ++ resourceType ++ " logs", FeatherIcons.play, num )
     in
     button
         [ class "button"
@@ -984,7 +1102,7 @@ followButton followStep resource number following =
         , attribute "data-tooltip" tooltip
         , Util.testAttribute <| "follow-logs-" ++ number
         , onClick <| followStep toFollow
-        , attribute "aria-label" <| tooltip ++ " for " ++ resource ++ " " ++ number
+        , attribute "aria-label" <| tooltip ++ " for " ++ resourceType ++ " " ++ number
         ]
         [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
@@ -1186,3 +1304,139 @@ bottomBuildNumberDashes buildNumber =
 
         _ ->
             "-animation-dashes-2"
+
+
+{-| styleAttributesAnsi : takes Ansi.Log.Style and renders it into ANSI style Html attributes
+see: <https://package.elm-lang.org/packages/vito/elm-ansi>
+this function has been pulled in unmodified because elm-ansi does not expose it
+-}
+styleAttributesAnsi : Ansi.Log.Style -> List (Html.Attribute msg)
+styleAttributesAnsi logStyle =
+    [ style "font-weight"
+        (if logStyle.bold then
+            "bold"
+
+         else
+            "normal"
+        )
+    , style "text-decoration"
+        (if logStyle.underline then
+            "underline"
+
+         else
+            "none"
+        )
+    , style "font-style"
+        (if logStyle.italic then
+            "italic"
+
+         else
+            "normal"
+        )
+    , let
+        fgClasses =
+            colorClassesAnsi "-fg"
+                logStyle.bold
+                (if not logStyle.inverted then
+                    logStyle.foreground
+
+                 else
+                    logStyle.background
+                )
+
+        bgClasses =
+            colorClassesAnsi "-bg"
+                logStyle.bold
+                (if not logStyle.inverted then
+                    logStyle.background
+
+                 else
+                    logStyle.foreground
+                )
+
+        fgbgClasses =
+            List.map (\a -> (\b c -> ( b, c )) a True) (fgClasses ++ bgClasses)
+
+        ansiClasses =
+            [ ( "ansi-blink", logStyle.blink )
+            , ( "ansi-faint", logStyle.faint )
+            , ( "ansi-Fraktur", logStyle.fraktur )
+            , ( "ansi-framed", logStyle.framed )
+            ]
+      in
+      classList (fgbgClasses ++ ansiClasses)
+    ]
+
+
+{-| colorClassesAnsi : takes style parameters and renders it into ANSI styled color classes that can be used with the Html style attribute
+see: <https://package.elm-lang.org/packages/vito/elm-ansi>
+this function has been pulled unmodified in because elm-ansi does not expose it
+-}
+colorClassesAnsi : String -> Bool -> Maybe Ansi.Color -> List String
+colorClassesAnsi suffix bold mc =
+    let
+        brightPrefix =
+            "ansi-bright-"
+
+        prefix =
+            if bold then
+                brightPrefix
+
+            else
+                "ansi-"
+    in
+    case mc of
+        Nothing ->
+            if bold then
+                [ "ansi-bold" ]
+
+            else
+                []
+
+        Just Ansi.Black ->
+            [ prefix ++ "black" ++ suffix ]
+
+        Just Ansi.Red ->
+            [ prefix ++ "red" ++ suffix ]
+
+        Just Ansi.Green ->
+            [ prefix ++ "green" ++ suffix ]
+
+        Just Ansi.Yellow ->
+            [ prefix ++ "yellow" ++ suffix ]
+
+        Just Ansi.Blue ->
+            [ prefix ++ "blue" ++ suffix ]
+
+        Just Ansi.Magenta ->
+            [ prefix ++ "magenta" ++ suffix ]
+
+        Just Ansi.Cyan ->
+            [ prefix ++ "cyan" ++ suffix ]
+
+        Just Ansi.White ->
+            [ prefix ++ "white" ++ suffix ]
+
+        Just Ansi.BrightBlack ->
+            [ brightPrefix ++ "black" ++ suffix ]
+
+        Just Ansi.BrightRed ->
+            [ brightPrefix ++ "red" ++ suffix ]
+
+        Just Ansi.BrightGreen ->
+            [ brightPrefix ++ "green" ++ suffix ]
+
+        Just Ansi.BrightYellow ->
+            [ brightPrefix ++ "yellow" ++ suffix ]
+
+        Just Ansi.BrightBlue ->
+            [ brightPrefix ++ "blue" ++ suffix ]
+
+        Just Ansi.BrightMagenta ->
+            [ brightPrefix ++ "magenta" ++ suffix ]
+
+        Just Ansi.BrightCyan ->
+            [ brightPrefix ++ "cyan" ++ suffix ]
+
+        Just Ansi.BrightWhite ->
+            [ brightPrefix ++ "white" ++ suffix ]

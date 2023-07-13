@@ -5,7 +5,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Vela exposing
-    ( AuthParams
+    ( AddSchedulePayload
+    , AuthParams
     , Build
     , BuildGraph
     , BuildModel
@@ -32,6 +33,7 @@ module Vela exposing
     , Field
     , FocusFragment
     , Hook
+    , HookNumber
     , Hooks
     , HooksModel
     , Key
@@ -55,6 +57,9 @@ module Vela exposing
     , Repository
     , Resource
     , Resources
+    , Schedule
+    , ScheduleName
+    , Schedules
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -73,6 +78,7 @@ module Vela exposing
     , Theme(..)
     , Type
     , UpdateRepositoryPayload
+    , UpdateSchedulePayload
     , UpdateSecretPayload
     , UpdateUserPayload
     , buildDeploymentPayload
@@ -80,6 +86,7 @@ module Vela exposing
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
+    , buildUpdateSchedulePayload
     , buildUpdateSecretPayload
     , decodeBuild
     , decodeBuildGraph
@@ -90,9 +97,12 @@ module Vela exposing
     , decodeHooks
     , decodeLog
     , decodePipelineConfig
+    , decodePipelineExpand
     , decodePipelineTemplates
     , decodeRepositories
     , decodeRepository
+    , decodeSchedule
+    , decodeSchedules
     , decodeSecret
     , decodeSecrets
     , decodeService
@@ -110,9 +120,11 @@ module Vela exposing
     , encodeEnableRepository
     , encodeTheme
     , encodeUpdateRepository
+    , encodeUpdateSchedule
     , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
+    , secretToKey
     , secretTypeToString
     , secretsErrorLabel
     , statusToFavicon
@@ -120,13 +132,10 @@ module Vela exposing
     , updateBuild
     , updateBuildGraph
     , updateBuildNumber
-    , updateBuildPipelineBuildNumber
     , updateBuildPipelineConfig
     , updateBuildPipelineExpand
     , updateBuildPipelineFocusFragment
     , updateBuildPipelineLineFocus
-    , updateBuildPipelineOrgRepo
-    , updateBuildPipelineRef
     , updateBuildServices
     , updateBuildServicesFocusFragment
     , updateBuildServicesFollowing
@@ -212,6 +221,10 @@ type alias BuildNumber =
     String
 
 
+type alias HookNumber =
+    String
+
+
 type alias DeploymentId =
     String
 
@@ -253,6 +266,10 @@ type alias Payload =
 
 
 type alias Target =
+    String
+
+
+type alias ScheduleName =
     String
 
 
@@ -764,21 +781,6 @@ updateBuildPipelineConfig update pipeline =
     { pipeline | config = update }
 
 
-updateBuildPipelineOrgRepo : Org -> Repo -> PipelineModel -> PipelineModel
-updateBuildPipelineOrgRepo org repo pipeline =
-    { pipeline | org = org, repo = repo }
-
-
-updateBuildPipelineBuildNumber : Maybe BuildNumber -> PipelineModel -> PipelineModel
-updateBuildPipelineBuildNumber update pipeline =
-    { pipeline | buildNumber = update }
-
-
-updateBuildPipelineRef : Maybe Ref -> PipelineModel -> PipelineModel
-updateBuildPipelineRef update pipeline =
-    { pipeline | ref = update }
-
-
 updateBuildPipelineExpand : Maybe String -> PipelineModel -> PipelineModel
 updateBuildPipelineExpand update pipeline =
     { pipeline | expand = update }
@@ -1025,7 +1027,7 @@ type alias EnableRepositoryPayload =
 
 defaultEnableRepositoryPayload : EnableRepositoryPayload
 defaultEnableRepositoryPayload =
-    EnableRepositoryPayload "" "" "" "" "" False True True True True False False False
+    EnableRepositoryPayload "" "" "" "" "" False False True False False False False False
 
 
 type alias UpdateRepositoryPayload =
@@ -1161,10 +1163,6 @@ type alias PipelineModel =
     { config : ( WebData PipelineConfig, Error )
     , expanded : Bool
     , expanding : Bool
-    , org : Org
-    , repo : Repo
-    , buildNumber : Maybe BuildNumber
-    , ref : Maybe Ref
     , expand : Maybe String
     , lineFocus : LogFocus
     , focusFragment : FocusFragment
@@ -1173,11 +1171,12 @@ type alias PipelineModel =
 
 defaultPipeline : PipelineModel
 defaultPipeline =
-    PipelineModel ( NotAsked, "" ) False False "" "" Nothing Nothing Nothing ( Nothing, Nothing ) Nothing
+    PipelineModel ( NotAsked, "" ) False False Nothing ( Nothing, Nothing ) Nothing
 
 
 type alias PipelineConfig =
-    { data : String
+    { rawData : String
+    , decodedData : String
     }
 
 
@@ -1205,8 +1204,20 @@ defaultPipelineTemplates =
     PipelineTemplates NotAsked "" True
 
 
-decodePipelineConfig : Decode.Decoder String
+decodePipelineConfig : Decode.Decoder PipelineConfig
 decodePipelineConfig =
+    Decode.succeed
+        (\data ->
+            PipelineConfig
+                data
+                -- "decodedData"
+                ""
+        )
+        |> optional "data" string ""
+
+
+decodePipelineExpand : Decode.Decoder String
+decodePipelineExpand =
     Decode.string
 
 
@@ -1760,6 +1771,7 @@ type alias Hook =
     , repo_id : Int
     , build_id : Int
     , source_id : String
+    , number : Int
     , created : Int
     , host : String
     , event : String
@@ -1777,6 +1789,7 @@ decodeHook =
         |> optional "repo_id" int -1
         |> optional "build_id" int -1
         |> optional "source_id" string ""
+        |> optional "number" int -1
         |> optional "created" int -1
         |> optional "host" string ""
         |> optional "event" string ""
@@ -1802,6 +1815,89 @@ type alias RepoResourceIdentifier =
 
 
 
+-- SCHEDULES
+
+
+type alias Schedule =
+    { id : Int
+    , org : String
+    , repo : String
+    , name : String
+    , entry : String
+    , enabled : Bool
+    , created_at : Int
+    , created_by : String
+    , scheduled_at : Int
+    , updated_at : Int
+    , updated_by : String
+    }
+
+
+type alias Schedules =
+    List Schedule
+
+
+type alias AddSchedulePayload =
+    { id : Int
+    , org : String
+    , repo : String
+    , name : String
+    , entry : String
+    , enabled : Bool
+    }
+
+
+type alias UpdateSchedulePayload =
+    { org : Maybe Org
+    , repo : Maybe Repo
+    , name : Maybe Name
+    , entry : Maybe String
+    , enabled : Maybe Bool
+    }
+
+
+buildUpdateSchedulePayload :
+    Maybe Org
+    -> Maybe Repo
+    -> Maybe Name
+    -> Maybe String
+    -> Maybe Bool
+    -> UpdateSchedulePayload
+buildUpdateSchedulePayload org repo name entry enabled =
+    UpdateSchedulePayload org repo name entry enabled
+
+
+decodeSchedule : Decoder Schedule
+decodeSchedule =
+    Decode.succeed Schedule
+        |> optional "id" int -1
+        |> optional "repo.org" string ""
+        |> optional "repo.repo" string ""
+        |> optional "name" string ""
+        |> optional "entry" string ""
+        |> optional "active" bool False
+        |> optional "created_at" int 0
+        |> optional "created_by" string ""
+        |> optional "scheduled_at" int 0
+        |> optional "updated_at" int 0
+        |> optional "updated_by" string ""
+
+
+decodeSchedules : Decoder Schedules
+decodeSchedules =
+    Decode.list decodeSchedule
+
+
+encodeUpdateSchedule : UpdateSchedulePayload -> Encode.Value
+encodeUpdateSchedule schedule =
+    Encode.object
+        [ ( "name", encodeOptional Encode.string schedule.name )
+        , ( "entry", encodeOptional Encode.string schedule.entry )
+        , ( "active", encodeOptional Encode.bool schedule.enabled )
+        ]
+
+
+
 -- SECRETS
 
 
@@ -1812,6 +1908,7 @@ type alias Secret =
     , org : Org
     , repo : Repo
     , team : Key
+    , key : String
     , name : String
     , type_ : SecretType
     , images : List String
@@ -1899,6 +1996,21 @@ maybeSecretTypeToMaybeString type_ =
             Nothing
 
 
+{-| secretToKey : helper to create secret key
+-}
+secretToKey : Secret -> String
+secretToKey secret =
+    case secret.type_ of
+        SharedSecret ->
+            secret.org ++ "/" ++ secret.team ++ "/" ++ secret.name
+
+        OrgSecret ->
+            secret.org ++ "/" ++ secret.name
+
+        RepoSecret ->
+            secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name
+
+
 decodeSecret : Decoder Secret
 decodeSecret =
     Decode.succeed Secret
@@ -1906,6 +2018,7 @@ decodeSecret =
         |> optional "org" string ""
         |> optional "repo" string ""
         |> optional "team" string ""
+        |> optional "key" string ""
         |> optional "name" string ""
         |> optional "type" secretTypeDecoder RepoSecret
         |> optional "images" (Decode.list string) []

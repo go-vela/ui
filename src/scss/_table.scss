@@ -44,14 +44,41 @@
 
 .table-base th {
   padding: 0.625em;
+  overflow: hidden;
 
   font-weight: bold;
   white-space: nowrap;
   text-align: left;
+  text-overflow: ellipsis;
+}
+
+.table-base td.name,
+.table-base td.ref,
+.table-base td.description {
+  max-width: 15rem;
 }
 
 .table-base td {
   padding: 0.625em;
+
+  vertical-align: top;
+}
+
+.table-base td .list-item {
+  display: flex;
+  max-width: 12rem;
+  margin: 0.2rem 0;
+  padding: 0.4rem 0.8rem;
+  overflow: auto;
+
+  color: var(--color-text);
+  font-size: 1rem;
+
+  background-color: var(--color-bg);
+}
+
+td .key .list-item {
+  max-width: 24rem;
 }
 
 .table-base .source-id {
@@ -149,12 +176,27 @@
   }
 
   .table-base td {
-    display: block;
+    display: flex;
+    justify-content: space-between;
 
     font-size: 0.8em;
     text-align: right;
 
     border-bottom: 1px solid var(--color-bg-light);
+  }
+
+  .table-base td.name,
+  .table-base td.ref,
+  .table-base td.description {
+    max-width: initial;
+  }
+
+  .table-base td a {
+    max-width: 8rem;
+  }
+
+  .table-base td .list-item {
+    font-size: 0.9rem;
   }
 
   .table-base td::before {

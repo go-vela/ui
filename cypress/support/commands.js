@@ -19,7 +19,7 @@ if (!Cypress.env('CI')) {
   });
 }
 
-// Login helper (accepts initial path to vist)
+// Login helper (accepts initial path to visit)
 Cypress.Commands.add('login', (path = '/') => {
   cy.server();
   cy.route('/token-refresh', 'fixture:auth.json');
@@ -169,6 +169,7 @@ Cypress.Commands.add('stubBuildsFilter', () => {
   cy.fixture('builds_pull.json').as('buildsPull');
   cy.fixture('builds_tag.json').as('buildsTag');
   cy.fixture('builds_comment.json').as('buildsComment');
+  cy.fixture('builds_schedule.json').as('buildsSchedule');
   cy.route({
     method: 'GET',
     url: '*api/v1/repos/*/*/builds*',
@@ -198,6 +199,11 @@ Cypress.Commands.add('stubBuildsFilter', () => {
     method: 'GET',
     url: '*api/v1/repos/*/*/builds?event=comment*',
     response: '@buildsComment',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds?event=schedule*',
+    response: '@buildsSchedule',
   });
 });
 
@@ -286,6 +292,7 @@ Cypress.Commands.add('stubStepsWithLogs', () => {
     }).as('getLogs-5');
   });
 });
+
 Cypress.Commands.add('stubStepsWithANSILogs', () => {
   cy.server();
   cy.fixture('steps_5.json').as('steps');
@@ -296,6 +303,49 @@ Cypress.Commands.add('stubStepsWithANSILogs', () => {
     response: '@steps',
   });
   cy.fixture('logs_ansi').then(logs => {
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/1/logs',
+      status: 200,
+      response: logs[0],
+    }).as('getLogs-1');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/2/logs',
+      status: 200,
+      response: logs[1],
+    }).as('getLogs-2');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/3/logs',
+      status: 200,
+      response: logs[2],
+    }).as('getLogs-3');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/4/logs',
+      status: 200,
+      response: logs[3],
+    }).as('getLogs-4');
+    cy.route({
+      method: 'GET',
+      url: 'api/v1/repos/*/*/builds/*/steps/5/logs',
+      status: 200,
+      response: logs[4],
+    }).as('getLogs-5');
+  });
+});
+
+Cypress.Commands.add('stubStepsWithLinkedLogs', () => {
+  cy.server();
+  cy.fixture('steps_5.json').as('steps');
+  cy.route({
+    method: 'GET',
+    url: 'api/v1/repos/*/*/builds/*/steps*',
+    status: 200,
+    response: '@steps',
+  });
+  cy.fixture('logs_links').then(logs => {
     cy.route({
       method: 'GET',
       url: 'api/v1/repos/*/*/builds/*/steps/1/logs',
@@ -439,69 +489,69 @@ Cypress.Commands.add('stubStepsErrors', () => {
   });
 });
 
+Cypress.Commands.add('stubPipeline', () => {
+  cy.fixture('pipeline.json').as('pipeline');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*/*',
+    status: 200,
+    response: '@pipeline',
+  });
+});
+
 Cypress.Commands.add('stubPipelineErrors', () => {
   cy.route({
     method: 'GET',
-    url: '*api/v1/pipelines/*/*',
+    url: '*api/v1/pipelines/*/*/*',
     status: 500,
     response: 'server error',
   });
 });
 
-Cypress.Commands.add('stubPipelineTemplatesErrors', () => {
-  cy.route({
-    method: 'GET',
-    url: '*api/v1/pipelines/*/*/templates*',
-    status: 500,
-    response: {},
-  });
-});
-
-Cypress.Commands.add('stubPipelineConfigurationExpandErrors', () => {
+Cypress.Commands.add('stubPipelineExpand', () => {
+  cy.fixture('pipeline_expanded').as('expanded');
   cy.route({
     method: 'POST',
-    url: '*api/v1/pipelines/*/*/expand*',
+    url: '*api/v1/pipelines/*/*/*/expand*',
+    status: 200,
+    response: '@expanded',
+  });
+});
+
+Cypress.Commands.add('stubPipelineExpandErrors', () => {
+  cy.route({
+    method: 'POST',
+    url: '*api/v1/pipelines/*/*/*/expand*',
     status: 500,
     response: 'server error',
+  });
+});
+
+Cypress.Commands.add('stubPipelineTemplates', () => {
+  cy.fixture('pipeline_templates.json').as('templates');
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/pipelines/*/*/*/templates*',
+    status: 200,
+    response: '@templates',
   });
 });
 
 Cypress.Commands.add('stubPipelineTemplatesEmpty', () => {
   cy.route({
     method: 'GET',
-    url: '*api/v1/pipelines/*/*/templates*',
+    url: '*api/v1/pipelines/*/*/*/templates*',
     status: 200,
     response: {},
   });
 });
 
-Cypress.Commands.add('stubPipelineConfiguration', () => {
-  cy.fixture('pipeline_configuration').as('config');
+Cypress.Commands.add('stubPipelineTemplatesErrors', () => {
   cy.route({
     method: 'GET',
-    url: '*api/v1/pipelines/*/*',
-    status: 200,
-    response: '@config',
-  });
-});
-
-Cypress.Commands.add('stubPipelineConfigurationExpand', () => {
-  cy.fixture('pipeline_configuration_expanded').as('config_expanded');
-  cy.route({
-    method: 'POST',
-    url: '*api/v1/pipelines/*/*/expand*',
-    status: 200,
-    response: '@config_expanded',
-  });
-});
-
-Cypress.Commands.add('stubPipelineTemplates', () => {
-  cy.fixture('pipeline_templates').as('templates');
-  cy.route({
-    method: 'GET',
-    url: '*api/v1/pipelines/*/*/templates*',
-    status: 200,
-    response: '@templates',
+    url: '*api/v1/pipelines/*/*/*/templates*',
+    status: 500,
+    response: 'server error',
   });
 });
 
@@ -524,6 +574,25 @@ Cypress.Commands.add('hookPages', () => {
       link: `<http://localhost:8888/api/v1/hooks/github/octocat?page=1&per_page=10>; rel="first", <http://localhost:8888/api/v1/hooks/github/octocat?page=1&per_page=10>; rel="prev",`,
     },
     response: '@hooksPage2',
+  });
+});
+
+Cypress.Commands.add('redeliverHook', () => {
+  cy.server();
+  cy.route({
+    method: 'POST',
+    url: '*api/v1/hooks/*/*/*/redeliver',
+    response: 'hook * redelivered',
+  });
+});
+
+Cypress.Commands.add('redeliverHookError', () => {
+  cy.server();
+  cy.route({
+    method: 'POST',
+    url: '*api/v1/hooks/github/octocat/*/redeliver',
+    status: 500,
+    response: 'unable to redeliver hook',
   });
 });
 

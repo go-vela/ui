@@ -15,10 +15,12 @@ import Vela
         , DeploymentId
         , Engine
         , Event
+        , HookNumber
         , Name
         , Org
         , Ref
         , Repo
+        , ScheduleName
         , ServiceNumber
         , StepNumber
         , Type
@@ -49,6 +51,7 @@ type Endpoint
     | RepositoryRepair Org Repo
     | UserSourceRepositories
     | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
+    | Hook Org Repo HookNumber
     | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
     | Build Org Repo BuildNumber
@@ -58,11 +61,12 @@ type Endpoint
     | ServiceLogs Org Repo BuildNumber ServiceNumber
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | StepLogs Org Repo BuildNumber StepNumber
+    | Schedule Org Repo (Maybe ScheduleName) (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
     | Secret Engine Type Org String Name
-    | PipelineConfig Org Repo (Maybe Ref)
-    | ExpandPipelineConfig Org Repo (Maybe Ref)
-    | PipelineTemplates Org Repo (Maybe Ref)
+    | PipelineConfig Org Repo Ref
+    | ExpandPipelineConfig Org Repo Ref
+    | PipelineTemplates Org Repo Ref
 
 
 {-| toUrl : turns and Endpoint into a URL string
@@ -106,6 +110,9 @@ toUrl api endpoint =
         Hooks maybePage maybePerPage org repo ->
             url api [ "hooks", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
+        Hook org repo hookNumber ->
+            url api [ "hooks", org, repo, hookNumber, "redeliver" ] []
+
         OrgBuilds maybePage maybePerPage maybeEvent org ->
             url api [ "repos", org, "builds" ] <| Pagination.toQueryParams maybePage maybePerPage ++ [ UB.string "event" <| Maybe.withDefault "" maybeEvent ]
 
@@ -136,17 +143,25 @@ toUrl api endpoint =
         Secrets maybePage maybePerPage engine type_ org key ->
             url api [ "secrets", engine, type_, org, key ] <| Pagination.toQueryParams maybePage maybePerPage
 
+        Schedule org repo name maybePage maybePerPage ->
+            case name of
+                Just id ->
+                    url api [ "schedules", org, repo, id ] []
+
+                Nothing ->
+                    url api [ "schedules", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
+
         Secret engine type_ org key name ->
             url api [ "secrets", engine, type_, org, key, name ] []
 
         PipelineConfig org repo ref ->
-            url api [ "pipelines", org, repo ] [ UB.string "ref" <| Maybe.withDefault "" ref ]
+            url api [ "pipelines", org, repo, ref ] []
 
         ExpandPipelineConfig org repo ref ->
-            url api [ "pipelines", org, repo, "expand" ] [ UB.string "ref" <| Maybe.withDefault "" ref ]
+            url api [ "pipelines", org, repo, ref, "expand" ] []
 
         PipelineTemplates org repo ref ->
-            url api [ "pipelines", org, repo, "templates" ] [ UB.string "output" "json", UB.string "ref" <| Maybe.withDefault "" ref ]
+            url api [ "pipelines", org, repo, ref, "templates" ] [ UB.string "output" "json" ]
 
         Deployment org repo deploymentNumber ->
             case deploymentNumber of

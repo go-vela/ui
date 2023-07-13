@@ -8,6 +8,7 @@ module SvgBuilder exposing
     ( buildStatusAnimation
     , buildStatusToIcon
     , hookStatusToIcon
+    , hookSuccess
     , recentBuildStatusToIcon
     , star
     , stepStatusToIcon

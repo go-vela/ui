@@ -90,8 +90,12 @@ context('Crumbs', () => {
       cy.get('[data-test=crumb-octocat]').should('exist');
       cy.get('[data-test=crumb-password]').should('exist');
     });
-    it('Secrets crumb should redirect to repo secrets', () => {
+    it('repo crumb should redirect to repo builds', () => {
       cy.get('[data-test=crumb-octocat]').click();
+      cy.location('pathname').should('eq', '/github/octocat');
+    });
+    it('Repo Secrets crumb should redirect to repo secrets', () => {
+      cy.get('[data-test=crumb-repo-secrets]').click();
       cy.location('pathname').should(
         'eq',
         '/-/secrets/native/repo/github/octocat',
@@ -128,17 +132,6 @@ context('Crumbs', () => {
     it('should show appropriate secrets crumbs', () => {
       cy.get('[data-test=crumb-github]').should('exist');
       cy.get('[data-test=crumb-octocat]').should('exist');
-    });
-  });
-  context('visit pipeline', () => {
-    beforeEach(() => {
-      cy.server();
-      cy.login('/github/octocat/pipeline?ref=somebranch');
-    });
-    it('should show appropriate pipeline crumbs', () => {
-      cy.get('[data-test=crumb-github]').should('exist');
-      cy.get('[data-test=crumb-octocat]').should('exist');
-      cy.get('[data-test=crumb-pipeline]').should('exist');
     });
   });
 });

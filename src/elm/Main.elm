@@ -25,7 +25,6 @@ import Focus
     exposing
         ( ExpandTemplatesQuery
         , Fragment
-        , RefQuery
         , focusFragmentToFocusId
         , lineRangeId
         , parseFocusFragment
@@ -98,8 +97,11 @@ import Pages.Home
 import Pages.Hooks
 import Pages.Organization
 import Pages.Pipeline.Model
-import Pages.Pipeline.View
+import Pages.Pipeline.View exposing (safeDecodePipelineData)
 import Pages.RepoSettings exposing (enableUpdate)
+import Pages.Schedules.Model
+import Pages.Schedules.Update
+import Pages.Schedules.View
 import Pages.Secrets.Model
 import Pages.Secrets.Update
 import Pages.Secrets.View
@@ -126,7 +128,7 @@ import Vela
     exposing
         ( AuthParams
         , Build
-        , BuildGraph
+        , BuildModel
         , BuildNumber
         , Builds
         , CurrentUser
@@ -138,12 +140,14 @@ import Vela
         , Favicon
         , Field
         , FocusFragment
+        , HookNumber
         , Hooks
         , Key
         , Log
         , Logs
         , Name
         , Org
+        , PipelineConfig
         , PipelineModel
         , PipelineTemplates
         , Ref
@@ -153,6 +157,9 @@ import Vela
         , RepoSearchFilters
         , Repositories
         , Repository
+        , Schedule
+        , ScheduleName
+        , Schedules
         , Secret
         , SecretType
         , Secrets
@@ -189,13 +196,10 @@ import Vela
         , updateBuild
         , updateBuildGraph
         , updateBuildNumber
-        , updateBuildPipelineBuildNumber
         , updateBuildPipelineConfig
         , updateBuildPipelineExpand
         , updateBuildPipelineFocusFragment
         , updateBuildPipelineLineFocus
-        , updateBuildPipelineOrgRepo
-        , updateBuildPipelineRef
         , updateBuildServices
         , updateBuildServicesFocusFragment
         , updateBuildServicesFollowing
@@ -247,12 +251,14 @@ type alias Flags =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
+    , velaScheduleAllowlist : String
     }
 
 
 type alias Model =
     { page : Page
     , session : Session
+    , fetchingToken : Bool
     , user : WebData CurrentUser
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
@@ -263,6 +269,7 @@ type alias Model =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
+    , velaScheduleAllowlist : List ( Org, Repo )
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
@@ -275,6 +282,7 @@ type alias Model =
     , showHelp : Bool
     , showIdentity : Bool
     , favicon : Favicon
+    , schedulesModel : Pages.Schedules.Model.Model Msg
     , secretsModel : Pages.Secrets.Model.Model Msg
     , deploymentModel : Pages.Deployments.Model.Model Msg
     , pipeline : PipelineModel
@@ -305,6 +313,7 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , session = Unauthenticated
+            , fetchingToken = String.length flags.velaRedirect == 0
             , user = NotAsked
             , sourceRepos = NotAsked
             , velaAPI = flags.velaAPI
@@ -313,6 +322,7 @@ init flags url navKey =
             , velaRedirect = flags.velaRedirect
             , velaLogBytesLimit = flags.velaLogBytesLimit
             , velaMaxBuildLimit = flags.velaMaxBuildLimit
+            , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = utc
@@ -328,6 +338,7 @@ init flags url navKey =
             , showIdentity = False
             , buildMenuOpen = []
             , favicon = defaultFavicon
+            , schedulesModel = initSchedulesModel
             , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
@@ -347,12 +358,11 @@ init flags url navKey =
 
         fetchToken : Cmd Msg
         fetchToken =
-            case String.length model.velaRedirect of
-                0 ->
-                    getToken model
+            if model.fetchingToken then
+                getToken model
 
-                _ ->
-                    Cmd.none
+            else
+                Cmd.none
     in
     ( newModel
     , Cmd.batch
@@ -420,8 +430,9 @@ type Msg
     | UpdateRepoCounter Org Repo Field Int
     | RestartBuild Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
-    | GetPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
-    | ExpandPipelineConfig Org Repo (Maybe BuildNumber) (Maybe Ref) FocusFragment Bool
+    | RedeliverHook Org Repo HookNumber
+    | GetPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
+    | ExpandPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
       -- Inbound HTTP responses
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
@@ -441,14 +452,15 @@ type Msg
     | BuildsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
     | DeploymentsResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, List Deployment ))
     | HooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
+    | RedeliverHookResponse Org Repo HookNumber (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | BuildResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | BuildGraphResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, BuildGraph ))
+    | BuildAndPipelineResponse Org Repo (Maybe ExpandTemplatesQuery) (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | DeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
     | StepLogResponse StepNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
     | ServicesResponse Org Repo BuildNumber (Maybe String) Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Services ))
     | ServiceLogResponse ServiceNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Log ))
-    | GetPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | GetPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, PipelineConfig ))
     | ExpandPipelineConfigResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | GetPipelineTemplatesResponse FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Templates ))
     | SecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secret ))
@@ -459,12 +471,19 @@ type Msg
     | OrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | SharedSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ))
     | DeleteSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+      -- Schedules
+    | SchedulesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Schedules ))
+    | ScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
+    | AddScheduleUpdate Pages.Schedules.Model.Msg
+    | AddScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
+    | UpdateScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
+    | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
     | Tick Interval Posix
       -- Components
-    | AddSecretUpdate Pages.Secrets.Model.Msg
+    | SecretsUpdate Pages.Secrets.Model.Msg
     | AddDeploymentUpdate Pages.Deployments.Model.Msg
       -- Other
     | HandleError Error
@@ -484,6 +503,9 @@ update msg model =
     let
         rm =
             model.repo
+
+        sm =
+            model.schedulesModel
 
         pipeline =
             model.pipeline
@@ -674,6 +696,11 @@ update msg model =
                     in
                     ( { model | secretsModel = loadingSecrets }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.SharedSecrets engine org team (Just pageNumber) maybePerPage
+                    )
+
+                Pages.Schedules org repo _ maybePerPage ->
+                    ( { model | schedulesModel = { sm | schedules = Loading } }
+                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Schedules org repo (Just pageNumber) maybePerPage
                     )
 
                 _ ->
@@ -919,12 +946,7 @@ update msg model =
                 url =
                     lineRangeId "config" "0" line pipeline.lineFocus model.shift
             in
-            ( { model
-                | pipeline =
-                    { pipeline
-                        | lineFocus = pipeline.lineFocus
-                    }
-              }
+            ( { model | pipeline = pipeline }
             , Navigation.pushUrl model.navigationKey <| url
             )
 
@@ -938,7 +960,7 @@ update msg model =
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
 
         FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+            ( { model | sourceRepos = Loading }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
 
         ToggleFavorite org repo ->
             let
@@ -1037,12 +1059,13 @@ update msg model =
                 payload =
                     buildUpdateRepoBoolPayload field value
 
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
                 cmd =
                     if Pages.RepoSettings.validEventsUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1058,12 +1081,13 @@ update msg model =
                 payload =
                     buildUpdateRepoStringPayload field value
 
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
                 cmd =
                     if Pages.RepoSettings.validAccessUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1079,12 +1103,13 @@ update msg model =
                 payload =
                     buildUpdateRepoStringPayload field value
 
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
                 cmd =
                     if Pages.RepoSettings.validPipelineTypeUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1154,6 +1179,11 @@ update msg model =
             , cancelBuild model org repo buildNumber
             )
 
+        RedeliverHook org repo hookNumber ->
+            ( model
+            , redeliverHook model org repo hookNumber
+            )
+
         GetPipelineConfig org repo buildNumber ref lineFocus refresh ->
             ( { model
                 | pipeline =
@@ -1163,13 +1193,7 @@ update msg model =
               }
             , Cmd.batch
                 [ getPipelineConfig model org repo ref lineFocus refresh
-                , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
-                  case buildNumber of
-                    Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref Nothing lineFocus
-
-                    Nothing ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref Nothing lineFocus
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo buildNumber Nothing lineFocus
                 ]
             )
 
@@ -1182,17 +1206,85 @@ update msg model =
               }
             , Cmd.batch
                 [ expandPipelineConfig model org repo ref lineFocus refresh
-                , -- if build number is present, use Routes.BuildPipeline over Routes.Pipeline
-                  case buildNumber of
-                    Just b ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo b ref (Just "true") lineFocus
-
-                    Nothing ->
-                        Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.Pipeline org repo ref (Just "true") lineFocus
+                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo buildNumber (Just "true") lineFocus
                 ]
             )
 
         -- Inbound HTTP responses
+        SchedulesResponse org repo result ->
+            case result of
+                Ok ( meta, schedules ) ->
+                    ( { model
+                        | schedulesModel =
+                            { sm
+                                | org = org
+                                , repo = repo
+                                , schedules = RemoteData.succeed schedules
+                                , pager = Pagination.get meta.headers
+                            }
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | schedulesModel = { sm | schedules = toFailure error } }, addError error )
+
+        ScheduleResponse response ->
+            case response of
+                Ok ( _, schedule ) ->
+                    let
+                        updatedSchedulesModel =
+                            Pages.Schedules.Update.reinitializeScheduleUpdate sm schedule
+                    in
+                    ( { model | schedulesModel = updatedSchedulesModel }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( model, addError error )
+
+        AddScheduleResponse response ->
+            case response of
+                Ok ( _, schedule ) ->
+                    let
+                        updatedSchedulesModel =
+                            Pages.Schedules.Update.reinitializeScheduleAdd sm
+                    in
+                    ( { model | schedulesModel = updatedSchedulesModel }, Cmd.none )
+                        |> addScheduleResponseAlert schedule
+
+                Err error ->
+                    ( model, addError error )
+
+        UpdateScheduleResponse response ->
+            case response of
+                Ok ( _, schedule ) ->
+                    let
+                        updatedSchedulesModel =
+                            Pages.Schedules.Update.reinitializeScheduleUpdate sm schedule
+                    in
+                    ( { model | schedulesModel = updatedSchedulesModel }, Cmd.none )
+                        |> updateScheduleResponseAlert schedule
+
+                Err error ->
+                    ( model, addError error )
+
+        DeleteScheduleResponse response ->
+            case response of
+                Ok _ ->
+                    let
+                        alertMessage =
+                            sm.form.name ++ " removed from repo schedules."
+
+                        redirectTo =
+                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                    in
+                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
         LogoutResponse _ ->
             -- ignoring outcome of request and proceeding to logout
             ( { model | session = Unauthenticated }
@@ -1215,19 +1307,20 @@ update msg model =
                         newSessionDetails =
                             SessionDetails token payload.exp payload.sub
 
-                        redirectTo : String
-                        redirectTo =
-                            case model.velaRedirect of
-                                "" ->
-                                    Url.toString model.entryURL
-
-                                _ ->
-                                    model.velaRedirect
-
                         actions : List (Cmd Msg)
                         actions =
                             case currentSession of
                                 Unauthenticated ->
+                                    let
+                                        redirectTo : String
+                                        redirectTo =
+                                            case model.velaRedirect of
+                                                "" ->
+                                                    Url.toString model.entryURL
+
+                                                _ ->
+                                                    model.velaRedirect
+                                    in
                                     [ Interop.setRedirect Encode.null
                                     , Navigation.pushUrl model.navigationKey redirectTo
                                     ]
@@ -1235,7 +1328,7 @@ update msg model =
                                 Authenticated _ ->
                                     []
                     in
-                    ( { model | session = Authenticated newSessionDetails }
+                    ( { model | session = Authenticated newSessionDetails, fetchingToken = False }
                     , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
                     )
 
@@ -1266,12 +1359,12 @@ update msg model =
                                                     , redirectPage
                                                     ]
                                     in
-                                    ( { model | session = Unauthenticated }
+                                    ( { model | session = Unauthenticated, fetchingToken = False }
                                     , Cmd.batch actions
                                     )
 
                                 _ ->
-                                    ( { model | session = Unauthenticated }
+                                    ( { model | session = Unauthenticated, fetchingToken = False }
                                     , Cmd.batch
                                         [ addError error
                                         , redirectPage
@@ -1279,7 +1372,7 @@ update msg model =
                                     )
 
                         _ ->
-                            ( { model | session = Unauthenticated }
+                            ( { model | session = Unauthenticated, fetchingToken = False }
                             , Cmd.batch
                                 [ addError error
                                 , redirectPage
@@ -1519,6 +1612,21 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateHooks (toFailure error) rm }, addError error )
 
+        RedeliverHookResponse org repo hookNumber response ->
+            case response of
+                Ok ( _, redeliverResponse ) ->
+                    let
+                        redeliveredHook =
+                            "Hook " ++ String.join "/" [ org, repo, hookNumber ]
+                    in
+                    ( model
+                    , getHooks model org repo Nothing Nothing
+                    )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (redeliveredHook ++ " redelivered.") Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
         BuildResponse org repo response ->
             case response of
                 Ok ( _, build ) ->
@@ -1535,29 +1643,39 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
-        BuildGraphResponse _ _ response ->
+        BuildAndPipelineResponse org repo expand response ->
             case response of
-                Ok ( _, graph ) ->
-                    case model.page of
-                        Pages.BuildGraph _ _ _ ->
-                            let
-                                -- TODO: optimize this
-                                --       only render if the buildgraph has actually changed
-                                cmd =
-                                    if True then
-                                        -- for now, the build graph always renders when receiving graph response from the server
-                                        Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model graph
+                Ok ( _, build ) ->
+                    let
+                        -- set pipeline fetch api call based on ?expand= query
+                        getPipeline =
+                            case expand of
+                                Just e ->
+                                    if e == "true" then
+                                        expandPipelineConfig
 
                                     else
-                                        Cmd.none
-                            in
-                            ( { model | repo = rm |> updateBuildGraph (RemoteData.succeed graph) }, cmd )
+                                        getPipelineConfig
 
-                        _ ->
-                            ( model, Cmd.none )
+                                Nothing ->
+                                    getPipelineConfig
+                    in
+                    ( { model
+                        | repo =
+                            rm
+                                |> updateOrgRepo org repo
+                                |> updateBuild (RemoteData.succeed build)
+                        , favicon = statusToFavicon build.status
+                      }
+                    , Cmd.batch
+                        [ Interop.setFavicon <| Encode.string <| statusToFavicon build.status
+                        , getPipeline model org repo build.commit Nothing False
+                        , getPipelineTemplates model org repo build.commit Nothing False
+                        ]
+                    )
 
                 Err error ->
-                    ( { model | repo = updateBuildGraph (toFailure error) rm }, addError error )
+                    ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
         DeploymentResponse response ->
             case response of
@@ -1718,7 +1836,7 @@ update msg model =
                     ( { model
                         | pipeline =
                             { pipeline
-                                | config = ( RemoteData.succeed { data = config }, "" )
+                                | config = ( RemoteData.succeed <| safeDecodePipelineData config pipeline.config, "" )
                                 , expanded = False
                                 , expanding = False
                             }
@@ -1757,7 +1875,7 @@ update msg model =
                     ( { model
                         | pipeline =
                             { pipeline
-                                | config = ( RemoteData.succeed { data = config }, "" )
+                                | config = ( RemoteData.succeed { rawData = config, decodedData = config }, "" )
                                 , expanded = True
                                 , expanding = False
                             }
@@ -1929,23 +2047,14 @@ update msg model =
                     ( model, refreshPageHidden model data )
 
         -- Components
-        AddSecretUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Secrets.Update.update model m
-            in
-            ( newModel
-            , action
-            )
+        SecretsUpdate m ->
+            Pages.Secrets.Update.update model m
 
         AddDeploymentUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Deployments.Update.update model m
-            in
-            ( newModel
-            , action
-            )
+            Pages.Deployments.Update.update model m
+
+        AddScheduleUpdate m ->
+            Pages.Schedules.Update.update model m
 
         -- Other
         HandleError error ->
@@ -2061,6 +2170,34 @@ updateSecretResponseAlert secret =
     Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
 
+{-| addScheduleResponseAlert : takes schedule and produces Toasty alert for when adding a schedule
+-}
+addScheduleResponseAlert :
+    Schedule
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+addScheduleResponseAlert schedule =
+    let
+        msg =
+            schedule.name ++ " added to repo schedules."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| updateScheduleResponseAlert : takes schedule and produces Toasty alert for when updating a schedule
+-}
+updateScheduleResponseAlert :
+    Schedule
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+updateScheduleResponseAlert schedule =
+    let
+        msg =
+            "Repo schedule " ++ schedule.name ++ " updated."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
 
 -- SUBSCRIPTIONS
 
@@ -2126,29 +2263,42 @@ refreshSubscriptions model =
 -}
 refreshFavicon : Page -> Favicon -> WebData Build -> ( Favicon, Cmd Msg )
 refreshFavicon page currentFavicon build =
-    case page of
-        Pages.Build _ _ _ _ ->
-            case build of
-                RemoteData.Success b ->
-                    let
-                        newFavicon =
-                            statusToFavicon b.status
-                    in
-                    if currentFavicon /= newFavicon then
-                        ( newFavicon, Interop.setFavicon <| Encode.string newFavicon )
+    let
+        onBuild =
+            case page of
+                Pages.Build _ _ _ _ ->
+                    True
 
-                    else
-                        ( currentFavicon, Cmd.none )
+                Pages.BuildServices _ _ _ _ ->
+                    True
+
+                Pages.BuildPipeline _ _ _ _ _ ->
+                    True
 
                 _ ->
+                    False
+    in
+    if onBuild then
+        case build of
+            RemoteData.Success b ->
+                let
+                    newFavicon =
+                        statusToFavicon b.status
+                in
+                if currentFavicon /= newFavicon then
+                    ( newFavicon, Interop.setFavicon <| Encode.string newFavicon )
+
+                else
                     ( currentFavicon, Cmd.none )
 
-        _ ->
-            if currentFavicon /= defaultFavicon then
-                ( defaultFavicon, Interop.setFavicon <| Encode.string defaultFavicon )
-
-            else
+            _ ->
                 ( currentFavicon, Cmd.none )
+
+    else if currentFavicon /= defaultFavicon then
+        ( defaultFavicon, Interop.setFavicon <| Encode.string defaultFavicon )
+
+    else
+        ( currentFavicon, Cmd.none )
 
 
 {-| refreshPage : refreshes Vela data based on current page and build status
@@ -2185,7 +2335,7 @@ refreshPage model =
                 , refreshServiceLogs model org repo buildNumber model.repo.build.services.services Nothing
                 ]
 
-        Pages.BuildPipeline org repo buildNumber _ _ _ ->
+        Pages.BuildPipeline org repo buildNumber _ _ ->
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
@@ -2199,9 +2349,7 @@ refreshPage model =
                 ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
-            Cmd.batch
-                [ getHooks model org repo maybePage maybePerPage
-                ]
+            getHooks model org repo maybePage maybePerPage
 
         Pages.OrgSecrets engine org maybePage maybePerPage ->
             Cmd.batch
@@ -2210,14 +2358,10 @@ refreshPage model =
                 ]
 
         Pages.RepoSecrets engine org repo maybePage maybePerPage ->
-            Cmd.batch
-                [ getRepoSecrets model maybePage maybePerPage engine org repo
-                ]
+            getRepoSecrets model maybePage maybePerPage engine org repo
 
         Pages.SharedSecrets engine org team maybePage maybePerPage ->
-            Cmd.batch
-                [ getSharedSecrets model maybePage maybePerPage engine org team
-                ]
+            getSharedSecrets model maybePage maybePerPage engine org team
 
         _ ->
             Cmd.none
@@ -2233,9 +2377,7 @@ refreshPageHidden model _ =
     in
     case page of
         Pages.Build org repo buildNumber _ ->
-            Cmd.batch
-                [ refreshBuild model org repo buildNumber
-                ]
+            refreshBuild model org repo buildNumber
 
         _ ->
             Cmd.none
@@ -2264,12 +2406,8 @@ refreshData model =
 -}
 refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuild model org repo buildNumber =
-    let
-        refresh =
-            getBuild model org repo buildNumber
-    in
-    if shouldRefresh model.repo.build.build then
-        refresh
+    if shouldRefresh model.repo.build then
+        getBuild model org repo buildNumber
 
     else
         Cmd.none
@@ -2279,7 +2417,7 @@ refreshBuild model org repo buildNumber =
 -}
 refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefresh model.repo.build.build then
+    if shouldRefresh model.repo.build then
         getAllBuildSteps model org repo buildNumber focusFragment True
 
     else
@@ -2290,7 +2428,7 @@ refreshBuildSteps model org repo buildNumber focusFragment =
 -}
 refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildServices model org repo buildNumber focusFragment =
-    if shouldRefresh model.repo.build.build then
+    if shouldRefresh model.repo.build then
         getAllBuildServices model org repo buildNumber focusFragment True
 
     else
@@ -2310,16 +2448,46 @@ refreshBuildGraph model org repo buildNumber =
 
 {-| shouldRefresh : takes build and returns true if a refresh is required
 -}
-shouldRefresh : WebData Build -> Bool
+shouldRefresh : BuildModel -> Bool
 shouldRefresh build =
-    case build of
+    case build.build of
         Success bld ->
-            not <| isComplete bld.status
+            -- build is incomplete
+            (not <| isComplete bld.status)
+                -- any steps or services are incomplete
+                || (case build.steps.steps of
+                        Success steps ->
+                            List.any (\s -> not <| isComplete s.status) steps
+
+                        NotAsked ->
+                            True
+
+                        -- do not refresh Failed or Loading steps
+                        Failure _ ->
+                            False
+
+                        Loading ->
+                            False
+                   )
+                || (case build.services.services of
+                        Success services ->
+                            List.any (\s -> not <| isComplete s.status) services
+
+                        NotAsked ->
+                            True
+
+                        -- do not refresh Failed or Loading services
+                        Failure _ ->
+                            False
+
+                        Loading ->
+                            False
+                   )
 
         NotAsked ->
             True
 
-        -- Do not refresh a Failed or Loading build
+        -- do not refresh a Failed or Loading build
         Failure _ ->
             False
 
@@ -2340,12 +2508,9 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
 
                 _ ->
                     []
-
-        refresh =
-            getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
     in
-    if shouldRefresh model.repo.build.build then
-        refresh
+    if shouldRefresh model.repo.build then
+        getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
 
     else
         Cmd.none
@@ -2364,12 +2529,9 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
 
                 _ ->
                     []
-
-        refresh =
-            getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
     in
-    if shouldRefresh model.repo.build.build then
-        refresh
+    if shouldRefresh model.repo.build then
+        getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
 
     else
         Cmd.none
@@ -2484,10 +2646,13 @@ viewContent model =
             ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
             , div []
                 [ Pager.view model.repo.hooks.pager Pager.defaultLabels GotoPage
-                , lazy Pages.Hooks.view
+                , lazy2 Pages.Hooks.view
                     { hooks = model.repo.hooks
                     , time = model.time
+                    , org = model.repo.org
+                    , repo = model.repo.name
                     }
+                    RedeliverHook
                 , Pager.view model.repo.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -2500,56 +2665,56 @@ viewContent model =
         Pages.RepoSecrets engine org repo _ _ ->
             ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
             , div []
-                [ Html.map (\_ -> NoOp) <| lazy Pages.Secrets.View.viewRepoSecrets model
-                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
+                [ Html.map SecretsUpdate <| lazy Pages.Secrets.View.viewRepoSecrets model
+                , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
                 ]
             )
 
         Pages.OrgSecrets engine org maybePage _ ->
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ Util.pageToString maybePage
             , div []
-                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
+                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
                 , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
-                , Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
+                , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
                 ]
             )
 
         Pages.SharedSecrets engine org team _ _ ->
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
-                [ Html.map (\_ -> NoOp) <| lazy3 Pages.Secrets.View.viewSharedSecrets model False False
+                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
                 , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
                 ]
             )
 
         Pages.AddOrgSecret engine _ ->
             ( "add " ++ engine ++ " org secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.AddRepoSecret engine _ _ ->
             ( "add " ++ engine ++ " repo secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.AddSharedSecret engine _ _ ->
             ( "add " ++ engine ++ " shared secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.addSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
             )
 
         Pages.OrgSecret engine org name ->
             ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.editSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.RepoSecret engine org repo name ->
             ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.editSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.SharedSecret engine org team name ->
             ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-            , Html.map AddSecretUpdate <| lazy Pages.Secrets.View.editSecret model
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
             )
 
         Pages.AddDeployment org repo ->
@@ -2559,14 +2724,40 @@ viewContent model =
 
         Pages.PromoteDeployment org repo buildNumber ->
             ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
-            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.promoteDeployment model
+            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
             )
 
         Pages.RepositoryDeployments org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
             , div []
-                [ lazy3 Pages.Deployments.View.viewDeployments model.repo.deployments org repo
+                [ lazy3 Pages.Deployments.View.viewDeployments model.repo org repo
                 , Pager.view model.repo.deployments.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
+        Pages.AddSchedule org repo ->
+            ( String.join "/" [ org, repo, "add schedule" ]
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewAddSchedule model
+            )
+
+        Pages.Schedule org repo name ->
+            ( String.join "/" [ org, repo, name ]
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewEditSchedule model
+            )
+
+        Pages.Schedules org repo maybePage _ ->
+            let
+                viewPager =
+                    if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+                        Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
+
+                    else
+                        text ""
+            in
+            ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
+            , div []
+                [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
+                , viewPager
                 ]
             )
 
@@ -2631,6 +2822,64 @@ viewContent model =
                 ]
             )
 
+        Pages.RepositoryBuildsPulls org repo maybePage _ ->
+            let
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.repo.builds.builds, Just "pull_request" ) of
+                        ( Success result, Nothing ) ->
+                            not <| List.length result == 0
+
+                        ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
+                            True
+
+                        _ ->
+                            False
+            in
+            ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+            , div []
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo (Just "pull_request")
+                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
+                    ]
+                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo (Just "pull_request")
+                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
+        Pages.RepositoryBuildsTags org repo maybePage _ ->
+            let
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.repo.builds.builds, Just "tag" ) of
+                        ( Success result, Nothing ) ->
+                            not <| List.length result == 0
+
+                        ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
+                            True
+
+                        _ ->
+                            False
+            in
+            ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+            , div []
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
+                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
+                    ]
+                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo (Just "tag")
+                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
         Pages.Build org repo buildNumber _ ->
             ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
             , Pages.Build.View.viewBuild
@@ -2651,36 +2900,17 @@ viewContent model =
                 buildNumber
             )
 
-        Pages.BuildPipeline org repo buildNumber ref _ _ ->
+        Pages.BuildPipeline org repo buildNumber _ _ ->
             ( "Pipeline " ++ String.join "/" [ org, repo ]
             , Pages.Pipeline.View.viewPipeline
                 model
                 pipelineMsgs
-                ref
                 |> Pages.Build.View.wrapWithBuildPreview
                     model
                     buildMsgs
                     org
                     repo
                     buildNumber
-            )
-
-        Pages.BuildGraph org repo buildNumber ->
-            ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Pages.Build.View.viewBuildGraph
-                model
-                buildMsgs
-                org
-                repo
-                buildNumber
-            )
-
-        Pages.Pipeline org repo ref _ _ ->
-            ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Pages.Pipeline.View.viewPipeline
-                model
-                pipelineMsgs
-                ref
             )
 
         Pages.Settings ->
@@ -2702,10 +2932,6 @@ viewContent model =
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
 viewBuildsFilter shouldRender org repo maybeEvent =
     let
-        eventEnum : List String
-        eventEnum =
-            [ "all", "push", "pull_request", "tag", "deployment", "comment" ]
-
         eventToMaybe : String -> Maybe Event
         eventToMaybe event =
             case event of
@@ -2716,6 +2942,18 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                     Just event
     in
     if shouldRender then
+        let
+            eventEnum : List String
+            eventEnum =
+                [ "all"
+                , "push"
+                , "pull_request"
+                , "tag"
+                , "deployment"
+                , "schedule"
+                , "comment"
+                ]
+        in
         div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
             div [] [ text "Filter by Event:" ]
                 :: List.map
@@ -2951,6 +3189,12 @@ setNewPage route model =
         ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
             loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent
 
+        ( Routes.RepositoryBuildsPulls org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoBuildsPullsPage model org repo maybePage maybePerPage
+
+        ( Routes.RepositoryBuildsTags org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoBuildsTagsPage model org repo maybePage maybePerPage
+
         ( Routes.RepositoryDeployments org repo maybePage maybePerPage, Authenticated _ ) ->
             loadRepoDeploymentsPage model org repo maybePage maybePerPage
 
@@ -2966,14 +3210,17 @@ setNewPage route model =
         ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
             loadBuildServicesPage model org repo buildNumber lineFocus
 
-        ( Routes.BuildPipeline org repo buildNumber ref expand lineFocus, Authenticated _ ) ->
-            loadBuildPipelinePage model org repo buildNumber ref expand lineFocus
+        ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
+            loadBuildPipelinePage model org repo buildNumber expand lineFocus
 
-        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
-            loadBuildGraphPage model org repo buildNumber
+        ( Routes.AddSchedule org repo, Authenticated _ ) ->
+            loadAddSchedulePage model org repo
 
-        ( Routes.Pipeline org repo ref expand lineFocus, Authenticated _ ) ->
-            loadPipelinePage model org repo ref expand lineFocus
+        ( Routes.Schedules org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoSchedulesPage model org repo maybePage maybePerPage
+
+        ( Routes.Schedule org repo id, Authenticated _ ) ->
+            loadEditSchedulePage model org repo id
 
         ( Routes.Settings, Authenticated _ ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
@@ -2991,7 +3238,14 @@ setNewPage route model =
            browser's back button
         --}
         ( _, Unauthenticated ) ->
-            ( { model | page = Pages.Login }
+            ( { model
+                | page =
+                    if model.fetchingToken then
+                        model.page
+
+                    else
+                        Pages.Login
+              }
             , Interop.setRedirect <| Encode.string <| Url.toString model.entryURL
             )
 
@@ -3076,7 +3330,7 @@ loadOrgSubPage model org toPage =
 
         fetchSecrets : Org -> Cmd Msg
         fetchSecrets o =
-            Cmd.batch [ getAllOrgSecrets model "native" o ]
+            getAllOrgSecrets model "native" o
 
         -- update model and dispatch cmds depending on initialization state and destination
         ( loadModel, loadCmd ) =
@@ -3115,7 +3369,7 @@ loadOrgSubPage model org toPage =
                                                 |> updateBuildsEvent maybeEvent
 
                                         _ ->
-                                            rm
+                                            rm_
                                                 |> updateBuildsPage Nothing
                                                 |> updateBuildsPerPage Nothing
                                                 |> updateBuildsEvent Nothing
@@ -3177,6 +3431,9 @@ loadRepoSubPage model org repo toPage =
         secretsModel =
             model.secretsModel
 
+        schedulesModel =
+            model.schedulesModel
+
         dm =
             model.deploymentModel
 
@@ -3198,6 +3455,25 @@ loadRepoSubPage model org repo toPage =
                             , repo = repo
                             , engine = "native"
                             , type_ = Vela.RepoSecret
+                        }
+                    , schedulesModel =
+                        let
+                            -- update schedules pagination
+                            ( maybePage, maybePerPage ) =
+                                case toPage of
+                                    Pages.Schedules _ _ maybePage_ maybePerPage_ ->
+                                        ( maybePage_, maybePerPage_ )
+
+                                    _ ->
+                                        ( Nothing, Nothing )
+                        in
+                        { schedulesModel
+                            | schedules = Loading
+                            , schedule = Loading
+                            , org = org
+                            , repo = repo
+                            , maybePage = maybePage
+                            , maybePerPage = maybePerPage
                         }
                     , deploymentModel =
                         let
@@ -3233,7 +3509,7 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateBuildsEvent maybeEvent
 
                                         _ ->
-                                            rm
+                                            rm_
                                                 |> updateBuildsPage Nothing
                                                 |> updateBuildsPerPage Nothing
                                                 |> updateBuildsEvent Nothing
@@ -3247,7 +3523,7 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateDeploymentsPerPage maybePerPage
 
                                         _ ->
-                                            rm
+                                            rm_
                                                 |> updateDeploymentsPage Nothing
                                                 |> updateDeploymentsPerPage Nothing
                                )
@@ -3260,7 +3536,7 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateHooksPerPage maybePerPage
 
                                         _ ->
-                                            rm
+                                            rm_
                                                 |> updateHooksPage Nothing
                                                 |> updateHooksPerPage Nothing
                                )
@@ -3271,6 +3547,12 @@ loadRepoSubPage model org repo toPage =
                     , case toPage of
                         Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
                             getBuilds model o r maybePage maybePerPage maybeEvent
+
+                        Pages.RepositoryBuildsPulls o r maybePage maybePerPage ->
+                            getBuilds model o r maybePage maybePerPage (Just "pull_request")
+
+                        Pages.RepositoryBuildsTags o r maybePage maybePerPage ->
+                            getBuilds model o r maybePage maybePerPage (Just "tag")
 
                         _ ->
                             getBuilds model org repo Nothing Nothing Nothing
@@ -3289,6 +3571,16 @@ loadRepoSubPage model org repo toPage =
                     , case toPage of
                         Pages.RepoSecrets _ o r _ _ ->
                             fetchSecrets o r
+
+                        _ ->
+                            Cmd.none
+                    , case toPage of
+                        Pages.Schedules o r maybePage maybePerPage ->
+                            if Util.checkScheduleAllowlist o r model.velaScheduleAllowlist then
+                                getSchedules model o r maybePage maybePerPage
+
+                            else
+                                Cmd.none
 
                         _ ->
                             Cmd.none
@@ -3318,18 +3610,36 @@ loadRepoSubPage model org repo toPage =
                     Pages.RepoSecrets _ o r _ _ ->
                         ( model, fetchSecrets o r )
 
+                    Pages.Schedules o r maybePage maybePerPage ->
+                        ( { model
+                            | schedulesModel =
+                                { schedulesModel
+                                    | maybePage = maybePage
+                                    , maybePerPage = maybePerPage
+                                }
+                          }
+                        , if Util.checkScheduleAllowlist o r model.velaScheduleAllowlist then
+                            getSchedules model o r maybePage maybePerPage
+
+                          else
+                            Cmd.none
+                        )
+
                     Pages.Hooks o r maybePage maybePerPage ->
                         ( { model
                             | repo =
                                 rm
                                     |> updateHooksPage maybePage
-                                    |> updateHooksPage maybePerPage
+                                    |> updateHooksPerPage maybePerPage
                           }
                         , getHooks model o r maybePage maybePerPage
                         )
 
                     Pages.RepoSettings o r ->
                         ( model, getRepo model o r )
+
+                    Pages.PromoteDeployment o r deploymentNumber ->
+                        ( model, getDeployment model o r deploymentNumber )
 
                     -- page is not a repo subpage
                     _ ->
@@ -3358,6 +3668,24 @@ loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent =
     loadRepoSubPage model org repo <| Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent
 
 
+{-| loadRepoBuildsPullsPage : takes model org and repo and loads the appropriate builds for the pull\_request event only.
+
+    loadRepoBuildsPullsPage   Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
+
+-}
+loadRepoBuildsPullsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadRepoBuildsPullsPage model org repo maybePage maybePerPage =
+    loadRepoSubPage model org repo <| Pages.RepositoryBuildsPulls org repo maybePage maybePerPage
+
+
+{-| loadRepoBuildsTagsPage : takes model org and repo and loads the appropriate builds for the tag event only.
+loadRepoBuildsTagsPage Checks if the builds have already been loaded from the repo view. If not, fetches the builds from the Api.
+-}
+loadRepoBuildsTagsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
+loadRepoBuildsTagsPage model org repo maybePage maybePerPage =
+    loadRepoSubPage model org repo <| Pages.RepositoryBuildsTags org repo maybePage maybePerPage
+
+
 loadRepoDeploymentsPage : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadRepoDeploymentsPage model org repo maybePage maybePerPage =
     loadRepoSubPage model org repo <| Pages.RepositoryDeployments org repo maybePage maybePerPage
@@ -3375,6 +3703,19 @@ loadRepoSecretsPage :
     -> ( Model, Cmd Msg )
 loadRepoSecretsPage model maybePage maybePerPage engine org repo =
     loadRepoSubPage model org repo <| Pages.RepoSecrets engine org repo maybePage maybePerPage
+
+
+{-| loadRepoSchedulesPage : takes model org and repo and loads the page for managing repo schedules
+-}
+loadRepoSchedulesPage :
+    Model
+    -> Org
+    -> Repo
+    -> Maybe Pagination.Page
+    -> Maybe Pagination.PerPage
+    -> ( Model, Cmd Msg )
+loadRepoSchedulesPage model org repo maybePage maybePerPage =
+    loadRepoSubPage model org repo <| Pages.Schedules org repo maybePage maybePerPage
 
 
 {-| loadAddDeploymentPage : takes model org and repo and loads the page for managing deployments
@@ -3501,9 +3842,7 @@ loadAddOrgSecretPage model engine org =
                 , type_ = Vela.OrgSecret
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 
@@ -3526,8 +3865,57 @@ loadAddRepoSecretPage model engine org repo =
                 , type_ = Vela.RepoSecret
             }
       }
+    , getCurrentUser model
+    )
+
+
+{-| loadAddSchedulePage : takes model org and repo and loads the page for adding schedules
+-}
+loadAddSchedulePage : Model -> Org -> Repo -> ( Model, Cmd Msg )
+loadAddSchedulePage model org repo =
+    -- Fetch secrets from Api
+    let
+        scheduleModel =
+            Pages.Schedules.Update.reinitializeScheduleAdd model.schedulesModel
+    in
+    ( { model
+        | page = Pages.AddSchedule org repo
+        , schedulesModel =
+            { scheduleModel
+                | org = org
+                , repo = repo
+                , deleteState = Pages.Schedules.Model.NotAsked_
+            }
+      }
+    , getCurrentUser model
+    )
+
+
+{-| loadEditSchedulePage : takes model org and repo and loads the page for editing schedules
+-}
+loadEditSchedulePage : Model -> Org -> ScheduleName -> Repo -> ( Model, Cmd Msg )
+loadEditSchedulePage model org repo id =
+    -- Fetch schedules from Api
+    let
+        scheduleModel =
+            model.schedulesModel
+    in
+    ( { model
+        | page = Pages.Schedule org repo id
+        , schedulesModel =
+            { scheduleModel
+                | org = org
+                , repo = repo
+                , deleteState = Pages.Schedules.Model.NotAsked_
+            }
+      }
     , Cmd.batch
         [ getCurrentUser model
+        , if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+            getSchedule model org repo id
+
+          else
+            Cmd.none
         ]
     )
 
@@ -3552,9 +3940,7 @@ loadAddSharedSecretPage model engine org team =
                 , form = secretsModel.form
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 
@@ -3762,8 +4148,8 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 
 {-| loadBuildPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
 -}
-loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
-loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
+loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
+loadBuildPipelinePage model org repo buildNumber expand lineFocus =
     let
         -- get resource transition information
         sameBuild =
@@ -3771,14 +4157,11 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
 
         sameResource =
             case model.page of
-                Pages.BuildPipeline _ _ _ _ _ _ ->
+                Pages.BuildPipeline _ _ _ _ _ ->
                     True
 
                 _ ->
                     False
-
-        sameRef =
-            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
 
         -- if build has changed, set build fields in the model
         m =
@@ -3809,13 +4192,11 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
             model.pipeline
     in
     ( { m
-        | page = Pages.BuildPipeline org repo buildNumber ref expand lineFocus
-
-        -- set pipeline fields
+        | page = Pages.BuildPipeline org repo buildNumber expand lineFocus
         , pipeline =
             pipeline
                 |> updateBuildPipelineConfig
-                    (if sameRef then
+                    (if sameBuild then
                         case pipeline.config of
                             ( Success _, _ ) ->
                                 pipeline.config
@@ -3826,154 +4207,45 @@ loadBuildPipelinePage model org repo buildNumber ref expand lineFocus =
                      else
                         ( Loading, "" )
                     )
-                |> updateBuildPipelineOrgRepo org repo
-                |> updateBuildPipelineBuildNumber (Just buildNumber)
-                |> updateBuildPipelineRef ref
                 |> updateBuildPipelineExpand expand
                 |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                 |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
 
-        -- reset templates if ref has changed
+        -- reset templates if build has changed
         , templates =
-            if sameRef then
+            if sameBuild then
                 model.templates
 
             else
                 { data = Loading, error = "", show = True }
       }
-      -- do not load resources if transition is auto refresh, line focus, etc
-    , if sameBuild && sameResource then
-        Cmd.none
+    , Cmd.batch <|
+        -- do not load resources if transition is auto refresh, line focus, etc
+        if sameBuild && sameResource then
+            []
 
-      else
-        Cmd.batch
-            [ getBuilds model org repo Nothing Nothing Nothing
-            , getBuild model org repo buildNumber
-            , getPipeline model org repo ref lineFocus sameBuild
-            , getPipelineTemplates model org repo ref lineFocus sameBuild
-            ]
-    )
-
-
-{-| loadBuildGraphPage : takes model org, repo, and build number and loads the appropriate build graph resources.
--}
-loadBuildGraphPage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
-loadBuildGraphPage model org repo buildNumber =
-    let
-        -- get resource transition information
-        sameBuild =
-            isSameBuild ( org, repo, buildNumber ) model.page
-
-        sameResource =
-            case model.page of
-                Pages.BuildGraph _ _ _ ->
-                    True
+        else if sameBuild then
+            -- same build, most likely a tab switch
+            case model.repo.build.build of
+                Success build ->
+                    -- build exists, chained request not needed
+                    [ getBuilds model org repo Nothing Nothing Nothing
+                    , getBuild model org repo buildNumber
+                    , getPipeline model org repo build.commit lineFocus False
+                    , getPipelineTemplates model org repo build.commit lineFocus False
+                    ]
 
                 _ ->
-                    False
+                    -- no build present, use chained request
+                    [ getBuilds model org repo Nothing Nothing Nothing
+                    , getBuildAndPipeline model org repo buildNumber expand
+                    ]
 
-        -- if build has changed, set build fields in the model
-        m =
-            if not sameBuild then
-                setBuild org repo buildNumber sameResource model
-
-            else
-                model
-    in
-    ( { m
-        | page = Pages.BuildGraph org repo buildNumber
-      }
-      -- do not load resources if transition is auto refresh, line focus, etc
-    , if sameBuild && sameResource then
-        Cmd.none
-        -- tab switch
-
-      else if sameBuild && not sameResource then
-        Cmd.batch
-            [ -- TODO: optimize this
-              -- only render when the graph actually changed
-              -- detect if graph is already rendered
-              case m.repo.build.graph of
-                Success g ->
-                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model g
-
-                _ ->
-                    getBuildGraph model org repo buildNumber
-            ]
-
-      else
-        Cmd.batch
+        else
+            -- different build, use chained request
             [ getBuilds model org repo Nothing Nothing Nothing
-            , getBuild model org repo buildNumber
-            , getBuildGraph model org repo buildNumber
+            , getBuildAndPipeline model org repo buildNumber expand
             ]
-    )
-
-
-{-| loadPipelinePage : takes model org, repo, and ref and loads the appropriate pipeline configuration resources.
--}
-loadPipelinePage : Model -> Org -> Repo -> Maybe RefQuery -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
-loadPipelinePage model org repo ref expand lineFocus =
-    let
-        -- get resource transition information
-        sameRef =
-            isSamePipelineRef ( org, repo, Maybe.withDefault "" ref ) model.page pipeline
-
-        -- get or expand the pipeline depending on expand query parameter
-        getPipeline =
-            case expand of
-                Just e ->
-                    if e == "true" then
-                        expandPipelineConfig
-
-                    else
-                        getPipelineConfig
-
-                Nothing ->
-                    getPipelineConfig
-
-        parsed =
-            parseFocusFragment lineFocus
-
-        pipeline =
-            model.pipeline
-    in
-    -- load page depending on ref change
-    ( { model
-        | page = Pages.Pipeline org repo ref expand lineFocus
-
-        -- set pipeline fields
-        , pipeline =
-            pipeline
-                |> updateBuildPipelineConfig
-                    (if sameRef then
-                        case pipeline.config of
-                            ( Success _, _ ) ->
-                                pipeline.config
-
-                            _ ->
-                                ( Loading, "" )
-
-                     else
-                        ( Loading, "" )
-                    )
-                |> updateBuildPipelineOrgRepo org repo
-                |> updateBuildPipelineBuildNumber Nothing
-                |> updateBuildPipelineRef ref
-                |> updateBuildPipelineExpand expand
-                |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
-                |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
-        , templates =
-            if sameRef then
-                model.templates
-
-            else
-                { data = Loading, error = "", show = True }
-      }
-    , Cmd.batch
-        [ getPipeline model org repo ref lineFocus False
-        , getPipelineTemplates model org repo ref lineFocus False
-        ]
     )
 
 
@@ -3988,35 +4260,11 @@ isSameBuild id currentPage =
         Pages.BuildServices o r b _ ->
             not <| resourceChanged id ( o, r, b )
 
-        Pages.BuildPipeline o r b _ _ _ ->
+        Pages.BuildPipeline o r b _ _ ->
             not <| resourceChanged id ( o, r, b )
 
         Pages.BuildGraph o r b ->
             not <| resourceChanged id ( o, r, b )
-
-        _ ->
-            False
-
-
-{-| isSamePipelineRef : takes pipeline ref identifier and current page and returns true if the pipeline ref has not changed
--}
-isSamePipelineRef : RepoResourceIdentifier -> Page -> PipelineModel -> Bool
-isSamePipelineRef id currentPage pipeline =
-    case currentPage of
-        Pages.Pipeline o r rf _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
-
-        Pages.Build o r _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
-
-        Pages.BuildServices o r _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
-
-        Pages.BuildPipeline o r _ rf _ _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" rf )
-
-        Pages.BuildGraph o r _ ->
-            not <| resourceChanged id ( o, r, Maybe.withDefault "" pipeline.ref )
 
         _ ->
             False
@@ -4041,9 +4289,6 @@ setBuild org repo buildNumber soft model =
                 , expand = Nothing
                 , expanding = False
                 , expanded = False
-                , org = org
-                , repo = repo
-                , buildNumber = Just buildNumber
             }
         , templates = { data = NotAsked, error = "", show = True }
         , repo =
@@ -4242,6 +4487,20 @@ receiveSecrets model response type_ =
                 e =
                     toFailure error
 
+                -- only show error toasty for 500 error
+                showError =
+                    case error of
+                        Http.Detailed.BadStatus meta _ ->
+                            case meta.statusCode of
+                                500 ->
+                                    addError error
+
+                                _ ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+
                 sm =
                     case type_ of
                         Vela.RepoSecret ->
@@ -4253,7 +4512,7 @@ receiveSecrets model response type_ =
                         Vela.SharedSecret ->
                             { secretsModel | sharedSecrets = e }
             in
-            ( { model | secretsModel = sm }, addError error )
+            ( { model | secretsModel = sm }, showError )
 
 
 {-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
@@ -4321,7 +4580,12 @@ pipelineMsgs =
 
 initSecretsModel : Pages.Secrets.Model.Model Msg
 initSecretsModel =
-    Pages.Secrets.Update.init SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
+    Pages.Secrets.Update.init Copy SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
+
+
+initSchedulesModel : Pages.Schedules.Model.Model Msg
+initSchedulesModel =
+    Pages.Schedules.Update.init ScheduleResponse AddScheduleResponse UpdateScheduleResponse DeleteScheduleResponse
 
 
 initDeploymentsModel : Pages.Deployments.Model.Model Msg
@@ -4360,6 +4624,11 @@ getHooks model org repo maybePage maybePerPage =
     Api.try HooksResponse <| Api.getHooks model maybePage maybePerPage org repo
 
 
+redeliverHook : Model -> Org -> Repo -> HookNumber -> Cmd Msg
+redeliverHook model org repo hookNumber =
+    Api.try (RedeliverHookResponse org repo hookNumber) <| Api.redeliverHook model org repo hookNumber
+
+
 getRepo : Model -> Org -> Repo -> Cmd Msg
 getRepo model org repo =
     Api.try RepoResponse <| Api.getRepo model org repo
@@ -4380,9 +4649,19 @@ getBuilds model org repo maybePage maybePerPage maybeEvent =
     Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
 
 
+getSchedules : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
+getSchedules model org repo maybePage maybePerPage =
+    Api.try (SchedulesResponse org repo) <| Api.getSchedules model maybePage maybePerPage org repo
+
+
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =
     Api.try (BuildResponse org repo) <| Api.getBuild model org repo buildNumber
+
+
+getBuildAndPipeline : Model -> Org -> Repo -> BuildNumber -> Maybe ExpandTemplatesQuery -> Cmd Msg
+getBuildAndPipeline model org repo buildNumber expand =
+    Api.try (BuildAndPipelineResponse org repo expand) <| Api.getBuild model org repo buildNumber
 
 
 getDeployment : Model -> Org -> Repo -> DeploymentId -> Cmd Msg
@@ -4517,23 +4796,28 @@ getSecret model engine type_ org key name =
     Api.try SecretResponse <| Api.getSecret model engine type_ org key name
 
 
+getSchedule : Model -> Org -> Repo -> ScheduleName -> Cmd Msg
+getSchedule model org repo id =
+    Api.try ScheduleResponse <| Api.getSchedule model org repo id
+
+
 {-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
 -}
-getPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+getPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineConfig model org repo ref lineFocus refresh =
-    Api.tryString (GetPipelineConfigResponse lineFocus refresh) <| Api.getPipelineConfig model org repo ref
+    Api.try (GetPipelineConfigResponse lineFocus refresh) <| Api.getPipelineConfig model org repo ref
 
 
 {-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
 -}
-expandPipelineConfig : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+expandPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 expandPipelineConfig model org repo ref lineFocus refresh =
     Api.tryString (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
 -}
-getPipelineTemplates : Model -> Org -> Repo -> Maybe Ref -> FocusFragment -> Bool -> Cmd Msg
+getPipelineTemplates : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineTemplates model org repo ref lineFocus refresh =
     Api.try (GetPipelineTemplatesResponse lineFocus refresh) <| Api.getPipelineTemplates model org repo ref
 

@@ -347,5 +347,45 @@ context('Builds', () => {
       cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
       cy.url().should('contain', '?event=comment');
     });
+
+    it('should only show two schedule event', () => {
+      cy.get('[data-test=build-filter-schedule]').click({ force: true });
+      cy.get('[data-test=build]').should('be.visible').should('have.length', 2);
+      cy.url().should('contain', '?event=schedule');
+    });
+  });
+
+  context('build filter /pulls shortcut', () => {
+    beforeEach(() => {
+      cy.stubBuildsFilter();
+      cy.login('/github/octocat/pulls');
+      cy.get('[data-test=build-filter]').as('buildsFilter');
+    });
+
+    it('renders builds filter', () => {
+      cy.get('@buildsFilter').should('be.visible');
+    });
+
+    it('should only show two pull events', () => {
+      cy.get('[data-test=build]').should('be.visible').should('have.length', 2);
+      cy.url().should('not.contain', '?event=pull_request');
+    });
+  });
+
+  context('build filter /tags shortcut', () => {
+    beforeEach(() => {
+      cy.stubBuildsFilter();
+      cy.login('/github/octocat/tags');
+      cy.get('[data-test=build-filter]').as('buildsFilter');
+    });
+
+    it('renders builds filter', () => {
+      cy.get('@buildsFilter').should('be.visible');
+    });
+
+    it('should only show one tag event', () => {
+      cy.get('[data-test=build]').should('be.visible').should('have.length', 1);
+      cy.url().should('not.contain', '?event=tag');
+    });
   });
 });

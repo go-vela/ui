@@ -29,6 +29,7 @@ import Vela
         , Name
         , Org
         , Repo
+        , ScheduleName
         , SecretType
         , StepNumber
         , secretTypeToString
@@ -99,6 +100,12 @@ commands page =
         Pages.RepositoryBuilds org repo _ _ _ ->
             [ listBuilds org repo ]
 
+        Pages.RepositoryBuildsPulls org repo _ _ ->
+            [ listBuilds org repo ]
+
+        Pages.RepositoryBuildsTags org repo _ _ ->
+            [ listBuilds org repo ]
+
         Pages.RepositoryDeployments org repo _ _ ->
             [ listDeployments org repo ]
 
@@ -108,14 +115,8 @@ commands page =
         Pages.BuildServices org repo buildNumber _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
 
-        Pages.BuildPipeline org repo buildNumber _ _ _ ->
+        Pages.BuildPipeline org repo buildNumber _ _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
-
-        Pages.BuildGraph org repo buildNumber ->
-            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
-
-        Pages.Pipeline _ _ _ _ _ ->
-            []
 
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
@@ -161,6 +162,15 @@ commands page =
 
         Pages.NotFound ->
             []
+
+        Pages.AddSchedule org repo ->
+            [ addSchedule org repo ]
+
+        Pages.Schedule org repo name ->
+            [ viewSchedule org repo name, updateSchedule org repo name ]
+
+        Pages.Schedules org repo _ _ ->
+            [ listSchedules org repo ]
 
 
 {-| listFavorites : returns cli command for listing favorites
@@ -716,6 +726,89 @@ addSecretArgs =
     " --name password --value vela --event push"
 
 
+{-| listSchedules : returns cli command for listing schedules
+
+    eg.
+      vela list schedules --org <org> --repo <repo>
+
+-}
+listSchedules : Org -> Repo -> Command
+listSchedules org repo =
+    let
+        name =
+            "List Schedules"
+
+        content =
+            Just <| "vela get schedules " ++ repoArgs org repo
+
+        docs =
+            Just "/schedule/get"
+    in
+    Command name content docs noIssue
+
+
+{-| viewSchedule : returns cli command for viewing a schedule
+
+      vela view schedule --org <org> --repo <repo>  --schedule <name>
+
+-}
+viewSchedule : Org -> Repo -> ScheduleName -> Command
+viewSchedule org repo name =
+    let
+        name_ =
+            "View " ++ name ++ " Schedule"
+
+        content =
+            Just <| "vela view schedule " ++ repoArgs org repo ++ " --name " ++ name
+
+        docs =
+            Just "/schedule/view"
+    in
+    Command name_ content docs noIssue
+
+
+{-| updateSchedule : returns cli command for updating an existing schedule
+
+    eg.
+      vela update schedule --org <org> --repo <repo> --schedule <name> --entry <entry>
+
+-}
+updateSchedule : Org -> Repo -> ScheduleName -> Command
+updateSchedule org repo name =
+    let
+        name_ =
+            "Update " ++ name ++ " Schedule"
+
+        content =
+            Just <| "vela update schedule " ++ repoArgs org repo ++ " --name " ++ name ++ " --entry '<cron expression>'"
+
+        docs =
+            Just "/schedule/update"
+    in
+    Command name_ content docs noIssue
+
+
+{-| addSchedule : returns cli command for adding an new schedule
+
+    eg.
+      vela add schedule --org <org> --repo <repo> --schedule <name> --entry <entry>
+
+-}
+addSchedule : Org -> Repo -> Command
+addSchedule org repo =
+    let
+        name_ =
+            "Add a New Schedule"
+
+        content =
+            Just <| "vela add schedule " ++ repoArgs org repo ++ " --name <name> --entry '<cron expression>'"
+
+        docs =
+            Just "/schedule/add"
+    in
+    Command name_ content docs noIssue
+
+
 noCmd : Maybe String
 noCmd =
     Nothing
@@ -786,6 +879,12 @@ resourceLoaded args =
         Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.success
 
+        Pages.RepositoryBuildsPulls _ _ _ _ ->
+            args.builds.success
+
+        Pages.RepositoryBuildsTags _ _ _ _ ->
+            args.builds.success
+
         Pages.RepositoryDeployments _ _ _ _ ->
             args.deployments.success
 
@@ -795,14 +894,8 @@ resourceLoaded args =
         Pages.BuildServices _ _ _ _ ->
             args.build.success
 
-        Pages.BuildPipeline _ _ _ _ _ _ ->
+        Pages.BuildPipeline _ _ _ _ _ ->
             args.build.success
-
-        Pages.BuildGraph _ _ _ ->
-            args.build.success
-
-        Pages.Pipeline _ _ _ _ _ ->
-            True
 
         Pages.AddOrgSecret secretEngine org ->
             noBlanks [ secretEngine, org ]
@@ -852,6 +945,15 @@ resourceLoaded args =
         Pages.NotFound ->
             False
 
+        Pages.AddSchedule org repo ->
+            noBlanks [ org, repo ]
+
+        Pages.Schedule org repo name ->
+            noBlanks [ org, repo, name ]
+
+        Pages.Schedules org repo _ _ ->
+            noBlanks [ org, repo ]
+
 
 {-| resourceLoading : takes help args and returns if the resource is loading
 -}
@@ -873,6 +975,12 @@ resourceLoading args =
         Pages.RepositoryBuilds _ _ _ _ _ ->
             args.builds.loading
 
+        Pages.RepositoryBuildsPulls _ _ _ _ ->
+            args.builds.loading
+
+        Pages.RepositoryBuildsTags _ _ _ _ ->
+            args.builds.loading
+
         Pages.RepositoryDeployments _ _ _ _ ->
             args.deployments.loading
 
@@ -882,14 +990,8 @@ resourceLoading args =
         Pages.BuildServices _ _ _ _ ->
             args.build.loading
 
-        Pages.BuildPipeline _ _ _ _ _ _ ->
+        Pages.BuildPipeline _ _ _ _ _ ->
             args.build.loading
-
-        Pages.BuildGraph _ _ _ ->
-            args.build.loading
-
-        Pages.Pipeline _ _ _ _ _ ->
-            False
 
         Pages.OrgSecrets _ _ _ _ ->
             args.secrets.loading
@@ -937,4 +1039,13 @@ resourceLoading args =
             False
 
         Pages.NotFound ->
+            False
+
+        Pages.AddSchedule _ _ ->
+            False
+
+        Pages.Schedule _ _ _ ->
+            False
+
+        Pages.Schedules _ _ _ _ ->
             False

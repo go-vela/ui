@@ -78,6 +78,7 @@ header {
   margin-right: 1em;
 
   text-decoration: none;
+
   // override global `vertical-align: middle` for SVGs
   svg {
     vertical-align: text-bottom;
@@ -265,6 +266,76 @@ nav {
   margin: 0 0.75em;
 
   background: var(--color-bg-light);
+}
+
+// item loading skeleton
+.loading-skeleton {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  margin: 2rem 0;
+  padding: 1rem;
+
+  border-top: var(--line-width) solid;
+  border-left: var(--line-width) solid;
+  border-image-source: linear-gradient(
+    to right,
+    var(--color-bg-light) 75%,
+    transparent 75%,
+    transparent 77%,
+    var(--color-bg-light) 77%,
+    var(--color-bg-light) 84%,
+    transparent 84%
+  );
+  border-image-slice: 1;
+
+  svg {
+    margin-right: 0.6rem;
+
+    color: var(--color-bg-light);
+  }
+}
+
+.loading-shimmer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+
+  overflow: hidden;
+}
+
+.loading-shimmer::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  background-image: linear-gradient(
+    90deg,
+    hsl(0, 0%, 34%, 0) 0,
+    hsl(0, 0%, 34%, 0.2) 20%,
+    hsl(0, 0%, 34%, 0.5) 60%,
+    hsl(0, 0%, 34%, 0)
+  );
+  transform: translateX(-100%);
+
+  animation: shimmer 2s infinite;
+
+  content: '';
+}
+
+// scaling animation delay to create a 'cascading' effect
+// the number of children matches the number of loading "skeletons" on a single page
+@for $i from 1 through 8 {
+  .loading-skeleton:nth-child(#{$i}n) .loading-shimmer::after {
+    animation-name: shimmer;
+    animation-delay: #{$i * 0.025}s;
+  }
 }
 
 // loading ellipsis
@@ -642,12 +713,14 @@ details.build-toggle {
 }
 
 .build-animation.-bottom.-running {
-  animation: build-status-parallax-running 26s linear 26s infinite,
+  animation:
+    build-status-parallax-running 26s linear 26s infinite,
     build-status-parallax-start 26s linear none;
 }
 
 .build-animation.-top.-running {
-  animation: build-status-parallax-running 22s linear 22s infinite,
+  animation:
+    build-status-parallax-running 22s linear 22s infinite,
     build-status-parallax-start 22s linear none;
 }
 
@@ -986,15 +1059,6 @@ details.build-toggle {
   background: var(--color-focus);
 }
 
-.line a {
-  text-decoration: none;
-
-  &:hover,
-  &:focus {
-    text-decoration: underline;
-  }
-}
-
 .logs-table {
   display: block;
   width: 100%;
@@ -1161,8 +1225,11 @@ details.build-toggle {
   max-height: 100px;
   margin: 1em 1em 0 1em;
 
-  // stylelint-disable-next-line
-  transition: max-height 1.2s, margin-top 1.2s;
+  // stylelint-disable
+  transition:
+    max-height 1.2s,
+    margin-top 1.2s;
+  // stylelint-enable
 }
 
 .alert-container {
@@ -1447,7 +1514,8 @@ details.build-toggle {
 }
 
 .manage-secret .header,
-.manage-deployment .header {
+.manage-deployment .header,
+.manage-schedule .header {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -1458,20 +1526,28 @@ details.build-toggle {
 }
 
 .manage-secret h2,
-.manage-deployment h2 {
+.manage-deployment h2,
+.manage-schedule h2 {
   margin: 0;
 
   border-bottom: 2px solid var(--color-secondary);
 }
 
+.manage-schedule .not-allowed {
+  display: inline-block;
+  margin-top: 0.6rem;
+}
+
 .secret-form,
-.deployment-form {
+.deployment-form,
+.schedule-form {
   margin-bottom: 0.5rem;
   padding-top: 1rem;
 }
 
 .secret-form section,
-.deployment-form section {
+.deployment-form section,
+.schedule-form section {
   justify-content: flex-start;
   margin-bottom: 1rem;
 }
@@ -1552,39 +1628,26 @@ details.build-toggle {
   border-bottom: 2px solid var(--color-primary);
 }
 
-.manage-secret textarea,
-.update-secret textarea,
-.manage-deployment textarea {
-  width: 70%;
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-
-  color: var(--color-text);
-  font-weight: 300;
-  font-size: 1rem;
-
-  background: var(--color-bg-dark);
-  border: none;
-  box-shadow: none;
-}
-
 .manage-secret input,
 .manage-deployment input {
   max-width: 400px;
 }
 
 .manage-secret textarea,
-.manage-deployment textarea {
+.manage-deployment textarea,
+.manage-schedule textarea {
   max-width: 70%;
 }
 
 .secret-form .help,
-.deployment-form .help {
+.deployment-form .help,
+.schedule-form .help {
   padding-bottom: 1rem;
 }
 
 .secret-form .form-action,
-.deployment-form .form-action {
+.deployment-form .form-action,
+.schedule-form .form-action {
   padding-left: 1rem;
 }
 
@@ -1614,8 +1677,12 @@ details.build-toggle {
 
 // Secrets Section end
 
+.field-help-link {
+  margin-left: 0.6rem;
+}
+
 .field-description {
-  margin-left: 1rem;
+  margin: 0 0.6rem;
 
   font-weight: 300;
   font-size: 1rem;
