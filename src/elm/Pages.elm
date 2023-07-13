@@ -43,6 +43,7 @@ type Page
     | Settings
     | Login
     | NotFound
+    | BuildGraph Org Repo BuildNumber
 
 
 
@@ -144,6 +145,9 @@ toRoute page =
         NotFound ->
             Routes.NotFound
 
+        BuildGraph org repo buildNumber ->
+            Routes.BuildGraph org repo buildNumber
+
 
 {-| strip : maps a Page to itself with optional parameters stripped
 -}
@@ -239,3 +243,6 @@ strip page =
 
         NotFound ->
             NotFound
+
+        BuildGraph org repo buildNumber ->
+            BuildGraph org repo buildNumber

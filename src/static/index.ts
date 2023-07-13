@@ -130,16 +130,16 @@ function envOrNull(env: string, subst: string): string | null {
   return subst;
 }
 
-
-
+// variables for graphviz processing
 let worker;
 var workerPromise;
 
 app.ports.renderBuildGraph.subscribe(function (dot) {
-
-
-  if (typeof(Worker) === "undefined") {
-    console.log("sorry, your browser does not support the Worker API, unable to compile graphviz.")
+  if (typeof Worker === 'undefined') {
+    console.log(
+      'sorry, unable to compile graphviz, your browser does not support the Worker API',
+    );
+    return;
   }
 
   if (!worker) {
@@ -149,17 +149,17 @@ app.ports.renderBuildGraph.subscribe(function (dot) {
   worker.postMessage({ eventType: 'LAYOUT', dot: dot });
 });
 
-
 // runGraphvizWorker
 function runGraphvizWorker(dot) {
-  console.log(dot)
+  console.log('processing DOT graph using graphviz');
+  console.log(dot);
 
   return new Promise((resolve, reject) => {
     // @ts-ignore // false negative - standalone support for import.meta added in Parcel v2 - https://parceljs.org/blog/rc0/#support-for-standalone-import.meta
     worker = new Worker(new URL('./graphviz.worker.js', import.meta.url), {
       type: 'module',
     });
-    
+
     // use the worker to initialize the worker
     worker.postMessage({ eventType: 'INIT' });
 
@@ -167,7 +167,7 @@ function runGraphvizWorker(dot) {
       const { eventType } = event.data;
       if (eventType === 'DRAW') {
         const { drawContent } = event.data;
-        // draw occurs in the main thread 
+        // draw occurs in the main thread
         //  because web workers do not have access to the DOM
         draw(drawContent);
       }
@@ -175,71 +175,81 @@ function runGraphvizWorker(dot) {
     worker.addEventListener('error', function (error) {
       reject(error);
     });
-    console.log("done creating promise")
+
+    console.log('graphviz worker dispatched');
   });
 }
-
-
 
 function draw(content) {
-  console.log('drawing')
-  var svg = d3.select('.build-graph');
+  console.log('running draw(content)');
 
-  svg.call(d3.zoom().on("zoom", zoomed));
+  console.log('fetching .build-graph');
+  var buildGraphElement = d3.select('.build-graph');
+
+  // enabling zoom causes the viewbox to act crazy when you click around
+  console.log('enabling d3 zoom');
+
+  let w = 400;
+  let h = 400;
+
+  buildGraphElement.call(
+    d3
+      .zoom()
+      .scaleExtent([0.1, Infinity])
+      // .translateExtent([[0, 0], [w, h]])
+      // .extent([[0, 0], [w, h]])
+      .on('zoom', zoomed),
+  );
 
   function zoomed(event) {
-    var g = d3.select(svg.node().querySelector("g"));
+    var g = d3.select('.build-graph g');
     g.attr('transform', event.transform);
-}
+  }
 
-
-  svg.selectAll('.stage-edge').each((e) => {
-     console.log()
-     var g = svg.append('g').attr('class', 'edge_hover');
-      
-
-    e.on('mouseover', ()=> {
-      console.log('over edge')
-
-    });
-
-  });
-
-
-
+  console.log('grabbing g.node_mousedown');
   var g = d3.select('g.node_mousedown');
-  console.log(svg)
   if (g.empty()) {
-    g = svg.append('g').attr('class', 'node_mousedown');
-
- 
-
+    console.log('g.node_mousedown not found, adding node_mousedown');
+    g = buildGraphElement
+      .append('g')
+      .attr('class', 'node_mousedown')
+      .attr('id', 'zoom');
     // svg.on('mousedown', (e, d) => {
     //   // stop propagation on buttons and ctrl+click
     //   if (e.button || e.ctrlKey) {
     //     e.stopImmediatePropagation();
     //   }
     // });
-
-
-
   }
 
-  console.log('setting onclick')
-  svg.selectAll('stage-node a').on("click", function(d){
-    console.log(d);
-    alert("You clicked on node " + d.name);
-  });
+  buildGraphElement
+    .attr('height', h) // make dynamic depending on the number of nodes or depth?
+    .attr('width', w)
+    .style('outline', '1px solid var(--color-bg-light)')
+    .style('background', 'var(--color-bg-dark)');
+  // .style('margin-right', '1rem');
 
-  svg = g;
-  console.log(svg)
-  console.log(svg.node())
-  svg.html(content);
-  svg.selectAll('title').remove();
-  svg.selectAll('*').attr('xlink:title', null);
-  var bbox = svg.node().getBBox();
-  const VIEWBOX_PADDING = { x1: 20, x2: 40, y1: 20, y2: 40 };
-  var parent = d3.select(svg.node().parentNode);
+  // this centers the graph in the viewbox, or something like that
+  buildGraphElement = g;
+
+  buildGraphElement.html(content);
+
+  buildGraphElement.selectAll('title').remove();
+  buildGraphElement.selectAll('*').attr('xlink:title', null);
+
+  if (buildGraphElement.node() == null) {
+    console.log('unable to get bounding box, build graph node is null');
+    return;
+  }
+  let svg = buildGraphElement.select('svg');
+
+  // svg.style('outline', '1px solid green');
+  svg.style('overflow', 'visible');
+  svg.style('border-radius', '4px');
+
+  var bbox = buildGraphElement.node().getBBox();
+  const VIEWBOX_PADDING = { x1: 0, x2: 0, y1: 40, y2: 40 };
+  var parent = d3.select(buildGraphElement.node().parentNode);
   parent.attr(
     'viewBox',
     '' +
@@ -251,39 +261,77 @@ function draw(content) {
       ' ' +
       (bbox.height + VIEWBOX_PADDING.y2),
   );
-  svg.selectAll('.stage-node a').attr('style', 'outline: none')
-  // svg.selectAll(".node").on("click", evt => console.log("Hello and welcome!"))
-  svg.selectAll(".stage-node a")
-  .filter(function() {
-    var href = d3.select(this).attr("xlink:href")
+
+  console.log('removing outline from all .stage-node a');
+  buildGraphElement.selectAll('.stage-node a').filter(function () {
+    let a = d3.select(this);
+    a.attr('style', 'outline: none');
+    a.on('mouseover', e => {
+      a.style('outline', '0.5px solid white');
+    });
+    a.on('mouseout', e => {
+      a.style('outline', 'none');
+    });
+    return ''; // used by filter (?)
+  });
+
+  console.log('processing all .stage-edge');
+  buildGraphElement.selectAll('.stage-edge').filter(function () {
+    let a = d3.select(this);
+    a.attr('style', 'outline: none');
+    a.on('mouseover', e => {
+      a.select('path').style('stroke', 'green');
+    });
+    a.on('mouseout', e => {
+      a.select('path').style('stroke', 'white');
+    });
+    return ''; // used by filter (?)
+  });
+
+  console.log('processing all .stage-node a');
+  buildGraphElement.selectAll('.stage-node a').filter(function () {
+    console.log('checking .stage-node a');
+    var href = d3.select(this).attr('xlink:href');
     if (href !== null) {
-      d3.select(this).on('click', function(e) {
+      d3.select(this).on('click', function (e) {
         e.preventDefault();
-        console.log('new onclick')
+        console.log('handling node onclick href event');
         // @ts-ignore
-        setTimeout(() => app.ports.onGraphInteraction.send({event_type: "href", href: href}), 0);
-      })
+        setTimeout(
+          () =>
+            app.ports.onGraphInteraction.send({
+              event_type: 'href',
+              href: href,
+            }),
+          0,
+        );
+      });
     }
-    return ""; // filter by single attribute
-  })
+    return ''; // used by filter (?)
+  });
 
+  console.log('processing all .stage-node');
+  let i = 0;
+  buildGraphElement.selectAll('.stage-node a').filter(function () {
+    console.log('processing single .stage-node ' + i++);
 
-  svg.selectAll(".stage-node text")
-  .filter(function() {
     var inner = d3.select(this).node().innerHTML;
 
-    if (inner !== undefined && inner.startsWith('xyz123-')) {
-      var status = inner.replace('xyz123-', '')
-      var og = d3.select(this)
+    // used to embed step status
+    // if (inner !== undefined && inner.startsWith('xyz123-')) {
+    if (inner !== undefined) {
+      var status = inner.replace('xyz123-', '');
+      var og = d3.select(this);
 
-
-      var ogX = og.attr('x')
-      var ogY = og.attr('y')
+      var ogX = og.select('text').attr('x');
+      var ogY = og.select('text').attr('y');
 
       const parent = d3.select(og.node().parentNode);
       // og.remove();
 
-
+      console.log('need node bounding box size');
+      console.log(parent.node().getBBox());
+      let box = parent.node().getBBox();
       // parent.append("path")
       // // .attr("d", d3.svg.symbol()
       // //     .size(function(d) { return d.size; })
@@ -292,31 +340,29 @@ function draw(content) {
       // .style("stroke", "black")
       // .style("stroke-width", "1.5px");
 
+      console.log('appending image to .stage-node parent ' + i++);
 
-      parent.append("image")
-      .attr("xlink:href", "/images/vela_"+status +".png")
-      .attr("x", ogX - 6)
-      .attr("y", ogY - 14)
-      .attr("width", 16)
-      .attr("height", 16)
-      .style("stroke", "red")
-      .style("fill", "red")
-      .style("stroke-width", "1px")
-      .style("cursor", "pointer")
-      .on('click', function(e) {
-        e.preventDefault();
-        console.log('new onclick 2')
-        // @ts-ignore
-        setTimeout(() => app.ports.onGraphInteraction.send({event_type: "href", href: 'href'}), 0);
-      })
-      ;
+      parent
+        .append('image')
+        .attr('xlink:href', '/images/vela_' + 'success' + '.png')
+        .attr('x', box.x)
+        .attr('y', box.y)
+        .attr('width', 12)
+        .attr('height', 12)
+        .style('stroke', 'red')
+        .style('fill', 'red')
+        .style('stroke-width', '1px')
+        .style('cursor', 'pointer')
+        .on('click', function (e) {
+          e.preventDefault();
+          console.log('new onclick 2');
+          // @ts-ignore
+          // setTimeout(() => app.ports.onGraphInteraction.send({ event_type: "href", href: 'href' }), 0);
+        });
 
-      og.remove();
-
+      // og.remove();
     }
 
-
-    return ""; // filter by single attribute
-  })
-
+    return ''; // filter by single attribute
+  });
 }

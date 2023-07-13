@@ -9,10 +9,12 @@ module Vela exposing
     , AuthParams
     , Build
     , BuildGraph
+    , BuildGraphEdge
+    , BuildGraphNode
     , BuildModel
-    , BuildNumber,decodeGraphInteraction,GraphInteraction
+    , BuildNumber
     , Builds
-    , BuildsModel, BuildGraphNode ,BuildGraphEdge
+    , BuildsModel
     , ChownRepo
     , Copy
     , CurrentUser
@@ -32,6 +34,7 @@ module Vela exposing
     , Favorites
     , Field
     , FocusFragment
+    , GraphInteraction
     , Hook
     , HookNumber
     , Hooks
@@ -94,6 +97,7 @@ module Vela exposing
     , decodeCurrentUser
     , decodeDeployment
     , decodeDeployments
+    , decodeGraphInteraction
     , decodeHooks
     , decodeLog
     , decodePipelineConfig
@@ -109,6 +113,7 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeTheme
+    , defaultBuildGraph
     , defaultEnableRepositoryPayload
     , defaultFavicon
     , defaultPipeline
@@ -129,8 +134,8 @@ module Vela exposing
     , secretsErrorLabel
     , statusToFavicon
     , stringToTheme
+    , toBuildGraph
     , updateBuild
-    , updateBuildGraph
     , updateBuildNumber
     , updateBuildPipelineConfig
     , updateBuildPipelineExpand
@@ -407,7 +412,6 @@ type alias BuildModel =
     , build : WebData Build
     , steps : StepsModel
     , services : ServicesModel
-    , graph : WebData BuildGraph
     }
 
 
@@ -429,7 +433,7 @@ type alias ServicesModel =
 
 defaultBuildModel : BuildModel
 defaultBuildModel =
-    BuildModel "" NotAsked defaultStepsModel defaultServicesModel NotAsked
+    BuildModel "" NotAsked defaultStepsModel defaultServicesModel
 
 
 defaultRepoModel : RepoModel
@@ -615,15 +619,6 @@ updateBuildsShowTimeStamp rm =
             rm.builds
     in
     { rm | builds = { bm | showTimestamp = not bm.showTimestamp } }
-
-
-updateBuildGraph : WebData BuildGraph -> RepoModel -> RepoModel
-updateBuildGraph update rm =
-    let
-        b =
-            rm.build
-    in
-    { rm | build = { b | graph = update } }
 
 
 updateDeployments : WebData (List Deployment) -> RepoModel -> RepoModel
@@ -1314,6 +1309,41 @@ decodeBuild =
         |> optional "deploy_payload" decodeDeploymentParameters Nothing
 
 
+defaultBuildGraph : BuildGraph
+defaultBuildGraph =
+    BuildGraph (Dict.fromList [ ( 0, BuildGraphNode 0 "docker-publish-something-long" [] ), ( 1, BuildGraphNode 1 "1" [] ) ]) [ BuildGraphEdge 0 1 ]
+
+
+toBuildGraph : RepoModel -> BuildGraph
+toBuildGraph repo =
+    let
+        steps =
+            RemoteData.withDefault [] repo.build.steps.steps
+
+        services =
+            RemoteData.withDefault [] repo.build.services.services
+
+        -- steps_ = [{defaultStep | id = 0, name = "demo0"}, {defaultStep | id = 1, name = "demo1"}]
+        nodes =
+            steps
+                |> List.map (\step -> ( step.id, BuildGraphNode step.id step.name [] ))
+                |> Dict.fromList
+
+        edges =
+            steps
+                |> List.map (\step -> BuildGraphEdge step.id (step.id + 1))
+
+        edges_ =
+            edges ++ [ BuildGraphEdge 5 2 ]
+
+        _ =
+            Debug.log "generated nodes " (List.length <| Dict.toList nodes)
+
+        _ =
+            Debug.log "generated edges " (List.length edges_)
+    in
+    BuildGraph nodes edges_
+
 
 {-| BuildGraph : record type for vela build directed graph
 -}
@@ -1383,18 +1413,17 @@ encodeEdge edge =
         ]
 
 
-type alias GraphInteraction = {
-        event_type : String
-        , href : String
+type alias GraphInteraction =
+    { event_type : String
+    , href : String
     }
+
 
 decodeGraphInteraction : Decoder GraphInteraction
 decodeGraphInteraction =
     Decode.succeed GraphInteraction
         |> required "event_type" string
         |> optional "href" string ""
-
-
 
 
 {-| decodeBuilds : decodes json from vela into list of builds

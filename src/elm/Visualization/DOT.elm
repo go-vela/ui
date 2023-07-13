@@ -1,7 +1,8 @@
 module Visualization.DOT exposing
     ( Attribute(..)
-    , Rankdir(..),AttributeValue(..)
-    , Styles  
+    , AttributeValue(..)
+    , Rankdir(..)
+    , Styles
     , escapeAttributes
     , escapeCharacters
     , outputWithStylesAndAttributes
@@ -31,9 +32,11 @@ type Attribute
     = DefaultJSONLabelEscape String
     | HtmlLabelEscape String
 
+
 type AttributeValue
     = DefaultEscape String
     | BooleanEscape String
+
 
 outputWithStylesAndAttributes :
     Styles
@@ -41,7 +44,7 @@ outputWithStylesAndAttributes :
     -> (e -> Dict String Attribute)
     -> Graph n e
     -> String
-outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph   =
+outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph =
     let
         encode : Attribute -> String
         encode attr =
@@ -83,7 +86,6 @@ outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph   =
             Graph.edges graph
                 |> List.sortWith compareEdge
 
-
         nodes =
             Graph.nodes graph
 
@@ -120,7 +122,6 @@ outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph   =
 
                 RL ->
                     "RL"
- 
     in
     String.join "\n" <|
         [ "digraph G {"
@@ -135,7 +136,6 @@ outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph   =
         , ""
         , "}"
         ]
- 
 
 
 
@@ -161,11 +161,11 @@ escapeAttributes attrs =
     List.map
         (\( k, attrV ) ->
             case attrV of
-                DefaultEscape v -> 
+                DefaultEscape v ->
                     escapeCharacters k ++ "=\"" ++ escapeCharacters v ++ "\""
+
                 BooleanEscape v ->
                     escapeCharacters k ++ "=" ++ v ++ ""
-
         )
         attrs
         |> String.join " "

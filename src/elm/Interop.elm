@@ -4,7 +4,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 --}
 
 
-port module Interop exposing (onThemeChange, onGraphInteraction, renderBuildGraph, setFavicon, setRedirect, setTheme)
+port module Interop exposing (onGraphInteraction, onThemeChange, renderBuildGraph, setFavicon, setRedirect, setTheme)
 
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -51,8 +51,6 @@ port setFavicon : Encode.Value -> Cmd msg
 port renderBuildGraph : Encode.Value -> Cmd msg
 
 
-
 {-| inbound
 -}
 port onGraphInteraction : (Decode.Value -> msg) -> Sub msg
-

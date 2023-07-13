@@ -5,11 +5,11 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build.View exposing
-    ( viewBuild
+    ( statusToString
+    , viewBuild
     , viewBuildGraph
     , viewBuildServices
     , viewPreview
-    , statusToString
     , wrapWithBuildPreview
     )
 
@@ -556,8 +556,8 @@ viewStepLogs msgs shift rm step =
 viewBuildGraph : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 viewBuildGraph model msgs org repo buildNumber =
     wrapWithBuildPreview model msgs org repo buildNumber <|
-        case model.repo.build.graph of
-            RemoteData.Success g ->
+        case model.repo.build.build of
+            RemoteData.Success b ->
                 Html.div
                     [ class "build-graph-view"
                     , id "build-graph-container"
@@ -1199,9 +1199,10 @@ statusToClass status =
         Vela.Error ->
             class "-error"
 
+
 {-| statusToString : takes build status and returns string form
 -}
-statusToString : Status -> String 
+statusToString : Status -> String
 statusToString status =
     case status of
         Vela.Pending ->

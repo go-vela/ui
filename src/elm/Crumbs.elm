@@ -404,5 +404,12 @@ toPath page =
                             ( "Not Found", Nothing )
                     in
                     [ overviewCrumbLink, notFoundCrumbStatic ]
+
+                Pages.BuildGraph org repo buildNumber ->
+                    let
+                        notFoundCrumbStatic =
+                            ( "Graph", Nothing )
+                    in
+                    [ overviewCrumbLink, notFoundCrumbStatic ]
     in
     pages

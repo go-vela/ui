@@ -172,6 +172,9 @@ commands page =
         Pages.Schedules org repo _ _ ->
             [ listSchedules org repo ]
 
+        Pages.BuildGraph _ _ _ ->
+            []
+
 
 {-| listFavorites : returns cli command for listing favorites
 
@@ -954,6 +957,9 @@ resourceLoaded args =
         Pages.Schedules org repo _ _ ->
             noBlanks [ org, repo ]
 
+        Pages.BuildGraph org repo _ ->
+            noBlanks [ org, repo ]
+
 
 {-| resourceLoading : takes help args and returns if the resource is loading
 -}
@@ -1048,4 +1054,7 @@ resourceLoading args =
             False
 
         Pages.Schedules _ _ _ _ ->
+            False
+
+        Pages.BuildGraph _ _ _ ->
             False

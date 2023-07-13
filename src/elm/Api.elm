@@ -119,6 +119,11 @@ import Vela
         )
 
 
+getBuildGraph : PartialModel a -> Org -> Repo -> BuildNumber -> Request BuildGraph
+getBuildGraph model org repository buildNumber =
+    get model.velaAPI (Endpoint.BuildGraph org repository buildNumber) decodeBuildGraph
+
+
 
 -- TYPES
 

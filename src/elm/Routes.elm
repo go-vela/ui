@@ -54,6 +54,7 @@ type Route
     | Logout
     | Authenticate AuthParams
     | NotFound
+    | BuildGraph Org Repo BuildNumber
 
 
 
@@ -92,6 +93,7 @@ routes =
         , map Schedules (string </> string </> s "schedules" <?> Query.int "page" <?> Query.int "per_page")
         , map Schedule (string </> string </> s "schedules" </> string)
         , map Build (string </> string </> string </> fragment identity)
+        , map BuildGraph (string </> string </> string </> s "graph")
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
         , map NotFound (s "404")
@@ -191,6 +193,9 @@ routeToUrl route =
 
         Build org repo buildNumber lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ Maybe.withDefault "" lineFocus
+
+        BuildGraph org repo buildNumber ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/graph"
 
         AddDeploymentRoute org repo ->
             "/" ++ org ++ "/" ++ repo ++ "/add-deployment"

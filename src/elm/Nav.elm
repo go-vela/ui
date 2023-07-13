@@ -270,6 +270,9 @@ viewUtil model =
             Pages.Build _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
+            Pages.BuildGraph _ _ _ ->
+                Pages.Build.History.view model.time model.zone model.page 10 model.repo
+
             Pages.BuildServices _ _ _ _ ->
                 Pages.Build.History.view model.time model.zone model.page 10 model.repo
 
@@ -477,6 +480,7 @@ viewBuildTabs model org repo buildNumber currentPage =
             [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False True
             , Tab "Services" currentPage (Pages.BuildServices org repo buildNumber bm.services.focusFragment) False True
             , Tab "Pipeline" currentPage (Pages.BuildPipeline org repo buildNumber pipeline.expand pipeline.focusFragment) False True
+            , Tab "Visualize" currentPage (Pages.BuildGraph org repo buildNumber) False True
             ]
     in
     viewTabs tabs "jump-bar-build"

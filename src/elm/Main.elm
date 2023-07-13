@@ -128,6 +128,7 @@ import Vela
     exposing
         ( AuthParams
         , Build
+        , BuildGraph
         , BuildModel
         , BuildNumber
         , Builds
@@ -140,6 +141,7 @@ import Vela
         , Favicon
         , Field
         , FocusFragment
+        , GraphInteraction
         , HookNumber
         , Hooks
         , Key
@@ -178,6 +180,7 @@ import Vela
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
+        , decodeGraphInteraction
         , decodeTheme
         , defaultEnableRepositoryPayload
         , defaultFavicon
@@ -194,7 +197,6 @@ import Vela
         , statusToFavicon
         , stringToTheme
         , updateBuild
-        , updateBuildGraph
         , updateBuildNumber
         , updateBuildPipelineConfig
         , updateBuildPipelineExpand
@@ -220,10 +222,9 @@ import Vela
         , updateDeploymentsPerPage
         , updateHooks
         , updateHooksPage
-        , updateHooksPager,GraphInteraction
+        , updateHooksPager
         , updateHooksPerPage
         , updateOrgRepo
-        ,decodeGraphInteraction
         , updateOrgReposPage
         , updateOrgReposPager
         , updateOrgReposPerPage
@@ -237,7 +238,7 @@ import Vela
         )
 import Visualization.BuildGraph
 
-import String.Extra
+
 
 -- TYPES
 
@@ -631,9 +632,10 @@ update msg model =
 
         OnGraphLinkClick interaction ->
             let
-                _= Debug.log "on OnGraphLinkClick" interaction
+                _ =
+                    Debug.log "on OnGraphLinkClick" interaction
             in
-            ( model, Cmd.batch [Navigation.pushUrl model.navigationKey interaction.href, Util.dispatch <| (FocusOn ((focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))))] )
+            ( model, Cmd.batch [ Navigation.pushUrl model.navigationKey interaction.href, Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href)) ] )
 
         GotoPage pageNumber ->
             case model.page of
@@ -1004,11 +1006,14 @@ update msg model =
 
         EnableRepos repos ->
             let
-                enableRepos = List.map (Util.dispatch << EnableRepo) repos
-                toggleAllFavorites = Cmd.none
+                enableRepos =
+                    List.map (Util.dispatch << EnableRepo) repos
+
+                toggleAllFavorites =
+                    Cmd.none
             in
             ( model
-            , Cmd.batch <| toggleAllFavorites :: enableRepos  
+            , Cmd.batch <| toggleAllFavorites :: enableRepos
             )
 
         EnableRepo repo ->
@@ -1677,6 +1682,39 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
+        -- BuildGraphResponse _ _ response ->
+        --     case response of
+        --         Ok ( _, graph ) ->
+        --             case model.page of
+        --                 Pages.BuildGraph _ _ _ ->
+        --                     let
+        --                         -- TODO: optimize this
+        --                         --       only render if the buildgraph has actually changed
+        --                         cmd =
+        --                             if True then
+        --                                 -- for now, the build graph always renders when receiving graph response from the server
+        --                                 Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model graph
+        --                             else
+        --                                 Cmd.none
+        --                     in
+        --                     ( { model | repo = rm |> updateBuildGraph (RemoteData.succeed graph) }, cmd )
+        --                 _ ->
+        --                     ( model, Cmd.none )
+        --         Err error ->
+        --             let
+        --                 _ =
+        --                     Debug.log "provide fake build graph" "here"
+        --                 graph =
+        --                     case model.repo.build.build of
+        --                         RemoteData.Success b ->
+        --                             Vela.toBuildGraph b
+        --                         _ ->
+        --                             Vela.defaultBuildGraph
+        --                 renderGraphCmd =
+        --                     Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model graph
+        --             in
+        --             ( { model | repo = rm |> updateBuildGraph (RemoteData.succeed graph) }, renderGraphCmd )
+        --             -- ( { model | repo = updateBuildGraph (toFailure error) rm }, addError error )
         DeploymentResponse response ->
             case response of
                 Ok ( _, deployment ) ->
@@ -1712,7 +1750,14 @@ update msg model =
                             { model | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm }
 
                         cmd =
-                            getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
+                            Cmd.batch
+                                [ getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
+                                , if not refresh then
+                                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model (Vela.toBuildGraph updatedModel.repo)
+
+                                  else
+                                    Cmd.none
+                                ]
                     in
                     ( updatedModel, cmd )
 
@@ -2345,7 +2390,6 @@ refreshPage model =
             Cmd.batch
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
-                , refreshBuildGraph model org repo buildNumber
                 ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
@@ -2430,17 +2474,6 @@ refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> C
 refreshBuildServices model org repo buildNumber focusFragment =
     if shouldRefresh model.repo.build then
         getAllBuildServices model org repo buildNumber focusFragment True
-
-    else
-        Cmd.none
-
-
-{-| refreshBuildGraph : takes model org repo and build number and refreshes the build graph
--}
-refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-refreshBuildGraph model org repo buildNumber =
-    if shouldRefresh model.repo.build.build then
-        getBuildGraph model org repo buildNumber
 
     else
         Cmd.none
@@ -2618,6 +2651,16 @@ view model =
 viewContent : Model -> ( String, Html Msg )
 viewContent model =
     case model.page of
+        Pages.BuildGraph org repo buildNumber ->
+            ( "Pipeline " ++ String.join "/" [ org, repo ]
+            , Pages.Build.View.viewBuildGraph
+                model
+                buildMsgs
+                org
+                repo
+                buildNumber
+            )
+
         Pages.Overview ->
             ( "Overview"
             , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
@@ -3248,6 +3291,78 @@ setNewPage route model =
               }
             , Interop.setRedirect <| Encode.string <| Url.toString model.entryURL
             )
+
+        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
+            loadBuildGraphPage model org repo buildNumber
+
+
+{-| loadBuildGraphPage : takes model org, repo, and build number and loads the appropriate build graph resources.
+-}
+loadBuildGraphPage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
+loadBuildGraphPage model org repo buildNumber =
+    let
+        renderGraph =
+            case m.repo.build.steps.steps of
+                Success s ->
+                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model (Vela.toBuildGraph m.repo)
+
+                _ ->
+                    Cmd.none
+
+        -- get resource transition information
+        sameBuild =
+            isSameBuild ( org, repo, buildNumber ) model.page
+
+        sameResource =
+            case model.page of
+                Pages.BuildGraph _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
+        -- if build has changed, set build fields in the model
+        m =
+            if not sameBuild then
+                setBuild org repo buildNumber sameResource model
+
+            else
+                model
+    in
+    ( { m
+        | page = Pages.BuildGraph org repo buildNumber
+      }
+      -- do not load resources if transition is auto refresh, line focus, etc
+    , if sameBuild && sameResource then
+        case m.repo.build.build of
+            Success b ->
+                renderGraph
+
+            _ ->
+                renderGraph
+        -- tab switch
+
+      else if sameBuild && not sameResource then
+        Cmd.batch
+            [ -- TODO: optimize this
+              -- only render when the graph actually changed
+              -- detect if graph is already rendered
+              case m.repo.build.build of
+                Success b ->
+                    renderGraph
+
+                _ ->
+                    renderGraph
+            ]
+
+      else
+        Cmd.batch
+            [ getBuilds model org repo Nothing Nothing Nothing
+            , getBuild model org repo buildNumber
+            , getAllBuildSteps model org repo buildNumber Nothing False
+            , renderGraph
+            ]
+    )
 
 
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
@@ -4081,7 +4196,6 @@ loadBuildPage model org repo buildNumber lineFocus =
             [ getBuilds model org repo Nothing Nothing Nothing
             , getBuild model org repo buildNumber
             , getAllBuildSteps model org repo buildNumber lineFocus sameBuild
-            , getBuildGraph model org repo buildNumber
             ]
     )
 
@@ -4310,7 +4424,6 @@ setBuild org repo buildNumber soft model =
                 |> updateBuildServicesFollowing 0
                 |> updateBuildServicesLogs []
                 |> updateBuildServicesFocusFragment Nothing
-                |> updateBuildGraph NotAsked
     }
 
 
@@ -4730,11 +4843,6 @@ restartBuild model org repo buildNumber =
 cancelBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 cancelBuild model org repo buildNumber =
     Api.try (CancelBuildResponse org repo buildNumber) <| Api.cancelBuild model org repo buildNumber
-
-
-getBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-getBuildGraph model org repo buildNumber =
-    Api.try (BuildGraphResponse org repo) <| Api.getBuildGraph model org repo buildNumber
 
 
 getRepoSecrets :
