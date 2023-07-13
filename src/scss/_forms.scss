@@ -38,6 +38,37 @@
     + .form-label {
       margin-left: 0.5rem;
     }
+
+    /* stylelint-enable */
+  }
+
+  // for controls with textarea
+  // <div class="form-control">
+  //  <textarea ... />
+  //  <label class="form-label">...</label>
+  // </div>
+  textarea {
+    width: 70%;
+    margin-top: 0.2rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+
+    color: var(--color-text);
+    font-weight: 300;
+    font-size: 1rem;
+
+    background: var(--color-bg-dark);
+    border: none;
+    border-bottom: var(--line-width) solid var(--color-primary);
+    box-shadow: none;
+
+    // if this has a label associated with it,
+    // make it back off a bit
+    /* stylelint-disable */
+    + .form-label {
+      margin-left: 0.5rem;
+    }
+
     /* stylelint-enable */
   }
 
@@ -158,7 +189,8 @@
 // focus styles
 .form-control [type='checkbox']:focus + .form-label::before,
 .form-control [type='radio']:focus + .form-label::before,
-.form-control input:focus:not([type='checkbox']):not([type='radio']) {
+.form-control input:focus:not([type='checkbox']):not([type='radio']),
+.form-control textarea:focus {
   outline: var(--color-secondary) dotted var(--line-width);
   outline-offset: var(--line-width);
 }
@@ -185,7 +217,8 @@
   background-color: var(--color-bg-light);
 }
 
-.form-control input:disabled:not([type='checkbox']):not([type='radio']) {
+.form-control input:disabled:not([type='checkbox']):not([type='radio']),
+.form-control textarea:disabled {
   border-color: var(--color-bg-light);
 
   // stylelint-disable-next-line
@@ -195,7 +228,8 @@
 }
 
 // styles for controls in an invalid state
-.form-control input:invalid:not([type='checkbox']):not([type='radio']) {
+.form-control input:invalid:not([type='checkbox']):not([type='radio']),
+.form-control textarea:invalid {
   color: var(--color-red);
 
   border-color: var(--color-red);

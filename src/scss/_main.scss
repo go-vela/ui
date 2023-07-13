@@ -1621,23 +1621,6 @@ details.build-toggle {
   border-bottom: 2px solid var(--color-primary);
 }
 
-.manage-secret textarea,
-.update-secret textarea,
-.manage-deployment textarea,
-.manage-schedule textarea {
-  width: 70%;
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-
-  color: var(--color-text);
-  font-weight: 300;
-  font-size: 1rem;
-
-  background: var(--color-bg-dark);
-  border: none;
-  box-shadow: none;
-}
-
 .manage-secret input,
 .manage-deployment input {
   max-width: 400px;
