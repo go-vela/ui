@@ -133,6 +133,7 @@ module Vela exposing
     , secretTypeToString
     , secretsErrorLabel
     , statusToFavicon
+    , statusToString
     , stringToTheme
     , toBuildGraph
     , updateBuild
@@ -412,6 +413,7 @@ type alias BuildModel =
     , build : WebData Build
     , steps : StepsModel
     , services : ServicesModel
+    , graph : BuildGraphModel
     }
 
 
@@ -433,7 +435,7 @@ type alias ServicesModel =
 
 defaultBuildModel : BuildModel
 defaultBuildModel =
-    BuildModel "" NotAsked defaultStepsModel defaultServicesModel
+    BuildModel "" NotAsked defaultStepsModel defaultServicesModel defaultBuildGraphModel
 
 
 defaultRepoModel : RepoModel
@@ -1309,6 +1311,11 @@ decodeBuild =
         |> optional "deploy_payload" decodeDeploymentParameters Nothing
 
 
+defaultBuildGraphModel : BuildGraphModel
+defaultBuildGraphModel =
+    BuildGraphModel NotAsked Dict.empty
+
+
 defaultBuildGraph : BuildGraph
 defaultBuildGraph =
     BuildGraph (Dict.fromList [ ( 0, BuildGraphNode 0 "docker-publish-something-long" [] ), ( 1, BuildGraphNode 1 "1" [] ) ]) [ BuildGraphEdge 0 1 ]
@@ -1316,6 +1323,20 @@ defaultBuildGraph =
 
 toBuildGraph : RepoModel -> BuildGraph
 toBuildGraph repo =
+    let
+        g =
+            case repo.build.graph.graph of
+                RemoteData.Success g_ ->
+                    g_
+
+                _ ->
+                    defaultBuildGraph
+    in
+    g
+
+
+toBuildGraphManual : RepoModel -> BuildGraph
+toBuildGraphManual repo =
     let
         steps =
             RemoteData.withDefault [] repo.build.steps.steps
@@ -1333,8 +1354,23 @@ toBuildGraph repo =
             steps
                 |> List.map (\step -> BuildGraphEdge step.id (step.id + 1))
 
+        lastEdges =
+            []
+                ++ (case List.head <| Dict.toList nodes of
+                        Just ( n, _ ) ->
+                            case List.head <| List.reverse <| Dict.toList nodes of
+                                Just ( n_, _ ) ->
+                                    [ BuildGraphEdge n n_ ]
+
+                                _ ->
+                                    []
+
+                        _ ->
+                            []
+                   )
+
         edges_ =
-            edges ++ [ BuildGraphEdge 5 2 ]
+            edges ++ lastEdges
 
         _ =
             Debug.log "generated nodes " (List.length <| Dict.toList nodes)
@@ -1345,8 +1381,12 @@ toBuildGraph repo =
     BuildGraph nodes edges_
 
 
-{-| BuildGraph : record type for vela build directed graph
--}
+type alias BuildGraphModel =
+    { graph : WebData BuildGraph
+    , showSteps : Dict String Bool
+    }
+
+
 type alias BuildGraph =
     { nodes : Dict Int BuildGraphNode
     , edges : List BuildGraphEdge
@@ -1416,6 +1456,7 @@ encodeEdge edge =
 type alias GraphInteraction =
     { event_type : String
     , href : String
+    , node_id : String
     }
 
 
@@ -1424,6 +1465,7 @@ decodeGraphInteraction =
     Decode.succeed GraphInteraction
         |> required "event_type" string
         |> optional "href" string ""
+        |> optional "node_id" string ""
 
 
 {-| decodeBuilds : decodes json from vela into list of builds
@@ -1494,6 +1536,33 @@ toStatus status =
 
         _ ->
             succeed Error
+
+
+{-| statusToString : takes build status and returns string form
+-}
+statusToString : Status -> String
+statusToString status =
+    case status of
+        Pending ->
+            "pending"
+
+        Running ->
+            "running"
+
+        Success ->
+            "success"
+
+        Failure ->
+            "failure"
+
+        Killed ->
+            "killed"
+
+        Canceled ->
+            "canceled"
+
+        Error ->
+            "error"
 
 
 {-| isComplete : helper to determine if status is 'complete'

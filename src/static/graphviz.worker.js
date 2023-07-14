@@ -52,6 +52,8 @@ self.addEventListener(
     } else if (eventType === 'LAYOUT') {
       const { dot } = event.data;
       graphvizWebAssemblyBinaryPromise.then(graphvizWebAssemblyBinary => {
+        console.log('processing dot graph using graphviz');
+        console.log(dot);
         graphviz.graphviz
           .layout(dot, 'svg', 'dot', {
             wasmBinary: graphvizWebAssemblyBinary,

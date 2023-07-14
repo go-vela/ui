@@ -5,8 +5,7 @@ Use of this source code is governed by the LICENSE file in this repository.
 
 
 module Pages.Build.View exposing
-    ( statusToString
-    , viewBuild
+    ( viewBuild
     , viewBuildGraph
     , viewBuildServices
     , viewPreview
@@ -575,7 +574,7 @@ viewBuildGraph model msgs org repo buildNumber =
                     ]
 
             RemoteData.Failure _ ->
-                div [] [ text "Error loading build visualization... Please try again" ]
+                div [] [ text "Error loading build graph... Please try again" ]
 
             _ ->
                 -- Don't show two loaders
@@ -1198,33 +1197,6 @@ statusToClass status =
 
         Vela.Error ->
             class "-error"
-
-
-{-| statusToString : takes build status and returns string form
--}
-statusToString : Status -> String
-statusToString status =
-    case status of
-        Vela.Pending ->
-            "pending"
-
-        Vela.Running ->
-            "running"
-
-        Vela.Success ->
-            "success"
-
-        Vela.Failure ->
-            "failure"
-
-        Vela.Killed ->
-            "failure"
-
-        Vela.Canceled ->
-            "failure"
-
-        Vela.Error ->
-            "failure"
 
 
 {-| buildAnimation : takes build info and returns div containing styled flair based on running status
