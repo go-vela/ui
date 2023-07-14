@@ -77,8 +77,14 @@ toDOT model buildGraph =
 
 
 buildLabel : BuildModel.PartialModel a -> String -> List Step -> String
-buildLabel model label steps =
+buildLabel model label steps_ =
     let
+        steps = 
+            [
+                Vela.defaultStep
+                , Vela.defaultStep
+
+            ]
         table body =
             "<TABLE "
                 ++ escapeAttributes
@@ -94,11 +100,14 @@ buildLabel model label steps =
         src =
             UB.absolute [ "post.png" ] []
 
+        fontcolor = "white"
+
         row attrs body step =
-            "<TR><TD  ALIGN='LEFT' BALIGN='LEFT' fixedsize='true' width='16' height='16'>xyz123-" ++ Pages.Build.View.statusToString step.status ++ "</TD><TD " ++ attrs ++ ">" ++ body ++ "<BR ALIGN='LEFT'/></TD></TR>"
+            "<TR><TD  ALIGN='LEFT' BALIGN='LEFT' BGCOLOR='GRAY' ><font COLOR='"++fontcolor++"'>xyz123-" ++ Pages.Build.View.statusToString step.status ++ "</font></TD><TD " ++ attrs ++ ">" ++ "body" ++ "<BR ALIGN='LEFT'/></TD></TR>"
 
         header attrs body =
             "<TR><TD colspan='2' " ++ attrs ++ ">" ++ body ++ "</TD></TR>"
+        labelColor = "white"
 
         stuff =
             -- if List.length steps == 1 && Maybe.withDefault "" (List.head <| List.map .name steps) == label then
@@ -128,7 +137,7 @@ buildLabel model label steps =
             --         table [ row "" <| "<font color='"++c++"'>" ++  label ++ "</font>" ]
             -- else
             table <|
-                header "" ("<font color='white'>" ++ label ++ "</font>")
+                header "" ("<font color='"++labelColor++"'>" ++ label ++ "</font>")
                     :: List.map
                         (\step ->
                             let
@@ -143,30 +152,32 @@ buildLabel model label steps =
                                     , ( "MARGIN", DefaultEscape "0" )
                                     , ( "ALIGN", DefaultEscape "left" )
                                     , ( "HREF", DefaultEscape link )
-                                    , ( "BGCOLOR"
-                                      , DefaultEscape <|
-                                            case step.status of
-                                                Vela.Success ->
-                                                    "#7dd123"
+                                    , ( "BGCOLOR", DefaultEscape "#7dd123" )
+                                    -- , ( "FONT COLOR", DefaultEscape stepFontColor)
+                                    -- , ( "BGCOLOR"
+                                    --   , DefaultEscape <|
+                                    --         case step.status of
+                                    --             Vela.Success ->
+                                    --                 "#7dd123"
 
-                                                Vela.Failure ->
-                                                    "#b5172a"
+                                    --             Vela.Failure ->
+                                    --                 "#b5172a"
 
-                                                Vela.Error ->
-                                                    "#b5172a"
+                                    --             Vela.Error ->
+                                    --                 "#b5172a"
 
-                                                Vela.Running ->
-                                                    "#ffcc00"
+                                    --             Vela.Running ->
+                                    --                 "#ffcc00"
 
-                                                Vela.Killed ->
-                                                    "PURPLE"
+                                    --             Vela.Killed ->
+                                    --                 "PURPLE"
 
-                                                Vela.Pending ->
-                                                    "GRAY"
+                                    --             Vela.Pending ->
+                                    --                 "GRAY"
 
-                                                Vela.Canceled ->
-                                                    "#b5172a"
-                                      )
+                                    --             Vela.Canceled ->
+                                    --                 "#b5172a"
+                                    --   )
                                     ]
                                 )
                                 step.name

@@ -223,8 +223,8 @@ function draw(content) {
   }
 
   buildGraphElement
-    .attr('height', h) // make dynamic depending on the number of nodes or depth?
-    .attr('width', w)
+    .attr('height', h * 2) // make dynamic depending on the number of nodes or depth?
+    .attr('width', w * 2)
     .style('outline', '1px solid var(--color-bg-light)')
     .style('background', 'var(--color-bg-dark)');
   // .style('margin-right', '1rem');
@@ -267,7 +267,7 @@ function draw(content) {
     let a = d3.select(this);
     a.attr('style', 'outline: none');
     a.on('mouseover', e => {
-      a.style('outline', '0.5px solid white');
+      a.style('outline', '1px solid white');
     });
     a.on('mouseout', e => {
       a.style('outline', 'none');
@@ -312,21 +312,25 @@ function draw(content) {
 
   console.log('processing all .stage-node');
   let i = 0;
-  buildGraphElement.selectAll('.stage-node a').filter(function () {
+  buildGraphElement.selectAll('.stage-node').filter(function () {
     console.log('processing single .stage-node ' + i++);
 
-    var inner = d3.select(this).node().innerHTML;
+    // how do i only select
+    // var inner = d3.select(this).node().innerHTML;
 
     // used to embed step status
     // if (inner !== undefined && inner.startsWith('xyz123-')) {
-    if (inner !== undefined) {
-      var status = inner.replace('xyz123-', '');
-      var og = d3.select(this);
+    if (1) {
+      // var status = inner.replace('xyz123-', '');
+      var og = d3.select(this).select('a');
 
       var ogX = og.select('text').attr('x');
       var ogY = og.select('text').attr('y');
 
-      const parent = d3.select(og.node().parentNode);
+      console.log('grabbing stage node parent');
+      var node = og.node();
+
+      const parent = d3.select(node.parentNode);
       // og.remove();
 
       console.log('need node bounding box size');
@@ -340,7 +344,7 @@ function draw(content) {
       // .style("stroke", "black")
       // .style("stroke-width", "1.5px");
 
-      console.log('appending image to .stage-node parent ' + i++);
+      console.log('appending image to .stage-node parent');
 
       parent
         .append('image')
@@ -355,6 +359,7 @@ function draw(content) {
         .style('cursor', 'pointer')
         .on('click', function (e) {
           e.preventDefault();
+          // this might not be needed
           console.log('new onclick 2');
           // @ts-ignore
           // setTimeout(() => app.ports.onGraphInteraction.send({ event_type: "href", href: 'href' }), 0);
