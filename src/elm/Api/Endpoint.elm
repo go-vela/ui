@@ -55,7 +55,6 @@ type Endpoint
     | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
     | Build Org Repo BuildNumber
-    | BuildGraph Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
     | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | ServiceLogs Org Repo BuildNumber ServiceNumber
@@ -67,6 +66,7 @@ type Endpoint
     | PipelineConfig Org Repo Ref
     | ExpandPipelineConfig Org Repo Ref
     | PipelineTemplates Org Repo Ref
+    | BuildGraph Org Repo BuildNumber
 
 
 {-| toUrl : turns and Endpoint into a URL string
@@ -122,9 +122,6 @@ toUrl api endpoint =
         Build org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber ] []
 
-        BuildGraph org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "graph" ] []
-
         CancelBuild org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "cancel" ] []
 
@@ -173,6 +170,9 @@ toUrl api endpoint =
 
         Deployments maybePage maybePerPage org repo ->
             url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
+
+        BuildGraph org repo buildNumber ->
+            url api [ "repos", org, repo, "builds", buildNumber, "graph" ] []
 
 
 {-| url : creates a URL string with the given path segments and query parameters

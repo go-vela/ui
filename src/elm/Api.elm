@@ -589,12 +589,6 @@ getBuild model org repository buildNumber =
         |> withAuth model.session
 
 
-getBuildGraph : PartialModel a -> Org -> Repo -> BuildNumber -> Request BuildGraph
-getBuildGraph model org repository buildNumber =
-    get model.velaAPI (Endpoint.BuildGraph org repository buildNumber) decodeBuildGraph
-        |> withAuth model.session
-
-
 {-| getAllSteps : used in conjuction with 'tryAll', it retrieves all pages of the resource
 
     Note: the singular version of the type/decoder is needed in this case as it turns it into a list
@@ -760,4 +754,16 @@ updateSchedule model org repo name body =
 deleteSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Request String
 deleteSchedule model org repo id =
     delete model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) Json.Decode.string
+        |> withAuth model.session
+
+
+
+-- GRAPH
+
+
+{-| getBuildGraph : fetches vela build graph by repository and build number
+-}
+getBuildGraph : PartialModel a -> Org -> Repo -> BuildNumber -> Request BuildGraph
+getBuildGraph model org repository buildNumber =
+    get model.velaAPI (Endpoint.BuildGraph org repository buildNumber) decodeBuildGraph
         |> withAuth model.session

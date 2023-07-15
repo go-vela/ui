@@ -120,7 +120,6 @@ module Vela exposing
     , defaultPipelineTemplates
     , defaultRepoModel
     , defaultStep
-    , encodeBuildGraph
     , encodeDeploymentPayload
     , encodeEnableRepository
     , encodeTheme
@@ -1371,31 +1370,6 @@ decodeEdge =
         |> optional "status" string ""
 
 
-encodeBuildGraph : BuildGraph -> Encode.Value
-encodeBuildGraph graph =
-    Encode.object
-        [ ( "nodes", Encode.dict String.fromInt encodeBuildGraphNode graph.nodes )
-        , ( "edges", Encode.list encodeEdge graph.edges )
-        ]
-
-
-encodeBuildGraphNode : BuildGraphNode -> Encode.Value
-encodeBuildGraphNode node =
-    Encode.object
-        [ ( "id", Encode.int node.id )
-        , ( "label", Encode.string node.name )
-        , ( "steps", Encode.list encodeStep node.steps )
-        ]
-
-
-encodeEdge : BuildGraphEdge -> Encode.Value
-encodeEdge edge =
-    Encode.object
-        [ ( "source", Encode.int edge.source )
-        , ( "destination", Encode.int edge.destination )
-        ]
-
-
 type alias GraphInteraction =
     { event_type : String
     , href : String
@@ -1642,18 +1616,6 @@ decodeStep =
         |> hardcoded False
         -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
-
-
-encodeStep : Step -> Encode.Value
-encodeStep step =
-    Encode.object
-        [ ( "id", Encode.int step.id )
-        , ( "build_id", Encode.int step.build_id )
-        , ( "repo_id", Encode.int step.repo_id )
-        , ( "number", Encode.int step.number )
-        , ( "name", Encode.string step.name )
-        , ( "image", Encode.string step.image )
-        ]
 
 
 type alias Steps =

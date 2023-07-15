@@ -40,10 +40,10 @@ type Page
     | AddSchedule Org Repo
     | Schedule Org Repo ScheduleName
     | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | BuildGraph Org Repo BuildNumber
     | Settings
     | Login
     | NotFound
-    | BuildGraph Org Repo BuildNumber
 
 
 
@@ -136,6 +136,9 @@ toRoute page =
         Schedule org repo name ->
             Routes.Schedule org repo name
 
+        BuildGraph org repo buildNumber ->
+            Routes.BuildGraph org repo buildNumber
+
         Settings ->
             Routes.Settings
 
@@ -144,9 +147,6 @@ toRoute page =
 
         NotFound ->
             Routes.NotFound
-
-        BuildGraph org repo buildNumber ->
-            Routes.BuildGraph org repo buildNumber
 
 
 {-| strip : maps a Page to itself with optional parameters stripped

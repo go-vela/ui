@@ -394,7 +394,7 @@ type Msg
     | FilterBuildEventBy (Maybe Event) Org Repo
     | ShowHideFullTimestamp
     | SetTheme Theme
-    | OnGraphLinkClick GraphInteraction
+    | OnBuildGraphInteraction GraphInteraction
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideBuildMenu (Maybe Int) (Maybe Bool)
@@ -454,7 +454,6 @@ type Msg
     | HooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Hooks ))
     | RedeliverHookResponse Org Repo HookNumber (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | BuildResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
-    | BuildGraphResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, BuildGraph ))
     | BuildAndPipelineResponse Org Repo (Maybe ExpandTemplatesQuery) (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | DeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Deployment ))
     | StepsResponse Org Repo BuildNumber FocusFragment Bool (Result (Http.Detailed.Error String) ( Http.Metadata, Steps ))
@@ -479,6 +478,8 @@ type Msg
     | AddScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | UpdateScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+      -- Graphs
+    | BuildGraphResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, BuildGraph ))
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -630,15 +631,12 @@ update msg model =
             else
                 ( { model | theme = theme }, Interop.setTheme <| encodeTheme theme )
 
-        OnGraphLinkClick interaction ->
+        OnBuildGraphInteraction interaction ->
             let
-                _ =
-                    Debug.log "on OnGraphLinkClick" interaction
-
                 bm =
                     model.repo.build
 
-                gd =
+                gm =
                     model.repo.build.graph
 
                 updatedShowStepsDict =
@@ -652,10 +650,7 @@ update msg model =
                                     Nothing ->
                                         False
                         )
-                        gd.showSteps
-
-                _ =
-                    Debug.log "did we set the node_id?" updatedShowStepsDict
+                        gm.showSteps
             in
             ( { model
                 | repo =
@@ -663,13 +658,16 @@ update msg model =
                         | build =
                             { bm
                                 | graph =
-                                    { gd
+                                    { gm
                                         | showSteps = updatedShowStepsDict
                                     }
                             }
                     }
               }
-            , Cmd.batch [ Navigation.pushUrl model.navigationKey interaction.href, Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href)) ]
+            , Cmd.batch
+                [ Navigation.pushUrl model.navigationKey interaction.href
+                , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
+                ]
             )
 
         GotoPage pageNumber ->
@@ -1040,15 +1038,8 @@ update msg model =
             )
 
         EnableRepos repos ->
-            let
-                enableRepos =
-                    List.map (Util.dispatch << EnableRepo) repos
-
-                toggleAllFavorites =
-                    Cmd.none
-            in
             ( model
-            , Cmd.batch <| toggleAllFavorites :: enableRepos
+            , Cmd.batch <| List.map (Util.dispatch << EnableRepo) repos
             )
 
         EnableRepo repo ->
@@ -1717,47 +1708,6 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
-        BuildGraphResponse _ _ _ response ->
-            case response of
-                Ok ( _, graph ) ->
-                    case model.page of
-                        Pages.BuildGraph _ _ _ ->
-                            let
-                                bm =
-                                    rm.build
-
-                                gm =
-                                    bm.graph
-
-                                -- TODO: optimize this
-                                --       only render if the buildgraph has actually changed
-                                cmd =
-                                    if True then
-                                        -- for now, the build graph always renders when receiving graph response from the server
-                                        Interop.renderBuildGraph <| Encode.string <| renderBuildGraphDOT model graph
-
-                                    else
-                                        Cmd.none
-                            in
-                            ( { model | repo = { rm | build = { bm | graph = { gm | graph = RemoteData.succeed graph } } } }
-                            , cmd
-                            )
-
-                        _ ->
-                            ( model, Cmd.none )
-
-                Err error ->
-                    let
-                        bm =
-                            rm.build
-
-                        gm =
-                            bm.graph
-                    in
-                    ( { model | repo = { rm | build = { bm | graph = { gm | graph = toFailure error } } } }
-                    , Cmd.none
-                    )
-
         -- ( { model | repo = updateBuildGraph (toFailure error) rm }, addError error )
         DeploymentResponse response ->
             case response of
@@ -1792,8 +1742,11 @@ update msg model =
 
                         updatedModel =
                             { model | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm }
+
+                        cmd =
+                            getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
                     in
-                    ( updatedModel, getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh )
+                    ( updatedModel, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -2092,6 +2045,47 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
+        BuildGraphResponse _ _ _ response ->
+            case response of
+                Ok ( _, graph ) ->
+                    case model.page of
+                        Pages.BuildGraph _ _ _ ->
+                            let
+                                bm =
+                                    rm.build
+
+                                gm =
+                                    bm.graph
+
+                                -- TODO: optimize this
+                                --       only render if the buildgraph has actually changed
+                                cmd =
+                                    if True then
+                                        -- for now, the build graph always renders when receiving graph response from the server
+                                        Interop.renderBuildGraph <| Encode.string <| renderBuildGraphDOT model graph
+
+                                    else
+                                        Cmd.none
+                            in
+                            ( { model | repo = { rm | build = { bm | graph = { gm | graph = RemoteData.succeed graph } } } }
+                            , cmd
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                Err error ->
+                    let
+                        bm =
+                            rm.build
+
+                        gm =
+                            bm.graph
+                    in
+                    ( { model | repo = { rm | build = { bm | graph = { gm | graph = toFailure error } } } }
+                    , Cmd.none
+                    )
+
         -- Time
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
@@ -2314,8 +2308,8 @@ decodeOnThemeChange inTheme =
 decodeOnGraphInteraction : Decode.Value -> Msg
 decodeOnGraphInteraction interaction =
     case Decode.decodeValue decodeGraphInteraction interaction of
-        Ok i ->
-            OnGraphLinkClick i
+        Ok interaction_ ->
+            OnBuildGraphInteraction interaction_
 
         Err _ ->
             NoOp
@@ -2697,16 +2691,6 @@ view model =
 viewContent : Model -> ( String, Html Msg )
 viewContent model =
     case model.page of
-        Pages.BuildGraph org repo buildNumber ->
-            ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Pages.Build.View.viewBuildGraph
-                model
-                buildMsgs
-                org
-                repo
-                buildNumber
-            )
-
         Pages.Overview ->
             ( "Overview"
             , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
@@ -3000,6 +2984,16 @@ viewContent model =
                     org
                     repo
                     buildNumber
+            )
+
+        Pages.BuildGraph org repo buildNumber ->
+            ( "Visualize " ++ String.join "/" [ org, repo, buildNumber ]
+            , Pages.Build.View.viewBuildGraph
+                model
+                buildMsgs
+                org
+                repo
+                buildNumber
             )
 
         Pages.Settings ->
@@ -3311,6 +3305,9 @@ setNewPage route model =
         ( Routes.Schedule org repo id, Authenticated _ ) ->
             loadEditSchedulePage model org repo id
 
+        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
+            loadBuildGraphPage model org repo buildNumber
+
         ( Routes.Settings, Authenticated _ ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
 
@@ -3337,9 +3334,6 @@ setNewPage route model =
               }
             , Interop.setRedirect <| Encode.string <| Url.toString model.entryURL
             )
-
-        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
-            loadBuildGraphPage model org repo buildNumber
 
 
 {-| loadBuildGraphPage : takes model org, repo, and build number and loads the appropriate build graph resources.
