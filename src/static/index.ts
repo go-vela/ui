@@ -136,12 +136,8 @@ function envOrNull(env: string, subst: string): string | null {
 
 app.ports.renderBuildGraph.subscribe(function (dot) {
   const graphviz = Graphviz.load().then(res => {
-    var wasmBinary = res._module.wasmBinary;
-
-    var dr = res.layout(dot, 'svg', 'dot', {
-      wasmBinary: wasmBinary,
-    });
-    draw(dr);
+    var content = res.layout(dot, 'svg', 'dot');
+    draw(content);
   });
 });
 
