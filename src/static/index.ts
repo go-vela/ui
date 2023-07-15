@@ -144,6 +144,10 @@ app.ports.renderBuildGraph.subscribe(function (dot) {
 function draw(content) {
   console.log('running draw(content)');
 
+  // force d3 exports to resolve, or else receive errors when running as a container
+  // this is why we love javascript
+  var _ = d3;
+
   // grab the build graph root element
   var buildGraphElement = d3.select('.build-graph');
 
