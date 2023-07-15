@@ -14,6 +14,8 @@ import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
 import { App, Config, Flags, Theme } from './index.d';
 
+import { Graphviz } from '@hpcc-js/wasm';
+
 // Vela consts
 const feedbackURL: string =
   'https://github.com/go-vela/community/issues/new/choose';
@@ -132,57 +134,16 @@ function envOrNull(env: string, subst: string): string | null {
   return subst;
 }
 
-// variables for graphviz processing
-let worker;
-var workerPromise;
-
 app.ports.renderBuildGraph.subscribe(function (dot) {
-  if (typeof Worker === 'undefined') {
-    console.log(
-      'sorry, unable to compile graphviz, your browser does not support the Worker API',
-    );
-    return;
-  }
+  const graphviz = Graphviz.load().then(res => {
+    var wasmBinary = res._module.wasmBinary;
 
-  if (!worker) {
-    workerPromise = runGraphvizWorker(dot);
-  }
-  // how do we wait on the above promise?
-  worker.postMessage({ eventType: 'LAYOUT', dot: dot });
-});
-
-// runGraphvizWorker
-function runGraphvizWorker(dot) {
-  console.log('processing DOT graph using graphviz');
-
-  return new Promise((resolve, reject) => {
-    // @ts-ignore // false negative - standalone support for import.meta added in Parcel v2 - https://parceljs.org/blog/rc0/#support-for-standalone-import.meta
-    worker = new Worker(new URL('./graphviz.worker.js', import.meta.url), {
-      type: 'module',
+    var dr = res.layout(dot, 'svg', 'dot', {
+      wasmBinary: wasmBinary,
     });
-
-    // use the worker to initialize the worker
-    worker.postMessage({ eventType: 'INIT' });
-
-    worker.addEventListener('message', function (event) {
-      const { eventType } = event.data;
-      if (eventType === 'DRAW') {
-        const { drawContent } = event.data;
-        // draw occurs in the main thread
-        //  because web workers do not have access to the DOM
-
-        console.log('preparing to draw content');
-
-        draw(drawContent);
-      }
-    });
-    worker.addEventListener('error', function (error) {
-      reject(error);
-    });
-
-    console.log('graphviz worker dispatched');
+    draw(dr);
   });
-}
+});
 
 function draw(content) {
   console.log('running draw(content)');
