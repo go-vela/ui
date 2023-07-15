@@ -186,113 +186,129 @@ function runGraphvizWorker(dot) {
 function draw(content) {
   console.log('running draw(content)');
 
-  console.log('fetching .build-graph');
+  // grab the build graph root element
   var buildGraphElement = d3.select('.build-graph');
 
-  // enabling zoom causes the viewbox to act crazy when you click around
+  // enable d3 zoom and pan functionality
   console.log('enabling d3 zoom');
 
-  let w = 400;
-  let h = 400;
-
   buildGraphElement.call(
-    d3
-      .zoom()
-      .scaleExtent([0.1, Infinity])
-      // .translateExtent([[0, 0], [w, h]])
-      // .extent([[0, 0], [w, h]])
-      .on('zoom', zoomed),
+    d3.zoom().scaleExtent([0.1, Infinity]).on('zoom', zoomed),
   );
 
+  // define d3 zoom function
   function zoomed(event) {
     var g = d3.select('.build-graph g');
     g.attr('transform', event.transform);
   }
 
-  console.log('grabbing g.node_mousedown');
+  // apply mousedown zoom effects
   var g = d3.select('g.node_mousedown');
   if (g.empty()) {
-    console.log('g.node_mousedown not found, adding node_mousedown');
     g = buildGraphElement
       .append('g')
       .attr('class', 'node_mousedown')
       .attr('id', 'zoom');
   }
 
+  let height = 800;
   buildGraphElement
-    .attr('height', h * 2) // make dynamic depending on the number of nodes or depth?
+    .attr('height', height) // make dynamic depending on the number of nodes or depth?
     .attr('width', '100%')
     .style('outline', '1px solid var(--color-bg-light)')
     .style('background', 'var(--color-bg-dark)');
-  // .style('margin-right', '1rem');
 
   // this centers the graph in the viewbox, or something like that
   buildGraphElement = g;
 
+  // draw content into html
   buildGraphElement.html(content);
 
-  // buildGraphElement.selectAll('title').remove();
-  // buildGraphElement.selectAll('*').attr('xlink:title', null);
-
+  // check that a valid graph was rendered
   if (buildGraphElement.node() == null) {
     console.log('unable to get bounding box, build graph node is null');
     return;
   }
-  let svg = buildGraphElement.select('svg');
 
-  // svg.style('outline', '1px solid green');
-  svg.style('overflow', 'visible');
-
-  var bbox = buildGraphElement.node().getBBox();
+  // set the base graph padding
+  var graphBBox = buildGraphElement.node().getBBox();
   const VIEWBOX_PADDING = { x1: 0, x2: 0, y1: 40, y2: 40 };
-  var parent = d3.select(buildGraphElement.node().parentNode);
-  parent.attr(
+  var graphParent = d3.select(buildGraphElement.node().parentNode);
+  graphParent.attr(
     'viewBox',
     '' +
-      (bbox.x - VIEWBOX_PADDING.x1) +
+      (graphBBox.x - VIEWBOX_PADDING.x1) +
       ' ' +
-      (bbox.y - VIEWBOX_PADDING.y1) +
+      (graphBBox.y - VIEWBOX_PADDING.y1) +
       ' ' +
-      (bbox.width + VIEWBOX_PADDING.x2) +
+      (graphBBox.width + VIEWBOX_PADDING.x2) +
       ' ' +
-      (bbox.height + VIEWBOX_PADDING.y2),
+      (graphBBox.height + VIEWBOX_PADDING.y2),
   );
 
-  console.log('removing outline from all .stage-node a');
+  // process all stage nodes
+  console.log('processing all all .stage-node');
+
+
+  console.log('processing all .stage-node a');
+
+  buildGraphElement.selectAll('.stage-node a').filter(function () {
+    // add onclick to nodes with valid href attributes
+    var href = d3.select(this).attr('xlink:href');
+    if (href !== null) {
+      d3.select(this).on('click', function (e) {
+        console.log('handle onclick STAGE NODE');
+
+        e.preventDefault();
+
+        var nodeA = d3.select(this);
+
+        // extract identifier from href
+        // todo: make this use title
+        var data = nodeA.attr('xlink:href');
+        nodeA.attr('xlink:href', null);
+        let id = data.replace('#', '');
+
+        setTimeout(
+          () =>
+            app.ports.onGraphInteraction.send({
+              event_type: 'node_click',
+              node_id: id,
+            }),
+          0,
+        );
+      });
+    }
+    return ''; // used by filter (?)
+  });
+
   buildGraphElement.selectAll('.stage-node').filter(function () {
     let stageNode = d3.select(this);
-
     var stageStatus = stageNode.attr('id').replace('#', '');
+    var nodeBBox = stageNode.node().getBBox();
 
-    var bbox = stageNode.node().getBBox();
+    // apply an outline using rect, since nodes are rect and this will allow for animation
     var outline = stageNode.append('rect');
     outline
-      .attr('x', bbox.x)
-      .attr('y', bbox.y)
-      .attr('width', bbox.width)
-      .attr('height', bbox.height)
-      .attr('class', 'stage-node-outline')
+      .attr('x', nodeBBox.x)
+      .attr('y', nodeBBox.y)
+      .attr('width', nodeBBox.width)
+      .attr('height', nodeBBox.height)
       .style('fill', 'none');
 
-    var outlineColor = 'gray';
-    var outlineStyle = 'solid';
     var restoreStyle = o => {};
-
     if (stageStatus === 'failure') {
-      outlineColor = 'var(--color-red-dark)';
-
       restoreStyle = o => {
-        o.style('stroke', outlineColor)
+        o.style('stroke', 'var(--color-red)')
           .style('stroke-width', '1')
           .style('stroke-dasharray', null)
           .style('animation', 'none');
       };
     }
-    if (stageStatus === 'success') {
-      outlineColor = 'var(--color-green)';
 
+    if (stageStatus === 'success') {
       restoreStyle = o => {
-        o.style('stroke', outlineColor)
+        o.style('stroke', 'var(--color-green)')
           .style('stroke-width', '1')
           .style('stroke-dasharray', null)
           .style('animation', 'none');
@@ -300,12 +316,8 @@ function draw(content) {
     }
 
     if (stageStatus === 'running') {
-      outlineColor = 'var(--color-yellow)';
-
-      outlineStyle = 'dashed';
-
       restoreStyle = o => {
-        o.style('stroke', outlineColor)
+        o.style('stroke', 'var(--color-yellow)')
           .style('stroke-width', '1.8')
           .style('stroke-dasharray', '10')
           .style('animation', 'dash 25s linear');
@@ -313,10 +325,8 @@ function draw(content) {
     }
 
     if (stageStatus === 'killed') {
-      outlineColor = 'var(--color-lavender)';
-
       restoreStyle = o => {
-        o.style('stroke', outlineColor)
+        o.style('stroke', 'var(--color-lavender)')
           .style('stroke-width', '1')
           .style('stroke-dasharray', null)
           .style('animation', 'none');
@@ -328,22 +338,17 @@ function draw(content) {
     stageNode.on('mouseover', e => {
       outline
         .style('stroke', 'var(--color-primary)')
-        .style('stroke-width', '1.8')
-        .style('stroke-dasharray', null)
-        .style('animation', 'none');
-      // .style('animation', 'dash 25s linear')
+        .style('stroke-width', '1.8');
     });
+
     stageNode.on('mouseout', e => {
-      // outline.style('outline', '1px solid ' + outlineColor);
-      // stageNode.style('outline-style', 'dashed');
       outline.style('stroke', 'none');
       restoreStyle(outline);
     });
 
-    var steps = stageNode.selectAll('a').filter(function () {
+    stageNode.selectAll('a').filter(function () {
       var step = d3.select(this);
       if (step.attr('xlink:href').includes('#step')) {
-        console.log('%c found link', 'color: red');
         step.attr('style', 'outline: none');
         step.on('mouseover', e => {
           step.style('outline', '1px solid var(--color-primary)');
@@ -352,129 +357,30 @@ function draw(content) {
         step.on('mouseout', e => {
           step.style('outline', 'none');
         });
-
-        // NOT NEEDED, taken care of by the IMAGE parent onclick
-
-        // step.on('click', function (e) {
-        //   e.preventDefault();
-
-        //   // prevents multiple link events getting fired from a single click
-        //   e.stopImmediatePropagation();
-
-        //   // this might not be needed
-        //   console.log('handle onclick STEP');
-
-        //   // todo: somehow pass back step ID on click
-
-        //   console.log("vader: " + step.attr('xlink:title'));
-
-        //   // split id,name,status
-        //   return;
-
-        //   // @ts-ignore
-        //   setTimeout(() => app.ports.onGraphInteraction.send({ event_type: "href", href: 'href', step_id: "pls" }), 0);
-        // });
       }
     });
 
-    return ''; // used by filter (?)
-  });
+    console.log('processing all node cells');
 
-  console.log('processing all .stage-edge');
+    stageNode.selectAll('#a_node-cell').filter(function () {
+      var cell = d3.select(this);
+      var cellNode = cell.select('text').node();
+      if (cellNode) {
+        let parent = d3.select(cellNode.parentNode);
+        let nodeBox = cellNode.getBBox();
 
-  buildGraphElement.selectAll('.stage-edge').filter(function () {
-    let a = d3.select(this);
-    a.attr('style', 'outline: none');
-    a.on('mouseover', e => {
-      var p = a.select('path');
+        // extract href to dispatch to Elm
+        var href = parent.attr('xlink:href');
 
-      p.style('stroke', 'var(--color-primary)');
-      p.attr('stoke-width', '3');
-
-      var xPos = p.attr('x');
-      var wid = p.attr('width');
-
-      p.attr('x', xPos - 10).attr('width', wid + 20);
-    });
-    a.on('mouseout', e => {
-      a.select('path').style('stroke', 'white');
-    });
-    return ''; // used by filter (?)
-  });
-
-  console.log('processing all .stage-node a');
-  buildGraphElement.selectAll('.stage-node a').filter(function () {
-    console.log('checking .stage-node a');
-    var href = d3.select(this).attr('xlink:href');
-    if (href !== null) {
-      d3.select(this).on('click', function (e) {
-        console.log('handle onclick STAGE NODE');
-
-        var huh = d3.select(this);
-        e.preventDefault();
-        var data = huh.attr('xlink:href');
-
-        huh.attr('xlink:href', null);
-
-        // @ts-ignore
-        setTimeout(
-          () =>
-            app.ports.onGraphInteraction.send({
-              event_type: 'node_click',
-              // href: href,
-              node_id: data.replace('#', ''),
-            }),
-          0,
-        );
-      });
-    }
-    return ''; // used by filter (?)
-  });
-
-  console.log('processing all .stage-node');
-  let i = 0;
-  buildGraphElement.selectAll('.stage-node').filter(function () {
-    console.log('processing single .stage-node ' + i++);
-
-    var dd = d3.select(this);
-
-    dd.selectAll('#a_node-cell').filter(function () {
-      console.log('processing #step-icon');
-      var icon = d3.select(this);
-      var node = icon.select('text').node();
-      // icon.style('outline', '1px solid pink');
-      if (node) {
-        console.log('grabbing parent node');
-        var parentNode = node.parentNode;
-
-        console.log('using parent node to select');
-        const parent = d3.select(node.parentNode);
-        // og.remove();
-
-        console.log('need node bounding box size');
-        console.log(parent.node().getBBox());
-        let parentBox = parent.node().getBBox();
-        let nodeBox = node.getBBox();
-        // parent.append("path")
-        // // .attr("d", d3.svg.symbol()
-        // //     .size(function(d) { return d.size; })
-        // //     .type(function(d) { return d.type; }))
-        // .style("fill", "steelblue")
-        // .style("stroke", "black")
-        // .style("stroke-width", "1.5px");
-
-        console.log('appending image to .stage-node parent');
-        console.log(parent);
-        var ogLink = parent.attr('xlink:href');
-
-        // parent.attr('xlink:href', 'https://google.com');
+        // remove actual href attribute
         parent.attr('xlink:href', null);
 
-        console.log('step info: ');
         var stepInfo = parent.attr('xlink:title').split(',');
+
+        // todo: safety check
         var status = stepInfo[2];
 
-        console.log(parent.attr('xlink:title'));
+        console.log('appending image to .stage-node parent');
 
         parent
           .append('image')
@@ -494,28 +400,66 @@ function draw(content) {
           // prevents multiple link events getting fired from a single click
           e.stopImmediatePropagation();
 
-          // this might not be needed
-          console.log('handle onclick STEP');
-          console.log('og link ' + ogLink);
-          // todo: somehow pass back step ID on click
-
-          // return;
-          // @ts-ignore
           setTimeout(
             () =>
               app.ports.onGraphInteraction.send({
                 event_type: 'href',
-                href: ogLink,
+                href: href,
                 step_id: '',
               }),
             0,
           );
         });
-
-        // node.remove();
       }
     });
 
-    return ''; // filter by single attribute
+    return ''; // used by filter (?)
+  });
+
+  console.log('processing all .stage-edge');
+
+  buildGraphElement.selectAll('.stage-edge').filter(function () {
+    let a = d3.select(this);
+    var status = a.attr('id').replace('#', '');
+    var p = a.select('path');
+    p.style('animation', 'none');
+    var restoreStyle = o => {
+      o.style('stroke', 'var(--color-gray)');
+      o.style('stroke-dasharray', '10, 4');
+    };
+
+    if (status === 'running') {
+      restoreStyle = o => {
+        o.style('stroke', 'var(--color-yellow)');
+        o.style('stroke-dasharray', '10, 4');
+        o.style('animation', 'dash 25s linear');
+      };
+    }
+
+    if (status === 'success') {
+      restoreStyle = o => {
+        o.style('stroke', 'var(--color-gray)');
+        o.style('stroke-dasharray', null);
+      };
+    }
+
+    if (status === 'failure') {
+      restoreStyle = o => {
+        o.style('stroke', 'var(--color-gray)');
+        o.style('stroke-dasharray', null);
+      };
+    }
+
+    restoreStyle(p);
+
+    a.on('mouseover', e => {
+      p.style('stroke', 'var(--color-primary)');
+    });
+
+    a.on('mouseout', e => {
+      restoreStyle(p);
+    });
+
+    return ''; // used by filter (?)
   });
 }

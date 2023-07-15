@@ -9,8 +9,9 @@ module Visualization.DOT exposing
     )
 
 import Dict exposing (Dict)
-import Graph exposing (Graph)
+import Graph exposing (Edge, Graph, Node)
 import Json.Encode
+import Maybe.Extra
 
 
 type alias Styles =
@@ -40,11 +41,13 @@ type AttributeValue
 
 outputWithStylesAndAttributes :
     Styles
+    -> Styles
+    -> Styles
     -> (n -> Dict String Attribute)
     -> (e -> Dict String Attribute)
     -> Graph n e
     -> String
-outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph =
+outputWithStylesAndAttributes baseGraphStyles pipelineSubgraphStyles builtInSubgraphStyles nodeAttrs edgeAttrs graph =
     let
         encode : Attribute -> String
         encode attr =
@@ -70,6 +73,34 @@ outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph =
             else
                 " [" ++ attrAssocs d ++ "]"
 
+        nodes =
+            Graph.nodes graph
+
+        isBuiltInNode : Node nn -> Bool
+        isBuiltInNode n_ =
+            n_.id < 0
+
+        pipelineNodes =
+            nodes
+                |> List.filter (\n -> not <| isBuiltInNode n)
+
+        builtInNodes =
+            nodes
+                |> List.filter (\n -> isBuiltInNode n)
+
+        nodeToString n =
+            "  "
+                ++ String.fromInt n.id
+                ++ makeAttrs (nodeAttrs n.label)
+
+        builtInNodesString =
+            List.map nodeToString builtInNodes
+                |> String.join "\n"
+
+        pipelineNodesString =
+            List.map nodeToString pipelineNodes
+                |> String.join "\n"
+
         edges =
             let
                 compareEdge a b =
@@ -86,60 +117,91 @@ outputWithStylesAndAttributes styles nodeAttrs edgeAttrs graph =
             Graph.edges graph
                 |> List.sortWith compareEdge
 
-        nodes =
-            Graph.nodes graph
+        isBuiltInEdge : Edge ee -> Bool
+        isBuiltInEdge e_ =
+            e_.from < -1 || e_.to < -1
 
-        edgesString =
-            List.map edge edges
-                |> String.join "\n"
+        pipelineEdges =
+            edges
+                |> List.filter (\e -> not <| isBuiltInEdge e)
 
-        edge e =
+        builtInEdges =
+            edges
+                |> List.filter (\e -> isBuiltInEdge e)
+
+        edgeToString e =
             "  "
                 ++ String.fromInt e.from
                 ++ " -> "
                 ++ String.fromInt e.to
                 ++ makeAttrs (edgeAttrs e.label)
 
-        nodesString =
-            List.map node nodes
+        builtInEdgesString =
+            List.map edgeToString builtInEdges
                 |> String.join "\n"
 
-        node n =
-            "  "
-                ++ String.fromInt n.id
-                ++ makeAttrs (nodeAttrs n.label)
+        pipelineEdgesString =
+            List.map edgeToString pipelineEdges
+                |> String.join "\n"
 
-        rankDirToString r =
-            case r of
-                TB ->
-                    "TB"
-
-                LR ->
-                    "LR"
-
-                BT ->
-                    "BT"
-
-                RL ->
-                    "RL"
+        -- biSource =
+        --     String.fromInt <| Maybe.Extra.unwrap -3 (\b -> b.id) <| List.head <| List.reverse <| List.sortBy .id builtInNodes
+        -- biDest =
+        --     String.fromInt <| Maybe.Extra.unwrap 1 (\b -> b.id) <| List.head <| List.sortBy .id pipelineNodes
     in
     String.join "\n" <|
-        [ "digraph G {"
-        , "  rankdir=" ++ rankDirToString styles.rankdir
-        , "  graph [" ++ styles.graph ++ "]"
-        , "  node [" ++ styles.node ++ "]"
-        , "  edge [" ++ styles.edge ++ "]"
+        [ "digraph G {" -- start graph
+        , "  compound=true" -- adds support for subgraph edges
+        , "  rankdir=" ++ rankDirToString baseGraphStyles.rankdir
+        , "  graph [" ++ baseGraphStyles.graph ++ "]"
+        , "  node [" ++ baseGraphStyles.node ++ "]"
+        , "  edge [" ++ baseGraphStyles.edge ++ "]"
         , ""
-        , edgesString
+        , "  subgraph cluster_1 {" -- start pipeline subgraph
+        , "  graph [" ++ pipelineSubgraphStyles.graph ++ "]"
+        , "  node [" ++ pipelineSubgraphStyles.node ++ "]"
+        , "  edge [" ++ pipelineSubgraphStyles.edge ++ "]"
         , ""
-        , nodesString
+        , pipelineEdgesString
         , ""
-        , "}"
+        , pipelineNodesString
+        , ""
+        , "}" -- end pipeline subgraph
+        , ""
+        , "  subgraph cluster_0 {" -- start built-ins subgraph
+        , "  graph [" ++ builtInSubgraphStyles.graph ++ "]"
+        , "  node [" ++ builtInSubgraphStyles.node ++ "]"
+        , "  edge [" ++ builtInSubgraphStyles.edge ++ "]"
+        , ""
+        , builtInEdgesString
+        , ""
+        , builtInNodesString
+        , ""
+        , "}" -- end built-ins subgraph
+        , ""
+        , "}" -- end graph
+        , ""
         ]
 
 
 
 -- HELPERS
+
+
+rankDirToString : Rankdir -> String
+rankDirToString r =
+    case r of
+        TB ->
+            "TB"
+
+        LR ->
+            "LR"
+
+        BT ->
+            "BT"
+
+        RL ->
+            "RL"
 
 
 {-| escapeCharacters : takes string and escapes special characters to prepare for use in a DOT string

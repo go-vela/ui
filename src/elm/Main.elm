@@ -1749,23 +1749,14 @@ update msg model =
 
                 Err error ->
                     let
-                        _ =
-                            Debug.log "provide fake build graph" "here"
-
                         bm =
                             rm.build
 
                         gm =
                             bm.graph
-
-                        graph =
-                            Vela.defaultBuildGraph
-
-                        cmd =
-                            Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model graph
                     in
-                    ( { model | repo = { rm | build = { bm | graph = { gm | graph = RemoteData.succeed graph } } } }
-                    , cmd
+                    ( { model | repo = { rm | build = { bm | graph = { gm | graph = toFailure error } } } }
+                    , Cmd.none
                     )
 
         -- ( { model | repo = updateBuildGraph (toFailure error) rm }, addError error )
@@ -1802,18 +1793,8 @@ update msg model =
 
                         updatedModel =
                             { model | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm }
-
-                        cmd =
-                            Cmd.batch
-                                [ getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
-                                , if not refresh then
-                                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model (Vela.toBuildGraph updatedModel.repo)
-
-                                  else
-                                    Cmd.none
-                                ]
                     in
-                    ( updatedModel, cmd )
+                    ( updatedModel, getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh )
 
                 Err error ->
                     ( model, addError error )
@@ -3368,9 +3349,9 @@ loadBuildGraphPage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
 loadBuildGraphPage model org repo buildNumber =
     let
         renderGraph =
-            case m.repo.build.steps.steps of
-                Success s ->
-                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model (Vela.toBuildGraph m.repo)
+            case m.repo.build.graph.graph of
+                Success g ->
+                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model g
 
                 _ ->
                     Cmd.none
@@ -3399,27 +3380,13 @@ loadBuildGraphPage model org repo buildNumber =
         | page = Pages.BuildGraph org repo buildNumber
       }
       -- do not load resources if transition is auto refresh, line focus, etc
+      -- MUST render graph here, or clicking on nodes won't cause an immediate change
     , if sameBuild && sameResource then
-        case m.repo.build.build of
-            Success b ->
-                renderGraph
-
-            _ ->
-                renderGraph
+        renderGraph
         -- tab switch
 
       else if sameBuild && not sameResource then
-        Cmd.batch
-            [ -- TODO: optimize this
-              -- only render when the graph actually changed
-              -- detect if graph is already rendered
-              case m.repo.build.build of
-                Success b ->
-                    renderGraph
-
-                _ ->
-                    renderGraph
-            ]
+        renderGraph
 
       else
         Cmd.batch

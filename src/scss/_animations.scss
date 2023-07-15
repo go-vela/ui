@@ -100,3 +100,9 @@
     opacity: 0;
   }
 }
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}

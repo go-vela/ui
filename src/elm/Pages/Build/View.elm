@@ -557,15 +557,17 @@ viewBuildGraph model msgs org repo buildNumber =
     wrapWithBuildPreview model msgs org repo buildNumber <|
         case model.repo.build.build of
             RemoteData.Success b ->
-                Html.div
+                div
                     [ class "build-graph-view"
                     , id "build-graph-container"
-
-                    -- , Html.Attributes.style "display" "flex"
-                    -- , Html.Attributes.style "flex-direction" "column"
-                    -- , Html.Attributes.style "flex-grow" "1"
                     ]
-                    [ Html.div
+                    [ case model.repo.build.graph.graph of
+                        RemoteData.Success g ->
+                            text ""
+
+                        _ ->
+                            Util.largeLoader
+                    , div
                         [ class "build-graph-content" ]
                         [ Svg.svg
                             [ Svg.Attributes.class "build-graph" ]

@@ -135,7 +135,6 @@ module Vela exposing
     , statusToFavicon
     , statusToString
     , stringToTheme
-    , toBuildGraph
     , updateBuild
     , updateBuildNumber
     , updateBuildPipelineConfig
@@ -1318,67 +1317,7 @@ defaultBuildGraphModel =
 
 defaultBuildGraph : BuildGraph
 defaultBuildGraph =
-    BuildGraph (Dict.fromList [ ( 0, BuildGraphNode 0 "docker-publish-something-long" [] ), ( 1, BuildGraphNode 1 "1" [] ) ]) [ BuildGraphEdge 0 1 ]
-
-
-toBuildGraph : RepoModel -> BuildGraph
-toBuildGraph repo =
-    let
-        g =
-            case repo.build.graph.graph of
-                RemoteData.Success g_ ->
-                    g_
-
-                _ ->
-                    defaultBuildGraph
-    in
-    g
-
-
-toBuildGraphManual : RepoModel -> BuildGraph
-toBuildGraphManual repo =
-    let
-        steps =
-            RemoteData.withDefault [] repo.build.steps.steps
-
-        services =
-            RemoteData.withDefault [] repo.build.services.services
-
-        -- steps_ = [{defaultStep | id = 0, name = "demo0"}, {defaultStep | id = 1, name = "demo1"}]
-        nodes =
-            steps
-                |> List.map (\step -> ( step.id, BuildGraphNode step.id step.name [] ))
-                |> Dict.fromList
-
-        edges =
-            steps
-                |> List.map (\step -> BuildGraphEdge step.id (step.id + 1))
-
-        lastEdges =
-            []
-                ++ (case List.head <| Dict.toList nodes of
-                        Just ( n, _ ) ->
-                            case List.head <| List.reverse <| Dict.toList nodes of
-                                Just ( n_, _ ) ->
-                                    [ BuildGraphEdge n n_ ]
-
-                                _ ->
-                                    []
-
-                        _ ->
-                            []
-                   )
-
-        edges_ =
-            edges ++ lastEdges
-
-        _ =
-            Debug.log "generated nodes " (List.length <| Dict.toList nodes)
-
-        _ =
-            Debug.log "generated edges " (List.length edges_)
-    in
-    BuildGraph nodes edges_
+    BuildGraph Dict.empty []
 
 
 type alias BuildGraphModel =
@@ -1397,12 +1336,14 @@ type alias BuildGraphNode =
     { id : Int
     , name : String
     , steps : List Step
+    , status : String
     }
 
 
 type alias BuildGraphEdge =
     { source : Int
     , destination : Int
+    , status : String
     }
 
 
@@ -1419,6 +1360,7 @@ decodeBuildGraphNode =
         |> required "id" int
         |> required "name" Decode.string
         |> optional "steps" (Decode.list decodeStep) []
+        |> optional "status" string ""
 
 
 decodeEdge : Decoder BuildGraphEdge
@@ -1426,6 +1368,7 @@ decodeEdge =
     Decode.succeed BuildGraphEdge
         |> required "source" int
         |> required "destination" int
+        |> optional "status" string ""
 
 
 encodeBuildGraph : BuildGraph -> Encode.Value

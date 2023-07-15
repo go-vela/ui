@@ -2,25 +2,6 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-// .stage-node {
-//   border: 24px solid transparent;
-//   border-image: url("https://skullctf.com/images/skull-9.svg") 24 round;
-// }
-
-// .stage-node a {
-//   outline: none !important;
-// }
-
-.stage-node-outline {
-  animation: dash 5s linear;
-}
-
-@keyframes dash {
-  to {
-    stroke-dashoffset: 1000;
-  }
-}
-
 html {
   font-family: var(--font-family);
 }
