@@ -76,6 +76,7 @@ import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page)
+import Pages.Build.Graph exposing (renderBuildGraphDOT)
 import Pages.Build.Logs
     exposing
         ( addLog
@@ -187,7 +188,6 @@ import Vela
         , defaultPipeline
         , defaultPipelineTemplates
         , defaultRepoModel
-        , encodeBuildGraph
         , encodeEnableRepository
         , encodeTheme
         , encodeUpdateRepository
@@ -236,7 +236,6 @@ import Vela
         , updateRepoLimit
         , updateRepoTimeout
         )
-import Visualization.BuildGraph
 
 
 
@@ -1735,7 +1734,7 @@ update msg model =
                                 cmd =
                                     if True then
                                         -- for now, the build graph always renders when receiving graph response from the server
-                                        Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model graph
+                                        Interop.renderBuildGraph <| Encode.string <| renderBuildGraphDOT model graph
 
                                     else
                                         Cmd.none
@@ -3351,7 +3350,7 @@ loadBuildGraphPage model org repo buildNumber =
         renderGraph =
             case m.repo.build.graph.graph of
                 Success g ->
-                    Interop.renderBuildGraph <| Encode.string <| Visualization.BuildGraph.toDOT model g
+                    Interop.renderBuildGraph <| Encode.string <| renderBuildGraphDOT model g
 
                 _ ->
                     Cmd.none

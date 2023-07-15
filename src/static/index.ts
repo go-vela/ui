@@ -2,12 +2,14 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
+// todo: remove
+// @ts-nocheck
+
 // import types
 import * as ClipboardJS from 'clipboard';
 import { Console } from 'console';
 import * as d3 from 'd3';
 
-// @ts-ignore // false negative module warning
 import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
 import { App, Config, Flags, Theme } from './index.d';
@@ -170,7 +172,6 @@ function runGraphvizWorker(dot) {
         //  because web workers do not have access to the DOM
 
         console.log('preparing to draw content');
-        console.log(drawContent);
 
         draw(drawContent);
       }
@@ -190,8 +191,6 @@ function draw(content) {
   var buildGraphElement = d3.select('.build-graph');
 
   // enable d3 zoom and pan functionality
-  console.log('enabling d3 zoom');
-
   buildGraphElement.call(
     d3.zoom().scaleExtent([0.1, Infinity]).on('zoom', zoomed),
   );
@@ -247,11 +246,6 @@ function draw(content) {
   );
 
   // process all stage nodes
-  console.log('processing all all .stage-node');
-
-
-  console.log('processing all .stage-node a');
-
   buildGraphElement.selectAll('.stage-node a').filter(function () {
     // add onclick to nodes with valid href attributes
     var href = d3.select(this).attr('xlink:href');
@@ -279,12 +273,68 @@ function draw(content) {
         );
       });
     }
+    return '';
+  });
+
+  var edges = [];
+  buildGraphElement.selectAll('.stage-edge').filter(function () {
+    let a = d3.select(this);
+    var edgeInfo = a.attr('id').replace('#', '').split(',');
+
+    var status = edgeInfo[2];
+
+    var p = a.select('path');
+
+    edges.push({
+      target: p,
+      source: edgeInfo[0],
+      destination: edgeInfo[1],
+      status: status,
+    });
+
+    p.style('animation', 'none');
+    var restoreEdgeStyle = o => {
+      o.style('stroke', 'var(--color-gray)');
+      o.style('stroke-dasharray', '10, 4');
+    };
+
+    if (status === 'running') {
+      restoreEdgeStyle = o => {
+        o.style('stroke', 'var(--color-yellow)');
+        o.style('stroke-dasharray', '10, 4');
+        o.style('animation', 'dash 25s linear');
+      };
+    }
+
+    if (status === 'success') {
+      restoreEdgeStyle = o => {
+        o.style('stroke', 'var(--color-gray)');
+        o.style('stroke-dasharray', null);
+      };
+    }
+
+    if (status === 'failure') {
+      restoreEdgeStyle = o => {
+        o.style('stroke', 'var(--color-gray)');
+        o.style('stroke-dasharray', null);
+      };
+    }
+
+    restoreEdgeStyle(p);
+
+    a.on('mouseover', e => {
+      p.style('stroke', 'var(--color-primary)');
+    });
+
+    a.on('mouseout', e => {
+      restoreEdgeStyle(p);
+    });
+
     return ''; // used by filter (?)
   });
 
   buildGraphElement.selectAll('.stage-node').filter(function () {
     let stageNode = d3.select(this);
-    var stageStatus = stageNode.attr('id').replace('#', '');
     var nodeBBox = stageNode.node().getBBox();
 
     // apply an outline using rect, since nodes are rect and this will allow for animation
@@ -296,27 +346,31 @@ function draw(content) {
       .attr('height', nodeBBox.height)
       .style('fill', 'none');
 
-    var restoreStyle = o => {};
+    var stageInfo = stageNode.attr('id').replace('#', '').split(',');
+
+    var stageStatus = stageInfo[1];
+
+    var restoreNodeStyle = o => {};
     if (stageStatus === 'failure') {
-      restoreStyle = o => {
+      restoreNodeStyle = o => {
         o.style('stroke', 'var(--color-red)')
-          .style('stroke-width', '1')
+          .style('stroke-width', '1.8')
           .style('stroke-dasharray', null)
           .style('animation', 'none');
       };
     }
 
     if (stageStatus === 'success') {
-      restoreStyle = o => {
+      restoreNodeStyle = o => {
         o.style('stroke', 'var(--color-green)')
-          .style('stroke-width', '1')
+          .style('stroke-width', '1.8')
           .style('stroke-dasharray', null)
           .style('animation', 'none');
       };
     }
 
     if (stageStatus === 'running') {
-      restoreStyle = o => {
+      restoreNodeStyle = o => {
         o.style('stroke', 'var(--color-yellow)')
           .style('stroke-width', '1.8')
           .style('stroke-dasharray', '10')
@@ -325,25 +379,74 @@ function draw(content) {
     }
 
     if (stageStatus === 'killed') {
-      restoreStyle = o => {
+      restoreNodeStyle = o => {
         o.style('stroke', 'var(--color-lavender)')
-          .style('stroke-width', '1')
+          .style('stroke-width', '1.8')
           .style('stroke-dasharray', null)
           .style('animation', 'none');
       };
     }
 
-    restoreStyle(outline);
+    restoreNodeStyle(outline);
 
     stageNode.on('mouseover', e => {
       outline
         .style('stroke', 'var(--color-primary)')
         .style('stroke-width', '1.8');
+
+      // take this stage
+      // filter out all the edges that arent source/dest of each edge
+      edges.filter(function (edgeInfo) {
+        if (
+          stageInfo[0] === edgeInfo.source ||
+          stageInfo[0] === edgeInfo.destination
+        ) {
+          edgeInfo.target.style('stroke', 'var(--color-primary)');
+        }
+      });
     });
 
     stageNode.on('mouseout', e => {
       outline.style('stroke', 'none');
-      restoreStyle(outline);
+      restoreNodeStyle(outline);
+
+      edges.filter(function (edgeInfo) {
+        if (
+          stageInfo[0] === edgeInfo.source ||
+          stageInfo[0] === edgeInfo.destination
+        ) {
+          var status = edgeInfo.status;
+
+          var restoreEdgeStyle = o => {
+            o.style('stroke', 'var(--color-gray)');
+            o.style('stroke-dasharray', '10, 4');
+          };
+
+          if (status === 'running') {
+            restoreEdgeStyle = o => {
+              o.style('stroke', 'var(--color-yellow)');
+              o.style('stroke-dasharray', '10, 4');
+              o.style('animation', 'dash 25s linear');
+            };
+          }
+
+          if (status === 'success') {
+            restoreEdgeStyle = o => {
+              o.style('stroke', 'var(--color-gray)');
+              o.style('stroke-dasharray', null);
+            };
+          }
+
+          if (status === 'failure') {
+            restoreEdgeStyle = o => {
+              o.style('stroke', 'var(--color-gray)');
+              o.style('stroke-dasharray', null);
+            };
+          }
+
+          restoreEdgeStyle(edgeInfo.target);
+        }
+      });
     });
 
     stageNode.selectAll('a').filter(function () {
@@ -359,8 +462,6 @@ function draw(content) {
         });
       }
     });
-
-    console.log('processing all node cells');
 
     stageNode.selectAll('#a_node-cell').filter(function () {
       var cell = d3.select(this);
@@ -379,8 +480,6 @@ function draw(content) {
 
         // todo: safety check
         var status = stepInfo[2];
-
-        console.log('appending image to .stage-node parent');
 
         parent
           .append('image')
@@ -411,53 +510,6 @@ function draw(content) {
           );
         });
       }
-    });
-
-    return ''; // used by filter (?)
-  });
-
-  console.log('processing all .stage-edge');
-
-  buildGraphElement.selectAll('.stage-edge').filter(function () {
-    let a = d3.select(this);
-    var status = a.attr('id').replace('#', '');
-    var p = a.select('path');
-    p.style('animation', 'none');
-    var restoreStyle = o => {
-      o.style('stroke', 'var(--color-gray)');
-      o.style('stroke-dasharray', '10, 4');
-    };
-
-    if (status === 'running') {
-      restoreStyle = o => {
-        o.style('stroke', 'var(--color-yellow)');
-        o.style('stroke-dasharray', '10, 4');
-        o.style('animation', 'dash 25s linear');
-      };
-    }
-
-    if (status === 'success') {
-      restoreStyle = o => {
-        o.style('stroke', 'var(--color-gray)');
-        o.style('stroke-dasharray', null);
-      };
-    }
-
-    if (status === 'failure') {
-      restoreStyle = o => {
-        o.style('stroke', 'var(--color-gray)');
-        o.style('stroke-dasharray', null);
-      };
-    }
-
-    restoreStyle(p);
-
-    a.on('mouseover', e => {
-      p.style('stroke', 'var(--color-primary)');
-    });
-
-    a.on('mouseout', e => {
-      restoreStyle(p);
     });
 
     return ''; // used by filter (?)
