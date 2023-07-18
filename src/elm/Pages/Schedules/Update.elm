@@ -45,20 +45,19 @@ import Vela
 -}
 init : ScheduleResponse msg -> AddScheduleResponse msg -> UpdateScheduleResponse msg -> DeleteScheduleResponse msg -> Model msg
 init scheduleResponse addScheduleResponse updateScheduleResponse deleteScheduleResponse =
-    Model -1
+    Model
         ""
         ""
-        ""
-        False
         NotAsked
         NotAsked
         []
+        Nothing
+        Nothing
         defaultScheduleUpdate
         scheduleResponse
         addScheduleResponse
         deleteScheduleResponse
         updateScheduleResponse
-        []
         NotAsked_
 
 
@@ -153,19 +152,14 @@ toAddSchedulePayload scheduleModel schedule =
 
 {-| toUpdateSchedulePayload : builds payload for updating schedule
 -}
-toUpdateSchedulePayload : Model msg -> ScheduleForm -> UpdateSchedulePayload
-toUpdateSchedulePayload scheduleModel schedule =
-    let
-        args =
-            { id = scheduleModel.id
-            , org = Nothing
-            , repo = Nothing
-            , name = Nothing
-            , entry = stringToMaybe schedule.entry
-            , enabled = Just schedule.enabled
-            }
-    in
-    buildUpdateSchedulePayload args.org args.repo args.name args.entry args.enabled
+toUpdateSchedulePayload : ScheduleForm -> UpdateSchedulePayload
+toUpdateSchedulePayload schedule =
+    buildUpdateSchedulePayload
+        Nothing
+        Nothing
+        Nothing
+        (stringToMaybe schedule.entry)
+        (Just schedule.enabled)
 
 
 
@@ -214,7 +208,7 @@ update model msg =
 
                         payload : UpdateSchedulePayload
                         payload =
-                            toUpdateSchedulePayload scheduleModel schedule
+                            toUpdateSchedulePayload schedule
 
                         body : Http.Body
                         body =

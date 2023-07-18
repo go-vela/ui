@@ -364,8 +364,6 @@ viewLines config lineFocus focusLineNumber =
                         focusLineNumber
             )
         |> Array.toList
-        |> Just
-        |> Maybe.withDefault []
         |> List.filterMap identity
 
 

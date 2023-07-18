@@ -349,7 +349,7 @@ renderSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ listItemView "" secret.key
+            [ listItemView "key" secret.key
             ]
         , td
             [ attribute "data-label" "type"
@@ -410,7 +410,7 @@ renderSharedSecret type_ secret =
             , class "break-word"
             , Util.testAttribute <| "secrets-row-key"
             ]
-            [ listItemView "" secret.key
+            [ listItemView "key" secret.key
             ]
         , td
             [ attribute "data-label" "type"

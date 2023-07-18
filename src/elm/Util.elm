@@ -11,6 +11,7 @@ module Util exposing
     , base64Decode
     , boolToYesNo
     , buildRefURL
+    , checkScheduleAllowlist
     , dispatch
     , extractFocusIdFromRange
     , filterEmptyList
@@ -36,9 +37,11 @@ module Util exposing
     , secondsToMillis
     , smallLoader
     , smallLoaderWithText
+    , stringToAllowlist
     , stringToMaybe
     , successful
     , testAttribute
+    , toUtcString
     , trimCommitHash
     , yesNoToBool
     )
@@ -57,7 +60,7 @@ import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import String.Extra
 import Task exposing (perform, succeed)
-import Time exposing (Posix, Zone, posixToMillis)
+import Time exposing (Posix, Zone, posixToMillis, toHour, toMinute, utc)
 
 
 {-| testAttribute : returns an html attribute that produces msgs for selecting the element during automated testing
@@ -138,6 +141,15 @@ humanReadableDateTimeFormatter =
 relativeTimeNoSeconds : Posix -> Posix -> String
 relativeTimeNoSeconds now then_ =
     relativeTimeWithOptions { defaultRelativeOptions | someSecondsAgo = noSomeSecondsAgo } now then_
+
+
+{-| toUtcString : helper for using Time to convert Posix to a UTC string in the format HH:MM
+-}
+toUtcString : Time.Posix -> String
+toUtcString time =
+    toTwoDigits (toHour utc time)
+        ++ ":"
+        ++ toTwoDigits (toMinute utc time)
 
 
 {-| noSomeSecondsAgo : helper for configurating DateFormat.Relative.relativeTime
@@ -521,3 +533,52 @@ see: <https://package.elm-lang.org/packages/basti1302/elm-human-readable-filesiz
 formatFilesize : Int -> String
 formatFilesize =
     Filesize.format
+
+
+{-| stringToAllowlist : takes a comma-separated string list of org/repo pairs and parses it into a list of tuples
+-}
+stringToAllowlist : String -> List ( String, String )
+stringToAllowlist src =
+    src
+        |> String.split ","
+        -- split comma separated list
+        |> List.map
+            (\orgRepo ->
+                case String.split "/" <| String.trim orgRepo of
+                    -- split org/repo
+                    -- deny empty values by default
+                    "" :: "" :: _ ->
+                        ( "", "" )
+
+                    -- permit valid org/repo
+                    org :: repo :: _ ->
+                        ( org, repo )
+
+                    -- deny empty orgs by default
+                    "" :: _ ->
+                        ( "", "" )
+
+                    -- allow org wildcards when only an org is provided
+                    org :: _ ->
+                        ( org, "*" )
+
+                    -- deny unparsed values by default
+                    _ ->
+                        ( "", "" )
+            )
+
+
+{-| checkScheduleAllowlist : takes org, repo and allowlist and checks if the repo exists in the list, accounting for wildcards (\*)
+-}
+checkScheduleAllowlist : String -> String -> List ( String, String ) -> Bool
+checkScheduleAllowlist org repo allowlist =
+    List.any (checkMatch ( org, repo )) allowlist
+
+
+{-| checkMatch : takes two pairs of org and repo and checks if the inPair matches the allowlist srcPair
+-}
+checkMatch : ( String, String ) -> ( String, String ) -> Bool
+checkMatch ( inOrg, inRepo ) ( srcOrg, srcRepo ) =
+    (srcOrg == "*" && srcRepo == "*")
+        || (srcOrg == inOrg && srcRepo == "*")
+        || (srcOrg == inOrg && srcRepo == inRepo)

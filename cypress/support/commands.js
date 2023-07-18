@@ -169,6 +169,7 @@ Cypress.Commands.add('stubBuildsFilter', () => {
   cy.fixture('builds_pull.json').as('buildsPull');
   cy.fixture('builds_tag.json').as('buildsTag');
   cy.fixture('builds_comment.json').as('buildsComment');
+  cy.fixture('builds_schedule.json').as('buildsSchedule');
   cy.route({
     method: 'GET',
     url: '*api/v1/repos/*/*/builds*',
@@ -198,6 +199,11 @@ Cypress.Commands.add('stubBuildsFilter', () => {
     method: 'GET',
     url: '*api/v1/repos/*/*/builds?event=comment*',
     response: '@buildsComment',
+  });
+  cy.route({
+    method: 'GET',
+    url: '*api/v1/repos/*/*/builds?event=schedule*',
+    response: '@buildsSchedule',
   });
 });
 

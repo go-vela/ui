@@ -33,7 +33,8 @@ import Vela exposing (BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoMo
 -}
 type alias PartialModel a =
     { a
-        | navigationKey : Navigation.Key
+        | velaScheduleAllowlist : List ( Org, Repo )
+        , navigationKey : Navigation.Key
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
         , page : Page

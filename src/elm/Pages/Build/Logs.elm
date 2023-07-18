@@ -81,9 +81,8 @@ merge logFocus refresh current incoming =
                                                 , logFocus = f
                                             }
                                     in
-                                    Just <| Maybe.withDefault s <| overwriteById s resources
+                                    Maybe.withDefault s <| overwriteById s resources
                                 )
-                            |> List.filterMap identity
                     )
     in
     -- when not an automatic refresh, respect the url focus
