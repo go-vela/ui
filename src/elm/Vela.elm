@@ -135,6 +135,8 @@ module Vela exposing
     , statusToString
     , stringToTheme
     , updateBuild
+    , updateBuildGraph
+    , updateBuildGraphShowSteps
     , updateBuildNumber
     , updateBuildPipelineConfig
     , updateBuildPipelineExpand
@@ -721,6 +723,30 @@ updateBuildSteps update rm =
             b.steps
     in
     { rm | build = { b | steps = { s | steps = update } } }
+
+
+updateBuildGraph : WebData BuildGraph -> RepoModel -> RepoModel
+updateBuildGraph update rm =
+    let
+        b =
+            rm.build
+
+        g =
+            b.graph
+    in
+    { rm | build = { b | graph = { g | graph = update } } }
+
+
+updateBuildGraphShowSteps : Dict String Bool -> RepoModel -> RepoModel
+updateBuildGraphShowSteps update rm =
+    let
+        b =
+            rm.build
+
+        g =
+            b.graph
+    in
+    { rm | build = { b | graph = { g | showSteps = update } } }
 
 
 updateBuildServices : WebData Services -> RepoModel -> RepoModel

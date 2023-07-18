@@ -197,6 +197,8 @@ import Vela
         , statusToFavicon
         , stringToTheme
         , updateBuild
+        , updateBuildGraph
+        , updateBuildGraphShowSteps
         , updateBuildNumber
         , updateBuildPipelineConfig
         , updateBuildPipelineExpand
@@ -3336,62 +3338,6 @@ setNewPage route model =
             )
 
 
-{-| loadBuildGraphPage : takes model org, repo, and build number and loads the appropriate build graph resources.
--}
-loadBuildGraphPage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
-loadBuildGraphPage model org repo buildNumber =
-    let
-        renderGraph =
-            case m.repo.build.graph.graph of
-                Success g ->
-                    Interop.renderBuildGraph <| Encode.string <| renderBuildGraphDOT model g
-
-                _ ->
-                    Cmd.none
-
-        -- get resource transition information
-        sameBuild =
-            isSameBuild ( org, repo, buildNumber ) model.page
-
-        sameResource =
-            case model.page of
-                Pages.BuildGraph _ _ _ ->
-                    True
-
-                _ ->
-                    False
-
-        -- if build has changed, set build fields in the model
-        m =
-            if not sameBuild then
-                setBuild org repo buildNumber sameResource model
-
-            else
-                model
-    in
-    ( { m
-        | page = Pages.BuildGraph org repo buildNumber
-      }
-      -- do not load resources if transition is auto refresh, line focus, etc
-      -- MUST render graph here, or clicking on nodes won't cause an immediate change
-    , if sameBuild && sameResource then
-        renderGraph
-        -- tab switch
-
-      else if sameBuild && not sameResource then
-        renderGraph
-
-      else
-        Cmd.batch
-            [ getBuilds model org repo Nothing Nothing Nothing
-            , getBuild model org repo buildNumber
-            , getAllBuildSteps model org repo buildNumber Nothing False
-            , getBuildGraph model org repo buildNumber
-            , renderGraph
-            ]
-    )
-
-
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
 loadSourceReposPage model =
     case model.sourceRepos of
@@ -4227,6 +4173,78 @@ loadBuildPage model org repo buildNumber lineFocus =
     )
 
 
+{-| loadBuildGraphPage : takes model org, repo, and build number and loads the appropriate build graph resources.
+-}
+loadBuildGraphPage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
+loadBuildGraphPage model org repo buildNumber =
+    let
+        -- get resource transition information
+        sameBuild =
+            isSameBuild ( org, repo, buildNumber ) model.page
+
+        sameResource =
+            case model.page of
+                Pages.BuildGraph _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
+        -- if build has changed, set build fields in the model
+        m =
+            if not sameBuild then
+                setBuild org repo buildNumber sameResource model
+
+            else
+                model
+
+        rm =
+            m.repo
+
+        bm =
+            rm.build
+
+        gm =
+            bm.graph
+
+        renderGraph =
+            case gm.graph of
+                Success g ->
+                    if sameBuild then
+                        Interop.renderBuildGraph <| Encode.string <| renderBuildGraphDOT model g
+
+                    else
+                        Cmd.none
+
+                _ ->
+                    Cmd.none
+
+        graph =
+            if sameBuild then
+                RemoteData.unwrap RemoteData.Loading (\g_ -> RemoteData.succeed g_) gm.graph
+
+            else
+                RemoteData.Loading
+    in
+    ( { m
+        | page = Pages.BuildGraph org repo buildNumber
+        , repo = { rm | build = { bm | graph = { gm | graph = graph } } }
+      }
+      -- do not load resources if transition is auto refresh, line focus, etc
+      -- MUST render graph here, or clicking on nodes won't cause an immediate change
+    , if sameBuild && sameResource then
+        renderGraph
+
+      else
+        Cmd.batch
+            [ getBuilds m org repo Nothing Nothing Nothing
+            , getBuild m org repo buildNumber
+            , getBuildGraph m org repo buildNumber
+            , renderGraph
+            ]
+    )
+
+
 {-| loadBuildServicesPage : takes model org, repo, and build number and loads the appropriate build services.
 -}
 loadBuildServicesPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
@@ -4451,6 +4469,8 @@ setBuild org repo buildNumber soft model =
                 |> updateBuildServicesFollowing 0
                 |> updateBuildServicesLogs []
                 |> updateBuildServicesFocusFragment Nothing
+                |> updateBuildGraph NotAsked
+                |> updateBuildGraphShowSteps Dict.empty
     }
 
 

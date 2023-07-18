@@ -7,6 +7,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 module SvgBuilder exposing
     ( buildStatusAnimation
     , buildStatusToIcon
+    , buildVizLegendItem
+    , buildVizLegendLine
     , hookStatusToIcon
     , hookSuccess
     , recentBuildStatusToIcon
@@ -531,4 +533,56 @@ terminal =
         ]
         [ Svg.polyline [ Svg.Attributes.points "4 17 10 11 4 5" ] []
         , Svg.line [ x1 "12", y1 "19", x2 "20", y2 "19" ] []
+        ]
+
+
+{-| buildVizLegendItem : produces svg icon for build history status - running
+-}
+buildVizLegendItem : Int -> List (Svg.Attribute msg) -> Html msg
+buildVizLegendItem _ attrs =
+    let
+        size =
+            "20"
+    in
+    svg
+        [ class "elm-build-graph-legend-line"
+        , viewBox <| "0 0 " ++ size ++ " " ++ size
+        , width size
+        , height size
+        ]
+        [ Svg.rect
+            ([ width size
+             , height size
+             , strokeWidth "3"
+             ]
+                ++ attrs
+            )
+            []
+        ]
+
+
+{-| buildVizLegendLine : produces svg icon for build history status - running
+-}
+buildVizLegendLine : Int -> List (Svg.Attribute msg) -> Html msg
+buildVizLegendLine _ attrs =
+    let
+        size =
+            "20"
+    in
+    svg
+        [ class "elm-build-graph-legend-line"
+        , viewBox <| "0 0 " ++ size ++ " " ++ size
+        , width size
+        , height size
+        ]
+        [ Svg.line
+            ([ x1 "2"
+             , x2 "18"
+             , y1 <| "10"
+             , y2 <| "10"
+             , strokeWidth "3"
+             ]
+                ++ attrs
+            )
+            []
         ]

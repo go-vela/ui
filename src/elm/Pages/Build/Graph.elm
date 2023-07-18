@@ -354,12 +354,12 @@ nodeAttrs model node =
                     , node.status
                     ]
 
-        -- track stepx expansion using the model and OnGraphInteraction
+        -- track step expansion using the model and OnGraphInteraction
         showSteps =
             Maybe.withDefault True <| Dict.get node.name model.repo.build.graph.showSteps
     in
     Dict.fromList <|
-        [ ( "class", DefaultJSONLabelEscape <| "stage-node" )
+        [ ( "class", DefaultJSONLabelEscape "elm-build-graph-node" )
         , ( "shape", DefaultJSONLabelEscape "rect" )
         , ( "style", DefaultJSONLabelEscape "filled" )
         , ( "border", DefaultJSONLabelEscape "white" )
@@ -382,7 +382,7 @@ edgeAttrs e =
                     ]
     in
     Dict.fromList <|
-        [ ( "class", DefaultJSONLabelEscape "stage-edge" )
+        [ ( "class", DefaultJSONLabelEscape "elm-build-graph-edge" )
         , ( "style", DefaultJSONLabelEscape "filled" )
         , ( "id", DefaultJSONLabelEscape id )
         ]

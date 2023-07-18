@@ -554,37 +554,81 @@ viewStepLogs msgs shift rm step =
 -}
 viewBuildGraph : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 viewBuildGraph model msgs org repo buildNumber =
-    wrapWithBuildPreview model msgs org repo buildNumber <|
-        case model.repo.build.build of
-            RemoteData.Success b ->
-                div
-                    [ class "build-graph-view"
-                    , id "build-graph-container"
+    let
+        container =
+            div
+                [ class "elm-build-graph-container"
+                ]
+
+        legend =
+            ul [ class "elm-build-graph-legend" ]
+                [ li []
+                    [ SvgBuilder.buildVizLegendItem 0 []
+                    , text "- pending"
                     ]
-                    [ case model.repo.build.graph.graph of
-                        RemoteData.Success g ->
-                            text ""
-
-                        _ ->
-                            Util.largeLoader
-                    , div
-                        [ class "build-graph-content" ]
-                        [ Svg.svg
-                            [ Svg.Attributes.class "build-graph" ]
-                            []
-                        ]
+                , li [ class "-running-hover" ]
+                    [ SvgBuilder.buildVizLegendItem 0 [ Svg.Attributes.class "-running" ]
+                    , text "- running"
                     ]
+                , li []
+                    [ SvgBuilder.buildVizLegendItem 0 [ Svg.Attributes.class "-success" ]
+                    , text "- success"
+                    ]
+                , li []
+                    [ SvgBuilder.buildVizLegendItem 0 [ Svg.Attributes.class "-failure" ]
+                    , text "- failed"
+                    ]
+                , li []
+                    [ SvgBuilder.buildVizLegendItem 0 [ Svg.Attributes.class "-selected" ]
+                    , text "- selected"
+                    ]
+                , li []
+                    [ SvgBuilder.buildVizLegendLine 0 [ Svg.Attributes.strokeDasharray "3, 3" ]
+                    , text "- pending"
+                    ]
+                , li []
+                    [ SvgBuilder.buildVizLegendLine 0 []
+                    , text "- complete"
+                    ]
+                ]
 
-            RemoteData.Failure _ ->
-                div [] [ text "Error loading build graph... Please try again" ]
+        classIgnores =
+            [ span
+                [ style "display" "none"
+                , class "d3-build-graph-node-outline-rect"
+                , class "d3-build-graph-node-step-a"
+                , class "d3-build-graph-edge-path"
+                , class "-pending"
+                , class "-running"
+                , class "-success"
+                , class "-failure"
+                , class "-killed"
+                , class "-hover"
+                ]
+                []
+            ]
 
-            _ ->
-                -- Don't show two loaders
-                if Util.isLoading model.repo.build.build then
+        content =
+            [ legend
+            , case model.repo.build.graph.graph of
+                RemoteData.Success g ->
+                    -- dont render anything when the build graph draw command has been dispatched
                     text ""
 
-                else
-                    Util.smallLoader
+                RemoteData.Failure _ ->
+                    text "Error loading build graph... Please try again"
+
+                _ ->
+                    Util.largeLoader
+            , Svg.svg
+                [ Svg.Attributes.class "elm-build-graph-root" ]
+                []
+            ]
+                -- these elements are purely to keep dynamic css classes from getting scrubbed
+                ++ classIgnores
+    in
+    wrapWithBuildPreview model msgs org repo buildNumber <|
+        container content
 
 
 

@@ -137,19 +137,44 @@ function envOrNull(env: string, subst: string): string | null {
 app.ports.renderBuildGraph.subscribe(function (dot) {
   const graphviz = Graphviz.load().then(res => {
     var content = res.layout(dot, 'svg', 'dot');
-    draw(content);
+    drawGraph(content);
   });
 });
 
-function draw(content) {
-  console.log('running draw(content)');
-
-  // force d3 exports to resolve, or else receive errors when running as a container
+function drawGraph(content) {
+  // force d3 exports to resolve, required or we receive errors when running within a container
   // this is why we love javascript
   var _ = d3;
 
+  // define DOM selectors for DOT-generated elements
+  var graphSelectors = {
+    root: '.elm-build-graph-root',
+    node: '.elm-build-graph-node',
+    edge: '.elm-build-graph-edge',
+  };
+
+  var buildGraphElement = drawBaseGraph(graphSelectors.root, content);
+
+  // check that a valid graph was rendered
+  if (buildGraphElement.node() == null) {
+    console.log('unable to continue drawing graph, root element is invalid');
+    console.log(buildGraphElement);
+    return;
+  }
+
+  drawViewbox(buildGraphElement);
+
+  // apply onclick to base node links prior to adding/removing elements
+  applyNodesOnClick(buildGraphElement, graphSelectors.node);
+
+  var edges = drawEdges(buildGraphElement, graphSelectors.edge);
+
+  drawNodes(buildGraphElement, graphSelectors.node, edges);
+}
+
+function drawBaseGraph(selector, content) {
   // grab the build graph root element
-  var buildGraphElement = d3.select('.build-graph');
+  var buildGraphElement = d3.select(selector);
 
   // enable d3 zoom and pan functionality
   buildGraphElement.call(
@@ -158,7 +183,7 @@ function draw(content) {
 
   // define d3 zoom function
   function zoomed(event) {
-    var g = d3.select('.build-graph g');
+    var g = d3.select(selector + ' g');
     g.attr('transform', event.transform);
   }
 
@@ -167,16 +192,14 @@ function draw(content) {
   if (g.empty()) {
     g = buildGraphElement
       .append('g')
-      .attr('class', 'node_mousedown')
+      .classed('node_mousedown', true)
       .attr('id', 'zoom');
   }
 
   let height = 800;
   buildGraphElement
     .attr('height', height) // make dynamic depending on the number of nodes or depth?
-    .attr('width', '100%')
-    .style('outline', '1px solid var(--color-bg-light)')
-    .style('background', 'var(--color-bg-dark)');
+    .attr('width', '100%');
 
   // this centers the graph in the viewbox, or something like that
   buildGraphElement = g;
@@ -184,14 +207,13 @@ function draw(content) {
   // draw content into html
   buildGraphElement.html(content);
 
-  // check that a valid graph was rendered
-  if (buildGraphElement.node() == null) {
-    console.log('unable to get bounding box, build graph node is null');
-    return;
-  }
+  return buildGraphElement;
+}
 
-  // set the base graph padding
+function drawViewbox(buildGraphElement) {
   var graphBBox = buildGraphElement.node().getBBox();
+
+  // apply viewbox properties to the root element's parent
   const VIEWBOX_PADDING = { x1: 0, x2: 0, y1: 40, y2: 40 };
   var graphParent = d3.select(buildGraphElement.node().parentNode);
   graphParent.attr(
@@ -205,96 +227,10 @@ function draw(content) {
       ' ' +
       (graphBBox.height + VIEWBOX_PADDING.y2),
   );
+}
 
-  // process all stage nodes
-  buildGraphElement.selectAll('.stage-node a').filter(function () {
-    // add onclick to nodes with valid href attributes
-    var href = d3.select(this).attr('xlink:href');
-    if (href !== null) {
-      d3.select(this).on('click', function (e) {
-        console.log('handle onclick STAGE NODE');
-
-        e.preventDefault();
-
-        var nodeA = d3.select(this);
-
-        // extract identifier from href
-        // todo: make this use title
-        var data = nodeA.attr('xlink:href');
-        nodeA.attr('xlink:href', null);
-        let id = data.replace('#', '');
-
-        setTimeout(
-          () =>
-            app.ports.onGraphInteraction.send({
-              event_type: 'node_click',
-              node_id: id,
-            }),
-          0,
-        );
-      });
-    }
-    return '';
-  });
-
-  var edges = [];
-  buildGraphElement.selectAll('.stage-edge').filter(function () {
-    let a = d3.select(this);
-    var edgeInfo = a.attr('id').replace('#', '').split(',');
-
-    var status = edgeInfo[2];
-
-    var p = a.select('path');
-
-    edges.push({
-      target: p,
-      source: edgeInfo[0],
-      destination: edgeInfo[1],
-      status: status,
-    });
-
-    p.style('animation', 'none');
-    var restoreEdgeStyle = o => {
-      o.style('stroke', 'var(--color-gray)');
-      o.style('stroke-dasharray', '10, 4');
-    };
-
-    if (status === 'running') {
-      restoreEdgeStyle = o => {
-        o.style('stroke', 'var(--color-yellow)');
-        o.style('stroke-dasharray', '10, 4');
-        o.style('animation', 'dash 25s linear');
-      };
-    }
-
-    if (status === 'success') {
-      restoreEdgeStyle = o => {
-        o.style('stroke', 'var(--color-gray)');
-        o.style('stroke-dasharray', null);
-      };
-    }
-
-    if (status === 'failure') {
-      restoreEdgeStyle = o => {
-        o.style('stroke', 'var(--color-gray)');
-        o.style('stroke-dasharray', null);
-      };
-    }
-
-    restoreEdgeStyle(p);
-
-    a.on('mouseover', e => {
-      p.style('stroke', 'var(--color-primary)');
-    });
-
-    a.on('mouseout', e => {
-      restoreEdgeStyle(p);
-    });
-
-    return ''; // used by filter (?)
-  });
-
-  buildGraphElement.selectAll('.stage-node').filter(function () {
+function drawNodes(buildGraphElement, selector, edges) {
+  buildGraphElement.selectAll(selector).filter(function () {
     let stageNode = d3.select(this);
     var nodeBBox = stageNode.node().getBBox();
 
@@ -304,108 +240,104 @@ function draw(content) {
       .attr('x', nodeBBox.x)
       .attr('y', nodeBBox.y)
       .attr('width', nodeBBox.width)
-      .attr('height', nodeBBox.height)
-      .style('fill', 'none');
+      .attr('height', nodeBBox.height);
 
     var stageInfo = stageNode.attr('id').replace('#', '').split(',');
 
+    // todo: safety-check
     var stageStatus = stageInfo[1];
 
-    var restoreNodeStyle = o => {};
+    // restore base class and build modifiers
+    outline.attr('class', 'd3-build-graph-node-outline-rect');
+
+    var restoreNodeClass = o => {
+      o.classed('-pending', true);
+    };
+
     if (stageStatus === 'failure') {
-      restoreNodeStyle = o => {
-        o.style('stroke', 'var(--color-red)')
-          .style('stroke-width', '1.8')
-          .style('stroke-dasharray', null)
-          .style('animation', 'none');
+      restoreNodeClass = o => {
+        o.classed('-failure', true);
       };
     }
 
     if (stageStatus === 'success') {
-      restoreNodeStyle = o => {
-        o.style('stroke', 'var(--color-green)')
-          .style('stroke-width', '1.8')
-          .style('stroke-dasharray', null)
-          .style('animation', 'none');
+      restoreNodeClass = o => {
+        o.classed('-success', true);
       };
     }
 
     if (stageStatus === 'running') {
-      restoreNodeStyle = o => {
-        o.style('stroke', 'var(--color-yellow)')
-          .style('stroke-width', '1.8')
-          .style('stroke-dasharray', '10')
-          .style('animation', 'dash 25s linear');
+      restoreNodeClass = o => {
+        o.classed('-running', true);
       };
     }
 
     if (stageStatus === 'killed') {
-      restoreNodeStyle = o => {
-        o.style('stroke', 'var(--color-lavender)')
-          .style('stroke-width', '1.8')
-          .style('stroke-dasharray', null)
-          .style('animation', 'none');
+      restoreNodeClass = o => {
+        o.classed('-killed', true);
       };
     }
 
-    restoreNodeStyle(outline);
+    restoreNodeClass(outline);
 
     stageNode.on('mouseover', e => {
-      outline
-        .style('stroke', 'var(--color-primary)')
-        .style('stroke-width', '1.8');
+      outline.classed('-hover', true);
 
       // take this stage
       // filter out all the edges that arent source/dest of each edge
       edges.filter(function (edgeInfo) {
         if (
+          // todo: safety-check
           stageInfo[0] === edgeInfo.source ||
           stageInfo[0] === edgeInfo.destination
         ) {
-          edgeInfo.target.style('stroke', 'var(--color-primary)');
+          edgeInfo.target.classed('-hover', true);
         }
       });
     });
 
     stageNode.on('mouseout', e => {
-      outline.style('stroke', 'none');
-      restoreNodeStyle(outline);
+      // remove node outline styling
+      outline.classed('-hover', false);
 
+      // restore node styling
+      restoreNodeClass(outline);
+
+      // restore edge styling
       edges.filter(function (edgeInfo) {
+        // modify styling only on related edges
         if (
+          // todo: safety-check
           stageInfo[0] === edgeInfo.source ||
           stageInfo[0] === edgeInfo.destination
         ) {
           var status = edgeInfo.status;
 
-          var restoreEdgeStyle = o => {
-            o.style('stroke', 'var(--color-gray)');
-            o.style('stroke-dasharray', '10, 4');
+          edgeInfo.target.classed('-hover', false);
+
+          var restoreEdgeClass = o => {
+            o.classed('-pending', true);
           };
 
           if (status === 'running') {
-            restoreEdgeStyle = o => {
-              o.style('stroke', 'var(--color-yellow)');
-              o.style('stroke-dasharray', '10, 4');
-              o.style('animation', 'dash 25s linear');
+            restoreEdgeClass = o => {
+              o.classed('-running', true);
             };
           }
 
           if (status === 'success') {
-            restoreEdgeStyle = o => {
-              o.style('stroke', 'var(--color-gray)');
-              o.style('stroke-dasharray', null);
+            restoreEdgeClass = o => {
+              o.classed('-success', true);
             };
           }
 
           if (status === 'failure') {
-            restoreEdgeStyle = o => {
-              o.style('stroke', 'var(--color-gray)');
-              o.style('stroke-dasharray', null);
+            restoreEdgeClass = o => {
+              o.classed('-failure', true);
             };
           }
 
-          restoreEdgeStyle(edgeInfo.target);
+          restoreEdgeClass(edgeInfo.target);
         }
       });
     });
@@ -413,13 +345,14 @@ function draw(content) {
     stageNode.selectAll('a').filter(function () {
       var step = d3.select(this);
       if (step.attr('xlink:href').includes('#step')) {
-        step.attr('style', 'outline: none');
+        // restore base class and build modifiers
+        step.attr('class', 'd3-build-graph-node-step-a');
+
         step.on('mouseover', e => {
-          step.style('outline', '1px solid var(--color-primary)');
-          step.style('outline-style', 'dashed');
+          step.classed('-hover', true);
         });
         step.on('mouseout', e => {
-          step.style('outline', 'none');
+          step.classed('-hover', false);
         });
       }
     });
@@ -442,17 +375,14 @@ function draw(content) {
         // todo: safety check
         var status = stepInfo[2];
 
+        // todo: static/*.png seems like a bad way to do icon images
         parent
           .append('image')
           .attr('xlink:href', '/images/vela_' + status + '.png')
           .attr('x', nodeBox.x - 6)
           .attr('y', nodeBox.y)
           .attr('width', 16)
-          .attr('height', 16)
-          .style('stroke', 'red')
-          .style('fill', 'red')
-          .style('stroke-width', '1px')
-          .style('cursor', 'pointer');
+          .attr('height', 16);
 
         parent.on('click', function (e) {
           e.preventDefault();
@@ -475,4 +405,96 @@ function draw(content) {
 
     return ''; // used by filter (?)
   });
+}
+
+// applyNodesOnClick takes root graph element, selects node links and applies onclick functionality
+function applyNodesOnClick(buildGraphElement, selector) {
+  // process and return all 'linked' stage nodes
+  return buildGraphElement.selectAll(selector + ' a').filter(function () {
+    // todo: figure out .each
+    // add onclick to nodes with valid href attributes
+    var href = d3.select(this).attr('xlink:href');
+    if (href !== null) {
+      d3.select(this).on('click', function (e) {
+        e.preventDefault();
+        var nodeA = d3.select(this);
+        // extract identifier from href
+        // todo: make this use title
+        var data = nodeA.attr('xlink:href');
+        nodeA.attr('xlink:href', null);
+        let id = data.replace('#', '');
+        setTimeout(
+          () =>
+            app.ports.onGraphInteraction.send({
+              event_type: 'node_click',
+              node_id: id,
+            }),
+          0,
+        );
+      });
+    }
+    return '';
+  });
+}
+
+function drawEdges(buildGraphElement, selector) {
+  // collect edge information to use in other d3 interactivity
+  var edges = [];
+
+  buildGraphElement.selectAll(selector).filter(function () {
+    let a = d3.select(this);
+    var edgeInfo = a.attr('id').replace('#', '').split(',');
+
+    // todo: safety-check
+    var status = edgeInfo[2];
+
+    var p = a.select('path');
+
+    edges.push({
+      target: p,
+      source: edgeInfo[0], // todo: safety-check
+      destination: edgeInfo[1], // todo: safety-check
+      status: status,
+    });
+
+    // restore base class and build modifiers
+    p.attr('class', 'd3-build-graph-edge-path');
+
+    var restoreEdgeClass = o => {
+      o.classed('-pending', true);
+    };
+
+    if (status === 'running') {
+      restoreEdgeClass = o => {
+        o.classed('-running', true);
+      };
+    }
+
+    if (status === 'success') {
+      restoreEdgeClass = o => {
+        o.classed('-success', true);
+      };
+    }
+
+    if (status === 'failure') {
+      restoreEdgeClass = o => {
+        o.classed('-failure', true);
+      };
+    }
+
+    restoreEdgeClass(p);
+
+    a.on('mouseover', e => {
+      p.classed('-hover', true);
+    });
+
+    a.on('mouseout', e => {
+      restoreEdgeClass(p);
+      p.classed('-hover', false);
+    });
+
+    return ''; // used by filter (?)
+  });
+
+  return edges;
 }

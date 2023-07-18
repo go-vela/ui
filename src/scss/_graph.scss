@@ -1,0 +1,157 @@
+// Copyright (c) 2022 Target Brands, Inc. All rights reserved.
+//
+// Use of this source code is governed by the LICENSE file in this repository.
+
+// start: classes controlled by Elm
+
+.elm-build-graph-container {
+  position: relative;
+
+  width: 100%;
+  min-height: 400px;
+
+  background: var(--color-bg-dark);
+  border: 1px solid var(--color-bg-light);
+
+  .large-loader {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+
+    margin: 1rem;
+  }
+}
+
+//   .elm-build-graph-root {
+
+//   }
+
+.elm-build-graph-legend {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+
+  font-size: 0.9rem;
+
+  list-style: none;
+
+  li {
+    margin-top: 0.4rem;
+
+    &.-running-hover {
+      animation: dash 100s linear;
+      animation-iteration-count: infinite;
+    }
+  }
+}
+
+.elm-build-graph-legend-item,
+.elm-build-graph-legend-line {
+  margin-right: 0.4rem;
+  margin-left: -0.6rem;
+
+  stroke: var(--color-gray);
+
+  .-running {
+    stroke: var(--color-yellow);
+    stroke-dasharray: 7, 4;
+  }
+
+  .-success {
+    stroke: var(--color-green);
+  }
+
+  .-failure {
+    stroke: var(--color-red);
+  }
+
+  .-selected {
+    stroke: var(--color-cyan);
+  }
+
+  // not used?
+  .-killed {
+    stroke: var(--color-lavender);
+  }
+}
+
+// end: classes controlled by Elm
+
+// start: classes controlled by d3
+
+.d3-build-graph-node-outline-rect {
+  fill: none;
+  stroke-width: 1.8;
+
+  &.-pending {
+    stroke: var(--color-gray);
+  }
+
+  &.-running {
+    animation: dash 25s linear;
+    animation-iteration-count: infinite;
+
+    stroke: var(--color-yellow);
+    stroke-dasharray: 10;
+  }
+
+  &.-success {
+    stroke: var(--color-green);
+  }
+
+  &.-failure {
+    stroke: var(--color-red);
+  }
+
+  &.-killed {
+    stroke: var(--color-lavender);
+  }
+
+  &.-hover {
+    stroke: var(--color-primary);
+  }
+}
+
+.d3-build-graph-node-step-a {
+  outline: none;
+
+  &.-hover {
+    // todo: finalize step link styling and view data (ruleset info?)
+    //  its difficult to see step information
+    outline: 1px solid var(--color-secondary);
+    outline-style: dashed;
+  }
+}
+
+.d3-build-graph-edge-path {
+  animation: none;
+
+  &.-pending {
+    stroke: var(--color-gray);
+    stroke-dasharray: 10, 4;
+  }
+
+  &.-running {
+    animation: dash 25s linear;
+    animation-iteration-count: infinite;
+
+    stroke: var(--color-yellow);
+    stroke-dasharray: 10, 4;
+  }
+
+  &.-success {
+    stroke: var(--color-gray);
+  }
+
+  &.-failure {
+    stroke: var(--color-gray);
+  }
+
+  &.-hover {
+    stroke: var(--color-primary);
+  }
+}
+
+// end: classes controlled by d3
