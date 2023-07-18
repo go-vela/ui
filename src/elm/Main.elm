@@ -175,8 +175,8 @@ import Vela
         , Type
         , UpdateRepositoryPayload
         , UpdateUserPayload
-        , WorkerModel
         , Worker
+        , WorkerModel
         , buildUpdateFavoritesPayload
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
@@ -436,7 +436,7 @@ type Msg
     | ExpandPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
       -- Inbound HTTP responses
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | WorkersResponse (Result (Http.Detailed.Error String) (Http.Metadata, List Worker))
+    | WorkersResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Worker ))
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
@@ -505,8 +505,10 @@ update msg model =
     let
         rm =
             model.repo
+
         wm =
             model.workers
+
         sm =
             model.schedulesModel
 
@@ -1417,10 +1419,10 @@ update msg model =
         WorkersResponse response ->
             case response of
                 Ok ( _, workerResponse ) ->
-                    ( { model | workers = {wm | workers = RemoteData.succeed workerResponse} }, Cmd.none)
+                    ( { model | workers = { wm | workers = RemoteData.succeed workerResponse } }, Cmd.none )
 
                 Err error ->
-                    ( model, addError error)
+                    ( model, addError error )
 
         OrgRepositoriesResponse response ->
             case response of
@@ -2347,7 +2349,7 @@ refreshPage model =
             Cmd.batch
                 [ getSharedSecrets model maybePage maybePerPage engine org team
                 ]
-        
+
         Pages.Admin ->
             Cmd.batch
                 [ getWorkers model
@@ -3217,7 +3219,7 @@ setNewPage route model =
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
 
         ( Routes.Admin, Authenticated _ ) ->
-            ( { model | page = Pages.Admin, showIdentity = False }, getWorkers model)
+            ( { model | page = Pages.Admin, showIdentity = False }, getWorkers model )
 
         ( Routes.Logout, Authenticated _ ) ->
             ( model, getLogout model )
@@ -4596,6 +4598,7 @@ getToken model =
 getLogout : Model -> Cmd Msg
 getLogout model =
     Api.try LogoutResponse <| Api.getLogout model
+
 
 getWorkers : Model -> Cmd Msg
 getWorkers model =

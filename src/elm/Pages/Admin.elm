@@ -9,6 +9,7 @@ module Pages.Admin exposing (view)
 import Html
     exposing
         ( Html
+        , code
         , div
         , span
         , td
@@ -32,7 +33,6 @@ import Vela
         , WorkerModel
         , Workers
         )
-import Html exposing (code)
 
 
 {-| PartialModel : type alias for passing in the main model with partial fields
@@ -106,7 +106,7 @@ workersToRows now workers =
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Nothing, "hostname")
+    [ ( Nothing, "hostname" )
     , ( Nothing, "address" )
     , ( Nothing, "routes" )
     , ( Nothing, "active" )
@@ -166,7 +166,7 @@ renderWorker now worker =
             , scope "row"
             , class "break-word"
             ]
-            [ renderListCell worker.running_build_ids "no running builds" "running-builds"]
+            [ renderListCell worker.running_build_ids "no running builds" "running-builds" ]
         , td
             [ attribute "data-label" "last_build_started"
             , scope "row"
@@ -193,6 +193,7 @@ renderWorker now worker =
             [ text <| String.fromInt worker.build_limit ]
         ]
 
+
 renderListCell : List String -> String -> String -> Html msg
 renderListCell items none itemClassName =
     div [] <|
@@ -218,6 +219,7 @@ listItemView className text_ =
             ]
             [ text text_ ]
         ]
+
 
 workerErrorRow : Worker -> Maybe (Table.Row Worker msg)
 workerErrorRow worker =
