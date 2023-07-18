@@ -3298,6 +3298,9 @@ setNewPage route model =
         ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
             loadBuildPipelinePage model org repo buildNumber expand lineFocus
 
+        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
+            loadBuildGraphPage model org repo buildNumber
+
         ( Routes.AddSchedule org repo, Authenticated _ ) ->
             loadAddSchedulePage model org repo
 
@@ -3306,9 +3309,6 @@ setNewPage route model =
 
         ( Routes.Schedule org repo id, Authenticated _ ) ->
             loadEditSchedulePage model org repo id
-
-        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
-            loadBuildGraphPage model org repo buildNumber
 
         ( Routes.Settings, Authenticated _ ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )

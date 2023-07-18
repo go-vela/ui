@@ -118,6 +118,9 @@ commands page =
         Pages.BuildPipeline org repo buildNumber _ _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
 
+        Pages.BuildGraph org repo buildNumber ->
+            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
+
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
@@ -171,9 +174,6 @@ commands page =
 
         Pages.Schedules org repo _ _ ->
             [ listSchedules org repo ]
-
-        Pages.BuildGraph _ _ _ ->
-            []
 
 
 {-| listFavorites : returns cli command for listing favorites
@@ -900,6 +900,9 @@ resourceLoaded args =
         Pages.BuildPipeline _ _ _ _ _ ->
             args.build.success
 
+        Pages.BuildGraph org repo _ ->
+            args.build.success
+
         Pages.AddOrgSecret secretEngine org ->
             noBlanks [ secretEngine, org ]
 
@@ -957,9 +960,6 @@ resourceLoaded args =
         Pages.Schedules org repo _ _ ->
             noBlanks [ org, repo ]
 
-        Pages.BuildGraph org repo _ ->
-            noBlanks [ org, repo ]
-
 
 {-| resourceLoading : takes help args and returns if the resource is loading
 -}
@@ -997,6 +997,9 @@ resourceLoading args =
             args.build.loading
 
         Pages.BuildPipeline _ _ _ _ _ ->
+            args.build.loading
+
+        Pages.BuildGraph _ _ _ ->
             args.build.loading
 
         Pages.OrgSecrets _ _ _ _ ->
@@ -1054,7 +1057,4 @@ resourceLoading args =
             False
 
         Pages.Schedules _ _ _ _ ->
-            False
-
-        Pages.BuildGraph _ _ _ ->
             False
