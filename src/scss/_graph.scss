@@ -4,7 +4,22 @@
 
 // start: classes controlled by Elm
 
-.elm-build-graph-container {
+.elm-build-graph-actions {
+  ul {
+    list-style: none;
+    display: flex;
+    padding-left: 0.8rem;
+  }
+  li {
+    margin-right: 1rem;
+  }
+
+  background: var(--color-bg-dark);
+  border: 1px solid var(--color-bg-light);
+
+}
+
+.elm-build-graph-window {
   position: relative;
 
   width: 100%;

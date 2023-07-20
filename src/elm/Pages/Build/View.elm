@@ -608,21 +608,42 @@ viewBuildGraph model msgs org repo buildNumber =
                 []
             ]
 
+        actions =
+            div [ class "elm-build-graph-actions" ]
+                [ ul []
+                    [ li []
+                        [ button [ class "button",class "-icon", id "action-reset-pan" ]
+                            [ FeatherIcons.move |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
+                            ]
+                        ]
+                    , li []
+                        [ button [ class "button", class "-icon", id "action-reset-zoom" ]
+                            [ FeatherIcons.search |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
+
+                            -- text "reset zoom"
+                            ]
+                        ]
+                    ]
+                ]
+
         content =
-            [ legend
-            , case model.repo.build.graph.graph of
-                RemoteData.Success g ->
-                    -- dont render anything when the build graph draw command has been dispatched
-                    text ""
+            [ actions
+            , div [ class "elm-build-graph-window" ]
+                [ legend
+                , case model.repo.build.graph.graph of
+                    RemoteData.Success g ->
+                        -- dont render anything when the build graph draw command has been dispatched
+                        text ""
 
-                RemoteData.Failure _ ->
-                    text "Error loading build graph... Please try again"
+                    RemoteData.Failure _ ->
+                        text "Error loading build graph... Please try again"
 
-                _ ->
-                    Util.largeLoader
-            , Svg.svg
-                [ Svg.Attributes.class "elm-build-graph-root" ]
-                []
+                    _ ->
+                        Util.largeLoader
+                , Svg.svg
+                    [ Svg.Attributes.class "elm-build-graph-root" ]
+                    []
+                ]
             ]
                 -- these elements are purely to keep dynamic css classes from getting scrubbed
                 ++ classIgnores

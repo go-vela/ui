@@ -51,13 +51,13 @@ const flags: Flags = {
   velaRedirect: currentRedirectKey || '',
   velaLogBytesLimit: Number(
     process.env.VELA_LOG_BYTES_LIMIT ||
-      envOrNull('VELA_LOG_BYTES_LIMIT', '$VELA_LOG_BYTES_LIMIT') ||
-      defaultLogBytesLimit,
+    envOrNull('VELA_LOG_BYTES_LIMIT', '$VELA_LOG_BYTES_LIMIT') ||
+    defaultLogBytesLimit,
   ),
   velaMaxBuildLimit: Number(
     process.env.VELA_MAX_BUILD_LIMIT ||
-      envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
-      maximumBuildLimit,
+    envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
+    maximumBuildLimit,
   ),
 
   velaScheduleAllowlist:
@@ -174,17 +174,67 @@ function drawGraph(content) {
 function drawBaseGraph(selector, content) {
   // grab the build graph root element
   var buildGraphElement = d3.select(selector);
+  let height = 800;
+  let width = 1500;
 
-  // enable d3 zoom and pan functionality
-  buildGraphElement.call(
-    d3.zoom().scaleExtent([0.1, Infinity]).on('zoom', zoomed),
-  );
+  var zoom = d3.zoom()
+    .scaleExtent([0.1, Infinity])
+    .on('zoom', handleZoom);
 
   // define d3 zoom function
-  function zoomed(event) {
-    var g = d3.select(selector + ' g');
-    g.attr('transform', event.transform);
+  function handleZoom(event) {
+    console.log("handling zoom");
+    console.log(event.transform.y);
+
+    if (isNaN(event.transform.k)) {
+      event.transform.k = 1;
+    }
+    if (isNaN(event.transform.x)) {
+      event.transform.x = 0;
+    }
+    if (isNaN(event.transform.y)) {
+      event.transform.y = 0;
+    }
+
+    var zoomG = d3.select(selector + ' g');
+    zoomG
+      .attr('transform', event.transform);
   }
+
+  function center(zoom) {
+    console.log("centering");
+    var zoomG = d3.select(selector);
+    zoomG
+      .transition()
+      .call(zoom.translateTo, 0.985*width, 0.7425 * height);
+  }  
+
+  function resetZoom(zoom) {
+    console.log("resetting zoom");
+    var zoomG = d3.select(selector);
+    zoomG
+      .transition()
+      .call(zoom.scaleTo, 1);
+  }
+
+  // enable d3 zoom and pan functionality
+  buildGraphElement.call(zoom);
+
+  var actionResetZoom = d3.select('#action-reset-zoom');
+
+  actionResetZoom.on('click', function (e) {
+    e.preventDefault();
+    console.log('reset-zoom: onclick');
+    resetZoom(zoom);
+  });
+
+  var actionResetPan = d3.select('#action-reset-pan');
+
+  actionResetPan.on('click', function (e) {
+    e.preventDefault();
+    console.log('reset-pan: onclick');
+    center(zoom);
+  });
 
   // apply mousedown zoom effects
   var g = d3.select('g.node_mousedown');
@@ -195,10 +245,9 @@ function drawBaseGraph(selector, content) {
       .attr('id', 'zoom');
   }
 
-  let height = 800;
   buildGraphElement
     .attr('height', height) // make dynamic depending on the number of nodes or depth?
-    .attr('width', '100%');
+    .attr('width', width);
 
   // this centers the graph in the viewbox, or something like that
   buildGraphElement = g;
@@ -218,13 +267,13 @@ function drawViewbox(buildGraphElement) {
   graphParent.attr(
     'viewBox',
     '' +
-      (graphBBox.x - VIEWBOX_PADDING.x1) +
-      ' ' +
-      (graphBBox.y - VIEWBOX_PADDING.y1) +
-      ' ' +
-      (graphBBox.width + VIEWBOX_PADDING.x2) +
-      ' ' +
-      (graphBBox.height + VIEWBOX_PADDING.y2),
+    (graphBBox.x - VIEWBOX_PADDING.x1) +
+    ' ' +
+    (graphBBox.y - VIEWBOX_PADDING.y1) +
+    ' ' +
+    (graphBBox.width + VIEWBOX_PADDING.x2) +
+    ' ' +
+    (graphBBox.height + VIEWBOX_PADDING.y2),
   );
 }
 
