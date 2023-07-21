@@ -188,6 +188,7 @@ import Vela
         , defaultPipeline
         , defaultPipelineTemplates
         , defaultRepoModel
+        , encodeBuildGraphRenderData
         , encodeEnableRepository
         , encodeTheme
         , encodeUpdateRepository
@@ -482,6 +483,10 @@ type Msg
     | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- Graphs
     | BuildGraphResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, BuildGraph ))
+    | BuildGraphCollapseAllStages
+    | BuildGraphExpandAllStages
+    | BuildGraphRefresh Org Repo BuildNumber
+    | BuildGraphUpdateFilter String
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -670,6 +675,163 @@ update msg model =
                 [ Navigation.pushUrl model.navigationKey interaction.href
                 , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
                 ]
+            )
+
+        BuildGraphRefresh org repo buildNumber ->
+            let
+                bm =
+                    model.repo.build
+
+                gm =
+                    model.repo.build.graph
+
+                updatedModel =
+                    { model
+                        | repo =
+                            { rm
+                                | build =
+                                    { bm
+                                        | graph =
+                                            { gm
+                                                | graph = Loading
+                                            }
+                                    }
+                            }
+                    }
+            in
+            ( updatedModel
+            , getBuildGraph updatedModel org repo buildNumber
+            )
+
+        BuildGraphUpdateFilter filter ->
+            let
+                bm =
+                    model.repo.build
+
+                gm =
+                    model.repo.build.graph
+
+                updatedModel =
+                    { model
+                        | repo =
+                            { rm
+                                | build =
+                                    { bm
+                                        | graph =
+                                            { gm
+                                                | filter = filter
+                                            }
+                                    }
+                            }
+                    }
+
+                renderGraph =
+                    case gm.graph of
+                        Success g ->
+                            case bm.build of
+                                Success b ->
+                                    Interop.renderBuildGraph <| encodeBuildGraphRenderData { dot = renderBuildGraphDOT updatedModel g, buildID = b.id, filter = filter }
+
+                                _ ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+            in
+            ( updatedModel
+            , renderGraph
+            )
+
+        BuildGraphCollapseAllStages ->
+            let
+                bm =
+                    model.repo.build
+
+                gm =
+                    model.repo.build.graph
+
+                updatedShowStepsDict =
+                    Dict.map
+                        (\k v ->
+                            False
+                        )
+                        gm.showSteps
+
+                updatedModel =
+                    { model
+                        | repo =
+                            { rm
+                                | build =
+                                    { bm
+                                        | graph =
+                                            { gm
+                                                | showSteps = updatedShowStepsDict
+                                            }
+                                    }
+                            }
+                    }
+
+                renderGraph =
+                    case gm.graph of
+                        Success g ->
+                            case bm.build of
+                                Success b ->
+                                    Interop.renderBuildGraph <| encodeBuildGraphRenderData { dot = renderBuildGraphDOT updatedModel g, buildID = b.id, filter = updatedModel.repo.build.graph.filter }
+
+                                _ ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+            in
+            ( updatedModel
+            , renderGraph
+            )
+
+        BuildGraphExpandAllStages ->
+            let
+                bm =
+                    model.repo.build
+
+                gm =
+                    model.repo.build.graph
+
+                updatedShowStepsDict =
+                    Dict.map
+                        (\k v ->
+                            True
+                        )
+                        gm.showSteps
+
+                updatedModel =
+                    { model
+                        | repo =
+                            { rm
+                                | build =
+                                    { bm
+                                        | graph =
+                                            { gm
+                                                | showSteps = updatedShowStepsDict
+                                            }
+                                    }
+                            }
+                    }
+
+                renderGraph =
+                    case gm.graph of
+                        Success g ->
+                            case bm.build of
+                                Success b ->
+                                    Interop.renderBuildGraph <| encodeBuildGraphRenderData { dot = renderBuildGraphDOT updatedModel g, buildID = b.id, filter = updatedModel.repo.build.graph.filter }
+
+                                _ ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+            in
+            ( updatedModel
+            , renderGraph
             )
 
         GotoPage pageNumber ->
@@ -2047,29 +2209,53 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        BuildGraphResponse _ _ _ response ->
+        BuildGraphResponse org repo buildNumber response ->
             case response of
-                Ok ( _, graph ) ->
+                Ok ( _, g ) ->
                     case model.page of
                         Pages.BuildGraph _ _ _ ->
                             let
+
                                 bm =
                                     rm.build
 
                                 gm =
                                     bm.graph
 
+                                sameBuild =
+                                    gm.buildNumber == buildNumber
+
                                 -- TODO: optimize this
                                 --       only render if the buildgraph has actually changed
+                                buildID =
+                                    RemoteData.unwrap -1 .id bm.build
+
+                                steps =
+                                    List.indexedMap
+                                        (\i ( id, n ) ->
+                                            ( n.name, True )
+                                        )
+                                        (Dict.toList g.nodes)
+
+                                showSteps =
+                                    if not sameBuild then
+                                        Dict.fromList steps
+
+                                    else
+                                        gm.showSteps
+
+                                updatedModel =
+                                    { model | repo = { rm | build = { bm | graph = { gm | buildNumber = buildNumber, graph = RemoteData.succeed g, showSteps = showSteps } } } }
+
                                 cmd =
                                     if True then
                                         -- for now, the build graph always renders when receiving graph response from the server
-                                        Interop.renderBuildGraph <| Encode.string <| renderBuildGraphDOT model graph
+                                        Interop.renderBuildGraph <| encodeBuildGraphRenderData { dot = renderBuildGraphDOT updatedModel g, buildID = buildID, filter = updatedModel.repo.build.graph.filter }
 
                                     else
                                         Cmd.none
                             in
-                            ( { model | repo = { rm | build = { bm | graph = { gm | graph = RemoteData.succeed graph } } } }
+                            ( updatedModel
                             , cmd
                             )
 
@@ -4207,11 +4393,19 @@ loadBuildGraphPage model org repo buildNumber =
         gm =
             bm.graph
 
+        buildID =
+            RemoteData.unwrap -1 .id bm.build
+
         renderGraph =
             case gm.graph of
                 Success g ->
                     if sameBuild then
-                        Interop.renderBuildGraph <| Encode.string <| renderBuildGraphDOT model g
+                        Interop.renderBuildGraph <|
+                            encodeBuildGraphRenderData
+                                { dot = renderBuildGraphDOT model g
+                                , buildID = buildID
+                                , filter = model.repo.build.graph.filter
+                                }
 
                     else
                         Cmd.none
@@ -4722,6 +4916,12 @@ buildMsgs =
         , focusOn = FocusOn
         , followStep = FollowStep
         , followService = FollowService
+        }
+    , buildGraphMsgs =
+        { collapseAllStages = BuildGraphCollapseAllStages
+        , expandAllStages = BuildGraphExpandAllStages
+        , refresh = BuildGraphRefresh
+        , updateFilter = BuildGraphUpdateFilter
         }
     }
 

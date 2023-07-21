@@ -351,6 +351,7 @@ nodeAttrs model node =
             "#"
                 ++ String.join ","
                     [ String.fromInt node.id
+                    , node.name
                     , node.status
                     ]
 

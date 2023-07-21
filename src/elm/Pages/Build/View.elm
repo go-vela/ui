@@ -604,6 +604,7 @@ viewBuildGraph model msgs org repo buildNumber =
                 , class "-failure"
                 , class "-killed"
                 , class "-hover"
+                , class "-filtered"
                 ]
                 []
             ]
@@ -612,16 +613,91 @@ viewBuildGraph model msgs org repo buildNumber =
             div [ class "elm-build-graph-actions" ]
                 [ ul []
                     [ li []
-                        [ button [ class "button",class "-icon", id "action-reset-pan" ]
-                            [ FeatherIcons.move |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
+                        [ button [ class "button", class "-icon", id "action-center", Html.Attributes.title "Recenter visualization" ]
+                            [ FeatherIcons.minimize |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
                             ]
                         ]
                     , li []
-                        [ button [ class "button", class "-icon", id "action-reset-zoom" ]
-                            [ FeatherIcons.search |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
-
-                            -- text "reset zoom"
+                        [ button
+                            [ class "button"
+                            , class "-icon"
+                            , id "action-collapse"
+                            , Html.Attributes.title "Collapse all stages"
+                            , onClick msgs.buildGraphMsgs.collapseAllStages
                             ]
+                            [ FeatherIcons.minimize2 |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
+                            ]
+                        ]
+                    , li []
+                        [ button
+                            [ class "button"
+                            , class "-icon"
+                            , id "action-expand"
+                            , Html.Attributes.title "Expand all stages"
+                            , onClick msgs.buildGraphMsgs.expandAllStages
+                            ]
+                            [ FeatherIcons.maximize2 |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
+                            ]
+                        ]
+                    , li []
+                        [ button
+                            [ class "button"
+                            , class "-icon"
+                            , id "action-refresh"
+                            , Html.Attributes.title "Refresh visualization"
+                            , onClick <| msgs.buildGraphMsgs.refresh org repo buildNumber
+                            ]
+                            [ FeatherIcons.refreshCw |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
+                            ]
+                        ]
+                    ]
+                , div [ class "elm-build-graph-actions-toggles" ]
+                    [ div [ class "form-control" ]
+                        [ div []
+                            [ Html.input
+                                [ Html.Attributes.type_ "checkbox"
+                                , Html.Attributes.checked False
+                                , id "checkbox-services-toggle"
+                                , Util.testAttribute "services-toggle"
+                                ]
+                                []
+                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-services-toggle" ] [
+                                 text "services" ]
+                            ]
+                        ]
+                    , div [ class "form-control" ]
+                        [ div []
+                            [ Html.input
+                                [ Html.Attributes.type_ "checkbox"
+                                , Html.Attributes.checked False
+                                , id "checkbox-timestamps-toggle"
+                                , Util.testAttribute "timestamps-toggle"
+                                ]
+                                []
+                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-timestamps-toggle" ] [ 
+                                text "timestamps" ]
+                            ]
+                        ]
+                    , div [ class "form-control", class "elm-build-graph-search-filter" ]
+                        [ Html.input
+                            [ Html.Attributes.type_ "input"
+                            , Html.Attributes.checked True
+                            , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
+                            , id "search-filter"
+                            , Util.testAttribute "search-filter"
+                            , Html.Attributes.value model.repo.build.graph.filter
+                            ]
+                            []
+                        , Html.label [ class "elm-build-graph-search-filter-form-label", Html.Attributes.for "checkbox-time-toggle" ]
+                            [ FeatherIcons.search |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
+                            ]
+                        , button
+                            [ class "button"
+                            , class "-icon"
+                            , class "elm-build-graph-search-filter-clear"
+                            , onClick (msgs.buildGraphMsgs.updateFilter "")
+                            ]
+                            [ FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml [] ]
                         ]
                     ]
                 ]

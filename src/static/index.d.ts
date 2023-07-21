@@ -72,7 +72,7 @@ export type Ports = {
   readonly setRedirect: ToJS<string>;
   readonly setFavicon: ToJS<string>;
   readonly onThemeChange: ToElm<Theme>;
-  readonly renderBuildGraph: ToJS<string>;
+  readonly renderBuildGraph: ToJS<GraphData>;
   readonly onGraphInteraction: ToElm<GraphInteraction>;
 };
 
@@ -99,4 +99,5 @@ export type ToElm<T> = {
  */
 export type Theme = 'theme-light' | 'theme-dark';
 
+export type GraphData = {};
 export type GraphInteraction = {};

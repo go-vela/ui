@@ -5,17 +5,48 @@
 // start: classes controlled by Elm
 
 .elm-build-graph-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  position: relative;
+
+  .elm-build-graph-actions-toggles {
+    display: flex;
+    // padding-left: 1rem;
+  }
+
+  .form-control {
+    div {
+      margin: 1rem;
+      position: relative;
+    }
+
+    border-left: 1px solid var(--color-bg-light);
+  }
+
+  #action-refresh {
+    svg {
+      transform: rotate(0.2turn);
+    }
+  }
+
   ul {
     list-style: none;
     display: flex;
     padding-left: 0.8rem;
   }
+
   li {
     margin-right: 1rem;
   }
 
-  background: var(--color-bg-dark);
+  button.-icon {
+    display: flex;
+  }
+
+  // background: var(--color-bg-dark);
   border: 1px solid var(--color-bg-light);
+  border-bottom: 0;
 
 }
 
@@ -92,6 +123,33 @@
   }
 }
 
+.elm-build-graph-search-filter {
+  // color: var(--color-text);
+  // background-color: var(--color-bg);
+  // border: none;
+  // border-bottom-color: currentcolor;
+  // border-bottom-style: none;
+  // border-bottom-width: medium;
+  // border-bottom: var(--line-width) solid var(--color-primary);
+  // padding: .5rem;
+  // font-size: 1rem;
+  // position: relative;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  background-color: var(--color-bg);
+  border-right: 1px solid var(--color-bg-light);
+  .elm-build-graph-search-filter-form-label {
+    // todo: remove this
+    margin-left: 0;
+    padding-bottom: 0.5rem;
+    padding-left: 0.5rem;
+    border-bottom: var(--line-width) solid var(--color-primary);
+  }
+  .elm-build-graph-search-filter-clear {
+    margin-left: 0.8rem;
+  }
+}
+
 // end: classes controlled by Elm
 
 // start: classes controlled by d3
@@ -127,6 +185,11 @@
   &.-hover {
     stroke: var(--color-primary);
   }
+
+  &.-filtered {
+    stroke-dasharray: 10;
+    stroke: var(--color-primary);
+  }
 }
 
 .d3-build-graph-node-step-a {
@@ -136,6 +199,12 @@
     // todo: finalize step link styling and view data (ruleset info?)
     //  its difficult to see step information
     outline: 1px solid var(--color-secondary);
+    outline-style: dashed;
+  }
+
+  // used?
+  &.-filtered {
+    outline: 1px solid var(--color-primary);
     outline-style: dashed;
   }
 }
@@ -165,6 +234,10 @@
   }
 
   &.-hover {
+    stroke: var(--color-primary);
+  }
+
+  &.-filtered {
     stroke: var(--color-primary);
   }
 }

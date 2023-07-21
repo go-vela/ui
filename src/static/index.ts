@@ -133,9 +133,18 @@ function envOrNull(env: string, subst: string): string | null {
   return subst;
 }
 
-app.ports.renderBuildGraph.subscribe(function (dot) {
+// track current rendering build
+var currentBuild = -1;
+var isRefreshDraw = false;
+var contentFilter = "";
+
+app.ports.renderBuildGraph.subscribe(function (graphData) {
+  const dot = graphData.dot;
   const graphviz = Graphviz.load().then(res => {
     var content = res.layout(dot, 'svg', 'dot');
+    isRefreshDraw = (currentBuild === graphData.build_id);
+    currentBuild = graphData.build_id;
+    contentFilter = graphData.filter;
     drawGraph(content);
   });
 });
@@ -174,18 +183,18 @@ function drawGraph(content) {
 function drawBaseGraph(selector, content) {
   // grab the build graph root element
   var buildGraphElement = d3.select(selector);
+  var graphBBox = buildGraphElement.node().getBBox();
+
   let height = 800;
   let width = 1500;
 
   var zoom = d3.zoom()
     .scaleExtent([0.1, Infinity])
+    // .translateExtent([0,0], [])
     .on('zoom', handleZoom);
 
   // define d3 zoom function
   function handleZoom(event) {
-    console.log("handling zoom");
-    console.log(event.transform.y);
-
     if (isNaN(event.transform.k)) {
       event.transform.k = 1;
     }
@@ -201,39 +210,29 @@ function drawBaseGraph(selector, content) {
       .attr('transform', event.transform);
   }
 
-  function center(zoom) {
-    console.log("centering");
+  function resetZoomAndCenter(zoom) {
+    console.log("resetting zoom and centering");
     var zoomG = d3.select(selector);
     zoomG
-      .transition()
-      .call(zoom.translateTo, 0.985*width, 0.7425 * height);
-  }  
-
-  function resetZoom(zoom) {
-    console.log("resetting zoom");
-    var zoomG = d3.select(selector);
-    zoomG
-      .transition()
-      .call(zoom.scaleTo, 1);
+    .call(zoom.scaleTo, 1);
+    var zoomGg = d3.select(selector);
+    var w = zoomGg.node().getBBox().width;
+    var h = zoomGg.node().getBBox().height;
+    zoomGg
+    .transition() // required to 'chain' these two instant animations together
+    .duration(0)
+    .call(zoom.translateTo, w * 0.5, h * 0.5)
   }
 
   // enable d3 zoom and pan functionality
   buildGraphElement.call(zoom);
 
-  var actionResetZoom = d3.select('#action-reset-zoom');
-
-  actionResetZoom.on('click', function (e) {
-    e.preventDefault();
-    console.log('reset-zoom: onclick');
-    resetZoom(zoom);
-  });
-
-  var actionResetPan = d3.select('#action-reset-pan');
+  var actionResetPan = d3.select('#action-center');
 
   actionResetPan.on('click', function (e) {
     e.preventDefault();
-    console.log('reset-pan: onclick');
-    center(zoom);
+    console.log('center: onclick');
+    resetZoomAndCenter(zoom);
   });
 
   // apply mousedown zoom effects
@@ -245,16 +244,17 @@ function drawBaseGraph(selector, content) {
       .attr('id', 'zoom');
   }
 
-  buildGraphElement
-    .attr('height', height) // make dynamic depending on the number of nodes or depth?
-    .attr('width', width);
-
   // this centers the graph in the viewbox, or something like that
   buildGraphElement = g;
 
   // draw content into html
   buildGraphElement.html(content);
 
+  if (!isRefreshDraw) {
+    console.log("resetting the graph because build number changed");
+    resetZoomAndCenter(zoom);
+  }
+  
   return buildGraphElement;
 }
 
@@ -293,7 +293,8 @@ function drawNodes(buildGraphElement, selector, edges) {
     var stageInfo = stageNode.attr('id').replace('#', '').split(',');
 
     // todo: safety-check
-    var stageStatus = stageInfo[1];
+    var stageName = stageInfo[1];
+    var stageStatus = stageInfo[2];
 
     // restore base class and build modifiers
     outline.attr('class', 'd3-build-graph-node-outline-rect');
@@ -324,6 +325,20 @@ function drawNodes(buildGraphElement, selector, edges) {
       restoreNodeClass = o => {
         o.classed('-killed', true);
       };
+    }
+
+    if (contentFilter.length > 2 && stageName.includes(contentFilter)) {
+      var size = 15;
+      size = 10;
+      var outline2 = stageNode.append('rect');
+      outline2.attr('class', 'd3-build-graph-node-outline-rect');
+
+      outline2
+        .attr('x', nodeBBox.x - (size * 0.5))
+        .attr('y', nodeBBox.y - (size * 0.5))
+        .attr('width', nodeBBox.width + size)
+        .attr('height', nodeBBox.height + size)
+        .classed('-filtered', true);
     }
 
     restoreNodeClass(outline);

@@ -10,6 +10,7 @@ module Vela exposing
     , Build
     , BuildGraph
     , BuildGraphEdge
+    , BuildGraphModel
     , BuildGraphNode
     , BuildModel
     , BuildNumber
@@ -120,6 +121,7 @@ module Vela exposing
     , defaultPipelineTemplates
     , defaultRepoModel
     , defaultStep
+    , encodeBuildGraphRenderData
     , encodeDeploymentPayload
     , encodeEnableRepository
     , encodeTheme
@@ -1337,7 +1339,7 @@ decodeBuild =
 
 defaultBuildGraphModel : BuildGraphModel
 defaultBuildGraphModel =
-    BuildGraphModel NotAsked Dict.empty
+    BuildGraphModel "" NotAsked Dict.empty ""
 
 
 defaultBuildGraph : BuildGraph
@@ -1345,9 +1347,27 @@ defaultBuildGraph =
     BuildGraph Dict.empty []
 
 
+encodeBuildGraphRenderData : BuildGraphRenderData -> Encode.Value
+encodeBuildGraphRenderData graphData =
+    Encode.object
+        [ ( "dot", Encode.string graphData.dot )
+        , ( "build_id", Encode.int graphData.buildID )
+        , ( "filter", Encode.string graphData.filter )
+        ]
+
+
+type alias BuildGraphRenderData =
+    { dot : String
+    , buildID : Int
+    , filter : String
+    }
+
+
 type alias BuildGraphModel =
-    { graph : WebData BuildGraph
+    { buildNumber : BuildNumber
+    , graph : WebData BuildGraph
     , showSteps : Dict String Bool
+    , filter : String
     }
 
 
