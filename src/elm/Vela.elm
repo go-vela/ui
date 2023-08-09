@@ -59,7 +59,6 @@ module Vela exposing
     , Schedule
     , ScheduleName
     , Schedules
-    , SchedulesModel
     , SearchFilter
     , Secret
     , SecretType(..)
@@ -166,10 +165,6 @@ module Vela exposing
     , updateRepoInitialized
     , updateRepoLimit
     , updateRepoTimeout
-    , updateSchedules
-    , updateSchedulesPage
-    , updateSchedulesPager
-    , updateSchedulesPerPage
     )
 
 import Api.Pagination as Pagination
@@ -379,7 +374,6 @@ type alias RepoModel =
     , orgRepos : OrgReposModel
     , hooks : HooksModel
     , builds : BuildsModel
-    , schedules : SchedulesModel
     , deployments : DeploymentsModel
     , build : BuildModel
     , initialized : Bool
@@ -434,7 +428,7 @@ defaultBuildModel =
 
 defaultRepoModel : RepoModel
 defaultRepoModel =
-    RepoModel "" "" NotAsked defaultOrgReposModel defaultHooks defaultBuilds defaultSchedules defaultDeployments defaultBuildModel False
+    RepoModel "" "" NotAsked defaultOrgReposModel defaultHooks defaultBuilds defaultDeployments defaultBuildModel False
 
 
 defaultStepsModel : StepsModel
@@ -1329,11 +1323,6 @@ defaultDeployments =
     DeploymentsModel RemoteData.NotAsked [] Nothing Nothing
 
 
-defaultSchedules : SchedulesModel
-defaultSchedules =
-    SchedulesModel RemoteData.NotAsked [] Nothing Nothing
-
-
 type alias Builds =
     List Build
 
@@ -1719,14 +1708,6 @@ type alias RepoResourceIdentifier =
 -- SCHEDULES
 
 
-type alias SchedulesModel =
-    { schedules : WebData (List Schedule)
-    , pager : List WebLink
-    , maybePage : Maybe Pagination.Page
-    , maybePerPage : Maybe Pagination.PerPage
-    }
-
-
 type alias Schedule =
     { id : Int
     , org : String
@@ -1734,6 +1715,11 @@ type alias Schedule =
     , name : String
     , entry : String
     , enabled : Bool
+    , created_at : Int
+    , created_by : String
+    , scheduled_at : Int
+    , updated_at : Int
+    , updated_by : String
     }
 
 
@@ -1780,6 +1766,11 @@ decodeSchedule =
         |> optional "name" string ""
         |> optional "entry" string ""
         |> optional "active" bool False
+        |> optional "created_at" int 0
+        |> optional "created_by" string ""
+        |> optional "scheduled_at" int 0
+        |> optional "updated_at" int 0
+        |> optional "updated_by" string ""
 
 
 decodeSchedules : Decoder Schedules
@@ -1794,42 +1785,6 @@ encodeUpdateSchedule schedule =
         , ( "entry", encodeOptional Encode.string schedule.entry )
         , ( "active", encodeOptional Encode.bool schedule.enabled )
         ]
-
-
-updateSchedules : WebData Schedules -> RepoModel -> RepoModel
-updateSchedules update rm =
-    let
-        sm =
-            rm.schedules
-    in
-    { rm | schedules = { sm | schedules = update } }
-
-
-updateSchedulesPager : List WebLink -> RepoModel -> RepoModel
-updateSchedulesPager update rm =
-    let
-        sm =
-            rm.schedules
-    in
-    { rm | schedules = { sm | pager = update } }
-
-
-updateSchedulesPage : Maybe Pagination.Page -> RepoModel -> RepoModel
-updateSchedulesPage maybePage rm =
-    let
-        sm =
-            rm.schedules
-    in
-    { rm | schedules = { sm | maybePage = maybePage } }
-
-
-updateSchedulesPerPage : Maybe Pagination.PerPage -> RepoModel -> RepoModel
-updateSchedulesPerPage maybePerPage rm =
-    let
-        sm =
-            rm.schedules
-    in
-    { rm | schedules = { sm | maybePerPage = maybePerPage } }
 
 
 

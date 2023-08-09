@@ -231,10 +231,6 @@ import Vela
         , updateRepoInitialized
         , updateRepoLimit
         , updateRepoTimeout
-        , updateSchedules
-        , updateSchedulesPage
-        , updateSchedulesPager
-        , updateSchedulesPerPage
         )
 
 
@@ -251,6 +247,7 @@ type alias Flags =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
+    , velaScheduleAllowlist : String
     }
 
 
@@ -268,6 +265,7 @@ type alias Model =
     , velaRedirect : String
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
+    , velaScheduleAllowlist : List ( Org, Repo )
     , navigationKey : Navigation.Key
     , zone : Zone
     , time : Posix
@@ -320,6 +318,7 @@ init flags url navKey =
             , velaRedirect = flags.velaRedirect
             , velaLogBytesLimit = flags.velaLogBytesLimit
             , velaMaxBuildLimit = flags.velaMaxBuildLimit
+            , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
             , navigationKey = navKey
             , toasties = Alerting.initialState
             , zone = utc
@@ -335,8 +334,8 @@ init flags url navKey =
             , showIdentity = False
             , buildMenuOpen = []
             , favicon = defaultFavicon
-            , secretsModel = initSecretsModel
             , schedulesModel = initSchedulesModel
+            , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
@@ -499,6 +498,9 @@ update msg model =
     let
         rm =
             model.repo
+
+        sm =
+            model.schedulesModel
 
         pipeline =
             model.pipeline
@@ -686,7 +688,7 @@ update msg model =
                     )
 
                 Pages.Schedules org repo _ maybePerPage ->
-                    ( { model | repo = updateSchedules Loading rm }
+                    ( { model | schedulesModel = { sm | schedules = Loading } }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Schedules org repo (Just pageNumber) maybePerPage
                     )
 
@@ -933,12 +935,7 @@ update msg model =
                 url =
                     lineRangeId "config" "0" line pipeline.lineFocus model.shift
             in
-            ( { model
-                | pipeline =
-                    { pipeline
-                        | lineFocus = pipeline.lineFocus
-                    }
-              }
+            ( { model | pipeline = pipeline }
             , Navigation.pushUrl model.navigationKey <| url
             )
 
@@ -952,7 +949,7 @@ update msg model =
             ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
 
         FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading, filters = Dict.empty }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+            ( { model | sourceRepos = Loading }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
 
         ToggleFavorite org repo ->
             let
@@ -1047,12 +1044,13 @@ update msg model =
                 payload =
                     buildUpdateRepoBoolPayload field value
 
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
                 cmd =
                     if Pages.RepoSettings.validEventsUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1068,12 +1066,13 @@ update msg model =
                 payload =
                     buildUpdateRepoStringPayload field value
 
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
                 cmd =
                     if Pages.RepoSettings.validAccessUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1089,12 +1088,13 @@ update msg model =
                 payload =
                     buildUpdateRepoStringPayload field value
 
-                body : Http.Body
-                body =
-                    Http.jsonBody <| encodeUpdateRepository payload
-
                 cmd =
                     if Pages.RepoSettings.validPipelineTypeUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
                         Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
 
                     else
@@ -1200,27 +1200,26 @@ update msg model =
             case result of
                 Ok ( meta, schedules ) ->
                     ( { model
-                        | repo =
-                            rm
-                                |> updateOrgRepo org repo
-                                |> updateSchedules (RemoteData.succeed schedules)
-                                |> updateSchedulesPager (Pagination.get meta.headers)
+                        | schedulesModel =
+                            { sm
+                                | org = org
+                                , repo = repo
+                                , schedules = RemoteData.succeed schedules
+                                , pager = Pagination.get meta.headers
+                            }
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | repo = updateSchedules (toFailure error) rm }, addError error )
+                    ( { model | schedulesModel = { sm | schedules = toFailure error } }, addError error )
 
         ScheduleResponse response ->
             case response of
-                Ok ( _, s ) ->
+                Ok ( _, schedule ) ->
                     let
-                        sm =
-                            model.schedulesModel
-
                         updatedSchedulesModel =
-                            Pages.Schedules.Update.reinitializeScheduleUpdate sm s
+                            Pages.Schedules.Update.reinitializeScheduleUpdate sm schedule
                     in
                     ( { model | schedulesModel = updatedSchedulesModel }
                     , Cmd.none
@@ -1231,38 +1230,26 @@ update msg model =
 
         AddScheduleResponse response ->
             case response of
-                Ok _ ->
+                Ok ( _, schedule ) ->
                     let
-                        sm =
-                            model.schedulesModel
-
-                        alertMessage =
-                            "Schedule Added"
-
-                        redirectTo =
-                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                        updatedSchedulesModel =
+                            Pages.Schedules.Update.reinitializeScheduleAdd sm
                     in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+                    ( { model | schedulesModel = updatedSchedulesModel }, Cmd.none )
+                        |> addScheduleResponseAlert schedule
 
                 Err error ->
                     ( model, addError error )
 
         UpdateScheduleResponse response ->
             case response of
-                Ok _ ->
+                Ok ( _, schedule ) ->
                     let
-                        sm =
-                            model.schedulesModel
-
-                        alertMessage =
-                            "Schedule Modified"
-
-                        redirectTo =
-                            Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+                        updatedSchedulesModel =
+                            Pages.Schedules.Update.reinitializeScheduleUpdate sm schedule
                     in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+                    ( { model | schedulesModel = updatedSchedulesModel }, Cmd.none )
+                        |> updateScheduleResponseAlert schedule
 
                 Err error ->
                     ( model, addError error )
@@ -1271,11 +1258,8 @@ update msg model =
             case response of
                 Ok _ ->
                     let
-                        sm =
-                            model.schedulesModel
-
                         alertMessage =
-                            "Schedule Deleted"
+                            sm.form.name ++ " removed from repo schedules."
 
                         redirectTo =
                             Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
@@ -1308,19 +1292,20 @@ update msg model =
                         newSessionDetails =
                             SessionDetails token payload.exp payload.sub
 
-                        redirectTo : String
-                        redirectTo =
-                            case model.velaRedirect of
-                                "" ->
-                                    Url.toString model.entryURL
-
-                                _ ->
-                                    model.velaRedirect
-
                         actions : List (Cmd Msg)
                         actions =
                             case currentSession of
                                 Unauthenticated ->
+                                    let
+                                        redirectTo : String
+                                        redirectTo =
+                                            case model.velaRedirect of
+                                                "" ->
+                                                    Url.toString model.entryURL
+
+                                                _ ->
+                                                    model.velaRedirect
+                                    in
                                     [ Interop.setRedirect Encode.null
                                     , Navigation.pushUrl model.navigationKey redirectTo
                                     ]
@@ -2048,31 +2033,13 @@ update msg model =
 
         -- Components
         SecretsUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Secrets.Update.update model m
-            in
-            ( newModel
-            , action
-            )
+            Pages.Secrets.Update.update model m
 
         AddDeploymentUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Deployments.Update.update model m
-            in
-            ( newModel
-            , action
-            )
+            Pages.Deployments.Update.update model m
 
         AddScheduleUpdate m ->
-            let
-                ( newModel, action ) =
-                    Pages.Schedules.Update.update model m
-            in
-            ( newModel
-            , action
-            )
+            Pages.Schedules.Update.update model m
 
         -- Other
         HandleError error ->
@@ -2184,6 +2151,34 @@ updateSecretResponseAlert secret =
 
         msg =
             String.Extra.toSentenceCase <| type_ ++ " secret " ++ secret.name ++ " updated."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| addScheduleResponseAlert : takes schedule and produces Toasty alert for when adding a schedule
+-}
+addScheduleResponseAlert :
+    Schedule
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+addScheduleResponseAlert schedule =
+    let
+        msg =
+            schedule.name ++ " added to repo schedules."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| updateScheduleResponseAlert : takes schedule and produces Toasty alert for when updating a schedule
+-}
+updateScheduleResponseAlert :
+    Schedule
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+updateScheduleResponseAlert schedule =
+    let
+        msg =
+            "Repo schedule " ++ schedule.name ++ " updated."
     in
     Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
@@ -2321,9 +2316,7 @@ refreshPage model =
                 ]
 
         Pages.Hooks org repo maybePage maybePerPage ->
-            Cmd.batch
-                [ getHooks model org repo maybePage maybePerPage
-                ]
+            getHooks model org repo maybePage maybePerPage
 
         Pages.OrgSecrets engine org maybePage maybePerPage ->
             Cmd.batch
@@ -2332,14 +2325,10 @@ refreshPage model =
                 ]
 
         Pages.RepoSecrets engine org repo maybePage maybePerPage ->
-            Cmd.batch
-                [ getRepoSecrets model maybePage maybePerPage engine org repo
-                ]
+            getRepoSecrets model maybePage maybePerPage engine org repo
 
         Pages.SharedSecrets engine org team maybePage maybePerPage ->
-            Cmd.batch
-                [ getSharedSecrets model maybePage maybePerPage engine org team
-                ]
+            getSharedSecrets model maybePage maybePerPage engine org team
 
         _ ->
             Cmd.none
@@ -2355,9 +2344,7 @@ refreshPageHidden model _ =
     in
     case page of
         Pages.Build org repo buildNumber _ ->
-            Cmd.batch
-                [ refreshBuild model org repo buildNumber
-                ]
+            refreshBuild model org repo buildNumber
 
         _ ->
             Cmd.none
@@ -2386,12 +2373,8 @@ refreshData model =
 -}
 refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuild model org repo buildNumber =
-    let
-        refresh =
-            getBuild model org repo buildNumber
-    in
     if shouldRefresh model.repo.build then
-        refresh
+        getBuild model org repo buildNumber
 
     else
         Cmd.none
@@ -2481,12 +2464,9 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
 
                 _ ->
                     []
-
-        refresh =
-            getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
     in
     if shouldRefresh model.repo.build then
-        refresh
+        getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
 
     else
         Cmd.none
@@ -2505,12 +2485,9 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
 
                 _ ->
                     []
-
-        refresh =
-            getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
     in
     if shouldRefresh model.repo.build then
-        refresh
+        getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
 
     else
         Cmd.none
@@ -2716,19 +2693,27 @@ viewContent model =
 
         Pages.AddSchedule org repo ->
             ( String.join "/" [ org, repo, "add schedule" ]
-            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.addSchedule model
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewAddSchedule model
             )
 
         Pages.Schedule org repo name ->
             ( String.join "/" [ org, repo, name ]
-            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.editSchedule model
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewEditSchedule model
             )
 
         Pages.Schedules org repo maybePage _ ->
+            let
+                viewPager =
+                    if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+                        Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
+
+                    else
+                        text ""
+            in
             ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
             , div []
-                [ lazy3 Pages.Schedules.View.viewRepoSchedules model.repo.schedules org repo
-                , Pager.view model.repo.schedules.pager Pager.defaultLabels GotoPage
+                [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
+                , viewPager
                 ]
             )
 
@@ -2903,10 +2888,6 @@ viewContent model =
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
 viewBuildsFilter shouldRender org repo maybeEvent =
     let
-        eventEnum : List String
-        eventEnum =
-            [ "all", "push", "pull_request", "tag", "deployment", "comment" ]
-
         eventToMaybe : String -> Maybe Event
         eventToMaybe event =
             case event of
@@ -2917,6 +2898,18 @@ viewBuildsFilter shouldRender org repo maybeEvent =
                     Just event
     in
     if shouldRender then
+        let
+            eventEnum : List String
+            eventEnum =
+                [ "all"
+                , "push"
+                , "pull_request"
+                , "tag"
+                , "deployment"
+                , "schedule"
+                , "comment"
+                ]
+        in
         div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
             div [] [ text "Filter by Event:" ]
                 :: List.map
@@ -3293,7 +3286,7 @@ loadOrgSubPage model org toPage =
 
         fetchSecrets : Org -> Cmd Msg
         fetchSecrets o =
-            Cmd.batch [ getAllOrgSecrets model "native" o ]
+            getAllOrgSecrets model "native" o
 
         -- update model and dispatch cmds depending on initialization state and destination
         ( loadModel, loadCmd ) =
@@ -3420,11 +3413,23 @@ loadRepoSubPage model org repo toPage =
                             , type_ = Vela.RepoSecret
                         }
                     , schedulesModel =
+                        let
+                            -- update schedules pagination
+                            ( maybePage, maybePerPage ) =
+                                case toPage of
+                                    Pages.Schedules _ _ maybePage_ maybePerPage_ ->
+                                        ( maybePage_, maybePerPage_ )
+
+                                    _ ->
+                                        ( Nothing, Nothing )
+                        in
                         { schedulesModel
                             | schedules = Loading
                             , schedule = Loading
                             , org = org
                             , repo = repo
+                            , maybePage = maybePage
+                            , maybePerPage = maybePerPage
                         }
                     , deploymentModel =
                         let
@@ -3491,19 +3496,6 @@ loadRepoSubPage model org repo toPage =
                                                 |> updateHooksPage Nothing
                                                 |> updateHooksPerPage Nothing
                                )
-                            -- update schedules pagination
-                            |> (\rm_ ->
-                                    case toPage of
-                                        Pages.Schedules _ _ maybePage maybePerPage ->
-                                            rm_
-                                                |> updateSchedulesPage maybePage
-                                                |> updateSchedulesPerPage maybePerPage
-
-                                        _ ->
-                                            rm_
-                                                |> updateSchedulesPage Nothing
-                                                |> updateSchedulesPerPage Nothing
-                               )
                   }
                 , Cmd.batch
                     [ getCurrentUser model
@@ -3540,7 +3532,11 @@ loadRepoSubPage model org repo toPage =
                             Cmd.none
                     , case toPage of
                         Pages.Schedules o r maybePage maybePerPage ->
-                            getSchedules model o r maybePage maybePerPage
+                            if Util.checkScheduleAllowlist o r model.velaScheduleAllowlist then
+                                getSchedules model o r maybePage maybePerPage
+
+                            else
+                                Cmd.none
 
                         _ ->
                             Cmd.none
@@ -3572,12 +3568,17 @@ loadRepoSubPage model org repo toPage =
 
                     Pages.Schedules o r maybePage maybePerPage ->
                         ( { model
-                            | repo =
-                                rm
-                                    |> updateSchedulesPage maybePage
-                                    |> updateSchedulesPerPage maybePerPage
+                            | schedulesModel =
+                                { schedulesModel
+                                    | maybePage = maybePage
+                                    , maybePerPage = maybePerPage
+                                }
                           }
-                        , getSchedules model o r maybePage maybePerPage
+                        , if Util.checkScheduleAllowlist o r model.velaScheduleAllowlist then
+                            getSchedules model o r maybePage maybePerPage
+
+                          else
+                            Cmd.none
                         )
 
                     Pages.Hooks o r maybePage maybePerPage ->
@@ -3797,9 +3798,7 @@ loadAddOrgSecretPage model engine org =
                 , type_ = Vela.OrgSecret
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 
@@ -3822,9 +3821,7 @@ loadAddRepoSecretPage model engine org repo =
                 , type_ = Vela.RepoSecret
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 
@@ -3846,9 +3843,7 @@ loadAddSchedulePage model org repo =
                 , deleteState = Pages.Schedules.Model.NotAsked_
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 
@@ -3872,7 +3867,11 @@ loadEditSchedulePage model org repo id =
       }
     , Cmd.batch
         [ getCurrentUser model
-        , getSchedule model org repo id
+        , if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+            getSchedule model org repo id
+
+          else
+            Cmd.none
         ]
     )
 
@@ -3897,9 +3896,7 @@ loadAddSharedSecretPage model engine org team =
                 , form = secretsModel.form
             }
       }
-    , Cmd.batch
-        [ getCurrentUser model
-        ]
+    , getCurrentUser model
     )
 
 

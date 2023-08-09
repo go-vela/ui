@@ -123,9 +123,7 @@ onChangeStringField field value deploymentModel =
 -}
 onAddParameter : DeploymentForm -> Model msg -> Model msg
 onAddParameter deploymentUpdate deploymentModel =
-    case deploymentUpdate of
-        s ->
-            updateDeploymentModel (addParameter s) deploymentModel
+    updateDeploymentModel (addParameter deploymentUpdate) deploymentModel
 
 
 {-| toKeyValue : creates a keyValuePair from form input
