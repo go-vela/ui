@@ -313,6 +313,11 @@ events repo msg =
                 repo.allow_deploy
               <|
                 msg repo.org repo.name "allow_deploy"
+            , checkbox "Delete Branch"
+                "allow_delete"
+                repo.allow_delete
+              <|
+                msg repo.org repo.name "allow_delete"
             ]
         , div []
             [ pullRequestEventWarning
@@ -821,6 +826,7 @@ validEventsUpdate originalRepo repoUpdate =
         RemoteData.Success repo ->
             Maybe.withDefault repo.allow_push repoUpdate.allow_push
                 || Maybe.withDefault repo.allow_pull repoUpdate.allow_pull
+                || Maybe.withDefault repo.allow_delete repoUpdate.allow_delete
                 || Maybe.withDefault repo.allow_deploy repoUpdate.allow_deploy
                 || Maybe.withDefault repo.allow_tag repoUpdate.allow_tag
                 || Maybe.withDefault repo.allow_comment repoUpdate.allow_comment
@@ -863,6 +869,9 @@ msgPrefix field =
 
         "allow_push" ->
             "Push events for $ "
+
+        "allow_delete" ->
+            "Delete events for $ "
 
         "allow_deploy" ->
             "Deploy events for $ "
@@ -908,6 +917,9 @@ msgSuffix field repo =
 
         "allow_push" ->
             toggleText "allow_push" repo.allow_push
+
+        "allow_delete" ->
+            toggleText "allow_delete" repo.allow_delete
 
         "allow_deploy" ->
             toggleText "allow_deploy" repo.allow_deploy

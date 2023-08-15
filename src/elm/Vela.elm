@@ -855,6 +855,7 @@ type alias Repository =
     , active : Bool
     , allow_pull : Bool
     , allow_push : Bool
+    , allow_delete : Bool
     , allow_deploy : Bool
     , allow_tag : Bool
     , allow_comment : Bool
@@ -905,6 +906,7 @@ decodeRepository =
         |> optional "active" bool False
         |> optional "allow_pull" bool False
         |> optional "allow_push" bool False
+        |> optional "allow_delete" bool False
         |> optional "allow_deploy" bool False
         |> optional "allow_tag" bool False
         |> optional "allow_comment" bool False
@@ -987,6 +989,7 @@ encodeEnableRepository repo =
         , ( "active", Encode.bool <| repo.active )
         , ( "allow_pull", Encode.bool <| repo.allow_pull )
         , ( "allow_push", Encode.bool <| repo.allow_push )
+        , ( "allow_delete", Encode.bool <| repo.allow_delete )
         , ( "allow_deploy", Encode.bool <| repo.allow_deploy )
         , ( "allow_tag", Encode.bool <| repo.allow_tag )
         , ( "allow_comment", Encode.bool <| repo.allow_comment )
@@ -1004,6 +1007,7 @@ type alias EnableRepositoryPayload =
     , active : Bool
     , allow_pull : Bool
     , allow_push : Bool
+    , allow_delete : Bool
     , allow_deploy : Bool
     , allow_tag : Bool
     , allow_comment : Bool
@@ -1012,7 +1016,7 @@ type alias EnableRepositoryPayload =
 
 defaultEnableRepositoryPayload : EnableRepositoryPayload
 defaultEnableRepositoryPayload =
-    EnableRepositoryPayload "" "" "" "" "" False False True False False False False False
+    EnableRepositoryPayload "" "" "" "" "" False False True False False False False False False
 
 
 type alias UpdateRepositoryPayload =
@@ -1021,6 +1025,7 @@ type alias UpdateRepositoryPayload =
     , active : Maybe Bool
     , allow_pull : Maybe Bool
     , allow_push : Maybe Bool
+    , allow_delete : Maybe Bool
     , allow_deploy : Maybe Bool
     , allow_tag : Maybe Bool
     , allow_comment : Maybe Bool
@@ -1038,7 +1043,7 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -1049,6 +1054,7 @@ encodeUpdateRepository repo =
         , ( "trusted", encodeOptional Encode.bool repo.trusted )
         , ( "allow_pull", encodeOptional Encode.bool repo.allow_pull )
         , ( "allow_push", encodeOptional Encode.bool repo.allow_push )
+        , ( "allow_delete", encodeOptional Encode.bool repo.allow_delete )
         , ( "allow_deploy", encodeOptional Encode.bool repo.allow_deploy )
         , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
         , ( "allow_comment", encodeOptional Encode.bool repo.allow_comment )
@@ -1097,6 +1103,9 @@ buildUpdateRepoBoolPayload field value =
 
         "allow_push" ->
             { defaultUpdateRepositoryPayload | allow_push = Just value }
+            
+        "allow_delete" ->
+            { defaultUpdateRepositoryPayload | allow_delete = Just value }
 
         "allow_deploy" ->
             { defaultUpdateRepositoryPayload | allow_deploy = Just value }

@@ -27,6 +27,7 @@
     "active": true,
     "allow_pull": true,
     "allow_push": true,
+    "allow_delete": true,
     "allow_deploy": true,
     "allow_tag": true,
     "allow_comment": true,
