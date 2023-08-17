@@ -23,6 +23,7 @@ import Visualization.DOT as DOT
         , digraph
         , escapeAttributes
         )
+import Util
 
 
 {-| renderBuildGraphDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
@@ -121,8 +122,8 @@ renderBuildGraphDOT model buildGraph =
         ]
 
 
-stageNodeLabel : BuildModel.PartialModel a -> Bool -> String -> List Step -> String
-stageNodeLabel model showSteps label steps =
+stageNodeLabel : BuildModel.PartialModel a -> Bool -> String -> List Step ->String -> String
+stageNodeLabel model showSteps label steps runtime =
     let
         table content =
             "<table "
@@ -135,8 +136,10 @@ stageNodeLabel model showSteps label steps =
         labelColor =
             "white"
 
+
         header =
-            "<tr><td "
+            "<tr>"
+                ++ "<td "
                 ++ escapeAttributes
                     [ ( "align", DefaultEscape "left" ) ]
                 ++ " >"
@@ -147,10 +150,15 @@ stageNodeLabel model showSteps label steps =
                         ++ label
                         ++ "</u>"
                         ++ "</font>"
+                        ++ "  <font color='white'>("
+                        ++ (String.fromInt <| List.length steps)
+                        ++ ")</font>"
                    )
-                ++ "</td><td><font color='white'>("
-                ++ (String.fromInt <| List.length steps)
-                ++ ")</font></td></tr>"
+                ++ "</td>"
+                ++ "<td><font color='white'>"
+                ++ runtime
+                ++ "</font></td>"
+                ++ "</tr>"
 
         link step =
             Routes.routeToUrl <|
@@ -279,6 +287,8 @@ baseGraphStyles =
         escapeAttributes
             [ ( "bgcolor", DefaultEscape "transparent" )
             , ( "splines", DefaultEscape "ortho" )
+
+            -- , ( "compound", DefaultEscape "true" )
             ]
     , node =
         escapeAttributes
@@ -358,6 +368,10 @@ nodeAttrs model node =
         -- track step expansion using the model and OnGraphInteraction
         showSteps =
             Maybe.withDefault True <| Dict.get node.name model.repo.build.graph.showSteps
+    
+        start = Maybe.withDefault 0 <| List.minimum (List.map (\s -> s.started) node.steps) 
+        finish = Maybe.withDefault 0 <| List.maximum (0 :: (List.map .finished node.steps)) 
+        runtime = Util.formatRunTime model.time  start finish
     in
     Dict.fromList <|
         [ ( "class", DefaultJSONLabelEscape "elm-build-graph-node" )
@@ -365,7 +379,7 @@ nodeAttrs model node =
         , ( "style", DefaultJSONLabelEscape "filled" )
         , ( "border", DefaultJSONLabelEscape "white" )
         , ( "id", DefaultJSONLabelEscape id )
-        , ( "label", HtmlLabelEscape <| stageNodeLabel model showSteps node.name (List.sortBy .id node.steps) )
+        , ( "label", HtmlLabelEscape <| stageNodeLabel model showSteps node.name (List.sortBy .id node.steps) runtime )
         , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
         ]
 

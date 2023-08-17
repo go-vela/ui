@@ -262,7 +262,9 @@ function drawViewbox(buildGraphElement) {
   var graphBBox = buildGraphElement.node().getBBox();
 
   // apply viewbox properties to the root element's parent
-  const VIEWBOX_PADDING = { x1: 0, x2: 0, y1: 40, y2: 40 };
+  // provide x padding for the legend
+  const VIEWBOX_PADDING = { x1: 0, x2: 500, y1: 0, y2: 100 };
+
   var graphParent = d3.select(buildGraphElement.node().parentNode);
   graphParent.attr(
     'viewBox',

@@ -682,6 +682,7 @@ viewBuildGraph model msgs org repo buildNumber =
                         [ Html.input
                             [ Html.Attributes.type_ "input"
                             , Html.Attributes.checked True
+                            , Html.Attributes.placeholder "type to filter stages..."
                             , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
                             , id "search-filter"
                             , Util.testAttribute "search-filter"

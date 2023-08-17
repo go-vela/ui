@@ -53,8 +53,10 @@
 .elm-build-graph-window {
   position: relative;
 
+  display: flex;
+
   width: 100%;
-  min-height: 400px;
+  min-height: 250px;
 
   background: var(--color-bg-dark);
   border: 1px solid var(--color-bg-light);
@@ -68,10 +70,6 @@
     margin: 1rem;
   }
 }
-
-//   .elm-build-graph-root {
-
-//   }
 
 .elm-build-graph-legend {
   position: absolute;
@@ -138,6 +136,7 @@
   padding-right: 1rem;
   background-color: var(--color-bg);
   border-right: 1px solid var(--color-bg-light);
+
   .elm-build-graph-search-filter-form-label {
     // todo: remove this
     margin-left: 0;
@@ -145,6 +144,7 @@
     padding-left: 0.5rem;
     border-bottom: var(--line-width) solid var(--color-primary);
   }
+
   .elm-build-graph-search-filter-clear {
     margin-left: 0.8rem;
   }
