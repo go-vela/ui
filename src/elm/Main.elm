@@ -2373,7 +2373,7 @@ refreshData model =
 -}
 refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuild model org repo buildNumber =
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getBuild model org repo buildNumber
 
     else
@@ -2384,7 +2384,7 @@ refreshBuild model org repo buildNumber =
 -}
 refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getAllBuildSteps model org repo buildNumber focusFragment True
 
     else
@@ -2395,7 +2395,7 @@ refreshBuildSteps model org repo buildNumber focusFragment =
 -}
 refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildServices model org repo buildNumber focusFragment =
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getAllBuildServices model org repo buildNumber focusFragment True
 
     else
@@ -2404,39 +2404,49 @@ refreshBuildServices model org repo buildNumber focusFragment =
 
 {-| shouldRefresh : takes build and returns true if a refresh is required
 -}
-shouldRefresh : BuildModel -> Bool
-shouldRefresh build =
+shouldRefresh : Page -> BuildModel -> Bool
+shouldRefresh page build =
     case build.build of
         Success bld ->
             -- build is incomplete
             (not <| isComplete bld.status)
                 -- any steps or services are incomplete
-                || (case build.steps.steps of
-                        Success steps ->
-                            List.any (\s -> not <| isComplete s.status) steps
+                || (case page of
+                        Pages.Build _ _ _ _ ->
+                            case build.steps.steps of
+                                Success steps ->
+                                    List.any (\s -> not <| isComplete s.status) steps
 
-                        NotAsked ->
-                            True
+                                -- do not use unsuccessful states to dictate refresh
+                                NotAsked ->
+                                    False
 
-                        -- do not refresh Failed or Loading steps
-                        Failure _ ->
-                            False
+                                Failure _ ->
+                                    False
 
-                        Loading ->
+                                Loading ->
+                                    False
+
+                        _ ->
                             False
                    )
-                || (case build.services.services of
-                        Success services ->
-                            List.any (\s -> not <| isComplete s.status) services
+                || (case page of
+                        Pages.BuildServices _ _ _ _ ->
+                            case build.services.services of
+                                Success services ->
+                                    List.any (\s -> not <| isComplete s.status) services
 
-                        NotAsked ->
-                            True
+                                -- do not use unsuccessful states to dictate refresh
+                                NotAsked ->
+                                    False
 
-                        -- do not refresh Failed or Loading services
-                        Failure _ ->
-                            False
+                                Failure _ ->
+                                    False
 
-                        Loading ->
+                                Loading ->
+                                    False
+
+                        _ ->
                             False
                    )
 
@@ -2465,7 +2475,7 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
                 _ ->
                     []
     in
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
 
     else
@@ -2486,7 +2496,7 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
                 _ ->
                     []
     in
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
 
     else
