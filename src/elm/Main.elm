@@ -2412,6 +2412,7 @@ shouldRefresh page build =
             (not <| isComplete bld.status)
                 -- any steps or services are incomplete
                 || (case page of
+                        -- check steps when viewing build tab
                         Pages.Build _ _ _ _ ->
                             case build.steps.steps of
                                 Success steps ->
@@ -2427,10 +2428,7 @@ shouldRefresh page build =
                                 Loading ->
                                     False
 
-                        _ ->
-                            False
-                   )
-                || (case page of
+                        -- check services when viewing services tab
                         Pages.BuildServices _ _ _ _ ->
                             case build.services.services of
                                 Success services ->
