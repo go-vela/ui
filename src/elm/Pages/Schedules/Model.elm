@@ -70,6 +70,7 @@ type alias Model msg =
 -}
 type alias ScheduleForm =
     { name : String
+    , branch : String
     , entry : String
     , enabled : Bool
     }
@@ -77,7 +78,7 @@ type alias ScheduleForm =
 
 defaultScheduleUpdate : ScheduleForm
 defaultScheduleUpdate =
-    ScheduleForm "" "" True
+    ScheduleForm "" "" "" True
 
 
 

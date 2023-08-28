@@ -55,6 +55,7 @@ viewAddForm model =
         [ viewNameInput sm.form.name False
         , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.time)
         , viewEnabledCheckbox sm.form
+        , viewBranchNameInput sm.form.branch False
         , viewHelp
         , viewAddButton
         ]
@@ -72,6 +73,7 @@ viewEditForm model =
         [ viewNameInput sm.form.name True
         , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.time)
         , viewEnabledCheckbox sm.form
+        , viewBranchNameInput sm.form.branch True
         , viewHelp
         , viewEditFormSubmitButtons sm
         ]
@@ -94,7 +96,6 @@ viewNameInput val disable =
             ]
             []
         ]
-
 
 {-| viewValueInput : renders value input box
 -}
@@ -165,6 +166,24 @@ viewEnabledCheckbox enableUpdate =
             [ radio (Util.boolToYesNo enableUpdate.enabled) "yes" "Enabled" <| OnChangeEnabled "yes"
             , radio (Util.boolToYesNo enableUpdate.enabled) "no" "Disabled" <| OnChangeEnabled "no"
             ]
+        ]
+
+{-| viewBranchNameInput : renders branch input box
+-}
+viewBranchNameInput : String -> Bool -> Html Msg
+viewBranchNameInput val2 disable =
+    section [ class "form-control", class "-stack" ]
+        [ label [ class "form-label", for <| "schedule-branch-name" ] [ strong [] [ text "Branch" ] ]
+        , input
+            [ disabled disable
+            , value val2
+            , onInput <|
+                OnChangeStringField "branch"
+            , placeholder "Branch Name"
+            , id "schedule-branch-name"
+            , Util.testAttribute "schedule-branch-name"
+            ]
+            []
         ]
 
 
