@@ -180,7 +180,7 @@ renderSchedule zone org repo schedule =
             , scope "row"
             , class "break-word"
             ]
-            [ text <| Util.humanReadableWithDefault zone schedule.scheduled_at ]
+            [ text <| Util.humanReadableDateTimeWithDefault zone schedule.scheduled_at ]
         , td
             [ attribute "data-label" "updated by"
             , scope "row"
@@ -192,7 +192,7 @@ renderSchedule zone org repo schedule =
             , scope "row"
             , class "break-word"
             ]
-            [ text <| Util.humanReadableWithDefault zone schedule.updated_at ]
+            [ text <| Util.humanReadableDateTimeWithDefault zone schedule.updated_at ]
         ]
 
 
