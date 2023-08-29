@@ -1720,7 +1720,7 @@ type alias Schedule =
     , scheduled_at : Int
     , updated_at : Int
     , updated_by : String
-    , branch : String    
+    , branch : String
     }
 
 

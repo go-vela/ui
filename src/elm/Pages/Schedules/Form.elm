@@ -97,6 +97,7 @@ viewNameInput val disable =
             []
         ]
 
+
 {-| viewValueInput : renders value input box
 -}
 viewValueInput : String -> String -> String -> Html Msg
@@ -167,6 +168,7 @@ viewEnabledCheckbox enableUpdate =
             , radio (Util.boolToYesNo enableUpdate.enabled) "no" "Disabled" <| OnChangeEnabled "no"
             ]
         ]
+
 
 {-| viewBranchNameInput : renders branch input box
 -}
