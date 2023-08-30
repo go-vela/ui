@@ -81,7 +81,7 @@ reinitializeScheduleUpdate scheduleModel schedule =
 
 initScheduleUpdate : Schedule -> ScheduleForm
 initScheduleUpdate schedule =
-    ScheduleForm schedule.name schedule.branch schedule.entry schedule.enabled
+    ScheduleForm schedule.name schedule.entry schedule.enabled schedule.branch
 
 
 {-| updateScheduleModel : makes an update to the appropriate schedule update

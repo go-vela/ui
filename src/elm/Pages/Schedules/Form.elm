@@ -73,7 +73,7 @@ viewEditForm model =
         [ viewNameInput sm.form.name True
         , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.time)
         , viewEnabledCheckbox sm.form
-        , viewBranchNameInput sm.form.branch True
+        , viewBranchNameInput sm.form.branch False
         , viewHelp
         , viewEditFormSubmitButtons sm
         ]

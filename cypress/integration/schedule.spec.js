@@ -38,6 +38,14 @@ context('Add Schedule', () => {
               expect(placeholder).to.include('0 0 * * *');
             });
         });
+        it('default branch value should show', () => {
+          cy.get('[data-test=schedule-branch]')
+            .should('exist')
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('Branch Namer');
+            });
+        });
         it('add button should show', () => {
           cy.get('[data-test=schedule-add-button]').should('exist');
         });
@@ -68,6 +76,14 @@ context('Add Schedule', () => {
               expect(placeholder).to.include('0 0 * * *');
             });
         });
+        it('default branch value should show', () => {
+          cy.get('[data-test=schedule-branch]')
+            .should('exist')
+            .and('have.attr', 'placeholder')
+            .then(placeholder => {
+              expect(placeholder).to.include('Branch Name');
+            });
+        });
         it('add button should show', () => {
           cy.get('[data-test=schedule-add-button]').should('exist');
         });
@@ -86,6 +102,9 @@ context('Add Schedule', () => {
         });
         it('default entry value should not show', () => {
           cy.get('[data-test=schedule-entry]').should('not.exist');
+        });
+        it('default branch value should not show', () => {
+          cy.get('[data-test=schedule-branch]').should('not.exist');
         });
         it('add button should not show', () => {
           cy.get('[data-test=schedule-add-button]').should('not.exist');
@@ -130,6 +149,11 @@ context('View/Edit Schedule', () => {
               expect(placeholder).to.include('0 0 * * *');
             });
         });
+        it('default branch value should show', () => {
+          cy.get('[data-test=schedule-branch]')
+            .should('exist')
+            .should('have.value', 'Main');
+        });
         it('update button should show', () => {
           cy.get('[data-test=schedule-update-button]').should('exist');
         });
@@ -160,6 +184,11 @@ context('View/Edit Schedule', () => {
               expect(placeholder).to.include('0 0 * * *');
             });
         });
+        it('default branch value should show', () => {
+          cy.get('[data-test=schedule-branch]')
+            .should('exist')
+            .should('have.value', 'Main');
+        });
         it('update button should show', () => {
           cy.get('[data-test=schedule-update-button]').should('exist');
         });
@@ -181,6 +210,9 @@ context('View/Edit Schedule', () => {
         });
         it('default entry value should not show', () => {
           cy.get('[data-test=schedule-entry]').should('not.exist');
+        });
+        it('default branch value should not show', () => {
+          cy.get('[data-test=schedule-branch]').should('not.exist');
         });
         it('update button should not show', () => {
           cy.get('[data-test=schedule-update-button]').should('not.exist');
