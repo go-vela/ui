@@ -175,13 +175,13 @@ viewEnabledCheckbox enableUpdate =
 viewBranchNameInput : String -> Bool -> Html Msg
 viewBranchNameInput val2 disable =
     section [ class "form-control", class "-stack" ]
-        [ label [ class "form-label", for <| "schedule-branch-name" ] 
-                [ strong [] [ text "Branch" ]
-                , span
-                    [ class "field-description" ]
-                    [ em [] [ text "(Leave blank to use default branch)" ]
-                    ]
+        [ label [ class "form-label", for <| "schedule-branch-name" ]
+            [ strong [] [ text "Branch" ]
+            , span
+                [ class "field-description" ]
+                [ em [] [ text "(Leave blank to use default branch)" ]
                 ]
+            ]
         , input
             [ disabled disable
             , value val2
