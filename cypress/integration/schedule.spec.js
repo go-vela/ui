@@ -43,7 +43,7 @@ context('Add Schedule', () => {
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
-              expect(placeholder).to.include('Branch Namer');
+              expect(placeholder).to.include('Branch Name');
             });
         });
         it('add button should show', () => {
