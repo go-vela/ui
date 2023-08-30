@@ -187,7 +187,7 @@ context('View/Edit Schedule', () => {
         it('default branch value should show', () => {
           cy.get('[data-test=schedule-branch-name]')
             .should('exist')
-            .should('have.value', 'Main');
+            .should('have.value', 'master');
         });
         it('update button should show', () => {
           cy.get('[data-test=schedule-update-button]').should('exist');
