@@ -179,7 +179,7 @@ viewBranchNameInput val2 disable =
                 [ strong [] [ text "Branch" ]
                 , span
                     [ class "field-description" ]
-                    [ em [] [ text "(Leave blank to default to main)" ]
+                    [ em [] [ text "(Leave blank to use default branch)" ]
                     ]
                 ]
         , input
