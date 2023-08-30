@@ -38,8 +38,8 @@ context('Add Schedule', () => {
               expect(placeholder).to.include('0 0 * * *');
             });
         });
-        it('default branch value should show', () => {
-          cy.get('[data-test=schedule-branch]')
+        it('default branch placeholder should show', () => {
+          cy.get('[data-test=schedule-branch-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -76,8 +76,8 @@ context('Add Schedule', () => {
               expect(placeholder).to.include('0 0 * * *');
             });
         });
-        it('default branch value should show', () => {
-          cy.get('[data-test=schedule-branch]')
+        it('default branch placeholder should show', () => {
+          cy.get('[data-test=schedule-branch-name]')
             .should('exist')
             .and('have.attr', 'placeholder')
             .then(placeholder => {
@@ -104,7 +104,7 @@ context('Add Schedule', () => {
           cy.get('[data-test=schedule-entry]').should('not.exist');
         });
         it('default branch value should not show', () => {
-          cy.get('[data-test=schedule-branch]').should('not.exist');
+          cy.get('[data-test=schedule-branch-name]').should('not.exist');
         });
         it('add button should not show', () => {
           cy.get('[data-test=schedule-add-button]').should('not.exist');
@@ -150,7 +150,7 @@ context('View/Edit Schedule', () => {
             });
         });
         it('default branch value should show', () => {
-          cy.get('[data-test=schedule-branch]')
+          cy.get('[data-test=schedule-branch-name]')
             .should('exist')
             .should('have.value', 'Main');
         });
@@ -185,7 +185,7 @@ context('View/Edit Schedule', () => {
             });
         });
         it('default branch value should show', () => {
-          cy.get('[data-test=schedule-branch]')
+          cy.get('[data-test=schedule-branch-name]')
             .should('exist')
             .should('have.value', 'Main');
         });
@@ -212,7 +212,7 @@ context('View/Edit Schedule', () => {
           cy.get('[data-test=schedule-entry]').should('not.exist');
         });
         it('default branch value should not show', () => {
-          cy.get('[data-test=schedule-branch]').should('not.exist');
+          cy.get('[data-test=schedule-branch-name]').should('not.exist');
         });
         it('update button should not show', () => {
           cy.get('[data-test=schedule-update-button]').should('not.exist');
