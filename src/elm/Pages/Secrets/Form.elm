@@ -196,7 +196,6 @@ viewEventsSelect secretUpdate model =
         , div
             [ class "form-controls"
             , class "-stack"
-            , Util.testAttribute "event-checkbox"
             ]
             [ checkbox "Push"
                 "push"
