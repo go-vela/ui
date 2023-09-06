@@ -173,7 +173,7 @@ viewEnabledCheckbox enableUpdate =
 {-| viewBranchNameInput : renders branch input box
 -}
 viewBranchNameInput : String -> Bool -> Html Msg
-viewBranchNameInput val2 disable =
+viewBranchNameInput val disable =
     section [ class "form-control", class "-stack" ]
         [ label [ class "form-label", for <| "schedule-branch-name" ]
             [ strong [] [ text "Branch" ]
@@ -184,7 +184,7 @@ viewBranchNameInput val2 disable =
             ]
         , input
             [ disabled disable
-            , value val2
+            , value val
             , onInput <|
                 OnChangeStringField "branch"
             , placeholder "Branch Name"
