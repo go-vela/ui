@@ -36,6 +36,7 @@ import Vela exposing (Copy, Engine, Key, Org, Repo, Secret, SecretType, Secrets,
 type alias PartialModel a msg =
     { a
         | velaAPI : String
+        , velaScheduleAllowlist : List ( Org, Repo )
         , session : Session
         , page : Page
         , secretsModel : Model msg

@@ -31,6 +31,34 @@ context('Secrets', () => {
         .contains('Remove');
     });
 
+    context(
+      'allowlist contains *',
+      {
+        env: {
+          VELA_SCHEDULE_ALLOWLIST: '*',
+        },
+      },
+      () => {
+        it('add button should show', () => {
+          cy.get('[data-test=repo-checkbox-schedule]').should('exist');
+        });
+      },
+    );
+
+    context(
+      'allowlist is empty',
+      {
+        env: {
+          VELA_SCHEDULE_ALLOWLIST: ' ',
+        },
+      },
+      () => {
+        it('add button should not show', () => {
+          cy.get('[data-test=repo-checkbox-schedule]').should('not.exist');
+        });
+      },
+    );
+
     context('click Remove', () => {
       beforeEach(() => {
         cy.get('[data-test=secret-delete-button]').click();
