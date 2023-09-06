@@ -3741,6 +3741,7 @@ loadOrgSecretsPage model maybePage maybePerPage engine org =
             { secretsModel
                 | orgSecrets = Loading
                 , org = org
+                , repo = ""
                 , engine = engine
                 , type_ = Vela.OrgSecret
             }
