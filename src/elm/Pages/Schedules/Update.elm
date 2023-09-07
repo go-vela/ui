@@ -81,7 +81,7 @@ reinitializeScheduleUpdate scheduleModel schedule =
 
 initScheduleUpdate : Schedule -> ScheduleForm
 initScheduleUpdate schedule =
-    ScheduleForm schedule.name schedule.entry schedule.enabled
+    ScheduleForm schedule.name schedule.entry schedule.enabled schedule.branch
 
 
 {-| updateScheduleModel : makes an update to the appropriate schedule update
@@ -118,6 +118,9 @@ updateScheduleField field value schedule =
         "entry" ->
             { schedule | entry = value }
 
+        "branch" ->
+            { schedule | branch = value }
+
         _ ->
             schedule
 
@@ -148,6 +151,7 @@ toAddSchedulePayload scheduleModel schedule =
         (stringToMaybe schedule.name)
         (stringToMaybe schedule.entry)
         (Just schedule.enabled)
+        (stringToMaybe schedule.branch)
 
 
 {-| toUpdateSchedulePayload : builds payload for updating schedule
@@ -160,6 +164,7 @@ toUpdateSchedulePayload schedule =
         Nothing
         (stringToMaybe schedule.entry)
         (Just schedule.enabled)
+        (stringToMaybe schedule.branch)
 
 
 

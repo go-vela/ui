@@ -72,12 +72,13 @@ type alias ScheduleForm =
     { name : String
     , entry : String
     , enabled : Bool
+    , branch : String
     }
 
 
 defaultScheduleUpdate : ScheduleForm
 defaultScheduleUpdate =
-    ScheduleForm "" "" True
+    ScheduleForm "" "" True ""
 
 
 
