@@ -199,18 +199,8 @@ applyDefaults form =
             form.description
         )
         form.payload
-        (if form.ref == "" then
-            "refs/heads/master"
-
-         else
-            form.ref
-        )
-        (if form.target == "" then
-            "production"
-
-         else
-            form.target
-        )
+        form.ref
+        form.target
         (if form.task == "" then
             "deploy:vela"
 
