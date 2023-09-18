@@ -3609,9 +3609,12 @@ loadRepoSubPage model org repo toPage =
                     Pages.PromoteDeployment o r deploymentNumber ->
                         ( model, getDeployment model o r deploymentNumber )
 
+                    Pages.AddDeployment o r ->
+                        ( model, getRepo model o r )
+
                     -- page is not a repo subpage
                     _ ->
-                        ( model, getRepo model org repo )
+                        ( model, Cmd.none )
     in
     ( { loadModel | page = toPage }, loadCmd )
 
