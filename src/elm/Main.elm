@@ -1401,7 +1401,11 @@ update msg model =
         RepoResponse response ->
             case response of
                 Ok ( _, repoResponse ) ->
-                    ( { model | repo = updateRepo (RemoteData.succeed repoResponse) rm }, Cmd.none )
+                    let
+                        dm =
+                            model.deploymentModel
+                    in
+                    ( { model | repo = updateRepo (RemoteData.succeed repoResponse) rm, deploymentModel = { dm | repo_settings = RemoteData.succeed repoResponse } }, Cmd.none )
 
                 Err error ->
                     ( { model | repo = updateRepo (toFailure error) rm }, addError error )
@@ -3452,7 +3456,7 @@ loadRepoSubPage model org repo toPage =
                         { dm
                             | org = org
                             , repo = repo
-                            , repo_settings = rm.repo
+                            , repo_settings = model.repo.repo
                             , form = form
                         }
                     , repo =
@@ -3604,6 +3608,9 @@ loadRepoSubPage model org repo toPage =
 
                     Pages.PromoteDeployment o r deploymentNumber ->
                         ( model, getDeployment model o r deploymentNumber )
+
+                    Pages.AddDeployment o r ->
+                        ( model, getRepo model o r )
 
                     -- page is not a repo subpage
                     _ ->
