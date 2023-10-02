@@ -65,6 +65,7 @@ type alias Msgs msg =
     , refreshSettings : Org -> Repo -> msg
     , refreshHooks : Org -> Repo -> msg
     , refreshSecrets : Engine -> SecretType -> Org -> Repo -> msg
+    , approveBuild : Org -> Repo -> BuildNumber -> msg
     , restartBuild : Org -> Repo -> BuildNumber -> msg
     , cancelBuild : Org -> Repo -> BuildNumber -> msg
     }
@@ -94,7 +95,7 @@ viewNav model msgs =
 {-| navButtons : uses current page to build the commonly used button on the right side of the nav
 -}
 navButtons : PartialModel a -> Msgs msg -> Html msg
-navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild } =
+navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild, cancelBuild } =
     case model.page of
         Pages.Overview ->
             a
@@ -149,19 +150,22 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
 
         Pages.Build org repo _ _ ->
             div [ class "buttons" ]
-                [ cancelBuildButton org repo model.repo.build.build cancelBuild
+                [ approveBuildButton org repo model.repo.build.build approveBuild
+                , cancelBuildButton org repo model.repo.build.build cancelBuild
                 , restartBuildButton org repo model.repo.build.build restartBuild
                 ]
 
         Pages.BuildServices org repo _ _ ->
             div [ class "buttons" ]
-                [ cancelBuildButton org repo model.repo.build.build cancelBuild
+                [ approveBuildButton org repo model.repo.build.build approveBuild
+                , cancelBuildButton org repo model.repo.build.build cancelBuild
                 , restartBuildButton org repo model.repo.build.build restartBuild
                 ]
 
         Pages.BuildPipeline org repo _ _ _ ->
             div [ class "buttons" ]
-                [ cancelBuildButton org repo model.repo.build.build cancelBuild
+                [ approveBuildButton org repo model.repo.build.build approveBuild
+                , cancelBuildButton org repo model.repo.build.build cancelBuild
                 , restartBuildButton org repo model.repo.build.build restartBuild
                 ]
 
@@ -501,6 +505,9 @@ cancelBuildButton org repo build cancelBuild =
                 Vela.Pending ->
                     cancelButton
 
+                Vela.PendingApproval ->
+                    cancelButton
+
                 _ ->
                     text ""
 
@@ -524,6 +531,35 @@ restartBuildButton org repo build restartBuild =
                 ]
                 [ text "Restart Build"
                 ]
+
+        _ ->
+            text ""
+
+{-| approveBuildButton: takes org repo and build number and renders button to approve a build run
+-}
+approveBuildButton : Org -> Repo -> WebData Build -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+approveBuildButton org repo build approveBuild =
+    case build of
+        RemoteData.Success b ->
+            let
+                approveButton =
+                    button
+                        [ classList
+                            [ ( "button", True )
+                            , ( "-outline", True )
+                            ]
+                        , onClick <| approveBuild org repo <| String.fromInt b.number
+                        , Util.testAttribute "approve-build"
+                        ]
+                        [ text "Approve Build"
+                        ]
+            in
+            case b.status of
+                Vela.PendingApproval ->
+                    approveButton
+
+                _ ->
+                    text ""
 
         _ ->
             text ""

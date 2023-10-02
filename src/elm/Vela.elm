@@ -849,6 +849,7 @@ type alias Repository =
     , timeout : Int
     , counter : Int
     , visibility : String
+    , approve_fork_build : String
     , private : Bool
     , trusted : Bool
     , active : Bool
@@ -899,6 +900,7 @@ decodeRepository =
         |> optional "timeout" int 0
         |> optional "counter" int 0
         |> optional "visibility" string ""
+        |> optional "approve_fork_build" string ""
         |> optional "private" bool False
         |> optional "trusted" bool False
         |> optional "active" bool False
@@ -1024,6 +1026,7 @@ type alias UpdateRepositoryPayload =
     , allow_tag : Maybe Bool
     , allow_comment : Maybe Bool
     , visibility : Maybe String
+    , approve_fork_build : Maybe String
     , limit : Maybe Int
     , timeout : Maybe Int
     , counter : Maybe Int
@@ -1037,7 +1040,7 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -1052,6 +1055,7 @@ encodeUpdateRepository repo =
         , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
         , ( "allow_comment", encodeOptional Encode.bool repo.allow_comment )
         , ( "visibility", encodeOptional Encode.string repo.visibility )
+        , ( "approve_fork_build", encodeOptional Encode.string repo.approve_fork_build)
         , ( "build_limit", encodeOptional Encode.int repo.limit )
         , ( "timeout", encodeOptional Encode.int repo.timeout )
         , ( "counter", encodeOptional Encode.int repo.counter )
@@ -1118,6 +1122,9 @@ buildUpdateRepoStringPayload field value =
 
         "pipeline_type" ->
             { defaultUpdateRepositoryPayload | pipeline_type = Just value }
+
+        "approve_fork_build" ->
+            { defaultUpdateRepositoryPayload | approve_fork_build = Just value}
 
         _ ->
             defaultUpdateRepositoryPayload
@@ -1336,6 +1343,7 @@ type Status
     | Killed
     | Canceled
     | Error
+    | PendingApproval
 
 
 {-| toStatus : helper to decode string to Status
@@ -1345,6 +1353,9 @@ toStatus status =
     case status of
         "pending" ->
             succeed Pending
+
+        "pending approval" ->
+            succeed PendingApproval
 
         "running" ->
             succeed Running
@@ -1374,6 +1385,9 @@ isComplete : Status -> Bool
 isComplete status =
     case status of
         Pending ->
+            False
+
+        PendingApproval ->
             False
 
         Running ->
@@ -1412,6 +1426,9 @@ statusToFavicon status =
             "favicon"
                 ++ (case status of
                         Pending ->
+                            "-pending"
+
+                        PendingApproval ->
                             "-pending"
 
                         Running ->

@@ -55,6 +55,7 @@ type Endpoint
     | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
     | Build Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
+    | ApproveBuild Org Repo BuildNumber
     | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | ServiceLogs Org Repo BuildNumber ServiceNumber
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
@@ -122,6 +123,9 @@ toUrl api endpoint =
 
         CancelBuild org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "cancel" ] []
+
+        ApproveBuild org repo buildNumber ->
+            url api [ "repos", org, repo, "builds", buildNumber, "approve" ] []
 
         Services maybePage maybePerPage org repo buildNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "services" ] <| Pagination.toQueryParams maybePage maybePerPage

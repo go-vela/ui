@@ -402,6 +402,9 @@ buildStatusToIcon status =
     case status of
         Vela.Pending ->
             buildPending
+        
+        Vela.PendingApproval ->
+            buildPending
 
         Vela.Running ->
             buildRunning
@@ -430,6 +433,9 @@ recentBuildStatusToIcon status index =
         Vela.Pending ->
             buildHistoryPending index
 
+        Vela.PendingApproval ->
+            buildHistoryPending index
+
         Vela.Running ->
             buildHistoryRunning index
 
@@ -455,6 +461,9 @@ stepStatusToIcon : Status -> Html msg
 stepStatusToIcon status =
     case status of
         Vela.Pending ->
+            stepPending
+
+        Vela.PendingApproval ->
             stepPending
 
         Vela.Running ->

@@ -24,7 +24,7 @@ import Focus
         , resourceAndLineToFocusId
         , resourceToFocusId
         )
-import Html exposing (Html, a, button, code, details, div, li, small, span, strong, summary, table, td, text, tr, ul)
+import Html exposing (Html, a, button, code, details, div, li, p, small, span, strong, summary, table, td, text, tr, ul)
 import Html.Attributes
     exposing
         ( attribute
@@ -81,6 +81,7 @@ import Vela
         , Steps
         , defaultStep
         )
+import Vela exposing (Status(..))
 
 
 
@@ -125,10 +126,18 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
         markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
-                    , viewBuildTabs model org repo buildNumber model.page
-                    , content
-                    ]
+                    case bld.status of 
+                        PendingApproval ->
+                            [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
+                            , p [ class "notice" ][ text "An admin of this repository must approve the build to run"]
+                            , viewBuildTabs model org repo buildNumber model.page
+                            , content
+                            ]
+                        _ ->
+                            [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
+                            , viewBuildTabs model org repo buildNumber model.page
+                            , content
+                            ]
 
                 RemoteData.Loading ->
                     [ Util.largeLoader ]
@@ -160,6 +169,24 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
         buildMenuAttributeList =
             [ attribute "role" "navigation", id "build-actions" ] ++ Util.open (List.member build.id openMenu)
 
+        approveBuild : Html msgs
+        approveBuild =
+            case build.status of
+                Vela.PendingApproval ->
+                    li [ class "build-menu-item" ]
+                        [ a
+                            [ href "#"
+                            , class "menu-item"
+                            , Util.onClickPreventDefault <| msgs.approveBuild org repo <| String.fromInt build.number
+                            , Util.testAttribute "approve-build"
+                            ]
+                            [ text "Approve Build"
+                            ]
+                        ]
+
+                _ ->
+                    text ""
+
         restartBuild : Html msgs
         restartBuild =
             li [ class "build-menu-item" ]
@@ -188,6 +215,30 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                             ]
                         ]
 
+                Vela.Pending ->
+                    li [ class "build-menu-item" ]
+                        [ a
+                            [ href "#"
+                            , class "menu-item"
+                            , Util.onClickPreventDefault <| msgs.cancelBuild org repo <| String.fromInt build.number
+                            , Util.testAttribute "cancel-build"
+                            ]
+                            [ text "Cancel Build"
+                            ]
+                        ]
+                
+                Vela.PendingApproval ->
+                    li [ class "build-menu-item" ]
+                        [ a
+                            [ href "#"
+                            , class "menu-item"
+                            , Util.onClickPreventDefault <| msgs.cancelBuild org repo <| String.fromInt build.number
+                            , Util.testAttribute "cancel-build"
+                            ]
+                            [ text "Cancel Build"
+                            ]
+                        ]
+
                 _ ->
                     text ""
 
@@ -199,7 +250,8 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                         ]
                     , ul [ class "build-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
-                        [ restartBuild
+                        [ approveBuild
+                        , restartBuild
                         , cancelBuild
                         ]
                     ]
@@ -1135,6 +1187,9 @@ statusToClass : Status -> Html.Attribute msg
 statusToClass status =
     case status of
         Vela.Pending ->
+            class "-pending"
+
+        Vela.PendingApproval ->
             class "-pending"
 
         Vela.Running ->

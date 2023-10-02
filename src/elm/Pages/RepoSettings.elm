@@ -9,6 +9,7 @@ module Pages.RepoSettings exposing
     , checkbox
     , enableUpdate
     , validAccessUpdate
+    , validForkPolicyUpdate
     , validEventsUpdate
     , validPipelineTypeUpdate
     , view
@@ -108,6 +109,7 @@ type alias StringInputChange msg =
 type alias Msgs msg =
     { eventsUpdate : CheckboxUpdate msg
     , accessUpdate : RadioUpdate msg
+    , forkPolicyUpdate : RadioUpdate msg
     , limitUpdate : NumberInputChange msg
     , inLimitChange : StringInputChange msg
     , timeoutUpdate : NumberInputChange msg
@@ -132,8 +134,8 @@ type alias Msgs msg =
 view : WebData Repository -> Msgs msg -> String -> String -> Int -> Html msg
 view repo actions velaAPI velaURL maxLimit =
     let
-        ( accessUpdate, pipelineTypeUpdate ) =
-            ( actions.accessUpdate, actions.pipelineTypeUpdate )
+        ( accessUpdate, forkPolicyUpdate, pipelineTypeUpdate ) =
+            ( actions.accessUpdate, actions.forkPolicyUpdate, actions.pipelineTypeUpdate )
 
         ( limitUpdate, inLimitChange ) =
             ( actions.limitUpdate, actions.inLimitChange )
@@ -155,6 +157,7 @@ view repo actions velaAPI velaURL maxLimit =
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ events repo_ eventsUpdate
                 , access repo_ accessUpdate
+                , forkPolicy repo_ forkPolicyUpdate
                 , limit maxLimit repo_.inLimit repo_ limitUpdate inLimitChange
                 , timeout repo_.inTimeout repo_ timeoutUpdate inTimeoutChange
                 , counter repo_.inCounter repo_ counterUpdate inCounterChange
@@ -190,6 +193,19 @@ access repo msg =
             ]
         ]
 
+{-| forkPolicy : takes model and repo and renders the settings category for updating repo fork policy
+-}
+forkPolicy : Repository -> RadioUpdate msg -> Html msg
+forkPolicy repo msg =
+    section [ class "settings", Util.testAttribute "repo-settings-fork-policy" ]
+        [ h2 [ class "settings-title" ] [ text "Fork Build Policy" ]
+        , p [ class "settings-description" ] [ text "Change which outside contributors need approval to run a build." ]
+        , div [ class "form-controls", class "-stack" ]
+            [ radio repo.approve_fork_build "always" "Always" <| msg repo.org repo.name "approve_fork_build" "always"
+            , radio repo.approve_fork_build "no-write" "Read Only" <| msg repo.org repo.name "approve_fork_build" "no-write"
+            , radio repo.approve_fork_build "never" "Never" <| msg repo.org repo.name "approve_fork_build" "never"
+            ]
+        ]
 
 {-| pipelineType : takes model and repo and renders the settings category for updating repo pipeline type
 -}
@@ -392,7 +408,7 @@ radio value field title msg =
             , onClick msg
             ]
             []
-        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], updateAccessTip field ]
+        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], updateAccessTip field, updateForkPolicyTip field ]
         ]
 
 
@@ -795,6 +811,22 @@ validAccessUpdate originalRepo repoUpdate =
             False
 
 
+{-| validForkPolicyUpdate : takes model webdata repo and repo fork policy update and determines if an update is necessary
+-}
+validForkPolicyUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
+validForkPolicyUpdate originalRepo repoUpdate =
+    case originalRepo of
+        RemoteData.Success repo ->
+            case repoUpdate.approve_fork_build of
+                Just approve_fork_build ->
+                    repo.approve_fork_build /= approve_fork_build
+
+                Nothing ->
+                    False
+
+        _ ->
+            False
+
 {-| validPipelineTypeUpdate : takes model webdata repo and repo pipeline type update and determines if an update is necessary
 -}
 validPipelineTypeUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
@@ -842,6 +874,23 @@ updateAccessTip field =
         _ ->
             text ""
 
+{-| updateForkPolicyTip : takes field and returns the tip to display after the label.
+-}
+updateForkPolicyTip : Field -> Html msg
+updateForkPolicyTip field =
+    case field of
+        "always" ->
+            text " (repository admin must approve all builds from outside contributors)"
+
+        "no-write" ->
+            text " (repository admin must approve all builds from outside contributors with read-only access to the repo)"
+
+        "never" ->
+            text " (any outside contributor can run a PR build)"
+
+        _ ->
+            text ""
+
 
 {-| msgPrefix : takes update field and returns alert prefix.
 -}
@@ -856,6 +905,9 @@ msgPrefix field =
 
         "visibility" ->
             "$ visibility set to "
+
+        "approve_fork_build" ->
+            "$ fork policy set to "
 
         "allow_pull" ->
             "Pull events for $ "
@@ -901,6 +953,9 @@ msgSuffix field repo =
 
         "visibility" ->
             repo.visibility ++ "."
+
+        "approve_fork_build" ->
+            repo.approve_fork_build ++ "."
 
         "allow_pull" ->
             toggleText "allow_pull" repo.allow_pull

@@ -58,6 +58,7 @@ type alias Msgs msg =
     , expandAllServices : ExpandAll msg
     , expandService : Expand msg
     , logsMsgs : LogsMsgs msg
+    , approveBuild : ApproveBuild msg
     , restartBuild : RestartBuild msg
     , cancelBuild : CancelBuild msg
     , toggle : Maybe Int -> Maybe Bool -> msg
@@ -72,6 +73,8 @@ type alias LogsMsgs msg =
     , followService : FollowResource msg
     }
 
+type alias ApproveBuild msg =
+    Org -> Repo -> BuildNumber -> msg
 
 type alias RestartBuild msg =
     Org -> Repo -> BuildNumber -> msg
