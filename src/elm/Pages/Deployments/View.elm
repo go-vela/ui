@@ -162,6 +162,7 @@ deploymentsToRows repo_ deployments =
 tableHeaders : Table.Columns
 tableHeaders =
     [ ( Just "-icon", "" )
+    , ( Nothing, "id" )
     , ( Nothing, "number" )
     , ( Nothing, "target" )
     , ( Nothing, "commit" )
@@ -191,6 +192,13 @@ renderDeployment repo_ deployment =
             , Util.testAttribute <| "deployments-row-id"
             ]
             [ text <| String.fromInt deployment.id ]
+        , td
+            [ attribute "data-label" "number"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "deployments-row-number"
+            ]
+            [ text <| String.fromInt deployment.number ]
         , td
             [ attribute "data-label" "target"
             , scope "row"
