@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 version: '3'
 
 services:
@@ -53,6 +55,7 @@ services:
       VELA_LOG_LEVEL: trace
       # comment the line below to use registration flow
       VELA_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
+      QUEUE_PUBLIC_KEY: 'DXsJkoTSkHlG26d75LyHJG+KQsXPr8VKPpmH/78zmko='
       VELA_SERVER_PRIVATE_KEY: 'F534FF2A080E45F38E05DC70752E6787'
       VELA_USER_REFRESH_TOKEN_DURATION: 90m
       VELA_USER_ACCESS_TOKEN_DURATION: 60m
