@@ -824,7 +824,6 @@ type alias KeyValuePair =
 
 type alias Deployment =
     { id : Int
-    , number : Int
     , repo_id : Int
     , url : String
     , user : String
@@ -1249,7 +1248,6 @@ type alias Build =
     , started : Int
     , finished : Int
     , deploy : String
-    , deploy_number : Int
     , clone : String
     , source : String
     , title : String
@@ -1283,7 +1281,6 @@ decodeBuild =
         |> optional "started" int -1
         |> optional "finished" int -1
         |> optional "deploy" string ""
-        |> optional "deploy_number" int -1
         |> optional "clone" string ""
         |> optional "source" string ""
         |> optional "title" string ""
@@ -1671,7 +1668,6 @@ type alias Hook =
     , error : String
     , status : String
     , link : String
-    , deployment_id : Int
     }
 
 
@@ -1690,7 +1686,6 @@ decodeHook =
         |> optional "error" string ""
         |> optional "status" string ""
         |> optional "link" string ""
-        |> optional "deployment_id" int -1
 
 
 {-| decodeHooks : decodes json from vela into list of hooks
@@ -1996,7 +1991,6 @@ decodeDeployment : Decoder Deployment
 decodeDeployment =
     Decode.succeed Deployment
         |> optional "id" int -1
-        |> optional "number" int -1
         |> optional "repo_id" int -1
         |> optional "url" string ""
         |> optional "user" string ""
