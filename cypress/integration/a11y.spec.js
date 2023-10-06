@@ -4,22 +4,22 @@
  */
 
 const A11Y_OPTS = {
-  runOnly: {
-    type: 'tag',
-    values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
-  },
+  // runOnly: {
+  //   type: 'tag',
+  //   values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
+  // },
 };
 
 context('Accessibility (a11y)', () => {
-  context('Logged out', () => {
-    it.skip('overview', () => {
-      cy.clearSession();
-      cy.visit('/account/login');
-      cy.injectAxe();
-      cy.wait(500);
-      cy.checkA11y(A11Y_OPTS);
-    });
-  });
+  // context('Logged out', () => {
+  //   it.skip('overview', () => {
+  //     cy.clearSession();
+  //     cy.visit('/account/login');
+  //     cy.injectAxe();
+  //     cy.wait(500);
+  //     cy.checkA11y(A11Y_OPTS);
+  //   });
+  // });
 
   context('Logged in', () => {
     beforeEach(() => {

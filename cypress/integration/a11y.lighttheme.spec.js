@@ -4,16 +4,16 @@
  */
 
 const A11Y_OPTS = {
-  runOnly: {
-    type: 'tag',
-    values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
-  },
+  // runOnly: {
+  //   type: 'tag',
+  //   values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
+  // },
 };
 
 context('Accessibility (a11y)', () => {
-  context('Logged out', () => {
-    it.skip('overview', () => {
-      cy.clearSession();
+   context('Logged out', () => {
+     it('overview', () => {
+      //cy.clearSession();
       cy.setTheme('theme-light');
       cy.visit('/account/login');
       cy.injectAxe();
@@ -24,7 +24,7 @@ context('Accessibility (a11y)', () => {
 
   context('Logged in', () => {
     beforeEach(() => {
-      cy.clearSession();
+      //cy.clearSession();
       cy.setTheme('theme-light');
       cy.server();
       // overview page
@@ -64,23 +64,23 @@ context('Accessibility (a11y)', () => {
       cy.server({ enable: false });
     });
 
-    it.skip('overview', () => {
+    it('overview', () => {
       cy.checkA11yForPage('/', A11Y_OPTS);
     });
 
-    it.skip('source repos', () => {
+    it('source repos', () => {
       cy.checkA11yForPage('/account/source-repos', A11Y_OPTS);
     });
 
-    it.skip('settings', () => {
+    it('settings', () => {
       cy.checkA11yForPage('/github/octocat/settings', A11Y_OPTS);
     });
 
-    it.skip('repo page', () => {
+    it('repo page', () => {
       cy.checkA11yForPage('/github/octocat', A11Y_OPTS);
     });
 
-    it.skip('hooks page', () => {
+    it('hooks page', () => {
       cy.login('/github/octocat/hooks');
       cy.injectAxe();
       cy.wait(500);
@@ -88,7 +88,7 @@ context('Accessibility (a11y)', () => {
       cy.checkA11y(A11Y_OPTS);
     });
 
-    it.skip('build page', () => {
+    it('build page', () => {
       cy.login('/github/octocat/1');
       cy.injectAxe();
       cy.wait(500);
