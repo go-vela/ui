@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -48,12 +47,22 @@ addForm deploymentModel =
     let
         deployment =
             deploymentModel.form
+
+        branch =
+            case deploymentModel.repo_settings of
+                RemoteData.Success repo ->
+                    repo.branch
+
+                _ ->
+                    ""
     in
     div [ class "deployment-form" ]
         [ h2 [ class "deployment-header" ] [ text "Add Deployment" ]
         , viewDeployEnabled deploymentModel.repo_settings
+
+        -- GitHub default is "production". If we support more SCMs, this line may need tweaking
         , viewValueInput "Target" deployment.target "provide the name for the target deployment environment (default: \"production\")"
-        , viewValueInput "Ref" deployment.ref "provide the reference to deploy - this can be a branch, commit (SHA) or tag (default: \"refs/heads/master\")"
+        , viewValueInput "Ref" deployment.ref <| "provide the reference to deploy - this can be a branch, commit (SHA) or tag (default: " ++ branch ++ ")"
         , viewValueInput "Description" deployment.description "provide the description for the deployment (default: \"Deployment request from Vela\")"
         , viewValueInput "Task" deployment.task "Provide the task for the deployment (default: \"deploy:vela\")"
         , viewParameterInput deployment

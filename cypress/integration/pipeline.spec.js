@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2022 Target Brands, Inc. All rights reserved.
- * Use of this source code is governed by the LICENSE file in this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 context('Pipeline', () => {
@@ -83,7 +82,7 @@ context('Pipeline', () => {
         );
         cy.get('[data-test=pipeline-template-template1_name]').should(
           'contain',
-          'https://github.com/github/octocat/blob/master/template1.yml',
+          'https://github.com/github/octocat/blob/main/template1.yml',
         );
       });
 
