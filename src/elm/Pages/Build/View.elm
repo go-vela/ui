@@ -158,7 +158,8 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         buildMenuAttributeList : List (Html.Attribute msg)
         buildMenuAttributeList =
-            [ attribute "role" "navigation", id "build-actions" ] ++ Util.open (List.member build.id openMenu)
+            -- TODO: validate what swapping the order of these did
+            Util.open (List.member build.id openMenu) ++ [ id "build-actions" ]
 
         restartBuild : Html msgs
         restartBuild =
@@ -196,7 +197,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                 details (buildMenuBaseClassList :: buildMenuAttributeList)
                     [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle (Just build.id) Nothing), Util.testAttribute "build-menu" ]
                         [ text "Actions"
-                        , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+                        , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "Start-Step-Logs" ]
                         ]
                     , ul [ class "build-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                         [ restartBuild
@@ -445,7 +446,7 @@ viewStepDetails model msgs rm step =
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime model.time step.started step.finished ]
                     ]
-                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "Start-Step-Logs" ]
                 ]
             , div [ class "logs-container" ] [ viewStepLogs msgs.logsMsgs model.shift rm step ]
             ]
@@ -1060,7 +1061,7 @@ followButton followStep resourceType number following =
         , onClick <| followStep toFollow
         , attribute "aria-label" <| tooltip ++ " for " ++ resourceType ++ " " ++ number
         ]
-        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img", attribute "aria-label" "Start-Step-Logs" ]]
 
 
 {-| viewResourceError : checks for build error and renders message
