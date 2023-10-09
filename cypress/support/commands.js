@@ -600,7 +600,7 @@ Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();
   cy.wait(500);
-  cy.checkA11y(opts);
+  cy.checkA11y(null, opts);
 });
 
 Cypress.Commands.add('setTheme', theme => {

@@ -246,6 +246,7 @@ badge repo velaAPI velaURL copyMsg =
                     [ class "form-control"
                     , class "copy-display"
                     , class "-is-expanded"
+                    , attribute "aria-label" "status badge markdown code"
                     , rows 2
                     , readonly True
                     , wrap "soft"

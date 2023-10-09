@@ -3,10 +3,10 @@
  */
 
 const A11Y_OPTS = {
-  // runOnly: {
-  //   type: 'tag',
-  //   values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
-  // },
+  runOnly: {
+    type: 'tag',
+    values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
+  },
 };
 
 context('Accessibility (a11y)', () => {
@@ -17,7 +17,7 @@ context('Accessibility (a11y)', () => {
       cy.visit('/account/login');
       cy.injectAxe();
       cy.wait(500);
-      cy.checkA11y(A11Y_OPTS);
+      cy.checkA11y(null, A11Y_OPTS);
     });
   });
 
@@ -80,11 +80,7 @@ context('Accessibility (a11y)', () => {
     });
 
     it('hooks page', () => {
-      cy.login('/github/octocat/hooks');
-      cy.injectAxe();
-      cy.wait(500);
-      cy.get('[data-test=hook]').click({ multiple: true });
-      cy.checkA11y(A11Y_OPTS);
+      cy.checkA11yForPage('/github/octocat/hooks', A11Y_OPTS);
     });
 
     it('build page', () => {
@@ -92,7 +88,7 @@ context('Accessibility (a11y)', () => {
       cy.injectAxe();
       cy.wait(500);
       cy.clickSteps();
-      cy.checkA11y(A11Y_OPTS);
+      cy.checkA11y(null, A11Y_OPTS);
     });
   });
 });
