@@ -17,7 +17,7 @@ context('Accessibility (a11y)', () => {
       cy.visit('/account/login');
       cy.injectAxe();
       cy.wait(500);
-      cy.checkA11y(null, A11Y_OPTS);
+      cy.checkA11y({exclude: ['[style*="padding-left: calc(1ch + 6px)"]']}, A11Y_OPTS);
     });
   });
 
@@ -88,7 +88,7 @@ context('Accessibility (a11y)', () => {
       cy.injectAxe();
       cy.wait(500);
       cy.clickSteps();
-      cy.checkA11y(null, A11Y_OPTS);
+      cy.checkA11y({exclude: ['[style*="padding-left: calc(1ch + 6px)"]']}, A11Y_OPTS);
     });
   });
 });

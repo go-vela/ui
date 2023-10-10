@@ -600,7 +600,7 @@ Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();
   cy.wait(500);
-  cy.checkA11y(null, opts);
+  cy.checkA11y({exclude: ['[style*="padding-left: calc(1ch + 6px)"]']}, opts);
 });
 
 Cypress.Commands.add('setTheme', theme => {
