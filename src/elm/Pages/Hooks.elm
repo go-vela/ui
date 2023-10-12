@@ -120,7 +120,7 @@ hooksToRows now hooks org repo redeliverHook =
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Just "-icon", "" )
+    [ ( Just "-icon", "Status" )
     , ( Nothing, "source" )
     , ( Nothing, "created" )
     , ( Nothing, "host" )

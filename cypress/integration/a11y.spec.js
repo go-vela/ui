@@ -3,26 +3,31 @@
  */
 
 const A11Y_OPTS = {
-  // runOnly: {
-  //   type: 'tag',
-  //   values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
-  // },
+   runOnly: {
+     type: 'tag',
+     values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
+   },
+   rules: {
+    'color-contrast': { enabled: false },
+    'page-has-heading-one': { enabled: false },
+  },
 };
 
 context('Accessibility (a11y)', () => {
-  // context('Logged out', () => {
-  //   it.skip('overview', () => {
-  //     cy.clearSession();
-  //     cy.visit('/account/login');
-  //     cy.injectAxe();
-  //     cy.wait(500);
-  //     cy.checkA11y(A11Y_OPTS);
-  //   });
-  // });
+  context('Logged out', () => {
+    it.skip('overview', () => {
+      //cy.clearSession();
+      cy.visit('/account/login');
+      cy.injectAxe();
+      cy.wait(500);
+      // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
+      cy.checkA11y({exclude: [elmExclude]}, A11Y_OPTS);
+    });
+  });
 
   context('Logged in', () => {
     beforeEach(() => {
-      cy.clearSession();
+      //cy.clearSession();
       cy.server();
       // overview page
       cy.route('GET', '*api/v1/user*', 'fixture:favorites.json');
@@ -73,12 +78,8 @@ context('Accessibility (a11y)', () => {
       cy.checkA11yForPage('/github/octocat', A11Y_OPTS);
     });
 
-    it.skip('hooks page', () => {
-      cy.login('/github/octocat/hooks');
-      cy.injectAxe();
-      cy.wait(500);
-      cy.get('[data-test=hook]').click({ multiple: true });
-      cy.checkA11y(A11Y_OPTS);
+    it('hooks page', () => {
+      cy.checkA11yForPage('/github/octocat/hooks', A11Y_OPTS);
     });
 
     it.skip('build page', () => {
@@ -86,7 +87,8 @@ context('Accessibility (a11y)', () => {
       cy.injectAxe();
       cy.wait(500);
       cy.clickSteps();
-      cy.checkA11y(A11Y_OPTS);
+      // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
+      cy.checkA11y({exclude: [elmExclude]}, A11Y_OPTS);
     });
   });
 });

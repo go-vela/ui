@@ -600,6 +600,7 @@ Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();
   cy.wait(500);
+  // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
   cy.checkA11y({exclude: ['[style*="padding-left: calc(1ch + 6px)"]']}, opts);
 });
 

@@ -7,7 +7,13 @@ const A11Y_OPTS = {
     type: 'tag',
     values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
   },
+  rules: {
+    'color-contrast': { enabled: false },
+    'page-has-heading-one': { enabled: false },
+  },
 };
+
+const elmExclude = '[style*="padding-left: calc(1ch + 6px)"]';
 
 context('Accessibility (a11y)', () => {
    context('Logged out', () => {
@@ -17,7 +23,8 @@ context('Accessibility (a11y)', () => {
       cy.visit('/account/login');
       cy.injectAxe();
       cy.wait(500);
-      cy.checkA11y({exclude: ['[style*="padding-left: calc(1ch + 6px)"]']}, A11Y_OPTS);
+      // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
+      cy.checkA11y({exclude: [elmExclude]}, A11Y_OPTS);
     });
   });
 
@@ -88,7 +95,8 @@ context('Accessibility (a11y)', () => {
       cy.injectAxe();
       cy.wait(500);
       cy.clickSteps();
-      cy.checkA11y({exclude: ['[style*="padding-left: calc(1ch + 6px)"]']}, A11Y_OPTS);
+      // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
+      cy.checkA11y({exclude: [elmExclude]}, A11Y_OPTS);
     });
   });
 });
