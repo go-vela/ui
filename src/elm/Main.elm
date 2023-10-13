@@ -199,6 +199,7 @@ import Vela
         , stringToTheme
         , updateBuild
         , updateBuildGraph
+        , updateBuildGraphShowServices
         , updateBuildGraphShowSteps
         , updateBuildNumber
         , updateBuildPipelineConfig
@@ -481,10 +482,10 @@ type Msg
     | AddScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | UpdateScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-      -- Graphs
-    | BuildGraphResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, BuildGraph ))
-    | BuildGraphCollapseAllStages
-    | BuildGraphExpandAllStages
+      -- Graph
+    | BuildGraphResponse Org Repo BuildNumber Bool (Result (Http.Detailed.Error String) ( Http.Metadata, BuildGraph ))
+    | BuildGraphShowServices Bool
+    | BuildGraphShowSteps Bool
     | BuildGraphRefresh Org Repo BuildNumber
     | BuildGraphUpdateFilter String
       -- Time
@@ -645,19 +646,6 @@ update msg model =
 
                 gm =
                     model.repo.build.graph
-
-                updatedShowStepsDict =
-                    Dict.update interaction.node_id
-                        (\v ->
-                            Just <|
-                                case v of
-                                    Just v_ ->
-                                        not v_
-
-                                    Nothing ->
-                                        False
-                        )
-                        gm.showSteps
             in
             ( { model
                 | repo =
@@ -666,7 +654,7 @@ update msg model =
                             { bm
                                 | graph =
                                     { gm
-                                        | showSteps = updatedShowStepsDict
+                                        | showSteps = not gm.showSteps
                                     }
                             }
                     }
@@ -700,7 +688,7 @@ update msg model =
                     }
             in
             ( updatedModel
-            , getBuildGraph updatedModel org repo buildNumber
+            , getBuildGraph updatedModel org repo buildNumber True
             )
 
         BuildGraphUpdateFilter filter ->
@@ -730,7 +718,14 @@ update msg model =
                         Success g ->
                             case bm.build of
                                 Success b ->
-                                    Interop.renderBuildGraph <| encodeBuildGraphRenderData { dot = renderBuildGraphDOT updatedModel g, buildID = b.id, filter = filter }
+                                    Interop.renderBuildGraph <|
+                                        encodeBuildGraphRenderData
+                                            { dot = renderBuildGraphDOT updatedModel g
+                                            , buildID = b.id
+                                            , filter = filter
+                                            , showServices = model.repo.build.graph.showServices
+                                            , showSteps = model.repo.build.graph.showSteps
+                                            }
 
                                 _ ->
                                     Cmd.none
@@ -742,20 +737,13 @@ update msg model =
             , renderGraph
             )
 
-        BuildGraphCollapseAllStages ->
+        BuildGraphShowServices show ->
             let
                 bm =
                     model.repo.build
 
                 gm =
                     model.repo.build.graph
-
-                updatedShowStepsDict =
-                    Dict.map
-                        (\k v ->
-                            False
-                        )
-                        gm.showSteps
 
                 updatedModel =
                     { model
@@ -765,7 +753,7 @@ update msg model =
                                     { bm
                                         | graph =
                                             { gm
-                                                | showSteps = updatedShowStepsDict
+                                                | showServices = show
                                             }
                                     }
                             }
@@ -776,7 +764,14 @@ update msg model =
                         Success g ->
                             case bm.build of
                                 Success b ->
-                                    Interop.renderBuildGraph <| encodeBuildGraphRenderData { dot = renderBuildGraphDOT updatedModel g, buildID = b.id, filter = updatedModel.repo.build.graph.filter }
+                                    Interop.renderBuildGraph <|
+                                        encodeBuildGraphRenderData
+                                            { dot = renderBuildGraphDOT updatedModel g
+                                            , buildID = b.id
+                                            , filter = updatedModel.repo.build.graph.filter
+                                            , showServices = updatedModel.repo.build.graph.showServices
+                                            , showSteps = updatedModel.repo.build.graph.showSteps
+                                            }
 
                                 _ ->
                                     Cmd.none
@@ -788,20 +783,13 @@ update msg model =
             , renderGraph
             )
 
-        BuildGraphExpandAllStages ->
+        BuildGraphShowSteps show ->
             let
                 bm =
                     model.repo.build
 
                 gm =
                     model.repo.build.graph
-
-                updatedShowStepsDict =
-                    Dict.map
-                        (\k v ->
-                            True
-                        )
-                        gm.showSteps
 
                 updatedModel =
                     { model
@@ -811,7 +799,7 @@ update msg model =
                                     { bm
                                         | graph =
                                             { gm
-                                                | showSteps = updatedShowStepsDict
+                                                | showSteps = show
                                             }
                                     }
                             }
@@ -822,7 +810,14 @@ update msg model =
                         Success g ->
                             case bm.build of
                                 Success b ->
-                                    Interop.renderBuildGraph <| encodeBuildGraphRenderData { dot = renderBuildGraphDOT updatedModel g, buildID = b.id, filter = updatedModel.repo.build.graph.filter }
+                                    Interop.renderBuildGraph <|
+                                        encodeBuildGraphRenderData
+                                            { dot = renderBuildGraphDOT updatedModel g
+                                            , buildID = b.id
+                                            , filter = updatedModel.repo.build.graph.filter
+                                            , showServices = updatedModel.repo.build.graph.showServices
+                                            , showSteps = updatedModel.repo.build.graph.showSteps
+                                            }
 
                                 _ ->
                                     Cmd.none
@@ -2209,13 +2204,12 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        BuildGraphResponse org repo buildNumber response ->
+        BuildGraphResponse org repo buildNumber refresh response ->
             case response of
                 Ok ( _, g ) ->
                     case model.page of
                         Pages.BuildGraph _ _ _ ->
                             let
-
                                 bm =
                                     rm.build
 
@@ -2225,21 +2219,12 @@ update msg model =
                                 sameBuild =
                                     gm.buildNumber == buildNumber
 
-                                -- TODO: optimize this
-                                --       only render if the buildgraph has actually changed
                                 buildID =
                                     RemoteData.unwrap -1 .id bm.build
 
-                                steps =
-                                    List.indexedMap
-                                        (\i ( id, n ) ->
-                                            ( n.name, True )
-                                        )
-                                        (Dict.toList g.nodes)
-
                                 showSteps =
                                     if not sameBuild then
-                                        Dict.fromList steps
+                                        True
 
                                     else
                                         gm.showSteps
@@ -2248,9 +2233,15 @@ update msg model =
                                     { model | repo = { rm | build = { bm | graph = { gm | buildNumber = buildNumber, graph = RemoteData.succeed g, showSteps = showSteps } } } }
 
                                 cmd =
-                                    if True then
-                                        -- for now, the build graph always renders when receiving graph response from the server
-                                        Interop.renderBuildGraph <| encodeBuildGraphRenderData { dot = renderBuildGraphDOT updatedModel g, buildID = buildID, filter = updatedModel.repo.build.graph.filter }
+                                    if not sameBuild then
+                                        Interop.renderBuildGraph <|
+                                            encodeBuildGraphRenderData
+                                                { dot = renderBuildGraphDOT updatedModel g
+                                                , buildID = buildID
+                                                , filter = updatedModel.repo.build.graph.filter
+                                                , showServices = model.repo.build.graph.showServices
+                                                , showSteps = model.repo.build.graph.showSteps
+                                                }
 
                                     else
                                         Cmd.none
@@ -2289,10 +2280,45 @@ update msg model =
             case interval of
                 OneSecond ->
                     let
-                        ( favicon, cmd ) =
+                        ( favicon, updateFavicon ) =
                             refreshFavicon model.page model.favicon rm.build.build
+
+                        renderGraph =
+                            case model.page of
+                                Pages.BuildGraph org repo buildNumber ->
+                                    let
+                                        bm =
+                                            model.repo.build
+
+                                        gm =
+                                            bm.graph
+
+                                        buildID =
+                                            RemoteData.unwrap -1 .id bm.build
+                                    in
+                                    case gm.graph of
+                                        Success g ->
+                                            Interop.renderBuildGraph <|
+                                                encodeBuildGraphRenderData
+                                                    { dot = renderBuildGraphDOT model g
+                                                    , buildID = buildID
+                                                    , filter = model.repo.build.graph.filter
+                                                    , showServices = model.repo.build.graph.showServices
+                                                    , showSteps = model.repo.build.graph.showSteps
+                                                    }
+
+                                        _ ->
+                                            Cmd.none
+
+                                _ ->
+                                    Cmd.none
                     in
-                    ( { model | time = time, favicon = favicon }, cmd )
+                    ( { model | time = time, favicon = favicon }
+                    , Cmd.batch
+                        [ updateFavicon
+                        , renderGraph
+                        ]
+                    )
 
                 FiveSecond ->
                     ( model, refreshPage model )
@@ -2701,7 +2727,7 @@ refreshBuildServices model org repo buildNumber focusFragment =
 refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuildGraph model org repo buildNumber =
     if shouldRefresh model.repo.build then
-        getBuildGraph model org repo buildNumber
+        getBuildGraph model org repo buildNumber True
 
     else
         Cmd.none
@@ -4405,6 +4431,8 @@ loadBuildGraphPage model org repo buildNumber =
                                 { dot = renderBuildGraphDOT model g
                                 , buildID = buildID
                                 , filter = model.repo.build.graph.filter
+                                , showServices = model.repo.build.graph.showServices
+                                , showSteps = model.repo.build.graph.showSteps
                                 }
 
                     else
@@ -4433,7 +4461,7 @@ loadBuildGraphPage model org repo buildNumber =
         Cmd.batch
             [ getBuilds m org repo Nothing Nothing Nothing
             , getBuild m org repo buildNumber
-            , getBuildGraph m org repo buildNumber
+            , getBuildGraph m org repo buildNumber False
             , renderGraph
             ]
     )
@@ -4664,7 +4692,8 @@ setBuild org repo buildNumber soft model =
                 |> updateBuildServicesLogs []
                 |> updateBuildServicesFocusFragment Nothing
                 |> updateBuildGraph NotAsked
-                |> updateBuildGraphShowSteps Dict.empty
+                |> updateBuildGraphShowServices True
+                |> updateBuildGraphShowSteps True
     }
 
 
@@ -4918,8 +4947,8 @@ buildMsgs =
         , followService = FollowService
         }
     , buildGraphMsgs =
-        { collapseAllStages = BuildGraphCollapseAllStages
-        , expandAllStages = BuildGraphExpandAllStages
+        { showServices = BuildGraphShowServices
+        , showSteps = BuildGraphShowSteps
         , refresh = BuildGraphRefresh
         , updateFilter = BuildGraphUpdateFilter
         }
@@ -5082,9 +5111,9 @@ getBuildServicesLogs model org repo buildNumber services logFocus refresh =
             services
 
 
-getBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-getBuildGraph model org repo buildNumber =
-    Api.try (BuildGraphResponse org repo buildNumber) <| Api.getBuildGraph model org repo buildNumber
+getBuildGraph : Model -> Org -> Repo -> BuildNumber -> Bool -> Cmd Msg
+getBuildGraph model org repo buildNumber refresh =
+    Api.try (BuildGraphResponse org repo buildNumber refresh) <| Api.getBuildGraph model org repo buildNumber
 
 
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg

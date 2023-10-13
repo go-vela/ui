@@ -37,7 +37,7 @@ import Html.Attributes
         , style
         , title
         )
-import Html.Events exposing (onClick)
+import Html.Events exposing (onCheck, onClick)
 import List.Extra exposing (unique)
 import Nav exposing (viewBuildTabs)
 import Pages.Build.Logs
@@ -597,6 +597,7 @@ viewBuildGraph model msgs org repo buildNumber =
                 [ style "display" "none"
                 , class "d3-build-graph-node-outline-rect"
                 , class "d3-build-graph-node-step-a"
+                , class "d3-build-graph-node-step-a-underline"
                 , class "d3-build-graph-edge-path"
                 , class "-pending"
                 , class "-running"
@@ -617,28 +618,29 @@ viewBuildGraph model msgs org repo buildNumber =
                             [ FeatherIcons.minimize |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
                             ]
                         ]
-                    , li []
-                        [ button
-                            [ class "button"
-                            , class "-icon"
-                            , id "action-collapse"
-                            , Html.Attributes.title "Collapse all stages"
-                            , onClick msgs.buildGraphMsgs.collapseAllStages
-                            ]
-                            [ FeatherIcons.minimize2 |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
-                            ]
-                        ]
-                    , li []
-                        [ button
-                            [ class "button"
-                            , class "-icon"
-                            , id "action-expand"
-                            , Html.Attributes.title "Expand all stages"
-                            , onClick msgs.buildGraphMsgs.expandAllStages
-                            ]
-                            [ FeatherIcons.maximize2 |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
-                            ]
-                        ]
+
+                    -- , li []
+                    --     [ button
+                    --         [ class "button"
+                    --         , class "-icon"
+                    --         , id "action-collapse"
+                    --         , Html.Attributes.title "Collapse all stages"
+                    --         , onClick msgs.buildGraphMsgs.collapseAllStages
+                    --         ]
+                    --         [ FeatherIcons.minimize2 |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
+                    --         ]
+                    --     ]
+                    -- , li []
+                    --     [ button
+                    --         [ class "button"
+                    --         , class "-icon"
+                    --         , id "action-expand"
+                    --         , Html.Attributes.title "Expand all stages"
+                    --         , onClick msgs.buildGraphMsgs.expandAllStages
+                    --         ]
+                    --         [ FeatherIcons.maximize2 |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
+                    --         ]
+                    --     ]
                     , li []
                         [ button
                             [ class "button"
@@ -656,33 +658,37 @@ viewBuildGraph model msgs org repo buildNumber =
                         [ div []
                             [ Html.input
                                 [ Html.Attributes.type_ "checkbox"
-                                , Html.Attributes.checked False
+                                , Html.Attributes.checked model.repo.build.graph.showServices
+                                , onCheck msgs.buildGraphMsgs.showServices
                                 , id "checkbox-services-toggle"
                                 , Util.testAttribute "services-toggle"
                                 ]
                                 []
-                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-services-toggle" ] [
-                                 text "services" ]
+                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-services-toggle" ]
+                                [ text "services"
+                                ]
                             ]
                         ]
                     , div [ class "form-control" ]
                         [ div []
                             [ Html.input
                                 [ Html.Attributes.type_ "checkbox"
-                                , Html.Attributes.checked False
+                                , Html.Attributes.checked model.repo.build.graph.showSteps
+                                , onCheck msgs.buildGraphMsgs.showSteps
                                 , id "checkbox-timestamps-toggle"
                                 , Util.testAttribute "timestamps-toggle"
                                 ]
                                 []
-                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-timestamps-toggle" ] [ 
-                                text "timestamps" ]
+                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-timestamps-toggle" ]
+                                [ text "steps"
+                                ]
                             ]
                         ]
                     , div [ class "form-control", class "elm-build-graph-search-filter" ]
                         [ Html.input
                             [ Html.Attributes.type_ "input"
                             , Html.Attributes.checked True
-                            , Html.Attributes.placeholder "type to filter stages..."
+                            , Html.Attributes.placeholder "type to highlight nodes..."
                             , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
                             , id "search-filter"
                             , Util.testAttribute "search-filter"

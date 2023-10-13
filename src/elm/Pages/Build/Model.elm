@@ -22,7 +22,7 @@ import Html exposing (Html)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Time exposing (Posix, Zone)
-import Vela exposing (BuildNumber, BuildGraphModel, CurrentUser, Org, PipelineModel, Repo, RepoModel, SourceRepositories)
+import Vela exposing (BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoModel, SourceRepositories)
 
 
 
@@ -76,8 +76,8 @@ type alias LogsMsgs msg =
 
 
 type alias BuildGraphMsgs msg =
-    { collapseAllStages : msg
-    , expandAllStages : msg
+    { showServices : Bool -> msg
+    , showSteps : Bool -> msg
     , refresh : Org -> Repo -> BuildNumber -> msg
     , updateFilter : String -> msg
     }

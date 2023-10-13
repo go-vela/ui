@@ -3,11 +3,19 @@ module Visualization.DOT exposing
     , AttributeValue(..)
     , Rankdir(..)
     , Styles
+    , attrAssocs
+    , attrToString
     , clusterSubgraph
     , digraph
     , escapeAttributes
     , escapeCharacters
+    , makeAttrs
     )
+
+import Dict exposing (Dict)
+import Json.Encode
+
+
 
 -- TYPES
 
@@ -61,10 +69,10 @@ digraph styles content =
             ]
 
 
-clusterSubgraph : String -> Styles -> String -> String -> String
+clusterSubgraph : Int -> Styles -> String -> String -> String
 clusterSubgraph cluster styles nodesString edgesString =
     String.join "\n"
-        [ "subgraph cluster_" ++ cluster ++ " {" -- start subgraph
+        [ "subgraph cluster_" ++ String.fromInt cluster ++ " {" -- start subgraph
         , "  graph [" ++ styles.graph ++ "]"
         , "  node [" ++ styles.node ++ "]"
         , "  edge [" ++ styles.edge ++ "]"
@@ -120,3 +128,36 @@ escapeAttributes attrs =
         )
         attrs
         |> String.join " "
+
+
+{-| attrToString : takes attribute and returns it as a string
+-}
+attrToString : Attribute -> String
+attrToString attr =
+    case attr of
+        DefaultJSONLabelEscape s ->
+            Json.Encode.string s
+                |> Json.Encode.encode 0
+
+        HtmlLabelEscape h ->
+            "<" ++ h ++ ">"
+
+
+{-| makeAttrs : takes dictionary of attributes and returns them as a string
+-}
+makeAttrs : Dict String Attribute -> String
+makeAttrs d =
+    if Dict.isEmpty d then
+        ""
+
+    else
+        " [" ++ attrAssocs d ++ "]"
+
+
+{-| attrAssocs : takes dictionary of attributes and returns them as a string
+-}
+attrAssocs : Dict String Attribute -> String
+attrAssocs =
+    Dict.toList
+        >> List.map (\( k, v ) -> k ++ "=" ++ attrToString v)
+        >> String.join ", "

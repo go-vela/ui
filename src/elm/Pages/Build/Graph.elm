@@ -3,15 +3,14 @@ module Pages.Build.Graph exposing (renderBuildGraphDOT)
 import Dict exposing (Dict)
 import Focus
 import Graph exposing (Edge, Node)
-import Json.Encode
 import Pages.Build.Model as BuildModel
 import Routes exposing (Route(..))
+import Util
 import Vela
     exposing
         ( BuildGraph
         , BuildGraphEdge
         , BuildGraphNode
-        , Step
         , statusToString
         )
 import Visualization.DOT as DOT
@@ -22,8 +21,29 @@ import Visualization.DOT as DOT
         , clusterSubgraph
         , digraph
         , escapeAttributes
+        , makeAttrs
         )
-import Util
+
+
+{-| renderBuildGraphDOT : constant for organizing the layout of build graph nodes
+-}
+builtInClusterID : Int
+builtInClusterID =
+    2
+
+
+{-| pipelineClusterID : constant for organizing the layout of build graph nodes
+-}
+pipelineClusterID : Int
+pipelineClusterID =
+    1
+
+
+{-| serviceClusterID : constant for organizing the layout of build graph nodes
+-}
+serviceClusterID : Int
+serviceClusterID =
+    0
 
 
 {-| renderBuildGraphDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
@@ -38,69 +58,56 @@ renderBuildGraphDOT model buildGraph =
             buildGraph.nodes
                 |> Dict.toList
                 |> List.map
-                    (\( _, node ) ->
-                        Node node.id (BuildGraphNode node.id node.name node.steps node.status)
-                    )
+                    (\( _, n ) -> Node n.id (BuildGraphNode n.cluster n.id n.name n.status n.startedAt n.finishedAt n.steps))
 
         -- convert BuildGraphEdge to Graph.Edge
         inEdges =
             buildGraph.edges
                 |> List.map
-                    (\e ->
-                        Edge e.source e.destination (BuildGraphEdge e.source e.destination e.status)
-                    )
+                    (\e -> Edge e.source e.destination (BuildGraphEdge e.cluster e.source e.destination e.status))
 
-        -- construct graph from nodes and edges
-        graph =
+        -- construct a Graph to extract nodes and edges
+        ( nodes, edges ) =
             Graph.fromNodesAndEdges inNodes inEdges
+                |> (\graph -> ( Graph.nodes graph, Graph.edges graph ))
 
-        nodes =
-            Graph.nodes graph
-
-        -- group built-in nodes such as init and clone
+        -- group nodes based on cluster
         builtInNodes =
             nodes
-                |> List.filter isBuiltInNode
+                |> List.filter (\n -> n.label.cluster == builtInClusterID)
 
-        -- group the rest as pipeline nodes
         pipelineNodes =
             nodes
-                |> List.filter (\n -> not <| isBuiltInNode n)
+                |> List.filter (\n -> n.label.cluster == pipelineClusterID)
 
-        -- sort edges
-        edges =
-            let
-                compareEdge a b =
-                    case compare a.from b.from of
-                        LT ->
-                            LT
+        serviceNodes =
+            nodes
+                |> List.filter (\n -> n.label.cluster == serviceClusterID)
 
-                        GT ->
-                            GT
-
-                        EQ ->
-                            compare a.to b.to
-            in
-            Graph.edges graph
-                |> List.sortWith compareEdge
-
-        -- group built-in edges such as init-to-clone
+        -- group edges based on cluster
         builtInEdges =
             edges
-                |> List.filter isBuiltInEdge
+                |> List.filter (\e -> e.label.cluster == builtInClusterID)
 
-        -- group the rest as pipeline edges
         pipelineEdges =
             edges
-                |> List.filter (\e -> not <| isBuiltInEdge e)
+                |> List.filter (\e -> e.label.cluster == pipelineClusterID)
 
-        -- convert nodes and edges to string
+        serviceEdges =
+            edges
+                |> List.filter (\e -> e.label.cluster == serviceClusterID)
+
+        -- convert nodes and edges to DOT string format
         builtInNodesString =
             List.map (nodeToString model) builtInNodes
                 |> String.join "\n"
 
         pipelineNodesString =
             List.map (nodeToString model) pipelineNodes
+                |> String.join "\n"
+
+        serviceNodesString =
+            List.map (nodeToString model) serviceNodes
                 |> String.join "\n"
 
         builtInEdgesString =
@@ -110,24 +117,54 @@ renderBuildGraphDOT model buildGraph =
         pipelineEdgesString =
             List.map edgeToString pipelineEdges
                 |> String.join "\n"
+
+        serviceEdgesString =
+            List.map edgeToString serviceEdges
+                |> String.join "\n"
+
+        -- construct DOT subgraphs using nodes and edges
+        pipelineSubgraph =
+            clusterSubgraph pipelineClusterID pipelineSubgraphStyles pipelineNodesString pipelineEdgesString
+
+        builtInSubgraph =
+            clusterSubgraph builtInClusterID builtInSubgraphStyles builtInNodesString builtInEdgesString
+
+        serviceSubgraph =
+            if model.repo.build.graph.showServices then
+                clusterSubgraph serviceClusterID serviceSubgraphStyles serviceNodesString serviceEdgesString
+
+            else
+                ""
     in
     digraph baseGraphStyles
         [ ""
-        , clusterSubgraph "1" pipelineSubgraphStyles pipelineNodesString pipelineEdgesString
+
+        -- pipeline (stages, steps) subgraph and cluster
+        , pipelineSubgraph
         , ""
 
-        -- built-in nodes are clustered to produce a split layout where more built-in steps can be added later
-        , clusterSubgraph "0" builtInSubgraphStyles builtInNodesString builtInEdgesString
+        -- built-in (init, clone) subgraph and cluster
+        , builtInSubgraph
+        , ""
+
+        -- services subgraph and cluster
+        , serviceSubgraph
         , ""
         ]
 
 
-stageNodeLabel : BuildModel.PartialModel a -> Bool -> String -> List Step ->String -> String
-stageNodeLabel model showSteps label steps runtime =
+nodeLabel : BuildModel.PartialModel a -> Bool -> BuildGraphNode -> String
+nodeLabel model showSteps node =
     let
+        label =
+            node.name
+
+        steps =
+            List.sortBy .id node.steps
+
         table content =
             "<table "
-                ++ escapeAttributes stageNodeTableAttrs
+                ++ escapeAttributes nodeTableAttrs
                 ++ ">"
                 ++ String.join "" content
                 ++ "</table>"
@@ -136,12 +173,15 @@ stageNodeLabel model showSteps label steps runtime =
         labelColor =
             "white"
 
+        runtime =
+            Util.formatRunTime model.time node.startedAt node.finishedAt
 
         header =
             "<tr>"
                 ++ "<td "
                 ++ escapeAttributes
-                    [ ( "align", DefaultEscape "left" ) ]
+                    [ ( "align", DefaultEscape "left" )
+                    ]
                 ++ " >"
                 ++ ("<font color='"
                         ++ labelColor
@@ -150,9 +190,14 @@ stageNodeLabel model showSteps label steps runtime =
                         ++ label
                         ++ "</u>"
                         ++ "</font>"
-                        ++ "  <font color='white'>("
-                        ++ (String.fromInt <| List.length steps)
-                        ++ ")</font>"
+                        ++ (if node.cluster /= 1 then
+                                "  <font color='white'>("
+                                    ++ (String.fromInt <| List.length steps)
+                                    ++ ")</font>"
+
+                            else
+                                ""
+                           )
                    )
                 ++ "</td>"
                 ++ "<td><font color='white'>"
@@ -223,16 +268,6 @@ stageNodeLabel model showSteps label steps runtime =
 -- HELPERS
 
 
-isBuiltInNode : Node BuildGraphNode -> Bool
-isBuiltInNode node =
-    node.id < 0
-
-
-isBuiltInEdge : Edge BuildGraphEdge -> Bool
-isBuiltInEdge e_ =
-    e_.from < -1 || e_.to < -1
-
-
 nodeToString : BuildModel.PartialModel a -> Node BuildGraphNode -> String
 nodeToString model n =
     "  "
@@ -247,33 +282,6 @@ edgeToString e =
         ++ " -> "
         ++ String.fromInt e.to
         ++ makeAttrs (edgeAttrs e.label)
-
-
-attrToString : Attribute -> String
-attrToString attr =
-    case attr of
-        DefaultJSONLabelEscape s ->
-            Json.Encode.string s
-                |> Json.Encode.encode 0
-
-        HtmlLabelEscape h ->
-            "<" ++ h ++ ">"
-
-
-attrAssocs : Dict String Attribute -> String
-attrAssocs =
-    Dict.toList
-        >> List.map (\( k, v ) -> k ++ "=" ++ attrToString v)
-        >> String.join ", "
-
-
-makeAttrs : Dict String Attribute -> String
-makeAttrs d =
-    if Dict.isEmpty d then
-        ""
-
-    else
-        " [" ++ attrAssocs d ++ "]"
 
 
 
@@ -353,6 +361,32 @@ pipelineSubgraphStyles =
     }
 
 
+serviceSubgraphStyles : Styles
+serviceSubgraphStyles =
+    { rankdir = DOT.LR -- unused with subgraph
+    , graph =
+        escapeAttributes
+            [ ( "bgcolor", DefaultEscape "transparent" )
+            , ( "peripheries", DefaultEscape "0" )
+            ]
+    , node =
+        escapeAttributes
+            [ ( "color", DefaultEscape "#151515" )
+            , ( "style", DefaultEscape "filled" )
+            , ( "fontname", DefaultEscape "Arial" )
+            ]
+    , edge =
+        escapeAttributes
+            [ ( "color", DefaultEscape "azure2" )
+            , ( "penwidth", DefaultEscape "0" )
+            , ( "arrowhead", DefaultEscape "dot" )
+            , ( "arrowsize", DefaultEscape "0" )
+            , ( "minlen", DefaultEscape "1" )
+            , ( "style", DefaultEscape "invis" )
+            ]
+    }
+
+
 nodeAttrs : BuildModel.PartialModel a -> BuildGraphNode -> Dict String Attribute
 nodeAttrs model node =
     let
@@ -367,27 +401,41 @@ nodeAttrs model node =
 
         -- track step expansion using the model and OnGraphInteraction
         showSteps =
-            Maybe.withDefault True <| Dict.get node.name model.repo.build.graph.showSteps
-    
-        start = Maybe.withDefault 0 <| List.minimum (List.map (\s -> s.started) node.steps) 
-        finish = Maybe.withDefault 0 <| List.maximum (0 :: (List.map .finished node.steps)) 
-        runtime = Util.formatRunTime model.time  start finish
+            model.repo.build.graph.showSteps
     in
     Dict.fromList <|
-        [ ( "class", DefaultJSONLabelEscape "elm-build-graph-node" )
-        , ( "shape", DefaultJSONLabelEscape "rect" )
-        , ( "style", DefaultJSONLabelEscape "filled" )
-        , ( "border", DefaultJSONLabelEscape "white" )
-        , ( "id", DefaultJSONLabelEscape id )
-        , ( "label", HtmlLabelEscape <| stageNodeLabel model showSteps node.name (List.sortBy .id node.steps) runtime )
-        , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
-        ]
+        -- static attributes
+        defaultNodeAttrs
+            ++ -- dynamic attributes
+               [ ( "id", DefaultJSONLabelEscape id )
+               , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
+               , ( "label", HtmlLabelEscape <| nodeLabel model showSteps node )
+               , ( "tooltip", DefaultJSONLabelEscape node.name )
+               ]
+
+
+defaultNodeAttrs : List ( String, Attribute )
+defaultNodeAttrs =
+    [ ( "class", DefaultJSONLabelEscape "elm-build-graph-node" )
+    , ( "shape", DefaultJSONLabelEscape "rect" )
+    , ( "style", DefaultJSONLabelEscape "filled" )
+    , ( "border", DefaultJSONLabelEscape "white" )
+    ]
+
+
+nodeTableAttrs : List ( String, AttributeValue )
+nodeTableAttrs =
+    [ ( "border", DefaultEscape "0" )
+    , ( "cellborder", DefaultEscape "0" )
+    , ( "cellspacing", DefaultEscape "5" )
+    , ( "margin", DefaultEscape "0" )
+    ]
 
 
 edgeAttrs : BuildGraphEdge -> Dict String Attribute
 edgeAttrs e =
     let
-        -- embed edge information in the element id
+        -- embed edge information in the element id to use during OnGraphInteraction callbacks
         id =
             "#"
                 ++ String.join ","
@@ -401,12 +449,3 @@ edgeAttrs e =
         , ( "style", DefaultJSONLabelEscape "filled" )
         , ( "id", DefaultJSONLabelEscape id )
         ]
-
-
-stageNodeTableAttrs : List ( String, AttributeValue )
-stageNodeTableAttrs =
-    [ ( "border", DefaultEscape "0" )
-    , ( "cellborder", DefaultEscape "0" )
-    , ( "cellspacing", DefaultEscape "5" )
-    , ( "margin", DefaultEscape "0" )
-    ]

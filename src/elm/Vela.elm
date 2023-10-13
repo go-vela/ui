@@ -138,6 +138,7 @@ module Vela exposing
     , stringToTheme
     , updateBuild
     , updateBuildGraph
+    , updateBuildGraphShowServices
     , updateBuildGraphShowSteps
     , updateBuildNumber
     , updateBuildPipelineConfig
@@ -739,7 +740,19 @@ updateBuildGraph update rm =
     { rm | build = { b | graph = { g | graph = update } } }
 
 
-updateBuildGraphShowSteps : Dict String Bool -> RepoModel -> RepoModel
+updateBuildGraphShowServices : Bool -> RepoModel -> RepoModel
+updateBuildGraphShowServices update rm =
+    let
+        b =
+            rm.build
+
+        g =
+            b.graph
+    in
+    { rm | build = { b | graph = { g | showServices = update } } }
+
+
+updateBuildGraphShowSteps : Bool -> RepoModel -> RepoModel
 updateBuildGraphShowSteps update rm =
     let
         b =
@@ -1339,7 +1352,7 @@ decodeBuild =
 
 defaultBuildGraphModel : BuildGraphModel
 defaultBuildGraphModel =
-    BuildGraphModel "" NotAsked Dict.empty ""
+    BuildGraphModel "" NotAsked "" True True
 
 
 defaultBuildGraph : BuildGraph
@@ -1347,27 +1360,32 @@ defaultBuildGraph =
     BuildGraph Dict.empty []
 
 
-encodeBuildGraphRenderData : BuildGraphRenderData -> Encode.Value
+encodeBuildGraphRenderData : BuildGraphRenderInteropData -> Encode.Value
 encodeBuildGraphRenderData graphData =
     Encode.object
         [ ( "dot", Encode.string graphData.dot )
         , ( "build_id", Encode.int graphData.buildID )
         , ( "filter", Encode.string graphData.filter )
+        , ( "show_services", Encode.bool graphData.showServices )
+        , ( "show_steps", Encode.bool graphData.showSteps )
         ]
 
 
-type alias BuildGraphRenderData =
+type alias BuildGraphRenderInteropData =
     { dot : String
     , buildID : Int
     , filter : String
+    , showServices : Bool
+    , showSteps : Bool
     }
 
 
 type alias BuildGraphModel =
     { buildNumber : BuildNumber
     , graph : WebData BuildGraph
-    , showSteps : Dict String Bool
     , filter : String
+    , showServices : Bool
+    , showSteps : Bool
     }
 
 
@@ -1378,15 +1396,19 @@ type alias BuildGraph =
 
 
 type alias BuildGraphNode =
-    { id : Int
+    { cluster : Int
+    , id : Int
     , name : String
-    , steps : List Step
     , status : String
+    , startedAt : Int
+    , finishedAt : Int
+    , steps : List Step
     }
 
 
 type alias BuildGraphEdge =
-    { source : Int
+    { cluster : Int
+    , source : Int
     , destination : Int
     , status : String
     }
@@ -1402,15 +1424,19 @@ decodeBuildGraph =
 decodeBuildGraphNode : Decoder BuildGraphNode
 decodeBuildGraphNode =
     Decode.succeed BuildGraphNode
+        |> required "cluster" int
         |> required "id" int
         |> required "name" Decode.string
-        |> optional "steps" (Decode.list decodeStep) []
         |> optional "status" string ""
+        |> required "started_at" int
+        |> required "finished_at" int
+        |> optional "steps" (Decode.list decodeStep) []
 
 
 decodeEdge : Decoder BuildGraphEdge
 decodeEdge =
     Decode.succeed BuildGraphEdge
+        |> required "cluster" int
         |> required "source" int
         |> required "destination" int
         |> optional "status" string ""
@@ -1717,6 +1743,11 @@ decodeService =
         |> hardcoded False
         -- "logFocus"
         |> hardcoded ( Nothing, Nothing )
+
+
+defaultService : Service
+defaultService =
+    Service -1 -1 -1 -1 "" Pending "" -1 -1 -1 -1 "" "" "" "" False ( Nothing, Nothing )
 
 
 type alias Services =
