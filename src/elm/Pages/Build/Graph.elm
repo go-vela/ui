@@ -1,9 +1,11 @@
-module Pages.Build.Graph exposing (renderBuildGraphDOT)
+module Pages.Build.Graph exposing (renderBuildGraph, renderBuildGraphDOT)
 
 import Dict exposing (Dict)
 import Focus
 import Graph exposing (Edge, Node)
+import Interop
 import Pages.Build.Model as BuildModel
+import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
 import Util
 import Vela
@@ -11,6 +13,7 @@ import Vela
         ( BuildGraph
         , BuildGraphEdge
         , BuildGraphNode
+        , encodeBuildGraphRenderData
         , statusToString
         )
 import Visualization.DOT as DOT
@@ -46,6 +49,33 @@ serviceClusterID =
     0
 
 
+renderBuildGraph model =
+    let
+        rm =
+            model.repo
+
+        bm =
+            rm.build
+
+        gm =
+            rm.build.graph
+    in
+    case gm.graph of
+        Success g ->
+            Interop.renderBuildGraph <|
+                encodeBuildGraphRenderData
+                    { dot = renderBuildGraphDOT model g
+                    , buildID = RemoteData.unwrap -1 .id bm.build
+                    , filter = gm.filter
+                    , showServices = gm.showServices
+                    , showSteps = gm.showSteps
+                    , focusedNode = gm.focusedNode
+                    }
+
+        _ ->
+            Cmd.none
+
+
 {-| renderBuildGraphDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
 <https://graphviz.org/doc/info/lang.html>
 <https://package.elm-lang.org/packages/elm-community/graph/latest/Graph.DOT>
@@ -53,18 +83,34 @@ serviceClusterID =
 renderBuildGraphDOT : BuildModel.PartialModel a -> BuildGraph -> String
 renderBuildGraphDOT model buildGraph =
     let
+        isNodeFocused : String -> BuildGraphNode -> Bool
+        isNodeFocused filter n =
+            n.id
+                == model.repo.build.graph.focusedNode
+                || (String.length filter > 2)
+                && (String.contains filter n.name
+                        || List.any (\s -> String.contains filter s.name) n.steps
+                   )
+
+        isEdgeFocused : Int -> BuildGraphEdge -> Bool
+        isEdgeFocused focusedNode e =
+            focusedNode == e.destination || focusedNode == e.source
+
         -- convert BuildGraphNode to Graph.Node
         inNodes =
             buildGraph.nodes
                 |> Dict.toList
                 |> List.map
-                    (\( _, n ) -> Node n.id (BuildGraphNode n.cluster n.id n.name n.status n.startedAt n.finishedAt n.steps))
+                    (\( _, n ) ->
+                        Node n.id
+                            (BuildGraphNode n.cluster n.id n.name n.status n.startedAt n.finishedAt n.steps (isNodeFocused model.repo.build.graph.filter n))
+                    )
 
         -- convert BuildGraphEdge to Graph.Edge
         inEdges =
             buildGraph.edges
                 |> List.map
-                    (\e -> Edge e.source e.destination (BuildGraphEdge e.cluster e.source e.destination e.status))
+                    (\e -> Edge e.source e.destination (BuildGraphEdge e.cluster e.source e.destination e.status (isEdgeFocused model.repo.build.graph.focusedNode e)))
 
         -- construct a Graph to extract nodes and edges
         ( nodes, edges ) =
@@ -307,7 +353,7 @@ baseGraphStyles =
     , edge =
         escapeAttributes
             [ ( "color", DefaultEscape "azure2" )
-            , ( "penwidth", DefaultEscape "2" )
+            , ( "penwidth", DefaultEscape "1" )
             , ( "arrowhead", DefaultEscape "dot" )
             , ( "arrowsize", DefaultEscape "0.5" )
             , ( "minlen", DefaultEscape "1" )
@@ -387,33 +433,6 @@ serviceSubgraphStyles =
     }
 
 
-nodeAttrs : BuildModel.PartialModel a -> BuildGraphNode -> Dict String Attribute
-nodeAttrs model node =
-    let
-        -- embed node information in the element id
-        id =
-            "#"
-                ++ String.join ","
-                    [ String.fromInt node.id
-                    , node.name
-                    , node.status
-                    ]
-
-        -- track step expansion using the model and OnGraphInteraction
-        showSteps =
-            model.repo.build.graph.showSteps
-    in
-    Dict.fromList <|
-        -- static attributes
-        defaultNodeAttrs
-            ++ -- dynamic attributes
-               [ ( "id", DefaultJSONLabelEscape id )
-               , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
-               , ( "label", HtmlLabelEscape <| nodeLabel model showSteps node )
-               , ( "tooltip", DefaultJSONLabelEscape node.name )
-               ]
-
-
 defaultNodeAttrs : List ( String, Attribute )
 defaultNodeAttrs =
     [ ( "class", DefaultJSONLabelEscape "elm-build-graph-node" )
@@ -432,6 +451,34 @@ nodeTableAttrs =
     ]
 
 
+nodeAttrs : BuildModel.PartialModel a -> BuildGraphNode -> Dict String Attribute
+nodeAttrs model node =
+    let
+        -- embed node information in the element id
+        id =
+            "#"
+                ++ String.join ","
+                    [ String.fromInt node.id
+                    , node.name
+                    , node.status
+                    , Util.boolToString node.focused
+                    ]
+
+        -- track step expansion using the model and OnGraphInteraction
+        showSteps =
+            model.repo.build.graph.showSteps
+    in
+    Dict.fromList <|
+        -- static attributes
+        defaultNodeAttrs
+            ++ -- dynamic attributes
+               [ ( "id", DefaultJSONLabelEscape id )
+               , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
+               , ( "label", HtmlLabelEscape <| nodeLabel model showSteps node )
+               , ( "tooltip", DefaultJSONLabelEscape id )
+               ]
+
+
 edgeAttrs : BuildGraphEdge -> Dict String Attribute
 edgeAttrs e =
     let
@@ -442,6 +489,7 @@ edgeAttrs e =
                     [ String.fromInt e.source
                     , String.fromInt e.destination
                     , e.status
+                    , Util.boolToString e.focused
                     ]
     in
     Dict.fromList <|

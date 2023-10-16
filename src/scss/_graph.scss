@@ -150,6 +150,25 @@
   }
 }
 
+.elm-build-graph-focused-node {
+  // todo: remove this
+  display: flex;
+  align-items: center;
+
+  span {
+    background: var(--color-primary);
+    color: var(--color-bg-dark);
+    padding: 0.2rem 0.8rem;
+    margin-right: 0.6rem;
+  }
+
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  background-color: var(--color-bg);
+  border-right: 1px solid var(--color-bg-light);
+}
+
 // end: classes controlled by Elm
 
 // start: classes controlled by d3
@@ -184,17 +203,20 @@
 
   &.-hover {
     stroke: var(--color-primary);
+    stroke-width: 3;
   }
 
-  &.-filtered {
-    stroke-dasharray: 10;
+  // todo: not used
+  &.-focused {
     stroke: var(--color-primary);
   }
 }
 
 .d3-build-graph-node-step-a {
-  &:focus,&:active {
-    outline:none;
+
+  &:focus,
+  &:active {
+    outline: none;
   }
 
   &.-hover {
@@ -202,9 +224,9 @@
       fill: var(--color-primary);
     }
   }
-  
-  // used?
-  &.-filtered {
+
+  // todo: not used
+  &.-focused {
     outline: 1px solid var(--color-primary);
     outline-style: dashed;
   }
@@ -222,6 +244,7 @@
   &.-pending {
     stroke: var(--color-gray);
     stroke-dasharray: 10, 4;
+    stroke-width: 1;
   }
 
   &.-running {
@@ -230,21 +253,26 @@
 
     stroke: var(--color-yellow);
     stroke-dasharray: 10, 4;
+    stroke-width: 2;
   }
 
   &.-success {
     stroke: var(--color-gray);
+    stroke-width: 1;
   }
 
   &.-failure {
     stroke: var(--color-gray);
+    stroke-width: 1;
   }
 
   &.-hover {
     stroke: var(--color-primary);
+    stroke-width: 3;
   }
 
-  &.-filtered {
+  // todo: not used
+  &.-focused {
     stroke: var(--color-primary);
   }
 }

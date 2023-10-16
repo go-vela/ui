@@ -76,7 +76,7 @@ import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page)
-import Pages.Build.Graph exposing (renderBuildGraphDOT)
+import Pages.Build.Graph exposing (renderBuildGraph, renderBuildGraphDOT)
 import Pages.Build.Logs
     exposing
         ( addLog
@@ -228,6 +228,7 @@ import Vela
         , updateHooksPage
         , updateHooksPager
         , updateHooksPerPage
+        , updateModels
         , updateOrgRepo
         , updateOrgReposPage
         , updateOrgReposPager
@@ -514,6 +515,12 @@ update msg model =
         rm =
             model.repo
 
+        bm =
+            rm.build
+
+        gm =
+            model.repo.build.graph
+
         sm =
             model.schedulesModel
 
@@ -641,192 +648,97 @@ update msg model =
 
         OnBuildGraphInteraction interaction ->
             let
-                bm =
-                    model.repo.build
+                ( ugm_, cmd ) =
+                    case interaction.event_type of
+                        "href" ->
+                            ( model.repo.build.graph
+                            , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
+                            )
 
-                gm =
-                    model.repo.build.graph
+                        "backdrop_click" ->
+                            let
+                                ugm =
+                                    { gm | focusedNode = -1 }
+
+                                um_ =
+                                    updateModels model rm bm ugm
+                            in
+                            ( ugm, renderBuildGraph um_ )
+
+                        "node_click" ->
+                            let
+                                ugm =
+                                    { gm | focusedNode = Maybe.withDefault -1 <| String.toInt interaction.node_id }
+
+                                um_ =
+                                    updateModels model rm bm ugm
+                            in
+                            ( ugm, renderBuildGraph um_ )
+
+                        _ ->
+                            ( model.repo.build.graph, Cmd.none )
             in
-            ( { model
-                | repo =
-                    { rm
-                        | build =
-                            { bm
-                                | graph =
-                                    { gm
-                                        | showSteps = not gm.showSteps
-                                    }
-                            }
-                    }
-              }
+            ( updateModels model rm bm ugm_
             , Cmd.batch
                 [ Navigation.pushUrl model.navigationKey interaction.href
-                , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
+                , cmd
                 ]
             )
 
         BuildGraphRefresh org repo buildNumber ->
             let
-                bm =
-                    model.repo.build
-
-                gm =
-                    model.repo.build.graph
-
-                updatedModel =
-                    { model
-                        | repo =
-                            { rm
-                                | build =
-                                    { bm
-                                        | graph =
-                                            { gm
-                                                | graph = Loading
-                                            }
-                                    }
-                            }
+                ugm =
+                    { gm
+                        | graph = Loading
                     }
+
+                um_ =
+                    updateModels model rm bm ugm
             in
-            ( updatedModel
-            , getBuildGraph updatedModel org repo buildNumber True
+            ( um_
+            , getBuildGraph um_ org repo buildNumber True
             )
 
         BuildGraphUpdateFilter filter ->
             let
-                bm =
-                    model.repo.build
-
-                gm =
-                    model.repo.build.graph
-
-                updatedModel =
-                    { model
-                        | repo =
-                            { rm
-                                | build =
-                                    { bm
-                                        | graph =
-                                            { gm
-                                                | filter = filter
-                                            }
-                                    }
-                            }
+                ugm =
+                    { gm
+                        | filter = String.toLower filter
                     }
 
-                renderGraph =
-                    case gm.graph of
-                        Success g ->
-                            case bm.build of
-                                Success b ->
-                                    Interop.renderBuildGraph <|
-                                        encodeBuildGraphRenderData
-                                            { dot = renderBuildGraphDOT updatedModel g
-                                            , buildID = b.id
-                                            , filter = filter
-                                            , showServices = model.repo.build.graph.showServices
-                                            , showSteps = model.repo.build.graph.showSteps
-                                            }
-
-                                _ ->
-                                    Cmd.none
-
-                        _ ->
-                            Cmd.none
+                um_ =
+                    updateModels model rm bm ugm
             in
-            ( updatedModel
-            , renderGraph
+            ( um_
+            , renderBuildGraph um_
             )
 
         BuildGraphShowServices show ->
             let
-                bm =
-                    model.repo.build
-
-                gm =
-                    model.repo.build.graph
-
-                updatedModel =
-                    { model
-                        | repo =
-                            { rm
-                                | build =
-                                    { bm
-                                        | graph =
-                                            { gm
-                                                | showServices = show
-                                            }
-                                    }
-                            }
+                ugm =
+                    { gm
+                        | showServices = show
                     }
 
-                renderGraph =
-                    case gm.graph of
-                        Success g ->
-                            case bm.build of
-                                Success b ->
-                                    Interop.renderBuildGraph <|
-                                        encodeBuildGraphRenderData
-                                            { dot = renderBuildGraphDOT updatedModel g
-                                            , buildID = b.id
-                                            , filter = updatedModel.repo.build.graph.filter
-                                            , showServices = updatedModel.repo.build.graph.showServices
-                                            , showSteps = updatedModel.repo.build.graph.showSteps
-                                            }
-
-                                _ ->
-                                    Cmd.none
-
-                        _ ->
-                            Cmd.none
+                um_ =
+                    updateModels model rm bm ugm
             in
-            ( updatedModel
-            , renderGraph
+            ( um_
+            , renderBuildGraph um_
             )
 
         BuildGraphShowSteps show ->
             let
-                bm =
-                    model.repo.build
-
-                gm =
-                    model.repo.build.graph
-
-                updatedModel =
-                    { model
-                        | repo =
-                            { rm
-                                | build =
-                                    { bm
-                                        | graph =
-                                            { gm
-                                                | showSteps = show
-                                            }
-                                    }
-                            }
+                ugm =
+                    { gm
+                        | showSteps = show
                     }
 
-                renderGraph =
-                    case gm.graph of
-                        Success g ->
-                            case bm.build of
-                                Success b ->
-                                    Interop.renderBuildGraph <|
-                                        encodeBuildGraphRenderData
-                                            { dot = renderBuildGraphDOT updatedModel g
-                                            , buildID = b.id
-                                            , filter = updatedModel.repo.build.graph.filter
-                                            , showServices = updatedModel.repo.build.graph.showServices
-                                            , showSteps = updatedModel.repo.build.graph.showSteps
-                                            }
-
-                                _ ->
-                                    Cmd.none
-
-                        _ ->
-                            Cmd.none
+                um_ =
+                    updateModels model rm bm ugm
             in
-            ( updatedModel
-            , renderGraph
+            ( um_
+            , renderBuildGraph um_
             )
 
         GotoPage pageNumber ->
@@ -2210,17 +2122,8 @@ update msg model =
                     case model.page of
                         Pages.BuildGraph _ _ _ ->
                             let
-                                bm =
-                                    rm.build
-
-                                gm =
-                                    bm.graph
-
                                 sameBuild =
                                     gm.buildNumber == buildNumber
-
-                                buildID =
-                                    RemoteData.unwrap -1 .id bm.build
 
                                 showSteps =
                                     if not sameBuild then
@@ -2229,19 +2132,15 @@ update msg model =
                                     else
                                         gm.showSteps
 
+                                ugm =
+                                    { gm | buildNumber = buildNumber, graph = RemoteData.succeed g, showSteps = showSteps }
+
                                 updatedModel =
-                                    { model | repo = { rm | build = { bm | graph = { gm | buildNumber = buildNumber, graph = RemoteData.succeed g, showSteps = showSteps } } } }
+                                    updateModels model rm bm ugm
 
                                 cmd =
                                     if not sameBuild then
-                                        Interop.renderBuildGraph <|
-                                            encodeBuildGraphRenderData
-                                                { dot = renderBuildGraphDOT updatedModel g
-                                                , buildID = buildID
-                                                , filter = updatedModel.repo.build.graph.filter
-                                                , showServices = model.repo.build.graph.showServices
-                                                , showSteps = model.repo.build.graph.showSteps
-                                                }
+                                        renderBuildGraph updatedModel
 
                                     else
                                         Cmd.none
@@ -2254,13 +2153,6 @@ update msg model =
                             ( model, Cmd.none )
 
                 Err error ->
-                    let
-                        bm =
-                            rm.build
-
-                        gm =
-                            bm.graph
-                    in
                     ( { model | repo = { rm | build = { bm | graph = { gm | graph = toFailure error } } } }
                     , Cmd.none
                     )
@@ -2282,41 +2174,11 @@ update msg model =
                     let
                         ( favicon, updateFavicon ) =
                             refreshFavicon model.page model.favicon rm.build.build
-
-                        renderGraph =
-                            case model.page of
-                                Pages.BuildGraph org repo buildNumber ->
-                                    let
-                                        bm =
-                                            model.repo.build
-
-                                        gm =
-                                            bm.graph
-
-                                        buildID =
-                                            RemoteData.unwrap -1 .id bm.build
-                                    in
-                                    case gm.graph of
-                                        Success g ->
-                                            Interop.renderBuildGraph <|
-                                                encodeBuildGraphRenderData
-                                                    { dot = renderBuildGraphDOT model g
-                                                    , buildID = buildID
-                                                    , filter = model.repo.build.graph.filter
-                                                    , showServices = model.repo.build.graph.showServices
-                                                    , showSteps = model.repo.build.graph.showSteps
-                                                    }
-
-                                        _ ->
-                                            Cmd.none
-
-                                _ ->
-                                    Cmd.none
                     in
                     ( { model | time = time, favicon = favicon }
                     , Cmd.batch
                         [ updateFavicon
-                        , renderGraph
+                        , renderBuildGraph model
                         ]
                     )
 
@@ -4419,28 +4281,6 @@ loadBuildGraphPage model org repo buildNumber =
         gm =
             bm.graph
 
-        buildID =
-            RemoteData.unwrap -1 .id bm.build
-
-        renderGraph =
-            case gm.graph of
-                Success g ->
-                    if sameBuild then
-                        Interop.renderBuildGraph <|
-                            encodeBuildGraphRenderData
-                                { dot = renderBuildGraphDOT model g
-                                , buildID = buildID
-                                , filter = model.repo.build.graph.filter
-                                , showServices = model.repo.build.graph.showServices
-                                , showSteps = model.repo.build.graph.showSteps
-                                }
-
-                    else
-                        Cmd.none
-
-                _ ->
-                    Cmd.none
-
         graph =
             if sameBuild then
                 RemoteData.unwrap RemoteData.Loading (\g_ -> RemoteData.succeed g_) gm.graph
@@ -4455,14 +4295,14 @@ loadBuildGraphPage model org repo buildNumber =
       -- do not load resources if transition is auto refresh, line focus, etc
       -- MUST render graph here, or clicking on nodes won't cause an immediate change
     , if sameBuild && sameResource then
-        renderGraph
+        renderBuildGraph model
 
       else
         Cmd.batch
             [ getBuilds m org repo Nothing Nothing Nothing
             , getBuild m org repo buildNumber
             , getBuildGraph m org repo buildNumber False
-            , renderGraph
+            , renderBuildGraph model
             ]
     )
 

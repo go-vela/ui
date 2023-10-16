@@ -167,6 +167,7 @@ module Vela exposing
     , updateHooksPage
     , updateHooksPager
     , updateHooksPerPage
+    , updateModels
     , updateOrgRepo
     , updateOrgReposPage
     , updateOrgReposPager
@@ -433,6 +434,20 @@ type alias ServicesModel =
     , logs : Logs
     , focusFragment : FocusFragment
     , followingService : Int
+    }
+
+
+updateModels : { a | repo : RepoModel } -> RepoModel -> BuildModel -> BuildGraphModel -> { a | repo : RepoModel }
+updateModels m rm bm gm =
+    { m
+        | repo =
+            { rm
+                | build =
+                    { bm
+                        | graph =
+                            gm
+                    }
+            }
     }
 
 
@@ -1352,7 +1367,7 @@ decodeBuild =
 
 defaultBuildGraphModel : BuildGraphModel
 defaultBuildGraphModel =
-    BuildGraphModel "" NotAsked "" True True
+    BuildGraphModel "" NotAsked "" -1 True True
 
 
 defaultBuildGraph : BuildGraph
@@ -1366,6 +1381,7 @@ encodeBuildGraphRenderData graphData =
         [ ( "dot", Encode.string graphData.dot )
         , ( "build_id", Encode.int graphData.buildID )
         , ( "filter", Encode.string graphData.filter )
+        , ( "focused_node", Encode.int graphData.focusedNode )
         , ( "show_services", Encode.bool graphData.showServices )
         , ( "show_steps", Encode.bool graphData.showSteps )
         ]
@@ -1375,6 +1391,7 @@ type alias BuildGraphRenderInteropData =
     { dot : String
     , buildID : Int
     , filter : String
+    , focusedNode : Int
     , showServices : Bool
     , showSteps : Bool
     }
@@ -1384,6 +1401,7 @@ type alias BuildGraphModel =
     { buildNumber : BuildNumber
     , graph : WebData BuildGraph
     , filter : String
+    , focusedNode : Int
     , showServices : Bool
     , showSteps : Bool
     }
@@ -1403,6 +1421,7 @@ type alias BuildGraphNode =
     , startedAt : Int
     , finishedAt : Int
     , steps : List Step
+    , focused : Bool
     }
 
 
@@ -1411,6 +1430,7 @@ type alias BuildGraphEdge =
     , source : Int
     , destination : Int
     , status : String
+    , focused : Bool
     }
 
 
@@ -1431,6 +1451,8 @@ decodeBuildGraphNode =
         |> required "started_at" int
         |> required "finished_at" int
         |> optional "steps" (Decode.list decodeStep) []
+        -- focused
+        |> hardcoded False
 
 
 decodeEdge : Decoder BuildGraphEdge
@@ -1440,12 +1462,15 @@ decodeEdge =
         |> required "source" int
         |> required "destination" int
         |> optional "status" string ""
+        -- focused
+        |> hardcoded False
 
 
 type alias GraphInteraction =
     { event_type : String
     , href : String
     , node_id : String
+    , step_id : String
     }
 
 
@@ -1454,7 +1479,8 @@ decodeGraphInteraction =
     Decode.succeed GraphInteraction
         |> required "event_type" string
         |> optional "href" string ""
-        |> optional "node_id" string ""
+        |> optional "node_id" string "-1"
+        |> optional "step_id" string "-1"
 
 
 {-| decodeBuilds : decodes json from vela into list of builds

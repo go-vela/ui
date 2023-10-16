@@ -16,6 +16,7 @@ import Ansi
 import Ansi.Log
 import Array
 import DateFormat.Relative exposing (relativeTime)
+import Dict
 import FeatherIcons
 import Focus
     exposing
@@ -610,6 +611,16 @@ viewBuildGraph model msgs org repo buildNumber =
                 []
             ]
 
+        focusedNode =
+            case model.repo.build.graph.graph of
+                RemoteData.Success g ->
+                    Dict.get model.repo.build.graph.focusedNode g.nodes
+
+                -- dont render anything when the build graph draw command has been dispatched
+                -- Maybe.withDefault "" <| List.head <| List.filter (\n -> n.id == model.repo.build.graph.focusedNode ) <| Dict.fromList g.nodes
+                _ ->
+                    Nothing
+
         actions =
             div [ class "elm-build-graph-actions" ]
                 [ ul []
@@ -706,6 +717,31 @@ viewBuildGraph model msgs org repo buildNumber =
                             ]
                             [ FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml [] ]
                         ]
+
+                    -- todo: cleanup
+                    -- , case focusedNode of
+                    --     Just n ->
+                    --         div [ class "elm-build-graph-focused-node" ]
+                    --             [ span [] [ text <| "focused: " ++ n.name ]
+                    --             , button
+                    --                 [ class "button"
+                    --                 , class "-icon"
+                    --                 , class "elm-build-graph-search-filter-clear"
+                    --                 , onClick msgs.buildGraphMsgs.clearFocus
+                    --                 ]
+                    --                 [ FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml [] ]
+                    --             ]
+                    --     Nothing ->
+                    --         div [ class "elm-build-graph-focused-node" ]
+                    --             [ span [] [ text <| "focused: none" ]
+                    --             , button
+                    --                 [ class "button"
+                    --                 , class "-icon"
+                    --                 , class "elm-build-graph-search-filter-clear"
+                    --                 , onClick msgs.buildGraphMsgs.clearFocus
+                    --                 ]
+                    --                 [ FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml [] ]
+                    --             ]
                     ]
                 ]
 

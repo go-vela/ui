@@ -64,6 +64,8 @@ function drawBaseGraph(opts, selector, content) {
       .attr('transform', event.transform);
   }
 
+  var w = 0;
+  var h = 0;
   function resetZoomAndCenter(opts, zoom) {
     var zoomG = d3.select(selector);
 
@@ -73,8 +75,8 @@ function drawBaseGraph(opts, selector, content) {
     // the name of this variable is confusing
     var zoomGg = d3.select(selector);
     var zoomBBox = zoomGg.node().getBBox();
-    var w = zoomBBox.width;
-    var h = zoomBBox.height;
+    w = zoomBBox.width;
+    h = zoomBBox.height;
     zoomGg
       .transition() // required to 'chain' these two instant animations together
       .duration(0)
@@ -95,11 +97,27 @@ function drawBaseGraph(opts, selector, content) {
   // apply mousedown zoom effects
   var g = d3.select('g.node_mousedown');
   if (g.empty()) {
+    var zoomG = d3.select(selector);
+    var zoomBBox = zoomG.node().getBBox();
+    w = zoomBBox.width;
+    h = zoomBBox.height;
     g = buildGraphElement
-      .append('g')
-      .classed('node_mousedown', true)
+      .append('g');
+    g.classed('node_mousedown', true)
       .attr('id', 'zoom');
   }
+
+  // apply backdrop onclick
+  buildGraphElement.on('click', function (e) {
+    e.preventDefault();
+    setTimeout(
+      () => {
+        opts.onGraphInteraction.send({
+          event_type: 'backdrop_click',
+        });
+      }, 0
+    );
+  });
 
   // this centers the graph in the viewbox, or something like that
   buildGraphElement = g;
@@ -158,10 +176,12 @@ function drawNodes(opts, buildGraphElement, selector, edges) {
     var stageID = '-2';
     var stageName = '';
     var stageStatus = 'pending';
-    if (stageInfo && stageInfo.length == 3) {
+    var focused = 'false';
+    if (stageInfo && stageInfo.length == 4) {
       stageID = stageInfo[0];
       stageName = stageInfo[1];
       stageStatus = stageInfo[2];
+      focused = stageInfo[3];
     }
 
 
@@ -193,15 +213,19 @@ function drawNodes(opts, buildGraphElement, selector, edges) {
       };
     }
 
-    // apply content filter styles
-    // todo: make this 'searching' more intelligent (search for step names)
-    if (opts.contentFilter && opts.contentFilter.length > 2 && stageName.includes(opts.contentFilter)) {
+    // apply appropriate node outline styles
+    restoreNodeClass(outline);
+
+    // todo: this doesnt work with its own class
+    if (focused && focused === 'true') {
       restoreNodeClass = o => {
+        // todo: would be cool to animate this
         o.classed('-hover', true);
       };
     }
 
-    // apply appropriate node outline styles
+    // todo: we shouldnt need to run this twice
+    // just apply the "running" outline/animation on top of the hover...
     restoreNodeClass(outline);
 
     // apply stage node styles
@@ -252,6 +276,12 @@ function drawNodes(opts, buildGraphElement, selector, edges) {
           if (status === 'failure') {
             restoreEdgeClass = o => {
               o.classed('-failure', true);
+            };
+          }
+
+          if (edgeInfo.focused === 'true') {
+            restoreEdgeClass = o => {
+              o.classed('-hover', true);
             };
           }
 
@@ -318,6 +348,15 @@ function drawNodes(opts, buildGraphElement, selector, edges) {
           status = stepInfo[2];
         }
 
+        // todo: this image step icon mapping needs to be better
+        if (status === 'canceled') {
+          status = 'failure';
+        }
+
+        if (status === 'skipped') {
+          status = 'failure';
+        }
+
         // todo: static/*.png seems like a bad way to do icon images
         parent
           .append('image')
@@ -345,12 +384,13 @@ function drawNodes(opts, buildGraphElement, selector, edges) {
           // prevents multiple link events getting fired from a single click
           e.stopImmediatePropagation();
           setTimeout(
-            () =>
+            () => {
               opts.onGraphInteraction.send({
                 event_type: 'href',
                 href: href,
                 step_id: '',
-              }),
+              });
+            },
             0,
           );
         });
@@ -374,10 +414,12 @@ function drawEdges(opts, buildGraphElement, selector) {
     var source = "-1";
     var destination = "-1";
     var status = "pending";
-    if (edgeInfo && edgeInfo.length == 3) {
+    var focused = "false";
+    if (edgeInfo && edgeInfo.length == 4) {
       source = edgeInfo[0];
       destination = edgeInfo[1];
       status = edgeInfo[2];
+      focused = edgeInfo[3];
     }
 
     // track edge information for advanced styling
@@ -386,6 +428,7 @@ function drawEdges(opts, buildGraphElement, selector) {
       source: source,
       destination: destination,
       status: status,
+      focused: focused,
     });
 
     // restore base class and build modifiers
@@ -414,14 +457,24 @@ function drawEdges(opts, buildGraphElement, selector) {
     // apply the appropriate styles
     restoreEdgeClass(p);
 
+
+    if (focused && focused === 'true') {
+      restoreEdgeClass = o => {
+        o.classed('-hover', true);
+      };
+    }
+
+    // apply the appropriate styles
+    restoreEdgeClass(p);
+
     // apply edge hover styles
-    a.on('mouseover', e => {
-      p.classed('-hover', true);
-    });
-    a.on('mouseout', e => {
-      restoreEdgeClass(p);
-      p.classed('-hover', false);
-    });
+    // a.on('mouseover', e => {
+    //   p.classed('-hover', true);
+    // });
+    // a.on('mouseout', e => {
+    //   restoreEdgeClass(p);
+    //   p.classed('-hover', false);
+    // });
 
     return ''; // used by filter (?)
   });
@@ -439,20 +492,24 @@ function applyNodesOnClick(opts, buildGraphElement, selector) {
     if (href !== null) {
       d3.select(this).on('click', function (e) {
         e.preventDefault();
+        e.stopImmediatePropagation();
+
         var nodeA = d3.select(this);
-        // extract identifier from href
-        // todo: make this use title
-        var data = nodeA.attr('xlink:href');
         nodeA.attr('xlink:href', null);
-        let id = data.replace('#', '');
+
+        var stageInfo = nodeA.attr('xlink:title').replace('#', '').split(',');
+        var stageID = '-1';
+        if (stageInfo && stageInfo.length == 4) {
+          stageID = stageInfo[0];
+        }
+
         setTimeout(
-          () =>
-            // todo: change node-click from "step expansion" to "focus toggle"
-            // opts.onGraphInteraction.send({
-            //   event_type: 'node_click',
-            //   node_id: id,
-            // }),
-            0,
+          () => {
+            opts.onGraphInteraction.send({
+              event_type: 'node_click',
+              node_id: stageID,
+            });
+          }, 0
         );
       });
     }

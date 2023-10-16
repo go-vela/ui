@@ -9,22 +9,23 @@ module Util exposing
     , ariaHidden
     , attrIf
     , base64Decode
+    , boolToString
     , boolToYesNo
     , buildRefURL
-    , formatDuration
     , checkScheduleAllowlist
     , dispatch
     , extractFocusIdFromRange
     , filterEmptyList
     , filterEmptyLists
     , fiveSecondsMillis
+    , formatDuration
     , formatFilesize
     , formatRunTime
+    , formatRunTimeWithDefault
     , formatTestTag
     , getNameFromRef
     , humanReadableDateTimeFormatter
     , humanReadableWithDefault
-    ,formatRunTimeWithDefault
     , isLoading
     , isSuccess
     , largeLoader
@@ -161,19 +162,19 @@ noSomeSecondsAgo _ =
     "just now"
 
 
-
 {-| formatDuration : calculates build runtime using a duration
 -}
 formatDuration : Int -> String
 formatDuration duration =
     let
         minutes =
-            runTimeMinutes <| duration  
+            runTimeMinutes <| duration
 
         seconds =
-            runTimeSeconds <| duration 
+            runTimeSeconds <| duration
     in
     String.join ":" [ minutes, seconds ]
+
 
 {-| formatRunTime : calculates build runtime using current application time and build times
 -}
@@ -198,6 +199,7 @@ formatRunTimeWithDefault : Posix -> Int -> Int -> String
 formatRunTimeWithDefault now started finished =
     if started == 0 then
         "--:--"
+
     else
         let
             runtime =
@@ -415,6 +417,17 @@ attrIf cond attr =
 
     else
         class ""
+
+
+{-| boolToString : takes bool and converts to true/false string
+-}
+boolToString : Bool -> String
+boolToString bool =
+    if bool then
+        "true"
+
+    else
+        "false"
 
 
 {-| boolToYesNo : takes bool and converts to yes/no string
