@@ -1771,11 +1771,6 @@ decodeService =
         |> hardcoded ( Nothing, Nothing )
 
 
-defaultService : Service
-defaultService =
-    Service -1 -1 -1 -1 "" Pending "" -1 -1 -1 -1 "" "" "" "" False ( Nothing, Nothing )
-
-
 type alias Services =
     List Service
 
