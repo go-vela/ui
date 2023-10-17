@@ -7,8 +7,8 @@ Use of this source code is governed by the LICENSE file in this repository.
 module SvgBuilder exposing
     ( buildStatusAnimation
     , buildStatusToIcon
-    , buildVizLegendItem
-    , buildVizLegendLine
+    , buildVizLegendEdge
+    , buildVizLegendNode
     , hookStatusToIcon
     , hookSuccess
     , recentBuildStatusToIcon
@@ -536,16 +536,16 @@ terminal =
         ]
 
 
-{-| buildVizLegendItem : produces svg icon for build history status - running
+{-| buildVizLegendNode : produces item svg for the build graph legend
 -}
-buildVizLegendItem : Int -> List (Svg.Attribute msg) -> Html msg
-buildVizLegendItem _ attrs =
+buildVizLegendNode : List (Svg.Attribute msg) -> Html msg
+buildVizLegendNode attrs =
     let
         size =
             "20"
     in
     svg
-        [ class "elm-build-graph-legend-line"
+        [ class "elm-build-graph-legend-item"
         , viewBox <| "0 0 " ++ size ++ " " ++ size
         , width size
         , height size
@@ -561,10 +561,10 @@ buildVizLegendItem _ attrs =
         ]
 
 
-{-| buildVizLegendLine : produces svg icon for build history status - running
+{-| buildVizLegendEdge : produces line svg for the build graph legend
 -}
-buildVizLegendLine : Int -> List (Svg.Attribute msg) -> Html msg
-buildVizLegendLine _ attrs =
+buildVizLegendEdge : List (Svg.Attribute msg) -> Html msg
+buildVizLegendEdge attrs =
     let
         size =
             "20"

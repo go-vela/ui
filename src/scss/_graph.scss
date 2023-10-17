@@ -94,7 +94,9 @@
   margin-left: -0.6rem;
 
   stroke: var(--color-gray);
+}
 
+.elm-build-graph-legend-item {
   .-running {
     stroke: var(--color-yellow);
     stroke-dasharray: 7, 4;
@@ -104,31 +106,48 @@
     stroke: var(--color-green);
   }
 
-  &.-failure {
+  .-failure {
+    stroke: var(--color-red);
+    stroke-dasharray: 2 3;
+  }
+
+  .-selected {
+    stroke: var(--color-primary);
+    stroke-width: 7;
+  }
+
+  .-killed {
+    stroke: var(--color-lavender);
+    stroke-dasharray: 2, 4;
+    stroke-linecap: round;
+  }
+
+  .-pending {
+    stroke-dasharray: 7, 4;
+  }
+}
+
+.elm-build-graph-legend-line {
+  .-running {
+    stroke: var(--color-yellow);
+    stroke-dasharray: 7, 4;
+  }
+
+  .-success {
+    stroke: var(--color-green);
+  }
+
+  .-failure {
     stroke: var(--color-red);
   }
 
   .-selected {
     stroke: var(--color-primary);
   }
-
-  .-killed {
-    stroke: var(--color-lavender);
-  }
 }
 
 .elm-build-graph-search-filter {
   padding-right: 1rem;
-  // color: var(--color-text);
-  // background-color: var(--color-bg);
-  // border: none;
-  // border-bottom-color: currentcolor;
-  // border-bottom-style: none;
-  // border-bottom-width: medium;
-  // border-bottom: var(--line-width) solid var(--color-primary);
-  // padding: .5rem;
-  // font-size: 1rem;
-  // position: relative;
   padding-left: 1rem;
 
   background-color: var(--color-bg);
@@ -148,37 +167,16 @@
   }
 }
 
-.elm-build-graph-focus-node {
-  // todo: remove this
-  display: flex;
-  align-items: center;
-  padding-right: 1rem;
-  padding-left: 1rem;
-
-  background-color: var(--color-bg);
-  border-right: 1px solid var(--color-bg-light);
-
-  span {
-    margin-right: 0.6rem;
-    padding: 0.2rem 0.8rem;
-
-    color: var(--color-bg-dark);
-
-    background: var(--color-primary);
-  }
-}
-
 // end: classes controlled by Elm
 
 // start: classes controlled by d3
-
 .d3-build-graph-node-outline-rect {
   fill: none;
   stroke-width: 1.8;
-  // stroke: var(--color-gray);
 
   &.-pending {
     stroke: var(--color-gray);
+    stroke-dasharray: 10;
   }
 
   &.-running {
@@ -193,14 +191,20 @@
     stroke: var(--color-green);
   }
 
-  &.-failure,
-  &.-canceled,
-  &.-skipped {
-    stroke: var(--color-red);
+  &.-failure {
+    stroke-dasharray: 2 3;
   }
 
   &.-killed {
+    stroke-dasharray: 5;
+    stroke-linecap: round;
+
     stroke: var(--color-lavender);
+  }
+
+  &.-canceled,
+  &.-skipped {
+    stroke: var(--color-red);
   }
 
   &.-focus {
