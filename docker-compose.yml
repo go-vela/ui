@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 version: '3'
 
 services:
@@ -6,22 +8,22 @@ services:
   # This component is used for providing a user-friendly
   # interface for triggering actions in the Vela system.
   #
-  # https://go-vela.github.io/docs/concepts/infrastructure/ui/
-  # ui:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.local
-  #   container_name: ui
-  #   image: ui:local
-  #   networks:
-  #     - vela
-  #   env_file:
-  #     - .env
-  #   restart: always
-  #   ports:
-  #     - '8888:80'
-  #   depends_on:
-  #     - server
+  # https://go-vela.github.io/docs/administration/ui/
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: ui
+    image: ui:local
+    networks:
+      - vela
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - '8888:80'
+    depends_on:
+      - server
 
   # The `server` compose service hosts the Vela server and API.
   #
@@ -32,11 +34,7 @@ services:
   # https://go-vela.github.io/docs/administration/server/
   server:
     container_name: server
-    # image: target/vela-server:latest
-    build:
-      context: ../server/
-      dockerfile: Dockerfile
-    image: server:local
+    image: target/vela-server:latest
     networks:
       - vela
     environment:
@@ -47,7 +45,6 @@ services:
       QUEUE_DRIVER: redis
       QUEUE_ADDR: 'redis://redis:6379'
       QUEUE_PRIVATE_KEY: 'tCIevHOBq6DdN5SSBtteXUusjjd0fOqzk2eyi0DMq04NewmShNKQeUbbp3vkvIckb4pCxc+vxUo+mYf/vzOaSg=='
-      QUEUE_PUBLIC_KEY: 'DXsJkoTSkHlG26d75LyHJG+KQsXPr8VKPpmH/78zmko='
       SCM_DRIVER: github
       SCM_CONTEXT: 'continuous-integration/vela'
       SECRET_VAULT: 'true'
@@ -58,6 +55,7 @@ services:
       VELA_LOG_LEVEL: trace
       # comment the line below to use registration flow
       VELA_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
+      QUEUE_PUBLIC_KEY: 'DXsJkoTSkHlG26d75LyHJG+KQsXPr8VKPpmH/78zmko='
       VELA_SERVER_PRIVATE_KEY: 'F534FF2A080E45F38E05DC70752E6787'
       VELA_USER_REFRESH_TOKEN_DURATION: 90m
       VELA_USER_ACCESS_TOKEN_DURATION: 60m
@@ -84,16 +82,13 @@ services:
   worker:
     container_name: worker
     image: target/vela-worker:latest
-    # build:
-    #   context: ../worker/
-    #   dockerfile: Dockerfile
-    # image: worker:local
     networks:
       - vela
     environment:
       EXECUTOR_DRIVER: linux
       QUEUE_DRIVER: redis
       QUEUE_ADDR: 'redis://redis:6379'
+      QUEUE_PUBLIC_KEY: 'DXsJkoTSkHlG26d75LyHJG+KQsXPr8VKPpmH/78zmko='
       VELA_BUILD_LIMIT: 1
       VELA_BUILD_TIMEOUT: 30m
       VELA_LOG_LEVEL: trace
