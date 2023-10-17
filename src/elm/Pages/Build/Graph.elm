@@ -28,25 +28,8 @@ import Visualization.DOT as DOT
         )
 
 
-{-| renderBuildGraphDOT : constant for organizing the layout of build graph nodes
--}
-builtInClusterID : Int
-builtInClusterID =
-    2
 
-
-{-| pipelineClusterID : constant for organizing the layout of build graph nodes
--}
-pipelineClusterID : Int
-pipelineClusterID =
-    1
-
-
-{-| serviceClusterID : constant for organizing the layout of build graph nodes
--}
-serviceClusterID : Int
-serviceClusterID =
-    0
+-- renderBuildGraph : { a | repo : Vela.RepoModel, velaScheduleAllowlist : List ( Vela.Org, Vela.Repo ), navigationKey : Key, user : RemoteData.WebData Vela.CurrentUser, sourceRepos : RemoteData.WebData (SourceRepositories), page : Page, time : Posix, zone : Zone, shift : Bool, buildMenuOpen : List Int, pipeline : Vela.PipelineModel } -> Cmd msg
 
 
 renderBuildGraph model =
@@ -76,6 +59,27 @@ renderBuildGraph model =
             Cmd.none
 
 
+{-| renderBuildGraphDOT : constant for organizing the layout of build graph nodes
+-}
+builtInClusterID : Int
+builtInClusterID =
+    2
+
+
+{-| pipelineClusterID : constant for organizing the layout of build graph nodes
+-}
+pipelineClusterID : Int
+pipelineClusterID =
+    1
+
+
+{-| serviceClusterID : constant for organizing the layout of build graph nodes
+-}
+serviceClusterID : Int
+serviceClusterID =
+    0
+
+
 {-| renderBuildGraphDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
 <https://graphviz.org/doc/info/lang.html>
 <https://package.elm-lang.org/packages/elm-community/graph/latest/Graph.DOT>
@@ -83,6 +87,8 @@ renderBuildGraph model =
 renderBuildGraphDOT : BuildModel.PartialModel a -> BuildGraph -> String
 renderBuildGraphDOT model buildGraph =
     let
+        -- todo: BUG: single step "step" sleep 10 pipeline when you hover
+        -- the text changes color???
         isNodeFocused : String -> BuildGraphNode -> Bool
         isNodeFocused filter n =
             n.id

@@ -2,17 +2,12 @@
 //
 // Use of this source code is governed by the LICENSE file in this repository.
 
-// todo: remove
-// @ts-nocheck
 import * as d3 from 'd3';
 
 export function drawGraph(opts, content) {
   // force d3 exports to resolve, required or we receive errors when running within a container
   // this is why we love javascript
   var _ = d3;
-
-  // todo: (kelly) make non-focused edges/outlines less "in your face" until you engage with
-  // todo: group/label services subgraph
 
   // define DOM selectors for DOT-generated elements
   var graphSelectors = {
@@ -21,31 +16,32 @@ export function drawGraph(opts, content) {
     edge: '.elm-build-graph-edge',
   };
 
-  var buildGraphElement = drawBaseGraph(opts, graphSelectors.root, content);
+  var buildGraphElement = drawBaseGraphWithZoom(
+    opts,
+    graphSelectors.root,
+    content,
+  );
 
   // check that a valid graph was rendered
-  if (buildGraphElement.node() == null) {
+  if (buildGraphElement === null || buildGraphElement.node() === null) {
     console.log('unable to continue drawing graph, root element is invalid');
     return;
   }
 
   drawViewbox(opts, buildGraphElement);
 
-  // apply onclick to base node links prior to adding/removing elements
-  applyNodesOnClick(opts, buildGraphElement, graphSelectors.node);
+  applyOnClickToNodes(opts, buildGraphElement, graphSelectors.node);
 
   var edges = drawEdges(opts, buildGraphElement, graphSelectors.edge);
 
   drawNodes(opts, buildGraphElement, graphSelectors.node, edges);
 }
 
-function drawBaseGraph(opts, selector, content) {
+function drawBaseGraphWithZoom(opts, selector, content) {
   // grab the build graph root element
   var buildGraphElement = d3.select(selector);
 
-  var zoom = d3.zoom()
-    .scaleExtent([0.1, Infinity])
-    .on('zoom', handleZoom);
+  var zoom = d3.zoom().scaleExtent([0.1, Infinity]).on('zoom', handleZoom);
 
   // define d3 zoom function
   function handleZoom(event) {
@@ -58,14 +54,10 @@ function drawBaseGraph(opts, selector, content) {
     if (isNaN(event.transform.y)) {
       event.transform.y = 0;
     }
-
     var zoomG = d3.select(selector + ' g');
-    zoomG
-      .attr('transform', event.transform);
+    zoomG.attr('transform', event.transform);
   }
 
-  var w = 0;
-  var h = 0;
   function resetZoomAndCenter(opts, zoom) {
     var zoomG = d3.select(selector);
 
@@ -75,12 +67,12 @@ function drawBaseGraph(opts, selector, content) {
     // the name of this variable is confusing
     var zoomGg = d3.select(selector);
     var zoomBBox = zoomGg.node().getBBox();
-    w = zoomBBox.width;
-    h = zoomBBox.height;
+    var w = zoomBBox.width;
+    var h = zoomBBox.height;
     zoomGg
       .transition() // required to 'chain' these two instant animations together
       .duration(0)
-      .call(zoom.translateTo, w * 0.5, h * 0.5)
+      .call(zoom.translateTo, w * 0.5, h * 0.5);
   }
 
   // enable d3 zoom and pan functionality
@@ -89,7 +81,7 @@ function drawBaseGraph(opts, selector, content) {
   var actionResetPan = d3.select('#action-center');
 
   // apply zoom onclick
-  actionResetPan.on('click', function (e) {
+  actionResetPan.on('click', e => {
     e.preventDefault();
     resetZoomAndCenter(opts, zoom);
   });
@@ -97,26 +89,30 @@ function drawBaseGraph(opts, selector, content) {
   // apply mousedown zoom effects
   var g = d3.select('g.node_mousedown');
   if (g.empty()) {
+    console.log('selecting ' + selector);
     var zoomG = d3.select(selector);
+    if (zoomG.node()) {
+      console.log('good zoomg');
+    } else {
+      console.log('bad zoomg');
+      return null;
+    }
+
     var zoomBBox = zoomG.node().getBBox();
-    w = zoomBBox.width;
-    h = zoomBBox.height;
-    g = buildGraphElement
-      .append('g');
-    g.classed('node_mousedown', true)
-      .attr('id', 'zoom');
+    var w = zoomBBox.width;
+    var h = zoomBBox.height;
+    g = buildGraphElement.append('g');
+    g.classed('node_mousedown', true).attr('id', 'zoom');
   }
 
   // apply backdrop onclick
-  buildGraphElement.on('click', function (e) {
+  buildGraphElement.on('click', e => {
     e.preventDefault();
-    setTimeout(
-      () => {
-        opts.onGraphInteraction.send({
-          event_type: 'backdrop_click',
-        });
-      }, 0
-    );
+    setTimeout(() => {
+      opts.onGraphInteraction.send({
+        event_type: 'backdrop_click',
+      });
+    }, 0);
   });
 
   // this centers the graph in the viewbox, or something like that
@@ -143,159 +139,77 @@ function drawViewbox(opts, buildGraphElement) {
 
   // apply viewbox properties to the root element's parent
   // provide x padding for the legend
-  const VIEWBOX_PADDING = { x1: 0, x2: 500, y1: 0, y2: 100 };
+  const padding = { x1: 0, x2: 500, y1: 0, y2: 100 };
 
   var graphParent = d3.select(buildGraphElement.node().parentNode);
   graphParent.attr(
     'viewBox',
     '' +
-    (graphBBox.x - VIEWBOX_PADDING.x1) +
-    ' ' +
-    (graphBBox.y - VIEWBOX_PADDING.y1) +
-    ' ' +
-    (graphBBox.width + VIEWBOX_PADDING.x2) +
-    ' ' +
-    (graphBBox.height + VIEWBOX_PADDING.y2),
+      (graphBBox.x - padding.x1) +
+      ' ' +
+      (graphBBox.y - padding.y1) +
+      ' ' +
+      (graphBBox.width + padding.x2) +
+      ' ' +
+      (graphBBox.height + padding.y2),
   );
 }
 
-function drawNodes(opts, buildGraphElement, selector, edges) {
-  buildGraphElement.selectAll(selector).filter(function () {
-    let stageNode = d3.select(this);
+function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
+  buildGraphElement.selectAll(nodeSelector).filter(function () {
+    let node = d3.select(this);
 
     // apply an outline using rect, since nodes are rect and this will allow for animation
-    var outline = stageNode.append('rect');
-    var nodeBBox = stageNode.node().getBBox();
+    var nodeBBox = node.node().getBBox();
+    var outline = node.append('rect');
     outline
       .attr('x', nodeBBox.x)
       .attr('y', nodeBBox.y)
       .attr('width', nodeBBox.width)
       .attr('height', nodeBBox.height);
 
-    var stageInfo = stageNode.attr('id').replace('#', '').split(',');
-    var stageID = '-2';
-    var stageName = '';
-    var stageStatus = 'pending';
-    var focused = 'false';
-    if (stageInfo && stageInfo.length == 4) {
-      stageID = stageInfo[0];
-      stageName = stageInfo[1];
-      stageStatus = stageInfo[2];
-      focused = stageInfo[3];
-    }
-
+    // extract information embedded in the element id for advanced styling
+    var data = getNodeDataFromID(node);
 
     // restore base class and build modifiers
     outline.attr('class', 'd3-build-graph-node-outline-rect');
+    outline.classed('-' + data.status, true);
 
-    var restoreNodeClass = o => {
-      o.classed('-pending', true);
-    };
-
-    if (stageStatus === 'failure') {
-      restoreNodeClass = o => {
-        o.classed('-failure', true);
-      };
-    }
-    if (stageStatus === 'success') {
-      restoreNodeClass = o => {
-        o.classed('-success', true);
-      };
-    }
-    if (stageStatus === 'running') {
-      restoreNodeClass = o => {
-        o.classed('-running', true);
-      };
-    }
-    if (stageStatus === 'killed') {
-      restoreNodeClass = o => {
-        o.classed('-killed', true);
-      };
+    // apply click-focus styling
+    if (data.focused && data.focused === 'true') {
+      outline.classed('-focus', true);
     }
 
-    // apply appropriate node outline styles
-    restoreNodeClass(outline);
-
-    // todo: this doesnt work with its own class
-    if (focused && focused === 'true') {
-      restoreNodeClass = o => {
-        // todo: would be cool to animate this
-        o.classed('-hover', true);
-      };
-    }
-
-    // todo: we shouldnt need to run this twice
-    // just apply the "running" outline/animation on top of the hover...
-    restoreNodeClass(outline);
-
-    // apply stage node styles
-    stageNode.on('mouseover', e => {
+    node.on('mouseover', e => {
+      // apply outline styling
       outline.classed('-hover', true);
 
-      // take this stage and
-      // filter out all the edges that arent source/dest of each edge
-      edges.filter(function (edgeInfo) {
-        if (stageID === edgeInfo.source ||
-          stageID === edgeInfo.destination) {
-          edgeInfo.target.classed('-hover', true);
+      // apply styling to edges relevant to this node
+      edges.filter(edge => {
+        if (data.id === edge.source || data.id === edge.destination) {
+          edge.target.classed('-hover', true);
         }
       });
     });
 
-    stageNode.on('mouseout', e => {
-      // remove node outline styling
+    node.on('mouseout', e => {
+      // remove outline styling
       outline.classed('-hover', false);
 
-      // restore node styling
-      restoreNodeClass(outline);
-
-      // restore edge styling
-      edges.filter(function (edgeInfo) {
-        // modify styling only on related edges
-        if (stageID === edgeInfo.source ||
-          stageID === edgeInfo.destination) {
-          var status = edgeInfo.status;
-
-          // apply edge element hover styles
-          edgeInfo.target.classed('-hover', false);
-
-          var restoreEdgeClass = o => {
-            o.classed('-pending', true);
-          };
-
-          if (status === 'running') {
-            restoreEdgeClass = o => {
-              o.classed('-running', true);
-            };
-          }
-          if (status === 'success') {
-            restoreEdgeClass = o => {
-              o.classed('-success', true);
-            };
-          }
-          if (status === 'failure') {
-            restoreEdgeClass = o => {
-              o.classed('-failure', true);
-            };
-          }
-
-          if (edgeInfo.focused === 'true') {
-            restoreEdgeClass = o => {
-              o.classed('-hover', true);
-            };
-          }
-
-          // apply the appropriate styles
-          restoreEdgeClass(edgeInfo.target);
+      // remove styling from edges relevant to this node
+      edges.filter(edge => {
+        if (data.id === edge.source || data.id === edge.destination) {
+          edge.target.classed('-hover', false);
+          edge.target.classed('-' + edge.status, true);
         }
       });
     });
 
     var stepIconSize = 16;
-    stageNode.selectAll('a').filter(function () {
-      var step = d3.select(this);
-      if (step.attr('xlink:href').includes('#step')) {
 
+    node.selectAll('a').filter(function () {
+      var step = d3.select(this);
+      if (step.attr('xlink:href').includes('#step:')) {
         // restore base class and build modifiers
         step.attr('class', 'd3-build-graph-node-step-a');
 
@@ -305,8 +219,7 @@ function drawNodes(opts, buildGraphElement, selector, edges) {
         underline
           .attr('x', aBBox.x + stepIconSize)
           .attr('y', aBBox.y + aBBox.height)
-          .attr('width', aBBox.width - stepIconSize)
-          .attr('fill', 'var(--color-red)'); //todo: replace with style
+          .attr('width', aBBox.width - stepIconSize);
 
         // restore base class and build modifiers
         underline.attr('class', 'd3-build-graph-node-step-a-underline');
@@ -315,11 +228,15 @@ function drawNodes(opts, buildGraphElement, selector, edges) {
         step.on('mouseover', e => {
           step.classed('-hover', true);
           underline.classed('-hover', true);
+
+          // draw underline
           underline.attr('height', 1);
         });
         step.on('mouseout', e => {
           step.classed('-hover', false);
           underline.classed('-hover', false);
+
+          // clear underline
           underline.attr('height', 0);
         });
       }
@@ -327,170 +244,100 @@ function drawNodes(opts, buildGraphElement, selector, edges) {
 
     // track step number for applying styles
     var i = 0;
-    stageNode.selectAll('#a_node-cell').filter(function () {
-      var cell = d3.select(this);
-      var cellNode = cell.select('text').node();
-      if (cellNode) {
-        let parent = d3.select(cellNode.parentNode);
-        let nodeBox = cellNode.getBBox();
 
-        // extract href to dispatch to Elm
-        var href = parent.attr('xlink:href');
+    // draw node cells (steps)
+    node.selectAll('#a_node-cell').filter(function () {
+      var cell = d3.select(this).select('text').node();
+      if (cell) {
+        let cellParent = d3.select(cell.parentNode);
 
-        // remove actual href attribute
-        parent.attr('xlink:href', null);
+        var step = getStepDataFromTitle(cellParent);
 
-        var stepInfo = parent.attr('xlink:title').split(',');
-
-        // todo: safety check
-        var status = 'pending';
-        if (stepInfo && stepInfo.length > 2) {
-          status = stepInfo[2];
-        }
-
-        // todo: this image step icon mapping needs to be better
-        if (status === 'canceled') {
-          status = 'failure';
-        }
-
-        if (status === 'skipped') {
-          status = 'failure';
-        }
+        let cellBBox = cell.getBBox();
 
         // todo: static/*.png seems like a bad way to do icon images
-        parent
+        cellParent
           .append('image')
-          .attr('xlink:href', '/images/vela_' + status + '.png')
-          .attr('x', nodeBox.x - 6)
-          .attr('y', nodeBox.y)
+          .attr('xlink:href', '/images/vela_' + step.status + '.png')
+          .attr('x', cellBBox.x - 6)
+          .attr('y', cellBBox.y)
           .attr('width', stepIconSize)
           .attr('height', stepIconSize);
 
         // step connector
         if (i > 0) {
-          parent.append('rect')
+          var connector = cellParent.append('rect');
+          connector.classed('d3-build-graph-step-connector', true);
+
+          connector
             // tweak position for visual effect
-            .attr('x', nodeBox.x + 2)
-            .attr('y', nodeBox.y - 7)
+            .attr('x', cellBBox.x + 2)
+            .attr('y', cellBBox.y - 7)
             // apply size manually
             .attr('width', 1)
-            .attr('height', 5)
-            .attr('fill', 'var(--color-gray)'); //todo: replace with style
+            .attr('height', 5); //todo: replace with style
         }
         i++;
 
-        parent.on('click', function (e) {
+        // extract and remove the href to dispatch link clicks to Elm
+        var href = cellParent.attr('xlink:href');
+        cellParent.attr('xlink:href', null);
+
+        cellParent.on('click', e => {
           e.preventDefault();
           // prevents multiple link events getting fired from a single click
           e.stopImmediatePropagation();
-          setTimeout(
-            () => {
-              opts.onGraphInteraction.send({
-                event_type: 'href',
-                href: href,
-                step_id: '',
-              });
-            },
-            0,
-          );
+          setTimeout(() => {
+            opts.onGraphInteraction.send({
+              event_type: 'href',
+              href: href,
+              step_id: '',
+            });
+          }, 0);
         });
       }
     });
-
-    return ''; // used by filter (?)
   });
 }
 
-function drawEdges(opts, buildGraphElement, selector) {
-  // collect edge information to use in other d3 interactivity
-  var edges = [];
+function drawEdges(opts, buildGraphElement, edgeSelector) {
+  // collect edge information to use in other interactivity
+  var edges: any[] = [];
 
-  buildGraphElement.selectAll(selector).filter(function () {
+  buildGraphElement.selectAll(edgeSelector).filter(function () {
     let a = d3.select(this);
-    var edgeInfo = a.attr('id').replace('#', '').split(',');
     var p = a.select('path');
 
-    // extract edge information
-    var source = "-1";
-    var destination = "-1";
-    var status = "pending";
-    var focused = "false";
-    if (edgeInfo && edgeInfo.length == 4) {
-      source = edgeInfo[0];
-      destination = edgeInfo[1];
-      status = edgeInfo[2];
-      focused = edgeInfo[3];
-    }
-
-    // track edge information for advanced styling
-    edges.push({
+    // extract information embedded in the element id for advanced styling
+    var data = getEdgeDataFromID(a);
+    var edge = {
       target: p,
-      source: source,
-      destination: destination,
-      status: status,
-      focused: focused,
-    });
+      ...data,
+    };
+    edges.push(edge);
 
     // restore base class and build modifiers
     p.attr('class', 'd3-build-graph-edge-path');
 
-    var restoreEdgeClass = o => {
-      o.classed('-pending', true);
-    };
-
-    if (status === 'running') {
-      restoreEdgeClass = o => {
-        o.classed('-running', true);
-      };
-    }
-    if (status === 'success') {
-      restoreEdgeClass = o => {
-        o.classed('-success', true);
-      };
-    }
-    if (status === 'failure') {
-      restoreEdgeClass = o => {
-        o.classed('-failure', true);
-      };
-    }
-
     // apply the appropriate styles
-    restoreEdgeClass(p);
+    p.classed('-' + data.status, true);
 
-
-    if (focused && focused === 'true') {
-      restoreEdgeClass = o => {
-        o.classed('-hover', true);
-      };
+    if (data.focused && data.focused === 'true') {
+      p.classed('-focus', true);
     }
-
-    // apply the appropriate styles
-    restoreEdgeClass(p);
-
-    // apply edge hover styles
-    // a.on('mouseover', e => {
-    //   p.classed('-hover', true);
-    // });
-    // a.on('mouseout', e => {
-    //   restoreEdgeClass(p);
-    //   p.classed('-hover', false);
-    // });
-
-    return ''; // used by filter (?)
   });
 
   return edges;
 }
 
-// applyNodesOnClick takes root graph element, selects node links and applies onclick functionality
-function applyNodesOnClick(opts, buildGraphElement, selector) {
+// applyOnClickToNodes takes root graph element, selects node links and applies onclick functionality
+function applyOnClickToNodes(opts, buildGraphElement, nodeSelector) {
   // process and return all 'linked' stage nodes
-  return buildGraphElement.selectAll(selector + ' a').filter(function () {
-    // todo: figure out .each
+  return buildGraphElement.selectAll(nodeSelector + ' a').filter(function () {
     // add onclick to nodes with valid href attributes
     var href = d3.select(this).attr('xlink:href');
     if (href !== null) {
-      d3.select(this).on('click', function (e) {
+      d3.select(this).on('click', e => {
         e.preventDefault();
         e.stopImmediatePropagation();
 
@@ -503,16 +350,90 @@ function applyNodesOnClick(opts, buildGraphElement, selector) {
           stageID = stageInfo[0];
         }
 
-        setTimeout(
-          () => {
-            opts.onGraphInteraction.send({
-              event_type: 'node_click',
-              node_id: stageID,
-            });
-          }, 0
-        );
+        // dispatch Elm interop
+        setTimeout(() => {
+          opts.onGraphInteraction.send({
+            event_type: 'node_click',
+            node_id: stageID,
+          });
+        }, 0);
       });
     }
-    return '';
   });
+}
+
+function getNodeDataFromID(element) {
+  // extract information embedded in the element id
+  var id = element.attr('id').replace('#', '').split(',');
+
+  // default info
+  var data = {
+    id: '-2',
+    name: '-',
+    status: 'pending',
+    focused: 'false',
+  };
+
+  // extract from split id
+  if (id && id.length == 4) {
+    data = {
+      id: id[0],
+      name: id[1],
+      status: id[2],
+      focused: id[3],
+    };
+  }
+
+  return data;
+}
+
+function getEdgeDataFromID(element) {
+  // extract information embedded in the element id
+  var id = element.attr('id').replace('#', '').split(',');
+
+  // default info
+  var data = {
+    source: '-1',
+    destination: '-1',
+    status: 'pending',
+    focused: 'false',
+  };
+
+  // extract from split id
+  if (id && id.length >= 4) {
+    data = {
+      source: id[0],
+      destination: id[1],
+      status: id[2],
+      focused: id[3],
+    };
+  }
+
+  return data;
+}
+
+function getStepDataFromTitle(element) {
+  // extract information embedded in the element title
+  var title = element.attr('xlink:title').split(',');
+
+  // default info
+  var data = {
+    id: '-3',
+    name: '-',
+    status: 'pending',
+  };
+
+  // extract from split title
+  if (title && title.length >= 2) {
+    data = {
+      id: title[0],
+      name: title[1],
+      status: title[2],
+    };
+    if (data.status === 'canceled' || data.status === 'skipped') {
+      data.status = 'failure';
+    }
+  }
+
+  return data;
 }

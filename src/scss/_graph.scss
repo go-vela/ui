@@ -5,35 +5,34 @@
 // start: classes controlled by Elm
 
 .elm-build-graph-actions {
+  position: relative;
+
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  position: relative;
+
+  border: 1px solid var(--color-bg-light);
+  border-bottom: 0;
 
   .elm-build-graph-actions-toggles {
     display: flex;
-    // padding-left: 1rem;
   }
 
   .form-control {
     div {
-      margin: 1rem;
       position: relative;
+
+      margin: 1rem;
     }
 
     border-left: 1px solid var(--color-bg-light);
   }
 
-  #action-refresh {
-    svg {
-      transform: rotate(0.2turn);
-    }
-  }
-
   ul {
-    list-style: none;
     display: flex;
     padding-left: 0.8rem;
+
+    list-style: none;
   }
 
   li {
@@ -43,18 +42,16 @@
   button.-icon {
     display: flex;
   }
+}
 
-  // background: var(--color-bg-dark);
-  border: 1px solid var(--color-bg-light);
-  border-bottom: 0;
-
+.action-refresh svg {
+  transform: rotate(0.2turn);
 }
 
 .elm-build-graph-window {
   position: relative;
 
   display: flex;
-
   width: 100%;
   min-height: 250px;
 
@@ -107,21 +104,21 @@
     stroke: var(--color-green);
   }
 
-  .-failure {
+  &.-failure {
     stroke: var(--color-red);
   }
 
   .-selected {
-    stroke: var(--color-cyan);
+    stroke: var(--color-primary);
   }
 
-  // not used?
   .-killed {
     stroke: var(--color-lavender);
   }
 }
 
 .elm-build-graph-search-filter {
+  padding-right: 1rem;
   // color: var(--color-text);
   // background-color: var(--color-bg);
   // border: none;
@@ -133,7 +130,7 @@
   // font-size: 1rem;
   // position: relative;
   padding-left: 1rem;
-  padding-right: 1rem;
+
   background-color: var(--color-bg);
   border-right: 1px solid var(--color-bg-light);
 
@@ -142,6 +139,7 @@
     margin-left: 0;
     padding-bottom: 0.5rem;
     padding-left: 0.5rem;
+
     border-bottom: var(--line-width) solid var(--color-primary);
   }
 
@@ -150,23 +148,24 @@
   }
 }
 
-.elm-build-graph-focused-node {
+.elm-build-graph-focus-node {
   // todo: remove this
   display: flex;
   align-items: center;
-
-  span {
-    background: var(--color-primary);
-    color: var(--color-bg-dark);
-    padding: 0.2rem 0.8rem;
-    margin-right: 0.6rem;
-  }
-
-  padding-left: 1rem;
   padding-right: 1rem;
+  padding-left: 1rem;
 
   background-color: var(--color-bg);
   border-right: 1px solid var(--color-bg-light);
+
+  span {
+    margin-right: 0.6rem;
+    padding: 0.2rem 0.8rem;
+
+    color: var(--color-bg-dark);
+
+    background: var(--color-primary);
+  }
 }
 
 // end: classes controlled by Elm
@@ -176,6 +175,7 @@
 .d3-build-graph-node-outline-rect {
   fill: none;
   stroke-width: 1.8;
+  // stroke: var(--color-gray);
 
   &.-pending {
     stroke: var(--color-gray);
@@ -193,7 +193,9 @@
     stroke: var(--color-green);
   }
 
-  &.-failure {
+  &.-failure,
+  &.-canceled,
+  &.-skipped {
     stroke: var(--color-red);
   }
 
@@ -201,34 +203,28 @@
     stroke: var(--color-lavender);
   }
 
+  &.-focus {
+    stroke: var(--color-primary);
+    stroke-width: 2;
+  }
+
   &.-hover {
     stroke: var(--color-primary);
     stroke-width: 3;
   }
-
-  // todo: not used
-  &.-focused {
-    stroke: var(--color-primary);
-  }
 }
 
 .d3-build-graph-node-step-a {
-
-  &:focus,
-  &:active {
-    outline: none;
-  }
+  // todo: lint:css-fix does not like this override
+  // &:focus,
+  // &:active {
+  //   outline: none;
+  // }
 
   &.-hover {
     text {
       fill: var(--color-primary);
     }
-  }
-
-  // todo: not used
-  &.-focused {
-    outline: 1px solid var(--color-primary);
-    outline-style: dashed;
   }
 }
 
@@ -236,6 +232,10 @@
   &.-hover {
     fill: var(--color-primary);
   }
+}
+
+.d3-build-graph-step-connector {
+  fill: var(--color-gray);
 }
 
 .d3-build-graph-edge-path {
@@ -261,19 +261,21 @@
     stroke-width: 1;
   }
 
-  &.-failure {
+  &.-failure,
+  &.-canceled,
+  &.-skipped,
+  &.-killed {
     stroke: var(--color-gray);
     stroke-width: 1;
+  }
+
+  &.-focus {
+    stroke: var(--color-primary);
   }
 
   &.-hover {
     stroke: var(--color-primary);
     stroke-width: 3;
-  }
-
-  // todo: not used
-  &.-focused {
-    stroke: var(--color-primary);
   }
 }
 

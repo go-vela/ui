@@ -2178,7 +2178,7 @@ update msg model =
                     ( { model | time = time, favicon = favicon }
                     , Cmd.batch
                         [ updateFavicon
-                        , renderBuildGraph model
+                        , refreshRenderBuildGraph model
                         ]
                     )
 
@@ -2584,7 +2584,7 @@ refreshBuildServices model org repo buildNumber focusFragment =
         Cmd.none
 
 
-{-| refreshBuildGraph : takes model org repo and build number and refreshes the build status
+{-| refreshBuildGraph : takes model org repo and build number and refreshes the build graph if necessary
 -}
 refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuildGraph model org repo buildNumber =
@@ -2593,6 +2593,18 @@ refreshBuildGraph model org repo buildNumber =
 
     else
         Cmd.none
+
+
+{-| refreshRenderBuildGraph : takes model org repo and build number and refreshes the build graph render if necessary
+-}
+refreshRenderBuildGraph : Model -> Cmd Msg
+refreshRenderBuildGraph model =
+    case model.page of
+        Pages.BuildGraph _ _ _ ->
+            renderBuildGraph model
+
+        _ ->
+            Cmd.none
 
 
 {-| shouldRefresh : takes build and returns true if a refresh is required
@@ -4301,6 +4313,7 @@ loadBuildGraphPage model org repo buildNumber =
         Cmd.batch
             [ getBuilds m org repo Nothing Nothing Nothing
             , getBuild m org repo buildNumber
+            , getAllBuildSteps m org repo buildNumber Nothing False
             , getBuildGraph m org repo buildNumber False
             , renderBuildGraph model
             ]

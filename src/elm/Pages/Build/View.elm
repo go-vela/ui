@@ -599,27 +599,21 @@ viewBuildGraph model msgs org repo buildNumber =
                 , class "d3-build-graph-node-outline-rect"
                 , class "d3-build-graph-node-step-a"
                 , class "d3-build-graph-node-step-a-underline"
+                , class "d3-build-graph-step-connector"
                 , class "d3-build-graph-edge-path"
                 , class "-pending"
                 , class "-running"
                 , class "-success"
                 , class "-failure"
                 , class "-killed"
+                , class "-canceled"
+                , class "-skipped"
                 , class "-hover"
+                , class "-focus"
                 , class "-filtered"
                 ]
                 []
             ]
-
-        focusedNode =
-            case model.repo.build.graph.graph of
-                RemoteData.Success g ->
-                    Dict.get model.repo.build.graph.focusedNode g.nodes
-
-                -- dont render anything when the build graph draw command has been dispatched
-                -- Maybe.withDefault "" <| List.head <| List.filter (\n -> n.id == model.repo.build.graph.focusedNode ) <| Dict.fromList g.nodes
-                _ ->
-                    Nothing
 
         actions =
             div [ class "elm-build-graph-actions" ]
@@ -629,34 +623,11 @@ viewBuildGraph model msgs org repo buildNumber =
                             [ FeatherIcons.minimize |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
                             ]
                         ]
-
-                    -- , li []
-                    --     [ button
-                    --         [ class "button"
-                    --         , class "-icon"
-                    --         , id "action-collapse"
-                    --         , Html.Attributes.title "Collapse all stages"
-                    --         , onClick msgs.buildGraphMsgs.collapseAllStages
-                    --         ]
-                    --         [ FeatherIcons.minimize2 |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
-                    --         ]
-                    --     ]
-                    -- , li []
-                    --     [ button
-                    --         [ class "button"
-                    --         , class "-icon"
-                    --         , id "action-expand"
-                    --         , Html.Attributes.title "Expand all stages"
-                    --         , onClick msgs.buildGraphMsgs.expandAllStages
-                    --         ]
-                    --         [ FeatherIcons.maximize2 |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml []
-                    --         ]
-                    --     ]
                     , li []
                         [ button
                             [ class "button"
                             , class "-icon"
-                            , id "action-refresh"
+                            , class "action-refresh"
                             , Html.Attributes.title "Refresh visualization"
                             , onClick <| msgs.buildGraphMsgs.refresh org repo buildNumber
                             ]
@@ -717,31 +688,6 @@ viewBuildGraph model msgs org repo buildNumber =
                             ]
                             [ FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml [] ]
                         ]
-
-                    -- todo: cleanup
-                    -- , case focusedNode of
-                    --     Just n ->
-                    --         div [ class "elm-build-graph-focused-node" ]
-                    --             [ span [] [ text <| "focused: " ++ n.name ]
-                    --             , button
-                    --                 [ class "button"
-                    --                 , class "-icon"
-                    --                 , class "elm-build-graph-search-filter-clear"
-                    --                 , onClick msgs.buildGraphMsgs.clearFocus
-                    --                 ]
-                    --                 [ FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml [] ]
-                    --             ]
-                    --     Nothing ->
-                    --         div [ class "elm-build-graph-focused-node" ]
-                    --             [ span [] [ text <| "focused: none" ]
-                    --             , button
-                    --                 [ class "button"
-                    --                 , class "-icon"
-                    --                 , class "elm-build-graph-search-filter-clear"
-                    --                 , onClick msgs.buildGraphMsgs.clearFocus
-                    --                 ]
-                    --                 [ FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-actions-button" |> FeatherIcons.toHtml [] ]
-                    --             ]
                     ]
                 ]
 

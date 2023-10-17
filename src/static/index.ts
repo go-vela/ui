@@ -13,7 +13,7 @@ import { Graphviz } from '@hpcc-js/wasm';
 import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
 import { App, Config, Flags, Theme } from './index.d';
-import * as Graph from  './graph';
+import * as Graph from './graph';
 
 // Vela consts
 const feedbackURL: string =
@@ -51,13 +51,13 @@ const flags: Flags = {
   velaRedirect: currentRedirectKey || '',
   velaLogBytesLimit: Number(
     process.env.VELA_LOG_BYTES_LIMIT ||
-    envOrNull('VELA_LOG_BYTES_LIMIT', '$VELA_LOG_BYTES_LIMIT') ||
-    defaultLogBytesLimit,
+      envOrNull('VELA_LOG_BYTES_LIMIT', '$VELA_LOG_BYTES_LIMIT') ||
+      defaultLogBytesLimit,
   ),
   velaMaxBuildLimit: Number(
     process.env.VELA_MAX_BUILD_LIMIT ||
-    envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
-    maximumBuildLimit,
+      envOrNull('VELA_MAX_BUILD_LIMIT', 'VELA_MAX_BUILD_LIMIT') ||
+      maximumBuildLimit,
   ),
 
   velaScheduleAllowlist:
@@ -137,7 +137,7 @@ function envOrNull(env: string, subst: string): string | null {
 var opts = {
   currentBuild: -1,
   isRefreshDraw: false,
-  contentFilter: "",
+  contentFilter: '',
 };
 
 app.ports.renderBuildGraph.subscribe(function (graphData) {
@@ -147,7 +147,7 @@ app.ports.renderBuildGraph.subscribe(function (graphData) {
     var content = res.layout(dot, 'svg', 'dot');
 
     // construct graph building options
-    opts.isRefreshDraw = (opts.currentBuild === graphData.build_id);
+    opts.isRefreshDraw = opts.currentBuild === graphData.build_id;
     opts.currentBuild = graphData.build_id;
     opts.contentFilter = graphData.filter;
     opts.onGraphInteraction = app.ports.onGraphInteraction;
