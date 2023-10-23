@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -22,7 +21,8 @@ module Util exposing
     , formatTestTag
     , getNameFromRef
     , humanReadableDateTimeFormatter
-    , humanReadableWithDefault
+    , humanReadableDateTimeWithDefault
+    , humanReadableDateWithDefault
     , isLoading
     , isSuccess
     , largeLoader
@@ -84,22 +84,26 @@ millisToSeconds millis =
     millis // 1000
 
 
-{-| dateToHumanReadable : takes timezone and posix timestamp and returns human readable date string
+{-| humanReadableDateWithDefault : takes timezone and posix timestamp and returns human readable date string with a default value for 0
 -}
-dateToHumanReadable : Zone -> Int -> String
-dateToHumanReadable timezone time =
-    humanReadableDateFormatter timezone <| Time.millisToPosix <| secondsToMillis time
-
-
-{-| humanReadableWithDefault : takes timezone and posix timestamp and returns human readable date string with a default value for 0
--}
-humanReadableWithDefault : Zone -> Int -> String
-humanReadableWithDefault timezone t =
+humanReadableDateWithDefault : Zone -> Int -> String
+humanReadableDateWithDefault timezone t =
     if t == 0 then
         "-"
 
     else
-        dateToHumanReadable timezone t
+        humanReadableDateFormatter timezone <| Time.millisToPosix <| secondsToMillis t
+
+
+{-| humanReadableDateTimeWithDefault : takes timezone and posix timestamp and returns human readable date time string with a default value for 0
+-}
+humanReadableDateTimeWithDefault : Zone -> Int -> String
+humanReadableDateTimeWithDefault timezone t =
+    if t == 0 then
+        "-"
+
+    else
+        humanReadableDateTimeFormatter timezone <| Time.millisToPosix <| secondsToMillis t
 
 
 {-| humanReadableDateFormatter : formats a zone and date into human readable chunks
@@ -120,17 +124,15 @@ humanReadableDateFormatter =
 humanReadableDateTimeFormatter : Zone -> Posix -> String
 humanReadableDateTimeFormatter =
     DateFormat.format
-        [ DateFormat.monthNameAbbreviated
-        , DateFormat.text " "
-        , DateFormat.dayOfMonthSuffix
-        , DateFormat.text ", "
+        [ DateFormat.monthFixed
+        , DateFormat.text "/"
+        , DateFormat.dayOfMonthFixed
+        , DateFormat.text "/"
         , DateFormat.yearNumber
         , DateFormat.text " at "
         , DateFormat.hourFixed
         , DateFormat.text ":"
         , DateFormat.minuteFixed
-        , DateFormat.text ":"
-        , DateFormat.secondFixed
         , DateFormat.text " "
         , DateFormat.amPmUppercase
         ]

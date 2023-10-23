@@ -133,8 +133,8 @@ recentBuildTooltip now timezone build =
                 , em [] [ text build.event ]
                 ]
             , buildInfo build
-            , viewTooltipField "started:" <| Util.humanReadableWithDefault timezone build.started
-            , viewTooltipField "finished:" <| Util.humanReadableWithDefault timezone build.finished
+            , viewTooltipField "started:" <| Util.humanReadableDateWithDefault timezone build.started
+            , viewTooltipField "finished:" <| Util.humanReadableDateWithDefault timezone build.finished
             , viewTooltipField "duration:" <| Util.formatRunTime now build.started build.finished
             , viewTooltipField "worker:" build.host
             , viewTooltipField "author:" build.author

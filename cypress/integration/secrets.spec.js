@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2022 Target Brands, Inc. All rights reserved.
- * Use of this source code is governed by the LICENSE file in this repository.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 context('Secrets', () => {
@@ -30,6 +29,34 @@ context('Secrets', () => {
         .should('exist')
         .contains('Remove');
     });
+
+    context(
+      'allowlist contains *',
+      {
+        env: {
+          VELA_SCHEDULE_ALLOWLIST: '*',
+        },
+      },
+      () => {
+        it('add button should show', () => {
+          cy.get('[data-test=repo-checkbox-schedule]').should('exist');
+        });
+      },
+    );
+
+    context(
+      'allowlist is empty',
+      {
+        env: {
+          VELA_SCHEDULE_ALLOWLIST: ' ',
+        },
+      },
+      () => {
+        it('add button should not show', () => {
+          cy.get('[data-test=repo-checkbox-schedule]').should('not.exist');
+        });
+      },
+    );
 
     context('click Remove', () => {
       beforeEach(() => {

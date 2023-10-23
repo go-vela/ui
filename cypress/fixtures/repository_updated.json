@@ -6,7 +6,7 @@
   "full_name": "github/octocat",
   "link": "",
   "clone": "",
-  "branch": "master",
+  "branch": "main",
   "build_limit": 15,
   "timeout": 80,
   "counter": 2000,

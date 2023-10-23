@@ -7,7 +7,7 @@
     "created": 1575000000,
     "host": "github.com",
     "event": "push",
-    "branch": "master",
+    "branch": "main",
     "error": "",
     "status": "success",
     "link": "https://github.com/github/octocat/settings/hooks"
@@ -20,7 +20,7 @@
     "created": 1575000000,
     "host": "github.com",
     "event": "push",
-    "branch": "master",
+    "branch": "main",
     "error": "",
     "status": "success",
     "link": "https://github.com/github/octocat/settings/hooks"
@@ -33,7 +33,7 @@
     "created": 1574999999,
     "host": "github.com",
     "event": "push",
-    "branch": "master",
+    "branch": "main",
     "error": "",
     "status": "success",
     "link": "https://github.com/github/octocat/settings/hooks"
@@ -46,7 +46,7 @@
     "created": 1574888888,
     "host": "github.com",
     "event": "push",
-    "branch": "master",
+    "branch": "main",
     "error": "",
     "status": "success",
     "link": "https://github.com/github/octocat/settings/hooks"
@@ -59,7 +59,7 @@
     "created": 1574777777,
     "host": "github.com",
     "event": "tag",
-    "branch": "master",
+    "branch": "main",
     "error": "unable to process webhook: github/octocat does not have tag events enabled",
     "status": "failure",
     "link": "https://github.com/github/octocat/settings/hooks"
@@ -72,7 +72,7 @@
     "created": 1574699277,
     "host": "github.com",
     "event": "push",
-    "branch": "master",
+    "branch": "main",
     "error": "",
     "status": "success",
     "link": "https://github.com/github/octocat/settings/hooks"
@@ -85,7 +85,7 @@
     "created": 1574699277,
     "host": "github.com",
     "event": "push",
-    "branch": "master",
+    "branch": "main",
     "error": "",
     "status": "success",
     "link": "https://github.com/github/octocat/settings/hooks"
@@ -98,7 +98,7 @@
     "created": 1574580180,
     "host": "github.com",
     "event": "push",
-    "branch": "master",
+    "branch": "main",
     "error": "",
     "status": "success",
     "link": "https://github.com/github/octocat/settings/hooks"
@@ -111,7 +111,7 @@
     "created": 1574576611,
     "host": "github.com",
     "event": "push",
-    "branch": "master",
+    "branch": "main",
     "error": "",
     "status": "success",
     "link": "https://github.com/github/octocat/settings/hooks"
@@ -124,7 +124,7 @@
     "created": 1574444067,
     "host": "github.com",
     "event": "tag",
-    "branch": "master",
+    "branch": "main",
     "error": "unable to process webhook: github/octocat does not have tag events enabled",
     "status": "failure",
     "link": "https://github.com/github/octocat/settings/hooks"
