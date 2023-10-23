@@ -137,6 +137,7 @@ function envOrNull(env: string, subst: string): string | null {
 var opts = {
   currentBuild: -1,
   isRefreshDraw: false,
+  centerOnDraw: false,
   contentFilter: '',
 };
 
@@ -148,6 +149,7 @@ app.ports.renderBuildGraph.subscribe(function (graphData) {
 
     // construct graph building options
     opts.isRefreshDraw = opts.currentBuild === graphData.build_id;
+    opts.centerOnDraw = graphData.center_on_draw;
     opts.currentBuild = graphData.build_id;
     opts.contentFilter = graphData.filter;
     opts.onGraphInteraction = app.ports.onGraphInteraction;

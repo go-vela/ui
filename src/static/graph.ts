@@ -89,12 +89,8 @@ function drawBaseGraphWithZoom(opts, selector, content) {
   // apply mousedown zoom effects
   var g = d3.select('g.node_mousedown');
   if (g.empty()) {
-    console.log('selecting ' + selector);
     var zoomG = d3.select(selector);
-    if (zoomG.node()) {
-      console.log('good zoomg');
-    } else {
-      console.log('bad zoomg');
+    if (!zoomG.node()) {
       return null;
     }
 
@@ -121,15 +117,13 @@ function drawBaseGraphWithZoom(opts, selector, content) {
   // draw content into html
   buildGraphElement.html(content);
 
-  // reset the graph when the build number has changed
+  // recenter on draw, when necessary
   if (!opts.isRefreshDraw) {
     resetZoomAndCenter(opts, zoom);
   }
-
-  // todo: detect a tab-switch and reset the zoom. currently it puts the graph in the top-left origin
-  // if (!opts.isTabSwitch) {
-  //   resetZoomAndCenter(opts, zoom);
-  // }
+  if (opts.centerOnDraw) {
+    resetZoomAndCenter(opts, zoom);
+  }
 
   return buildGraphElement;
 }
@@ -172,7 +166,8 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
     var data = getNodeDataFromID(node);
 
     // restore base class and build modifiers
-    outline.attr('class', 'd3-build-graph-node-outline-rect');
+    outline.classed('d3-build-graph-node-outline-rect', true);
+    outline.classed('d3-build-graph-node-outline-' + data.id, true);
     outline.classed('-' + data.status, true);
 
     // apply click-focus styling
@@ -211,7 +206,7 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
       var step = d3.select(this);
       if (step.attr('xlink:href').includes('#step:')) {
         // restore base class and build modifiers
-        step.attr('class', 'd3-build-graph-node-step-a');
+        step.classed('d3-build-graph-node-step-a', true);
 
         // apply an outline using rect, since nodes are rect and this will allow for animation
         var underline = step.append('rect');
@@ -222,7 +217,7 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
           .attr('width', aBBox.width - stepIconSize);
 
         // restore base class and build modifiers
-        underline.attr('class', 'd3-build-graph-node-step-a-underline');
+        underline.classed('d3-build-graph-node-step-a-underline', true);
 
         // apply step table row hover styles
         step.on('mouseover', e => {
@@ -275,7 +270,7 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
             .attr('y', cellBBox.y - 7)
             // apply size manually
             .attr('width', 1)
-            .attr('height', 5); //todo: replace with style
+            .attr('height', 5);
         }
         i++;
 
@@ -317,7 +312,11 @@ function drawEdges(opts, buildGraphElement, edgeSelector) {
     edges.push(edge);
 
     // restore base class and build modifiers
-    p.attr('class', 'd3-build-graph-edge-path');
+    p.classed('d3-build-graph-edge-path', true);
+    p.classed(
+      'd3-build-graph-edge-path-' + data.source + '-' + data.destination,
+      true,
+    );
 
     // apply the appropriate styles
     p.classed('-' + data.status, true);

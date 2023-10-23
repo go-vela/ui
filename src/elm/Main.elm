@@ -76,7 +76,7 @@ import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page)
-import Pages.Build.Graph exposing (renderBuildGraph, renderBuildGraphDOT)
+import Pages.Build.Graph exposing (renderBuildGraph)
 import Pages.Build.Logs
     exposing
         ( addLog
@@ -188,7 +188,6 @@ import Vela
         , defaultPipeline
         , defaultPipelineTemplates
         , defaultRepoModel
-        , encodeBuildGraphRenderData
         , encodeEnableRepository
         , encodeTheme
         , encodeUpdateRepository
@@ -199,6 +198,7 @@ import Vela
         , stringToTheme
         , updateBuild
         , updateBuildGraph
+        , updateBuildGraphFilter
         , updateBuildGraphShowServices
         , updateBuildGraphShowSteps
         , updateBuildNumber
@@ -663,7 +663,7 @@ update msg model =
                                 um_ =
                                     updateModels model rm bm ugm
                             in
-                            ( ugm, renderBuildGraph um_ )
+                            ( ugm, renderBuildGraph um_ False )
 
                         "node_click" ->
                             let
@@ -673,7 +673,7 @@ update msg model =
                                 um_ =
                                     updateModels model rm bm ugm
                             in
-                            ( ugm, renderBuildGraph um_ )
+                            ( ugm, renderBuildGraph um_ False )
 
                         _ ->
                             ( model.repo.build.graph, Cmd.none )
@@ -710,7 +710,7 @@ update msg model =
                     updateModels model rm bm ugm
             in
             ( um_
-            , renderBuildGraph um_
+            , renderBuildGraph um_ False
             )
 
         BuildGraphShowServices show ->
@@ -724,7 +724,7 @@ update msg model =
                     updateModels model rm bm ugm
             in
             ( um_
-            , renderBuildGraph um_
+            , renderBuildGraph um_ False
             )
 
         BuildGraphShowSteps show ->
@@ -738,7 +738,7 @@ update msg model =
                     updateModels model rm bm ugm
             in
             ( um_
-            , renderBuildGraph um_
+            , renderBuildGraph um_ False
             )
 
         GotoPage pageNumber ->
@@ -2125,22 +2125,15 @@ update msg model =
                                 sameBuild =
                                     gm.buildNumber == buildNumber
 
-                                showSteps =
-                                    if not sameBuild then
-                                        True
-
-                                    else
-                                        gm.showSteps
-
                                 ugm =
-                                    { gm | buildNumber = buildNumber, graph = RemoteData.succeed g, showSteps = showSteps }
+                                    { gm | buildNumber = buildNumber, graph = RemoteData.succeed g }
 
                                 updatedModel =
                                     updateModels model rm bm ugm
 
                                 cmd =
                                     if not sameBuild then
-                                        renderBuildGraph updatedModel
+                                        renderBuildGraph updatedModel False
 
                                     else
                                         Cmd.none
@@ -2601,7 +2594,7 @@ refreshRenderBuildGraph : Model -> Cmd Msg
 refreshRenderBuildGraph model =
     case model.page of
         Pages.BuildGraph _ _ _ ->
-            renderBuildGraph model
+            renderBuildGraph model False
 
         _ ->
             Cmd.none
@@ -4276,16 +4269,8 @@ loadBuildGraphPage model org repo buildNumber =
                 _ ->
                     False
 
-        -- if build has changed, set build fields in the model
-        m =
-            if not sameBuild then
-                setBuild org repo buildNumber sameResource model
-
-            else
-                model
-
         rm =
-            m.repo
+            model.repo
 
         bm =
             rm.build
@@ -4299,23 +4284,41 @@ loadBuildGraphPage model org repo buildNumber =
 
             else
                 RemoteData.Loading
+
+        -- if build has changed, set build fields in the model
+        mm =
+            if not sameBuild then
+                setBuild org repo buildNumber sameResource model
+
+            else
+                model
+
+        focusedNode =
+            if sameBuild then
+                gm.focusedNode
+
+            else
+                -1
+
+        um =
+            { mm
+                | page = Pages.BuildGraph org repo buildNumber
+                , repo = { rm | build = { bm | graph = { gm | graph = graph, focusedNode = focusedNode } } }
+            }
     in
-    ( { m
-        | page = Pages.BuildGraph org repo buildNumber
-        , repo = { rm | build = { bm | graph = { gm | graph = graph } } }
-      }
+    ( um
       -- do not load resources if transition is auto refresh, line focus, etc
       -- MUST render graph here, or clicking on nodes won't cause an immediate change
     , if sameBuild && sameResource then
-        renderBuildGraph model
+        renderBuildGraph um False
 
       else
         Cmd.batch
-            [ getBuilds m org repo Nothing Nothing Nothing
-            , getBuild m org repo buildNumber
-            , getAllBuildSteps m org repo buildNumber Nothing False
-            , getBuildGraph m org repo buildNumber False
-            , renderBuildGraph model
+            [ getBuilds um org repo Nothing Nothing Nothing
+            , getBuild um org repo buildNumber
+            , getAllBuildSteps um org repo buildNumber Nothing False
+            , getBuildGraph um org repo buildNumber False
+            , renderBuildGraph um True
             ]
     )
 
@@ -4512,6 +4515,9 @@ setBuild org repo buildNumber soft model =
         rm =
             model.repo
 
+        gm =
+            rm.build.graph
+
         pipeline =
             model.pipeline
     in
@@ -4545,8 +4551,9 @@ setBuild org repo buildNumber soft model =
                 |> updateBuildServicesLogs []
                 |> updateBuildServicesFocusFragment Nothing
                 |> updateBuildGraph NotAsked
-                |> updateBuildGraphShowServices True
-                |> updateBuildGraphShowSteps True
+                |> updateBuildGraphShowServices gm.showServices
+                |> updateBuildGraphShowSteps gm.showSteps
+                |> updateBuildGraphFilter gm.filter
     }
 
 

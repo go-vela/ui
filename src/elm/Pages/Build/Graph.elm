@@ -32,7 +32,7 @@ import Visualization.DOT as DOT
 -- renderBuildGraph : { a | repo : Vela.RepoModel, velaScheduleAllowlist : List ( Vela.Org, Vela.Repo ), navigationKey : Key, user : RemoteData.WebData Vela.CurrentUser, sourceRepos : RemoteData.WebData (SourceRepositories), page : Page, time : Posix, zone : Zone, shift : Bool, buildMenuOpen : List Int, pipeline : Vela.PipelineModel } -> Cmd msg
 
 
-renderBuildGraph model =
+renderBuildGraph model centerOnDraw =
     let
         rm =
             model.repo
@@ -53,6 +53,7 @@ renderBuildGraph model =
                     , showServices = gm.showServices
                     , showSteps = gm.showSteps
                     , focusedNode = gm.focusedNode
+                    , centerOnDraw = centerOnDraw
                     }
 
         _ ->
@@ -242,7 +243,7 @@ nodeLabel model showSteps node =
                         ++ label
                         ++ "</u>"
                         ++ "</font>"
-                        ++ (if node.cluster /= 1 then
+                        ++ (if node.cluster /= serviceClusterID then
                                 "  <font color='white'>("
                                     ++ (String.fromInt <| List.length steps)
                                     ++ ")</font>"
@@ -296,7 +297,7 @@ nodeLabel model showSteps node =
                     (cellAttrs step)
                 ++ " "
                 ++ ">"
-                ++ "&nbsp;&nbsp;"
+                ++ "    "
                 ++ "<font color='"
                 ++ labelColor
                 ++ "'>"
@@ -441,8 +442,7 @@ serviceSubgraphStyles =
 
 defaultNodeAttrs : List ( String, Attribute )
 defaultNodeAttrs =
-    [ ( "class", DefaultJSONLabelEscape "elm-build-graph-node" )
-    , ( "shape", DefaultJSONLabelEscape "rect" )
+    [ ( "shape", DefaultJSONLabelEscape "rect" )
     , ( "style", DefaultJSONLabelEscape "filled" )
     , ( "border", DefaultJSONLabelEscape "white" )
     ]
@@ -470,6 +470,12 @@ nodeAttrs model node =
                     , Util.boolToString node.focused
                     ]
 
+        class =
+            String.join " "
+                [ "elm-build-graph-node" -- generic styling
+                , "elm-build-graph-node-" ++ String.fromInt node.id -- selector used for testing
+                ]
+
         -- track step expansion using the model and OnGraphInteraction
         showSteps =
             model.repo.build.graph.showSteps
@@ -479,6 +485,7 @@ nodeAttrs model node =
         defaultNodeAttrs
             ++ -- dynamic attributes
                [ ( "id", DefaultJSONLabelEscape id )
+               , ( "class", DefaultJSONLabelEscape class )
                , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
                , ( "label", HtmlLabelEscape <| nodeLabel model showSteps node )
                , ( "tooltip", DefaultJSONLabelEscape id )
@@ -486,20 +493,31 @@ nodeAttrs model node =
 
 
 edgeAttrs : BuildGraphEdge -> Dict String Attribute
-edgeAttrs e =
+edgeAttrs edge =
     let
         -- embed edge information in the element id to use during OnGraphInteraction callbacks
         id =
             "#"
                 ++ String.join ","
-                    [ String.fromInt e.source
-                    , String.fromInt e.destination
-                    , e.status
-                    , Util.boolToString e.focused
+                    [ String.fromInt edge.source
+                    , String.fromInt edge.destination
+                    , edge.status
+                    , Util.boolToString edge.focused
                     ]
+
+        class =
+            String.join " "
+                [ "elm-build-graph-edge" -- generic styling
+
+                -- selector used for testing
+                , "elm-build-graph-edge-"
+                    ++ String.fromInt edge.source
+                    ++ "-"
+                    ++ String.fromInt edge.destination
+                ]
     in
     Dict.fromList <|
-        [ ( "class", DefaultJSONLabelEscape "elm-build-graph-edge" )
+        [ ( "id", DefaultJSONLabelEscape id )
+        , ( "class", DefaultJSONLabelEscape class )
         , ( "style", DefaultJSONLabelEscape "filled" )
-        , ( "id", DefaultJSONLabelEscape id )
         ]

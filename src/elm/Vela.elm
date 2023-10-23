@@ -138,6 +138,7 @@ module Vela exposing
     , stringToTheme
     , updateBuild
     , updateBuildGraph
+    , updateBuildGraphFilter
     , updateBuildGraphShowServices
     , updateBuildGraphShowSteps
     , updateBuildNumber
@@ -779,6 +780,18 @@ updateBuildGraphShowSteps update rm =
     { rm | build = { b | graph = { g | showSteps = update } } }
 
 
+updateBuildGraphFilter : String -> RepoModel -> RepoModel
+updateBuildGraphFilter update rm =
+    let
+        b =
+            rm.build
+
+        g =
+            b.graph
+    in
+    { rm | build = { b | graph = { g | filter = update } } }
+
+
 updateBuildServices : WebData Services -> RepoModel -> RepoModel
 updateBuildServices update rm =
     let
@@ -1384,6 +1397,7 @@ encodeBuildGraphRenderData graphData =
         , ( "focused_node", Encode.int graphData.focusedNode )
         , ( "show_services", Encode.bool graphData.showServices )
         , ( "show_steps", Encode.bool graphData.showSteps )
+        , ( "center_on_draw", Encode.bool graphData.centerOnDraw )
         ]
 
 
@@ -1394,6 +1408,7 @@ type alias BuildGraphRenderInteropData =
     , focusedNode : Int
     , showServices : Bool
     , showSteps : Bool
+    , centerOnDraw : Bool
     }
 
 

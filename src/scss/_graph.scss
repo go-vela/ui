@@ -14,7 +14,7 @@
   border: 1px solid var(--color-bg-light);
   border-bottom: 0;
 
-  .elm-build-graph-actions-toggles {
+  .elm-build-graph-action-toggles {
     display: flex;
   }
 
@@ -44,7 +44,7 @@
   }
 }
 
-.action-refresh svg {
+.build-graph-action-refresh svg {
   transform: rotate(0.2turn);
 }
 
@@ -53,7 +53,7 @@
 
   display: flex;
   width: 100%;
-  min-height: 250px;
+  min-height: 300px;
 
   background: var(--color-bg-dark);
   border: 1px solid var(--color-bg-light);
@@ -162,7 +162,7 @@
     border-bottom: var(--line-width) solid var(--color-primary);
   }
 
-  .elm-build-graph-search-filter-clear {
+  .elm-build-graph-action-filter-clear {
     margin-left: 0.8rem;
   }
 }
@@ -183,16 +183,20 @@
     animation: dash 25s linear;
     animation-iteration-count: infinite;
 
-    stroke: var(--color-yellow);
     stroke-dasharray: 10;
+
+    stroke: var(--color-yellow);
   }
 
   &.-success {
     stroke: var(--color-green);
   }
 
+  &.-canceled,
   &.-failure {
     stroke-dasharray: 2 3;
+
+    stroke: var(--color-red);
   }
 
   &.-killed {
@@ -202,7 +206,6 @@
     stroke: var(--color-lavender);
   }
 
-  &.-canceled,
   &.-skipped {
     stroke: var(--color-red);
   }
@@ -269,8 +272,9 @@
   &.-canceled,
   &.-skipped,
   &.-killed {
-    stroke: var(--color-gray);
     stroke-width: 1;
+
+    stroke: var(--color-gray);
   }
 
   &.-focus {
