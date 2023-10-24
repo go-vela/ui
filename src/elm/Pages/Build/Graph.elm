@@ -1,4 +1,4 @@
-module Pages.Build.Graph exposing (renderBuildGraph, renderBuildGraphDOT)
+module Pages.Build.Graph exposing (renderBuildGraph)
 
 import Dict exposing (Dict)
 import Focus
@@ -47,7 +47,7 @@ renderBuildGraph model centerOnDraw =
         Success g ->
             Interop.renderBuildGraph <|
                 encodeBuildGraphRenderData
-                    { dot = renderBuildGraphDOT model g
+                    { dot = renderDOT model g
                     , buildID = RemoteData.unwrap -1 .id bm.build
                     , filter = gm.filter
                     , showServices = gm.showServices
@@ -60,7 +60,7 @@ renderBuildGraph model centerOnDraw =
             Cmd.none
 
 
-{-| renderBuildGraphDOT : constant for organizing the layout of build graph nodes
+{-| builtInClusterID : constant for organizing the layout of build graph nodes
 -}
 builtInClusterID : Int
 builtInClusterID =
@@ -81,12 +81,12 @@ serviceClusterID =
     0
 
 
-{-| renderBuildGraphDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
+{-| renderDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
 <https://graphviz.org/doc/info/lang.html>
 <https://package.elm-lang.org/packages/elm-community/graph/latest/Graph.DOT>
 -}
-renderBuildGraphDOT : BuildModel.PartialModel a -> BuildGraph -> String
-renderBuildGraphDOT model buildGraph =
+renderDOT : BuildModel.PartialModel a -> BuildGraph -> String
+renderDOT model buildGraph =
     let
         -- todo: BUG: single step "step" sleep 10 pipeline when you hover
         -- the text changes color???

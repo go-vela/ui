@@ -16,6 +16,8 @@ export function drawGraph(opts, content) {
     edge: '.elm-build-graph-edge',
   };
 
+  console.log('this sometimes happens too fast ' + opts.centerOnDraw);
+
   var buildGraphElement = drawBaseGraphWithZoom(
     opts,
     graphSelectors.root,
@@ -122,6 +124,7 @@ function drawBaseGraphWithZoom(opts, selector, content) {
     resetZoomAndCenter(opts, zoom);
   }
   if (opts.centerOnDraw) {
+    console.log("recentering");
     resetZoomAndCenter(opts, zoom);
   }
 

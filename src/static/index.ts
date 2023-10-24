@@ -142,10 +142,8 @@ var opts = {
 };
 
 app.ports.renderBuildGraph.subscribe(function (graphData) {
-  const dot = graphData.dot;
-
   const graphviz = Graphviz.load().then(res => {
-    var content = res.layout(dot, 'svg', 'dot');
+    var content = res.layout(graphData.dot, 'svg', 'dot');
 
     // construct graph building options
     opts.isRefreshDraw = opts.currentBuild === graphData.build_id;
@@ -153,7 +151,6 @@ app.ports.renderBuildGraph.subscribe(function (graphData) {
     opts.currentBuild = graphData.build_id;
     opts.contentFilter = graphData.filter;
     opts.onGraphInteraction = app.ports.onGraphInteraction;
-
     Graph.drawGraph(opts, content);
   });
 });
