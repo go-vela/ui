@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -136,6 +135,7 @@ tableHeaders =
     [ ( Nothing, "name" )
     , ( Nothing, "entry" )
     , ( Nothing, "enabled" )
+    , ( Nothing, "branch" )
     , ( Nothing, "last scheduled at" )
     , ( Nothing, "updated by" )
     , ( Nothing, "updated at" )
@@ -169,11 +169,17 @@ renderSchedule zone org repo schedule =
             ]
             [ text <| Util.boolToYesNo schedule.enabled ]
         , td
+            [ attribute "data-label" "branch"
+            , scope "row"
+            , class "break-word"
+            ]
+            [ text schedule.branch ]
+        , td
             [ attribute "data-label" "scheduled at"
             , scope "row"
             , class "break-word"
             ]
-            [ text <| Util.humanReadableWithDefault zone schedule.scheduled_at ]
+            [ text <| Util.humanReadableDateTimeWithDefault zone schedule.scheduled_at ]
         , td
             [ attribute "data-label" "updated by"
             , scope "row"
@@ -185,7 +191,7 @@ renderSchedule zone org repo schedule =
             , scope "row"
             , class "break-word"
             ]
-            [ text <| Util.humanReadableWithDefault zone schedule.updated_at ]
+            [ text <| Util.humanReadableDateTimeWithDefault zone schedule.updated_at ]
         ]
 
 

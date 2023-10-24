@@ -8,6 +8,7 @@
   "updated_at": 1685037152,
   "updated_by": "CookieCat",
   "scheduled_at": 0,
+  "branch": "main",
   "repo": {
     "id": 1,
     "user_id": 1,
@@ -16,7 +17,7 @@
     "full_name": "github/octocat",
     "link": "https://github.com/github/octocat",
     "clone": "https://github.com/github/octocat.git",
-    "branch": "master",
+    "branch": "main",
     "topics": [],
     "build_limit": 10,
     "timeout": 30,

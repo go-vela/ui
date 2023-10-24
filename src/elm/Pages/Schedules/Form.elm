@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -55,6 +54,7 @@ viewAddForm model =
         [ viewNameInput sm.form.name False
         , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.time)
         , viewEnabledCheckbox sm.form
+        , viewBranchNameInput sm.form.branch False
         , viewHelp
         , viewAddButton
         ]
@@ -72,6 +72,7 @@ viewEditForm model =
         [ viewNameInput sm.form.name True
         , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.time)
         , viewEnabledCheckbox sm.form
+        , viewBranchNameInput sm.form.branch False
         , viewHelp
         , viewEditFormSubmitButtons sm
         ]
@@ -165,6 +166,31 @@ viewEnabledCheckbox enableUpdate =
             [ radio (Util.boolToYesNo enableUpdate.enabled) "yes" "Enabled" <| OnChangeEnabled "yes"
             , radio (Util.boolToYesNo enableUpdate.enabled) "no" "Disabled" <| OnChangeEnabled "no"
             ]
+        ]
+
+
+{-| viewBranchNameInput : renders branch input box
+-}
+viewBranchNameInput : String -> Bool -> Html Msg
+viewBranchNameInput val disable =
+    section [ class "form-control", class "-stack" ]
+        [ label [ class "form-label", for <| "schedule-branch-name" ]
+            [ strong [] [ text "Branch" ]
+            , span
+                [ class "field-description" ]
+                [ em [] [ text "(Leave blank to use default branch)" ]
+                ]
+            ]
+        , input
+            [ disabled disable
+            , value val
+            , onInput <|
+                OnChangeStringField "branch"
+            , placeholder "Branch Name"
+            , id "schedule-branch-name"
+            , Util.testAttribute "schedule-branch-name"
+            ]
+            []
         ]
 
 

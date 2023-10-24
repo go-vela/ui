@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -1946,6 +1945,7 @@ type alias Schedule =
     , scheduled_at : Int
     , updated_at : Int
     , updated_by : String
+    , branch : String
     }
 
 
@@ -1960,6 +1960,7 @@ type alias AddSchedulePayload =
     , name : String
     , entry : String
     , enabled : Bool
+    , branch : String
     }
 
 
@@ -1969,6 +1970,7 @@ type alias UpdateSchedulePayload =
     , name : Maybe Name
     , entry : Maybe String
     , enabled : Maybe Bool
+    , branch : Maybe String
     }
 
 
@@ -1978,9 +1980,10 @@ buildUpdateSchedulePayload :
     -> Maybe Name
     -> Maybe String
     -> Maybe Bool
+    -> Maybe String
     -> UpdateSchedulePayload
-buildUpdateSchedulePayload org repo name entry enabled =
-    UpdateSchedulePayload org repo name entry enabled
+buildUpdateSchedulePayload org repo name entry enabled branch =
+    UpdateSchedulePayload org repo name entry enabled branch
 
 
 decodeSchedule : Decoder Schedule
@@ -1997,6 +2000,7 @@ decodeSchedule =
         |> optional "scheduled_at" int 0
         |> optional "updated_at" int 0
         |> optional "updated_by" string ""
+        |> optional "branch" string ""
 
 
 decodeSchedules : Decoder Schedules
@@ -2010,6 +2014,7 @@ encodeUpdateSchedule schedule =
         [ ( "name", encodeOptional Encode.string schedule.name )
         , ( "entry", encodeOptional Encode.string schedule.entry )
         , ( "active", encodeOptional Encode.bool schedule.enabled )
+        , ( "branch", encodeOptional Encode.string schedule.branch )
         ]
 
 

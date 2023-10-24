@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -49,7 +48,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick, onInput)
 import Pages.RepoSettings exposing (checkbox)
-import Pages.Secrets.Model exposing (DeleteSecretState(..), Model, Msg(..), SecretForm)
+import Pages.Secrets.Model exposing (DeleteSecretState(..), Model, Msg(..), PartialModel, SecretForm)
 import Util
 import Vela exposing (Field)
 
@@ -166,8 +165,23 @@ viewValueInput val placeholder_ =
 
 {-| viewEventsSelect : renders events input selection
 -}
-viewEventsSelect : SecretForm -> Html Msg
-viewEventsSelect secretUpdate =
+viewEventsSelect : SecretForm -> PartialModel a msg -> Html Msg
+viewEventsSelect secretUpdate model =
+    let
+        schedulesAllowed =
+            Util.checkScheduleAllowlist model.secretsModel.org model.secretsModel.repo model.velaScheduleAllowlist
+
+        scheduleOption =
+            if schedulesAllowed then
+                checkbox "Schedule"
+                    "schedule"
+                    (eventEnabled "schedule" secretUpdate.events)
+                <|
+                    OnChangeEvent "schedule"
+
+            else
+                text ""
+    in
     section []
         [ div [ for "events-select" ]
             [ strong [] [ text "Limit to Events" ]
@@ -207,6 +221,7 @@ viewEventsSelect secretUpdate =
                 (eventEnabled "deployment" secretUpdate.events)
               <|
                 OnChangeEvent "deployment"
+            , scheduleOption
             ]
         ]
 

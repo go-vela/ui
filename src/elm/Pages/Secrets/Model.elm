@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -36,6 +35,7 @@ import Vela exposing (Copy, Engine, Key, Org, Repo, Secret, SecretType, Secrets,
 type alias PartialModel a msg =
     { a
         | velaAPI : String
+        , velaScheduleAllowlist : List ( Org, Repo )
         , session : Session
         , page : Page
         , secretsModel : Model msg
