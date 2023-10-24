@@ -41,16 +41,11 @@ import Visualization.DOT
 -- VIEW
 
 
-{-| view : renders build graph using graphviz and d3
+{-| view : renders the elm build graph root. the graph root is selected by d3 and filled with graphviz content.
 -}
 view : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 view model msgs org repo buildNumber =
     let
-        container =
-            div
-                [ class "elm-build-graph-container"
-                ]
-
         legend =
             ul [ class "elm-build-graph-legend" ]
                 [ li []
@@ -164,55 +159,24 @@ view model msgs org repo buildNumber =
                     ]
                 ]
     in
-    [ actions
-    , div [ class "elm-build-graph-window" ]
-        [ legend
-        , case model.repo.build.graph.graph of
-            RemoteData.Success _ ->
-                -- dont render anything when the build graph draw command has been dispatched
-                text ""
+    div [ class "elm-build-graph-container" ]
+        [ actions
+        , div [ class "elm-build-graph-window" ]
+            [ legend
+            , case model.repo.build.graph.graph of
+                RemoteData.Success _ ->
+                    -- dont render anything when the build graph draw command has been dispatched
+                    text ""
 
-            RemoteData.Failure _ ->
-                -- todo: make this cuter
-                text "Error loading build graph... Please try again"
+                RemoteData.Failure _ ->
+                    -- todo: make this cuter
+                    text "Error loading build graph... Please try again"
 
-            _ ->
-                Util.largeLoader
-        , Svg.svg
-            [ Svg.Attributes.class "elm-build-graph-root"
+                _ ->
+                    Util.largeLoader
+            , Svg.svg
+                [ Svg.Attributes.class "elm-build-graph-root"
+                ]
+                []
             ]
-            []
         ]
-    ]
-        -- these elements are purely to keep dynamic css classes from getting scrubbed
-        ++ classIgnores
-        |> container
-
-
-
--- this is purely to appease the css purge gods
-
-
-classIgnores : List (Html msg)
-classIgnores =
-    [ span
-        [ style "display" "none"
-        , class "d3-build-graph-node-outline-rect"
-        , class "d3-build-graph-node-step-a"
-        , class "d3-build-graph-node-step-a-underline"
-        , class "d3-build-graph-step-connector"
-        , class "d3-build-graph-edge-path"
-        , class "elm-build-graph-legend-item"
-        , class "-pending"
-        , class "-running"
-        , class "-success"
-        , class "-failure"
-        , class "-killed"
-        , class "-canceled"
-        , class "-skipped"
-        , class "-hover"
-        , class "-focus"
-        , class "-filtered"
-        ]
-        []
-    ]
