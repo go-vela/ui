@@ -75,9 +75,9 @@ type alias LogsMsgs msg =
 
 
 type alias BuildGraphMsgs msg =
-    { showServices : Bool -> msg
+    { refresh : Org -> Repo -> BuildNumber -> msg
+    , showServices : Bool -> msg
     , showSteps : Bool -> msg
-    , refresh : Org -> Repo -> BuildNumber -> msg
     , updateFilter : String -> msg
     }
 

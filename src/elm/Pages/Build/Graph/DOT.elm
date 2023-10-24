@@ -1,9 +1,8 @@
-module Pages.Build.Graph exposing (renderBuildGraph)
+module Pages.Build.Graph.DOT exposing (renderDOT)
 
 import Dict exposing (Dict)
 import Focus
 import Graph exposing (Edge, Node)
-import Interop
 import Pages.Build.Model as BuildModel
 import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
@@ -13,7 +12,6 @@ import Vela
         ( BuildGraph
         , BuildGraphEdge
         , BuildGraphNode
-        , encodeBuildGraphRenderData
         , statusToString
         )
 import Visualization.DOT as DOT
@@ -27,58 +25,6 @@ import Visualization.DOT as DOT
         , makeAttrs
         )
 
-
-
--- renderBuildGraph : { a | repo : Vela.RepoModel, velaScheduleAllowlist : List ( Vela.Org, Vela.Repo ), navigationKey : Key, user : RemoteData.WebData Vela.CurrentUser, sourceRepos : RemoteData.WebData (SourceRepositories), page : Page, time : Posix, zone : Zone, shift : Bool, buildMenuOpen : List Int, pipeline : Vela.PipelineModel } -> Cmd msg
-
-
-renderBuildGraph model centerOnDraw =
-    let
-        rm =
-            model.repo
-
-        bm =
-            rm.build
-
-        gm =
-            rm.build.graph
-    in
-    case gm.graph of
-        Success g ->
-            Interop.renderBuildGraph <|
-                encodeBuildGraphRenderData
-                    { dot = renderDOT model g
-                    , buildID = RemoteData.unwrap -1 .id bm.build
-                    , filter = gm.filter
-                    , showServices = gm.showServices
-                    , showSteps = gm.showSteps
-                    , focusedNode = gm.focusedNode
-                    , centerOnDraw = centerOnDraw
-                    }
-
-        _ ->
-            Cmd.none
-
-
-{-| builtInClusterID : constant for organizing the layout of build graph nodes
--}
-builtInClusterID : Int
-builtInClusterID =
-    2
-
-
-{-| pipelineClusterID : constant for organizing the layout of build graph nodes
--}
-pipelineClusterID : Int
-pipelineClusterID =
-    1
-
-
-{-| serviceClusterID : constant for organizing the layout of build graph nodes
--}
-serviceClusterID : Int
-serviceClusterID =
-    0
 
 
 {-| renderDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
@@ -521,3 +467,24 @@ edgeAttrs edge =
         , ( "class", DefaultJSONLabelEscape class )
         , ( "style", DefaultJSONLabelEscape "filled" )
         ]
+
+
+{-| builtInClusterID : constant for organizing the layout of build graph nodes
+-}
+builtInClusterID : Int
+builtInClusterID =
+    2
+
+
+{-| pipelineClusterID : constant for organizing the layout of build graph nodes
+-}
+pipelineClusterID : Int
+pipelineClusterID =
+    1
+
+
+{-| serviceClusterID : constant for organizing the layout of build graph nodes
+-}
+serviceClusterID : Int
+serviceClusterID =
+    0

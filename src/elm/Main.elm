@@ -75,7 +75,7 @@ import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page)
-import Pages.Build.Graph exposing (renderBuildGraph)
+import Pages.Build.Graph.Interop exposing (renderBuildGraph)
 import Pages.Build.Logs
     exposing
         ( addLog
@@ -2119,7 +2119,7 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        BuildGraphResponse org repo buildNumber refresh response ->
+        BuildGraphResponse _ _ buildNumber _ response ->
             case response of
                 Ok ( _, g ) ->
                     case model.page of
@@ -4822,9 +4822,9 @@ buildMsgs =
         , followService = FollowService
         }
     , buildGraphMsgs =
-        { showServices = BuildGraphShowServices
+        { refresh = BuildGraphRefresh
+        , showServices = BuildGraphShowServices
         , showSteps = BuildGraphShowSteps
-        , refresh = BuildGraphRefresh
         , updateFilter = BuildGraphUpdateFilter
         }
     }

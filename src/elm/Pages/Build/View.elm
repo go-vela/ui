@@ -36,9 +36,10 @@ import Html.Attributes
         , style
         , title
         )
-import Html.Events exposing (onCheck, onClick)
+import Html.Events exposing (onClick)
 import List.Extra exposing (unique)
 import Nav exposing (viewBuildTabs)
+import Pages.Build.Graph.View
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
@@ -63,9 +64,7 @@ import Pages.Build.Model
 import RemoteData exposing (WebData)
 import Routes
 import String
-import Svg
-import Svg.Attributes
-import SvgBuilder exposing (buildStatusAnimation, buildStatusToIcon, buildVizLegendEdge, buildVizLegendNode, stepStatusToIcon)
+import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone)
 import Url
 import Util exposing (getNameFromRef)
@@ -1136,180 +1135,8 @@ viewError build =
 -}
 viewBuildGraph : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 viewBuildGraph model msgs org repo buildNumber =
-    let
-        container =
-            div
-                [ class "elm-build-graph-container"
-                ]
-
-        legend =
-            ul [ class "elm-build-graph-legend" ]
-                [ li []
-                    [ buildVizLegendNode [ Svg.Attributes.class "-pending" ]
-                    , text "- pending"
-                    ]
-                , li [ class "-running-hover" ]
-                    [ buildVizLegendNode [ Svg.Attributes.class "-running" ]
-                    , text "- running"
-                    ]
-                , li []
-                    [ buildVizLegendNode [ Svg.Attributes.class "-success" ]
-                    , text "- success"
-                    ]
-                , li []
-                    [ buildVizLegendNode [ Svg.Attributes.class "-failure" ]
-                    , text "- failed"
-                    ]
-                , li []
-                    [ buildVizLegendNode [ Svg.Attributes.class "-killed" ]
-                    , text "- skipped"
-                    ]
-                , li []
-                    [ buildVizLegendNode [ Svg.Attributes.class "-selected" ]
-                    , text "- selected"
-                    ]
-                , li []
-                    [ buildVizLegendEdge [ Svg.Attributes.strokeDasharray "3, 3" ]
-                    , text "- pending"
-                    ]
-                , li []
-                    [ buildVizLegendEdge [ Svg.Attributes.class "-finished" ]
-                    , text "- complete"
-                    ]
-                ]
-
-        actions =
-            div [ class "elm-build-graph-actions" ]
-                [ ul []
-                    [ li []
-                        [ button [ class "button", class "-icon", id "action-center", Html.Attributes.title "Recenter visualization" ]
-                            [ FeatherIcons.minimize |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml []
-                            ]
-                        ]
-                    , li []
-                        [ button
-                            [ class "button"
-                            , class "-icon"
-                            , class "build-graph-action-refresh"
-                            , Html.Attributes.title "Refresh visualization"
-                            , onClick <| msgs.buildGraphMsgs.refresh org repo buildNumber
-                            ]
-                            [ FeatherIcons.refreshCw |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml []
-                            ]
-                        ]
-                    ]
-                , div [ class "elm-build-graph-action-toggles" ]
-                    [ div [ class "form-control" ]
-                        [ div []
-                            [ Html.input
-                                [ Html.Attributes.type_ "checkbox"
-                                , Html.Attributes.checked model.repo.build.graph.showServices
-                                , onCheck msgs.buildGraphMsgs.showServices
-                                , id "checkbox-services-toggle"
-                                , Util.testAttribute "build-graph-action-toggle-services"
-                                ]
-                                []
-                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-services-toggle" ]
-                                [ text "services"
-                                ]
-                            ]
-                        ]
-                    , div [ class "form-control" ]
-                        [ div []
-                            [ Html.input
-                                [ Html.Attributes.type_ "checkbox"
-                                , Html.Attributes.checked model.repo.build.graph.showSteps
-                                , onCheck msgs.buildGraphMsgs.showSteps
-                                , id "checkbox-steps-toggle"
-                                , Util.testAttribute "build-graph-action-toggle-steps"
-                                ]
-                                []
-                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-steps-toggle" ]
-                                [ text "steps"
-                                ]
-                            ]
-                        ]
-                    , div [ class "form-control", class "elm-build-graph-search-filter" ]
-                        [ Html.input
-                            [ Html.Attributes.type_ "input"
-                            , Html.Attributes.checked True -- todo: is this needed?
-                            , Html.Attributes.placeholder "type to highlight nodes..."
-                            , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
-                            , id "build-graph-action-filter"
-                            , Util.testAttribute "build-graph-action-filter"
-                            , Html.Attributes.value model.repo.build.graph.filter
-                            ]
-                            []
-                        , Html.label [ class "elm-build-graph-search-filter-form-label", Html.Attributes.for "build-graph-action-filter" ]
-                            [ FeatherIcons.search |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml []
-                            ]
-                        , button
-                            [ class "button"
-                            , class "-icon"
-                            , class "elm-build-graph-action-filter-clear"
-                            , Util.testAttribute "build-graph-action-filter-clear"
-                            , onClick (msgs.buildGraphMsgs.updateFilter "")
-                            ]
-                            [ FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml [] ]
-                        ]
-                    ]
-                ]
-
-        content =
-            [ actions
-            , div [ class "elm-build-graph-window" ]
-                [ legend
-                , case model.repo.build.graph.graph of
-                    RemoteData.Success _ ->
-                        -- dont render anything when the build graph draw command has been dispatched
-                        text ""
-
-                    RemoteData.Failure _ ->
-                        -- todo: make this cuter
-                        text "Error loading build graph... Please try again"
-
-                    _ ->
-                        Util.largeLoader
-                , Svg.svg
-                    [ Svg.Attributes.class "elm-build-graph-root"
-                    ]
-                    []
-                ]
-            ]
-                -- these elements are purely to keep dynamic css classes from getting scrubbed
-                ++ classIgnores
-    in
     wrapWithBuildPreview model msgs org repo buildNumber <|
-        container content
-
-
-
--- this is purely to appease the css purge gods
-
-
-classIgnores : List (Html msg)
-classIgnores =
-    [ span
-        [ style "display" "none"
-        , class "d3-build-graph-node-outline-rect"
-        , class "d3-build-graph-node-step-a"
-        , class "d3-build-graph-node-step-a-underline"
-        , class "d3-build-graph-step-connector"
-        , class "d3-build-graph-edge-path"
-        , class "elm-build-graph-legend-item"
-        , class "-pending"
-        , class "-running"
-        , class "-success"
-        , class "-failure"
-        , class "-killed"
-        , class "-canceled"
-        , class "-skipped"
-        , class "-hover"
-        , class "-focus"
-        , class "-filtered"
-        ]
-        []
-    ]
+        Pages.Build.Graph.View.view model msgs org repo buildNumber
 
 
 
@@ -1367,10 +1194,10 @@ topParticles buildNumber =
         y =
             "0%"
     in
-    [ buildStatusAnimation "" y [ "-frame-0", "-top", "-cover" ]
-    , buildStatusAnimation "none" y [ "-frame-0", "-top", "-start" ]
-    , buildStatusAnimation dashes y [ "-frame-1", "-top", "-running" ]
-    , buildStatusAnimation dashes y [ "-frame-2", "-top", "-running" ]
+    [ SvgBuilder.buildStatusAnimation "" y [ "-frame-0", "-top", "-cover" ]
+    , SvgBuilder.buildStatusAnimation "none" y [ "-frame-0", "-top", "-start" ]
+    , SvgBuilder.buildStatusAnimation dashes y [ "-frame-1", "-top", "-running" ]
+    , SvgBuilder.buildStatusAnimation dashes y [ "-frame-2", "-top", "-running" ]
     ]
 
 
@@ -1386,10 +1213,10 @@ bottomParticles buildNumber =
         y =
             "100%"
     in
-    [ buildStatusAnimation "" y [ "-frame-0", "-bottom", "-cover" ]
-    , buildStatusAnimation "none" y [ "-frame-0", "-bottom", "-start" ]
-    , buildStatusAnimation dashes y [ "-frame-1", "-bottom", "-running" ]
-    , buildStatusAnimation dashes y [ "-frame-2", "-bottom", "-running" ]
+    [ SvgBuilder.buildStatusAnimation "" y [ "-frame-0", "-bottom", "-cover" ]
+    , SvgBuilder.buildStatusAnimation "none" y [ "-frame-0", "-bottom", "-start" ]
+    , SvgBuilder.buildStatusAnimation dashes y [ "-frame-1", "-bottom", "-running" ]
+    , SvgBuilder.buildStatusAnimation dashes y [ "-frame-2", "-bottom", "-running" ]
     ]
 
 
