@@ -59,13 +59,13 @@ type Endpoint
     | ServiceLogs Org Repo BuildNumber ServiceNumber
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
     | StepLogs Org Repo BuildNumber StepNumber
+    | BuildGraph Org Repo BuildNumber
     | Schedule Org Repo (Maybe ScheduleName) (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
     | Secret Engine Type Org String Name
     | PipelineConfig Org Repo Ref
     | ExpandPipelineConfig Org Repo Ref
     | PipelineTemplates Org Repo Ref
-    | BuildGraph Org Repo BuildNumber
 
 
 {-| toUrl : turns and Endpoint into a URL string
@@ -136,6 +136,9 @@ toUrl api endpoint =
         StepLogs org repo buildNumber stepNumber ->
             url api [ "repos", org, repo, "builds", buildNumber, "steps", stepNumber, "logs" ] []
 
+        BuildGraph org repo buildNumber ->
+            url api [ "repos", org, repo, "builds", buildNumber, "graph" ] []
+
         Secrets maybePage maybePerPage engine type_ org key ->
             url api [ "secrets", engine, type_, org, key ] <| Pagination.toQueryParams maybePage maybePerPage
 
@@ -170,8 +173,6 @@ toUrl api endpoint =
         Deployments maybePage maybePerPage org repo ->
             url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        BuildGraph org repo buildNumber ->
-            url api [ "repos", org, repo, "builds", buildNumber, "graph" ] []
 
 
 {-| url : creates a URL string with the given path segments and query parameters

@@ -398,7 +398,6 @@ type Msg
     | FilterBuildEventBy (Maybe Event) Org Repo
     | ShowHideFullTimestamp
     | SetTheme Theme
-    | OnBuildGraphInteraction GraphInteraction
     | GotoPage Pagination.Page
     | ShowHideHelp (Maybe Bool)
     | ShowHideBuildMenu (Maybe Int) (Maybe Bool)
@@ -415,6 +414,11 @@ type Msg
     | FollowService Int
     | ShowHideTemplates
     | FocusPipelineConfigLineNumber Int
+    | BuildGraphShowServices Bool
+    | BuildGraphShowSteps Bool
+    | BuildGraphRefresh Org Repo BuildNumber
+    | BuildGraphUpdateFilter String
+    | OnBuildGraphInteraction GraphInteraction
       -- Outgoing HTTP requests
     | RefreshAccessToken
     | SignInRequested
@@ -484,10 +488,6 @@ type Msg
     | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- Graph
     | BuildGraphResponse Org Repo BuildNumber Bool (Result (Http.Detailed.Error String) ( Http.Metadata, BuildGraph ))
-    | BuildGraphShowServices Bool
-    | BuildGraphShowSteps Bool
-    | BuildGraphRefresh Org Repo BuildNumber
-    | BuildGraphUpdateFilter String
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -644,101 +644,6 @@ update msg model =
 
             else
                 ( { model | theme = theme }, Interop.setTheme <| encodeTheme theme )
-
-        OnBuildGraphInteraction interaction ->
-            let
-                ( ugm_, cmd ) =
-                    case interaction.event_type of
-                        "href" ->
-                            ( model.repo.build.graph
-                            , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
-                            )
-
-                        "backdrop_click" ->
-                            let
-                                ugm =
-                                    { gm | focusedNode = -1 }
-
-                                um_ =
-                                    updateModels model rm bm ugm
-                            in
-                            ( ugm, renderBuildGraph um_ False )
-
-                        "node_click" ->
-                            let
-                                ugm =
-                                    { gm | focusedNode = Maybe.withDefault -1 <| String.toInt interaction.node_id }
-
-                                um_ =
-                                    updateModels model rm bm ugm
-                            in
-                            ( ugm, renderBuildGraph um_ False )
-
-                        _ ->
-                            ( model.repo.build.graph, Cmd.none )
-            in
-            ( updateModels model rm bm ugm_
-            , Cmd.batch
-                [ Navigation.pushUrl model.navigationKey interaction.href
-                , cmd
-                ]
-            )
-
-        BuildGraphRefresh org repo buildNumber ->
-            let
-                ugm =
-                    { gm
-                        | graph = Loading
-                    }
-
-                um_ =
-                    updateModels model rm bm ugm
-            in
-            ( um_
-            , getBuildGraph um_ org repo buildNumber True
-            )
-
-        BuildGraphUpdateFilter filter ->
-            let
-                ugm =
-                    { gm
-                        | filter = String.toLower filter
-                    }
-
-                um_ =
-                    updateModels model rm bm ugm
-            in
-            ( um_
-            , renderBuildGraph um_ False
-            )
-
-        BuildGraphShowServices show ->
-            let
-                ugm =
-                    { gm
-                        | showServices = show
-                    }
-
-                um_ =
-                    updateModels model rm bm ugm
-            in
-            ( um_
-            , renderBuildGraph um_ False
-            )
-
-        BuildGraphShowSteps show ->
-            let
-                ugm =
-                    { gm
-                        | showSteps = show
-                    }
-
-                um_ =
-                    updateModels model rm bm ugm
-            in
-            ( um_
-            , renderBuildGraph um_ False
-            )
 
         GotoPage pageNumber ->
             case model.page of
@@ -1053,6 +958,101 @@ update msg model =
             in
             ( { model | pipeline = pipeline }
             , Navigation.pushUrl model.navigationKey <| url
+            )
+
+        BuildGraphRefresh org repo buildNumber ->
+            let
+                ugm =
+                    { gm
+                        | graph = Loading
+                    }
+
+                um_ =
+                    updateModels model rm bm ugm
+            in
+            ( um_
+            , getBuildGraph um_ org repo buildNumber True
+            )
+
+        BuildGraphUpdateFilter filter ->
+            let
+                ugm =
+                    { gm
+                        | filter = String.toLower filter
+                    }
+
+                um_ =
+                    updateModels model rm bm ugm
+            in
+            ( um_
+            , renderBuildGraph um_ False
+            )
+
+        BuildGraphShowServices show ->
+            let
+                ugm =
+                    { gm
+                        | showServices = show
+                    }
+
+                um_ =
+                    updateModels model rm bm ugm
+            in
+            ( um_
+            , renderBuildGraph um_ False
+            )
+
+        BuildGraphShowSteps show ->
+            let
+                ugm =
+                    { gm
+                        | showSteps = show
+                    }
+
+                um_ =
+                    updateModels model rm bm ugm
+            in
+            ( um_
+            , renderBuildGraph um_ False
+            )
+
+        OnBuildGraphInteraction interaction ->
+            let
+                ( ugm_, cmd ) =
+                    case interaction.event_type of
+                        "href" ->
+                            ( model.repo.build.graph
+                            , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
+                            )
+
+                        "backdrop_click" ->
+                            let
+                                ugm =
+                                    { gm | focusedNode = -1 }
+
+                                um_ =
+                                    updateModels model rm bm ugm
+                            in
+                            ( ugm, renderBuildGraph um_ False )
+
+                        "node_click" ->
+                            let
+                                ugm =
+                                    { gm | focusedNode = Maybe.withDefault -1 <| String.toInt interaction.node_id }
+
+                                um_ =
+                                    updateModels model rm bm ugm
+                            in
+                            ( ugm, renderBuildGraph um_ False )
+
+                        _ ->
+                            ( model.repo.build.graph, Cmd.none )
+            in
+            ( updateModels model rm bm ugm_
+            , Cmd.batch
+                [ Navigation.pushUrl model.navigationKey interaction.href
+                , cmd
+                ]
             )
 
         -- Outgoing HTTP requests
@@ -2584,7 +2584,7 @@ refreshBuildServices model org repo buildNumber focusFragment =
 -}
 refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuildGraph model org repo buildNumber =
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getBuildGraph model org repo buildNumber True
 
     else
