@@ -3,13 +3,10 @@ module Visualization.DOT exposing
     , AttributeValue(..)
     , Rankdir(..)
     , Styles
-    , attrAssocs
-    , attrToString
     , clusterSubgraph
     , digraph
     , escapeAttributes
-    , escapeCharacters
-    , makeAttrs
+    , makeAttributes
     )
 
 import Dict exposing (Dict)
@@ -20,6 +17,8 @@ import Json.Encode
 -- TYPES
 
 
+{-| Styles : graph style options
+-}
 type alias Styles =
     { rankdir : Rankdir
     , graph : String
@@ -28,6 +27,8 @@ type alias Styles =
     }
 
 
+{-| Rankdir : direction of the graph render layout
+-}
 type Rankdir
     = TB
     | LR
@@ -35,11 +36,15 @@ type Rankdir
     | RL
 
 
+{-| Attribute : used for escaping graph layout attribute keys
+-}
 type Attribute
     = DefaultJSONLabelEscape String
     | HtmlLabelEscape String
 
 
+{-| AttributeValue : used for escaping graph layout attribute values
+-}
 type AttributeValue
     = DefaultEscape String
     | BooleanEscape String
@@ -49,6 +54,9 @@ type AttributeValue
 -- DOT HELPERS
 
 
+{-| digraph : takes styles and graph content and wraps it in a DOT directed graph layout to be
+used with graphviz/DOT: <https://graphviz.org/doc/info/lang.html>
+-}
 digraph : Styles -> List String -> String
 digraph styles content =
     String.join "\n" <|
@@ -69,6 +77,9 @@ digraph styles content =
             ]
 
 
+{-| clusterSubgraph : takes cluster ID, styles, nodes and edges, and wraps it in a DOT directed subgraph layout to be
+used with graphviz/DOT: <https://graphviz.org/doc/info/lang.html>
+-}
 clusterSubgraph : Int -> Styles -> String -> String -> String
 clusterSubgraph cluster styles nodesString edgesString =
     String.join "\n"
@@ -85,6 +96,8 @@ clusterSubgraph cluster styles nodesString edgesString =
         ]
 
 
+{-| rankDirToString : takes Rankdir type and returns it as a string
+-}
 rankDirToString : Rankdir -> String
 rankDirToString r =
     case r of
@@ -116,25 +129,25 @@ escapeCharacters s =
 {-| escapeAttributes : takes list of string attributes and escapes special characters for keys and values to prepare for use in a DOT string
 -}
 escapeAttributes : List ( String, AttributeValue ) -> String
-escapeAttributes attrs =
+escapeAttributes attributes =
     List.map
-        (\( k, attrV ) ->
-            case attrV of
+        (\( k, attributeValue ) ->
+            case attributeValue of
                 DefaultEscape v ->
                     escapeCharacters k ++ "=\"" ++ escapeCharacters v ++ "\""
 
                 BooleanEscape v ->
                     escapeCharacters k ++ "=" ++ v ++ ""
         )
-        attrs
+        attributes
         |> String.join " "
 
 
-{-| attrToString : takes attribute and returns it as a string
+{-| attributeToString : takes attribute and returns it as a string
 -}
-attrToString : Attribute -> String
-attrToString attr =
-    case attr of
+attributeToString : Attribute -> String
+attributeToString attribute =
+    case attribute of
         DefaultJSONLabelEscape s ->
             Json.Encode.string s
                 |> Json.Encode.encode 0
@@ -143,21 +156,21 @@ attrToString attr =
             "<" ++ h ++ ">"
 
 
-{-| makeAttrs : takes dictionary of attributes and returns them as a string
+{-| makeAttributes : takes dictionary of attributes and returns them as a string
 -}
-makeAttrs : Dict String Attribute -> String
-makeAttrs d =
+makeAttributes : Dict String Attribute -> String
+makeAttributes d =
     if Dict.isEmpty d then
         ""
 
     else
-        " [" ++ attrAssocs d ++ "]"
+        " [" ++ attributeKeyValuePairs d ++ "]"
 
 
-{-| attrAssocs : takes dictionary of attributes and returns them as a string
+{-| attributeKeyValuePairs : helper for taking dictionary of attributes and returns them as a string
 -}
-attrAssocs : Dict String Attribute -> String
-attrAssocs =
+attributeKeyValuePairs : Dict String Attribute -> String
+attributeKeyValuePairs =
     Dict.toList
-        >> List.map (\( k, v ) -> k ++ "=" ++ attrToString v)
+        >> List.map (\( k, v ) -> k ++ "=" ++ attributeToString v)
         >> String.join ", "

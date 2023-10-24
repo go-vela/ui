@@ -14,17 +14,17 @@ import Vela
         , BuildGraphNode
         , statusToString
         )
-import Visualization.DOT as DOT
+import Visualization.DOT
     exposing
         ( Attribute(..)
         , AttributeValue(..)
+        , Rankdir(..)
         , Styles
         , clusterSubgraph
         , digraph
         , escapeAttributes
-        , makeAttrs
+        , makeAttributes
         )
-
 
 
 {-| renderDOT : takes model and build graph, and returns a string representation of a DOT graph using the extended Graph DOT package
@@ -152,6 +152,10 @@ renderDOT model buildGraph =
         ]
 
 
+{-| nodeLabel : takes model, graph info, a node, and returns a string representation of the "label" applied to a node element.
+a "label" is actually a disguised graphviz table <https://graphviz.org/doc/info/lang.html> that is used to
+render a list of stage-steps as graph content that is recognized by the layout
+-}
 nodeLabel : BuildModel.PartialModel a -> Bool -> BuildGraphNode -> String
 nodeLabel model showSteps node =
     let
@@ -163,7 +167,7 @@ nodeLabel model showSteps node =
 
         table content =
             "<table "
-                ++ escapeAttributes nodeTableAttrs
+                ++ escapeAttributes nodeLabelTableAttributes
                 ++ ">"
                 ++ String.join "" content
                 ++ "</table>"
@@ -217,11 +221,11 @@ nodeLabel model showSteps node =
                     )
 
         -- table row and cell styling
-        rowAttrs _ =
+        rowAttributes _ =
             [-- row attributes go here
             ]
 
-        cellAttrs step =
+        cellAttributes step =
             [ ( "border", DefaultEscape "0" )
             , ( "cellborder", DefaultEscape "0" )
             , ( "cellspacing", DefaultEscape "0" )
@@ -236,11 +240,11 @@ nodeLabel model showSteps node =
         row step =
             "<tr "
                 ++ escapeAttributes
-                    (rowAttrs step)
+                    (rowAttributes step)
                 ++ ">"
                 ++ "<td "
                 ++ escapeAttributes
-                    (cellAttrs step)
+                    (cellAttributes step)
                 ++ " "
                 ++ ">"
                 ++ "    "
@@ -263,33 +267,35 @@ nodeLabel model showSteps node =
     table <| header :: rows
 
 
-
--- HELPERS
-
-
+{-| nodeLabel : takes model and a node, and returns the DOT string representation
+-}
 nodeToString : BuildModel.PartialModel a -> Node BuildGraphNode -> String
-nodeToString model n =
+nodeToString model node =
     "  "
-        ++ String.fromInt n.id
-        ++ makeAttrs (nodeAttrs model n.label)
+        ++ String.fromInt node.id
+        ++ makeAttributes (nodeAttributes model node.label)
 
 
+{-| edgeToString : takes model and a node, and returns the DOT string representation
+-}
 edgeToString : Edge BuildGraphEdge -> String
-edgeToString e =
+edgeToString edge =
     "  "
-        ++ String.fromInt e.from
+        ++ String.fromInt edge.from
         ++ " -> "
-        ++ String.fromInt e.to
-        ++ makeAttrs (edgeAttrs e.label)
+        ++ String.fromInt edge.to
+        ++ makeAttributes (edgeAttributes edge.label)
 
 
 
 -- STYLES
 
 
+{-| baseGraphStyles : returns the base styles applied to the root graph.
+-}
 baseGraphStyles : Styles
 baseGraphStyles =
-    { rankdir = DOT.LR
+    { rankdir = LR
     , graph =
         escapeAttributes
             [ ( "bgcolor", DefaultEscape "transparent" )
@@ -314,9 +320,11 @@ baseGraphStyles =
     }
 
 
+{-| builtInSubgraphStyles : returns the styles applied to the built-in-steps subgraph.
+-}
 builtInSubgraphStyles : Styles
 builtInSubgraphStyles =
-    { rankdir = DOT.LR -- unused with subgraph
+    { rankdir = LR -- unused with subgraph but required by model
     , graph =
         escapeAttributes
             [ ( "bgcolor", DefaultEscape "transparent" )
@@ -335,9 +343,11 @@ builtInSubgraphStyles =
     }
 
 
+{-| pipelineSubgraphStyles : returns the styles applied to the pipeline-steps subgraph.
+-}
 pipelineSubgraphStyles : Styles
 pipelineSubgraphStyles =
-    { rankdir = DOT.LR -- unused with subgraph
+    { rankdir = LR -- unused with subgraph but required by model
     , graph =
         escapeAttributes
             [ ( "bgcolor", DefaultEscape "transparent" )
@@ -360,9 +370,11 @@ pipelineSubgraphStyles =
     }
 
 
+{-| serviceSubgraphStyles : returns the styles applied to the services subgraph.
+-}
 serviceSubgraphStyles : Styles
 serviceSubgraphStyles =
-    { rankdir = DOT.LR -- unused with subgraph
+    { rankdir = LR -- unused with subgraph but required by model
     , graph =
         escapeAttributes
             [ ( "bgcolor", DefaultEscape "transparent" )
@@ -386,16 +398,10 @@ serviceSubgraphStyles =
     }
 
 
-defaultNodeAttrs : List ( String, Attribute )
-defaultNodeAttrs =
-    [ ( "shape", DefaultJSONLabelEscape "rect" )
-    , ( "style", DefaultJSONLabelEscape "filled" )
-    , ( "border", DefaultJSONLabelEscape "white" )
-    ]
-
-
-nodeTableAttrs : List ( String, AttributeValue )
-nodeTableAttrs =
+{-| nodeLabelTableAttributes : returns the base styles applied to all node label-tables
+-}
+nodeLabelTableAttributes : List ( String, AttributeValue )
+nodeLabelTableAttributes =
     [ ( "border", DefaultEscape "0" )
     , ( "cellborder", DefaultEscape "0" )
     , ( "cellspacing", DefaultEscape "5" )
@@ -403,8 +409,10 @@ nodeTableAttrs =
     ]
 
 
-nodeAttrs : BuildModel.PartialModel a -> BuildGraphNode -> Dict String Attribute
-nodeAttrs model node =
+{-| nodeAttributes : returns the node-specific dynamic attributes
+-}
+nodeAttributes : BuildModel.PartialModel a -> BuildGraphNode -> Dict String Attribute
+nodeAttributes model node =
     let
         -- embed node information in the element id
         id =
@@ -427,19 +435,24 @@ nodeAttrs model node =
             model.repo.build.graph.showSteps
     in
     Dict.fromList <|
-        -- static attributes
-        defaultNodeAttrs
-            ++ -- dynamic attributes
-               [ ( "id", DefaultJSONLabelEscape id )
-               , ( "class", DefaultJSONLabelEscape class )
-               , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
-               , ( "label", HtmlLabelEscape <| nodeLabel model showSteps node )
-               , ( "tooltip", DefaultJSONLabelEscape id )
-               ]
+        -- node attributes
+        [ ( "shape", DefaultJSONLabelEscape "rect" )
+        , ( "style", DefaultJSONLabelEscape "filled" )
+        , ( "border", DefaultJSONLabelEscape "white" )
+
+        -- dynamic attributes
+        , ( "id", DefaultJSONLabelEscape id )
+        , ( "class", DefaultJSONLabelEscape class )
+        , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
+        , ( "label", HtmlLabelEscape <| nodeLabel model showSteps node )
+        , ( "tooltip", DefaultJSONLabelEscape id )
+        ]
 
 
-edgeAttrs : BuildGraphEdge -> Dict String Attribute
-edgeAttrs edge =
+{-| edgeAttributes : returns the edge-specific dynamic attributes
+-}
+edgeAttributes : BuildGraphEdge -> Dict String Attribute
+edgeAttributes edge =
     let
         -- embed edge information in the element id to use during OnGraphInteraction callbacks
         id =

@@ -124,7 +124,7 @@ function drawBaseGraphWithZoom(opts, selector, content) {
     resetZoomAndCenter(opts, zoom);
   }
   if (opts.centerOnDraw) {
-    console.log("recentering");
+    console.log('recentering');
     resetZoomAndCenter(opts, zoom);
   }
 
