@@ -1113,16 +1113,48 @@ viewError build =
                 ]
 
         Vela.Canceled ->
+            let
+                message =
+                    if String.isEmpty build.error then
+                        text "no error message"
+
+                    else
+                        let
+                            tgtBuild =
+                                String.toInt
+                                    (Maybe.withDefault ""
+                                        (List.Extra.last (String.split " " build.error))
+                                    )
+                        in
+                        case tgtBuild of
+                            Nothing ->
+                                text build.error
+
+                            Just num ->
+                                let
+                                    linkList =
+                                        String.split "/" build.link
+
+                                    newLink =
+                                        String.join "/"
+                                            (List.Extra.setAt (List.length linkList - 1)
+                                                (String.fromInt num)
+                                                linkList
+                                            )
+
+                                    msg =
+                                        case List.head (String.split (String.fromInt num) build.error) of
+                                            Nothing ->
+                                                build.error
+
+                                            Just m ->
+                                                m
+                                in
+                                span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text (String.fromInt num) ] ]
+            in
             div [ class "error", Util.testAttribute "build-error" ]
                 [ span [ class "label" ] [ text "msg:" ]
-                , span [ class "message" ]
-                    [ text <|
-                        if String.isEmpty build.error then
-                            "no error msg"
-
-                        else
-                            build.error
-                    ]
+                , span [ class "message" ] [ message ]
                 ]
 
         _ ->
