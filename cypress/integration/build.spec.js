@@ -313,7 +313,9 @@ context('Build', () => {
 
       it('build error should contain error', () => {
         cy.get('[data-test=build-error]').contains('msg:');
-        cy.get('[data-test=build-error]').contains('build canceled in favor of build 7');
+        cy.get('[data-test=build-error]').contains(
+          'build canceled in favor of build 7',
+        );
       });
 
       it('clicking superseding build link should direct to new build page', () => {
