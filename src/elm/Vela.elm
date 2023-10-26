@@ -168,7 +168,6 @@ module Vela exposing
     , updateHooksPage
     , updateHooksPager
     , updateHooksPerPage
-    , updateModels
     , updateOrgRepo
     , updateOrgReposPage
     , updateOrgReposPager
@@ -179,6 +178,7 @@ module Vela exposing
     , updateRepoEnabling
     , updateRepoInitialized
     , updateRepoLimit
+    , updateRepoModels
     , updateRepoTimeout
     )
 
@@ -438,8 +438,8 @@ type alias ServicesModel =
     }
 
 
-updateModels : { a | repo : RepoModel } -> RepoModel -> BuildModel -> BuildGraphModel -> { a | repo : RepoModel }
-updateModels m rm bm gm =
+updateRepoModels : { a | repo : RepoModel } -> RepoModel -> BuildModel -> BuildGraphModel -> { a | repo : RepoModel }
+updateRepoModels m rm bm gm =
     { m
         | repo =
             { rm
@@ -1598,7 +1598,7 @@ stringToStatus status =
             Error
 
 
-{-| statusToString : takes build status and returns string form
+{-| statusToString : helper to convert Status to string
 -}
 statusToString : Status -> String
 statusToString status =

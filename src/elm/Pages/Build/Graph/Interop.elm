@@ -12,30 +12,21 @@ import Vela exposing (encodeBuildGraphRenderData)
 -}
 renderBuildGraph : BuildModel.PartialModel a -> Bool -> Cmd msg
 renderBuildGraph model centerOnDraw =
-    let
-        rm =
-            model.repo
-
-        bm =
-            rm.build
-
-        gm =
-            rm.build.graph
-    in
-    case rm.repo of
+    -- rendering the full graph requires repo, build and graph
+    case model.repo.repo of
         Success r ->
-            case bm.build of
+            case model.repo.build.build of
                 Success b ->
-                    case gm.graph of
+                    case model.repo.build.graph.graph of
                         Success g ->
                             Interop.renderBuildGraph <|
                                 encodeBuildGraphRenderData
                                     { dot = renderDOT model r b g
                                     , buildID = b.id
-                                    , filter = gm.filter
-                                    , showServices = gm.showServices
-                                    , showSteps = gm.showSteps
-                                    , focusedNode = gm.focusedNode
+                                    , filter = model.repo.build.graph.filter
+                                    , showServices = model.repo.build.graph.showServices
+                                    , showSteps = model.repo.build.graph.showSteps
+                                    , focusedNode = model.repo.build.graph.focusedNode
                                     , centerOnDraw = centerOnDraw
                                     }
 

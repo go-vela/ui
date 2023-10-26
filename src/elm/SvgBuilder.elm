@@ -538,7 +538,7 @@ terminal =
         ]
 
 
-{-| buildVizLegendNode : produces item svg for the build graph legend
+{-| buildVizLegendNode : produces svg for a build graph legend node
 -}
 buildVizLegendNode : List (Svg.Attribute msg) -> Html msg
 buildVizLegendNode attrs =
@@ -550,15 +550,13 @@ buildVizLegendNode attrs =
             4
     in
     svg
-        [ class "elm-build-graph-legend-item"
+        [ class "elm-build-graph-legend-node"
         , width <| String.fromInt size
         , height <| String.fromInt size
-        , fill "none"
         ]
         [ Svg.rect
             ([ width <| String.fromInt (size - padding)
              , height <| String.fromInt (size - padding)
-             , strokeWidth "2"
              , x <| String.fromInt (padding // 2)
              , y <| String.fromInt (padding // 2)
              ]
@@ -568,7 +566,7 @@ buildVizLegendNode attrs =
         ]
 
 
-{-| buildVizLegendEdge : produces line svg for the build graph legend
+{-| buildVizLegendEdge : produces line svg for a build graph legend edge
 -}
 buildVizLegendEdge : List (Svg.Attribute msg) -> Html msg
 buildVizLegendEdge attrs =
@@ -585,7 +583,7 @@ buildVizLegendEdge attrs =
     svg
         [ width <| String.fromInt size
         , height <| String.fromInt size
-        , class "elm-build-graph-legend-line"
+        , class "elm-build-graph-legend-edge"
         ]
         [ Svg.line
             ([ x1 <| String.fromInt 0
@@ -594,7 +592,6 @@ buildVizLegendEdge attrs =
              , y2 <| String.fromInt (size // 2)
              , width <| String.fromInt (size - padding)
              , height <| String.fromInt (size - padding)
-             , strokeWidth "3"
              ]
                 ++ attrs
             )

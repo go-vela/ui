@@ -17,10 +17,8 @@ module Util exposing
     , filterEmptyList
     , filterEmptyLists
     , fiveSecondsMillis
-    , formatDuration
     , formatFilesize
     , formatRunTime
-    , formatRunTimeWithDefault
     , formatTestTag
     , getNameFromRef
     , humanReadableDateTimeFormatter
@@ -164,20 +162,6 @@ noSomeSecondsAgo _ =
     "just now"
 
 
-{-| formatDuration : calculates build runtime using a duration
--}
-formatDuration : Int -> String
-formatDuration duration =
-    let
-        minutes =
-            runTimeMinutes <| duration
-
-        seconds =
-            runTimeSeconds <| duration
-    in
-    String.join ":" [ minutes, seconds ]
-
-
 {-| formatRunTime : calculates build runtime using current application time and build times
 -}
 formatRunTime : Posix -> Int -> Int -> String
@@ -193,27 +177,6 @@ formatRunTime now started finished =
             runTimeSeconds runtime
     in
     String.join ":" [ minutes, seconds ]
-
-
-{-| formatRunTimeWithDefault : calculates build runtime using current application time and build times, with a default for non-started times
--}
-formatRunTimeWithDefault : Posix -> Int -> Int -> String
-formatRunTimeWithDefault now started finished =
-    if started == 0 then
-        "--:--"
-
-    else
-        let
-            runtime =
-                buildRunTime now started finished
-
-            minutes =
-                runTimeMinutes runtime
-
-            seconds =
-                runTimeSeconds runtime
-        in
-        String.join ":" [ minutes, seconds ]
 
 
 {-| buildRunTime : calculates build runtime using current application time and build times, returned in seconds

@@ -1,40 +1,18 @@
 module Pages.Build.Graph.View exposing (view)
 
 import FeatherIcons
-import Html exposing (Html, button, div, li, span, text, ul)
-import Html.Attributes
-    exposing
-        ( class
-        , id
-        , style
-        )
+import Html exposing (Html, button, div, li, text, ul)
+import Html.Attributes exposing (class, id)
 import Html.Events exposing (onCheck, onClick)
-import Pages.Build.Model
-    exposing
-        ( Msgs
-        , PartialModel
-        )
+import Pages.Build.Model exposing (Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
 import Svg
 import Svg.Attributes
-import SvgBuilder
-    exposing
-        ( buildVizLegendEdge
-        , buildVizLegendNode
-        )
+import SvgBuilder exposing (buildVizLegendEdge, buildVizLegendNode)
 import Util
-import Vela
-    exposing
-        ( BuildNumber
-        , Org
-        , Repo
-        )
-import Visualization.DOT
-    exposing
-        ( Attribute(..)
-        , AttributeValue(..)
-        )
+import Vela exposing (BuildNumber, Org, Repo)
+import Visualization.DOT exposing (Attribute(..), AttributeValue(..))
 
 
 
@@ -45,9 +23,98 @@ import Visualization.DOT
 -}
 view : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 view model msgs org repo buildNumber =
-    let
-        legend =
-            ul [ class "elm-build-graph-legend" ]
+    div [ class "elm-build-graph-container" ]
+        [ div [ class "elm-build-graph-actions" ]
+            [ ul []
+                [ li []
+                    [ button [ class "button", class "-icon", id "action-center", Html.Attributes.title "Recenter visualization" ]
+                        [ FeatherIcons.minimize
+                            |> FeatherIcons.withSize 20
+                            |> FeatherIcons.withClass "elm-build-graph-action-button"
+                            |> FeatherIcons.toHtml []
+                        ]
+                    ]
+                , li []
+                    [ button
+                        [ class "button"
+                        , class "-icon"
+                        , class "build-graph-action-refresh"
+                        , Html.Attributes.title "Refresh visualization"
+                        , onClick <| msgs.buildGraphMsgs.refresh org repo buildNumber
+                        ]
+                        [ FeatherIcons.refreshCw
+                            |> FeatherIcons.withSize 20
+                            |> FeatherIcons.withClass "elm-build-graph-action-button"
+                            |> FeatherIcons.toHtml []
+                        ]
+                    ]
+                ]
+            , div [ class "elm-build-graph-action-toggles" ]
+                [ div [ class "form-control" ]
+                    [ div []
+                        [ Html.input
+                            [ Html.Attributes.type_ "checkbox"
+                            , Html.Attributes.checked model.repo.build.graph.showServices
+                            , onCheck msgs.buildGraphMsgs.showServices
+                            , id "checkbox-services-toggle"
+                            , Util.testAttribute "build-graph-action-toggle-services"
+                            ]
+                            []
+                        , Html.label [ class "form-label", Html.Attributes.for "checkbox-services-toggle" ]
+                            [ text "services"
+                            ]
+                        ]
+                    ]
+                , div [ class "form-control" ]
+                    [ div []
+                        [ Html.input
+                            [ Html.Attributes.type_ "checkbox"
+                            , Html.Attributes.checked model.repo.build.graph.showSteps
+                            , onCheck msgs.buildGraphMsgs.showSteps
+                            , id "checkbox-steps-toggle"
+                            , Util.testAttribute "build-graph-action-toggle-steps"
+                            ]
+                            []
+                        , Html.label [ class "form-label", Html.Attributes.for "checkbox-steps-toggle" ]
+                            [ text "steps"
+                            ]
+                        ]
+                    ]
+                , div [ class "form-control", class "elm-build-graph-search-filter" ]
+                    [ div [ class "elm-build-graph-search-filter-input" ]
+                        [ Html.input
+                            [ Html.Attributes.type_ "input"
+                            , Html.Attributes.checked True -- todo: is this needed?
+                            , Html.Attributes.placeholder "type to highlight nodes..."
+                            , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
+                            , id "build-graph-action-filter"
+                            , Util.testAttribute "build-graph-action-filter"
+                            , Html.Attributes.value model.repo.build.graph.filter
+                            ]
+                            []
+                        , Html.label [ class "elm-build-graph-search-filter-form-label", Html.Attributes.for "build-graph-action-filter" ]
+                            [ FeatherIcons.search
+                                |> FeatherIcons.withSize 20
+                                |> FeatherIcons.withClass "elm-build-graph-action-button"
+                                |> FeatherIcons.toHtml []
+                            ]
+                        ]
+                    , button
+                        [ class "button"
+                        , class "-icon"
+                        , Util.testAttribute "build-graph-action-filter-clear"
+                        , onClick (msgs.buildGraphMsgs.updateFilter "")
+                        ]
+                        [ FeatherIcons.x
+                            |> FeatherIcons.withSize 20
+                            |> FeatherIcons.withClass "elm-build-graph-action-button"
+                            |> FeatherIcons.toHtml []
+                        ]
+                    ]
+                ]
+            ]
+        , div [ class "elm-build-graph-window" ]
+            [ ul [ class "elm-build-graph-legend" ]
                 [ li []
                     [ buildVizLegendNode [ Svg.Attributes.class "-pending" ]
                     , text "- pending"
@@ -81,89 +148,6 @@ view model msgs org repo buildNumber =
                     , text "- complete"
                     ]
                 ]
-
-        actions =
-            div [ class "elm-build-graph-actions" ]
-                [ ul []
-                    [ li []
-                        [ button [ class "button", class "-icon", id "action-center", Html.Attributes.title "Recenter visualization" ]
-                            [ FeatherIcons.minimize |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml []
-                            ]
-                        ]
-                    , li []
-                        [ button
-                            [ class "button"
-                            , class "-icon"
-                            , class "build-graph-action-refresh"
-                            , Html.Attributes.title "Refresh visualization"
-                            , onClick <| msgs.buildGraphMsgs.refresh org repo buildNumber
-                            ]
-                            [ FeatherIcons.refreshCw |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml []
-                            ]
-                        ]
-                    ]
-                , div [ class "elm-build-graph-action-toggles" ]
-                    [ div [ class "form-control" ]
-                        [ div []
-                            [ Html.input
-                                [ Html.Attributes.type_ "checkbox"
-                                , Html.Attributes.checked model.repo.build.graph.showServices
-                                , onCheck msgs.buildGraphMsgs.showServices
-                                , id "checkbox-services-toggle"
-                                , Util.testAttribute "build-graph-action-toggle-services"
-                                ]
-                                []
-                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-services-toggle" ]
-                                [ text "services"
-                                ]
-                            ]
-                        ]
-                    , div [ class "form-control" ]
-                        [ div []
-                            [ Html.input
-                                [ Html.Attributes.type_ "checkbox"
-                                , Html.Attributes.checked model.repo.build.graph.showSteps
-                                , onCheck msgs.buildGraphMsgs.showSteps
-                                , id "checkbox-steps-toggle"
-                                , Util.testAttribute "build-graph-action-toggle-steps"
-                                ]
-                                []
-                            , Html.label [ class "form-label", Html.Attributes.for "checkbox-steps-toggle" ]
-                                [ text "steps"
-                                ]
-                            ]
-                        ]
-                    , div [ class "form-control", class "elm-build-graph-search-filter" ]
-                        [ div [ class "elm-build-graph-search-filter-1" ]
-                            [ Html.input
-                                [ Html.Attributes.type_ "input"
-                                , Html.Attributes.checked True -- todo: is this needed?
-                                , Html.Attributes.placeholder "type to highlight nodes..."
-                                , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
-                                , id "build-graph-action-filter"
-                                , Util.testAttribute "build-graph-action-filter"
-                                , Html.Attributes.value model.repo.build.graph.filter
-                                ]
-                                []
-                            , Html.label [ class "elm-build-graph-search-filter-form-label", Html.Attributes.for "build-graph-action-filter" ]
-                                [ FeatherIcons.search |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml []
-                                ]
-                            ]
-                        , button
-                            [ class "button"
-                            , class "-icon"
-                            , Util.testAttribute "build-graph-action-filter-clear"
-                            , onClick (msgs.buildGraphMsgs.updateFilter "")
-                            ]
-                            [ FeatherIcons.x |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml [] ]
-                        ]
-                    ]
-                ]
-    in
-    div [ class "elm-build-graph-container" ]
-        [ actions
-        , div [ class "elm-build-graph-window" ]
-            [ legend
             , case model.repo.build.graph.graph of
                 RemoteData.Success _ ->
                     -- dont render anything when the build graph draw command has been dispatched

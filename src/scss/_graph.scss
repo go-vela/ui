@@ -91,7 +91,7 @@
   }
 }
 
-.elm-build-graph-legend-item {
+.elm-build-graph-legend-node {
   margin-right: 0.2rem;
 
   fill: var(--color-bg-dark);
@@ -126,9 +126,13 @@
     stroke-dasharray: 2, 4;
     stroke-linecap: round;
   }
+
+  rect {
+    stroke-width: 2;
+  }
 }
 
-.elm-build-graph-legend-line {
+.elm-build-graph-legend-edge {
   margin-right: 0.2rem;
 
   fill: var(--color-bg-dark);
@@ -156,6 +160,10 @@
   .-selected {
     stroke: var(--color-primary);
   }
+
+  line {
+    stroke-width: 3;
+  }
 }
 
 .elm-build-graph-search-filter {
@@ -165,15 +173,16 @@
   background-color: var(--color-bg);
   border-right: 1px solid var(--color-bg-light);
 
-  .elm-build-graph-search-filter-1 {
-    border-bottom: var(--line-width) solid var(--color-primary);
-    input {
-      border-bottom: none !important;
-    }
-  }
-
   label {
     padding-left: 0.5rem;
+  }
+}
+
+.elm-build-graph-search-filter-input {
+  border-bottom: var(--line-width) solid var(--color-primary);
+
+  input:not([type='checkbox']):not([type='radio']) {
+    border-bottom: none;
   }
 }
 
@@ -371,7 +380,7 @@
 
 // start: theme overrides
 
-.theme-light .elm-build-graph-legend-item {
+.theme-light .elm-build-graph-legend-node {
   stroke: var(--color-coal-light);
 }
 
@@ -413,7 +422,6 @@
 }
 
 .theme-light .d3-build-graph-edge-path {
-
   &.-pending,
   &.-success,
   &.-failure,

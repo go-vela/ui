@@ -36,8 +36,6 @@ import Visualization.DOT
 renderDOT : BuildModel.PartialModel a -> Repository -> Build -> BuildGraph -> String
 renderDOT model repo build buildGraph =
     let
-        -- todo: BUG: single step "step" sleep 10 pipeline when you hover
-        -- the text changes color???
         isNodeFocused : String -> BuildGraphNode -> Bool
         isNodeFocused filter n =
             n.id

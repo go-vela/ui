@@ -228,7 +228,6 @@ import Vela
         , updateHooksPage
         , updateHooksPager
         , updateHooksPerPage
-        , updateModels
         , updateOrgRepo
         , updateOrgReposPage
         , updateOrgReposPager
@@ -239,6 +238,7 @@ import Vela
         , updateRepoEnabling
         , updateRepoInitialized
         , updateRepoLimit
+        , updateRepoModels
         , updateRepoTimeout
         )
 
@@ -969,7 +969,7 @@ update msg model =
                     }
 
                 um_ =
-                    updateModels model rm bm ugm
+                    updateRepoModels model rm bm ugm
             in
             ( um_
             , getBuildGraph um_ org repo buildNumber True
@@ -983,7 +983,7 @@ update msg model =
                     }
 
                 um_ =
-                    updateModels model rm bm ugm
+                    updateRepoModels model rm bm ugm
             in
             ( um_
             , renderBuildGraph um_ False
@@ -997,7 +997,7 @@ update msg model =
                     }
 
                 um_ =
-                    updateModels model rm bm ugm
+                    updateRepoModels model rm bm ugm
             in
             ( um_
             , renderBuildGraph um_ False
@@ -1011,7 +1011,7 @@ update msg model =
                     }
 
                 um_ =
-                    updateModels model rm bm ugm
+                    updateRepoModels model rm bm ugm
             in
             ( um_
             , renderBuildGraph um_ False
@@ -1032,7 +1032,7 @@ update msg model =
                                     { gm | focusedNode = -1 }
 
                                 um_ =
-                                    updateModels model rm bm ugm
+                                    updateRepoModels model rm bm ugm
                             in
                             ( ugm, renderBuildGraph um_ False )
 
@@ -1042,14 +1042,14 @@ update msg model =
                                     { gm | focusedNode = Maybe.withDefault -1 <| String.toInt interaction.node_id }
 
                                 um_ =
-                                    updateModels model rm bm ugm
+                                    updateRepoModels model rm bm ugm
                             in
                             ( ugm, renderBuildGraph um_ False )
 
                         _ ->
                             ( model.repo.build.graph, Cmd.none )
             in
-            ( updateModels model rm bm ugm_
+            ( updateRepoModels model rm bm ugm_
             , Cmd.batch
                 [ Navigation.pushUrl model.navigationKey interaction.href
                 , cmd
@@ -1783,7 +1783,6 @@ update msg model =
                 Err error ->
                     ( { model | repo = updateBuild (toFailure error) rm }, addError error )
 
-        -- ( { model | repo = updateBuildGraph (toFailure error) rm }, addError error )
         DeploymentResponse response ->
             case response of
                 Ok ( _, deployment ) ->
@@ -2133,7 +2132,7 @@ update msg model =
                                     { gm | buildNumber = buildNumber, graph = RemoteData.succeed g }
 
                                 updatedModel =
-                                    updateModels model rm bm ugm
+                                    updateRepoModels model rm bm ugm
 
                                 cmd =
                                     if not sameBuild then
@@ -2646,7 +2645,7 @@ shouldRefresh page build =
                                 Loading ->
                                     False
 
-                        -- check services when viewing services tab
+                        -- check graph nodes when viewing graph tab
                         Pages.BuildGraph _ _ _ ->
                             case build.graph.graph of
                                 Success graph ->
@@ -4946,6 +4945,11 @@ getBuildAndPipeline model org repo buildNumber expand =
     Api.try (BuildAndPipelineResponse org repo expand) <| Api.getBuild model org repo buildNumber
 
 
+getBuildGraph : Model -> Org -> Repo -> BuildNumber -> Bool -> Cmd Msg
+getBuildGraph model org repo buildNumber refresh =
+    Api.try (BuildGraphResponse org repo buildNumber refresh) <| Api.getBuildGraph model org repo buildNumber
+
+
 getDeployment : Model -> Org -> Repo -> DeploymentId -> Cmd Msg
 getDeployment model org repo deploymentNumber =
     Api.try DeploymentResponse <| Api.getDeployment model org repo <| Just deploymentNumber
@@ -5002,11 +5006,6 @@ getBuildServicesLogs model org repo buildNumber services logFocus refresh =
                     Cmd.none
             )
             services
-
-
-getBuildGraph : Model -> Org -> Repo -> BuildNumber -> Bool -> Cmd Msg
-getBuildGraph model org repo buildNumber refresh =
-    Api.try (BuildGraphResponse org repo buildNumber refresh) <| Api.getBuildGraph model org repo buildNumber
 
 
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg

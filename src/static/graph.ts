@@ -121,8 +121,8 @@ function drawBaseGraphWithZoom(opts, selector, content) {
   if (!opts.isRefreshDraw) {
     resetZoomAndCenter(opts, zoom);
   }
+
   if (opts.centerOnDraw) {
-    console.log('recentering');
     resetZoomAndCenter(opts, zoom);
   }
 
@@ -140,13 +140,13 @@ function drawViewbox(opts, buildGraphElement) {
   graphParent.attr(
     'viewBox',
     '' +
-    (graphBBox.x - padding.x1) +
-    ' ' +
-    (graphBBox.y - padding.y1) +
-    ' ' +
-    (graphBBox.width + padding.x2) +
-    ' ' +
-    (graphBBox.height + padding.y2),
+      (graphBBox.x - padding.x1) +
+      ' ' +
+      (graphBBox.y - padding.y1) +
+      ' ' +
+      (graphBBox.width + padding.x2) +
+      ' ' +
+      (graphBBox.height + padding.y2),
   );
 }
 
@@ -252,31 +252,33 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
 
         let cellBBox = cell.getBBox();
 
-        var padding = { w: 2, h: 2, x: 3, y: 1 };
+        const iconPadding = { w: 2, h: 2, x: 3, y: 1 };
 
-        cellParent.append('rect')
+        cellParent
+          .append('rect')
           .classed('d3-build-graph-step-icon', true)
           .classed('-' + step.status, true)
-          .attr('width', stepIconSize + padding.w)
-          .attr('height', stepIconSize + padding.h)
-          .attr('x', cellBBox.x - padding.x)
-          .attr('y', cellBBox.y - padding.y)
+          .attr('width', stepIconSize + iconPadding.w)
+          .attr('height', stepIconSize + iconPadding.h)
+          .attr('x', cellBBox.x - iconPadding.x)
+          .attr('y', cellBBox.y - iconPadding.y)
           .attr('rx', '1')
           .attr('ry', '1');
 
         var stepIcon = cellParent.append('svg');
-        stepIcon.classed('-' + step.status, true)
+        stepIcon
+          .classed('-' + step.status, true)
           .attr('viewBox', '0 0 28 28')
-          .attr('x', cellBBox.x - padding.x)
-          .attr('y', cellBBox.y - padding.y)
-          .attr('width', stepIconSize + padding.w)
-          .attr('height', stepIconSize + padding.h);
+          .attr('x', cellBBox.x - iconPadding.x)
+          .attr('y', cellBBox.y - iconPadding.y)
+          .attr('width', stepIconSize + iconPadding.w)
+          .attr('height', stepIconSize + iconPadding.h);
 
         // build the icon svg based on step status
 
         if (step.status === 'pending') {
-          stepIcon.append('circle')
-            .classed('pending-circle', true)
+          stepIcon
+            .append('circle')
             .attr('cx', '14')
             .attr('cy', '14')
             .attr('r', '2');
@@ -299,29 +301,29 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
         }
 
         if (step.status === 'killed') {
-          stepIcon.append('circle')
-            .classed('pending-circle', true)
+          stepIcon
+            .append('circle')
             .attr('cx', '9')
             .attr('cy', '14')
             .attr('r', '2');
-          stepIcon.append('circle')
-            .classed('pending-circle', true)
+          stepIcon
+            .append('circle')
             .attr('cx', '19')
             .attr('cy', '14')
             .attr('r', '2');
         }
 
-        // step connector
+        // apply step connector to every step after the first
         if (i > 0) {
+          const connectorPadding = { x: 5.5, y: -6 };
+          const connectorSize = { w: 1, h: 4 };
           var connector = cellParent.append('rect');
-          connector.classed('d3-build-graph-step-connector', true);
           connector
-            // tweak position for visual effect
-            .attr('x', cellBBox.x + 5.5)
-            .attr('y', cellBBox.y - 6)
-            // apply size manually
-            .attr('width', 1)
-            .attr('height', 4);
+            .classed('d3-build-graph-step-connector', true)
+            .attr('x', cellBBox.x + connectorPadding.x)
+            .attr('y', cellBBox.y + connectorPadding.y)
+            .attr('width', connectorSize.w)
+            .attr('height', connectorSize.h);
         }
         i++;
 
@@ -363,14 +365,12 @@ function drawEdges(opts, buildGraphElement, edgeSelector) {
     edges.push(edge);
 
     // restore base class and build modifiers
-    p.classed('d3-build-graph-edge-path', true);
-    p.classed(
-      'd3-build-graph-edge-path-' + data.source + '-' + data.destination,
-      true,
-    );
-
-    // apply the appropriate styles
-    p.classed('-' + data.status, true);
+    p.classed('d3-build-graph-edge-path', true)
+      .classed(
+        'd3-build-graph-edge-path-' + data.source + '-' + data.destination,
+        true,
+      )
+      .classed('-' + data.status, true);
 
     if (data.focused && data.focused === 'true') {
       p.classed('-focus', true);
@@ -385,10 +385,9 @@ function applyOnClickToNodes(opts, buildGraphElement, nodeSelector) {
   // process and return all 'linked' stage nodes
   return buildGraphElement.selectAll(nodeSelector + ' a').filter(function () {
     // add onclick to nodes with valid href attributes
-    var l = d3.select(this);
-    var href = l.attr('xlink:href');
-
-    l.classed('d3-build-graph-node-a', true); // is this used?
+    var a = d3.select(this);
+    var href = a.attr('xlink:href');
+    a.classed('d3-build-graph-node-a', true);
 
     if (href !== null) {
       d3.select(this).on('click', e => {
