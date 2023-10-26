@@ -164,6 +164,9 @@ context('Build Graph', () => {
           '-focus',
         );
       });
+      // todo: click on step should redirect to step
+      // todo: step icons
+      // todo: light theme
     },
   );
 });
