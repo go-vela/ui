@@ -22,18 +22,28 @@ renderBuildGraph model centerOnDraw =
         gm =
             rm.build.graph
     in
-    case gm.graph of
-        Success g ->
-            Interop.renderBuildGraph <|
-                encodeBuildGraphRenderData
-                    { dot = renderDOT model g
-                    , buildID = RemoteData.unwrap -1 .id bm.build
-                    , filter = gm.filter
-                    , showServices = gm.showServices
-                    , showSteps = gm.showSteps
-                    , focusedNode = gm.focusedNode
-                    , centerOnDraw = centerOnDraw
-                    }
+    case rm.repo of
+        Success r ->
+            case bm.build of
+                Success b ->
+                    case gm.graph of
+                        Success g ->
+                            Interop.renderBuildGraph <|
+                                encodeBuildGraphRenderData
+                                    { dot = renderDOT model r b g
+                                    , buildID = b.id
+                                    , filter = gm.filter
+                                    , showServices = gm.showServices
+                                    , showSteps = gm.showSteps
+                                    , focusedNode = gm.focusedNode
+                                    , centerOnDraw = centerOnDraw
+                                    }
+
+                        _ ->
+                            Cmd.none
+
+                _ ->
+                    Cmd.none
 
         _ ->
             Cmd.none

@@ -16,8 +16,6 @@ export function drawGraph(opts, content) {
     edge: '.elm-build-graph-edge',
   };
 
-  console.log('this sometimes happens too fast ' + opts.centerOnDraw);
-
   var buildGraphElement = drawBaseGraphWithZoom(
     opts,
     graphSelectors.root,
@@ -142,19 +140,20 @@ function drawViewbox(opts, buildGraphElement) {
   graphParent.attr(
     'viewBox',
     '' +
-      (graphBBox.x - padding.x1) +
-      ' ' +
-      (graphBBox.y - padding.y1) +
-      ' ' +
-      (graphBBox.width + padding.x2) +
-      ' ' +
-      (graphBBox.height + padding.y2),
+    (graphBBox.x - padding.x1) +
+    ' ' +
+    (graphBBox.y - padding.y1) +
+    ' ' +
+    (graphBBox.width + padding.x2) +
+    ' ' +
+    (graphBBox.height + padding.y2),
   );
 }
 
 function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
   buildGraphElement.selectAll(nodeSelector).filter(function () {
     let node = d3.select(this);
+    node.select('polygon').classed('d3-build-graph-node', true);
 
     // apply an outline using rect, since nodes are rect and this will allow for animation
     var nodeBBox = node.node().getBBox();
@@ -253,34 +252,82 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
 
         let cellBBox = cell.getBBox();
 
-        // todo: static/*.png seems like a bad way to do icon images
-        cellParent
-          .append('image')
-          .attr('xlink:href', '/images/vela_' + step.status + '.png')
-          .attr('x', cellBBox.x - 6)
-          .attr('y', cellBBox.y)
-          .attr('width', stepIconSize)
-          .attr('height', stepIconSize);
+        var padding = { w: 2, h: 2, x: 3, y: 1 };
+
+        cellParent.append('rect')
+          .classed('d3-build-graph-step-icon', true)
+          .classed('-' + step.status, true)
+          .attr('width', stepIconSize + padding.w)
+          .attr('height', stepIconSize + padding.h)
+          .attr('x', cellBBox.x - padding.x)
+          .attr('y', cellBBox.y - padding.y)
+          .attr('rx', '1')
+          .attr('ry', '1');
+
+        var stepIcon = cellParent.append('svg');
+        stepIcon.classed('-' + step.status, true)
+          .attr('viewBox', '0 0 28 28')
+          .attr('x', cellBBox.x - padding.x)
+          .attr('y', cellBBox.y - padding.y)
+          .attr('width', stepIconSize + padding.w)
+          .attr('height', stepIconSize + padding.h);
+
+        // build the icon svg based on step status
+
+        if (step.status === 'pending') {
+          stepIcon.append('circle')
+            .classed('pending-circle', true)
+            .attr('cx', '14')
+            .attr('cy', '14')
+            .attr('r', '2');
+        }
+
+        if (step.status === 'running') {
+          stepIcon.append('path').attr('d', 'M14 7v7.5l5 2.5');
+        }
+
+        if (step.status === 'success') {
+          stepIcon.append('path').attr('d', 'M6 15.9227L10.1026 20 22 7');
+        }
+
+        if (step.status === 'failure') {
+          stepIcon.append('path').attr('d', 'M8 8l12 12M20 8L8 20');
+        }
+
+        if (step.status === 'failure') {
+          stepIcon.append('path').attr('d', 'M8 8l12 12M20 8L8 20');
+        }
+
+        if (step.status === 'killed') {
+          stepIcon.append('circle')
+            .classed('pending-circle', true)
+            .attr('cx', '9')
+            .attr('cy', '14')
+            .attr('r', '2');
+          stepIcon.append('circle')
+            .classed('pending-circle', true)
+            .attr('cx', '19')
+            .attr('cy', '14')
+            .attr('r', '2');
+        }
 
         // step connector
         if (i > 0) {
           var connector = cellParent.append('rect');
           connector.classed('d3-build-graph-step-connector', true);
-
           connector
             // tweak position for visual effect
-            .attr('x', cellBBox.x + 2)
-            .attr('y', cellBBox.y - 7)
+            .attr('x', cellBBox.x + 5.5)
+            .attr('y', cellBBox.y - 6)
             // apply size manually
             .attr('width', 1)
-            .attr('height', 5);
+            .attr('height', 4);
         }
         i++;
 
         // extract and remove the href to dispatch link clicks to Elm
         var href = cellParent.attr('xlink:href');
         cellParent.attr('xlink:href', null);
-
         cellParent.on('click', e => {
           e.preventDefault();
           // prevents multiple link events getting fired from a single click
@@ -303,6 +350,7 @@ function drawEdges(opts, buildGraphElement, edgeSelector) {
   var edges: any[] = [];
 
   buildGraphElement.selectAll(edgeSelector).filter(function () {
+    d3.select(this).select('ellipse').classed('d3-build-graph-edge-tip', true);
     let a = d3.select(this);
     var p = a.select('path');
 
@@ -337,7 +385,11 @@ function applyOnClickToNodes(opts, buildGraphElement, nodeSelector) {
   // process and return all 'linked' stage nodes
   return buildGraphElement.selectAll(nodeSelector + ' a').filter(function () {
     // add onclick to nodes with valid href attributes
-    var href = d3.select(this).attr('xlink:href');
+    var l = d3.select(this);
+    var href = l.attr('xlink:href');
+
+    l.classed('d3-build-graph-node-a', true); // is this used?
+
     if (href !== null) {
       d3.select(this).on('click', e => {
         e.preventDefault();

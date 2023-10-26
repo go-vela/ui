@@ -194,6 +194,7 @@ import Vela
         , isComplete
         , secretTypeToString
         , statusToFavicon
+        , stringToStatus
         , stringToTheme
         , updateBuild
         , updateBuildGraph
@@ -2645,6 +2646,22 @@ shouldRefresh page build =
                                 Loading ->
                                     False
 
+                        -- check services when viewing services tab
+                        Pages.BuildGraph _ _ _ ->
+                            case build.graph.graph of
+                                Success graph ->
+                                    List.any (\( _, n ) -> not <| isComplete (stringToStatus n.status)) (Dict.toList graph.nodes)
+
+                                -- do not use unsuccessful states to dictate refresh
+                                NotAsked ->
+                                    False
+
+                                Failure _ ->
+                                    False
+
+                                Loading ->
+                                    False
+
                         _ ->
                             False
                    )
@@ -4329,7 +4346,8 @@ loadBuildGraphPage model org repo buildNumber =
 
       else
         Cmd.batch
-            [ getBuilds um org repo Nothing Nothing Nothing
+            [ getRepo um org repo
+            , getBuilds um org repo Nothing Nothing Nothing
             , getBuild um org repo buildNumber
             , getAllBuildSteps um org repo buildNumber Nothing False
             , getBuildGraph um org repo buildNumber False

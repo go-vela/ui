@@ -9,9 +9,11 @@ import Routes exposing (Route(..))
 import Util
 import Vela
     exposing
-        ( BuildGraph
+        ( Build
+        , BuildGraph
         , BuildGraphEdge
         , BuildGraphNode
+        , Repository
         , statusToString
         )
 import Visualization.DOT
@@ -31,8 +33,8 @@ import Visualization.DOT
 <https://graphviz.org/doc/info/lang.html>
 <https://package.elm-lang.org/packages/elm-community/graph/latest/Graph.DOT>
 -}
-renderDOT : BuildModel.PartialModel a -> BuildGraph -> String
-renderDOT model buildGraph =
+renderDOT : BuildModel.PartialModel a -> Repository -> Build -> BuildGraph -> String
+renderDOT model repo build buildGraph =
     let
         -- todo: BUG: single step "step" sleep 10 pipeline when you hover
         -- the text changes color???
@@ -98,15 +100,15 @@ renderDOT model buildGraph =
 
         -- convert nodes and edges to DOT string format
         builtInNodesString =
-            List.map (nodeToString model) builtInNodes
+            List.map (nodeToString model repo build) builtInNodes
                 |> String.join "\n"
 
         pipelineNodesString =
-            List.map (nodeToString model) pipelineNodes
+            List.map (nodeToString model repo build) pipelineNodes
                 |> String.join "\n"
 
         serviceNodesString =
-            List.map (nodeToString model) serviceNodes
+            List.map (nodeToString model repo build) serviceNodes
                 |> String.join "\n"
 
         builtInEdgesString =
@@ -156,8 +158,8 @@ renderDOT model buildGraph =
 a "label" is actually a disguised graphviz table <https://graphviz.org/doc/info/lang.html> that is used to
 render a list of stage-steps as graph content that is recognized by the layout
 -}
-nodeLabel : BuildModel.PartialModel a -> Bool -> BuildGraphNode -> String
-nodeLabel model showSteps node =
+nodeLabel : BuildModel.PartialModel a -> Repository -> Build -> BuildGraphNode -> Bool -> String
+nodeLabel model repo build node showSteps =
     let
         label =
             node.name
@@ -172,10 +174,6 @@ nodeLabel model showSteps node =
                 ++ String.join "" content
                 ++ "</table>"
 
-        -- todo: theme styles
-        labelColor =
-            "white"
-
         runtime =
             Util.formatRunTime model.time node.startedAt node.finishedAt
 
@@ -186,15 +184,13 @@ nodeLabel model showSteps node =
                     [ ( "align", DefaultEscape "left" )
                     ]
                 ++ " >"
-                ++ ("<font color='"
-                        ++ labelColor
-                        ++ "'>"
+                ++ ("<font>"
                         ++ "<u>"
                         ++ label
                         ++ "</u>"
                         ++ "</font>"
                         ++ (if node.cluster /= serviceClusterID then
-                                "  <font color='white'>("
+                                "  <font>("
                                     ++ (String.fromInt <| List.length steps)
                                     ++ ")</font>"
 
@@ -203,16 +199,16 @@ nodeLabel model showSteps node =
                            )
                    )
                 ++ "</td>"
-                ++ "<td><font color='white'>"
+                ++ "<td><font>"
                 ++ runtime
                 ++ "</font></td>"
                 ++ "</tr>"
 
         link step =
             Routes.routeToUrl <|
-                Routes.Build model.repo.org
-                    model.repo.name
-                    model.repo.build.buildNumber
+                Routes.Build repo.org
+                    repo.name
+                    (String.fromInt build.number)
                     (Just <|
                         Focus.resourceFocusFragment
                             "step"
@@ -247,10 +243,9 @@ nodeLabel model showSteps node =
                     (cellAttributes step)
                 ++ " "
                 ++ ">"
-                ++ "    "
-                ++ "<font color='"
-                ++ labelColor
-                ++ "'>"
+                -- required icon spacing
+                ++ "     "
+                ++ "<font>"
                 ++ step.name
                 ++ "</font>"
                 ++ "<br align='left'/>"
@@ -269,11 +264,11 @@ nodeLabel model showSteps node =
 
 {-| nodeLabel : takes model and a node, and returns the DOT string representation
 -}
-nodeToString : BuildModel.PartialModel a -> Node BuildGraphNode -> String
-nodeToString model node =
+nodeToString : BuildModel.PartialModel a -> Repository -> Build -> Node BuildGraphNode -> String
+nodeToString model repo build node =
     "  "
         ++ String.fromInt node.id
-        ++ makeAttributes (nodeAttributes model node.label)
+        ++ makeAttributes (nodeAttributes model repo build node.label)
 
 
 {-| edgeToString : takes model and a node, and returns the DOT string representation
@@ -411,8 +406,8 @@ nodeLabelTableAttributes =
 
 {-| nodeAttributes : returns the node-specific dynamic attributes
 -}
-nodeAttributes : BuildModel.PartialModel a -> BuildGraphNode -> Dict String Attribute
-nodeAttributes model node =
+nodeAttributes : BuildModel.PartialModel a -> Repository -> Build -> BuildGraphNode -> Dict String Attribute
+nodeAttributes model repo build node =
     let
         -- embed node information in the element id
         id =
@@ -444,7 +439,7 @@ nodeAttributes model node =
         , ( "id", DefaultJSONLabelEscape id )
         , ( "class", DefaultJSONLabelEscape class )
         , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
-        , ( "label", HtmlLabelEscape <| nodeLabel model showSteps node )
+        , ( "label", HtmlLabelEscape <| nodeLabel model repo build node showSteps )
         , ( "tooltip", DefaultJSONLabelEscape id )
         ]
 

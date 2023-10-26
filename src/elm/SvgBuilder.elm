@@ -26,14 +26,17 @@ import Svg.Attributes
         , cx
         , cy
         , d
+        , fill
         , height
         , r
         , strokeLinecap
         , strokeWidth
         , viewBox
         , width
+        , x
         , x1
         , x2
+        , y
         , y1
         , y2
         )
@@ -541,18 +544,23 @@ buildVizLegendNode : List (Svg.Attribute msg) -> Html msg
 buildVizLegendNode attrs =
     let
         size =
-            "20"
+            22
+
+        padding =
+            4
     in
     svg
         [ class "elm-build-graph-legend-item"
-        , viewBox <| "0 0 " ++ size ++ " " ++ size
-        , width size
-        , height size
+        , width <| String.fromInt size
+        , height <| String.fromInt size
+        , fill "none"
         ]
         [ Svg.rect
-            ([ width size
-             , height size
-             , strokeWidth "3"
+            ([ width <| String.fromInt (size - padding)
+             , height <| String.fromInt (size - padding)
+             , strokeWidth "2"
+             , x <| String.fromInt (padding // 2)
+             , y <| String.fromInt (padding // 2)
              ]
                 ++ attrs
             )
@@ -566,19 +574,26 @@ buildVizLegendEdge : List (Svg.Attribute msg) -> Html msg
 buildVizLegendEdge attrs =
     let
         size =
-            "20"
+            22
+
+        padding =
+            4
+
+        length =
+            22
     in
     svg
-        [ class "elm-build-graph-legend-line"
-        , viewBox <| "0 0 " ++ size ++ " " ++ size
-        , width size
-        , height size
+        [ width <| String.fromInt size
+        , height <| String.fromInt size
+        , class "elm-build-graph-legend-line"
         ]
         [ Svg.line
-            ([ x1 "2"
-             , x2 "18"
-             , y1 <| "10"
-             , y2 <| "10"
+            ([ x1 <| String.fromInt 0
+             , x2 <| String.fromInt length
+             , y1 <| String.fromInt (size // 2)
+             , y2 <| String.fromInt (size // 2)
+             , width <| String.fromInt (size - padding)
+             , height <| String.fromInt (size - padding)
              , strokeWidth "3"
              ]
                 ++ attrs

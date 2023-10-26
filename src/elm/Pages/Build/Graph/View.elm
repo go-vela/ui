@@ -73,7 +73,7 @@ view model msgs org repo buildNumber =
                     , text "- selected"
                     ]
                 , li []
-                    [ buildVizLegendEdge [ Svg.Attributes.strokeDasharray "3, 3" ]
+                    [ buildVizLegendEdge [ Svg.Attributes.class "-pending" ]
                     , text "- pending"
                     ]
                 , li []
@@ -134,23 +134,24 @@ view model msgs org repo buildNumber =
                             ]
                         ]
                     , div [ class "form-control", class "elm-build-graph-search-filter" ]
-                        [ Html.input
-                            [ Html.Attributes.type_ "input"
-                            , Html.Attributes.checked True -- todo: is this needed?
-                            , Html.Attributes.placeholder "type to highlight nodes..."
-                            , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
-                            , id "build-graph-action-filter"
-                            , Util.testAttribute "build-graph-action-filter"
-                            , Html.Attributes.value model.repo.build.graph.filter
-                            ]
-                            []
-                        , Html.label [ class "elm-build-graph-search-filter-form-label", Html.Attributes.for "build-graph-action-filter" ]
-                            [ FeatherIcons.search |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml []
+                        [ div [ class "elm-build-graph-search-filter-1" ]
+                            [ Html.input
+                                [ Html.Attributes.type_ "input"
+                                , Html.Attributes.checked True -- todo: is this needed?
+                                , Html.Attributes.placeholder "type to highlight nodes..."
+                                , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
+                                , id "build-graph-action-filter"
+                                , Util.testAttribute "build-graph-action-filter"
+                                , Html.Attributes.value model.repo.build.graph.filter
+                                ]
+                                []
+                            , Html.label [ class "elm-build-graph-search-filter-form-label", Html.Attributes.for "build-graph-action-filter" ]
+                                [ FeatherIcons.search |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "elm-build-graph-action-button" |> FeatherIcons.toHtml []
+                                ]
                             ]
                         , button
                             [ class "button"
                             , class "-icon"
-                            , class "elm-build-graph-action-filter-clear"
                             , Util.testAttribute "build-graph-action-filter-clear"
                             , onClick (msgs.buildGraphMsgs.updateFilter "")
                             ]

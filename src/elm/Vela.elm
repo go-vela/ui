@@ -134,6 +134,7 @@ module Vela exposing
     , secretsErrorLabel
     , statusToFavicon
     , statusToString
+    , stringToStatus
     , stringToTheme
     , updateBuild
     , updateBuildGraph
@@ -1565,6 +1566,36 @@ toStatus status =
 
         _ ->
             succeed Error
+
+
+{-| stringToStatus : helper to convert string to Status
+-}
+stringToStatus : String -> Status
+stringToStatus status =
+    case status of
+        "pending" ->
+            Pending
+
+        "running" ->
+            Running
+
+        "success" ->
+            Success
+
+        "failure" ->
+            Failure
+
+        "killed" ->
+            Killed
+
+        "canceled" ->
+            Canceled
+
+        "error" ->
+            Error
+
+        _ ->
+            Error
 
 
 {-| statusToString : takes build status and returns string form
