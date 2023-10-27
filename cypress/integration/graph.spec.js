@@ -32,6 +32,7 @@ context('Build Graph', () => {
           '*api/v1/repos/*/*/builds/*/graph',
           'fixture:build_graph.json',
         );
+        cy.route('GET', '*api/v1/repos/*/octocat', 'fixture:repository.json');
         cy.login('/github/octocat/1/graph');
       });
       it('build graph root should be visible', () => {
