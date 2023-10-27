@@ -210,7 +210,7 @@ renderHookError hook =
                 |> Array.toList
                 |> List.filterMap identity
 
-        msgRow = 
+        msgRow =
             case hook.status of
                 "skipped" ->
                     tr [ class "skipped-data", Util.testAttribute "hooks-skipped" ]
@@ -219,6 +219,7 @@ renderHookError hook =
                                 lines
                             ]
                         ]
+
                 _ ->
                     tr [ class "error-data", Util.testAttribute "hooks-error" ]
                         [ td [ attribute "colspan" "6" ]
@@ -226,7 +227,6 @@ renderHookError hook =
                                 lines
                             ]
                         ]
-
     in
     msgRow
 
