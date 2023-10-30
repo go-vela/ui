@@ -8,7 +8,6 @@ const A11Y_OPTS = {
     values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
   },
   rules: {
-    'color-contrast': { enabled: false },
     'page-has-heading-one': { enabled: false },
   },
 };

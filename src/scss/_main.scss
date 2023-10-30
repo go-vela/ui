@@ -15,7 +15,7 @@ body {
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--color-primary2);
 
   &:focus,
   &:active {
@@ -187,9 +187,10 @@ nav {
     width: auto;
     margin: 0;
     padding: 0;
+    color: var(--color-black);
 
     list-style-type: none;
-    background-color: var(--color-bg-dark);
+    background-color: var(--color-bg-darkest);
   }
 
   li {
@@ -199,6 +200,7 @@ nav {
     padding: 1rem 1rem;
 
     &:first-child {
+      //color: var(--color-offwhite);
       padding-left: var(--horizontal-pad);
     }
 
@@ -207,7 +209,7 @@ nav {
     }
 
     &:last-child {
-      color: var(--color-bg-dark);
+      color: var(--color-offwhite);
       font-weight: bold;
 
       background-color: var(--color-lavender);
@@ -221,6 +223,7 @@ nav {
 
       width: 1rem;
 
+      color: var(--color-offwhite);
       background: var(--color-lavender);
       transform: skew(-15deg);
 

@@ -8,14 +8,15 @@ const A11Y_OPTS = {
      values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
    },
    rules: {
-    'color-contrast': { enabled: false },
     'page-has-heading-one': { enabled: false },
   },
 };
 
+const elmExclude = '[style*="padding-left: calc(1ch + 6px)"]';
+
 context('Accessibility (a11y)', () => {
   context('Logged out', () => {
-    it.skip('overview', () => {
+    it('overview', () => {
       //cy.clearSession();
       cy.visit('/account/login');
       cy.injectAxe();
@@ -62,19 +63,19 @@ context('Accessibility (a11y)', () => {
       );
     });
 
-    it.skip('overview', () => {
+    it('overview', () => {
       cy.checkA11yForPage('/', A11Y_OPTS);
     });
 
-    it.skip('source repos', () => {
+    it('source repos', () => {
       cy.checkA11yForPage('/account/source-repos', A11Y_OPTS);
     });
 
-    it.skip('settings', () => {
+    it('settings', () => {
       cy.checkA11yForPage('/github/octocat/settings', A11Y_OPTS);
     });
 
-    it.skip('repo page', () => {
+    it('repo page', () => {
       cy.checkA11yForPage('/github/octocat', A11Y_OPTS);
     });
 
@@ -82,7 +83,7 @@ context('Accessibility (a11y)', () => {
       cy.checkA11yForPage('/github/octocat/hooks', A11Y_OPTS);
     });
 
-    it.skip('build page', () => {
+    it('build page', () => {
       cy.login('/github/octocat/1');
       cy.injectAxe();
       cy.wait(500);
