@@ -122,7 +122,7 @@ context('Hooks', () => {
           });
           it('should show skip message', () => {
             cy.get('@message').contains(
-              'skipping build since only init step found. It is likely no rulesets matched for the webhook payload.',
+              'skipping build since only init and clone steps found — it is likely no rulesets matched for the webhook payload',
             );
           });
         });
