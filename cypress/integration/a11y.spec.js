@@ -3,11 +3,11 @@
  */
 
 const A11Y_OPTS = {
-   runOnly: {
-     type: 'tag',
-     values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
-   },
-   rules: {
+  runOnly: {
+    type: 'tag',
+    values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
+  },
+  rules: {
     'page-has-heading-one': { enabled: false },
   },
 };
@@ -22,7 +22,7 @@ context('Accessibility (a11y)', () => {
       cy.injectAxe();
       cy.wait(500);
       // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
-      cy.checkA11y({exclude: [elmExclude]}, A11Y_OPTS);
+      cy.checkA11y({ exclude: [elmExclude] }, A11Y_OPTS);
     });
   });
 
@@ -89,7 +89,7 @@ context('Accessibility (a11y)', () => {
       cy.wait(500);
       cy.clickSteps();
       // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
-      cy.checkA11y({exclude: [elmExclude]}, A11Y_OPTS);
+      cy.checkA11y({ exclude: [elmExclude] }, A11Y_OPTS);
     });
   });
 });
