@@ -54,7 +54,7 @@ view model msgs org repo buildNumber =
                         , class "-icon"
                         , class "build-graph-action-rotate"
                         , class <|
-                            case model.repo.build.graph.orientation of
+                            case model.repo.build.graph.rankdir of
                                 DOT.TB ->
                                     "-vertical"
 

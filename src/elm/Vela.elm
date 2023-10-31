@@ -1416,7 +1416,7 @@ type alias BuildGraphRenderInteropData =
 type alias BuildGraphModel =
     { buildNumber : BuildNumber
     , graph : WebData BuildGraph
-    , orientation : DOT.Rankdir
+    , rankdir : DOT.Rankdir
     , filter : String
     , focusedNode : Int
     , showServices : Bool

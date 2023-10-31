@@ -135,9 +135,9 @@ renderDOT model repo build buildGraph =
             else
                 ""
 
-        -- reverse the subgraphs for top-bottom orientation to consistently group services and built-ins
+        -- reverse the subgraphs for top-bottom rankdir to consistently group services and built-ins
         rotation =
-            case model.repo.build.graph.orientation of
+            case model.repo.build.graph.rankdir of
                 TB ->
                     List.reverse
 
@@ -157,7 +157,7 @@ renderDOT model repo build buildGraph =
             , serviceSubgraph
             ]
     in
-    digraph (baseGraphStyles model.repo.build.graph.orientation)
+    digraph (baseGraphStyles model.repo.build.graph.rankdir)
         (rotation subgraphs)
 
 
@@ -296,8 +296,8 @@ edgeToString edge =
 {-| baseGraphStyles : returns the base styles applied to the root graph.
 -}
 baseGraphStyles : Rankdir -> Styles
-baseGraphStyles orientation =
-    { rankdir = orientation
+baseGraphStyles rankdir =
+    { rankdir = rankdir
     , graph =
         escapeAttributes
             [ ( "bgcolor", DefaultEscape "transparent" )

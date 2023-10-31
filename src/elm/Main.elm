@@ -979,8 +979,8 @@ update msg model =
 
         BuildGraphRotate ->
             let
-                orientation =
-                    case gm.orientation of
+                rankdir =
+                    case gm.rankdir of
                         DOT.LR ->
                             DOT.TB
 
@@ -989,7 +989,7 @@ update msg model =
 
                 ugm =
                     { gm
-                        | orientation = orientation
+                        | rankdir = rankdir
                     }
 
                 um_ =
