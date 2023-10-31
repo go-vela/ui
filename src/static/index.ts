@@ -142,13 +142,19 @@ var opts = {
 app.ports.renderBuildGraph.subscribe(function (graphData) {
   const graphviz = Graphviz.load().then(res => {
     var content = res.layout(graphData.dot, 'svg', 'dot');
-
     // construct graph building options
     opts.isRefreshDraw = opts.currentBuild === graphData.build_id;
     opts.centerOnDraw = graphData.center_on_draw;
-    opts.currentBuild = graphData.build_id;
     opts.contentFilter = graphData.filter;
+
+    // track the currently drawn build
+    opts.currentBuild = graphData.build_id;
+
     opts.onGraphInteraction = app.ports.onGraphInteraction;
-    Graph.drawGraph(opts, content);
+
+    // dispatch the draw command to avoid elm/js rendering order issues
+    setTimeout(() => {
+      Graph.drawGraph(opts, content);
+    }, 0);
   });
 });

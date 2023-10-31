@@ -24,7 +24,6 @@ export function drawGraph(opts, content) {
 
   // check that a valid graph was rendered
   if (buildGraphElement === null || buildGraphElement.node() === null) {
-    console.log('unable to continue drawing graph, root element is invalid');
     return;
   }
 
