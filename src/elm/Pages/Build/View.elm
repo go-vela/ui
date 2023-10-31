@@ -1061,7 +1061,7 @@ followButton followStep resourceType number following =
         , onClick <| followStep toFollow
         , attribute "aria-label" <| tooltip ++ " for " ++ resourceType ++ " " ++ number
         ]
-        [ icon |> FeatherIcons.toHtml [ attribute "role" "img", attribute "aria-label" "Start-Step-Logs" ]]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img", attribute "aria-label" "Start-Step-Logs" ] ]
 
 
 {-| viewResourceError : checks for build error and renders message
