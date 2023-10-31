@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -1411,7 +1410,11 @@ update msg model =
         RepoResponse response ->
             case response of
                 Ok ( _, repoResponse ) ->
-                    ( { model | repo = updateRepo (RemoteData.succeed repoResponse) rm }, Cmd.none )
+                    let
+                        dm =
+                            model.deploymentModel
+                    in
+                    ( { model | repo = updateRepo (RemoteData.succeed repoResponse) rm, deploymentModel = { dm | repo_settings = RemoteData.succeed repoResponse } }, Cmd.none )
 
                 Err error ->
                     ( { model | repo = updateRepo (toFailure error) rm }, addError error )
@@ -2398,7 +2401,7 @@ refreshData model =
 -}
 refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuild model org repo buildNumber =
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getBuild model org repo buildNumber
 
     else
@@ -2409,7 +2412,7 @@ refreshBuild model org repo buildNumber =
 -}
 refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getAllBuildSteps model org repo buildNumber focusFragment True
 
     else
@@ -2420,7 +2423,7 @@ refreshBuildSteps model org repo buildNumber focusFragment =
 -}
 refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildServices model org repo buildNumber focusFragment =
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getAllBuildServices model org repo buildNumber focusFragment True
 
     else
@@ -2429,39 +2432,47 @@ refreshBuildServices model org repo buildNumber focusFragment =
 
 {-| shouldRefresh : takes build and returns true if a refresh is required
 -}
-shouldRefresh : BuildModel -> Bool
-shouldRefresh build =
+shouldRefresh : Page -> BuildModel -> Bool
+shouldRefresh page build =
     case build.build of
         Success bld ->
             -- build is incomplete
             (not <| isComplete bld.status)
                 -- any steps or services are incomplete
-                || (case build.steps.steps of
-                        Success steps ->
-                            List.any (\s -> not <| isComplete s.status) steps
+                || (case page of
+                        -- check steps when viewing build tab
+                        Pages.Build _ _ _ _ ->
+                            case build.steps.steps of
+                                Success steps ->
+                                    List.any (\s -> not <| isComplete s.status) steps
 
-                        NotAsked ->
-                            True
+                                -- do not use unsuccessful states to dictate refresh
+                                NotAsked ->
+                                    False
 
-                        -- do not refresh Failed or Loading steps
-                        Failure _ ->
-                            False
+                                Failure _ ->
+                                    False
 
-                        Loading ->
-                            False
-                   )
-                || (case build.services.services of
-                        Success services ->
-                            List.any (\s -> not <| isComplete s.status) services
+                                Loading ->
+                                    False
 
-                        NotAsked ->
-                            True
+                        -- check services when viewing services tab
+                        Pages.BuildServices _ _ _ _ ->
+                            case build.services.services of
+                                Success services ->
+                                    List.any (\s -> not <| isComplete s.status) services
 
-                        -- do not refresh Failed or Loading services
-                        Failure _ ->
-                            False
+                                -- do not use unsuccessful states to dictate refresh
+                                NotAsked ->
+                                    False
 
-                        Loading ->
+                                Failure _ ->
+                                    False
+
+                                Loading ->
+                                    False
+
+                        _ ->
                             False
                    )
 
@@ -2490,7 +2501,7 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
                 _ ->
                     []
     in
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
 
     else
@@ -2511,7 +2522,7 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
                 _ ->
                     []
     in
-    if shouldRefresh model.repo.build then
+    if shouldRefresh model.page model.repo.build then
         getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
 
     else
@@ -3484,7 +3495,7 @@ loadRepoSubPage model org repo toPage =
                         { dm
                             | org = org
                             , repo = repo
-                            , repo_settings = rm.repo
+                            , repo_settings = model.repo.repo
                             , form = form
                         }
                     , repo =
@@ -3637,6 +3648,9 @@ loadRepoSubPage model org repo toPage =
                     Pages.PromoteDeployment o r deploymentNumber ->
                         ( model, getDeployment model o r deploymentNumber )
 
+                    Pages.AddDeployment o r ->
+                        ( model, getRepo model o r )
+
                     -- page is not a repo subpage
                     _ ->
                         ( model, Cmd.none )
@@ -3773,6 +3787,7 @@ loadOrgSecretsPage model maybePage maybePerPage engine org =
             { secretsModel
                 | orgSecrets = Loading
                 , org = org
+                , repo = ""
                 , engine = engine
                 , type_ = Vela.OrgSecret
             }

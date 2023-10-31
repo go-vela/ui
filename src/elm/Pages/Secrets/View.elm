@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -15,8 +14,7 @@ import Http
 import Pages.Secrets.Form exposing (viewAllowCommandCheckbox, viewEventsSelect, viewHelp, viewImagesInput, viewInput, viewNameInput, viewSubmitButtons, viewValueInput)
 import Pages.Secrets.Model
     exposing
-        ( Model
-        , Msg
+        ( Msg
         , PartialModel
         )
 import RemoteData exposing (RemoteData(..))
@@ -540,7 +538,7 @@ addSecret model =
     div [ class "manage-secret", Util.testAttribute "manage-secret" ]
         [ div []
             [ h2 [] [ addLabel model.secretsModel.type_ ]
-            , addForm model.secretsModel
+            , addForm model
             ]
         ]
 
@@ -562,14 +560,14 @@ addLabel type_ =
 
 {-| addForm : renders secret update form for adding a new secret
 -}
-addForm : Model msg -> Html Msg
-addForm secretsModel =
+addForm : PartialModel a msg -> Html Msg
+addForm partialModel =
     let
         secretUpdate =
-            secretsModel.form
+            partialModel.secretsModel.form
 
         teamForm =
-            if secretsModel.team == "*" && secretsModel.type_ == SharedSecret then
+            if partialModel.secretsModel.team == "*" && partialModel.secretsModel.type_ == SharedSecret then
                 viewInput "Team" secretUpdate.team "Team Name"
 
             else
@@ -579,12 +577,12 @@ addForm secretsModel =
         [ teamForm
         , viewNameInput secretUpdate.name False
         , viewValueInput secretUpdate.value "Secret Value"
-        , viewEventsSelect secretUpdate
+        , viewEventsSelect secretUpdate partialModel
         , viewImagesInput secretUpdate secretUpdate.imageInput
         , viewAllowCommandCheckbox secretUpdate
         , viewHelp
         , div [ class "form-action" ]
-            [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.AddSecret secretsModel.engine ] [ text "Add" ]
+            [ button [ class "button", class "-outline", onClick <| Pages.Secrets.Model.AddSecret partialModel.secretsModel.engine ] [ text "Add" ]
             ]
         ]
 
@@ -617,7 +615,7 @@ editSecret model =
             div [ class "manage-secret", Util.testAttribute "manage-secret" ]
                 [ div []
                     [ h2 [] [ editHeader model.secretsModel.type_ ]
-                    , editForm model.secretsModel
+                    , editForm model
                     ]
                 ]
 
@@ -645,18 +643,18 @@ editHeader type_ =
 
 {-| editForm : renders secret update form for updating a preexisting secret
 -}
-editForm : Model msg -> Html Msg
-editForm secretsModel =
+editForm : PartialModel a msg -> Html Msg
+editForm partialModel =
     let
         secretUpdate =
-            secretsModel.form
+            partialModel.secretsModel.form
     in
     div [ class "secret-form", class "edit-form" ]
         [ viewNameInput secretUpdate.name True
         , viewValueInput secretUpdate.value "Secret Value (leave blank to make no change)"
-        , viewEventsSelect secretUpdate
+        , viewEventsSelect secretUpdate partialModel
         , viewImagesInput secretUpdate secretUpdate.imageInput
         , viewAllowCommandCheckbox secretUpdate
         , viewHelp
-        , viewSubmitButtons secretsModel
+        , viewSubmitButtons partialModel.secretsModel
         ]

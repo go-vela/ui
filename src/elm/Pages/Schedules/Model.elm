@@ -1,6 +1,5 @@
 {--
-Copyright (c) 2022 Target Brands, Inc. All rights reserved.
-Use of this source code is governed by the LICENSE file in this repository.
+SPDX-License-Identifier: Apache-2.0
 --}
 
 
@@ -72,12 +71,13 @@ type alias ScheduleForm =
     { name : String
     , entry : String
     , enabled : Bool
+    , branch : String
     }
 
 
 defaultScheduleUpdate : ScheduleForm
 defaultScheduleUpdate =
-    ScheduleForm "" "" True
+    ScheduleForm "" "" True ""
 
 
 
