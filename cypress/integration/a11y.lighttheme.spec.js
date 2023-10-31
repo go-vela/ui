@@ -33,7 +33,7 @@ context('Accessibility (a11y)', () => {
       cy.setTheme('theme-light');
       cy.server();
       // overview page
-      cy.route('GET', '*api/v1/repos*', 'fixture:favorites.json');
+      cy.route('GET', '*api/v1/user*', 'fixture:favorites.json');
       // source repos page
       cy.route(
         'GET',
@@ -63,10 +63,6 @@ context('Accessibility (a11y)', () => {
         '*api/v1/repos/*/octocat/builds/3*',
         'fixture:build_running.json',
       );
-    });
-    after(() => {
-      cy.visit('/');
-      cy.server({ enable: false });
     });
 
     it('overview', () => {
