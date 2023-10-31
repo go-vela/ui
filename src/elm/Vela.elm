@@ -193,6 +193,7 @@ import Json.Encode as Encode exposing (Value)
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
+import Visualization.DOT as DOT
 
 
 
@@ -1380,7 +1381,7 @@ decodeBuild =
 
 defaultBuildGraphModel : BuildGraphModel
 defaultBuildGraphModel =
-    BuildGraphModel "" NotAsked "" -1 True True
+    BuildGraphModel "" NotAsked DOT.LR "" -1 True True
 
 
 defaultBuildGraph : BuildGraph
@@ -1415,6 +1416,7 @@ type alias BuildGraphRenderInteropData =
 type alias BuildGraphModel =
     { buildNumber : BuildNumber
     , graph : WebData BuildGraph
+    , orientation : DOT.Rankdir
     , filter : String
     , focusedNode : Int
     , showServices : Bool

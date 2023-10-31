@@ -152,7 +152,7 @@ app.ports.renderBuildGraph.subscribe(function (graphData) {
 
     opts.onGraphInteraction = app.ports.onGraphInteraction;
 
-    // dispatch the draw command to avoid elm/js rendering order issues
+    // dispatch the draw command to avoid elm/js rendering race condition
     setTimeout(() => {
       Graph.drawGraph(opts, content);
     }, 0);

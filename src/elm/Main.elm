@@ -241,6 +241,7 @@ import Vela
         , updateRepoModels
         , updateRepoTimeout
         )
+import Visualization.DOT as DOT
 
 
 
@@ -418,6 +419,7 @@ type Msg
     | BuildGraphShowServices Bool
     | BuildGraphShowSteps Bool
     | BuildGraphRefresh Org Repo BuildNumber
+    | BuildGraphRotate
     | BuildGraphUpdateFilter String
     | OnBuildGraphInteraction GraphInteraction
       -- Outgoing HTTP requests
@@ -973,6 +975,28 @@ update msg model =
             in
             ( um_
             , getBuildGraph um_ org repo buildNumber True
+            )
+
+        BuildGraphRotate ->
+            let
+                orientation =
+                    case gm.orientation of
+                        DOT.LR ->
+                            DOT.TB
+
+                        _ ->
+                            DOT.LR
+
+                ugm =
+                    { gm
+                        | orientation = orientation
+                    }
+
+                um_ =
+                    updateRepoModels model rm bm ugm
+            in
+            ( um_
+            , renderBuildGraph um_ False
             )
 
         BuildGraphUpdateFilter filter ->
@@ -4840,6 +4864,7 @@ buildMsgs =
         }
     , buildGraphMsgs =
         { refresh = BuildGraphRefresh
+        , rotate = BuildGraphRotate
         , showServices = BuildGraphShowServices
         , showSteps = BuildGraphShowSteps
         , updateFilter = BuildGraphUpdateFilter

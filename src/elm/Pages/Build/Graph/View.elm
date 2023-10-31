@@ -12,7 +12,7 @@ import Svg.Attributes
 import SvgBuilder exposing (buildVizLegendEdge, buildVizLegendNode)
 import Util
 import Vela exposing (BuildNumber, Org, Repo)
-import Visualization.DOT exposing (Attribute(..), AttributeValue(..))
+import Visualization.DOT as DOT exposing (Attribute(..), AttributeValue(..))
 
 
 
@@ -43,6 +43,27 @@ view model msgs org repo buildNumber =
                         , onClick <| msgs.buildGraphMsgs.refresh org repo buildNumber
                         ]
                         [ FeatherIcons.refreshCw
+                            |> FeatherIcons.withSize 20
+                            |> FeatherIcons.withClass "elm-build-graph-action-button"
+                            |> FeatherIcons.toHtml []
+                        ]
+                    ]
+                , li []
+                    [ button
+                        [ class "button"
+                        , class "-icon"
+                        , class "build-graph-action-rotate"
+                        , class <|
+                            case model.repo.build.graph.orientation of
+                                DOT.TB ->
+                                    "-vertical"
+
+                                _ ->
+                                    ""
+                        , Html.Attributes.title "Rotate visualization"
+                        , onClick <| msgs.buildGraphMsgs.rotate
+                        ]
+                        [ FeatherIcons.share2
                             |> FeatherIcons.withSize 20
                             |> FeatherIcons.withClass "elm-build-graph-action-button"
                             |> FeatherIcons.toHtml []

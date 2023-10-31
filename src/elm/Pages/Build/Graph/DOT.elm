@@ -134,22 +134,31 @@ renderDOT model repo build buildGraph =
 
             else
                 ""
+
+        -- reverse the subgraphs for top-bottom orientation to consistently group services and built-ins
+        rotation =
+            case model.repo.build.graph.orientation of
+                TB ->
+                    List.reverse
+
+                _ ->
+                    identity
+
+        subgraphs =
+            [ -- pipeline (stages, steps) subgraph and cluster
+              pipelineSubgraph
+            , ""
+
+            -- built-in (init, clone) subgraph and cluster
+            , builtInSubgraph
+            , ""
+
+            -- services subgraph and cluster
+            , serviceSubgraph
+            ]
     in
-    digraph baseGraphStyles
-        [ ""
-
-        -- pipeline (stages, steps) subgraph and cluster
-        , pipelineSubgraph
-        , ""
-
-        -- built-in (init, clone) subgraph and cluster
-        , builtInSubgraph
-        , ""
-
-        -- services subgraph and cluster
-        , serviceSubgraph
-        , ""
-        ]
+    digraph (baseGraphStyles model.repo.build.graph.orientation)
+        (rotation subgraphs)
 
 
 {-| nodeLabel : takes model, graph info, a node, and returns a string representation of the "label" applied to a node element.
@@ -286,9 +295,9 @@ edgeToString edge =
 
 {-| baseGraphStyles : returns the base styles applied to the root graph.
 -}
-baseGraphStyles : Styles
-baseGraphStyles =
-    { rankdir = LR
+baseGraphStyles : Rankdir -> Styles
+baseGraphStyles orientation =
+    { rankdir = orientation
     , graph =
         escapeAttributes
             [ ( "bgcolor", DefaultEscape "transparent" )
