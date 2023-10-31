@@ -16,6 +16,16 @@ const elmExclude = '[style*="padding-left: calc(1ch + 6px)"]';
 
 context('Accessibility (a11y)', () => {
   context('Logged out', () => {
+    beforeEach(() => {
+      cy.server();
+      cy.route({
+        method: 'GET',
+        url: '/token-refresh',
+        status: 401,
+        response: { message: 'unauthorized' },
+      });
+    });
+
     it('overview', () => {
       //cy.clearSession();
       cy.visit('/account/login');
