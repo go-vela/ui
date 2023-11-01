@@ -1121,36 +1121,36 @@ viewError build =
                     else
                         let
                             tgtBuild =
-                                String.toInt
-                                    (Maybe.withDefault ""
-                                        (List.Extra.last (String.split " " build.error))
-                                    )
+                                String.split " " build.error
+                                    |> List.Extra.last
+                                    |> Maybe.withDefault ""
                         in
-                        case tgtBuild of
+                        -- check if the last part of the error message was a digit
+                        -- to handle auto canceled build messages which come in the
+                        -- form of "build was auto canceled in favor of build 42"
+                        case String.toInt tgtBuild of
+                            -- not an auto cancel message, use the returned error msg
                             Nothing ->
                                 text build.error
 
-                            Just num ->
+                            -- some special treatment to turn build number
+                            -- into a link to the respective build
+                            Just _ ->
                                 let
                                     linkList =
                                         String.split "/" build.link
+                                            |> List.reverse
 
                                     newLink =
-                                        String.join "/"
-                                            (List.Extra.setAt (List.length linkList - 1)
-                                                (String.fromInt num)
-                                                linkList
-                                            )
+                                        linkList
+                                            |> List.Extra.setAt 0 tgtBuild
+                                            |> List.reverse
+                                            |> String.join "/"
 
                                     msg =
-                                        case List.head (String.split (String.fromInt num) build.error) of
-                                            Nothing ->
-                                                build.error
-
-                                            Just m ->
-                                                m
+                                        String.replace tgtBuild "" build.error
                                 in
-                                span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text (String.fromInt num) ] ]
+                                span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text tgtBuild ] ]
             in
             div [ class "error", Util.testAttribute "build-error" ]
                 [ span [ class "label" ] [ text "msg:" ]
