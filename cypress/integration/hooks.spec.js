@@ -69,6 +69,7 @@ context('Hooks', () => {
       beforeEach(() => {
         cy.get('[data-test=hooks-row]').first().as('firstHook');
         cy.get('[data-test=hooks-row]').last().as('lastHook');
+        cy.get('[data-test=hooks-row]').last().prev().prev().as('skipHook');
       });
       it('should show source id', () => {
         cy.get('@firstHook').within(() => {
@@ -102,6 +103,26 @@ context('Hooks', () => {
           it('should show error', () => {
             cy.get('@error').contains(
               'github/octocat does not have tag events enabled',
+            );
+          });
+        });
+      });
+      context('skipped', () => {
+        beforeEach(() => {
+          cy.get('@skipHook').within(() => {
+            cy.get('.hook-status').as('skipped');
+          });
+        });
+        it('should have failure styles', () => {
+          cy.get('@skipped').should('have.class', '-skipped');
+        });
+        context('message', () => {
+          beforeEach(() => {
+            cy.get('[data-test=hooks-skipped]').as('message');
+          });
+          it('should show skip message', () => {
+            cy.get('@message').contains(
+              'skipping build since only init and clone steps found — it is likely no rulesets matched for the webhook payload',
             );
           });
         });
