@@ -328,6 +328,24 @@ hookSuccess =
         ]
 
 
+{-| hookSkipped: produces the svg for the hook status skipped
+-}
+hookSkipped : Html msg
+hookSkipped =
+    svg
+        [ class "hook-status"
+        , class "-skipped"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "20"
+        , height "20"
+        , ariaHidden
+        ]
+        [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 20.1l6.923 6.9L42 5" ] []
+        , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+        ]
+
+
 {-| hookFailure: produces the svg for the hook status failure
 -}
 hookFailure : Html msg
@@ -488,6 +506,9 @@ hookStatusToIcon status =
     case status of
         "success" ->
             hookSuccess
+
+        "skipped" ->
+            hookSkipped
 
         _ ->
             hookFailure
