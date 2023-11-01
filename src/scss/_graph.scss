@@ -119,16 +119,16 @@
     stroke-dasharray: 3 3;
   }
 
-  .-selected {
-    stroke: var(--color-primary);
-    stroke-width: 5;
-  }
-
   .-killed,
   .-skipped {
     stroke: var(--color-lavender);
     stroke-dasharray: 2, 4;
     stroke-linecap: round;
+  }
+
+  .-selected {
+    stroke: var(--color-primary);
+    stroke-width: 5;
   }
 
   rect {
@@ -228,7 +228,8 @@
   }
 
   &.-canceled,
-  &.-failure {
+  &.-failure,
+  &.-error {
     stroke-dasharray: 4 3;
 
     stroke: var(--color-red);
@@ -281,6 +282,10 @@
   &.-skipped {
     fill: var(--color-lavender);
   }
+
+  &.-error {
+    fill: var(--color-red);
+  }
 }
 
 // icon content
@@ -311,6 +316,10 @@
   &.-killed,
   &.-skipped {
     fill: var(--color-coal-dark);
+  }
+
+  &.-error {
+    fill: var(--color-red);
   }
 }
 
@@ -358,7 +367,8 @@
   &.-failure,
   &.-canceled,
   &.-killed,
-  &.-skipped {
+  &.-skipped,
+  &.-error {
     stroke-width: 1;
 
     stroke: var(--color-gray);
@@ -407,7 +417,8 @@
   }
 
   &.-canceled,
-  &.-failure {
+  &.-failure,
+  &.-error {
     stroke: var(--color-red);
   }
 
@@ -431,7 +442,8 @@
   &.-failure,
   &.-canceled,
   &.-killed,
-  &.-skipped {
+  &.-skipped,
+  &.-error {
     stroke: var(--color-coal-light);
   }
 

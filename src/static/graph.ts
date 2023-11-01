@@ -295,10 +295,6 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
           stepIcon.append('path').attr('d', 'M8 8l12 12M20 8L8 20');
         }
 
-        if (step.status === 'failure') {
-          stepIcon.append('path').attr('d', 'M8 8l12 12M20 8L8 20');
-        }
-
         if (step.status === 'killed') {
           stepIcon
             .append('circle')
@@ -310,6 +306,23 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
             .attr('cx', '19')
             .attr('cy', '14')
             .attr('r', '2');
+        }
+
+        if (step.status === 'skipped') {
+          stepIcon
+            .append('circle')
+            .attr('cx', '9')
+            .attr('cy', '14')
+            .attr('r', '2');
+          stepIcon
+            .append('circle')
+            .attr('cx', '19')
+            .attr('cy', '14')
+            .attr('r', '2');
+        }
+
+        if (step.status === 'error') {
+          stepIcon.append('path').attr('d', 'M8 8l12 12M20 8L8 20');
         }
 
         // apply step connector to every step after the first
@@ -482,9 +495,6 @@ function getStepDataFromTitle(element) {
       name: title[1],
       status: title[2],
     };
-    if (data.status === 'canceled' || data.status === 'skipped') {
-      data.status = 'failure';
-    }
   }
 
   return data;
