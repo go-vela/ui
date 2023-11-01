@@ -295,6 +295,10 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
           stepIcon.append('path').attr('d', 'M8 8l12 12M20 8L8 20');
         }
 
+        if (step.status === 'canceled') {
+          stepIcon.append('path').attr('d', 'M8 8l12 12M20 8L8 20');
+        }
+
         if (step.status === 'killed') {
           stepIcon
             .append('circle')
