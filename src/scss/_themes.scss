@@ -56,6 +56,18 @@ body.theme-light {
     color: var(--color-red);
   }
 
+  .status.-canceled {
+    background-color: var(--color-cyan-semi-dark);
+  }
+
+  .recent-build-link .-icon.-canceled {
+    background-color: var(--color-cyan-semi-dark);
+  }
+
+  .steps .-icon.-canceled {
+    stroke: var(--color-cyan-semi-dark);
+  }
+
   .hooks {
     background: var(--color-white);
   }
@@ -96,7 +108,7 @@ body.theme-light {
     border-left: none;
   }
 
-  .build .error {
+  .build:not(.-canceled) .error {
     color: var(--color-red);
   }
 

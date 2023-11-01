@@ -1190,7 +1190,7 @@ statusToClass status =
             class "-failure"
 
         Vela.Canceled ->
-            class "-failure"
+            class "-canceled"
 
         Vela.Error ->
             class "-error"

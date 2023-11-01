@@ -569,6 +569,10 @@ details.build-toggle {
   background: var(--color-red);
 }
 
+.build .status.-canceled {
+  background: var(--color-cyan-dark);
+}
+
 .build .info {
   position: relative;
 
@@ -600,8 +604,12 @@ details.build-toggle {
 .build .error {
   max-width: 80%;
 
-  color: var(--color-red-light);
   font-size: 16px;
+}
+
+/* canceled build messages aren't errors */
+.build:not(.-canceled) .error {
+  color: var(--color-red-light);
 }
 
 .build .error .message {
@@ -760,6 +768,11 @@ details.build-toggle {
   border-bottom: 2px solid var(--color-red);
 }
 
+.build.-canceled {
+  border-top: 2px solid var(--color-cyan-dark);
+  border-bottom: 2px solid var(--color-cyan-dark);
+}
+
 .-animation-dashes-1 {
   stroke-dasharray: 20 220 5 360;
 }
@@ -824,6 +837,10 @@ details.build-toggle {
   &.-failure,
   &.-error {
     background-color: var(--color-red);
+  }
+
+  &.-canceled {
+    background-color: var(--color-cyan-dark);
   }
 
   &.-success {
@@ -1294,6 +1311,10 @@ details.build-toggle {
   &.-failure,
   &.-error {
     stroke: var(--color-red);
+  }
+
+  &.-canceled {
+    stroke: var(--color-cyan-dark);
   }
 
   &.-pending {

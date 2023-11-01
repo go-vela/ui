@@ -303,8 +303,8 @@ context('Build', () => {
         cy.get('@build').get('[data-test=build-status]').as('buildStatus');
       });
 
-      it('build should have failure style', () => {
-        cy.get('@buildStatus').should('have.class', '-failure');
+      it('build should have canceled style', () => {
+        cy.get('@buildStatus').should('have.class', '-canceled');
       });
 
       it('build error should show', () => {
