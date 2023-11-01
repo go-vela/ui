@@ -202,13 +202,26 @@ renderHookError hook =
                     )
                 |> Array.toList
                 |> List.filterMap identity
+
+        msgRow =
+            case hook.status of
+                "skipped" ->
+                    tr [ class "skipped-data", Util.testAttribute "hooks-skipped" ]
+                        [ td [ attribute "colspan" "6" ]
+                            [ code [ class "skipped-content" ]
+                                lines
+                            ]
+                        ]
+
+                _ ->
+                    tr [ class "error-data", Util.testAttribute "hooks-error" ]
+                        [ td [ attribute "colspan" "6" ]
+                            [ code [ class "error-content" ]
+                                lines
+                            ]
+                        ]
     in
-    tr [ class "error-data", Util.testAttribute "hooks-error" ]
-        [ td [ attribute "colspan" "6" ]
-            [ code [ class "error-content" ]
-                lines
-            ]
-        ]
+    msgRow
 
 
 {-| hookStatusToRowClass : takes hook status string and returns style class
@@ -218,6 +231,9 @@ hookStatusToRowClass status =
     case status of
         "success" ->
             class "-success"
+
+        "skipped" ->
+            class "-skipped"
 
         _ ->
             class "-error"
