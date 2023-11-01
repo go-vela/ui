@@ -106,7 +106,7 @@ td .key .list-item {
   color: var(--color-text);
 
   border-bottom: 1px solid var(--color-bg-light);
-  border-left: 2px solid var(--color-cyan);
+  border-left: 2px solid var(--color-lavender);
 
   td {
     padding-top: 0;
@@ -120,7 +120,7 @@ td .key .list-item {
 
 .table-base tr.-skipped {
   border-bottom: none;
-  border-left: 2px solid var(--color-cyan);
+  border-left: 2px solid var(--color-lavender);
 }
 
 .table-base .error-content {
@@ -144,7 +144,7 @@ td .key .list-item {
 }
 
 .hook-status.-skipped {
-  stroke: var(--color-cyan);
+  stroke: var(--color-lavender);
 }
 
 .hook-status.-failure {
