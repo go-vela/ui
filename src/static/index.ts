@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
-// todo: remove
-// @ts-nocheck
-
 // import types
 import * as ClipboardJS from 'clipboard';
 import * as d3 from 'd3';
