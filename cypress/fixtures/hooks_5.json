@@ -51,8 +51,8 @@
     "host": "github.com",
     "event": "push",
     "branch": "main",
-    "error": "",
-    "status": "success",
+    "error": "skipping build since only init and clone steps found — it is likely no rulesets matched for the webhook payload",
+    "status": "skipped",
     "link": "https://github.com/github/octocat/settings/hooks"
   },
   {
