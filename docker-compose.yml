@@ -34,7 +34,7 @@ services:
   # https://go-vela.github.io/docs/administration/server/
   server:
     container_name: server
-    image: target/vela-server:latest
+    image: server:local
     networks:
       - vela
     environment:
@@ -79,8 +79,64 @@ services:
   # queue and executing them based off their configuration.
   #
   # https://go-vela.github.io/docs/administration/worker/
-  worker:
-    container_name: worker
+  worker_1:
+    container_name: worker_1
+    image: target/vela-worker:latest
+    networks:
+      - vela
+    environment:
+      EXECUTOR_DRIVER: linux
+      QUEUE_DRIVER: redis
+      QUEUE_ADDR: 'redis://redis:6379'
+      QUEUE_PUBLIC_KEY: 'DXsJkoTSkHlG26d75LyHJG+KQsXPr8VKPpmH/78zmko='
+      VELA_BUILD_LIMIT: 3
+      VELA_BUILD_TIMEOUT: 30m
+      VELA_LOG_LEVEL: trace
+      VELA_RUNTIME_DRIVER: docker
+      VELA_RUNTIME_PRIVILEGED_IMAGES: 'target/vela-docker'
+      VELA_SERVER_ADDR: 'http://server:8080'
+      # comment the line below to use registration flow
+      VELA_SERVER_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
+      WORKER_ADDR: 'http://worker_1:8080'
+      WORKER_CHECK_IN: 5m
+    restart: always
+    ports:
+      - '8081:8080'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    depends_on:
+      - server
+
+  worker_2:
+    container_name: worker_2
+    image: target/vela-worker:latest
+    networks:
+      - vela
+    environment:
+      EXECUTOR_DRIVER: linux
+      QUEUE_DRIVER: redis
+      QUEUE_ADDR: 'redis://redis:6379'
+      QUEUE_PUBLIC_KEY: 'DXsJkoTSkHlG26d75LyHJG+KQsXPr8VKPpmH/78zmko='
+      VELA_BUILD_LIMIT: 5
+      VELA_BUILD_TIMEOUT: 30m
+      VELA_LOG_LEVEL: trace
+      VELA_RUNTIME_DRIVER: docker
+      VELA_RUNTIME_PRIVILEGED_IMAGES: 'target/vela-docker'
+      VELA_SERVER_ADDR: 'http://server:8080'
+      # comment the line below to use registration flow
+      VELA_SERVER_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
+      WORKER_ADDR: 'http://worker_2:8081'
+      WORKER_CHECK_IN: 5m
+    restart: always
+    ports:
+      - '8082:8081'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    depends_on:
+      - server
+
+  worker_3:
+    container_name: worker_3
     image: target/vela-worker:latest
     networks:
       - vela
@@ -97,11 +153,11 @@ services:
       VELA_SERVER_ADDR: 'http://server:8080'
       # comment the line below to use registration flow
       VELA_SERVER_SECRET: 'zB7mrKDTZqNeNTD8z47yG4DHywspAh'
-      WORKER_ADDR: 'http://worker:8080'
+      WORKER_ADDR: 'http://worker_3:8082'
       WORKER_CHECK_IN: 5m
     restart: always
     ports:
-      - '8081:8080'
+      - '8083:8082'
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
     depends_on:

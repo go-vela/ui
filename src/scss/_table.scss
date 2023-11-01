@@ -107,6 +107,21 @@ td .key .list-item {
   border-left: 2px solid var(--color-red);
 }
 
+.table-base tr.-worker-idle {
+  border-bottom: 1px solid var(--color-bg-light);
+  border-left: 2px solid var(--color-green);
+}
+
+.table-base tr.-worker-available {
+  border-bottom: 1px solid var(--color-bg-light);
+  border-left: 2px solid var(--color-cyan);
+}
+
+.table-base tr.-worker-busy {
+  border-bottom: 1px solid var(--color-bg-light);
+  border-left: 2px solid var(--color-yellow);
+}
+
 .table-base .error-content {
   color: var(--color-red-light);
   font-size: 0.8em;

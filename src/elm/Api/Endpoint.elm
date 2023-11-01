@@ -171,7 +171,7 @@ toUrl api endpoint =
             url api [ "deployments", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
         Workers ->
-            url api [ "workers" ] []
+            url api [ "workers" ] <| [ UB.string "links" "true" ]
 
 
 {-| url : creates a URL string with the given path segments and query parameters

@@ -9,6 +9,7 @@ module Pages.Admin exposing (view)
 import Html
     exposing
         ( Html
+        , a
         , code
         , div
         , span
@@ -20,12 +21,17 @@ import Html.Attributes
     exposing
         ( attribute
         , class
+        , href
         , scope
         )
 import Http
+import List.Extra
 import RemoteData
+import Routes
+import String.Extra
 import Table
 import Time exposing (Posix)
+import Url exposing (Protocol, Url)
 import Util
 import Vela
     exposing
@@ -97,7 +103,7 @@ view { workers, time } =
 workersToRows : Posix -> Workers -> Table.Rows Worker msg
 workersToRows now workers =
     workers
-        |> List.map (\worker -> [ Just <| Table.Row worker (renderWorker now), workerErrorRow worker ])
+        |> List.map (\worker -> [ Just <| Table.Row worker (renderWorker now) ])
         |> List.concat
         |> List.filterMap identity
 
@@ -112,7 +118,7 @@ tableHeaders =
     , ( Nothing, "active" )
     , ( Nothing, "status" )
     , ( Nothing, "last status update" )
-    , ( Nothing, "running build ids" )
+    , ( Nothing, "running builds" )
     , ( Nothing, "last build start" )
     , ( Nothing, "last build finish" )
     , ( Nothing, "last check in" )
@@ -124,7 +130,7 @@ tableHeaders =
 -}
 renderWorker : Posix -> Worker -> Html msg
 renderWorker now worker =
-    tr [ Util.testAttribute <| "worker-row", workerStatusToRowClass worker.status ]
+    tr [ Util.testAttribute <| "worker-row", workerStatusToRowClass worker.status worker.active ]
         [ td
             [ attribute "data-label" "hostname"
             , scope "row"
@@ -166,7 +172,7 @@ renderWorker now worker =
             , scope "row"
             , class "break-word"
             ]
-            [ renderListCell worker.running_build_ids "no running builds" "running-builds" ]
+            [ renderBuildListCell worker.running_build_ids "" "running-builds" ]
         , td
             [ attribute "data-label" "last_build_started"
             , scope "row"
@@ -221,37 +227,62 @@ listItemView className text_ =
         ]
 
 
-workerErrorRow : Worker -> Maybe (Table.Row Worker msg)
-workerErrorRow worker =
-    if not worker.active then
-        Just <| Table.Row worker renderWorkerError
+{-| renderBuildListCell : takes an item and class name and renders a build link list for a table cell
+-}
+renderBuildListCell : List String -> String -> String -> Html msg
+renderBuildListCell items none itemClassName =
+    div [] <|
+        if List.length items == 0 then
+            [ text none ]
 
-    else
-        Nothing
+        else
+            items
+                |> List.sort
+                |> List.map
+                    (\item ->
+                        listBuildItemView itemClassName item
+                    )
 
 
-renderWorkerError : Worker -> Html msg
-renderWorkerError worker =
+{-| listBuildItemView : takes classname and text from a build link and renders a clickable list element
+-}
+listBuildItemView : String -> String -> Html msg
+listBuildItemView className text_ =
     let
-        lines =
-            [ text worker.host_name
-            ]
+        path =
+            case Url.fromString text_ of
+                Just url ->
+                    String.Extra.rightOf "/" url.path
+
+                Nothing ->
+                    text_
     in
-    tr [ class "error-data", Util.testAttribute "hooks-error" ]
-        [ td [ attribute "colspan" "6" ]
-            [ code [ class "error-content" ]
-                lines
+    div [ class className ]
+        [ a
+            [ class "list-item"
+            , href text_
             ]
+            [ text path ]
         ]
 
 
 {-| workerStatusToRowClass : takes worker status string and returns style class
 -}
-workerStatusToRowClass : String -> Html.Attribute msg
-workerStatusToRowClass status =
-    case status of
-        "success" ->
-            class "-success"
+workerStatusToRowClass : String -> Bool -> Html.Attribute msg
+workerStatusToRowClass status active =
+    if active then
+        case status of
+            "idle" ->
+                class "-worker-idle"
 
-        _ ->
-            class "-error"
+            "available" ->
+                class "-worker-available"
+
+            "busy" ->
+                class "-worker-busy"
+
+            _ ->
+                class "-error"
+
+    else
+        class "-error"
