@@ -1427,7 +1427,7 @@ statusToFavicon status =
                             "-failure"
 
                         Canceled ->
-                            "-failure"
+                            "-canceled"
 
                         Error ->
                             "-failure"

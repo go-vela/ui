@@ -1113,8 +1113,48 @@ viewError build =
                 ]
 
         Vela.Canceled ->
-            div [ class "error", Util.testAttribute "build-canceled" ]
-                [ text "build was canceled"
+            let
+                message =
+                    if String.isEmpty build.error then
+                        text "no error message"
+
+                    else
+                        let
+                            tgtBuild =
+                                String.split " " build.error
+                                    |> List.Extra.last
+                                    |> Maybe.withDefault ""
+                        in
+                        -- check if the last part of the error message was a digit
+                        -- to handle auto canceled build messages which come in the
+                        -- form of "build was auto canceled in favor of build 42"
+                        case String.toInt tgtBuild of
+                            -- not an auto cancel message, use the returned error msg
+                            Nothing ->
+                                text build.error
+
+                            -- some special treatment to turn build number
+                            -- into a link to the respective build
+                            Just _ ->
+                                let
+                                    linkList =
+                                        String.split "/" build.link
+                                            |> List.reverse
+
+                                    newLink =
+                                        linkList
+                                            |> List.Extra.setAt 0 tgtBuild
+                                            |> List.reverse
+                                            |> String.join "/"
+
+                                    msg =
+                                        String.replace tgtBuild "" build.error
+                                in
+                                span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text tgtBuild ] ]
+            in
+            div [ class "error", Util.testAttribute "build-error" ]
+                [ span [ class "label" ] [ text "msg:" ]
+                , span [ class "message" ] [ message ]
                 ]
 
         _ ->
@@ -1150,7 +1190,7 @@ statusToClass status =
             class "-failure"
 
         Vela.Canceled ->
-            class "-failure"
+            class "-canceled"
 
         Vela.Error ->
             class "-error"
