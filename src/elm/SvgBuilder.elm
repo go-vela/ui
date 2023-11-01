@@ -426,8 +426,50 @@ hookSkipped =
         , height "20"
         , ariaHidden
         ]
-        [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 20.1l6.923 6.9L42 5" ] []
-        , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
+            ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke", d "M30.88 16.987l-9.744-5.625-9.747 9.383" ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M33 14l1 6h-6z"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            ]
+            []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            , Svg.Attributes.x "10"
+            , Svg.Attributes.y "28"
+            , Svg.Attributes.width "4"
+            , Svg.Attributes.height "4"
+            , Svg.Attributes.rx "3"
+            ]
+            []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            , Svg.Attributes.x "20"
+            , Svg.Attributes.y "28"
+            , Svg.Attributes.width "4"
+            , Svg.Attributes.height "4"
+            , Svg.Attributes.rx "3"
+            ]
+            []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            , Svg.Attributes.x "30"
+            , Svg.Attributes.y "28"
+            , Svg.Attributes.width "4"
+            , Svg.Attributes.height "4"
+            , Svg.Attributes.rx "3"
+            ]
+            []
         ]
 
 
