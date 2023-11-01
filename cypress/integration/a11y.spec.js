@@ -27,7 +27,6 @@ context('Accessibility (a11y)', () => {
     });
 
     it('overview', () => {
-      //cy.clearSession();
       cy.visit('/account/login');
       cy.injectAxe();
       cy.wait(500);
@@ -38,7 +37,6 @@ context('Accessibility (a11y)', () => {
 
   context('Logged in', () => {
     beforeEach(() => {
-      //cy.clearSession();
       cy.server();
       // overview page
       cy.route('GET', '*api/v1/user*', 'fixture:favorites.json');

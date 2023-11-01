@@ -27,7 +27,6 @@ context('Accessibility (a11y)', () => {
     });
 
     it('overview', () => {
-      //cy.clearSession();
       cy.setTheme('theme-light');
       cy.visit('/account/login');
       cy.injectAxe();
@@ -39,7 +38,6 @@ context('Accessibility (a11y)', () => {
 
   context('Logged in', () => {
     beforeEach(() => {
-      //cy.clearSession();
       cy.setTheme('theme-light');
       cy.server();
       // overview page
