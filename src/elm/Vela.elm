@@ -79,6 +79,9 @@ module Vela exposing
     , UpdateSchedulePayload
     , UpdateSecretPayload
     , UpdateUserPayload
+    , Worker
+    , WorkerModel
+    , Workers
     , buildDeploymentPayload
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
@@ -106,12 +109,15 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeTheme
+    , decodeWorker
+    , decodeWorkers
     , defaultEnableRepositoryPayload
     , defaultFavicon
     , defaultPipeline
     , defaultPipelineTemplates
     , defaultRepoModel
     , defaultStep
+    , defaultWorkerModel
     , encodeDeploymentPayload
     , encodeEnableRepository
     , encodeTheme
@@ -360,6 +366,13 @@ type alias AuthParams =
     }
 
 
+{-| WorkerModel : model to contain worker information that is crucial for rendering admin page
+-}
+type alias WorkerModel =
+    { workers : WebData Workers
+    }
+
+
 
 -- REPOSITORY
 
@@ -428,6 +441,11 @@ defaultBuildModel =
 defaultRepoModel : RepoModel
 defaultRepoModel =
     RepoModel "" "" NotAsked defaultOrgReposModel defaultHooks defaultBuilds defaultDeployments defaultBuildModel False
+
+
+defaultWorkerModel : WorkerModel
+defaultWorkerModel =
+    WorkerModel RemoteData.NotAsked
 
 
 defaultStepsModel : StepsModel
@@ -864,6 +882,48 @@ type alias Repository =
     , inCounter : Maybe Int
     , pipeline_type : String
     }
+
+
+type alias Worker =
+    { id : Int
+    , host_name : String
+    , address : String
+    , routes : List String
+    , active : Bool
+    , status : String
+    , last_status_update : Int
+    , running_build_ids : List String
+    , last_build_started : Int
+    , last_build_finished : Int
+    , last_checked_in : Int
+    , build_limit : Int
+    }
+
+
+type alias Workers =
+    List Worker
+
+
+decodeWorkers : Decoder (List Worker)
+decodeWorkers =
+    Decode.list decodeWorker
+
+
+decodeWorker : Decoder Worker
+decodeWorker =
+    Decode.succeed Worker
+        |> optional "id" int -1
+        |> required "hostname" string
+        |> required "address" string
+        |> optional "routes" (Decode.list string) []
+        |> optional "active" bool False
+        |> optional "status" string ""
+        |> optional "last_status_update_at" int -1
+        |> optional "running_build_ids" (Decode.list string) []
+        |> optional "last_build_started_at" int -1
+        |> optional "last_build_finished_at" int -1
+        |> optional "last_checked_in" int -1
+        |> optional "build_limit" int -1
 
 
 type alias Enabled =

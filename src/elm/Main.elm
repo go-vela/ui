@@ -75,6 +75,7 @@ import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page)
+import Pages.Admin
 import Pages.Build.Logs
     exposing
         ( addLog
@@ -173,6 +174,8 @@ import Vela
         , Type
         , UpdateRepositoryPayload
         , UpdateUserPayload
+        , Worker
+        , WorkerModel
         , buildUpdateFavoritesPayload
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
@@ -183,6 +186,7 @@ import Vela
         , defaultPipeline
         , defaultPipelineTemplates
         , defaultRepoModel
+        , defaultWorkerModel
         , encodeEnableRepository
         , encodeTheme
         , encodeUpdateRepository
@@ -283,6 +287,7 @@ type alias Model =
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int
+    , workers : WorkerModel
     }
 
 
@@ -338,6 +343,7 @@ init flags url navKey =
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
+            , workers = defaultWorkerModel
             }
 
         ( newModel, newPage ) =
@@ -429,6 +435,7 @@ type Msg
     | ExpandPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
       -- Inbound HTTP responses
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | WorkersResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Worker ))
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
@@ -497,6 +504,9 @@ update msg model =
     let
         rm =
             model.repo
+
+        wm =
+            model.workers
 
         sm =
             model.schedulesModel
@@ -1408,6 +1418,14 @@ update msg model =
 
                 Err error ->
                     ( { model | repo = updateRepo (toFailure error) rm }, addError error )
+
+        WorkersResponse response ->
+            case response of
+                Ok ( _, workerResponse ) ->
+                    ( { model | workers = { wm | workers = RemoteData.succeed workerResponse } }, Cmd.none )
+
+                Err error ->
+                    ( model, addError error )
 
         OrgRepositoriesResponse response ->
             case response of
@@ -2331,7 +2349,14 @@ refreshPage model =
             getRepoSecrets model maybePage maybePerPage engine org repo
 
         Pages.SharedSecrets engine org team maybePage maybePerPage ->
-            getSharedSecrets model maybePage maybePerPage engine org team
+            Cmd.batch
+                [ getSharedSecrets model maybePage maybePerPage engine org team
+                ]
+
+        Pages.Admin ->
+            Cmd.batch
+                [ getWorkers model
+                ]
 
         _ ->
             Cmd.none
@@ -2885,6 +2910,16 @@ viewContent model =
             , Pages.Settings.view model.session model.time (Pages.Settings.Msgs Copy)
             )
 
+        Pages.Admin ->
+            ( "Admin"
+            , div []
+                [ Pages.Admin.view
+                    { workers = model.workers
+                    , time = model.time
+                    }
+                ]
+            )
+
         Pages.Login ->
             ( "Login"
             , viewLogin
@@ -3007,6 +3042,8 @@ viewHeader session { feedbackLink, docsLink, theme, help, showId } =
                         , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                             [ li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
+                            , li [ class "identity-menu-item" ]
+                                [ a [ Routes.href Routes.Admin, Util.testAttribute "admin-link", attribute "role" "menuitem" ] [ text "Admin Page" ] ]
                             , li [ class "identity-menu-item" ]
                                 [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
                             ]
@@ -3191,6 +3228,9 @@ setNewPage route model =
 
         ( Routes.Settings, Authenticated _ ) ->
             ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
+
+        ( Routes.Admin, Authenticated _ ) ->
+            ( { model | page = Pages.Admin, showIdentity = False }, getWorkers model )
 
         ( Routes.Logout, Authenticated _ ) ->
             ( model, getLogout model )
@@ -4573,6 +4613,11 @@ getToken model =
 getLogout : Model -> Cmd Msg
 getLogout model =
     Api.try LogoutResponse <| Api.getLogout model
+
+
+getWorkers : Model -> Cmd Msg
+getWorkers model =
+    Api.try WorkersResponse <| Api.getWorkers model
 
 
 getCurrentUser : Model -> Cmd Msg

@@ -156,6 +156,9 @@ commands page =
         Pages.Settings ->
             []
 
+        Pages.Admin ->
+            []
+
         Pages.Login ->
             [ authenticate ]
 
@@ -938,6 +941,9 @@ resourceLoaded args =
         Pages.Settings ->
             True
 
+        Pages.Admin ->
+            True
+
         Pages.Login ->
             True
 
@@ -1032,6 +1038,9 @@ resourceLoading args =
             args.hooks.loading
 
         Pages.Settings ->
+            False
+
+        Pages.Admin ->
             False
 
         Pages.Login ->

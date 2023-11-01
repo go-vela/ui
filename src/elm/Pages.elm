@@ -39,6 +39,7 @@ type Page
     | AddSchedule Org Repo
     | Schedule Org Repo ScheduleName
     | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | Admin
     | Settings
     | Login
     | NotFound
@@ -137,6 +138,9 @@ toRoute page =
         Settings ->
             Routes.Settings
 
+        Admin ->
+            Routes.Admin
+
         Login ->
             Routes.Login
 
@@ -232,6 +236,9 @@ strip page =
 
         Settings ->
             Settings
+
+        Admin ->
+            Admin
 
         Login ->
             Login

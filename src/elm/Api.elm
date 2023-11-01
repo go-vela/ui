@@ -39,6 +39,7 @@ module Api exposing
     , getSourceRepositories
     , getStepLogs
     , getToken
+    , getWorkers
     , redeliverHook
     , repairRepo
     , restartBuild
@@ -93,6 +94,7 @@ import Vela
         , StepNumber
         , Templates
         , Type
+        , Worker
         , decodeBuild
         , decodeBuilds
         , decodeCurrentUser
@@ -112,6 +114,8 @@ import Vela
         , decodeService
         , decodeSourceRepositories
         , decodeStep
+        , decodeWorker
+        , decodeWorkers
         )
 
 
@@ -750,4 +754,12 @@ updateSchedule model org repo name body =
 deleteSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Request String
 deleteSchedule model org repo id =
     delete model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) Json.Decode.string
+        |> withAuth model.session
+
+
+{-| getWorkers : fetches workers for admin page
+-}
+getWorkers : PartialModel a -> Request (List Worker)
+getWorkers model =
+    get model.velaAPI Endpoint.Workers decodeWorkers
         |> withAuth model.session

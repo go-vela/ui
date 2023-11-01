@@ -49,6 +49,7 @@ type Route
     | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Schedule Org Repo ScheduleName
     | Settings
+    | Admin
     | Login
     | Logout
     | Authenticate AuthParams
@@ -63,6 +64,7 @@ routes : Parser (Route -> a) a
 routes =
     oneOf
         [ map Overview top
+        , map Admin (s "admin")
         , map SourceRepositories (s "account" </> s "source-repos")
         , map OrgRepositories (string <?> Query.int "page" <?> Query.int "per_page")
         , map Login (s "account" </> s "login")
@@ -214,6 +216,9 @@ routeToUrl route =
 
         Logout ->
             "/account/logout"
+
+        Admin ->
+            "/admin"
 
         NotFound ->
             "/404"
