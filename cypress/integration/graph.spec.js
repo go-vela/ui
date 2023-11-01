@@ -33,7 +33,7 @@ context('Build Graph', () => {
           'fixture:build_graph.json',
         );
         cy.route('GET', '*api/v1/repos/*/octocat', 'fixture:repository.json');
-        cy.login('/github/octocat/1/graph');
+        cy.login('/github/octocat/4/graph');
       });
       it('build graph root should be visible', () => {
         cy.get('.elm-build-graph-root').should('be.visible');
@@ -165,9 +165,16 @@ context('Build Graph', () => {
           '-focus',
         );
       });
-      // todo: click on step should redirect to step
-      // todo: step icons
-      // todo: light theme
+      it('click on step row should redirect to step logs', () => {
+        cy.location('pathname').should('eq', '/github/octocat/4/graph');
+        cy.get('.d3-build-graph-node-step-a').first().click({ force: true });
+        cy.location('pathname').should('eq', '/github/octocat/4');
+        cy.hash().should('eq', '#step:3');
+      });
+      it('step should reflect build information', () => {
+        cy.get('.d3-build-graph-node-step-a svg').first().should('have.class', '-killed');
+        cy.get('.d3-build-graph-node-step-a svg').last().should('have.class', '-success');
+      });
     },
   );
 });
