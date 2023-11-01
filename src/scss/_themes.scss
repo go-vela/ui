@@ -14,7 +14,6 @@ body.theme-dark {
 
   --color-primary-dark: var(--color-cyan-dark);
   --color-primary: var(--color-cyan);
-  --color-primary2: var(--color-cyan);
   --color-primary-light: var(--color-cyan-light);
 
   --color-secondary-dark: var(--color-lavender-dark);
@@ -37,7 +36,6 @@ body.theme-light {
 
   --color-primary-dark: var(--color-lavender-dark);
   --color-primary: var(--color-lavender); // ok for text
-  --color-primary2: var(--color-lavender-dark);
   --color-primary-light: var(--color-lavender-light);
 
   --color-secondary-dark: var(--color-cyan-dark);
@@ -50,6 +48,12 @@ body.theme-light {
 }
 
 .theme-light {
+  header ~ .navigation a,
+  .table-base a,
+  .logs-header .button.-link {
+    color: var(--color-lavender-dark);
+  }
+
   .status.success {
     color: var(--color-green-dark);
   }

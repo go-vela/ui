@@ -15,7 +15,7 @@ body {
 }
 
 a {
-  color: var(--color-primary2);
+  color: var(--color-primary);
 
   &:focus,
   &:active {
@@ -187,8 +187,6 @@ nav {
     width: auto;
     margin: 0;
     padding: 0;
-
-    color: var(--color-black);
 
     list-style-type: none;
     background-color: var(--color-bg-dark);
