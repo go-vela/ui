@@ -2615,7 +2615,7 @@ refreshBuildGraph model org repo buildNumber =
         Cmd.none
 
 
-{-| refreshRenderBuildGraph : takes model org repo and build number and refreshes the build graph render if necessary
+{-| refreshRenderBuildGraph : takes model and refreshes the build graph render if necessary
 -}
 refreshRenderBuildGraph : Model -> Cmd Msg
 refreshRenderBuildGraph model =
