@@ -165,3 +165,88 @@ body.theme-light {
     color: var(--color-red);
   }
 }
+
+// build graph
+
+/*! purgecss start ignore */
+
+.theme-light .elm-build-graph-legend-node {
+  stroke: var(--color-coal-light);
+}
+
+.theme-light .d3-build-graph-edge-tip {
+  fill: var(--color-coal-light);
+  stroke: var(--color-coal-light);
+}
+
+.theme-light .d3-build-graph-node-outline-rect {
+  &.-pending {
+    stroke: var(--color-coal-light);
+  }
+
+  &.-running {
+    stroke: var(--color-yellow);
+  }
+
+  &.-success {
+    stroke: var(--color-green);
+  }
+
+  &.-failure,
+  &.-error {
+    stroke: var(--color-red);
+  }
+
+  &.-canceled {
+    stroke: var(--color-cyan-dark);
+  }
+
+  &.-killed,
+  &.-skipped {
+    stroke: var(--color-lavender);
+  }
+
+  &.-focus {
+    stroke: var(--color-primary);
+  }
+
+  &.-hover {
+    stroke: var(--color-primary);
+  }
+}
+
+.theme-light .d3-build-graph-edge-path {
+  &.-pending,
+  &.-success,
+  &.-failure,
+  &.-canceled,
+  &.-killed,
+  &.-skipped,
+  &.-error {
+    stroke: var(--color-coal-light);
+  }
+
+  &.-focus {
+    stroke: var(--color-primary);
+  }
+
+  &.-hover {
+    stroke: var(--color-primary);
+  }
+}
+
+// icon content
+.theme-light .d3-build-graph-node-a svg {
+  stroke: var(--color-offwhite);
+
+  &.-pending {
+    fill: var(--color-offwhite);
+  }
+
+  &.-killed,
+  &.-skipped {
+    fill: var(--color-offwhite);
+  }
+}
+
+/*! purgecss end ignore */
