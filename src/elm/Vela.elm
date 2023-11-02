@@ -1393,12 +1393,12 @@ encodeBuildGraphRenderData : BuildGraphRenderInteropData -> Encode.Value
 encodeBuildGraphRenderData graphData =
     Encode.object
         [ ( "dot", Encode.string graphData.dot )
-        , ( "build_id", Encode.int graphData.buildID )
+        , ( "buildID", Encode.int graphData.buildID )
         , ( "filter", Encode.string graphData.filter )
-        , ( "focused_node", Encode.int graphData.focusedNode )
-        , ( "show_services", Encode.bool graphData.showServices )
-        , ( "show_steps", Encode.bool graphData.showSteps )
-        , ( "center_on_draw", Encode.bool graphData.centerOnDraw )
+        , ( "focusedNode", Encode.int graphData.focusedNode )
+        , ( "showServices", Encode.bool graphData.showServices )
+        , ( "showSteps", Encode.bool graphData.showSteps )
+        , ( "centerOnDraw", Encode.bool graphData.centerOnDraw )
         ]
 
 
@@ -1484,20 +1484,18 @@ decodeEdge =
 
 
 type alias GraphInteraction =
-    { event_type : String
+    { eventType : String
     , href : String
-    , node_id : String
-    , step_id : String
+    , nodeID : String
     }
 
 
 decodeGraphInteraction : Decoder GraphInteraction
 decodeGraphInteraction =
     Decode.succeed GraphInteraction
-        |> required "event_type" string
+        |> required "eventType" string
         |> optional "href" string ""
-        |> optional "node_id" string "-1"
-        |> optional "step_id" string "-1"
+        |> optional "nodeID" string "-1"
 
 
 {-| decodeBuilds : decodes json from vela into list of builds

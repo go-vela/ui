@@ -134,18 +134,19 @@ var opts = {
   isRefreshDraw: false,
   centerOnDraw: false,
   contentFilter: '',
+  onGraphInteraction: {},
 };
 
 app.ports.renderBuildGraph.subscribe(function (graphData) {
   const graphviz = Graphviz.load().then(res => {
     var content = res.layout(graphData.dot, 'svg', 'dot');
     // construct graph building options
-    opts.isRefreshDraw = opts.currentBuild === graphData.build_id;
-    opts.centerOnDraw = graphData.center_on_draw;
+    opts.isRefreshDraw = opts.currentBuild === graphData.buildID;
+    opts.centerOnDraw = graphData.centerOnDraw;
     opts.contentFilter = graphData.filter;
 
     // track the currently drawn build
-    opts.currentBuild = graphData.build_id;
+    opts.currentBuild = graphData.buildID;
 
     opts.onGraphInteraction = app.ports.onGraphInteraction;
 

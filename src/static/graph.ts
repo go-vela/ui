@@ -103,7 +103,7 @@ function drawBaseGraphWithZoom(opts, selector, content) {
     e.preventDefault();
     setTimeout(() => {
       opts.onGraphInteraction.send({
-        event_type: 'backdrop_click',
+        eventType: 'backdrop_click',
       });
     }, 0);
   });
@@ -351,9 +351,8 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
           e.stopImmediatePropagation();
           setTimeout(() => {
             opts.onGraphInteraction.send({
-              event_type: 'href',
+              eventType: 'href',
               href: href,
-              step_id: '',
             });
           }, 0);
         });
@@ -421,8 +420,8 @@ function applyOnClickToNodes(opts, buildGraphElement, nodeSelector) {
         // dispatch Elm interop
         setTimeout(() => {
           opts.onGraphInteraction.send({
-            event_type: 'node_click',
-            node_id: stageID,
+            eventType: 'node_click',
+            nodeID: stageID,
           });
         }, 0);
       });

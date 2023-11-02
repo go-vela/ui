@@ -1044,7 +1044,7 @@ update msg model =
         OnBuildGraphInteraction interaction ->
             let
                 ( ugm_, cmd ) =
-                    case interaction.event_type of
+                    case interaction.eventType of
                         "href" ->
                             ( model.repo.build.graph
                             , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
@@ -1063,7 +1063,7 @@ update msg model =
                         "node_click" ->
                             let
                                 ugm =
-                                    { gm | focusedNode = Maybe.withDefault -1 <| String.toInt interaction.node_id }
+                                    { gm | focusedNode = Maybe.withDefault -1 <| String.toInt interaction.nodeID }
 
                                 um_ =
                                     updateRepoModels model rm bm ugm

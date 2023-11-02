@@ -96,5 +96,32 @@ export type ToElm<T> = {
  */
 export type Theme = 'theme-light' | 'theme-dark';
 
-export type GraphData = {};
-export type GraphInteraction = {};
+/**
+ * Build graph
+ *
+ */
+export type GraphData = {
+  /** @property dot: string */
+  dot: string;
+  /** @property buildID: number */
+  buildID: number;
+  /** @property filter: string */
+  filter: string;
+  /** @property focusedNode: number */
+  focusedNode: number;
+  /** @property showServices: boolean */
+  showServices: boolean;
+  /** @property showSteps: boolean */
+  showSteps: boolean;
+  /** @property centerOnDraw: boolean */
+  centerOnDraw: boolean;
+};
+
+export type GraphInteraction = {
+  /** @property eventType: string */
+  eventType: string;
+  /** @property href: string */
+  href: string;
+  /** @property nodeID: string */
+  nodeID: string;
+};
