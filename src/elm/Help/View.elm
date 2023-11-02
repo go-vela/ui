@@ -37,7 +37,6 @@ help args =
             (class "details"
                 :: class "help"
                 :: class "-no-pad"
-                :: attribute "role" "button"
                 :: Util.open args.show
             )
             [ summary

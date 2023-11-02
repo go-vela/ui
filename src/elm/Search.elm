@@ -57,7 +57,7 @@ homeSearchBar filter search =
             , onInput search
             ]
             []
-        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
+        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "aria-label" "filter" ]
         ]
 
 
@@ -74,7 +74,7 @@ repoSearchBarGlobal searchFilters search =
             , id "global-search-input"
             ]
             []
-        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
+        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "aria-label" "filter" ]
         ]
 
 
@@ -93,7 +93,7 @@ repoSearchBarLocal searchFilters org search =
             , onInput <| search org
             ]
             []
-        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "role" "img" ]
+        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "aria-label" "filter" ]
         ]
 
 
