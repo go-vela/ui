@@ -178,7 +178,7 @@ nodeLabel model repo build node showSteps =
             "<table "
                 ++ escapeAttributes nodeLabelTableAttributes
                 ++ ">"
-                ++ String.join "" content
+                ++ String.concat content
                 ++ "</table>"
 
         runtime =
