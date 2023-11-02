@@ -102,7 +102,7 @@ context('Build Graph', () => {
       });
       it('legend should show', () => {
         cy.get('.elm-build-graph-legend').should('be.visible');
-        cy.get('.elm-build-graph-legend-node').should('have.length', 6);
+        cy.get('.elm-build-graph-legend-node').should('have.length', 7);
       });
       it('actions should show', () => {
         cy.get('.elm-build-graph-actions').should('be.visible');
