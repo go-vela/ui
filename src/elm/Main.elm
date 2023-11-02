@@ -2992,7 +2992,7 @@ viewHeader session { feedbackLink, docsLink, theme, help, showId } =
 
         identityAttributeList : List (Html.Attribute Msg)
         identityAttributeList =
-            attribute "role" "navigation" :: Util.open showId
+            Util.open showId
     in
     header []
         [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
@@ -3016,7 +3016,7 @@ viewHeader session { feedbackLink, docsLink, theme, help, showId } =
                     details (identityBaseClassList :: identityAttributeList)
                         [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
             ]
-        , nav [ class "help-links", attribute "role" "navigation" ]
+        , nav [ class "help-links" ]
             [ ul []
                 [ li [] [ viewThemeToggle theme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]

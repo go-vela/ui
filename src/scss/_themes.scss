@@ -48,6 +48,12 @@ body.theme-light {
 }
 
 .theme-light {
+  .navigation a,
+  .table-base a,
+  .logs-header .button.-link {
+    color: var(--color-lavender-dark);
+  }
+
   .status.success {
     color: var(--color-green-dark);
   }
@@ -162,6 +168,6 @@ body.theme-light {
   }
 
   .table-base .error-content {
-    color: var(--color-red);
+    color: var(--color-red-darkest);
   }
 }
