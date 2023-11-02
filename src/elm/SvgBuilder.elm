@@ -127,6 +127,41 @@ buildFailure =
         ]
 
 
+{-| buildCanceled : produces svg icon for build status - canceled
+-}
+buildCanceled : Html msg
+buildCanceled =
+    svg
+        [ class "build-icon -canceled"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "44"
+        , height "44"
+        , ariaHidden
+        ]
+        [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ d "M15 15L29 29" ] []
+        ]
+
+
+{-| buildError : produces svg icon for build status - error
+-}
+buildError : Html msg
+buildError =
+    svg
+        [ class "build-icon -error"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "44"
+        , height "44"
+        , ariaHidden
+        ]
+        [ Svg.path [ d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z" ] []
+        , Svg.path [ d "M22 14V25" ] []
+        , Svg.path [ d "M22 30V27" ] []
+        ]
+
+
 {-| buildStatusAnimation : takes dashes as particles an svg meant to parallax scroll on a running build
 -}
 buildStatusAnimation : String -> String -> List String -> Html msg
@@ -250,6 +285,61 @@ stepFailure =
         ]
 
 
+{-| stepError : produces svg icon for step status - error
+-}
+stepError : Html msg
+stepError =
+    svg
+        [ class "-icon -error"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "32"
+        , height "32"
+        , ariaHidden
+        ]
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
+            ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M22 13V25"
+            ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M22 29V32"
+            ]
+            []
+        ]
+
+
+{-| stepCanceled : produces svg icon for step status - canceled
+-}
+stepCanceled : Html msg
+stepCanceled =
+    svg
+        [ class "-icon -canceled"
+        , strokeWidth "2"
+        , viewBox "0 0 44 44"
+        , width "32"
+        , height "32"
+        , ariaHidden
+        ]
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
+            ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M15 15l14 14"
+            ]
+            []
+        ]
+
+
 {-| stepSkipped : produces svg icon for step status - killed
 Note: killed/skipped are the same thing.
 -}
@@ -341,8 +431,50 @@ hookSkipped =
         , height "20"
         , ariaHidden
         ]
-        [ Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M15 20.1l6.923 6.9L42 5" ] []
-        , Svg.path [ attribute "vector-effect" "non-scaling-stroke", d "M43 22v16.333A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1h25.666" ] []
+        [ Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M5.667 1h32.666A4.668 4.668 0 0143 5.667v32.666A4.668 4.668 0 0138.333 43H5.667A4.668 4.668 0 011 38.333V5.667A4.668 4.668 0 015.667 1z"
+            ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke", d "M30.88 16.987l-9.744-5.625-9.747 9.383" ]
+            []
+        , Svg.path
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , d "M33 14l1 6h-6z"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            ]
+            []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            , Svg.Attributes.x "10"
+            , Svg.Attributes.y "28"
+            , Svg.Attributes.width "4"
+            , Svg.Attributes.height "4"
+            , Svg.Attributes.rx "3"
+            ]
+            []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            , Svg.Attributes.x "20"
+            , Svg.Attributes.y "28"
+            , Svg.Attributes.width "4"
+            , Svg.Attributes.height "4"
+            , Svg.Attributes.rx "3"
+            ]
+            []
+        , Svg.rect
+            [ attribute "vector-effect" "non-scaling-stroke"
+            , Svg.Attributes.fill "var(--color-lavender)"
+            , Svg.Attributes.x "30"
+            , Svg.Attributes.y "28"
+            , Svg.Attributes.width "4"
+            , Svg.Attributes.height "4"
+            , Svg.Attributes.rx "3"
+            ]
+            []
         ]
 
 
@@ -418,6 +550,36 @@ buildHistoryFailure _ =
         [ Svg.path [ d "M8 8l12 12M20 8L8 20" ] [] ]
 
 
+{-| buildHistoryError : produces svg icon for build history status - error
+-}
+buildHistoryError : Int -> Html msg
+buildHistoryError _ =
+    svg
+        [ class "-icon -error"
+        , strokeWidth "2"
+        , viewBox "0 0 28 28"
+        , width "26"
+        , height "26"
+        ]
+        [ Svg.path [ d "M14 8v7" ] []
+        , Svg.path [ d "M14 18v2" ] []
+        ]
+
+
+{-| buildHistoryError : produces svg icon for build history status - error
+-}
+buildHistoryCanceled : Int -> Html msg
+buildHistoryCanceled _ =
+    svg
+        [ class "-icon -canceled"
+        , strokeWidth "2"
+        , viewBox "0 0 28 28"
+        , width "26"
+        , height "26"
+        ]
+        [ Svg.path [ d "M8 8l12 12" ] [] ]
+
+
 {-| buildStatusToIcon : takes build status and returns Icon from SvgBuilder
 -}
 buildStatusToIcon : Status -> Html msg
@@ -439,10 +601,10 @@ buildStatusToIcon status =
             buildFailure
 
         Vela.Canceled ->
-            buildFailure
+            buildCanceled
 
         Vela.Error ->
-            buildFailure
+            buildError
 
 
 {-| recentBuildStatusToIcon : takes build status string and returns Icon from SvgBuilder
@@ -466,10 +628,10 @@ recentBuildStatusToIcon status index =
             buildHistoryFailure index
 
         Vela.Canceled ->
-            buildHistoryFailure index
+            buildHistoryCanceled index
 
         Vela.Error ->
-            buildHistoryFailure index
+            buildHistoryError index
 
 
 {-| stepStatusToIcon : takes build status and returns Icon from SvgBuilder
@@ -493,10 +655,10 @@ stepStatusToIcon status =
             stepSkipped
 
         Vela.Canceled ->
-            stepFailure
+            stepCanceled
 
         Vela.Error ->
-            stepFailure
+            stepError
 
 
 {-| hookStatusToIcon : takes hook status string and returns Icon from SvgBuilder
