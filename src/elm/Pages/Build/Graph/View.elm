@@ -142,39 +142,39 @@ view model msgs org repo buildNumber =
             [ ul [ class "elm-build-graph-legend" ]
                 [ li []
                     [ buildVizLegendNode [ Svg.Attributes.class "-pending" ]
-                    , text "- pending"
+                    , text "pending"
                     ]
                 , li [ class "-running-hover" ]
                     [ buildVizLegendNode [ Svg.Attributes.class "-running" ]
-                    , text "- running"
+                    , text "running"
                     ]
                 , li []
                     [ buildVizLegendNode [ Svg.Attributes.class "-success" ]
-                    , text "- success"
+                    , text "success"
                     ]
                 , li []
                     [ buildVizLegendNode [ Svg.Attributes.class "-failure" ]
-                    , text "- failed"
+                    , text "failed"
                     ]
                 , li []
                     [ buildVizLegendNode [ Svg.Attributes.class "-canceled" ]
-                    , text "- canceled"
+                    , text "canceled"
                     ]
                 , li []
                     [ buildVizLegendNode [ Svg.Attributes.class "-killed" ]
-                    , text "- skipped"
+                    , text "skipped"
                     ]
                 , li []
                     [ buildVizLegendNode [ Svg.Attributes.class "-selected" ]
-                    , text "- selected"
+                    , text "selected"
                     ]
                 , li []
                     [ buildVizLegendEdge [ Svg.Attributes.class "-pending" ]
-                    , text "- pending"
+                    , text "pending"
                     ]
                 , li []
                     [ buildVizLegendEdge [ Svg.Attributes.class "-finished" ]
-                    , text "- complete"
+                    , text "complete"
                     ]
                 ]
             , case model.repo.build.graph.graph of
