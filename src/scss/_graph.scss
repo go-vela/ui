@@ -119,6 +119,11 @@
     stroke-dasharray: 3 3;
   }
 
+  .-canceled {
+    stroke: var(--color-cyan-dark);
+    stroke-dasharray: 3 3;
+  }
+
   .-killed,
   .-skipped {
     stroke: var(--color-lavender);
@@ -227,12 +232,17 @@
     stroke: var(--color-green);
   }
 
-  &.-canceled,
   &.-failure,
   &.-error {
     stroke-dasharray: 4 3;
 
     stroke: var(--color-red);
+  }
+
+  &.-canceled {
+    stroke-dasharray: 4 3;
+
+    stroke: var(--color-cyan-dark);
   }
 
   &.-killed,
@@ -275,7 +285,7 @@
   }
 
   &.-canceled {
-    fill: var(--color-red);
+    fill: var(--color-cyan-dark);
   }
 
   &.-killed,
@@ -310,7 +320,7 @@
   }
 
   &.-canceled {
-    fill: var(--color-red);
+    fill: var(--color-cyan-dark);
   }
 
   &.-killed,
@@ -320,6 +330,7 @@
 
   &.-error {
     fill: var(--color-red);
+    stroke-width: 3;
   }
 }
 
@@ -416,10 +427,13 @@
     stroke: var(--color-green);
   }
 
-  &.-canceled,
   &.-failure,
   &.-error {
     stroke: var(--color-red);
+  }
+
+  &.-canceled {
+    stroke: var(--color-cyan-dark);
   }
 
   &.-killed,

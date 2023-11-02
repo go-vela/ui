@@ -296,7 +296,7 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
         }
 
         if (step.status === 'canceled') {
-          stepIcon.append('path').attr('d', 'M8 8l12 12M20 8L8 20');
+          stepIcon.append('path').attr('d', 'M8 8l12 12');
         }
 
         if (step.status === 'killed') {
@@ -326,7 +326,8 @@ function drawNodes(opts, buildGraphElement, nodeSelector, edges) {
         }
 
         if (step.status === 'error') {
-          stepIcon.append('path').attr('d', 'M8 8l12 12M20 8L8 20');
+          stepIcon.append('path').attr('d', 'M14 8v7');
+          stepIcon.append('path').attr('d', 'M14 18v2');
         }
 
         // apply step connector to every step after the first

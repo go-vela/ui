@@ -153,6 +153,10 @@ view model msgs org repo buildNumber =
                     , text "- failed"
                     ]
                 , li []
+                    [ buildVizLegendNode [ Svg.Attributes.class "-canceled" ]
+                    , text "- canceled"
+                    ]
+                , li []
                     [ buildVizLegendNode [ Svg.Attributes.class "-killed" ]
                     , text "- skipped"
                     ]
