@@ -206,10 +206,7 @@ body.theme-light {
     stroke: var(--color-lavender);
   }
 
-  &.-focus {
-    stroke: var(--color-primary);
-  }
-
+  &.-focus,
   &.-hover {
     stroke: var(--color-primary);
   }
@@ -226,10 +223,7 @@ body.theme-light {
     stroke: var(--color-coal-light);
   }
 
-  &.-focus {
-    stroke: var(--color-primary);
-  }
-
+  &.-focus,
   &.-hover {
     stroke: var(--color-primary);
   }
@@ -239,10 +233,7 @@ body.theme-light {
 .theme-light .d3-build-graph-node-a svg {
   stroke: var(--color-offwhite);
 
-  &.-pending {
-    fill: var(--color-offwhite);
-  }
-
+  &.-pending,
   &.-killed,
   &.-skipped {
     fill: var(--color-offwhite);
