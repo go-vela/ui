@@ -2170,11 +2170,13 @@ update msg model =
                             )
 
                         _ ->
-                            ( model, Cmd.none )
+                            ( model
+                            , Cmd.none
+                            )
 
                 Err error ->
                     ( { model | repo = { rm | build = { bm | graph = { gm | graph = toFailure error } } } }
-                    , Cmd.none
+                    , addError error
                     )
 
         -- Time

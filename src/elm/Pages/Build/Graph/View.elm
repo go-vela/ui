@@ -110,7 +110,6 @@ view model msgs org repo buildNumber =
                     [ div [ class "elm-build-graph-search-filter-input" ]
                         [ Html.input
                             [ Html.Attributes.type_ "input"
-                            , Html.Attributes.checked True -- todo: is this needed?
                             , Html.Attributes.placeholder "type to highlight nodes..."
                             , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
                             , id "build-graph-action-filter"
@@ -184,10 +183,14 @@ view model msgs org repo buildNumber =
                     text ""
 
                 RemoteData.Failure _ ->
-                    -- todo: make this cuter
-                    text "Error loading build graph... Please try again"
+                    div [ class "elm-build-graph-error" ]
+                        [ text "Unable to load build graph, please refresh or try again later!"
+                        ]
 
-                _ ->
+                RemoteData.Loading ->
+                    Util.largeLoader
+
+                RemoteData.NotAsked ->
                     Util.largeLoader
             , Svg.svg
                 [ Svg.Attributes.class "elm-build-graph-root"
