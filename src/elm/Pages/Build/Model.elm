@@ -61,6 +61,7 @@ type alias Msgs msg =
     , restartBuild : RestartBuild msg
     , cancelBuild : CancelBuild msg
     , toggle : Maybe Int -> Maybe Bool -> msg
+    , buildGraphMsgs : BuildGraphMsgs msg
     }
 
 
@@ -70,6 +71,15 @@ type alias LogsMsgs msg =
     , focusOn : FocusOn msg
     , followStep : FollowResource msg
     , followService : FollowResource msg
+    }
+
+
+type alias BuildGraphMsgs msg =
+    { refresh : Org -> Repo -> BuildNumber -> msg
+    , rotate : msg
+    , showServices : Bool -> msg
+    , showSteps : Bool -> msg
+    , updateFilter : String -> msg
     }
 
 

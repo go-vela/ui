@@ -75,6 +75,7 @@ import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
 import Pager
 import Pages exposing (Page)
+import Pages.Build.Graph.Interop exposing (renderBuildGraph)
 import Pages.Build.Logs
     exposing
         ( addLog
@@ -127,6 +128,7 @@ import Vela
     exposing
         ( AuthParams
         , Build
+        , BuildGraph
         , BuildModel
         , BuildNumber
         , Builds
@@ -139,6 +141,7 @@ import Vela
         , Favicon
         , Field
         , FocusFragment
+        , GraphInteraction
         , HookNumber
         , Hooks
         , Key
@@ -177,6 +180,7 @@ import Vela
         , buildUpdateRepoBoolPayload
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
+        , decodeGraphInteraction
         , decodeTheme
         , defaultEnableRepositoryPayload
         , defaultFavicon
@@ -190,8 +194,13 @@ import Vela
         , isComplete
         , secretTypeToString
         , statusToFavicon
+        , stringToStatus
         , stringToTheme
         , updateBuild
+        , updateBuildGraph
+        , updateBuildGraphFilter
+        , updateBuildGraphShowServices
+        , updateBuildGraphShowSteps
         , updateBuildNumber
         , updateBuildPipelineConfig
         , updateBuildPipelineExpand
@@ -229,8 +238,10 @@ import Vela
         , updateRepoEnabling
         , updateRepoInitialized
         , updateRepoLimit
+        , updateRepoModels
         , updateRepoTimeout
         )
+import Visualization.DOT as DOT
 
 
 
@@ -405,6 +416,12 @@ type Msg
     | FollowService Int
     | ShowHideTemplates
     | FocusPipelineConfigLineNumber Int
+    | BuildGraphShowServices Bool
+    | BuildGraphShowSteps Bool
+    | BuildGraphRefresh Org Repo BuildNumber
+    | BuildGraphRotate
+    | BuildGraphUpdateFilter String
+    | OnBuildGraphInteraction GraphInteraction
       -- Outgoing HTTP requests
     | RefreshAccessToken
     | SignInRequested
@@ -472,6 +489,8 @@ type Msg
     | AddScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | UpdateScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+      -- Graph
+    | BuildGraphResponse Org Repo BuildNumber Bool (Result (Http.Detailed.Error String) ( Http.Metadata, BuildGraph ))
       -- Time
     | AdjustTimeZone Zone
     | AdjustTime Posix
@@ -497,6 +516,12 @@ update msg model =
     let
         rm =
             model.repo
+
+        bm =
+            rm.build
+
+        gm =
+            model.repo.build.graph
 
         sm =
             model.schedulesModel
@@ -936,6 +961,123 @@ update msg model =
             in
             ( { model | pipeline = pipeline }
             , Navigation.pushUrl model.navigationKey <| url
+            )
+
+        BuildGraphRefresh org repo buildNumber ->
+            let
+                ugm =
+                    { gm
+                        | graph = Loading
+                    }
+
+                um_ =
+                    updateRepoModels model rm bm ugm
+            in
+            ( um_
+            , getBuildGraph um_ org repo buildNumber True
+            )
+
+        BuildGraphRotate ->
+            let
+                rankdir =
+                    case gm.rankdir of
+                        DOT.LR ->
+                            DOT.TB
+
+                        _ ->
+                            DOT.LR
+
+                ugm =
+                    { gm
+                        | rankdir = rankdir
+                    }
+
+                um_ =
+                    updateRepoModels model rm bm ugm
+            in
+            ( um_
+            , renderBuildGraph um_ False
+            )
+
+        BuildGraphUpdateFilter filter ->
+            let
+                ugm =
+                    { gm
+                        | filter = String.toLower filter
+                    }
+
+                um_ =
+                    updateRepoModels model rm bm ugm
+            in
+            ( um_
+            , renderBuildGraph um_ False
+            )
+
+        BuildGraphShowServices show ->
+            let
+                ugm =
+                    { gm
+                        | showServices = show
+                    }
+
+                um_ =
+                    updateRepoModels model rm bm ugm
+            in
+            ( um_
+            , renderBuildGraph um_ False
+            )
+
+        BuildGraphShowSteps show ->
+            let
+                ugm =
+                    { gm
+                        | showSteps = show
+                    }
+
+                um_ =
+                    updateRepoModels model rm bm ugm
+            in
+            ( um_
+            , renderBuildGraph um_ False
+            )
+
+        OnBuildGraphInteraction interaction ->
+            let
+                ( ugm_, cmd ) =
+                    case interaction.eventType of
+                        "href" ->
+                            ( model.repo.build.graph
+                            , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
+                            )
+
+                        "backdrop_click" ->
+                            let
+                                ugm =
+                                    { gm | focusedNode = -1 }
+
+                                um_ =
+                                    updateRepoModels model rm bm ugm
+                            in
+                            ( ugm, renderBuildGraph um_ False )
+
+                        "node_click" ->
+                            let
+                                ugm =
+                                    { gm | focusedNode = Maybe.withDefault -1 <| String.toInt interaction.nodeID }
+
+                                um_ =
+                                    updateRepoModels model rm bm ugm
+                            in
+                            ( ugm, renderBuildGraph um_ False )
+
+                        _ ->
+                            ( model.repo.build.graph, Cmd.none )
+            in
+            ( updateRepoModels model rm bm ugm_
+            , Cmd.batch
+                [ Navigation.pushUrl model.navigationKey interaction.href
+                , cmd
+                ]
             )
 
         -- Outgoing HTTP requests
@@ -2001,6 +2143,42 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
+        BuildGraphResponse _ _ buildNumber _ response ->
+            case response of
+                Ok ( _, g ) ->
+                    case model.page of
+                        Pages.BuildGraph _ _ _ ->
+                            let
+                                sameBuild =
+                                    gm.buildNumber == buildNumber
+
+                                ugm =
+                                    { gm | buildNumber = buildNumber, graph = RemoteData.succeed g }
+
+                                updatedModel =
+                                    updateRepoModels model rm bm ugm
+
+                                cmd =
+                                    if not sameBuild then
+                                        renderBuildGraph updatedModel False
+
+                                    else
+                                        Cmd.none
+                            in
+                            ( updatedModel
+                            , cmd
+                            )
+
+                        _ ->
+                            ( model
+                            , Cmd.none
+                            )
+
+                Err error ->
+                    ( { model | repo = { rm | build = { bm | graph = { gm | graph = toFailure error } } } }
+                    , addError error
+                    )
+
         -- Time
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }
@@ -2016,10 +2194,15 @@ update msg model =
             case interval of
                 OneSecond ->
                     let
-                        ( favicon, cmd ) =
+                        ( favicon, updateFavicon ) =
                             refreshFavicon model.page model.favicon rm.build.build
                     in
-                    ( { model | time = time, favicon = favicon }, cmd )
+                    ( { model | time = time, favicon = favicon }
+                    , Cmd.batch
+                        [ updateFavicon
+                        , refreshRenderBuildGraph model
+                        ]
+                    )
 
                 FiveSecond ->
                     ( model, refreshPage model )
@@ -2199,6 +2382,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch <|
         [ Interop.onThemeChange decodeOnThemeChange
+        , Interop.onGraphInteraction decodeOnGraphInteraction
         , onMouseDown "contextual-help" model ShowHideHelp
         , onMouseDown "identity" model ShowHideIdentity
         , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
@@ -2217,6 +2401,16 @@ decodeOnThemeChange inTheme =
 
         Err _ ->
             SetTheme Dark
+
+
+decodeOnGraphInteraction : Decode.Value -> Msg
+decodeOnGraphInteraction interaction =
+    case Decode.decodeValue decodeGraphInteraction interaction of
+        Ok interaction_ ->
+            OnBuildGraphInteraction interaction_
+
+        Err _ ->
+            NoOp
 
 
 {-| refreshSubscriptions : takes model and returns the subscriptions for automatically refreshing page data
@@ -2318,6 +2512,13 @@ refreshPage model =
                 , refreshBuild model org repo buildNumber
                 ]
 
+        Pages.BuildGraph org repo buildNumber ->
+            Cmd.batch
+                [ getBuilds model org repo Nothing Nothing Nothing
+                , refreshBuild model org repo buildNumber
+                , refreshBuildGraph model org repo buildNumber
+                ]
+
         Pages.Hooks org repo maybePage maybePerPage ->
             getHooks model org repo maybePage maybePerPage
 
@@ -2405,6 +2606,29 @@ refreshBuildServices model org repo buildNumber focusFragment =
         Cmd.none
 
 
+{-| refreshBuildGraph : takes model org repo and build number and refreshes the build graph if necessary
+-}
+refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+refreshBuildGraph model org repo buildNumber =
+    if shouldRefresh model.page model.repo.build then
+        getBuildGraph model org repo buildNumber True
+
+    else
+        Cmd.none
+
+
+{-| refreshRenderBuildGraph : takes model and refreshes the build graph render if necessary
+-}
+refreshRenderBuildGraph : Model -> Cmd Msg
+refreshRenderBuildGraph model =
+    case model.page of
+        Pages.BuildGraph _ _ _ ->
+            renderBuildGraph model False
+
+        _ ->
+            Cmd.none
+
+
 {-| shouldRefresh : takes build and returns true if a refresh is required
 -}
 shouldRefresh : Page -> BuildModel -> Bool
@@ -2436,6 +2660,22 @@ shouldRefresh page build =
                             case build.services.services of
                                 Success services ->
                                     List.any (\s -> not <| isComplete s.status) services
+
+                                -- do not use unsuccessful states to dictate refresh
+                                NotAsked ->
+                                    False
+
+                                Failure _ ->
+                                    False
+
+                                Loading ->
+                                    False
+
+                        -- check graph nodes when viewing graph tab
+                        Pages.BuildGraph _ _ _ ->
+                            case build.graph.graph of
+                                Success graph ->
+                                    List.any (\( _, n ) -> not <| isComplete (stringToStatus n.status)) (Dict.toList graph.nodes)
 
                                 -- do not use unsuccessful states to dictate refresh
                                 NotAsked ->
@@ -2880,6 +3120,16 @@ viewContent model =
                     buildNumber
             )
 
+        Pages.BuildGraph org repo buildNumber ->
+            ( "Visualize " ++ String.join "/" [ org, repo, buildNumber ]
+            , Pages.Build.View.viewBuildGraph
+                model
+                buildMsgs
+                org
+                repo
+                buildNumber
+            )
+
         Pages.Settings ->
             ( "Settings"
             , Pages.Settings.view model.session model.time (Pages.Settings.Msgs Copy)
@@ -3179,6 +3429,9 @@ setNewPage route model =
 
         ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
             loadBuildPipelinePage model org repo buildNumber expand lineFocus
+
+        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
+            loadBuildGraphPage model org repo buildNumber
 
         ( Routes.AddSchedule org repo, Authenticated _ ) ->
             loadAddSchedulePage model org repo
@@ -4056,6 +4309,78 @@ loadBuildPage model org repo buildNumber lineFocus =
     )
 
 
+{-| loadBuildGraphPage : takes model org, repo, and build number and loads the appropriate build graph resources.
+-}
+loadBuildGraphPage : Model -> Org -> Repo -> BuildNumber -> ( Model, Cmd Msg )
+loadBuildGraphPage model org repo buildNumber =
+    let
+        -- get resource transition information
+        sameBuild =
+            isSameBuild ( org, repo, buildNumber ) model.page
+
+        sameResource =
+            case model.page of
+                Pages.BuildGraph _ _ _ ->
+                    True
+
+                _ ->
+                    False
+
+        rm =
+            model.repo
+
+        bm =
+            rm.build
+
+        gm =
+            bm.graph
+
+        graph =
+            if sameBuild then
+                RemoteData.unwrap RemoteData.Loading (\g_ -> RemoteData.succeed g_) gm.graph
+
+            else
+                RemoteData.Loading
+
+        -- if build has changed, set build fields in the model
+        mm =
+            if not sameBuild then
+                setBuild org repo buildNumber sameResource model
+
+            else
+                model
+
+        focusedNode =
+            if sameBuild then
+                gm.focusedNode
+
+            else
+                -1
+
+        um =
+            { mm
+                | page = Pages.BuildGraph org repo buildNumber
+                , repo = { rm | build = { bm | graph = { gm | graph = graph, focusedNode = focusedNode } } }
+            }
+    in
+    ( um
+      -- do not load resources if transition is auto refresh, line focus, etc
+      -- MUST render graph here, or clicking on nodes won't cause an immediate change
+    , if sameBuild && sameResource then
+        renderBuildGraph um False
+
+      else
+        Cmd.batch
+            [ getRepo um org repo
+            , getBuilds um org repo Nothing Nothing Nothing
+            , getBuild um org repo buildNumber
+            , getAllBuildSteps um org repo buildNumber Nothing False
+            , getBuildGraph um org repo buildNumber False
+            , renderBuildGraph um True
+            ]
+    )
+
+
 {-| loadBuildServicesPage : takes model org, repo, and build number and loads the appropriate build services.
 -}
 loadBuildServicesPage : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> ( Model, Cmd Msg )
@@ -4233,6 +4558,9 @@ isSameBuild id currentPage =
         Pages.BuildPipeline o r b _ _ ->
             not <| resourceChanged id ( o, r, b )
 
+        Pages.BuildGraph o r b ->
+            not <| resourceChanged id ( o, r, b )
+
         _ ->
             False
 
@@ -4244,6 +4572,9 @@ setBuild org repo buildNumber soft model =
     let
         rm =
             model.repo
+
+        gm =
+            rm.build.graph
 
         pipeline =
             model.pipeline
@@ -4277,6 +4608,10 @@ setBuild org repo buildNumber soft model =
                 |> updateBuildServicesFollowing 0
                 |> updateBuildServicesLogs []
                 |> updateBuildServicesFocusFragment Nothing
+                |> updateBuildGraph NotAsked
+                |> updateBuildGraphShowServices gm.showServices
+                |> updateBuildGraphShowSteps gm.showSteps
+                |> updateBuildGraphFilter gm.filter
     }
 
 
@@ -4529,6 +4864,13 @@ buildMsgs =
         , followStep = FollowStep
         , followService = FollowService
         }
+    , buildGraphMsgs =
+        { refresh = BuildGraphRefresh
+        , rotate = BuildGraphRotate
+        , showServices = BuildGraphShowServices
+        , showSteps = BuildGraphShowSteps
+        , updateFilter = BuildGraphUpdateFilter
+        }
     }
 
 
@@ -4628,6 +4970,11 @@ getBuild model org repo buildNumber =
 getBuildAndPipeline : Model -> Org -> Repo -> BuildNumber -> Maybe ExpandTemplatesQuery -> Cmd Msg
 getBuildAndPipeline model org repo buildNumber expand =
     Api.try (BuildAndPipelineResponse org repo expand) <| Api.getBuild model org repo buildNumber
+
+
+getBuildGraph : Model -> Org -> Repo -> BuildNumber -> Bool -> Cmd Msg
+getBuildGraph model org repo buildNumber refresh =
+    Api.try (BuildGraphResponse org repo buildNumber refresh) <| Api.getBuildGraph model org repo buildNumber
 
 
 getDeployment : Model -> Org -> Repo -> DeploymentId -> Cmd Msg

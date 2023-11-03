@@ -8,6 +8,7 @@ module Util exposing
     , ariaHidden
     , attrIf
     , base64Decode
+    , boolToString
     , boolToYesNo
     , buildRefURL
     , checkScheduleAllowlist
@@ -381,6 +382,17 @@ attrIf cond attr =
 
     else
         class ""
+
+
+{-| boolToString : takes bool and converts to true/false string
+-}
+boolToString : Bool -> String
+boolToString bool =
+    if bool then
+        "true"
+
+    else
+        "false"
 
 
 {-| boolToYesNo : takes bool and converts to yes/no string

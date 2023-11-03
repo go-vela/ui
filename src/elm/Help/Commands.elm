@@ -117,6 +117,9 @@ commands page =
         Pages.BuildPipeline org repo buildNumber _ _ ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
 
+        Pages.BuildGraph org repo buildNumber ->
+            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
+
         Pages.RepoSettings org repo ->
             [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
 
@@ -896,6 +899,9 @@ resourceLoaded args =
         Pages.BuildPipeline _ _ _ _ _ ->
             args.build.success
 
+        Pages.BuildGraph org repo _ ->
+            args.build.success
+
         Pages.AddOrgSecret secretEngine org ->
             noBlanks [ secretEngine, org ]
 
@@ -990,6 +996,9 @@ resourceLoading args =
             args.build.loading
 
         Pages.BuildPipeline _ _ _ _ _ ->
+            args.build.loading
+
+        Pages.BuildGraph _ _ _ ->
             args.build.loading
 
         Pages.OrgSecrets _ _ _ _ ->

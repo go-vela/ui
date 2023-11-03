@@ -7,6 +7,10 @@ module Vela exposing
     ( AddSchedulePayload
     , AuthParams
     , Build
+    , BuildGraph
+    , BuildGraphEdge
+    , BuildGraphModel
+    , BuildGraphNode
     , BuildModel
     , BuildNumber
     , Builds
@@ -30,6 +34,7 @@ module Vela exposing
     , Favorites
     , Field
     , FocusFragment
+    , GraphInteraction
     , Hook
     , HookNumber
     , Hooks
@@ -87,10 +92,12 @@ module Vela exposing
     , buildUpdateSchedulePayload
     , buildUpdateSecretPayload
     , decodeBuild
+    , decodeBuildGraph
     , decodeBuilds
     , decodeCurrentUser
     , decodeDeployment
     , decodeDeployments
+    , decodeGraphInteraction
     , decodeHooks
     , decodeLog
     , decodePipelineConfig
@@ -106,12 +113,14 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeTheme
+    , defaultBuildGraph
     , defaultEnableRepositoryPayload
     , defaultFavicon
     , defaultPipeline
     , defaultPipelineTemplates
     , defaultRepoModel
     , defaultStep
+    , encodeBuildGraphRenderData
     , encodeDeploymentPayload
     , encodeEnableRepository
     , encodeTheme
@@ -124,8 +133,14 @@ module Vela exposing
     , secretTypeToString
     , secretsErrorLabel
     , statusToFavicon
+    , statusToString
+    , stringToStatus
     , stringToTheme
     , updateBuild
+    , updateBuildGraph
+    , updateBuildGraphFilter
+    , updateBuildGraphShowServices
+    , updateBuildGraphShowSteps
     , updateBuildNumber
     , updateBuildPipelineConfig
     , updateBuildPipelineExpand
@@ -163,6 +178,7 @@ module Vela exposing
     , updateRepoEnabling
     , updateRepoInitialized
     , updateRepoLimit
+    , updateRepoModels
     , updateRepoTimeout
     )
 
@@ -171,11 +187,13 @@ import Bytes.Encode
 import Dict exposing (Dict)
 import Errors exposing (Error)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, int, string, succeed)
+import Json.Decode.Extra exposing (dict2)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as Encode exposing (Value)
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
+import Visualization.DOT as DOT
 
 
 
@@ -401,6 +419,7 @@ type alias BuildModel =
     , build : WebData Build
     , steps : StepsModel
     , services : ServicesModel
+    , graph : BuildGraphModel
     }
 
 
@@ -420,9 +439,23 @@ type alias ServicesModel =
     }
 
 
+updateRepoModels : { a | repo : RepoModel } -> RepoModel -> BuildModel -> BuildGraphModel -> { a | repo : RepoModel }
+updateRepoModels m rm bm gm =
+    { m
+        | repo =
+            { rm
+                | build =
+                    { bm
+                        | graph =
+                            gm
+                    }
+            }
+    }
+
+
 defaultBuildModel : BuildModel
 defaultBuildModel =
-    BuildModel "" NotAsked defaultStepsModel defaultServicesModel
+    BuildModel "" NotAsked defaultStepsModel defaultServicesModel defaultBuildGraphModel
 
 
 defaultRepoModel : RepoModel
@@ -710,6 +743,54 @@ updateBuildSteps update rm =
             b.steps
     in
     { rm | build = { b | steps = { s | steps = update } } }
+
+
+updateBuildGraph : WebData BuildGraph -> RepoModel -> RepoModel
+updateBuildGraph update rm =
+    let
+        b =
+            rm.build
+
+        g =
+            b.graph
+    in
+    { rm | build = { b | graph = { g | graph = update } } }
+
+
+updateBuildGraphShowServices : Bool -> RepoModel -> RepoModel
+updateBuildGraphShowServices update rm =
+    let
+        b =
+            rm.build
+
+        g =
+            b.graph
+    in
+    { rm | build = { b | graph = { g | showServices = update } } }
+
+
+updateBuildGraphShowSteps : Bool -> RepoModel -> RepoModel
+updateBuildGraphShowSteps update rm =
+    let
+        b =
+            rm.build
+
+        g =
+            b.graph
+    in
+    { rm | build = { b | graph = { g | showSteps = update } } }
+
+
+updateBuildGraphFilter : String -> RepoModel -> RepoModel
+updateBuildGraphFilter update rm =
+    let
+        b =
+            rm.build
+
+        g =
+            b.graph
+    in
+    { rm | build = { b | graph = { g | filter = update } } }
 
 
 updateBuildServices : WebData Services -> RepoModel -> RepoModel
@@ -1298,6 +1379,125 @@ decodeBuild =
         |> optional "deploy_payload" decodeDeploymentParameters Nothing
 
 
+defaultBuildGraphModel : BuildGraphModel
+defaultBuildGraphModel =
+    BuildGraphModel "" NotAsked DOT.LR "" -1 True True
+
+
+defaultBuildGraph : BuildGraph
+defaultBuildGraph =
+    BuildGraph Dict.empty []
+
+
+encodeBuildGraphRenderData : BuildGraphRenderInteropData -> Encode.Value
+encodeBuildGraphRenderData graphData =
+    Encode.object
+        [ ( "dot", Encode.string graphData.dot )
+        , ( "buildID", Encode.int graphData.buildID )
+        , ( "filter", Encode.string graphData.filter )
+        , ( "focusedNode", Encode.int graphData.focusedNode )
+        , ( "showServices", Encode.bool graphData.showServices )
+        , ( "showSteps", Encode.bool graphData.showSteps )
+        , ( "centerOnDraw", Encode.bool graphData.centerOnDraw )
+        ]
+
+
+type alias BuildGraphRenderInteropData =
+    { dot : String
+    , buildID : Int
+    , filter : String
+    , focusedNode : Int
+    , showServices : Bool
+    , showSteps : Bool
+    , centerOnDraw : Bool
+    }
+
+
+type alias BuildGraphModel =
+    { buildNumber : BuildNumber
+    , graph : WebData BuildGraph
+    , rankdir : DOT.Rankdir
+    , filter : String
+    , focusedNode : Int
+    , showServices : Bool
+    , showSteps : Bool
+    }
+
+
+type alias BuildGraph =
+    { nodes : Dict Int BuildGraphNode
+    , edges : List BuildGraphEdge
+    }
+
+
+type alias BuildGraphNode =
+    { cluster : Int
+    , id : Int
+    , name : String
+    , status : String
+    , startedAt : Int
+    , finishedAt : Int
+    , steps : List Step
+    , focused : Bool
+    }
+
+
+type alias BuildGraphEdge =
+    { cluster : Int
+    , source : Int
+    , destination : Int
+    , status : String
+    , focused : Bool
+    }
+
+
+decodeBuildGraph : Decoder BuildGraph
+decodeBuildGraph =
+    Decode.succeed BuildGraph
+        |> required "nodes" (dict2 int decodeBuildGraphNode)
+        |> optional "edges" (Decode.list decodeEdge) []
+
+
+decodeBuildGraphNode : Decoder BuildGraphNode
+decodeBuildGraphNode =
+    Decode.succeed BuildGraphNode
+        |> required "cluster" int
+        |> required "id" int
+        |> required "name" Decode.string
+        |> optional "status" string ""
+        |> required "started_at" int
+        |> required "finished_at" int
+        |> optional "steps" (Decode.list decodeStep) []
+        -- focused
+        |> hardcoded False
+
+
+decodeEdge : Decoder BuildGraphEdge
+decodeEdge =
+    Decode.succeed BuildGraphEdge
+        |> required "cluster" int
+        |> required "source" int
+        |> required "destination" int
+        |> optional "status" string ""
+        -- focused
+        |> hardcoded False
+
+
+type alias GraphInteraction =
+    { eventType : String
+    , href : String
+    , nodeID : String
+    }
+
+
+decodeGraphInteraction : Decoder GraphInteraction
+decodeGraphInteraction =
+    Decode.succeed GraphInteraction
+        |> required "eventType" string
+        |> optional "href" string ""
+        |> optional "nodeID" string "-1"
+
+
 {-| decodeBuilds : decodes json from vela into list of builds
 -}
 decodeBuilds : Decoder Builds
@@ -1366,6 +1566,63 @@ toStatus status =
 
         _ ->
             succeed Error
+
+
+{-| stringToStatus : helper to convert string to Status
+-}
+stringToStatus : String -> Status
+stringToStatus status =
+    case status of
+        "pending" ->
+            Pending
+
+        "running" ->
+            Running
+
+        "success" ->
+            Success
+
+        "failure" ->
+            Failure
+
+        "killed" ->
+            Killed
+
+        "canceled" ->
+            Canceled
+
+        "error" ->
+            Error
+
+        _ ->
+            Error
+
+
+{-| statusToString : helper to convert Status to string
+-}
+statusToString : Status -> String
+statusToString status =
+    case status of
+        Pending ->
+            "pending"
+
+        Running ->
+            "running"
+
+        Success ->
+            "success"
+
+        Failure ->
+            "failure"
+
+        Killed ->
+            "killed"
+
+        Canceled ->
+            "canceled"
+
+        Error ->
+            "error"
 
 
 {-| isComplete : helper to determine if status is 'complete'

@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Build.View exposing
     ( viewBuild
+    , viewBuildGraph
     , viewBuildServices
     , viewPreview
     , wrapWithBuildPreview
@@ -38,6 +39,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import List.Extra exposing (unique)
 import Nav exposing (viewBuildTabs)
+import Pages.Build.Graph.View
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
@@ -1163,6 +1165,18 @@ viewError build =
                 , span [ class "message" ]
                     [ text "This div is hidden to occupy space for a consistent experience" ]
                 ]
+
+
+
+-- VISUALIZE
+
+
+{-| viewBuildGraph : renders build graph using graphviz and d3
+-}
+viewBuildGraph : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
+viewBuildGraph model msgs org repo buildNumber =
+    wrapWithBuildPreview model msgs org repo buildNumber <|
+        Pages.Build.Graph.View.view model msgs org repo buildNumber
 
 
 

@@ -45,6 +45,7 @@ type Route
     | Build Org Repo BuildNumber FocusFragment
     | BuildServices Org Repo BuildNumber FocusFragment
     | BuildPipeline Org Repo BuildNumber (Maybe ExpandTemplatesQuery) FocusFragment
+    | BuildGraph Org Repo BuildNumber
     | AddSchedule Org Repo
     | Schedules Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Schedule Org Repo ScheduleName
@@ -93,6 +94,7 @@ routes =
         , map Build (string </> string </> string </> fragment identity)
         , map BuildServices (string </> string </> string </> s "services" </> fragment identity)
         , map BuildPipeline (string </> string </> string </> s "pipeline" <?> Query.string "expand" </> fragment identity)
+        , map BuildGraph (string </> string </> string </> s "graph")
         , map NotFound (s "404")
         ]
 
@@ -202,6 +204,9 @@ routeToUrl route =
 
         BuildPipeline org repo buildNumber expand lineFocus ->
             "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/pipeline" ++ (UB.toQuery <| List.filterMap identity <| [ maybeToQueryParam expand "expand" ]) ++ Maybe.withDefault "" lineFocus
+
+        BuildGraph org repo buildNumber ->
+            "/" ++ org ++ "/" ++ repo ++ "/" ++ buildNumber ++ "/graph"
 
         Authenticate { code, state } ->
             "/account/authenticate" ++ paramsToQueryString { code = code, state = state }

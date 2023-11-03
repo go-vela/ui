@@ -40,6 +40,9 @@ view now timezone page limit rm =
                 Pages.BuildPipeline _ _ b _ _ ->
                     Maybe.withDefault -1 <| String.toInt b
 
+                Pages.BuildGraph _ _ b ->
+                    Maybe.withDefault -1 <| String.toInt b
+
                 _ ->
                     -1
     in
@@ -110,6 +113,9 @@ recentBuildLink page org repo buildNumber build idx =
 
             Pages.BuildPipeline _ _ _ _ _ ->
                 Routes.href <| Routes.BuildPipeline org repo (String.fromInt build.number) Nothing Nothing
+
+            Pages.BuildGraph _ _ _ ->
+                Routes.href <| Routes.BuildGraph org repo (String.fromInt build.number)
 
             _ ->
                 Routes.href <| Routes.Build org repo (String.fromInt build.number) Nothing

@@ -2,9 +2,13 @@
 
 // import types
 import * as ClipboardJS from 'clipboard';
+import * as d3 from 'd3';
+import { Graphviz } from '@hpcc-js/wasm';
+
 import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
 import { App, Config, Flags, Theme } from './index.d';
+import * as Graph from './graph';
 
 // Vela consts
 const feedbackURL: string =
@@ -123,3 +127,32 @@ function envOrNull(env: string, subst: string): string | null {
   // value was substituted, return it
   return subst;
 }
+
+// track rendering options globally to help determine draw logic
+var opts = {
+  currentBuild: -1,
+  isRefreshDraw: false,
+  centerOnDraw: false,
+  contentFilter: '',
+  onGraphInteraction: {},
+};
+
+app.ports.renderBuildGraph.subscribe(function (graphData) {
+  const graphviz = Graphviz.load().then(res => {
+    var content = res.layout(graphData.dot, 'svg', 'dot');
+    // construct graph building options
+    opts.isRefreshDraw = opts.currentBuild === graphData.buildID;
+    opts.centerOnDraw = graphData.centerOnDraw;
+    opts.contentFilter = graphData.filter;
+
+    // track the currently drawn build
+    opts.currentBuild = graphData.buildID;
+
+    opts.onGraphInteraction = app.ports.onGraphInteraction;
+
+    // dispatch the draw command to avoid elm/js rendering race condition
+    setTimeout(() => {
+      Graph.drawGraph(opts, content);
+    }, 0);
+  });
+});

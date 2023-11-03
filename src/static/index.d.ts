@@ -1,6 +1,4 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
+// SPDX-License-Identifier: Apache-2.0
 
 /* Vela Typescript type definitions to encourage end-to-end type safety
  *
@@ -71,6 +69,8 @@ export type Ports = {
   readonly setRedirect: ToJS<string>;
   readonly setFavicon: ToJS<string>;
   readonly onThemeChange: ToElm<Theme>;
+  readonly renderBuildGraph: ToJS<GraphData>;
+  readonly onGraphInteraction: ToElm<GraphInteraction>;
 };
 
 /**
@@ -95,3 +95,33 @@ export type ToElm<T> = {
  *
  */
 export type Theme = 'theme-light' | 'theme-dark';
+
+/**
+ * Build graph
+ *
+ */
+export type GraphData = {
+  /** @property dot: string */
+  dot: string;
+  /** @property buildID: number */
+  buildID: number;
+  /** @property filter: string */
+  filter: string;
+  /** @property focusedNode: number */
+  focusedNode: number;
+  /** @property showServices: boolean */
+  showServices: boolean;
+  /** @property showSteps: boolean */
+  showSteps: boolean;
+  /** @property centerOnDraw: boolean */
+  centerOnDraw: boolean;
+};
+
+export type GraphInteraction = {
+  /** @property eventType: string */
+  eventType: string;
+  /** @property href: string */
+  href: string;
+  /** @property nodeID: string */
+  nodeID: string;
+};

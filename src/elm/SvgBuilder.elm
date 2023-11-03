@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 module SvgBuilder exposing
     ( buildStatusAnimation
     , buildStatusToIcon
+    , buildVizLegendEdge
+    , buildVizLegendNode
     , hookStatusToIcon
     , hookSuccess
     , recentBuildStatusToIcon
@@ -24,14 +26,17 @@ import Svg.Attributes
         , cx
         , cy
         , d
+        , fill
         , height
         , r
         , strokeLinecap
         , strokeWidth
         , viewBox
         , width
+        , x
         , x1
         , x2
+        , y
         , y1
         , y2
         )
@@ -713,4 +718,65 @@ terminal =
         ]
         [ Svg.polyline [ Svg.Attributes.points "4 17 10 11 4 5" ] []
         , Svg.line [ x1 "12", y1 "19", x2 "20", y2 "19" ] []
+        ]
+
+
+{-| buildVizLegendNode : produces svg for a build graph legend node
+-}
+buildVizLegendNode : List (Svg.Attribute msg) -> Html msg
+buildVizLegendNode attrs =
+    let
+        size =
+            22
+
+        padding =
+            4
+    in
+    svg
+        [ class "elm-build-graph-legend-node"
+        , width <| String.fromInt size
+        , height <| String.fromInt size
+        ]
+        [ Svg.rect
+            ([ width <| String.fromInt (size - padding)
+             , height <| String.fromInt (size - padding)
+             , x <| String.fromInt (padding // 2)
+             , y <| String.fromInt (padding // 2)
+             ]
+                ++ attrs
+            )
+            []
+        ]
+
+
+{-| buildVizLegendEdge : produces line svg for a build graph legend edge
+-}
+buildVizLegendEdge : List (Svg.Attribute msg) -> Html msg
+buildVizLegendEdge attrs =
+    let
+        size =
+            22
+
+        padding =
+            4
+
+        length =
+            22
+    in
+    svg
+        [ width <| String.fromInt size
+        , height <| String.fromInt size
+        , class "elm-build-graph-legend-edge"
+        ]
+        [ Svg.line
+            ([ x1 <| String.fromInt 0
+             , x2 <| String.fromInt length
+             , y1 <| String.fromInt (size // 2)
+             , y2 <| String.fromInt (size // 2)
+             , width <| String.fromInt (size - padding)
+             , height <| String.fromInt (size - padding)
+             ]
+                ++ attrs
+            )
+            []
         ]
