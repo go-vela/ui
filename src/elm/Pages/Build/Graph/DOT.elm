@@ -307,8 +307,6 @@ baseGraphStyles rankdir =
         escapeAttributes
             [ ( "bgcolor", DefaultEscape "transparent" )
             , ( "splines", DefaultEscape "ortho" )
-
-            -- , ( "compound", DefaultEscape "true" )
             ]
     , node =
         escapeAttributes
