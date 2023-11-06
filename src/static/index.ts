@@ -133,7 +133,7 @@ var opts = {
   drawn: false,
   currentBuild: -1,
   sameBuild: false,
-  centerOnDraw: false,
+  freshDraw: false,
   contentFilter: '',
   onGraphInteraction: {},
 };
@@ -144,12 +144,12 @@ app.ports.renderBuildGraph.subscribe(function (graphData) {
 
     // construct graph building options
     // reset the draw state when the build changes
-    if (opts.currentBuild !== graphData.buildID) {
+    if (opts.currentBuild !== graphData.buildID || graphData.freshDraw) {
       opts.drawn = false;
     }
 
     opts.sameBuild = opts.currentBuild === graphData.buildID;
-    opts.centerOnDraw = graphData.centerOnDraw;
+    opts.freshDraw = graphData.freshDraw;
     opts.contentFilter = graphData.filter;
 
     // track the currently drawn build

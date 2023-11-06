@@ -1398,7 +1398,7 @@ encodeBuildGraphRenderData graphData =
         , ( "focusedNode", Encode.int graphData.focusedNode )
         , ( "showServices", Encode.bool graphData.showServices )
         , ( "showSteps", Encode.bool graphData.showSteps )
-        , ( "centerOnDraw", Encode.bool graphData.centerOnDraw )
+        , ( "freshDraw", Encode.bool graphData.freshDraw )
         ]
 
 
@@ -1409,7 +1409,7 @@ type alias BuildGraphRenderInteropData =
     , focusedNode : Int
     , showServices : Bool
     , showSteps : Bool
-    , centerOnDraw : Bool
+    , freshDraw : Bool
     }
 
 

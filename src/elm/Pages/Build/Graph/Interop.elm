@@ -16,7 +16,7 @@ import Vela exposing (encodeBuildGraphRenderData)
 {-| renderBuildGraph : takes partial build model and render options, and returns a cmd for dispatching a graphviz+d3 render command
 -}
 renderBuildGraph : BuildModel.PartialModel a -> Bool -> Cmd msg
-renderBuildGraph model centerOnDraw =
+renderBuildGraph model freshDraw =
     -- rendering the full graph requires repo, build and graph
     case ( model.repo.repo, model.repo.build.build, model.repo.build.graph.graph ) of
         ( Success r, Success b, Success g ) ->
@@ -28,7 +28,7 @@ renderBuildGraph model centerOnDraw =
                     , showServices = model.repo.build.graph.showServices
                     , showSteps = model.repo.build.graph.showSteps
                     , focusedNode = model.repo.build.graph.focusedNode
-                    , centerOnDraw = centerOnDraw
+                    , freshDraw = freshDraw
                     }
 
         _ ->

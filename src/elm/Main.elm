@@ -2160,7 +2160,7 @@ update msg model =
 
                                 cmd =
                                     if not sameBuild then
-                                        renderBuildGraph updatedModel False
+                                        renderBuildGraph updatedModel True
 
                                     else
                                         Cmd.none
@@ -4376,7 +4376,7 @@ loadBuildGraphPage model org repo buildNumber =
             , getBuild um org repo buildNumber
             , getAllBuildSteps um org repo buildNumber Nothing False
             , getBuildGraph um org repo buildNumber False
-            , renderBuildGraph um True
+            , renderBuildGraph um <| not sameResource
             ]
     )
 
