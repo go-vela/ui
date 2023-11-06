@@ -123,10 +123,6 @@ function drawBaseGraphWithZoom(opts, selector, content) {
     resetZoomAndCenter(opts, zoom);
   }
 
-  if (opts.freshDraw) {
-    resetZoomAndCenter(opts, zoom);
-  }
-
   if (!opts.drawn) {
     resetZoomAndCenter(opts, zoom);
   }
