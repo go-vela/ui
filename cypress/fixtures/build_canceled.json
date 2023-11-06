@@ -5,7 +5,7 @@
   "parent": 1,
   "event": "push",
   "status": "canceled",
-  "error": "build canceled in favor of build 7",
+  "error": "build auto canceled in favor of build 7",
   "enqueued": 1572980376,
   "created": 1572980376,
   "started": 1572980375,

@@ -1116,9 +1116,12 @@ viewError build =
 
         Vela.Canceled ->
             let
-                message =
+                defaultLabel =
+                    text "canceled:"
+
+                ( label, message ) =
                     if String.isEmpty build.error then
-                        text "no error message"
+                        ( defaultLabel, text "no error message" )
 
                     else
                         let
@@ -1127,13 +1130,13 @@ viewError build =
                                     |> List.Extra.last
                                     |> Maybe.withDefault ""
                         in
-                        -- check if the last part of the error message was a digit
+                        -- check if the last part of the error message was a number
                         -- to handle auto canceled build messages which come in the
                         -- form of "build was auto canceled in favor of build 42"
                         case String.toInt tgtBuild of
                             -- not an auto cancel message, use the returned error msg
                             Nothing ->
-                                text build.error
+                                ( defaultLabel, text build.error )
 
                             -- some special treatment to turn build number
                             -- into a link to the respective build
@@ -1152,10 +1155,12 @@ viewError build =
                                     msg =
                                         String.replace tgtBuild "" build.error
                                 in
-                                span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text tgtBuild ] ]
+                                ( text "auto canceled:"
+                                , span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text tgtBuild ] ]
+                                )
             in
             div [ class "error", Util.testAttribute "build-error" ]
-                [ span [ class "label" ] [ text "msg:" ]
+                [ span [ class "label" ] [ label ]
                 , span [ class "message" ] [ message ]
                 ]
 
