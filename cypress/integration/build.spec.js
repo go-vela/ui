@@ -314,7 +314,7 @@ context('Build', () => {
       it('build error should contain error', () => {
         cy.get('[data-test=build-error]').contains('auto canceled:');
         cy.get('[data-test=build-error]').contains(
-          'build auto canceled in favor of build 7',
+          'build auto canceled in favor of build #7',
         );
       });
 

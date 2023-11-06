@@ -1156,7 +1156,7 @@ viewError build =
                                         String.replace tgtBuild "" build.error
                                 in
                                 ( text "auto canceled:"
-                                , span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text tgtBuild ] ]
+                                , span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text ("#" ++ tgtBuild) ] ]
                                 )
             in
             div [ class "error", Util.testAttribute "build-error" ]
