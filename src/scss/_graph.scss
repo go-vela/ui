@@ -74,8 +74,8 @@
   }
 }
 
-.elm-build-graph-root {
-  flex: 1;
+svg.elm-build-graph-root {
+  overflow: visible;
 }
 
 .elm-build-graph-error {
