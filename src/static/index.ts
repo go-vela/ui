@@ -130,6 +130,7 @@ function envOrNull(env: string, subst: string): string | null {
 
 // track rendering options globally to help determine draw logic
 var opts = {
+  drawn: false,
   currentBuild: -1,
   isRefreshDraw: false,
   centerOnDraw: false,
@@ -141,6 +142,12 @@ app.ports.renderBuildGraph.subscribe(function (graphData) {
   const graphviz = Graphviz.load().then(res => {
     var content = res.layout(graphData.dot, 'svg', 'dot');
     // construct graph building options
+
+    // reset draw state when build changes
+    if (opts.currentBuild !== graphData.buildID) {
+      opts.drawn = false;
+    }
+
     opts.isRefreshDraw = opts.currentBuild === graphData.buildID;
     opts.centerOnDraw = graphData.centerOnDraw;
     opts.contentFilter = graphData.filter;
@@ -152,7 +159,7 @@ app.ports.renderBuildGraph.subscribe(function (graphData) {
 
     // dispatch the draw command to avoid elm/js rendering race condition
     setTimeout(() => {
-      Graph.drawGraph(opts, content);
+      opts.drawn = Graph.drawGraph(opts, content);
     }, 0);
   });
 });

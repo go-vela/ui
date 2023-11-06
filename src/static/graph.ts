@@ -22,7 +22,8 @@ export function drawGraph(opts, content) {
 
   // check that a valid graph was rendered
   if (buildGraphElement === null || buildGraphElement.node() === null) {
-    return;
+    // control draw state
+    return false;
   }
 
   drawViewbox(opts, buildGraphElement);
@@ -32,6 +33,9 @@ export function drawGraph(opts, content) {
   var edges = drawEdges(opts, buildGraphElement, graphSelectors.edge);
 
   drawNodes(opts, buildGraphElement, graphSelectors.node, edges);
+
+  // control draw state
+  return true;
 }
 
 function drawBaseGraphWithZoom(opts, selector, content) {
@@ -120,6 +124,10 @@ function drawBaseGraphWithZoom(opts, selector, content) {
   }
 
   if (opts.centerOnDraw) {
+    resetZoomAndCenter(opts, zoom);
+  }
+
+  if (!opts.drawn) {
     resetZoomAndCenter(opts, zoom);
   }
 
