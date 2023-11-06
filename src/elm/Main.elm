@@ -2155,8 +2155,11 @@ update msg model =
                                 ugm =
                                     { gm | buildNumber = buildNumber, graph = RemoteData.succeed g }
 
+                                ubm =
+                                    { bm | buildNumber = buildNumber }
+
                                 updatedModel =
-                                    updateRepoModels model rm bm ugm
+                                    updateRepoModels model rm ubm ugm
 
                                 cmd =
                                     if not sameBuild then
