@@ -4367,7 +4367,7 @@ loadBuildGraphPage model org repo buildNumber =
       -- do not load resources if transition is auto refresh, line focus, etc
       -- MUST render graph here, or clicking on nodes won't cause an immediate change
     , if sameBuild && sameResource then
-        renderBuildGraph um False
+        renderBuildGraph um True
 
       else
         Cmd.batch
