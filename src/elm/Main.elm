@@ -1071,7 +1071,7 @@ update msg model =
                                 um_ =
                                     updateRepoModels model rm bm ugm
                             in
-                            ( ugm, Cmd.batch [ renderBuildGraph um_ False ] )
+                            ( ugm, renderBuildGraph um_ False )
 
                         _ ->
                             ( model.repo.build.graph, Cmd.none )
