@@ -144,6 +144,9 @@ app.ports.renderBuildGraph.subscribe(function (graphData) {
 
     // construct graph building options
     // reset the draw state when the build changes
+
+    // what if the first freshDraw is skipped, and the next draw is a fresh
+    // but we never reset this drawn to false
     if (opts.currentBuild !== graphData.buildID || graphData.freshDraw) {
       opts.drawn = false;
     }

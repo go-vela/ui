@@ -1047,7 +1047,10 @@ update msg model =
                     case interaction.eventType of
                         "href" ->
                             ( model.repo.build.graph
-                            , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
+                            , Cmd.batch
+                                [ Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
+                                , Navigation.pushUrl model.navigationKey interaction.href
+                                ]
                             )
 
                         "backdrop_click" ->
@@ -1068,16 +1071,13 @@ update msg model =
                                 um_ =
                                     updateRepoModels model rm bm ugm
                             in
-                            ( ugm, renderBuildGraph um_ False )
+                            ( ugm, Cmd.batch [ renderBuildGraph um_ False ] )
 
                         _ ->
                             ( model.repo.build.graph, Cmd.none )
             in
             ( updateRepoModels model rm bm ugm_
-            , Cmd.batch
-                [ Navigation.pushUrl model.navigationKey interaction.href
-                , cmd
-                ]
+            , cmd
             )
 
         -- Outgoing HTTP requests
@@ -2143,30 +2143,20 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        BuildGraphResponse _ _ buildNumber _ response ->
+        BuildGraphResponse _ _ buildNumber isRefresh response ->
             case response of
                 Ok ( _, g ) ->
                     case model.page of
                         Pages.BuildGraph _ _ _ ->
                             let
-                                sameBuild =
-                                    gm.buildNumber == buildNumber
-
                                 ugm =
                                     { gm | buildNumber = buildNumber, graph = RemoteData.succeed g }
 
                                 updatedModel =
                                     updateRepoModels model rm bm ugm
-
-                                cmd =
-                                    if not sameBuild then
-                                        renderBuildGraph updatedModel True
-
-                                    else
-                                        Cmd.none
                             in
                             ( updatedModel
-                            , cmd
+                            , renderBuildGraph updatedModel <| not isRefresh
                             )
 
                         _ ->
