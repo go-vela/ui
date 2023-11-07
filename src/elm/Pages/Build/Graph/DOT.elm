@@ -416,7 +416,7 @@ nodeLabelTableAttributes =
 
 {-| nodeAttributes : returns the node-specific dynamic attributes
 -}
-nodeAttributes : BuildModel.PartialModel a -> BuildGraph-> BuildGraphNode -> Dict String Attribute
+nodeAttributes : BuildModel.PartialModel a -> BuildGraph -> BuildGraphNode -> Dict String Attribute
 nodeAttributes model buildGraph node =
     let
         -- embed node information in the element id
