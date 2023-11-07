@@ -38,8 +38,8 @@ import Visualization.DOT
 <https://graphviz.org/doc/info/lang.html>
 <https://package.elm-lang.org/packages/elm-community/graph/latest/Graph.DOT>
 -}
-renderDOT : BuildModel.PartialModel a -> Repository -> Build -> BuildGraph -> String
-renderDOT model repo build buildGraph =
+renderDOT : BuildModel.PartialModel a -> BuildGraph -> String
+renderDOT model buildGraph =
     let
         isNodeFocused : String -> BuildGraphNode -> Bool
         isNodeFocused filter n =
@@ -103,15 +103,15 @@ renderDOT model repo build buildGraph =
 
         -- convert nodes and edges to DOT string format
         builtInNodesString =
-            List.map (nodeToString model repo build) builtInNodes
+            List.map (nodeToString model buildGraph) builtInNodes
                 |> String.join "\n"
 
         pipelineNodesString =
-            List.map (nodeToString model repo build) pipelineNodes
+            List.map (nodeToString model buildGraph) pipelineNodes
                 |> String.join "\n"
 
         serviceNodesString =
-            List.map (nodeToString model repo build) serviceNodes
+            List.map (nodeToString model buildGraph) serviceNodes
                 |> String.join "\n"
 
         builtInEdgesString =
@@ -170,8 +170,8 @@ renderDOT model repo build buildGraph =
 a "label" is actually a disguised graphviz table <https://graphviz.org/doc/info/lang.html> that is used to
 render a list of stage-steps as graph content that is recognized by the layout
 -}
-nodeLabel : BuildModel.PartialModel a -> Repository -> Build -> BuildGraphNode -> Bool -> String
-nodeLabel model repo build node showSteps =
+nodeLabel : BuildModel.PartialModel a -> BuildGraph -> BuildGraphNode -> Bool -> String
+nodeLabel model buildGraph node showSteps =
     let
         label =
             node.name
@@ -218,9 +218,9 @@ nodeLabel model repo build node showSteps =
 
         link step =
             Routes.routeToUrl <|
-                Routes.Build repo.org
-                    repo.name
-                    (String.fromInt build.number)
+                Routes.Build buildGraph.org
+                    buildGraph.repo
+                    (String.fromInt buildGraph.buildNumber)
                     (Just <|
                         Focus.resourceFocusFragment
                             "step"
@@ -276,11 +276,11 @@ nodeLabel model repo build node showSteps =
 
 {-| nodeLabel : takes model and a node, and returns the DOT string representation
 -}
-nodeToString : BuildModel.PartialModel a -> Repository -> Build -> Node BuildGraphNode -> String
-nodeToString model repo build node =
+nodeToString : BuildModel.PartialModel a -> BuildGraph -> Node BuildGraphNode -> String
+nodeToString model buildGraph node =
     "  "
         ++ String.fromInt node.id
-        ++ makeAttributes (nodeAttributes model repo build node.label)
+        ++ makeAttributes (nodeAttributes model buildGraph node.label)
 
 
 {-| edgeToString : takes model and a node, and returns the DOT string representation
@@ -416,8 +416,8 @@ nodeLabelTableAttributes =
 
 {-| nodeAttributes : returns the node-specific dynamic attributes
 -}
-nodeAttributes : BuildModel.PartialModel a -> Repository -> Build -> BuildGraphNode -> Dict String Attribute
-nodeAttributes model repo build node =
+nodeAttributes : BuildModel.PartialModel a -> BuildGraph -> BuildGraphNode -> Dict String Attribute
+nodeAttributes model buildGraph node =
     let
         -- embed node information in the element id
         id =
@@ -449,7 +449,7 @@ nodeAttributes model repo build node =
         , ( "id", DefaultJSONLabelEscape id )
         , ( "class", DefaultJSONLabelEscape class )
         , ( "href", DefaultJSONLabelEscape ("#" ++ node.name) )
-        , ( "label", HtmlLabelEscape <| nodeLabel model repo build node showSteps )
+        , ( "label", HtmlLabelEscape <| nodeLabel model buildGraph node showSteps )
         , ( "tooltip", DefaultJSONLabelEscape id )
         ]
 

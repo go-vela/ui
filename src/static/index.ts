@@ -130,9 +130,10 @@ function envOrNull(env: string, subst: string): string | null {
 
 // track rendering options globally to help determine draw logic
 var opts = {
+  drawn: false,
   currentBuild: -1,
-  isRefreshDraw: false,
-  centerOnDraw: false,
+  sameBuild: false,
+  freshDraw: false,
   contentFilter: '',
   onGraphInteraction: {},
 };
@@ -140,19 +141,29 @@ var opts = {
 app.ports.renderBuildGraph.subscribe(function (graphData) {
   const graphviz = Graphviz.load().then(res => {
     var content = res.layout(graphData.dot, 'svg', 'dot');
+
     // construct graph building options
-    opts.isRefreshDraw = opts.currentBuild === graphData.buildID;
-    opts.centerOnDraw = graphData.centerOnDraw;
+    // reset the draw state when the build changes
+
+    // what if the first freshDraw is skipped, and the next draw is a fresh
+    // but we never reset this drawn to false
+    if (opts.currentBuild !== graphData.buildID || graphData.freshDraw) {
+      opts.drawn = false;
+    }
+
+    opts.sameBuild = opts.currentBuild === graphData.buildID;
+    opts.freshDraw = graphData.freshDraw;
     opts.contentFilter = graphData.filter;
 
     // track the currently drawn build
     opts.currentBuild = graphData.buildID;
 
+    // graph interactivity
     opts.onGraphInteraction = app.ports.onGraphInteraction;
 
     // dispatch the draw command to avoid elm/js rendering race condition
     setTimeout(() => {
-      Graph.drawGraph(opts, content);
+      opts.drawn = Graph.drawGraph(opts, content);
     }, 0);
   });
 });

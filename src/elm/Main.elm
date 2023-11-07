@@ -1047,7 +1047,10 @@ update msg model =
                     case interaction.eventType of
                         "href" ->
                             ( model.repo.build.graph
-                            , Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
+                            , Cmd.batch
+                                [ Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
+                                , Navigation.pushUrl model.navigationKey interaction.href
+                                ]
                             )
 
                         "backdrop_click" ->
@@ -1074,10 +1077,7 @@ update msg model =
                             ( model.repo.build.graph, Cmd.none )
             in
             ( updateRepoModels model rm bm ugm_
-            , Cmd.batch
-                [ Navigation.pushUrl model.navigationKey interaction.href
-                , cmd
-                ]
+            , cmd
             )
 
         -- Outgoing HTTP requests
@@ -2143,15 +2143,12 @@ update msg model =
                 Err error ->
                     ( model, addError error )
 
-        BuildGraphResponse _ _ buildNumber _ response ->
+        BuildGraphResponse _ _ buildNumber isRefresh response ->
             case response of
                 Ok ( _, g ) ->
                     case model.page of
                         Pages.BuildGraph _ _ _ ->
                             let
-                                sameBuild =
-                                    gm.buildNumber == buildNumber
-
                                 ugm =
                                     { gm | buildNumber = buildNumber, graph = RemoteData.succeed g }
 
@@ -2160,16 +2157,9 @@ update msg model =
 
                                 updatedModel =
                                     updateRepoModels model rm ubm ugm
-
-                                cmd =
-                                    if not sameBuild then
-                                        renderBuildGraph updatedModel False
-
-                                    else
-                                        Cmd.none
                             in
                             ( updatedModel
-                            , cmd
+                            , renderBuildGraph updatedModel <| not isRefresh
                             )
 
                         _ ->
@@ -4370,16 +4360,15 @@ loadBuildGraphPage model org repo buildNumber =
       -- do not load resources if transition is auto refresh, line focus, etc
       -- MUST render graph here, or clicking on nodes won't cause an immediate change
     , if sameBuild && sameResource then
-        renderBuildGraph um False
+        renderBuildGraph um True
 
       else
         Cmd.batch
-            [ getRepo um org repo
-            , getBuilds um org repo Nothing Nothing Nothing
+            [ getBuilds um org repo Nothing Nothing Nothing
             , getBuild um org repo buildNumber
             , getAllBuildSteps um org repo buildNumber Nothing False
             , getBuildGraph um org repo buildNumber False
-            , renderBuildGraph um True
+            , renderBuildGraph um <| not sameResource
             ]
     )
 

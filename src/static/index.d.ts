@@ -113,8 +113,8 @@ export type GraphData = {
   showServices: boolean;
   /** @property showSteps: boolean */
   showSteps: boolean;
-  /** @property centerOnDraw: boolean */
-  centerOnDraw: boolean;
+  /** @property freshDraw: boolean */
+  freshDraw: boolean;
 };
 
 export type GraphInteraction = {
