@@ -1386,7 +1386,7 @@ defaultBuildGraphModel =
 
 defaultBuildGraph : BuildGraph
 defaultBuildGraph =
-    BuildGraph Dict.empty []
+    BuildGraph -1 -1 "" "" Dict.empty []
 
 
 encodeBuildGraphRenderData : BuildGraphRenderInteropData -> Encode.Value
@@ -1398,7 +1398,7 @@ encodeBuildGraphRenderData graphData =
         , ( "focusedNode", Encode.int graphData.focusedNode )
         , ( "showServices", Encode.bool graphData.showServices )
         , ( "showSteps", Encode.bool graphData.showSteps )
-        , ( "centerOnDraw", Encode.bool graphData.centerOnDraw )
+        , ( "freshDraw", Encode.bool graphData.freshDraw )
         ]
 
 
@@ -1409,7 +1409,7 @@ type alias BuildGraphRenderInteropData =
     , focusedNode : Int
     , showServices : Bool
     , showSteps : Bool
-    , centerOnDraw : Bool
+    , freshDraw : Bool
     }
 
 
@@ -1425,7 +1425,11 @@ type alias BuildGraphModel =
 
 
 type alias BuildGraph =
-    { nodes : Dict Int BuildGraphNode
+    { buildID : Int
+    , buildNumber : Int
+    , org : Org
+    , repo : Repo
+    , nodes : Dict Int BuildGraphNode
     , edges : List BuildGraphEdge
     }
 
@@ -1454,6 +1458,10 @@ type alias BuildGraphEdge =
 decodeBuildGraph : Decoder BuildGraph
 decodeBuildGraph =
     Decode.succeed BuildGraph
+        |> required "build_id" int
+        |> required "build_number" int
+        |> required "org" string
+        |> required "repo" string
         |> required "nodes" (dict2 int decodeBuildGraphNode)
         |> optional "edges" (Decode.list decodeEdge) []
 

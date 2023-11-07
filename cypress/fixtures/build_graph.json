@@ -1,5 +1,8 @@
 {
   "build_id": 4,
+  "build_number": 4,
+  "org": "github",
+  "repo": "octocat",
   "nodes": {
     "0": {
       "id": 0,
