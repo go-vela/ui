@@ -4361,8 +4361,7 @@ loadBuildGraphPage model org repo buildNumber =
 
       else
         Cmd.batch
-            [ getRepo um org repo
-            , getBuilds um org repo Nothing Nothing Nothing
+            [ getBuilds um org repo Nothing Nothing Nothing
             , getBuild um org repo buildNumber
             , getAllBuildSteps um org repo buildNumber Nothing False
             , getBuildGraph um org repo buildNumber False
