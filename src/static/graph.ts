@@ -119,11 +119,7 @@ function drawBaseGraphWithZoom(opts, selector, content) {
   buildGraphElement.html(content);
 
   // recenter on draw, when necessary
-  if (!opts.sameBuild) {
-    resetZoomAndCenter(opts, zoom);
-  }
-
-  if (!opts.drawn) {
+  if (!opts.sameBuild || !opts.drawn) {
     resetZoomAndCenter(opts, zoom);
   }
 
