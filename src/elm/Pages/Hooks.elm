@@ -120,7 +120,7 @@ hooksToRows now hooks org repo redeliverHook =
 -}
 tableHeaders : Table.Columns
 tableHeaders =
-    [ ( Just "-icon", "" )
+    [ ( Just "-icon", "Status" )
     , ( Nothing, "source" )
     , ( Nothing, "created" )
     , ( Nothing, "host" )
@@ -136,44 +136,37 @@ renderHook now org repo redeliverHook hook =
     tr [ Util.testAttribute <| "hooks-row", hookStatusToRowClass hook.status ]
         [ td
             [ attribute "data-label" "status"
-            , scope "row"
             , class "break-word"
             , class "-icon"
             ]
             [ hookStatusToIcon hook.status ]
         , td
             [ attribute "data-label" "source-id"
-            , scope "row"
             , class "no-wrap"
             ]
             [ small [] [ code [ class "source-id", class "break-word" ] [ text hook.source_id ] ] ]
         , td
             [ attribute "data-label" "created"
-            , scope "row"
             , class "break-word"
             ]
             [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
         , td
             [ attribute "data-label" "host"
-            , scope "row"
             , class "break-word"
             ]
             [ text hook.host ]
         , td
             [ attribute "data-label" "event"
-            , scope "row"
             , class "break-word"
             ]
             [ text hook.event ]
         , td
             [ attribute "data-label" "branch"
-            , scope "row"
             , class "break-word"
             ]
             [ text hook.branch ]
         , td
             [ attribute "data-label" ""
-            , scope "row"
             , class "break-word"
             ]
             [ a
@@ -209,13 +202,26 @@ renderHookError hook =
                     )
                 |> Array.toList
                 |> List.filterMap identity
+
+        msgRow =
+            case hook.status of
+                "skipped" ->
+                    tr [ class "skipped-data", Util.testAttribute "hooks-skipped" ]
+                        [ td [ attribute "colspan" "6" ]
+                            [ code [ class "skipped-content" ]
+                                lines
+                            ]
+                        ]
+
+                _ ->
+                    tr [ class "error-data", Util.testAttribute "hooks-error" ]
+                        [ td [ attribute "colspan" "6" ]
+                            [ code [ class "error-content" ]
+                                lines
+                            ]
+                        ]
     in
-    tr [ class "error-data", Util.testAttribute "hooks-error" ]
-        [ td [ attribute "colspan" "6" ]
-            [ code [ class "error-content" ]
-                lines
-            ]
-        ]
+    msgRow
 
 
 {-| hookStatusToRowClass : takes hook status string and returns style class
@@ -225,6 +231,9 @@ hookStatusToRowClass status =
     case status of
         "success" ->
             class "-success"
+
+        "skipped" ->
+            class "-skipped"
 
         _ ->
             class "-error"

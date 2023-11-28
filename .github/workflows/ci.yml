@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3
         with:
           path: ~/.npm
@@ -40,7 +40,7 @@ jobs:
           key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             cypress-${{ runner.os }}-bin-v2-
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4
         with:
           node-version-file: '.nvmrc'
 
@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3
         with:
           path: ~/.elm
@@ -84,7 +84,7 @@ jobs:
           key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             cypress-${{ runner.os }}-bin-v2-
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4
         with:
           node-version-file: '.nvmrc'
 
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3
         with:
           path: ~/.npm
@@ -122,7 +122,7 @@ jobs:
           key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             cypress-${{ runner.os }}-bin-v2-
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4
         with:
           node-version-file: '.nvmrc'
 
@@ -142,7 +142,7 @@ jobs:
       TERM: xterm
 
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3
         with:
           path: ~/.elm
@@ -167,7 +167,7 @@ jobs:
           key: cypress-${{ runner.os }}-bin-v2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             cypress-${{ runner.os }}-bin-v2-
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4
         with:
           node-version-file: '.nvmrc'
 
@@ -186,7 +186,7 @@ jobs:
     needs: [lint, elm-format, elm-test, integration]
 
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3
         with:
           path: ~/.elm
@@ -205,7 +205,7 @@ jobs:
           key: ${{ runner.os }}-modules-v2-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-modules-v2-
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4
         with:
           node-version-file: '.nvmrc'
 
@@ -221,7 +221,7 @@ jobs:
       #  │││ ││  ├┴┐├┤ ├┬┘
       # ─┴┘└─┘└─┘┴ ┴└─┘┴└─
       - name: push to docker
-        uses: elgohr/Publish-Docker-Github-Action@43dc228e327224b2eda11c8883232afd5b34943b # v5
+        uses: elgohr/Publish-Docker-Github-Action@eb53b3ec07136a6ebaed78d8135806da64f7c7e2 # v5
         with:
           name: target/vela-ui
           cache: true

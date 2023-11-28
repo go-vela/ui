@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Build.View exposing
     ( viewBuild
+    , viewBuildGraph
     , viewBuildServices
     , viewPreview
     , wrapWithBuildPreview
@@ -38,6 +39,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import List.Extra exposing (unique)
 import Nav exposing (viewBuildTabs)
+import Pages.Build.Graph.View
 import Pages.Build.Logs
     exposing
         ( bottomTrackerFocusId
@@ -167,7 +169,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         buildMenuAttributeList : List (Html.Attribute msg)
         buildMenuAttributeList =
-            [ attribute "role" "navigation", id "build-actions" ] ++ Util.open (List.member build.id openMenu)
+            Util.open (List.member build.id openMenu) ++ [ id "build-actions" ]
 
         approveBuild : Html msgs
         approveBuild =
@@ -247,7 +249,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                 details (buildMenuBaseClassList :: buildMenuAttributeList)
                     [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggle (Just build.id) Nothing), Util.testAttribute "build-menu" ]
                         [ text "Actions"
-                        , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+                        , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "show build actions" ]
                         ]
                     , ul [ class "build-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                         [ approveBuild
@@ -497,7 +499,7 @@ viewStepDetails model msgs rm step =
                     [ div [ class "-name" ] [ text step.name ]
                     , div [ class "-duration" ] [ text <| Util.formatRunTime model.time step.started step.finished ]
                     ]
-                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "show build actions" ]
                 ]
             , div [ class "logs-container" ] [ viewStepLogs msgs.logsMsgs model.shift rm step ]
             ]
@@ -1112,7 +1114,7 @@ followButton followStep resourceType number following =
         , onClick <| followStep toFollow
         , attribute "aria-label" <| tooltip ++ " for " ++ resourceType ++ " " ++ number
         ]
-        [ icon |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img", attribute "aria-label" "show build actions" ] ]
 
 
 {-| viewResourceError : checks for build error and renders message
@@ -1165,8 +1167,53 @@ viewError build =
                 ]
 
         Vela.Canceled ->
-            div [ class "error", Util.testAttribute "build-canceled" ]
-                [ text "build was canceled"
+            let
+                defaultLabel =
+                    text "canceled:"
+
+                ( label, message ) =
+                    if String.isEmpty build.error then
+                        ( defaultLabel, text "no error message" )
+
+                    else
+                        let
+                            tgtBuild =
+                                String.split " " build.error
+                                    |> List.Extra.last
+                                    |> Maybe.withDefault ""
+                        in
+                        -- check if the last part of the error message was a number
+                        -- to handle auto canceled build messages which come in the
+                        -- form of "build was auto canceled in favor of build 42"
+                        case String.toInt tgtBuild of
+                            -- not an auto cancel message, use the returned error msg
+                            Nothing ->
+                                ( defaultLabel, text build.error )
+
+                            -- some special treatment to turn build number
+                            -- into a link to the respective build
+                            Just _ ->
+                                let
+                                    linkList =
+                                        String.split "/" build.link
+                                            |> List.reverse
+
+                                    newLink =
+                                        linkList
+                                            |> List.Extra.setAt 0 tgtBuild
+                                            |> List.reverse
+                                            |> String.join "/"
+
+                                    msg =
+                                        String.replace tgtBuild "" build.error
+                                in
+                                ( text "auto canceled:"
+                                , span [] [ text msg, a [ href newLink, Util.testAttribute "new-build-link" ] [ text ("#" ++ tgtBuild) ] ]
+                                )
+            in
+            div [ class "error", Util.testAttribute "build-error" ]
+                [ span [ class "label" ] [ label ]
+                , span [ class "message" ] [ message ]
                 ]
 
         _ ->
@@ -1175,6 +1222,18 @@ viewError build =
                 , span [ class "message" ]
                     [ text "This div is hidden to occupy space for a consistent experience" ]
                 ]
+
+
+
+-- VISUALIZE
+
+
+{-| viewBuildGraph : renders build graph using graphviz and d3
+-}
+viewBuildGraph : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
+viewBuildGraph model msgs org repo buildNumber =
+    wrapWithBuildPreview model msgs org repo buildNumber <|
+        Pages.Build.Graph.View.view model msgs org repo buildNumber
 
 
 
@@ -1205,7 +1264,7 @@ statusToClass status =
             class "-failure"
 
         Vela.Canceled ->
-            class "-failure"
+            class "-canceled"
 
         Vela.Error ->
             class "-error"

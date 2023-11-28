@@ -7,27 +7,41 @@ const A11Y_OPTS = {
     type: 'tag',
     values: ['section508', 'best-practice', 'wcag21aa', 'wcag2aa'],
   },
+  rules: {
+    'page-has-heading-one': { enabled: false },
+  },
 };
+
+const elmExclude = '[style*="padding-left: calc(1ch + 6px)"]';
 
 context('Accessibility (a11y)', () => {
   context('Logged out', () => {
-    it.skip('overview', () => {
-      cy.clearSession();
+    beforeEach(() => {
+      cy.server();
+      cy.route({
+        method: 'GET',
+        url: '/token-refresh',
+        status: 401,
+        response: { message: 'unauthorized' },
+      });
+    });
+
+    it('overview', () => {
       cy.setTheme('theme-light');
       cy.visit('/account/login');
       cy.injectAxe();
       cy.wait(500);
-      cy.checkA11y(A11Y_OPTS);
+      // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
+      cy.checkA11y({ exclude: [elmExclude] }, A11Y_OPTS);
     });
   });
 
   context('Logged in', () => {
     beforeEach(() => {
-      cy.clearSession();
       cy.setTheme('theme-light');
       cy.server();
       // overview page
-      cy.route('GET', '*api/v1/repos*', 'fixture:favorites.json');
+      cy.route('GET', '*api/v1/user*', 'fixture:favorites.json');
       // source repos page
       cy.route(
         'GET',
@@ -58,41 +72,34 @@ context('Accessibility (a11y)', () => {
         'fixture:build_running.json',
       );
     });
-    after(() => {
-      cy.visit('/');
-      cy.server({ enable: false });
-    });
 
-    it.skip('overview', () => {
+    it('overview', () => {
       cy.checkA11yForPage('/', A11Y_OPTS);
     });
 
-    it.skip('source repos', () => {
+    it('source repos', () => {
       cy.checkA11yForPage('/account/source-repos', A11Y_OPTS);
     });
 
-    it.skip('settings', () => {
+    it('settings', () => {
       cy.checkA11yForPage('/github/octocat/settings', A11Y_OPTS);
     });
 
-    it.skip('repo page', () => {
+    it('repo page', () => {
       cy.checkA11yForPage('/github/octocat', A11Y_OPTS);
     });
 
-    it.skip('hooks page', () => {
-      cy.login('/github/octocat/hooks');
-      cy.injectAxe();
-      cy.wait(500);
-      cy.get('[data-test=hook]').click({ multiple: true });
-      cy.checkA11y(A11Y_OPTS);
+    it('hooks page', () => {
+      cy.checkA11yForPage('/github/octocat/hooks', A11Y_OPTS);
     });
 
-    it.skip('build page', () => {
+    it('build page', () => {
       cy.login('/github/octocat/1');
       cy.injectAxe();
       cy.wait(500);
       cy.clickSteps();
-      cy.checkA11y(A11Y_OPTS);
+      // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
+      cy.checkA11y({ exclude: [elmExclude] }, A11Y_OPTS);
     });
   });
 });

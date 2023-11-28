@@ -20,6 +20,7 @@ module Api exposing
     , getAllServices
     , getAllSteps
     , getBuild
+    , getBuildGraph
     , getBuilds
     , getCurrentUser
     , getDeployment
@@ -64,6 +65,7 @@ import Vela
     exposing
         ( AuthParams
         , Build
+        , BuildGraph
         , BuildNumber
         , Builds
         , CurrentUser
@@ -95,6 +97,7 @@ import Vela
         , Templates
         , Type
         , decodeBuild
+        , decodeBuildGraph
         , decodeBuilds
         , decodeCurrentUser
         , decodeDeployment
@@ -757,4 +760,16 @@ updateSchedule model org repo name body =
 deleteSchedule : PartialModel a -> Org -> Repo -> ScheduleName -> Request String
 deleteSchedule model org repo id =
     delete model.velaAPI (Endpoint.Schedule org repo (Just id) Nothing Nothing) Json.Decode.string
+        |> withAuth model.session
+
+
+
+-- GRAPH
+
+
+{-| getBuildGraph : fetches vela build graph by repository and build number
+-}
+getBuildGraph : PartialModel a -> Org -> Repo -> BuildNumber -> Request BuildGraph
+getBuildGraph model org repository buildNumber =
+    get model.velaAPI (Endpoint.BuildGraph org repository buildNumber) decodeBuildGraph
         |> withAuth model.session

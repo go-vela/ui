@@ -1,0 +1,419 @@
+// SPDX-License-Identifier: Apache-2.0
+
+// start: classes controlled by Elm
+
+.elm-build-graph-actions {
+  position: relative;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+
+  border: 1px solid var(--color-bg-light);
+  border-bottom: 0;
+
+  .elm-build-graph-action-toggles {
+    display: flex;
+  }
+
+  .form-control {
+    div {
+      position: relative;
+
+      margin: 1rem;
+    }
+
+    border-left: 1px solid var(--color-bg-light);
+  }
+
+  ul {
+    display: flex;
+    padding-left: 0.8rem;
+
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    margin-right: 1rem;
+  }
+
+  button.-icon {
+    display: flex;
+  }
+}
+
+.build-graph-action-refresh svg {
+  transform: rotate(0.2turn);
+}
+
+.build-graph-action-rotate.-vertical svg {
+  transform: rotate(0.25turn);
+}
+
+.elm-build-graph-window {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 300px;
+  overflow: hidden;
+
+  background: var(--color-bg);
+  border: 1px solid var(--color-bg-light);
+
+  .large-loader {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+
+    margin: 1rem;
+  }
+}
+
+svg.elm-build-graph-root {
+  overflow: visible;
+}
+
+.elm-build-graph-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+
+  background: var(--color-bg-dark);
+  border-bottom: 1px solid var(--color-red);
+}
+
+.elm-build-graph-legend {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+
+  font-size: 0.9rem;
+
+  list-style: none;
+
+  pointer-events: none;
+
+  li {
+    margin-top: 0.4rem;
+    margin-left: -1rem;
+
+    &.-running-hover {
+      animation: dash 100s linear;
+      animation-iteration-count: infinite;
+    }
+  }
+}
+
+.elm-build-graph-legend-node {
+  margin-right: 0.2rem;
+
+  fill: var(--color-bg-dark);
+  stroke: var(--color-gray);
+
+  .-pending,
+  .-running {
+    stroke-dasharray: 7, 4;
+  }
+
+  .-canceled,
+  .-failure {
+    stroke-dasharray: 3 3;
+  }
+
+  .-running {
+    stroke: var(--color-yellow);
+  }
+
+  .-success {
+    stroke: var(--color-green);
+  }
+
+  .-failure {
+    stroke: var(--color-red);
+  }
+
+  .-canceled {
+    stroke: var(--color-cyan-dark);
+  }
+
+  .-killed,
+  .-skipped {
+    stroke: var(--color-lavender);
+    stroke-dasharray: 2, 4;
+    stroke-linecap: round;
+  }
+
+  .-selected {
+    stroke: var(--color-primary);
+    stroke-width: 5;
+  }
+
+  rect {
+    stroke-width: 2;
+  }
+}
+
+.elm-build-graph-legend-edge {
+  margin-right: 0.2rem;
+
+  fill: var(--color-bg-dark);
+  stroke: var(--color-gray);
+
+  .-pending {
+    stroke-dasharray: 5, 3;
+  }
+
+  .-running {
+    stroke: var(--color-yellow);
+    stroke-dasharray: 7, 4;
+  }
+
+  .-success {
+    stroke: var(--color-green);
+  }
+
+  .-failure {
+    stroke: var(--color-red);
+  }
+
+  .-selected {
+    stroke: var(--color-primary);
+  }
+
+  line {
+    stroke-width: 3;
+  }
+}
+
+.elm-build-graph-search-filter {
+  padding-right: 1rem;
+  padding-left: 1rem;
+
+  background-color: var(--color-bg);
+  border-right: 1px solid var(--color-bg-light);
+
+  label {
+    padding-left: 0.5rem;
+  }
+}
+
+.elm-build-graph-search-filter-input {
+  border-bottom: var(--line-width) solid var(--color-primary);
+
+  input:not([type='checkbox']):not([type='radio']) {
+    border-bottom: none;
+  }
+}
+
+// end: classes controlled by Elm
+
+// start: classes controlled by d3
+
+/*! purgecss start ignore */
+
+.d3-build-graph-node {
+  fill: var(--color-bg-dark);
+  stroke: var(--color-bg-dark);
+}
+
+.d3-build-graph-node-a {
+  fill: var(--color-text);
+}
+
+.d3-build-graph-node-outline-rect {
+  fill: none;
+  stroke-width: 1.8;
+
+  &.-pending,
+  &.-running {
+    stroke-dasharray: 10;
+  }
+
+  &.-failure,
+  &.-error,
+  &.-canceled {
+    stroke-dasharray: 4 3;
+  }
+
+  &.-focus {
+    stroke-width: 3;
+  }
+
+  &.-hover {
+    stroke-width: 4;
+  }
+
+  &.-pending {
+    stroke: var(--color-gray);
+  }
+
+  &.-running {
+    animation: dash 25s linear;
+    animation-iteration-count: infinite;
+
+    stroke: var(--color-yellow);
+  }
+
+  &.-success {
+    stroke: var(--color-green);
+  }
+
+  &.-failure,
+  &.-error {
+    stroke: var(--color-red);
+  }
+
+  &.-canceled {
+    stroke: var(--color-cyan-dark);
+  }
+
+  &.-killed,
+  &.-skipped {
+    stroke-dasharray: 5;
+    stroke-linecap: round;
+
+    stroke: var(--color-lavender);
+  }
+
+  &.-focus,
+  &.-hover {
+    stroke: var(--color-primary);
+  }
+}
+
+// icon background
+.d3-build-graph-step-icon {
+  fill: none;
+
+  &.-pending {
+    fill: var(--color-gray);
+  }
+
+  &.-running {
+    fill: var(--color-yellow);
+  }
+
+  &.-success {
+    fill: var(--color-green);
+  }
+
+  &.-failure,
+  &.-error {
+    fill: var(--color-red);
+  }
+
+  &.-canceled {
+    fill: var(--color-cyan-dark);
+  }
+
+  &.-killed,
+  &.-skipped {
+    fill: var(--color-lavender);
+  }
+}
+
+// icon content
+.d3-build-graph-node-a svg {
+  stroke: var(--color-coal-dark);
+  stroke-width: 2;
+
+  &.-error {
+    stroke-width: 3;
+  }
+
+  &.-pending {
+    fill: var(--color-coal-dark);
+  }
+
+  &.-running {
+    fill: var(--color-yellow);
+  }
+
+  &.-success {
+    fill: var(--color-green);
+  }
+
+  &.-failure,
+  &.-error {
+    fill: var(--color-red);
+  }
+
+  &.-canceled {
+    fill: var(--color-cyan-dark);
+  }
+
+  &.-killed,
+  &.-skipped {
+    fill: var(--color-coal-dark);
+  }
+}
+
+.d3-build-graph-node-step-a {
+  &.-hover {
+    text {
+      fill: var(--color-primary);
+    }
+  }
+}
+
+.d3-build-graph-node-step-a-underline {
+  &.-hover {
+    fill: var(--color-primary);
+  }
+}
+
+.d3-build-graph-step-connector {
+  fill: var(--color-gray);
+}
+
+.d3-build-graph-edge-path {
+  animation: none;
+
+  &.-pending,
+  &.-running {
+    stroke-dasharray: 10, 4;
+  }
+
+  &.-pending,
+  &.-success,
+  &.-failure,
+  &.-canceled,
+  &.-killed,
+  &.-skipped,
+  &.-error {
+    stroke-width: 1;
+
+    stroke: var(--color-gray);
+  }
+
+  &.-running {
+    animation: dash 25s linear;
+    animation-iteration-count: infinite;
+
+    stroke: var(--color-yellow);
+    stroke-width: 2;
+  }
+
+  &.-focus,
+  &.-hover {
+    stroke: var(--color-primary);
+    stroke-width: 2;
+  }
+}
+
+.d3-build-graph-edge-tip {
+  fill: var(--color-gray);
+  stroke: var(--color-gray);
+}
+
+// end: classes controlled by d3
+
+/*! purgecss end ignore */

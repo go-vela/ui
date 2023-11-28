@@ -4,7 +4,7 @@
   "url": "https://github.com/github/octocat.git/deployments/5053",
   "user": "user",
   "commit": "ce729516b279c7d7e66012387b39a8c13463fac5",
-  "ref": "refs/heads/master",
+  "ref": "refs/heads/main",
   "task": "deploy:vela",
   "target": "production",
   "description": "Deployment request from Vela",

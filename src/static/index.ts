@@ -2,9 +2,13 @@
 
 // import types
 import * as ClipboardJS from 'clipboard';
+import * as d3 from 'd3';
+import { Graphviz } from '@hpcc-js/wasm';
+
 import { Elm } from '../elm/Main.elm';
 import '../scss/style.scss';
 import { App, Config, Flags, Theme } from './index.d';
+import * as Graph from './graph';
 
 // Vela consts
 const feedbackURL: string =
@@ -123,3 +127,43 @@ function envOrNull(env: string, subst: string): string | null {
   // value was substituted, return it
   return subst;
 }
+
+// track rendering options globally to help determine draw logic
+var opts = {
+  drawn: false,
+  currentBuild: -1,
+  sameBuild: false,
+  freshDraw: false,
+  contentFilter: '',
+  onGraphInteraction: {},
+};
+
+app.ports.renderBuildGraph.subscribe(function (graphData) {
+  const graphviz = Graphviz.load().then(res => {
+    var content = res.layout(graphData.dot, 'svg', 'dot');
+
+    // construct graph building options
+    // reset the draw state when the build changes
+
+    // what if the first freshDraw is skipped, and the next draw is a fresh
+    // but we never reset this drawn to false
+    if (opts.currentBuild !== graphData.buildID || graphData.freshDraw) {
+      opts.drawn = false;
+    }
+
+    opts.sameBuild = opts.currentBuild === graphData.buildID;
+    opts.freshDraw = graphData.freshDraw;
+    opts.contentFilter = graphData.filter;
+
+    // track the currently drawn build
+    opts.currentBuild = graphData.buildID;
+
+    // graph interactivity
+    opts.onGraphInteraction = app.ports.onGraphInteraction;
+
+    // dispatch the draw command to avoid elm/js rendering race condition
+    setTimeout(() => {
+      opts.drawn = Graph.drawGraph(opts, content);
+    }, 0);
+  });
+});

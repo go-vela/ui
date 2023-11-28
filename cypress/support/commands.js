@@ -62,6 +62,7 @@ Cypress.Commands.add('stubBuild', () => {
   cy.fixture('build_success.json').as('successBuild');
   cy.fixture('build_failure.json').as('failureBuild');
   cy.fixture('build_error.json').as('errorBuild');
+  cy.fixture('build_canceled.json').as('cancelBuild');
   cy.route({
     method: 'GET',
     url: 'api/v1/repos/*/*/builds/1',
@@ -91,6 +92,18 @@ Cypress.Commands.add('stubBuild', () => {
     url: 'api/v1/repos/*/*/builds/5',
     status: 200,
     response: '@errorBuild',
+  });
+  cy.route({
+    method: 'GET',
+    url: 'api/v1/repos/*/*/builds/6',
+    status: 200,
+    response: '@cancelBuild',
+  });
+  cy.route({
+    method: 'GET',
+    url: 'api/v1/repos/*/*/builds/7',
+    status: 200,
+    response: '@successBuild',
   });
 });
 
@@ -600,7 +613,8 @@ Cypress.Commands.add('checkA11yForPage', (path = '/', opts = {}) => {
   cy.login(path);
   cy.injectAxe();
   cy.wait(500);
-  cy.checkA11y(opts);
+  // excludes accessibility testing for Elm pop-up that only appears in Cypress and not on the actual UI
+  cy.checkA11y({ exclude: ['[style*="padding-left: calc(1ch + 6px)"]'] }, opts);
 });
 
 Cypress.Commands.add('setTheme', theme => {

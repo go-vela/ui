@@ -102,13 +102,35 @@ td .key .list-item {
   }
 }
 
+.table-base tr.skipped-data {
+  color: var(--color-text);
+
+  border-bottom: 1px solid var(--color-bg-light);
+  border-left: 2px solid var(--color-lavender);
+
+  td {
+    padding-top: 0;
+  }
+}
+
 .table-base tr.-error {
   border-bottom: none;
   border-left: 2px solid var(--color-red);
 }
 
+.table-base tr.-skipped {
+  border-bottom: none;
+  border-left: 2px solid var(--color-lavender);
+}
+
 .table-base .error-content {
   color: var(--color-red-light);
+  font-size: 0.8em;
+  white-space: pre-wrap;
+}
+
+.table-base .skipped-content {
+  color: var(--color-text);
   font-size: 0.8em;
   white-space: pre-wrap;
 }
@@ -119,6 +141,10 @@ td .key .list-item {
 
 .hook-status.-success {
   stroke: var(--color-green);
+}
+
+.hook-status.-skipped {
+  stroke: var(--color-lavender);
 }
 
 .hook-status.-failure {

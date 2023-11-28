@@ -82,7 +82,7 @@ context('Pipeline', () => {
         );
         cy.get('[data-test=pipeline-template-template1_name]').should(
           'contain',
-          'https://github.com/github/octocat/blob/master/template1.yml',
+          'https://github.com/github/octocat/blob/main/template1.yml',
         );
       });
 

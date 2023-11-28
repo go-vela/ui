@@ -3,8 +3,10 @@
 :root {
   // primary colors
   --color-cyan-dark: hsl(192, 100%, 30%); // good for text on offwhite
+  --color-cyan-semi-dark: hsl(192, 100%, 38%);
   --color-cyan: hsl(192, 100%, 50%); // good for text on coal
   --color-cyan-light: hsl(192, 100%, 65%);
+  --color-cyan-lightest: hsl(192, 100%, 81%);
   --color-lavender-dark: hsl(286, 29%, 40%);
   --color-lavender: hsl(286, 29%, 51%); // good for text on offwhite
   --color-lavender-light: hsl(286, 29%, 65%); // good for text on coal
@@ -17,8 +19,10 @@
   --color-offwhite: hsl(0, 0%, 98%); // main light bg
   --color-gray: hsl(0, 0%, 70%);
   --color-gray-light: hsl(0, 0%, 85%);
+  --color-gray-lightest: hsl(0, 0%, 94%);
 
   // status indications
+  --color-red-darkest: hsl(353, 90%, 20%);
   --color-red-dark: hsl(353, 77%, 40%);
   --color-red: hsl(353, 77%, 50%); // passes contrast on light bg
   --color-red-light: hsl(353, 77%, 66%); // passes contrast on coal bg

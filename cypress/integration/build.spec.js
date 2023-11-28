@@ -295,5 +295,33 @@ context('Build', () => {
         cy.get('[data-test=build-error]').contains('failure authenticating');
       });
     });
+
+    context('visit canceled build', () => {
+      beforeEach(() => {
+        cy.visit('/github/octocat/6');
+        cy.get('[data-test=full-build]').as('build');
+        cy.get('@build').get('[data-test=build-status]').as('buildStatus');
+      });
+
+      it('build should have canceled style', () => {
+        cy.get('@buildStatus').should('have.class', '-canceled');
+      });
+
+      it('build error should show', () => {
+        cy.get('[data-test=build-error]').should('be.visible');
+      });
+
+      it('build error should contain error', () => {
+        cy.get('[data-test=build-error]').contains('auto canceled:');
+        cy.get('[data-test=build-error]').contains(
+          'build auto canceled in favor of build #7',
+        );
+      });
+
+      it('clicking superseding build link should direct to new build page', () => {
+        cy.get('[data-test=new-build-link]').click({ force: true });
+        cy.location('pathname').should('eq', '/github/octocat/7');
+      });
+    });
   });
 });

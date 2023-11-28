@@ -387,6 +387,19 @@ toPath page =
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, schedulesCrumbLink, addCrumbStatic ]
 
+                Pages.BuildGraph org repo buildNumber ->
+                    let
+                        orgReposCrumbLink =
+                            ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
+
+                        repoBuildsCrumbLink =
+                            ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
+
+                        buildNumberCrumbStatic =
+                            ( "#" ++ buildNumber, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
+
                 Pages.Login ->
                     []
 
