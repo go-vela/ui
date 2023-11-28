@@ -201,9 +201,9 @@ forkPolicy repo msg =
         [ h2 [ class "settings-title" ] [ text "Fork Build Policy" ]
         , p [ class "settings-description" ] [ text "Change which outside contributors need approval to run a build." ]
         , div [ class "form-controls", class "-stack" ]
-            [ radio repo.approve_fork_build "always" "Always" <| msg repo.org repo.name "approve_fork_build" "always"
-            , radio repo.approve_fork_build "no-write" "Read Only" <| msg repo.org repo.name "approve_fork_build" "no-write"
-            , radio repo.approve_fork_build "never" "Never" <| msg repo.org repo.name "approve_fork_build" "never"
+            [ radio repo.approve_fork_build "fork-always" "Always" <| msg repo.org repo.name "approve_build" "fork-always"
+            , radio repo.approve_fork_build "fork-no-write" "Read Only" <| msg repo.org repo.name "approve_build" "fork-no-write"
+            , radio repo.approve_fork_build "never" "Never" <| msg repo.org repo.name "approve_build" "never"
             ]
         ]
 
@@ -880,10 +880,10 @@ updateAccessTip field =
 updateForkPolicyTip : Field -> Html msg
 updateForkPolicyTip field =
     case field of
-        "always" ->
+        "fork-always" ->
             text " (repository admin must approve all builds from outside contributors)"
 
-        "no-write" ->
+        "fork-no-write" ->
             text " (repository admin must approve all builds from outside contributors with read-only access to the repo)"
 
         "never" ->

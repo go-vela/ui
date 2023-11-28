@@ -981,7 +981,7 @@ decodeRepository =
         |> optional "timeout" int 0
         |> optional "counter" int 0
         |> optional "visibility" string ""
-        |> optional "approve_fork_build" string ""
+        |> optional "approve_build" string ""
         |> optional "private" bool False
         |> optional "trusted" bool False
         |> optional "active" bool False
@@ -1350,6 +1350,8 @@ type alias Build =
     , host : String
     , runtime : String
     , distribution : String
+    , approved_at : Int
+    , approved_by : String
     , deploy_payload : Maybe (List KeyValuePair)
     }
 
@@ -1383,6 +1385,8 @@ decodeBuild =
         |> optional "host" string ""
         |> optional "runtime" string ""
         |> optional "distribution" string ""
+        |> optional "approved_at" int -1
+        |> optional "approved_by" string ""
         |> optional "deploy_payload" decodeDeploymentParameters Nothing
 
 
@@ -1624,6 +1628,9 @@ statusToString status =
     case status of
         Pending ->
             "pending"
+
+        PendingApproval ->
+            "pending approval"
 
         Running ->
             "running"
