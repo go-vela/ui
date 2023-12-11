@@ -1668,7 +1668,7 @@ update msg model =
             case response of
                 Ok _ ->
                     ( model, Cmd.none )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("You have approved the build " ++ String.join "/" [ org, repo, buildNumber ]) Nothing)
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("Build approved to run " ++ String.join "/" [ org, repo, buildNumber ]) Nothing)
 
                 Err error ->
                     ( model, addError error )

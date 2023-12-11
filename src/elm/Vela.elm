@@ -930,7 +930,7 @@ type alias Repository =
     , timeout : Int
     , counter : Int
     , visibility : String
-    , approve_fork_build : String
+    , approve_build : String
     , private : Bool
     , trusted : Bool
     , active : Bool
@@ -1107,7 +1107,7 @@ type alias UpdateRepositoryPayload =
     , allow_tag : Maybe Bool
     , allow_comment : Maybe Bool
     , visibility : Maybe String
-    , approve_fork_build : Maybe String
+    , approve_build : Maybe String
     , limit : Maybe Int
     , timeout : Maybe Int
     , counter : Maybe Int
@@ -1136,7 +1136,7 @@ encodeUpdateRepository repo =
         , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
         , ( "allow_comment", encodeOptional Encode.bool repo.allow_comment )
         , ( "visibility", encodeOptional Encode.string repo.visibility )
-        , ( "approve_fork_build", encodeOptional Encode.string repo.approve_fork_build)
+        , ( "approve_build", encodeOptional Encode.string repo.approve_build)
         , ( "build_limit", encodeOptional Encode.int repo.limit )
         , ( "timeout", encodeOptional Encode.int repo.timeout )
         , ( "counter", encodeOptional Encode.int repo.counter )
@@ -1204,8 +1204,8 @@ buildUpdateRepoStringPayload field value =
         "pipeline_type" ->
             { defaultUpdateRepositoryPayload | pipeline_type = Just value }
 
-        "approve_fork_build" ->
-            { defaultUpdateRepositoryPayload | approve_fork_build = Just value}
+        "approve_build" ->
+            { defaultUpdateRepositoryPayload | approve_build = Just value}
 
         _ ->
             defaultUpdateRepositoryPayload

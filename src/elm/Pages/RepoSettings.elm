@@ -198,12 +198,12 @@ access repo msg =
 forkPolicy : Repository -> RadioUpdate msg -> Html msg
 forkPolicy repo msg =
     section [ class "settings", Util.testAttribute "repo-settings-fork-policy" ]
-        [ h2 [ class "settings-title" ] [ text "Fork Build Policy" ]
+        [ h2 [ class "settings-title" ] [ text "Outside Contributor Permissions" ]
         , p [ class "settings-description" ] [ text "Change which outside contributors need approval to run a build." ]
         , div [ class "form-controls", class "-stack" ]
-            [ radio repo.approve_fork_build "fork-always" "Always" <| msg repo.org repo.name "approve_build" "fork-always"
-            , radio repo.approve_fork_build "fork-no-write" "Read Only" <| msg repo.org repo.name "approve_build" "fork-no-write"
-            , radio repo.approve_fork_build "never" "Never" <| msg repo.org repo.name "approve_build" "never"
+            [ radio repo.approve_build "fork-always" "Always Require Admin Approval" <| msg repo.org repo.name "approve_build" "fork-always"
+            , radio repo.approve_build "fork-no-write" "Require Admin Approval When Contributor Is Read Only" <| msg repo.org repo.name "approve_build" "fork-no-write"
+            , radio repo.approve_build "never" "Never Require Admin Approval" <| msg repo.org repo.name "approve_build" "never"
             ]
         ]
 
@@ -329,9 +329,6 @@ events repo msg =
                 repo.allow_deploy
               <|
                 msg repo.org repo.name "allow_deploy"
-            ]
-        , div []
-            [ pullRequestEventWarning
             ]
         ]
 
@@ -465,21 +462,6 @@ limitWarning maxLimit inLimit =
 
         Nothing ->
             text ""
-
-
-{-| pullRequestEventWarning : renders disclaimer for pull request exposure
--}
-pullRequestEventWarning : Html msg
-pullRequestEventWarning =
-    p [ class "notice" ]
-        [ text "Disclaimer: Vela repos do NOT have the "
-        , strong [] [ text "pull_request" ]
-        , text " event enabled by default. For all public repositories, "
-        , strong [] [ text "any user" ]
-        , text ", even outside of the organization, can open a pull request, triggering a build. "
-        , strong [] [ text "The risks from this can include: changes to the pipeline, arbitrary code execution inside your environment, and exposure of Vela-accessible secrets in your repository." ]
-        , text " You can override this behavior, at your own risk."
-        ]
 
 
 {-| timeoutInput : takes repo, user input, and button action and renders the text input for updating build timeout.
@@ -818,9 +800,9 @@ validForkPolicyUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
 validForkPolicyUpdate originalRepo repoUpdate =
     case originalRepo of
         RemoteData.Success repo ->
-            case repoUpdate.approve_fork_build of
-                Just approve_fork_build ->
-                    repo.approve_fork_build /= approve_fork_build
+            case repoUpdate.approve_build of
+                Just approve_build ->
+                    repo.approve_build /= approve_build
 
                 Nothing ->
                     False
@@ -907,8 +889,8 @@ msgPrefix field =
         "visibility" ->
             "$ visibility set to "
 
-        "approve_fork_build" ->
-            "$ fork policy set to "
+        "approve_build" ->
+            "$ approve build policy set to "
 
         "allow_pull" ->
             "Pull events for $ "
@@ -955,8 +937,8 @@ msgSuffix field repo =
         "visibility" ->
             repo.visibility ++ "."
 
-        "approve_fork_build" ->
-            repo.approve_fork_build ++ "."
+        "approve_build" ->
+            repo.approve_build ++ "."
 
         "allow_pull" ->
             toggleText "allow_pull" repo.allow_pull

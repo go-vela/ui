@@ -131,7 +131,7 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
                     case bld.status of 
                         PendingApproval ->
                             [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
-                            , p [ class "notice" ][ text "An admin of this repository must approve the build to run"]
+                            , p [ class "notice", Util.testAttribute "approve-build-notice" ][ text "An admin of this repository must approve the build to run"]
                             , viewBuildTabs model org repo buildNumber model.page
                             , content
                             ]
