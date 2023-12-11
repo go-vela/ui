@@ -110,8 +110,8 @@ Cypress.Commands.add('stubBuild', () => {
     method: 'GET',
     url: 'api/v1/repos/*/*/builds/8',
     status: 200,
-    response: `@pendingApprovalBuild`
-  })
+    response: `@pendingApprovalBuild`,
+  });
 });
 
 Cypress.Commands.add('stubBuilds', () => {

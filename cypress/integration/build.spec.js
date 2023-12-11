@@ -205,7 +205,7 @@ context('Build', () => {
 
     context('server stubbed Approve Build', () => {
       beforeEach(() => {
-        cy.visit('/github/octocat/8')
+        cy.visit('/github/octocat/8');
         cy.server();
         cy.fixture('build_pending_approval.json').as('approveBuild');
         cy.route({
