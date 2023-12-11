@@ -78,12 +78,11 @@ import Vela
         , Repo
         , RepoModel
         , Service
-        , Status
+        , Status(..)
         , Step
         , Steps
         , defaultStep
         )
-import Vela exposing (Status(..))
 
 
 
@@ -128,13 +127,14 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
         markdown =
             case build.build of
                 RemoteData.Success bld ->
-                    case bld.status of 
+                    case bld.status of
                         PendingApproval ->
                             [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
-                            , p [ class "notice", Util.testAttribute "approve-build-notice" ][ text "An admin of this repository must approve the build to run"]
+                            , p [ class "notice", Util.testAttribute "approve-build-notice" ] [ text "An admin of this repository must approve the build to run" ]
                             , viewBuildTabs model org repo buildNumber model.page
                             , content
                             ]
+
                         _ ->
                             [ viewPreview msgs model.buildMenuOpen False model.time model.zone org repo rm.builds.showTimestamp bld
                             , viewBuildTabs model org repo buildNumber model.page
@@ -191,16 +191,21 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         restartBuild : Html msgs
         restartBuild =
-            li [ class "build-menu-item" ]
-                [ a
-                    [ href "#"
-                    , class "menu-item"
-                    , Util.onClickPreventDefault <| msgs.restartBuild org repo <| String.fromInt build.number
-                    , Util.testAttribute "restart-build"
-                    ]
-                    [ text "Restart Build"
-                    ]
-                ]
+            case build.status of
+                Vela.PendingApproval ->
+                    text ""
+
+                _ ->
+                    li [ class "build-menu-item" ]
+                        [ a
+                            [ href "#"
+                            , class "menu-item"
+                            , Util.onClickPreventDefault <| msgs.restartBuild org repo <| String.fromInt build.number
+                            , Util.testAttribute "restart-build"
+                            ]
+                            [ text "Restart Build"
+                            ]
+                        ]
 
         cancelBuild : Html msgs
         cancelBuild =
@@ -228,7 +233,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                             [ text "Cancel Build"
                             ]
                         ]
-                
+
                 Vela.PendingApproval ->
                     li [ class "build-menu-item" ]
                         [ a

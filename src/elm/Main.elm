@@ -1231,11 +1231,11 @@ update msg model =
                 payload : UpdateRepositoryPayload
                 payload =
                     buildUpdateRepoStringPayload field value
-                
+
                 cmd =
                     if Pages.RepoSettings.validForkPolicyUpdate rm.repo payload then
                         let
-                            body: Http.Body
+                            body : Http.Body
                             body =
                                 Http.jsonBody <| encodeUpdateRepository payload
                         in
@@ -5070,9 +5070,11 @@ getBuildServicesLogs model org repo buildNumber services logFocus refresh =
             )
             services
 
+
 approveBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 approveBuild model org repo buildNumber =
     Api.try (ApprovedBuildResponse org repo buildNumber) <| Api.approveBuild model org repo buildNumber
+
 
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 restartBuild model org repo buildNumber =

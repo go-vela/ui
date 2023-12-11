@@ -9,8 +9,8 @@ module Pages.RepoSettings exposing
     , checkbox
     , enableUpdate
     , validAccessUpdate
-    , validForkPolicyUpdate
     , validEventsUpdate
+    , validForkPolicyUpdate
     , validPipelineTypeUpdate
     , view
     )
@@ -193,6 +193,7 @@ access repo msg =
             ]
         ]
 
+
 {-| forkPolicy : takes model and repo and renders the settings category for updating repo fork policy
 -}
 forkPolicy : Repository -> RadioUpdate msg -> Html msg
@@ -206,6 +207,7 @@ forkPolicy repo msg =
             , radio repo.approve_build "never" "Never Require Admin Approval" <| msg repo.org repo.name "approve_build" "never"
             ]
         ]
+
 
 {-| pipelineType : takes model and repo and renders the settings category for updating repo pipeline type
 -}
@@ -810,6 +812,7 @@ validForkPolicyUpdate originalRepo repoUpdate =
         _ ->
             False
 
+
 {-| validPipelineTypeUpdate : takes model webdata repo and repo pipeline type update and determines if an update is necessary
 -}
 validPipelineTypeUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
@@ -856,6 +859,7 @@ updateAccessTip field =
 
         _ ->
             text ""
+
 
 {-| updateForkPolicyTip : takes field and returns the tip to display after the label.
 -}

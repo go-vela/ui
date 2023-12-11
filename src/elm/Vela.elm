@@ -1136,7 +1136,7 @@ encodeUpdateRepository repo =
         , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
         , ( "allow_comment", encodeOptional Encode.bool repo.allow_comment )
         , ( "visibility", encodeOptional Encode.string repo.visibility )
-        , ( "approve_build", encodeOptional Encode.string repo.approve_build)
+        , ( "approve_build", encodeOptional Encode.string repo.approve_build )
         , ( "build_limit", encodeOptional Encode.int repo.limit )
         , ( "timeout", encodeOptional Encode.int repo.timeout )
         , ( "counter", encodeOptional Encode.int repo.counter )
@@ -1205,7 +1205,7 @@ buildUpdateRepoStringPayload field value =
             { defaultUpdateRepositoryPayload | pipeline_type = Just value }
 
         "approve_build" ->
-            { defaultUpdateRepositoryPayload | approve_build = Just value}
+            { defaultUpdateRepositoryPayload | approve_build = Just value }
 
         _ ->
             defaultUpdateRepositoryPayload

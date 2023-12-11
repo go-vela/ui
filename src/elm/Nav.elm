@@ -531,19 +531,29 @@ restartBuildButton : Org -> Repo -> WebData Build -> (Org -> Repo -> BuildNumber
 restartBuildButton org repo build restartBuild =
     case build of
         RemoteData.Success b ->
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick <| restartBuild org repo <| String.fromInt b.number
-                , Util.testAttribute "restart-build"
-                ]
-                [ text "Restart Build"
-                ]
+            let
+                restartButton =
+                    button
+                        [ classList
+                            [ ( "button", True )
+                            , ( "-outline", True )
+                            ]
+                        , onClick <| restartBuild org repo <| String.fromInt b.number
+                        , Util.testAttribute "restart-build"
+                        ]
+                        [ text "Restart Build"
+                        ]
+            in
+            case b.status of
+                Vela.PendingApproval ->
+                    text ""
+
+                _ ->
+                    restartButton
 
         _ ->
             text ""
+
 
 {-| approveBuildButton: takes org repo and build number and renders button to approve a build run
 -}

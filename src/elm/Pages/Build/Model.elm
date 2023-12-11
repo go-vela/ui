@@ -74,8 +74,10 @@ type alias LogsMsgs msg =
     , followService : FollowResource msg
     }
 
+
 type alias ApproveBuild msg =
     Org -> Repo -> BuildNumber -> msg
+
 
 type alias BuildGraphMsgs msg =
     { refresh : Org -> Repo -> BuildNumber -> msg

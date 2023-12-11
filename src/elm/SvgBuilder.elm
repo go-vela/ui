@@ -587,7 +587,7 @@ buildStatusToIcon status =
     case status of
         Vela.Pending ->
             buildPending
-        
+
         Vela.PendingApproval ->
             buildPending
 
