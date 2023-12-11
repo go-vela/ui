@@ -200,7 +200,7 @@ forkPolicy : Repository -> RadioUpdate msg -> Html msg
 forkPolicy repo msg =
     section [ class "settings", Util.testAttribute "repo-settings-fork-policy" ]
         [ h2 [ class "settings-title" ] [ text "Outside Contributor Permissions" ]
-        , p [ class "settings-description" ] [ text "Change which outside contributors need approval to run a build." ]
+        , p [ class "settings-description" ] [ text "Change which pull request builds from forks need approval to run a build." ]
         , div [ class "form-controls", class "-stack" ]
             [ radio repo.approve_build "fork-always" "Always Require Admin Approval" <| msg repo.org repo.name "approve_build" "fork-always"
             , radio repo.approve_build "fork-no-write" "Require Admin Approval When Contributor Is Read Only" <| msg repo.org repo.name "approve_build" "fork-no-write"
