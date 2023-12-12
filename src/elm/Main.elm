@@ -435,10 +435,12 @@ type Msg
     | RepairRepo Repository
     | UpdateRepoEvent Org Repo Field Bool
     | UpdateRepoAccess Org Repo Field String
+    | UpdateRepoForkPolicy Org Repo Field String
     | UpdateRepoPipelineType Org Repo Field String
     | UpdateRepoLimit Org Repo Field Int
     | UpdateRepoTimeout Org Repo Field Int
     | UpdateRepoCounter Org Repo Field Int
+    | ApproveBuild Org Repo BuildNumber
     | RestartBuild Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
     | RedeliverHook Org Repo HookNumber
@@ -457,6 +459,7 @@ type Msg
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoChownedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RepoRepairedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | ApprovedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RestartedBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | CancelBuildResponse Org Repo BuildNumber (Result (Http.Detailed.Error String) ( Http.Metadata, Build ))
     | OrgBuildsResponse Org (Result (Http.Detailed.Error String) ( Http.Metadata, Builds ))
@@ -1223,6 +1226,28 @@ update msg model =
             , cmd
             )
 
+        UpdateRepoForkPolicy org repo field value ->
+            let
+                payload : UpdateRepositoryPayload
+                payload =
+                    buildUpdateRepoStringPayload field value
+
+                cmd =
+                    if Pages.RepoSettings.validForkPolicyUpdate rm.repo payload then
+                        let
+                            body : Http.Body
+                            body =
+                                Http.jsonBody <| encodeUpdateRepository payload
+                        in
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+
+                    else
+                        Cmd.none
+            in
+            ( model
+            , cmd
+            )
+
         UpdateRepoPipelineType org repo field value ->
             let
                 payload : UpdateRepositoryPayload
@@ -1285,6 +1310,15 @@ update msg model =
             in
             ( model
             , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            )
+
+        ApproveBuild org repo buildNumber ->
+            let
+                newModel =
+                    { model | buildMenuOpen = [] }
+            in
+            ( newModel
+            , approveBuild model org repo buildNumber
             )
 
         RestartBuild org repo buildNumber ->
@@ -1626,6 +1660,15 @@ update msg model =
                     , Cmd.none
                     )
                         |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " has been repaired.") Nothing)
+
+                Err error ->
+                    ( model, addError error )
+
+        ApprovedBuildResponse org repo buildNumber response ->
+            case response of
+                Ok _ ->
+                    ( model, Cmd.none )
+                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("Build approved to run " ++ String.join "/" [ org, repo, buildNumber ]) Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -4819,7 +4862,7 @@ homeMsgs =
 -}
 navMsgs : Nav.Msgs Msg
 navMsgs =
-    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets RestartBuild CancelBuild
+    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets ApproveBuild RestartBuild CancelBuild
 
 
 {-| sourceReposMsgs : prepares the input record required for the SourceRepos page to route Msgs back to Main.elm
@@ -4833,7 +4876,7 @@ sourceReposMsgs =
 -}
 repoSettingsMsgs : Pages.RepoSettings.Msgs Msg
 repoSettingsMsgs =
-    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoLimit ChangeRepoLimit UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo UpdateRepoPipelineType
+    Pages.RepoSettings.Msgs UpdateRepoEvent UpdateRepoAccess UpdateRepoForkPolicy UpdateRepoLimit ChangeRepoLimit UpdateRepoTimeout ChangeRepoTimeout UpdateRepoCounter ChangeRepoCounter DisableRepo EnableRepo Copy ChownRepo RepairRepo UpdateRepoPipelineType
 
 
 {-| buildMsgs : prepares the input record required for the Build pages to route Msgs back to Main.elm
@@ -4846,6 +4889,7 @@ buildMsgs =
     , collapseAllServices = CollapseAllServices
     , expandAllServices = ExpandAllServices
     , expandService = ExpandService
+    , approveBuild = ApproveBuild
     , restartBuild = RestartBuild
     , cancelBuild = CancelBuild
     , toggle = ShowHideBuildMenu
@@ -5025,6 +5069,11 @@ getBuildServicesLogs model org repo buildNumber services logFocus refresh =
                     Cmd.none
             )
             services
+
+
+approveBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+approveBuild model org repo buildNumber =
+    Api.try (ApprovedBuildResponse org repo buildNumber) <| Api.approveBuild model org repo buildNumber
 
 
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg

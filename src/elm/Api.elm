@@ -8,6 +8,7 @@ module Api exposing
     , addDeployment
     , addSchedule
     , addSecret
+    , approveBuild
     , cancelBuild
     , chownRepo
     , deleteRepo
@@ -553,6 +554,14 @@ getPipelineTemplates model org repository ref =
 restartBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Request Build
 restartBuild model org repository buildNumber =
     post model.velaAPI (Endpoint.Build org repository buildNumber) Http.emptyBody decodeBuild
+        |> withAuth model.session
+
+
+{-| approveBuild : approves a build
+-}
+approveBuild : PartialModel a -> Org -> Repo -> BuildNumber -> Request String
+approveBuild model org repository buildNumber =
+    post model.velaAPI (Endpoint.ApproveBuild org repository buildNumber) Http.emptyBody Json.Decode.string
         |> withAuth model.session
 
 

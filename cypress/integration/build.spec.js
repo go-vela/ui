@@ -203,6 +203,33 @@ context('Build', () => {
       });
     });
 
+    context('server stubbed Approve Build', () => {
+      beforeEach(() => {
+        cy.visit('/github/octocat/8');
+        cy.server();
+        cy.fixture('build_pending_approval.json').as('approveBuild');
+        cy.route({
+          method: 'POST',
+          url: 'api/v1/repos/*/*/builds/*/approve',
+          status: 200,
+          response: 'approved build github/octocat/8',
+        });
+        cy.get('[data-test=approve-build]').as('approvedBuild');
+      });
+
+      it('there should be a notice banner', () => {
+        cy.get('[data-test=approve-build-notice').should('exist');
+      });
+
+      it('clicking cancel build should show alert', () => {
+        cy.get('@approvedBuild').click();
+        cy.get('[data-test=alert]').should(
+          'contain',
+          'approved build github/octocat/8',
+        );
+      });
+    });
+
     context('visit running build', () => {
       beforeEach(() => {
         cy.visit('/github/octocat/1');

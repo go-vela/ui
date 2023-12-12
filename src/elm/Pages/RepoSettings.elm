@@ -10,6 +10,7 @@ module Pages.RepoSettings exposing
     , enableUpdate
     , validAccessUpdate
     , validEventsUpdate
+    , validForkPolicyUpdate
     , validPipelineTypeUpdate
     , view
     )
@@ -108,6 +109,7 @@ type alias StringInputChange msg =
 type alias Msgs msg =
     { eventsUpdate : CheckboxUpdate msg
     , accessUpdate : RadioUpdate msg
+    , forkPolicyUpdate : RadioUpdate msg
     , limitUpdate : NumberInputChange msg
     , inLimitChange : StringInputChange msg
     , timeoutUpdate : NumberInputChange msg
@@ -132,8 +134,8 @@ type alias Msgs msg =
 view : WebData Repository -> Msgs msg -> String -> String -> Int -> Html msg
 view repo actions velaAPI velaURL maxLimit =
     let
-        ( accessUpdate, pipelineTypeUpdate ) =
-            ( actions.accessUpdate, actions.pipelineTypeUpdate )
+        ( accessUpdate, forkPolicyUpdate, pipelineTypeUpdate ) =
+            ( actions.accessUpdate, actions.forkPolicyUpdate, actions.pipelineTypeUpdate )
 
         ( limitUpdate, inLimitChange ) =
             ( actions.limitUpdate, actions.inLimitChange )
@@ -155,6 +157,7 @@ view repo actions velaAPI velaURL maxLimit =
             div [ class "repo-settings", Util.testAttribute "repo-settings" ]
                 [ events repo_ eventsUpdate
                 , access repo_ accessUpdate
+                , forkPolicy repo_ forkPolicyUpdate
                 , limit maxLimit repo_.inLimit repo_ limitUpdate inLimitChange
                 , timeout repo_.inTimeout repo_ timeoutUpdate inTimeoutChange
                 , counter repo_.inCounter repo_ counterUpdate inCounterChange
@@ -187,6 +190,21 @@ access repo msg =
         , div [ class "form-controls", class "-stack" ]
             [ radio repo.visibility "private" "Private" <| msg repo.org repo.name "visibility" "private"
             , radio repo.visibility "public" "Any" <| msg repo.org repo.name "visibility" "public"
+            ]
+        ]
+
+
+{-| forkPolicy : takes model and repo and renders the settings category for updating repo fork policy
+-}
+forkPolicy : Repository -> RadioUpdate msg -> Html msg
+forkPolicy repo msg =
+    section [ class "settings", Util.testAttribute "repo-settings-fork-policy" ]
+        [ h2 [ class "settings-title" ] [ text "Outside Contributor Permissions" ]
+        , p [ class "settings-description" ] [ text "Change which pull request builds from forks need approval to run a build." ]
+        , div [ class "form-controls", class "-stack" ]
+            [ radio repo.approve_build "fork-always" "Always Require Admin Approval" <| msg repo.org repo.name "approve_build" "fork-always"
+            , radio repo.approve_build "fork-no-write" "Require Admin Approval When Contributor Is Read Only" <| msg repo.org repo.name "approve_build" "fork-no-write"
+            , radio repo.approve_build "never" "Never Require Admin Approval" <| msg repo.org repo.name "approve_build" "never"
             ]
         ]
 
@@ -314,9 +332,6 @@ events repo msg =
               <|
                 msg repo.org repo.name "allow_deploy"
             ]
-        , div []
-            [ pullRequestEventWarning
-            ]
         ]
 
 
@@ -393,7 +408,7 @@ radio value field title msg =
             , onClick msg
             ]
             []
-        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], updateAccessTip field ]
+        , label [ class "form-label", for <| "radio-" ++ field ] [ strong [] [ text title ], updateAccessTip field, updateForkPolicyTip field ]
         ]
 
 
@@ -449,21 +464,6 @@ limitWarning maxLimit inLimit =
 
         Nothing ->
             text ""
-
-
-{-| pullRequestEventWarning : renders disclaimer for pull request exposure
--}
-pullRequestEventWarning : Html msg
-pullRequestEventWarning =
-    p [ class "notice" ]
-        [ text "Disclaimer: Vela repos do NOT have the "
-        , strong [] [ text "pull_request" ]
-        , text " event enabled by default. For all public repositories, "
-        , strong [] [ text "any user" ]
-        , text ", even outside of the organization, can open a pull request, triggering a build. "
-        , strong [] [ text "The risks from this can include: changes to the pipeline, arbitrary code execution inside your environment, and exposure of Vela-accessible secrets in your repository." ]
-        , text " You can override this behavior, at your own risk."
-        ]
 
 
 {-| timeoutInput : takes repo, user input, and button action and renders the text input for updating build timeout.
@@ -796,6 +796,23 @@ validAccessUpdate originalRepo repoUpdate =
             False
 
 
+{-| validForkPolicyUpdate : takes model webdata repo and repo fork policy update and determines if an update is necessary
+-}
+validForkPolicyUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
+validForkPolicyUpdate originalRepo repoUpdate =
+    case originalRepo of
+        RemoteData.Success repo ->
+            case repoUpdate.approve_build of
+                Just approve_build ->
+                    repo.approve_build /= approve_build
+
+                Nothing ->
+                    False
+
+        _ ->
+            False
+
+
 {-| validPipelineTypeUpdate : takes model webdata repo and repo pipeline type update and determines if an update is necessary
 -}
 validPipelineTypeUpdate : WebData Repository -> UpdateRepositoryPayload -> Bool
@@ -844,6 +861,24 @@ updateAccessTip field =
             text ""
 
 
+{-| updateForkPolicyTip : takes field and returns the tip to display after the label.
+-}
+updateForkPolicyTip : Field -> Html msg
+updateForkPolicyTip field =
+    case field of
+        "fork-always" ->
+            text " (repository admin must approve all builds from outside contributors)"
+
+        "fork-no-write" ->
+            text " (repository admin must approve all builds from outside contributors with read-only access to the repo)"
+
+        "never" ->
+            text " (any outside contributor can run a PR build)"
+
+        _ ->
+            text ""
+
+
 {-| msgPrefix : takes update field and returns alert prefix.
 -}
 msgPrefix : Field -> String
@@ -857,6 +892,9 @@ msgPrefix field =
 
         "visibility" ->
             "$ visibility set to "
+
+        "approve_build" ->
+            "$ approve build policy set to "
 
         "allow_pull" ->
             "Pull events for $ "
@@ -902,6 +940,9 @@ msgSuffix field repo =
 
         "visibility" ->
             repo.visibility ++ "."
+
+        "approve_build" ->
+            repo.approve_build ++ "."
 
         "allow_pull" ->
             toggleText "allow_pull" repo.allow_pull

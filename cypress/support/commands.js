@@ -63,6 +63,7 @@ Cypress.Commands.add('stubBuild', () => {
   cy.fixture('build_failure.json').as('failureBuild');
   cy.fixture('build_error.json').as('errorBuild');
   cy.fixture('build_canceled.json').as('cancelBuild');
+  cy.fixture('build_pending_approval.json').as('pendingApprovalBuild');
   cy.route({
     method: 'GET',
     url: 'api/v1/repos/*/*/builds/1',
@@ -104,6 +105,12 @@ Cypress.Commands.add('stubBuild', () => {
     url: 'api/v1/repos/*/*/builds/7',
     status: 200,
     response: '@successBuild',
+  });
+  cy.route({
+    method: 'GET',
+    url: 'api/v1/repos/*/*/builds/8',
+    status: 200,
+    response: `@pendingApprovalBuild`,
   });
 });
 

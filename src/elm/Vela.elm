@@ -930,6 +930,7 @@ type alias Repository =
     , timeout : Int
     , counter : Int
     , visibility : String
+    , approve_build : String
     , private : Bool
     , trusted : Bool
     , active : Bool
@@ -980,6 +981,7 @@ decodeRepository =
         |> optional "timeout" int 0
         |> optional "counter" int 0
         |> optional "visibility" string ""
+        |> optional "approve_build" string ""
         |> optional "private" bool False
         |> optional "trusted" bool False
         |> optional "active" bool False
@@ -1105,6 +1107,7 @@ type alias UpdateRepositoryPayload =
     , allow_tag : Maybe Bool
     , allow_comment : Maybe Bool
     , visibility : Maybe String
+    , approve_build : Maybe String
     , limit : Maybe Int
     , timeout : Maybe Int
     , counter : Maybe Int
@@ -1118,7 +1121,7 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -1133,6 +1136,7 @@ encodeUpdateRepository repo =
         , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
         , ( "allow_comment", encodeOptional Encode.bool repo.allow_comment )
         , ( "visibility", encodeOptional Encode.string repo.visibility )
+        , ( "approve_build", encodeOptional Encode.string repo.approve_build )
         , ( "build_limit", encodeOptional Encode.int repo.limit )
         , ( "timeout", encodeOptional Encode.int repo.timeout )
         , ( "counter", encodeOptional Encode.int repo.counter )
@@ -1199,6 +1203,9 @@ buildUpdateRepoStringPayload field value =
 
         "pipeline_type" ->
             { defaultUpdateRepositoryPayload | pipeline_type = Just value }
+
+        "approve_build" ->
+            { defaultUpdateRepositoryPayload | approve_build = Just value }
 
         _ ->
             defaultUpdateRepositoryPayload
@@ -1343,6 +1350,8 @@ type alias Build =
     , host : String
     , runtime : String
     , distribution : String
+    , approved_at : Int
+    , approved_by : String
     , deploy_payload : Maybe (List KeyValuePair)
     }
 
@@ -1376,6 +1385,8 @@ decodeBuild =
         |> optional "host" string ""
         |> optional "runtime" string ""
         |> optional "distribution" string ""
+        |> optional "approved_at" int -1
+        |> optional "approved_by" string ""
         |> optional "deploy_payload" decodeDeploymentParameters Nothing
 
 
@@ -1544,6 +1555,7 @@ type Status
     | Killed
     | Canceled
     | Error
+    | PendingApproval
 
 
 {-| toStatus : helper to decode string to Status
@@ -1553,6 +1565,9 @@ toStatus status =
     case status of
         "pending" ->
             succeed Pending
+
+        "pending approval" ->
+            succeed PendingApproval
 
         "running" ->
             succeed Running
@@ -1614,6 +1629,9 @@ statusToString status =
         Pending ->
             "pending"
 
+        PendingApproval ->
+            "pending approval"
+
         Running ->
             "running"
 
@@ -1639,6 +1657,9 @@ isComplete : Status -> Bool
 isComplete status =
     case status of
         Pending ->
+            False
+
+        PendingApproval ->
             False
 
         Running ->
@@ -1677,6 +1698,9 @@ statusToFavicon status =
             "favicon"
                 ++ (case status of
                         Pending ->
+                            "-pending"
+
+                        PendingApproval ->
                             "-pending"
 
                         Running ->

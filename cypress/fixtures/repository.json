@@ -19,5 +19,6 @@
   "allow_deploy": false,
   "allow_tag": false,
   "allow_comment": false,
-  "pipeline_type": "yaml"
+  "pipeline_type": "yaml",
+  "approve_build": "fork-always"
 }

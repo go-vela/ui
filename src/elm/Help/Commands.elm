@@ -109,13 +109,13 @@ commands page =
             [ listDeployments org repo ]
 
         Pages.Build org repo buildNumber _ ->
-            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
+            [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
 
         Pages.BuildServices org repo buildNumber _ ->
-            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
+            [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
 
         Pages.BuildPipeline org repo buildNumber _ _ ->
-            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
+            [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber ]
 
         Pages.BuildGraph org repo buildNumber ->
             [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
@@ -251,6 +251,27 @@ viewBuild org repo buildNumber =
 
         docs =
             Just "/build/view"
+    in
+    Command name content docs noIssue
+
+
+{-| approveBuild : returns cli command for approving a build
+
+    eg.
+    vela approve build --org octocat --repo hello-world --build 1
+
+-}
+approveBuild : Org -> Repo -> BuildNumber -> Command
+approveBuild org repo buildNumber =
+    let
+        name =
+            "Approve Build"
+
+        content =
+            Just <| "vela approve build " ++ buildArgs org repo buildNumber
+
+        docs =
+            Just "/build/approve"
     in
     Command name content docs noIssue
 
