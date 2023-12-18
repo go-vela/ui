@@ -300,4 +300,4 @@ viewCancelButton schedulesModel =
 -}
 schedulesDocsURL : String
 schedulesDocsURL =
-    "https://go-vela.github.io/docs/usage/schedules/"
+    "https://go-vela.github.io/docs/usage/schedule_build/"
