@@ -17,6 +17,7 @@ module Pages.Schedules.Model exposing
     , defaultScheduleUpdate
     )
 
+import Shared
 import Api.Pagination as Pagination
 import Auth.Session exposing (Session)
 import Http
@@ -36,12 +37,9 @@ import Vela exposing (Org, Repo, Schedule, Schedules)
 -}
 type alias PartialModel a msg =
     { a
-        | velaAPI : String
-        , velaScheduleAllowlist : List ( Org, Repo )
-        , session : Session
+        | shared: Shared.Model
         , page : Page
         , time : Posix
-        , zone : Zone
         , schedulesModel : Model msg
     }
 

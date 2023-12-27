@@ -17,6 +17,7 @@ module Pages.Secrets.Model exposing
     , defaultSecretUpdate
     )
 
+import Shared
 import Auth.Session exposing (Session)
 import Http
 import Http.Detailed
@@ -34,9 +35,7 @@ import Vela exposing (Copy, Engine, Key, Org, Repo, Secret, SecretType, Secrets,
 -}
 type alias PartialModel a msg =
     { a
-        | velaAPI : String
-        , velaScheduleAllowlist : List ( Org, Repo )
-        , session : Session
+        | shared : Shared.Model
         , page : Page
         , secretsModel : Model msg
     }

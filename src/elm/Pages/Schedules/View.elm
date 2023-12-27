@@ -51,7 +51,7 @@ viewRepoSchedules : PartialModel a msg -> Org -> Repo -> Html msg
 viewRepoSchedules model org repo =
     let
         schedulesAllowed =
-            Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist
+            Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist
 
         actions =
             if schedulesAllowed then
@@ -80,7 +80,7 @@ viewRepoSchedules model org repo =
                 case model.schedulesModel.schedules of
                     Success s ->
                         ( text "No schedules found for this repo"
-                        , schedulesToRows model.zone org repo s
+                        , schedulesToRows model.shared.zone org repo s
                         )
 
                     Failure error ->
@@ -226,7 +226,7 @@ viewAddSchedule model =
     div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
         [ div []
             [ h2 [] [ text "Add Schedule" ]
-            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
+            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.shared.velaScheduleAllowlist then
                 viewAddForm model
 
               else
@@ -242,7 +242,7 @@ viewEditSchedule model =
     div [ class "manage-schedule", Util.testAttribute "manage-schedule" ]
         [ div []
             [ h2 [] [ text "View/Edit Schedule" ]
-            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.velaScheduleAllowlist then
+            , if Util.checkScheduleAllowlist model.schedulesModel.org model.schedulesModel.repo model.shared.velaScheduleAllowlist then
                 case model.schedulesModel.schedule of
                     Success _ ->
                         viewEditForm model

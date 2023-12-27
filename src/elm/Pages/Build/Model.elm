@@ -16,6 +16,7 @@ module Pages.Build.Model exposing
     , PartialModel
     )
 
+import Shared
 import Browser.Navigation as Navigation
 import Html exposing (Html)
 import Pages exposing (Page)
@@ -32,15 +33,13 @@ import Vela exposing (BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoMo
 -}
 type alias PartialModel a =
     { a
-        | velaScheduleAllowlist : List ( Org, Repo )
+        | shared : Shared.Model
         , navigationKey : Navigation.Key
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
         , page : Page
         , time : Posix
-        , zone : Zone
         , repo : RepoModel
-        , shift : Bool
         , buildMenuOpen : List Int
         , pipeline : PipelineModel
     }

@@ -241,6 +241,7 @@ import Vela
         , updateRepoModels
         , updateRepoTimeout
         )
+import Shared
 import Visualization.DOT as DOT
 
 
@@ -263,37 +264,21 @@ type alias Flags =
 
 type alias Model =
     { page : Page
-    , session : Session
-    , fetchingToken : Bool
     , user : WebData CurrentUser
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
     , repo : RepoModel
-    , velaAPI : String
-    , velaFeedbackURL : String
-    , velaDocsURL : String
-    , velaRedirect : String
-    , velaLogBytesLimit : Int
-    , velaMaxBuildLimit : Int
-    , velaScheduleAllowlist : List ( Org, Repo )
     , navigationKey : Navigation.Key
-    , zone : Zone
     , time : Posix
-    , filters : RepoSearchFilters
-    , favoritesFilter : String
     , entryURL : Url
-    , theme : Theme
-    , shift : Bool
     , visibility : Visibility
-    , showHelp : Bool
-    , showIdentity : Bool
-    , favicon : Favicon
     , schedulesModel : Pages.Schedules.Model.Model Msg
     , secretsModel : Pages.Secrets.Model.Model Msg
     , deploymentModel : Pages.Deployments.Model.Model Msg
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int
+    , shared : Shared.Model
     }
 
 
@@ -318,37 +303,21 @@ init flags url navKey =
         model : Model
         model =
             { page = Pages.Overview
-            , session = Unauthenticated
-            , fetchingToken = String.length flags.velaRedirect == 0
             , user = NotAsked
             , sourceRepos = NotAsked
-            , velaAPI = flags.velaAPI
-            , velaFeedbackURL = flags.velaFeedbackURL
-            , velaDocsURL = flags.velaDocsURL
-            , velaRedirect = flags.velaRedirect
-            , velaLogBytesLimit = flags.velaLogBytesLimit
-            , velaMaxBuildLimit = flags.velaMaxBuildLimit
-            , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
             , navigationKey = navKey
             , toasties = Alerting.initialState
-            , zone = utc
             , time = millisToPosix 0
-            , filters = Dict.empty
-            , favoritesFilter = ""
             , repo = defaultRepoModel
             , entryURL = url
-            , theme = stringToTheme flags.velaTheme
-            , shift = False
             , visibility = Visible
-            , showHelp = False
-            , showIdentity = False
             , buildMenuOpen = []
-            , favicon = defaultFavicon
             , schedulesModel = initSchedulesModel
             , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
+            , shared = Shared.init flags url
             }
 
         ( newModel, newPage ) =
@@ -364,7 +333,7 @@ init flags url navKey =
 
         fetchToken : Cmd Msg
         fetchToken =
-            if model.fetchingToken then
+            if model.shared.fetchingToken then
                 getToken model
 
             else
@@ -374,7 +343,7 @@ init flags url navKey =
     , Cmd.batch
         [ fetchToken
         , newPage
-        , Interop.setTheme <| encodeTheme model.theme
+        , Interop.setTheme <| encodeTheme model.shared.theme
         , setTimeZone
         , setTime
         ]
@@ -517,6 +486,9 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
+        shared =
+            model.shared
+        
         rm =
             model.repo
 
@@ -548,12 +520,12 @@ update msg model =
         SearchSourceRepos org searchBy ->
             let
                 filters =
-                    Dict.update org (\_ -> Just searchBy) model.filters
+                    Dict.update org (\_ -> Just searchBy) model.shared.filters
             in
-            ( { model | filters = filters }, Cmd.none )
+            ( { model | shared = { shared | filters = filters} }, Cmd.none )
 
         SearchFavorites searchBy ->
-            ( { model | favoritesFilter = searchBy }, Cmd.none )
+            ( { model | shared = { shared | favoritesFilter = searchBy} }, Cmd.none )
 
         ChangeRepoLimit limit ->
             let
@@ -645,11 +617,11 @@ update msg model =
             ( { model | repo = rm |> updateBuildsShowTimeStamp }, Cmd.none )
 
         SetTheme theme ->
-            if theme == model.theme then
+            if theme == model.shared.theme then
                 ( model, Cmd.none )
 
             else
-                ( { model | theme = theme }, Interop.setTheme <| encodeTheme theme )
+                ( { model | shared = {shared | theme = theme} }, Interop.setTheme <| encodeTheme theme )
 
         GotoPage pageNumber ->
             case model.page of
@@ -724,13 +696,13 @@ update msg model =
 
         ShowHideHelp show ->
             ( { model
-                | showHelp =
+                | shared = { shared | showHelp =
                     case show of
                         Just s ->
                             s
 
                         Nothing ->
-                            not model.showHelp
+                            not model.shared.showHelp}
               }
             , Cmd.none
             )
@@ -767,13 +739,13 @@ update msg model =
 
         ShowHideIdentity show ->
             ( { model
-                | showIdentity =
+                | shared = { shared | showIdentity =
                     case show of
                         Just s ->
                             s
 
                         Nothing ->
-                            not model.showIdentity
+                            not model.shared.showIdentity}
               }
             , Cmd.none
             )
@@ -960,7 +932,7 @@ update msg model =
         FocusPipelineConfigLineNumber line ->
             let
                 url =
-                    lineRangeId "config" "0" line pipeline.lineFocus model.shift
+                    lineRangeId "config" "0" line pipeline.lineFocus model.shared.shift
             in
             ( { model | pipeline = pipeline }
             , Navigation.pushUrl model.navigationKey <| url
@@ -1090,7 +1062,7 @@ update msg model =
         SignInRequested ->
             -- Login on server needs to accept redirect URL and pass it along to as part of 'state' encoded as base64
             -- so we can parse it when the source provider redirects back to the API
-            ( model, Navigation.load <| Api.Endpoint.toUrl model.velaAPI Api.Endpoint.Login )
+            ( model, Navigation.load <| Api.Endpoint.toUrl model.shared.velaAPI Api.Endpoint.Login )
 
         FetchSourceRepositories ->
             ( { model | sourceRepos = Loading }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
@@ -1447,7 +1419,7 @@ update msg model =
 
         LogoutResponse _ ->
             -- ignoring outcome of request and proceeding to logout
-            ( { model | session = Unauthenticated }
+            ( { model | shared = {shared | session = Unauthenticated} }
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
             )
 
@@ -1457,7 +1429,7 @@ update msg model =
                     let
                         currentSession : Session
                         currentSession =
-                            model.session
+                            model.shared.session
 
                         payload : JwtAccessTokenClaims
                         payload =
@@ -1474,12 +1446,12 @@ update msg model =
                                     let
                                         redirectTo : String
                                         redirectTo =
-                                            case model.velaRedirect of
+                                            case model.shared.velaRedirect of
                                                 "" ->
                                                     Url.toString model.entryURL
 
                                                 _ ->
-                                                    model.velaRedirect
+                                                    model.shared.velaRedirect
                                     in
                                     [ Interop.setRedirect Encode.null
                                     , Navigation.pushUrl model.navigationKey redirectTo
@@ -1488,7 +1460,7 @@ update msg model =
                                 Authenticated _ ->
                                     []
                     in
-                    ( { model | session = Authenticated newSessionDetails, fetchingToken = False }
+                    ( { model | shared = {shared | session = Authenticated newSessionDetails, fetchingToken = False} }
                     , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
                     )
 
@@ -1510,7 +1482,7 @@ update msg model =
                                     let
                                         actions : List (Cmd Msg)
                                         actions =
-                                            case model.session of
+                                            case model.shared.session of
                                                 Unauthenticated ->
                                                     [ redirectPage ]
 
@@ -1519,12 +1491,12 @@ update msg model =
                                                     , redirectPage
                                                     ]
                                     in
-                                    ( { model | session = Unauthenticated, fetchingToken = False }
+                                    ( { model | shared = {shared | session = Unauthenticated, fetchingToken = False }}
                                     , Cmd.batch actions
                                     )
 
                                 _ ->
-                                    ( { model | session = Unauthenticated, fetchingToken = False }
+                                    ( { model | shared = {shared | session = Unauthenticated, fetchingToken = False }}
                                     , Cmd.batch
                                         [ addError error
                                         , redirectPage
@@ -1532,7 +1504,7 @@ update msg model =
                                     )
 
                         _ ->
-                            ( { model | session = Unauthenticated, fetchingToken = False }
+                            ( { model | shared = {shared | session = Unauthenticated, fetchingToken = False }}
                             , Cmd.batch
                                 [ addError error
                                 , redirectPage
@@ -1808,7 +1780,7 @@ update msg model =
                             rm
                                 |> updateOrgRepo org repo
                                 |> updateBuild (RemoteData.succeed build)
-                        , favicon = statusToFavicon build.status
+                        , shared = {shared | favicon = statusToFavicon build.status}
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
@@ -1838,7 +1810,7 @@ update msg model =
                             rm
                                 |> updateOrgRepo org repo
                                 |> updateBuild (RemoteData.succeed build)
-                        , favicon = statusToFavicon build.status
+                        , shared = {shared | favicon = statusToFavicon build.status}
                       }
                     , Cmd.batch
                         [ Interop.setFavicon <| Encode.string <| statusToFavicon build.status
@@ -2217,7 +2189,7 @@ update msg model =
 
         -- Time
         AdjustTimeZone newZone ->
-            ( { model | zone = newZone }
+            ( { model | shared = { shared | zone = newZone} }
             , Cmd.none
             )
 
@@ -2231,9 +2203,9 @@ update msg model =
                 OneSecond ->
                     let
                         ( favicon, updateFavicon ) =
-                            refreshFavicon model.page model.favicon rm.build.build
+                            refreshFavicon model.page model.shared.favicon rm.build.build
                     in
-                    ( { model | time = time, favicon = favicon }
+                    ( { model | time = time, shared = {shared | favicon = favicon} }
                     , Cmd.batch
                         [ updateFavicon
                         , refreshRenderBuildGraph model
@@ -2246,9 +2218,9 @@ update msg model =
                 OneSecondHidden ->
                     let
                         ( favicon, cmd ) =
-                            refreshFavicon model.page model.favicon rm.build.build
+                            refreshFavicon model.page model.shared.favicon rm.build.build
                     in
-                    ( { model | time = time, favicon = favicon }, cmd )
+                    ( { model | time = time, shared = {shared | favicon = favicon} }, cmd )
 
                 FiveSecondHidden data ->
                     ( model, refreshPageHidden model data )
@@ -2289,7 +2261,7 @@ update msg model =
             let
                 m =
                     if key == "Shift" then
-                        { model | shift = True }
+                        { model | shared = {shared | shift = True} }
 
                     else
                         model
@@ -2300,7 +2272,7 @@ update msg model =
             let
                 m =
                     if key == "Shift" then
-                        { model | shift = False }
+                        { model | shared = {shared | shift = False} }
 
                     else
                         model
@@ -2317,7 +2289,7 @@ update msg model =
                         Hidden ->
                             Cmd.none
             in
-            ( { model | visibility = visibility, shift = False }, cmd )
+            ( { model | visibility = visibility, shared = {shared | shift = False} }, cmd )
 
         PushUrl url ->
             ( model
@@ -2784,10 +2756,10 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
 -}
 onMouseDown : String -> Model -> (Maybe Bool -> Msg) -> Sub Msg
 onMouseDown targetId model triggerMsg =
-    if model.showHelp then
+    if model.shared.showHelp then
         Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
 
-    else if model.showIdentity then
+    else if model.shared.showIdentity then
         Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
 
     else if List.length model.buildMenuOpen > 0 then
@@ -2847,7 +2819,7 @@ view model =
     in
     { title = title ++ " - Vela"
     , body =
-        [ lazy2 viewHeader model.session { feedbackLink = model.velaFeedbackURL, docsLink = model.velaDocsURL, theme = model.theme, help = helpArgs model, showId = model.showIdentity }
+        [ lazy2 viewHeader model.shared.session { feedbackLink = model.shared.velaFeedbackURL, docsLink = model.shared.velaDocsURL, theme = model.shared.theme, help = helpArgs model, showId = model.shared.showIdentity }
         , lazy2 Nav.viewNav model navMsgs
         , main_ [ class "content-wrap" ]
             [ viewUtil model
@@ -2863,7 +2835,7 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
+            , lazy3 Pages.Home.view model.user model.shared.favoritesFilter homeMsgs
             )
 
         Pages.SourceRepositories ->
@@ -2871,7 +2843,7 @@ viewContent model =
             , lazy2 Pages.SourceRepos.view
                 { user = model.user
                 , sourceRepos = model.sourceRepos
-                , filters = model.filters
+                , filters = model.shared.filters
                 }
                 sourceReposMsgs
             )
@@ -2902,7 +2874,7 @@ viewContent model =
 
         Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy5 Pages.RepoSettings.view model.repo.repo repoSettingsMsgs model.velaAPI (Url.toString model.entryURL) model.velaMaxBuildLimit
+            , lazy5 Pages.RepoSettings.view model.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.entryURL) model.shared.velaMaxBuildLimit
             )
 
         Pages.RepoSecrets engine org repo _ _ ->
@@ -2991,7 +2963,7 @@ viewContent model =
         Pages.Schedules org repo maybePage _ ->
             let
                 viewPager =
-                    if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+                    if Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist then
                         Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
 
                     else
@@ -3031,7 +3003,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
                     ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy7 Pages.Organization.viewBuilds model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org maybeEvent
+                , lazy7 Pages.Organization.viewBuilds model.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3060,7 +3032,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
                     ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo maybeEvent
+                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo maybeEvent
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3089,7 +3061,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
                     ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo (Just "pull_request")
+                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo (Just "pull_request")
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3118,7 +3090,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
                     ]
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.zone org repo (Just "tag")
+                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo (Just "tag")
                 , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3168,7 +3140,7 @@ viewContent model =
 
         Pages.Settings ->
             ( "Settings"
-            , Pages.Settings.view model.session model.time (Pages.Settings.Msgs Copy)
+            , Pages.Settings.view model.shared.session model.time (Pages.Settings.Msgs Copy)
             )
 
         Pages.Login ->
@@ -3329,7 +3301,7 @@ helpArgs model =
     , repo = helpArg model.repo.repo
     , hooks = helpArg model.repo.hooks.hooks
     , secrets = helpArg model.secretsModel.repoSecrets
-    , show = model.showHelp
+    , show = model.shared.showHelp
     , toggle = ShowHideHelp
     , copy = Copy
     , noOp = NoOp
@@ -3375,7 +3347,8 @@ viewThemeToggle theme =
 
 setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
 setNewPage route model =
-    case ( route, model.session ) of
+    let shared = model.shared in
+    case ( route, model.shared.session ) of
         -- Logged in and on auth flow pages - what are you doing here?
         ( Routes.Login, Authenticated _ ) ->
             ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview )
@@ -3479,7 +3452,7 @@ setNewPage route model =
             loadEditSchedulePage model org repo id
 
         ( Routes.Settings, Authenticated _ ) ->
-            ( { model | page = Pages.Settings, showIdentity = False }, Cmd.none )
+            ( { model | page = Pages.Settings, shared = { shared | showIdentity = False } }, Cmd.none )
 
         ( Routes.Logout, Authenticated _ ) ->
             ( model, getLogout model )
@@ -3496,7 +3469,7 @@ setNewPage route model =
         ( _, Unauthenticated ) ->
             ( { model
                 | page =
-                    if model.fetchingToken then
+                    if model.shared.fetchingToken then
                         model.page
 
                     else
@@ -3832,7 +3805,7 @@ loadRepoSubPage model org repo toPage =
                             Cmd.none
                     , case toPage of
                         Pages.Schedules o r maybePage maybePerPage ->
-                            if Util.checkScheduleAllowlist o r model.velaScheduleAllowlist then
+                            if Util.checkScheduleAllowlist o r model.shared.velaScheduleAllowlist then
                                 getSchedules model o r maybePage maybePerPage
 
                             else
@@ -3874,7 +3847,7 @@ loadRepoSubPage model org repo toPage =
                                     , maybePerPage = maybePerPage
                                 }
                           }
-                        , if Util.checkScheduleAllowlist o r model.velaScheduleAllowlist then
+                        , if Util.checkScheduleAllowlist o r model.shared.velaScheduleAllowlist then
                             getSchedules model o r maybePage maybePerPage
 
                           else
@@ -4171,7 +4144,7 @@ loadEditSchedulePage model org repo id =
       }
     , Cmd.batch
         [ getCurrentUser model
-        , if Util.checkScheduleAllowlist org repo model.velaScheduleAllowlist then
+        , if Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist then
             getSchedule model org repo id
 
           else
@@ -4721,10 +4694,10 @@ updateStepLogs model incomingLog =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repo = updateBuildStepsLogs (updateLog incomingLog logs model.velaLogBytesLimit) rm }
+        { model | repo = updateBuildStepsLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm }
 
     else if incomingLog.id /= 0 then
-        { model | repo = updateBuildStepsLogs (addLog incomingLog logs model.velaLogBytesLimit) rm }
+        { model | repo = updateBuildStepsLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm }
 
     else
         model
@@ -4748,10 +4721,10 @@ updateServiceLogs model incomingLog =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repo = updateBuildServicesLogs (updateLog incomingLog logs model.velaLogBytesLimit) rm }
+        { model | repo = updateBuildServicesLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm }
 
     else if incomingLog.id /= 0 then
-        { model | repo = updateBuildServicesLogs (addLog incomingLog logs model.velaLogBytesLimit) rm }
+        { model | repo = updateBuildServicesLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm }
 
     else
         model

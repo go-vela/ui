@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 
+import Shared
 import Alerts exposing (Alert)
 import Auth.Session exposing (Session)
 import Browser.Navigation as Navigation
@@ -35,14 +36,12 @@ import Vela
 -}
 type alias PartialModel a =
     { a
-        | velaAPI : String
-        , session : Session
+        | shared : Shared.Model
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
         , navigationKey : Navigation.Key
         , time : Posix
         , repo : RepoModel
-        , shift : Bool
         , templates : PipelineTemplates
         , pipeline : PipelineModel
         , page : Page

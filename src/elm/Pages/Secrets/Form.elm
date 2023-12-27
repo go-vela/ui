@@ -169,7 +169,7 @@ viewEventsSelect : SecretForm -> PartialModel a msg -> Html Msg
 viewEventsSelect secretUpdate model =
     let
         schedulesAllowed =
-            Util.checkScheduleAllowlist model.secretsModel.org model.secretsModel.repo model.velaScheduleAllowlist
+            Util.checkScheduleAllowlist model.secretsModel.org model.secretsModel.repo model.shared.velaScheduleAllowlist
 
         scheduleOption =
             if schedulesAllowed then

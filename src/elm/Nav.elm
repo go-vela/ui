@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Nav exposing (Msgs, viewBuildTabs, viewNav, viewUtil)
 
+import Shared
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
 import Html
@@ -48,13 +49,12 @@ import Vela
 
 type alias PartialModel a =
     { a
-        | velaScheduleAllowlist : List ( Org, Repo )
+        | shared: Shared.Model
         , page : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
         , repo : RepoModel
         , time : Posix
-        , zone : Zone
         , pipeline : PipelineModel
     }
 
@@ -253,34 +253,34 @@ viewUtil model =
                 viewOrgTabs rm org model.page
 
             Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
 
             Pages.RepositoryDeployments org repo _ _ ->
-                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
 
             Pages.RepoSecrets _ org repo _ _ ->
-                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
 
             Pages.Schedules org repo _ _ ->
-                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
 
             Pages.Hooks org repo _ _ ->
-                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
 
             Pages.RepoSettings org repo ->
-                viewRepoTabs rm org repo model.page model.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
 
             Pages.Build _ _ _ _ ->
-                Pages.Build.History.view model.time model.zone model.page 10 model.repo
+                Pages.Build.History.view model.time model.shared.zone model.page 10 model.repo
 
             Pages.BuildServices _ _ _ _ ->
-                Pages.Build.History.view model.time model.zone model.page 10 model.repo
+                Pages.Build.History.view model.time model.shared.zone model.page 10 model.repo
 
             Pages.BuildPipeline _ _ _ _ _ ->
-                Pages.Build.History.view model.time model.zone model.page 10 model.repo
+                Pages.Build.History.view model.time model.shared.zone model.page 10 model.repo
 
             Pages.BuildGraph _ _ _ ->
-                Pages.Build.History.view model.time model.zone model.page 10 model.repo
+                Pages.Build.History.view model.time model.shared.zone model.page 10 model.repo
 
             Pages.AddDeployment _ _ ->
                 text ""
