@@ -51,7 +51,6 @@ type alias PartialModel a =
     { a
         | shared : Shared.Model
         , page : Page
-        , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
         , time : Posix
         , pipeline : PipelineModel
@@ -133,19 +132,19 @@ navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild,
                 ]
 
         Pages.RepositoryBuilds org repo _ _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
 
         Pages.RepositoryDeployments org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
 
         Pages.Schedules org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
 
         Pages.RepoSettings org repo ->
-            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
 
         Pages.RepoSecrets _ org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
 
         Pages.Build org repo _ _ ->
             div [ class "buttons" ]
@@ -175,7 +174,7 @@ navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild,
                 ]
 
         Pages.Hooks org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
 
         Pages.OrgSecrets _ _ _ _ ->
             text ""

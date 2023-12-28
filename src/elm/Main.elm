@@ -264,19 +264,18 @@ type alias Flags =
 
 type alias Model =
     { page : Page
-    , user : WebData CurrentUser
-    , sourceRepos : WebData SourceRepositories
     , navigationKey : Navigation.Key
+    , shared : Shared.Model
+    , sourceRepos : WebData SourceRepositories
     , time : Posix
     , entryURL : Url
     , visibility : Visibility
+    , buildMenuOpen : List Int
+    , pipeline : PipelineModel
+    , templates : PipelineTemplates
     , schedulesModel : Pages.Schedules.Model.Model Msg
     , secretsModel : Pages.Secrets.Model.Model Msg
     , deploymentModel : Pages.Deployments.Model.Model Msg
-    , pipeline : PipelineModel
-    , templates : PipelineTemplates
-    , buildMenuOpen : List Int
-    , shared : Shared.Model
     }
 
 
@@ -301,7 +300,6 @@ init flags url navKey =
         model : Model
         model =
             { page = Pages.Overview
-            , user = NotAsked
             , sourceRepos = NotAsked
             , navigationKey = navKey
             , time = millisToPosix 0
@@ -1106,7 +1104,7 @@ update msg model =
                     toFavorite org repo
 
                 ( favorites, favorited ) =
-                    updateFavorites model.user favorite
+                    updateFavorites model.shared.user favorite
 
                 payload : UpdateUserPayload
                 payload =
@@ -1126,7 +1124,7 @@ update msg model =
                     toFavorite org repo
 
                 ( favorites, favorited ) =
-                    addFavorite model.user favorite
+                    addFavorite model.shared.user favorite
 
                 payload : UpdateUserPayload
                 payload =
@@ -1553,12 +1551,12 @@ update msg model =
         CurrentUserResponse response ->
             case response of
                 Ok ( _, user ) ->
-                    ( { model | user = RemoteData.succeed user }
+                    ( { model | shared = { shared | user = RemoteData.succeed user } }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | user = toFailure error }, addError error )
+                    ( { model | shared = { shared | user = toFailure error } }, addError error )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -1573,7 +1571,7 @@ update msg model =
                 Ok ( _, user ) ->
                     let
                         um =
-                            { model | user = RemoteData.succeed user }
+                            { model | shared = { shared | user = RemoteData.succeed user } }
 
                         ( sharedWithAlert, cmd ) =
                             if favorited then
@@ -1585,7 +1583,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( { model | user = toFailure error }, addError error )
+                    ( { model | shared = { shared | user = toFailure error } }, addError error )
 
         RepoResponse response ->
             case response of
@@ -2955,13 +2953,13 @@ viewContent model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
-            , lazy3 Pages.Home.view model.user model.shared.favoritesFilter homeMsgs
+            , lazy3 Pages.Home.view model.shared.user model.shared.favoritesFilter homeMsgs
             )
 
         Pages.SourceRepositories ->
             ( "Source Repositories"
             , lazy2 Pages.SourceRepos.view
-                { user = model.user
+                { user = model.shared.user
                 , sourceRepos = model.sourceRepos
                 , filters = model.shared.filters
                 }
@@ -3412,7 +3410,7 @@ helpArg arg =
 
 helpArgs : Model -> Help.Commands.Model Msg
 helpArgs model =
-    { user = helpArg model.user
+    { user = helpArg model.shared.user
     , sourceRepos = helpArg model.sourceRepos
     , orgRepos = helpArg model.shared.repo.orgRepos.orgRepos
     , builds = helpArg model.shared.repo.builds.builds
@@ -5102,7 +5100,7 @@ getLogout model =
 
 getCurrentUser : Model -> Cmd Msg
 getCurrentUser model =
-    case model.user of
+    case model.shared.user of
         NotAsked ->
             Api.try CurrentUserResponse <| Api.getCurrentUser model
 
