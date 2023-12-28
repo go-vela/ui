@@ -45,7 +45,6 @@ type alias PartialModel a =
         , templates : PipelineTemplates
         , pipeline : PipelineModel
         , page : Page
-        , toasties : Stack Alert
     }
 
 

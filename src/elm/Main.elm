@@ -265,7 +265,6 @@ type alias Flags =
 type alias Model =
     { page : Page
     , user : WebData CurrentUser
-    , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories
     , repo : RepoModel
     , navigationKey : Navigation.Key
@@ -306,7 +305,6 @@ init flags url navKey =
             , user = NotAsked
             , sourceRepos = NotAsked
             , navigationKey = navKey
-            , toasties = Alerting.initialState
             , time = millisToPosix 0
             , repo = defaultRepoModel
             , entryURL = url
@@ -757,13 +755,17 @@ update msg model =
             )
 
         Copy content ->
-            ( model, Cmd.none )
-                |> Alerting.addToast Alerts.successConfig
-                    AlertsUpdate
-                    (Alerts.Success ""
-                        ("Copied " ++ wrapAlertMessage content ++ "to your clipboard.")
-                        Nothing
-                    )
+            let
+                ( sharedWithAlert, cmd ) =
+                    Alerting.addToast Alerts.successConfig
+                        AlertsUpdate
+                        (Alerts.Success ""
+                            ("Copied " ++ wrapAlertMessage content ++ "to your clipboard.")
+                            Nothing
+                        )
+                        ( model.shared, Cmd.none )
+            in
+            ( { model | shared = sharedWithAlert }, cmd )
 
         DownloadFile ext fn filename content ->
             ( model
@@ -1385,11 +1387,13 @@ update msg model =
             case response of
                 Ok ( _, schedule ) ->
                     let
-                        updatedSchedulesModel =
-                            Pages.Schedules.Update.reinitializeScheduleAdd sm
+                        um =
+                            { model | schedulesModel = Pages.Schedules.Update.reinitializeScheduleAdd sm }
+
+                        ( sharedWithAlert, cmd ) =
+                            addScheduleResponseAlert schedule ( um.shared, Cmd.none )
                     in
-                    ( { model | schedulesModel = updatedSchedulesModel }, Cmd.none )
-                        |> addScheduleResponseAlert schedule
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -1398,11 +1402,13 @@ update msg model =
             case response of
                 Ok ( _, schedule ) ->
                     let
-                        updatedSchedulesModel =
-                            Pages.Schedules.Update.reinitializeScheduleUpdate sm schedule
+                        um =
+                            { model | schedulesModel = Pages.Schedules.Update.reinitializeScheduleUpdate sm schedule }
+
+                        ( sharedWithAlert, cmd ) =
+                            updateScheduleResponseAlert schedule ( um.shared, Cmd.none )
                     in
-                    ( { model | schedulesModel = updatedSchedulesModel }, Cmd.none )
-                        |> updateScheduleResponseAlert schedule
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -1416,9 +1422,11 @@ update msg model =
 
                         redirectTo =
                             Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
+
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing) ( model.shared, Navigation.pushUrl model.navigationKey redirectTo )
                     in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+                    ( { model | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -1538,15 +1546,18 @@ update msg model =
         RepoFavoritedResponse favorite favorited response ->
             case response of
                 Ok ( _, user ) ->
-                    ( { model | user = RemoteData.succeed user }
-                    , Cmd.none
-                    )
-                        |> (if favorited then
-                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " added to favorites.") Nothing)
+                    let
+                        um =
+                            { model | user = RemoteData.succeed user }
+
+                        ( sharedWithAlert, cmd ) =
+                            if favorited then
+                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " added to favorites.") Nothing) ( um.shared, Cmd.none )
 
                             else
-                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " removed from favorites.") Nothing)
-                           )
+                                Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (favorite ++ " removed from favorites.") Nothing) ( um.shared, Cmd.none )
+                    in
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( { model | user = toFailure error }, addError error )
@@ -1581,13 +1592,17 @@ update msg model =
         RepoEnabledResponse repo response ->
             case response of
                 Ok ( _, enabledRepo ) ->
-                    ( { model
-                        | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
-                        , repo = updateRepoEnabling Vela.Enabled rm
-                      }
-                    , Util.dispatch <| AddFavorite repo.org <| Just repo.name
-                    )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing)
+                    let
+                        um =
+                            { model
+                                | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
+                                , repo = updateRepoEnabling Vela.Enabled rm
+                            }
+
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (enabledRepo.full_name ++ " enabled.") Nothing) ( um.shared, Util.dispatch <| AddFavorite repo.org <| Just repo.name )
+                    in
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     let
@@ -1599,13 +1614,17 @@ update msg model =
         RepoDisabledResponse repo response ->
             case response of
                 Ok _ ->
-                    ( { model
-                        | repo = updateRepoEnabling Vela.Disabled rm
-                        , sourceRepos = enableUpdate repo NotAsked model.sourceRepos
-                      }
-                    , Cmd.none
-                    )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " disabled.") Nothing)
+                    let
+                        um =
+                            { model
+                                | repo = updateRepoEnabling Vela.Disabled rm
+                                , sourceRepos = enableUpdate repo NotAsked model.sourceRepos
+                            }
+
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " disabled.") Nothing) ( um.shared, Cmd.none )
+                    in
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -1613,8 +1632,14 @@ update msg model =
         RepoUpdatedResponse field response ->
             case response of
                 Ok ( _, updatedRepo ) ->
-                    ( { model | repo = updateRepo (RemoteData.succeed updatedRepo) rm }, Cmd.none )
-                        |> Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing)
+                    let
+                        um =
+                            { model | repo = updateRepo (RemoteData.succeed updatedRepo) rm }
+
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing) ( um.shared, Cmd.none )
+                    in
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -1622,8 +1647,11 @@ update msg model =
         RepoChownedResponse repo response ->
             case response of
                 Ok _ ->
-                    ( model, Cmd.none )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("You are now the owner of " ++ repo.full_name) Nothing)
+                    let
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("You are now the owner of " ++ repo.full_name) Nothing) ( model.shared, Cmd.none )
+                    in
+                    ( { model | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -1631,13 +1659,17 @@ update msg model =
         RepoRepairedResponse repo response ->
             case response of
                 Ok _ ->
-                    ( { model
-                        | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
-                        , repo = updateRepoEnabling Vela.Enabled rm
-                      }
-                    , Cmd.none
-                    )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " has been repaired.") Nothing)
+                    let
+                        um =
+                            { model
+                                | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
+                                , repo = updateRepoEnabling Vela.Enabled rm
+                            }
+
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (repo.full_name ++ " has been repaired.") Nothing) ( um.shared, Cmd.none )
+                    in
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -1645,8 +1677,11 @@ update msg model =
         ApprovedBuildResponse org repo buildNumber response ->
             case response of
                 Ok _ ->
-                    ( model, Cmd.none )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("Build approved to run " ++ String.join "/" [ org, repo, buildNumber ]) Nothing)
+                    let
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("Build approved to run " ++ String.join "/" [ org, repo, buildNumber ]) Nothing) ( model.shared, Cmd.none )
+                    in
+                    ( { model | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -1663,11 +1698,13 @@ update msg model =
 
                         newBuild =
                             String.join "/" [ "", org, repo, newBuildNumber ]
+
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild ))) ( model.shared, getBuilds model org repo Nothing Nothing Nothing )
                     in
-                    ( model
-                    , getBuilds model org repo Nothing Nothing Nothing
+                    ( { model | shared = sharedWithAlert }
+                    , cmd
                     )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (restartedBuild ++ " restarted.") (Just ( "View Build #" ++ newBuildNumber, newBuild )))
 
                 Err error ->
                     ( model, addError error )
@@ -1678,24 +1715,29 @@ update msg model =
                     let
                         canceledBuild =
                             "Build " ++ String.join "/" [ org, repo, buildNumber ]
+
+                        um =
+                            { model
+                                | repo =
+                                    -- update the build if necessary
+                                    case rm.build.build of
+                                        Success b ->
+                                            if b.id == build.id then
+                                                updateBuild (RemoteData.succeed build) rm
+
+                                            else
+                                                rm
+
+                                        _ ->
+                                            rm
+                            }
+
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (canceledBuild ++ " canceled.") Nothing) ( um.shared, Cmd.none )
                     in
-                    ( { model
-                        | repo =
-                            -- update the build if necessary
-                            case rm.build.build of
-                                Success b ->
-                                    if b.id == build.id then
-                                        updateBuild (RemoteData.succeed build) rm
-
-                                    else
-                                        rm
-
-                                _ ->
-                                    rm
-                      }
-                    , Cmd.none
+                    ( { um | shared = sharedWithAlert }
+                    , cmd
                     )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (canceledBuild ++ " canceled.") Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -1769,11 +1811,13 @@ update msg model =
                     let
                         redeliveredHook =
                             "Hook " ++ String.join "/" [ org, repo, hookNumber ]
+
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (redeliveredHook ++ " redelivered.") Nothing) ( model.shared, getHooks model org repo Nothing Nothing )
                     in
-                    ( model
-                    , getHooks model org repo Nothing Nothing
+                    ( { model | shared = sharedWithAlert }
+                    , cmd
                     )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (redeliveredHook ++ " redelivered.") Nothing)
 
                 Err error ->
                     ( model, addError error )
@@ -2086,13 +2130,16 @@ update msg model =
                         secretsModel =
                             model.secretsModel
 
-                        updatedSecretsModel =
-                            Pages.Secrets.Update.reinitializeSecretAdd secretsModel
+                        um =
+                            { model | secretsModel = Pages.Secrets.Update.reinitializeSecretAdd secretsModel }
+
+                        ( sharedWithAlert, cmd ) =
+                            addSecretResponseAlert secret
+                                ( um.shared
+                                , Cmd.none
+                                )
                     in
-                    ( { model | secretsModel = updatedSecretsModel }
-                    , Cmd.none
-                    )
-                        |> addSecretResponseAlert secret
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -2104,13 +2151,16 @@ update msg model =
                         deploymentModel =
                             model.deploymentModel
 
-                        updatedDeploymentModel =
-                            Pages.Deployments.Update.reinitializeDeployment deploymentModel
+                        um =
+                            { model | deploymentModel = Pages.Deployments.Update.reinitializeDeployment deploymentModel }
+
+                        ( sharedWithAlert, cmd ) =
+                            addDeploymentResponseAlert deployment
+                                ( um.shared
+                                , Cmd.none
+                                )
                     in
-                    ( { model | deploymentModel = updatedDeploymentModel }
-                    , Cmd.none
-                    )
-                        |> addDeploymentResponseAlert deployment
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -2122,13 +2172,16 @@ update msg model =
                         secretsModel =
                             model.secretsModel
 
-                        updatedSecretsModel =
-                            Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret
+                        um =
+                            { model | secretsModel = Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret }
+
+                        ( sharedWithAlert, cmd ) =
+                            updateSecretResponseAlert secret
+                                ( um.shared
+                                , Cmd.none
+                                )
                     in
-                    ( { model | secretsModel = updatedSecretsModel }
-                    , Cmd.none
-                    )
-                        |> updateSecretResponseAlert secret
+                    ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -2157,9 +2210,11 @@ update msg model =
 
                         redirectTo =
                             Pages.Secrets.Update.deleteSecretRedirect secretsModel
+
+                        ( sharedWithAlert, cmd ) =
+                            Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing) ( model.shared, Navigation.pushUrl model.navigationKey redirectTo )
                     in
-                    ( model, Navigation.pushUrl model.navigationKey redirectTo )
-                        |> Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing)
+                    ( { model | shared = sharedWithAlert }, cmd )
 
                 Err error ->
                     ( model, addError error )
@@ -2243,11 +2298,18 @@ update msg model =
 
         -- Other
         HandleError error ->
-            ( model, Cmd.none )
-                |> Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error)
+            let
+                ( sharedWithAlert, cmd ) =
+                    Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error) ( model.shared, Cmd.none )
+            in
+            ( { model | shared = sharedWithAlert }, cmd )
 
         AlertsUpdate subMsg ->
-            Alerting.update Alerts.successConfig AlertsUpdate subMsg model
+            let
+                ( sharedWithAlert, cmd ) =
+                    Alerting.update Alerts.successConfig AlertsUpdate subMsg model.shared
+            in
+            ( { model | shared = sharedWithAlert }, cmd )
 
         FocusOn id ->
             ( model, Dom.focus id |> Task.attempt FocusResult )
@@ -2325,8 +2387,8 @@ addDeploymentResponseAlert deployment =
 -}
 addSecretResponseAlert :
     Secret
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { s | toasties : Stack Alert }, Cmd Msg )
+    -> ( { s | toasties : Stack Alert }, Cmd Msg )
 addSecretResponseAlert secret =
     let
         type_ =
@@ -2831,7 +2893,7 @@ view model =
             [ viewUtil model
             , content
             ]
-        , footer [] [ lazy viewAlerts model.toasties ]
+        , footer [] [ lazy viewAlerts model.shared.toasties ]
         ]
     }
 
