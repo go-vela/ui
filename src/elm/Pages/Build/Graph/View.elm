@@ -59,7 +59,7 @@ view model msgs org repo buildNumber =
                         , class "-icon"
                         , class "build-graph-action-rotate"
                         , class <|
-                            case model.repo.build.graph.rankdir of
+                            case model.shared.repo.build.graph.rankdir of
                                 DOT.TB ->
                                     "-vertical"
 
@@ -80,7 +80,7 @@ view model msgs org repo buildNumber =
                     [ div []
                         [ Html.input
                             [ Html.Attributes.type_ "checkbox"
-                            , Html.Attributes.checked model.repo.build.graph.showServices
+                            , Html.Attributes.checked model.shared.repo.build.graph.showServices
                             , onCheck msgs.buildGraphMsgs.showServices
                             , id "checkbox-services-toggle"
                             , Util.testAttribute "build-graph-action-toggle-services"
@@ -95,7 +95,7 @@ view model msgs org repo buildNumber =
                     [ div []
                         [ Html.input
                             [ Html.Attributes.type_ "checkbox"
-                            , Html.Attributes.checked model.repo.build.graph.showSteps
+                            , Html.Attributes.checked model.shared.repo.build.graph.showSteps
                             , onCheck msgs.buildGraphMsgs.showSteps
                             , id "checkbox-steps-toggle"
                             , Util.testAttribute "build-graph-action-toggle-steps"
@@ -114,7 +114,7 @@ view model msgs org repo buildNumber =
                             , Html.Events.onInput msgs.buildGraphMsgs.updateFilter
                             , id "build-graph-action-filter"
                             , Util.testAttribute "build-graph-action-filter"
-                            , Html.Attributes.value model.repo.build.graph.filter
+                            , Html.Attributes.value model.shared.repo.build.graph.filter
                             ]
                             []
                         , Html.label [ class "elm-build-graph-search-filter-form-label", Html.Attributes.for "build-graph-action-filter" ]
@@ -177,7 +177,7 @@ view model msgs org repo buildNumber =
                     , text "complete"
                     ]
                 ]
-            , case model.repo.build.graph.graph of
+            , case model.shared.repo.build.graph.graph of
                 RemoteData.Success _ ->
                     -- dont render anything when the build graph draw command has been dispatched
                     text ""

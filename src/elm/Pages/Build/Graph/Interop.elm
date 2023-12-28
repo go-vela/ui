@@ -18,16 +18,16 @@ import Vela exposing (encodeBuildGraphRenderData)
 renderBuildGraph : BuildModel.PartialModel a -> Bool -> Cmd msg
 renderBuildGraph model freshDraw =
     -- rendering the full graph requires repo, build and graph
-    case model.repo.build.graph.graph of
+    case model.shared.repo.build.graph.graph of
         Success g ->
             Interop.renderBuildGraph <|
                 encodeBuildGraphRenderData
                     { dot = renderDOT model g
                     , buildID = g.buildID
-                    , filter = model.repo.build.graph.filter
-                    , showServices = model.repo.build.graph.showServices
-                    , showSteps = model.repo.build.graph.showSteps
-                    , focusedNode = model.repo.build.graph.focusedNode
+                    , filter = model.shared.repo.build.graph.filter
+                    , showServices = model.shared.repo.build.graph.showServices
+                    , showSteps = model.shared.repo.build.graph.showSteps
+                    , focusedNode = model.shared.repo.build.graph.focusedNode
                     , freshDraw = freshDraw
                     }
 

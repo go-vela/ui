@@ -266,7 +266,6 @@ type alias Model =
     { page : Page
     , user : WebData CurrentUser
     , sourceRepos : WebData SourceRepositories
-    , repo : RepoModel
     , navigationKey : Navigation.Key
     , time : Posix
     , entryURL : Url
@@ -306,7 +305,6 @@ init flags url navKey =
             , sourceRepos = NotAsked
             , navigationKey = navKey
             , time = millisToPosix 0
-            , repo = defaultRepoModel
             , entryURL = url
             , visibility = Visible
             , buildMenuOpen = []
@@ -488,13 +486,13 @@ update msg model =
             model.shared
 
         rm =
-            model.repo
+            shared.repo
 
         bm =
             rm.build
 
         gm =
-            model.repo.build.graph
+            shared.repo.build.graph
 
         sm =
             model.schedulesModel
@@ -530,7 +528,7 @@ update msg model =
                 newLimit =
                     Maybe.withDefault 0 <| String.toInt limit
             in
-            ( { model | repo = updateRepoLimit (Just newLimit) rm }, Cmd.none )
+            ( { model | shared = { shared | repo = updateRepoLimit (Just newLimit) rm } }, Cmd.none )
 
         ChangeRepoTimeout timeout ->
             let
@@ -542,7 +540,7 @@ update msg model =
                         Nothing ->
                             Just 0
             in
-            ( { model | repo = updateRepoTimeout newTimeout rm }, Cmd.none )
+            ( { model | shared = { shared | repo = updateRepoTimeout newTimeout rm } }, Cmd.none )
 
         ChangeRepoCounter counter ->
             let
@@ -554,22 +552,25 @@ update msg model =
                         Nothing ->
                             Just 0
             in
-            ( { model | repo = updateRepoCounter newCounter rm }, Cmd.none )
+            ( { model | shared = { shared | repo = updateRepoCounter newCounter rm } }, Cmd.none )
 
         RefreshSettings org repo ->
             ( { model
-                | repo =
-                    rm
-                        |> updateRepoLimit Nothing
-                        |> updateRepoTimeout Nothing
-                        |> updateRepoCounter Nothing
-                        |> updateRepo Loading
+                | shared =
+                    { shared
+                        | repo =
+                            rm
+                                |> updateRepoLimit Nothing
+                                |> updateRepoTimeout Nothing
+                                |> updateRepoCounter Nothing
+                                |> updateRepo Loading
+                    }
               }
             , Api.try RepoResponse <| Api.getRepo model org repo
             )
 
         RefreshHooks org repo ->
-            ( { model | repo = updateHooks Loading rm }, getHooks model org repo Nothing Nothing )
+            ( { model | shared = { shared | repo = updateHooks Loading rm } }, getHooks model org repo Nothing Nothing )
 
         RefreshSecrets engine type_ org key ->
             let
@@ -603,16 +604,19 @@ update msg model =
                             Routes.RepositoryBuilds org repo Nothing Nothing maybeEvent
             in
             ( { model
-                | repo =
-                    rm
-                        |> updateBuilds Loading
-                        |> updateBuildsPager []
+                | shared =
+                    { shared
+                        | repo =
+                            rm
+                                |> updateBuilds Loading
+                                |> updateBuildsPager []
+                    }
               }
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| route
             )
 
         ShowHideFullTimestamp ->
-            ( { model | repo = rm |> updateBuildsShowTimeStamp }, Cmd.none )
+            ( { model | shared = { shared | repo = rm |> updateBuildsShowTimeStamp } }, Cmd.none )
 
         SetTheme theme ->
             if theme == model.shared.theme then
@@ -624,27 +628,27 @@ update msg model =
         GotoPage pageNumber ->
             case model.page of
                 Pages.OrgBuilds org _ maybePerPage maybeEvent ->
-                    ( { model | repo = updateBuilds Loading rm }
+                    ( { model | shared = { shared | repo = updateBuilds Loading rm } }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgBuilds org (Just pageNumber) maybePerPage maybeEvent
                     )
 
                 Pages.OrgRepositories org _ maybePerPage ->
-                    ( { model | repo = updateOrgRepositories Loading rm }
+                    ( { model | shared = { shared | repo = updateOrgRepositories Loading rm } }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgRepositories org (Just pageNumber) maybePerPage
                     )
 
                 Pages.RepositoryBuilds org repo _ maybePerPage maybeEvent ->
-                    ( { model | repo = updateBuilds Loading rm }
+                    ( { model | shared = { shared | repo = updateBuilds Loading rm } }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent
                     )
 
                 Pages.RepositoryDeployments org repo _ maybePerPage ->
-                    ( { model | repo = updateDeployments Loading rm }
+                    ( { model | shared = { shared | repo = updateDeployments Loading rm } }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryDeployments org repo (Just pageNumber) maybePerPage
                     )
 
                 Pages.Hooks org repo _ maybePerPage ->
-                    ( { model | repo = updateHooks Loading rm }
+                    ( { model | shared = { shared | repo = updateHooks Loading rm } }
                     , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage
                     )
 
@@ -787,7 +791,7 @@ update msg model =
                 action =
                     getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
             in
-            ( { model | repo = updateBuildSteps steps rm }
+            ( { model | shared = { shared | repo = updateBuildSteps steps rm } }
             , action
             )
 
@@ -801,7 +805,7 @@ update msg model =
                         |> RemoteData.unwrap build.steps.steps
                             (\steps_ -> steps_ |> setAllViews False |> RemoteData.succeed)
             in
-            ( { model | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing 0 }
+            ( { model | shared = { shared | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing 0 } }
             , Cmd.none
             )
 
@@ -835,7 +839,7 @@ update msg model =
                     else
                         build.steps.followingStep
             in
-            ( { model | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing follow }
+            ( { model | shared = { shared | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing follow } }
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
@@ -847,7 +851,7 @@ update msg model =
             )
 
         FollowStep follow ->
-            ( { model | repo = updateBuildStepsFollowing follow rm }
+            ( { model | shared = { shared | repo = updateBuildStepsFollowing follow rm } }
             , Cmd.none
             )
 
@@ -866,7 +870,7 @@ update msg model =
                 action =
                     getBuildServicesLogs model org repo buildNumber (RemoteData.withDefault [] services) Nothing True
             in
-            ( { model | repo = updateBuildServices services rm }
+            ( { model | shared = { shared | repo = updateBuildServices services rm } }
             , action
             )
 
@@ -880,7 +884,7 @@ update msg model =
                         |> RemoteData.unwrap build.services.services
                             (\services_ -> services_ |> setAllViews False |> RemoteData.succeed)
             in
-            ( { model | repo = rm |> updateBuildServices services |> updateBuildServicesFollowing 0 }
+            ( { model | shared = { shared | repo = rm |> updateBuildServices services |> updateBuildServicesFollowing 0 } }
             , Cmd.none
             )
 
@@ -914,7 +918,7 @@ update msg model =
                     else
                         build.services.followingService
             in
-            ( { model | repo = rm |> updateBuildServices services |> updateBuildServicesFollowing follow }
+            ( { model | shared = { shared | repo = rm |> updateBuildServices services |> updateBuildServicesFollowing follow } }
             , Cmd.batch <|
                 [ action
                 , if serviceOpened then
@@ -926,7 +930,7 @@ update msg model =
             )
 
         FollowService follow ->
-            ( { model | repo = updateBuildServicesFollowing follow rm }
+            ( { model | shared = { shared | repo = updateBuildServicesFollowing follow rm } }
             , Cmd.none
             )
 
@@ -953,11 +957,14 @@ update msg model =
                         | graph = Loading
                     }
 
-                um_ =
-                    updateRepoModels model rm bm ugm
+                usm =
+                    updateRepoModels model.shared rm bm ugm
+
+                um =
+                    { model | shared = usm }
             in
-            ( um_
-            , getBuildGraph um_ org repo buildNumber True
+            ( um
+            , getBuildGraph um org repo buildNumber True
             )
 
         BuildGraphRotate ->
@@ -975,11 +982,14 @@ update msg model =
                         | rankdir = rankdir
                     }
 
-                um_ =
-                    updateRepoModels model rm bm ugm
+                usm =
+                    updateRepoModels model.shared rm bm ugm
+
+                um =
+                    { model | shared = usm }
             in
-            ( um_
-            , renderBuildGraph um_ False
+            ( um
+            , renderBuildGraph um False
             )
 
         BuildGraphUpdateFilter filter ->
@@ -989,11 +999,14 @@ update msg model =
                         | filter = String.toLower filter
                     }
 
-                um_ =
-                    updateRepoModels model rm bm ugm
+                usm =
+                    updateRepoModels model.shared rm bm ugm
+
+                um =
+                    { model | shared = usm }
             in
-            ( um_
-            , renderBuildGraph um_ False
+            ( um
+            , renderBuildGraph um False
             )
 
         BuildGraphShowServices show ->
@@ -1003,11 +1016,14 @@ update msg model =
                         | showServices = show
                     }
 
-                um_ =
-                    updateRepoModels model rm bm ugm
+                usm =
+                    updateRepoModels model.shared rm bm ugm
+
+                um =
+                    { model | shared = usm }
             in
-            ( um_
-            , renderBuildGraph um_ False
+            ( um
+            , renderBuildGraph um False
             )
 
         BuildGraphShowSteps show ->
@@ -1017,11 +1033,14 @@ update msg model =
                         | showSteps = show
                     }
 
-                um_ =
-                    updateRepoModels model rm bm ugm
+                usm =
+                    updateRepoModels model.shared rm bm ugm
+
+                um =
+                    { model | shared = usm }
             in
-            ( um_
-            , renderBuildGraph um_ False
+            ( um
+            , renderBuildGraph um False
             )
 
         OnBuildGraphInteraction interaction ->
@@ -1029,7 +1048,7 @@ update msg model =
                 ( ugm_, cmd ) =
                     case interaction.eventType of
                         "href" ->
-                            ( model.repo.build.graph
+                            ( model.shared.repo.build.graph
                             , Cmd.batch
                                 [ Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
                                 , Navigation.pushUrl model.navigationKey interaction.href
@@ -1041,25 +1060,31 @@ update msg model =
                                 ugm =
                                     { gm | focusedNode = -1 }
 
-                                um_ =
-                                    updateRepoModels model rm bm ugm
+                                usm =
+                                    updateRepoModels shared rm bm ugm
+
+                                um =
+                                    { model | shared = usm }
                             in
-                            ( ugm, renderBuildGraph um_ False )
+                            ( ugm, renderBuildGraph um False )
 
                         "node_click" ->
                             let
                                 ugm =
                                     { gm | focusedNode = Maybe.withDefault -1 <| String.toInt interaction.nodeID }
 
-                                um_ =
-                                    updateRepoModels model rm bm ugm
+                                usm =
+                                    updateRepoModels shared rm bm ugm
+
+                                um =
+                                    { model | shared = usm }
                             in
-                            ( ugm, renderBuildGraph um_ False )
+                            ( ugm, renderBuildGraph um False )
 
                         _ ->
-                            ( model.repo.build.graph, Cmd.none )
+                            ( model.shared.repo.build.graph, Cmd.none )
             in
-            ( updateRepoModels model rm bm ugm_
+            ( { model | shared = updateRepoModels shared rm bm ugm_ }
             , cmd
             )
 
@@ -1132,7 +1157,7 @@ update msg model =
             in
             ( { model
                 | sourceRepos = enableUpdate repo Loading model.sourceRepos
-                , repo = updateRepoEnabling Vela.Enabling rm
+                , shared = { shared | repo = updateRepoEnabling Vela.Enabling rm }
               }
             , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
             )
@@ -1151,7 +1176,7 @@ update msg model =
                             ( repo.enabling, Cmd.none )
             in
             ( { model
-                | repo = updateRepoEnabling status rm
+                | shared = { shared | repo = updateRepoEnabling status rm }
               }
             , action
             )
@@ -1569,25 +1594,28 @@ update msg model =
                         dm =
                             model.deploymentModel
                     in
-                    ( { model | repo = updateRepo (RemoteData.succeed repoResponse) rm, deploymentModel = { dm | repo_settings = RemoteData.succeed repoResponse } }, Cmd.none )
+                    ( { model | shared = { shared | repo = updateRepo (RemoteData.succeed repoResponse) rm }, deploymentModel = { dm | repo_settings = RemoteData.succeed repoResponse } }, Cmd.none )
 
                 Err error ->
-                    ( { model | repo = updateRepo (toFailure error) rm }, addError error )
+                    ( { model | shared = { shared | repo = updateRepo (toFailure error) rm } }, addError error )
 
         OrgRepositoriesResponse response ->
             case response of
                 Ok ( meta, repoResponse ) ->
                     ( { model
-                        | repo =
-                            rm
-                                |> updateOrgRepositories (RemoteData.succeed repoResponse)
-                                |> updateOrgReposPager (Pagination.get meta.headers)
+                        | shared =
+                            { shared
+                                | repo =
+                                    rm
+                                        |> updateOrgRepositories (RemoteData.succeed repoResponse)
+                                        |> updateOrgReposPager (Pagination.get meta.headers)
+                            }
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | repo = updateOrgRepositories (toFailure error) rm }, addError error )
+                    ( { model | shared = { shared | repo = updateOrgRepositories (toFailure error) rm } }, addError error )
 
         RepoEnabledResponse repo response ->
             case response of
@@ -1596,7 +1624,7 @@ update msg model =
                         um =
                             { model
                                 | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
-                                , repo = updateRepoEnabling Vela.Enabled rm
+                                , shared = { shared | repo = updateRepoEnabling Vela.Enabled rm }
                             }
 
                         ( sharedWithAlert, cmd ) =
@@ -1617,7 +1645,7 @@ update msg model =
                     let
                         um =
                             { model
-                                | repo = updateRepoEnabling Vela.Disabled rm
+                                | shared = { shared | repo = updateRepoEnabling Vela.Disabled rm }
                                 , sourceRepos = enableUpdate repo NotAsked model.sourceRepos
                             }
 
@@ -1634,7 +1662,7 @@ update msg model =
                 Ok ( _, updatedRepo ) ->
                     let
                         um =
-                            { model | repo = updateRepo (RemoteData.succeed updatedRepo) rm }
+                            { model | shared = { shared | repo = updateRepo (RemoteData.succeed updatedRepo) rm } }
 
                         ( sharedWithAlert, cmd ) =
                             Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (Pages.RepoSettings.alert field updatedRepo) Nothing) ( um.shared, Cmd.none )
@@ -1663,7 +1691,7 @@ update msg model =
                         um =
                             { model
                                 | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
-                                , repo = updateRepoEnabling Vela.Enabled rm
+                                , shared = { shared | repo = updateRepoEnabling Vela.Enabled rm }
                             }
 
                         ( sharedWithAlert, cmd ) =
@@ -1718,18 +1746,21 @@ update msg model =
 
                         um =
                             { model
-                                | repo =
-                                    -- update the build if necessary
-                                    case rm.build.build of
-                                        Success b ->
-                                            if b.id == build.id then
-                                                updateBuild (RemoteData.succeed build) rm
+                                | shared =
+                                    { shared
+                                        | repo =
+                                            -- update the build if necessary
+                                            case rm.build.build of
+                                                Success b ->
+                                                    if b.id == build.id then
+                                                        updateBuild (RemoteData.succeed build) rm
 
-                                            else
-                                                rm
+                                                    else
+                                                        rm
 
-                                        _ ->
-                                            rm
+                                                _ ->
+                                                    rm
+                                    }
                             }
 
                         ( sharedWithAlert, cmd ) =
@@ -1746,64 +1777,76 @@ update msg model =
             case response of
                 Ok ( meta, builds ) ->
                     ( { model
-                        | repo =
-                            rm
-                                |> updateOrgRepo org repo
-                                |> updateBuilds (RemoteData.succeed builds)
-                                |> updateBuildsPager (Pagination.get meta.headers)
+                        | shared =
+                            { shared
+                                | repo =
+                                    rm
+                                        |> updateOrgRepo org repo
+                                        |> updateBuilds (RemoteData.succeed builds)
+                                        |> updateBuildsPager (Pagination.get meta.headers)
+                            }
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | repo = updateBuilds (toFailure error) rm }, addError error )
+                    ( { model | shared = { shared | repo = updateBuilds (toFailure error) rm } }, addError error )
 
         OrgBuildsResponse org response ->
             case response of
                 Ok ( meta, builds ) ->
                     ( { model
-                        | repo =
-                            rm
-                                |> updateOrgRepo org ""
-                                |> updateBuilds (RemoteData.succeed builds)
-                                |> updateBuildsPager (Pagination.get meta.headers)
+                        | shared =
+                            { shared
+                                | repo =
+                                    rm
+                                        |> updateOrgRepo org ""
+                                        |> updateBuilds (RemoteData.succeed builds)
+                                        |> updateBuildsPager (Pagination.get meta.headers)
+                            }
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | repo = updateBuilds (toFailure error) rm }, addError error )
+                    ( { model | shared = { shared | repo = updateBuilds (toFailure error) rm } }, addError error )
 
         DeploymentsResponse org repo response ->
             case response of
                 Ok ( meta, deployments ) ->
                     ( { model
-                        | repo =
-                            rm
-                                |> updateOrgRepo org repo
-                                |> updateDeployments (RemoteData.succeed deployments)
-                                |> updateDeploymentsPager (Pagination.get meta.headers)
+                        | shared =
+                            { shared
+                                | repo =
+                                    rm
+                                        |> updateOrgRepo org repo
+                                        |> updateDeployments (RemoteData.succeed deployments)
+                                        |> updateDeploymentsPager (Pagination.get meta.headers)
+                            }
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | repo = updateDeployments (toFailure error) rm }, addError error )
+                    ( { model | shared = { shared | repo = updateDeployments (toFailure error) rm } }, addError error )
 
         HooksResponse response ->
             case response of
                 Ok ( meta, hooks ) ->
                     ( { model
-                        | repo =
-                            rm
-                                |> updateHooks (RemoteData.succeed hooks)
-                                |> updateHooksPager (Pagination.get meta.headers)
+                        | shared =
+                            { shared
+                                | repo =
+                                    rm
+                                        |> updateHooks (RemoteData.succeed hooks)
+                                        |> updateHooksPager (Pagination.get meta.headers)
+                            }
                       }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | repo = updateHooks (toFailure error) rm }, addError error )
+                    ( { model | shared = { shared | repo = updateHooks (toFailure error) rm } }, addError error )
 
         RedeliverHookResponse org repo hookNumber response ->
             case response of
@@ -1826,17 +1869,20 @@ update msg model =
             case response of
                 Ok ( _, build ) ->
                     ( { model
-                        | repo =
-                            rm
-                                |> updateOrgRepo org repo
-                                |> updateBuild (RemoteData.succeed build)
-                        , shared = { shared | favicon = statusToFavicon build.status }
+                        | shared =
+                            { shared
+                                | repo =
+                                    rm
+                                        |> updateOrgRepo org repo
+                                        |> updateBuild (RemoteData.succeed build)
+                                , favicon = statusToFavicon build.status
+                            }
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
 
                 Err error ->
-                    ( { model | repo = updateBuild (toFailure error) rm }, addError error )
+                    ( { model | shared = { shared | repo = updateBuild (toFailure error) rm } }, addError error )
 
         BuildAndPipelineResponse org repo expand response ->
             case response of
@@ -1856,11 +1902,14 @@ update msg model =
                                     getPipelineConfig
                     in
                     ( { model
-                        | repo =
-                            rm
-                                |> updateOrgRepo org repo
-                                |> updateBuild (RemoteData.succeed build)
-                        , shared = { shared | favicon = statusToFavicon build.status }
+                        | shared =
+                            { shared
+                                | repo =
+                                    rm
+                                        |> updateOrgRepo org repo
+                                        |> updateBuild (RemoteData.succeed build)
+                                , favicon = statusToFavicon build.status
+                            }
                       }
                     , Cmd.batch
                         [ Interop.setFavicon <| Encode.string <| statusToFavicon build.status
@@ -1870,7 +1919,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | repo = updateBuild (toFailure error) rm }, addError error )
+                    ( { model | shared = { shared | repo = updateBuild (toFailure error) rm } }, addError error )
 
         DeploymentResponse response ->
             case response of
@@ -1904,7 +1953,7 @@ update msg model =
                                 |> Pages.Build.Logs.merge logFocus refresh rm.build.steps.steps
 
                         updatedModel =
-                            { model | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm }
+                            { model | shared = { shared | repo = updateBuildSteps (RemoteData.succeed mergedSteps) rm } }
 
                         cmd =
                             getBuildStepsLogs updatedModel org repo buildNumber mergedSteps logFocus refresh
@@ -1945,7 +1994,7 @@ update msg model =
                             else
                                 Cmd.none
                     in
-                    ( updateStepLogs { model | repo = updateBuildSteps steps rm } incomingLog
+                    ( updateStepLogs { model | shared = { shared | repo = updateBuildSteps steps rm } } incomingLog
                     , cmd
                     )
 
@@ -1962,7 +2011,7 @@ update msg model =
                                 |> Pages.Build.Logs.merge logFocus refresh rm.build.services.services
 
                         updatedModel =
-                            { model | repo = updateBuildServices (RemoteData.succeed mergedServices) rm }
+                            { model | shared = { shared | repo = updateBuildServices (RemoteData.succeed mergedServices) rm } }
 
                         cmd =
                             getBuildServicesLogs updatedModel org repo buildNumber mergedServices logFocus refresh
@@ -2003,7 +2052,7 @@ update msg model =
                             else
                                 Cmd.none
                     in
-                    ( updateServiceLogs { model | repo = updateBuildServices services rm } incomingLog
+                    ( updateServiceLogs { model | shared = { shared | repo = updateBuildServices services rm } } incomingLog
                     , cmd
                     )
 
@@ -2231,11 +2280,14 @@ update msg model =
                                 ubm =
                                     { bm | buildNumber = buildNumber }
 
-                                updatedModel =
-                                    updateRepoModels model rm ubm ugm
+                                um =
+                                    { model
+                                        | shared =
+                                            updateRepoModels shared rm ubm ugm
+                                    }
                             in
-                            ( updatedModel
-                            , renderBuildGraph updatedModel <| not isRefresh
+                            ( um
+                            , renderBuildGraph um <| not isRefresh
                             )
 
                         _ ->
@@ -2244,7 +2296,7 @@ update msg model =
                             )
 
                 Err error ->
-                    ( { model | repo = { rm | build = { bm | graph = { gm | graph = toFailure error } } } }
+                    ( { model | shared = { shared | repo = { rm | build = { bm | graph = { gm | graph = toFailure error } } } } }
                     , addError error
                     )
 
@@ -2571,7 +2623,7 @@ refreshPage model =
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildSteps model org repo buildNumber focusFragment
-                , refreshStepLogs model org repo buildNumber model.repo.build.steps.steps Nothing
+                , refreshStepLogs model org repo buildNumber model.shared.repo.build.steps.steps Nothing
                 ]
 
         Pages.BuildServices org repo buildNumber focusFragment ->
@@ -2579,7 +2631,7 @@ refreshPage model =
                 [ getBuilds model org repo Nothing Nothing Nothing
                 , refreshBuild model org repo buildNumber
                 , refreshBuildServices model org repo buildNumber focusFragment
-                , refreshServiceLogs model org repo buildNumber model.repo.build.services.services Nothing
+                , refreshServiceLogs model org repo buildNumber model.shared.repo.build.services.services Nothing
                 ]
 
         Pages.BuildPipeline org repo buildNumber _ _ ->
@@ -2636,7 +2688,7 @@ refreshData : Model -> RefreshData
 refreshData model =
     let
         rm =
-            model.repo
+            model.shared.repo
 
         buildNumber =
             case rm.build.build of
@@ -2653,7 +2705,7 @@ refreshData model =
 -}
 refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuild model org repo buildNumber =
-    if shouldRefresh model.page model.repo.build then
+    if shouldRefresh model.page model.shared.repo.build then
         getBuild model org repo buildNumber
 
     else
@@ -2664,7 +2716,7 @@ refreshBuild model org repo buildNumber =
 -}
 refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefresh model.page model.repo.build then
+    if shouldRefresh model.page model.shared.repo.build then
         getAllBuildSteps model org repo buildNumber focusFragment True
 
     else
@@ -2675,7 +2727,7 @@ refreshBuildSteps model org repo buildNumber focusFragment =
 -}
 refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildServices model org repo buildNumber focusFragment =
-    if shouldRefresh model.page model.repo.build then
+    if shouldRefresh model.page model.shared.repo.build then
         getAllBuildServices model org repo buildNumber focusFragment True
 
     else
@@ -2686,7 +2738,7 @@ refreshBuildServices model org repo buildNumber focusFragment =
 -}
 refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuildGraph model org repo buildNumber =
-    if shouldRefresh model.page model.repo.build then
+    if shouldRefresh model.page model.shared.repo.build then
         getBuildGraph model org repo buildNumber True
 
     else
@@ -2792,7 +2844,7 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
                 _ ->
                     []
     in
-    if shouldRefresh model.page model.repo.build then
+    if shouldRefresh model.page model.shared.repo.build then
         getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
 
     else
@@ -2813,7 +2865,7 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
                 _ ->
                     []
     in
-    if shouldRefresh model.page model.repo.build then
+    if shouldRefresh model.page model.shared.repo.build then
         getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
 
     else
@@ -2919,30 +2971,30 @@ viewContent model =
         Pages.OrgRepositories org maybePage _ ->
             ( org ++ Util.pageToString maybePage
             , div []
-                [ Pager.view model.repo.orgRepos.pager Pager.prevNextLabels GotoPage
-                , lazy2 Pages.Organization.viewOrgRepos org model.repo.orgRepos
-                , Pager.view model.repo.orgRepos.pager Pager.prevNextLabels GotoPage
+                [ Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
+                , lazy2 Pages.Organization.viewOrgRepos org model.shared.repo.orgRepos
+                , Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
                 ]
             )
 
         Pages.Hooks org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
             , div []
-                [ Pager.view model.repo.hooks.pager Pager.defaultLabels GotoPage
+                [ Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
                 , lazy2 Pages.Hooks.view
-                    { hooks = model.repo.hooks
+                    { hooks = model.shared.repo.hooks
                     , time = model.time
-                    , org = model.repo.org
-                    , repo = model.repo.name
+                    , org = model.shared.repo.org
+                    , repo = model.shared.repo.name
                     }
                     RedeliverHook
-                , Pager.view model.repo.hooks.pager Pager.defaultLabels GotoPage
+                , Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
                 ]
             )
 
         Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy5 Pages.RepoSettings.view model.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.entryURL) model.shared.velaMaxBuildLimit
+            , lazy5 Pages.RepoSettings.view model.shared.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.entryURL) model.shared.velaMaxBuildLimit
             )
 
         Pages.RepoSecrets engine org repo _ _ ->
@@ -3013,8 +3065,8 @@ viewContent model =
         Pages.RepositoryDeployments org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
             , div []
-                [ lazy3 Pages.Deployments.View.viewDeployments model.repo org repo
-                , Pager.view model.repo.deployments.pager Pager.defaultLabels GotoPage
+                [ lazy3 Pages.Deployments.View.viewDeployments model.shared.repo org repo
+                , Pager.view model.shared.repo.deployments.pager Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -3051,7 +3103,7 @@ viewContent model =
 
                 shouldRenderFilter : Bool
                 shouldRenderFilter =
-                    case ( model.repo.builds.builds, maybeEvent ) of
+                    case ( model.shared.repo.builds.builds, maybeEvent ) of
                         ( Success result, Nothing ) ->
                             not <| List.length result == 0
 
@@ -3068,11 +3120,11 @@ viewContent model =
             , div []
                 [ div [ class "build-bar" ]
                     [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
+                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
-                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy7 Pages.Organization.viewBuilds model.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org maybeEvent
-                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org maybeEvent
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -3080,7 +3132,7 @@ viewContent model =
             let
                 shouldRenderFilter : Bool
                 shouldRenderFilter =
-                    case ( model.repo.builds.builds, maybeEvent ) of
+                    case ( model.shared.repo.builds.builds, maybeEvent ) of
                         ( Success result, Nothing ) ->
                             not <| List.length result == 0
 
@@ -3097,11 +3149,11 @@ viewContent model =
             , div []
                 [ div [ class "build-bar" ]
                     [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
+                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
-                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo maybeEvent
-                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo maybeEvent
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -3109,7 +3161,7 @@ viewContent model =
             let
                 shouldRenderFilter : Bool
                 shouldRenderFilter =
-                    case ( model.repo.builds.builds, Just "pull_request" ) of
+                    case ( model.shared.repo.builds.builds, Just "pull_request" ) of
                         ( Success result, Nothing ) ->
                             not <| List.length result == 0
 
@@ -3126,11 +3178,11 @@ viewContent model =
             , div []
                 [ div [ class "build-bar" ]
                     [ viewBuildsFilter shouldRenderFilter org repo (Just "pull_request")
-                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
+                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
-                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo (Just "pull_request")
-                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo (Just "pull_request")
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -3138,7 +3190,7 @@ viewContent model =
             let
                 shouldRenderFilter : Bool
                 shouldRenderFilter =
-                    case ( model.repo.builds.builds, Just "tag" ) of
+                    case ( model.shared.repo.builds.builds, Just "tag" ) of
                         ( Success result, Nothing ) ->
                             not <| List.length result == 0
 
@@ -3155,11 +3207,11 @@ viewContent model =
             , div []
                 [ div [ class "build-bar" ]
                     [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
-                    , viewTimeToggle shouldRenderFilter model.repo.builds.showTimestamp
+                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
-                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo (Just "tag")
-                , Pager.view model.repo.builds.pager Pager.defaultLabels GotoPage
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo (Just "tag")
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -3362,12 +3414,12 @@ helpArgs : Model -> Help.Commands.Model Msg
 helpArgs model =
     { user = helpArg model.user
     , sourceRepos = helpArg model.sourceRepos
-    , orgRepos = helpArg model.repo.orgRepos.orgRepos
-    , builds = helpArg model.repo.builds.builds
-    , deployments = helpArg model.repo.deployments.deployments
-    , build = helpArg model.repo.build.build
-    , repo = helpArg model.repo.repo
-    , hooks = helpArg model.repo.hooks.hooks
+    , orgRepos = helpArg model.shared.repo.orgRepos.orgRepos
+    , builds = helpArg model.shared.repo.builds.builds
+    , deployments = helpArg model.shared.repo.deployments.deployments
+    , build = helpArg model.shared.repo.build.build
+    , repo = helpArg model.shared.repo.repo
+    , hooks = helpArg model.shared.repo.hooks.hooks
     , secrets = helpArg model.secretsModel.repoSecrets
     , show = model.shared.showHelp
     , toggle = ShowHideHelp
@@ -3575,7 +3627,7 @@ loadSourceReposPage model =
 
 loadOrgReposPage : Model -> Org -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadOrgReposPage model org maybePage maybePerPage =
-    case model.repo.orgRepos.orgRepos of
+    case model.shared.repo.orgRepos.orgRepos of
         NotAsked ->
             ( { model | page = Pages.OrgRepositories org maybePage maybePerPage }
             , Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model maybePage maybePerPage org
@@ -3619,8 +3671,11 @@ resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
 loadOrgSubPage : Model -> Org -> Page -> ( Model, Cmd Msg )
 loadOrgSubPage model org toPage =
     let
+        sm =
+            model.shared
+
         rm =
-            model.repo
+            sm.repo
 
         builds =
             rm.builds
@@ -3647,35 +3702,38 @@ loadOrgSubPage model org toPage =
                             , engine = "native"
                             , type_ = Vela.RepoSecret
                         }
-                    , repo =
-                        rm
-                            |> updateOrgRepo org ""
-                            |> updateRepoInitialized True
-                            |> updateRepo Loading
-                            |> updateBuilds Loading
-                            |> updateBuildSteps NotAsked
-                            -- update builds pagination
-                            |> (\rm_ ->
-                                    case toPage of
-                                        Pages.OrgRepositories _ maybePage maybePerPage ->
-                                            rm_
-                                                |> updateOrgReposPage maybePage
-                                                |> updateOrgReposPerPage maybePerPage
+                    , shared =
+                        { sm
+                            | repo =
+                                rm
+                                    |> updateOrgRepo org ""
+                                    |> updateRepoInitialized True
+                                    |> updateRepo Loading
+                                    |> updateBuilds Loading
+                                    |> updateBuildSteps NotAsked
+                                    -- update builds pagination
+                                    |> (\rm_ ->
+                                            case toPage of
+                                                Pages.OrgRepositories _ maybePage maybePerPage ->
+                                                    rm_
+                                                        |> updateOrgReposPage maybePage
+                                                        |> updateOrgReposPerPage maybePerPage
 
-                                        Pages.OrgBuilds _ maybePage maybePerPage maybeEvent ->
-                                            rm_
-                                                |> updateBuildsPage maybePage
-                                                |> updateBuildsPerPage maybePerPage
-                                                |> updateBuildsEvent maybeEvent
+                                                Pages.OrgBuilds _ maybePage maybePerPage maybeEvent ->
+                                                    rm_
+                                                        |> updateBuildsPage maybePage
+                                                        |> updateBuildsPerPage maybePerPage
+                                                        |> updateBuildsEvent maybeEvent
 
-                                        _ ->
-                                            rm_
-                                                |> updateBuildsPage Nothing
-                                                |> updateBuildsPerPage Nothing
-                                                |> updateBuildsEvent Nothing
-                                                |> updateOrgReposPage Nothing
-                                                |> updateOrgReposPerPage Nothing
-                               )
+                                                _ ->
+                                                    rm_
+                                                        |> updateBuildsPage Nothing
+                                                        |> updateBuildsPerPage Nothing
+                                                        |> updateBuildsEvent Nothing
+                                                        |> updateOrgReposPage Nothing
+                                                        |> updateOrgReposPerPage Nothing
+                                       )
+                        }
                   }
                 , Cmd.batch
                     [ getCurrentUser model
@@ -3696,10 +3754,13 @@ loadOrgSubPage model org toPage =
                 case toPage of
                     Pages.OrgBuilds o maybePage maybePerPage maybeEvent ->
                         ( { model
-                            | repo =
-                                { rm
-                                    | builds =
-                                        { builds | maybePage = maybePage, maybePerPage = maybePerPage, maybeEvent = maybeEvent }
+                            | shared =
+                                { sm
+                                    | repo =
+                                        { rm
+                                            | builds =
+                                                { builds | maybePage = maybePage, maybePerPage = maybePerPage, maybeEvent = maybeEvent }
+                                        }
                                 }
                           }
                         , getOrgBuilds model o maybePage maybePerPage maybeEvent
@@ -3722,8 +3783,11 @@ loadOrgSubPage model org toPage =
 loadRepoSubPage : Model -> Org -> Repo -> Page -> ( Model, Cmd Msg )
 loadRepoSubPage model org repo toPage =
     let
+        sm =
+            model.shared
+
         rm =
-            model.repo
+            sm.repo
 
         builds =
             rm.builds
@@ -3788,58 +3852,61 @@ loadRepoSubPage model org repo toPage =
                         { dm
                             | org = org
                             , repo = repo
-                            , repo_settings = model.repo.repo
+                            , repo_settings = model.shared.repo.repo
                             , form = form
                         }
-                    , repo =
-                        rm
-                            |> updateOrgRepo org repo
-                            |> updateRepoInitialized True
-                            |> updateRepo Loading
-                            |> updateBuilds Loading
-                            |> updateBuildSteps NotAsked
-                            |> updateDeployments Loading
-                            -- update builds pagination
-                            |> (\rm_ ->
-                                    case toPage of
-                                        Pages.RepositoryBuilds _ _ maybePage maybePerPage maybeEvent ->
-                                            rm_
-                                                |> updateBuildsPage maybePage
-                                                |> updateBuildsPerPage maybePerPage
-                                                |> updateBuildsEvent maybeEvent
+                    , shared =
+                        { sm
+                            | repo =
+                                rm
+                                    |> updateOrgRepo org repo
+                                    |> updateRepoInitialized True
+                                    |> updateRepo Loading
+                                    |> updateBuilds Loading
+                                    |> updateBuildSteps NotAsked
+                                    |> updateDeployments Loading
+                                    -- update builds pagination
+                                    |> (\rm_ ->
+                                            case toPage of
+                                                Pages.RepositoryBuilds _ _ maybePage maybePerPage maybeEvent ->
+                                                    rm_
+                                                        |> updateBuildsPage maybePage
+                                                        |> updateBuildsPerPage maybePerPage
+                                                        |> updateBuildsEvent maybeEvent
 
-                                        _ ->
-                                            rm_
-                                                |> updateBuildsPage Nothing
-                                                |> updateBuildsPerPage Nothing
-                                                |> updateBuildsEvent Nothing
-                               )
-                            -- update deployments pagination
-                            |> (\rm_ ->
-                                    case toPage of
-                                        Pages.RepositoryDeployments _ _ maybePage maybePerPage ->
-                                            rm_
-                                                |> updateDeploymentsPage maybePage
-                                                |> updateDeploymentsPerPage maybePerPage
+                                                _ ->
+                                                    rm_
+                                                        |> updateBuildsPage Nothing
+                                                        |> updateBuildsPerPage Nothing
+                                                        |> updateBuildsEvent Nothing
+                                       )
+                                    -- update deployments pagination
+                                    |> (\rm_ ->
+                                            case toPage of
+                                                Pages.RepositoryDeployments _ _ maybePage maybePerPage ->
+                                                    rm_
+                                                        |> updateDeploymentsPage maybePage
+                                                        |> updateDeploymentsPerPage maybePerPage
 
-                                        _ ->
-                                            rm_
-                                                |> updateDeploymentsPage Nothing
-                                                |> updateDeploymentsPerPage Nothing
-                               )
-                            -- update hooks pagination
-                            |> (\rm_ ->
-                                    case toPage of
-                                        Pages.Hooks _ _ maybePage maybePerPage ->
-                                            rm_
-                                                |> updateHooksPage maybePage
-                                                |> updateHooksPerPage maybePerPage
+                                                _ ->
+                                                    rm_
+                                                        |> updateDeploymentsPage Nothing
+                                                        |> updateDeploymentsPerPage Nothing
+                                       )
+                                    -- update hooks pagination
+                                    |> (\rm_ ->
+                                            case toPage of
+                                                Pages.Hooks _ _ maybePage maybePerPage ->
+                                                    rm_
+                                                        |> updateHooksPage maybePage
+                                                        |> updateHooksPerPage maybePerPage
 
-                                        _ ->
-                                            rm_
-                                                |> updateHooksPage Nothing
-                                                |> updateHooksPerPage Nothing
-                               )
+                                                _ ->
+                                                    rm_
+                                                        |> updateHooksPage Nothing
+                                                        |> updateHooksPerPage Nothing
+                                       )
+                        }
                   }
                 , Cmd.batch
                     [ getCurrentUser model
@@ -3898,10 +3965,13 @@ loadRepoSubPage model org repo toPage =
                 case toPage of
                     Pages.RepositoryBuilds o r maybePage maybePerPage maybeEvent ->
                         ( { model
-                            | repo =
-                                { rm
-                                    | builds =
-                                        { builds | maybePage = maybePage, maybePerPage = maybePerPage, maybeEvent = maybeEvent }
+                            | shared =
+                                { sm
+                                    | repo =
+                                        { rm
+                                            | builds =
+                                                { builds | maybePage = maybePage, maybePerPage = maybePerPage, maybeEvent = maybeEvent }
+                                        }
                                 }
                           }
                         , getBuilds model o r maybePage maybePerPage maybeEvent
@@ -3927,10 +3997,13 @@ loadRepoSubPage model org repo toPage =
 
                     Pages.Hooks o r maybePage maybePerPage ->
                         ( { model
-                            | repo =
-                                rm
-                                    |> updateHooksPage maybePage
-                                    |> updateHooksPerPage maybePerPage
+                            | shared =
+                                { sm
+                                    | repo =
+                                        rm
+                                            |> updateHooksPage maybePage
+                                            |> updateHooksPerPage maybePerPage
+                                }
                           }
                         , getHooks model o r maybePage maybePerPage
                         )
@@ -4346,35 +4419,41 @@ loadBuildPage model org repo buildNumber lineFocus =
                     False
 
         -- if build has changed, set build fields in the model
-        m =
+        um =
             if not sameBuild then
                 setBuild org repo buildNumber sameResource model
 
             else
                 model
 
+        sm =
+            um.shared
+
         rm =
-            m.repo
+            sm.repo
     in
     -- load page depending on build change
-    ( { m
+    ( { um
         | page = Pages.Build org repo buildNumber lineFocus
 
         -- set repo fields
-        , repo =
-            rm
-                -- update steps using line focus
-                |> updateBuildSteps
-                    (RemoteData.unwrap Loading
-                        (\steps_ ->
-                            RemoteData.succeed <| focusAndClear steps_ lineFocus
-                        )
-                        rm.build.steps.steps
-                    )
-                -- update line focus in the model
-                |> updateBuildStepsFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
-                -- reset following service
-                |> updateBuildServicesFollowing 0
+        , shared =
+            { sm
+                | repo =
+                    rm
+                        -- update steps using line focus
+                        |> updateBuildSteps
+                            (RemoteData.unwrap Loading
+                                (\steps_ ->
+                                    RemoteData.succeed <| focusAndClear steps_ lineFocus
+                                )
+                                rm.build.steps.steps
+                            )
+                        -- update line focus in the model
+                        |> updateBuildStepsFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
+                        -- reset following service
+                        |> updateBuildServicesFollowing 0
+            }
       }
       -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
@@ -4406,22 +4485,6 @@ loadBuildGraphPage model org repo buildNumber =
                 _ ->
                     False
 
-        rm =
-            model.repo
-
-        bm =
-            rm.build
-
-        gm =
-            bm.graph
-
-        graph =
-            if sameBuild then
-                RemoteData.unwrap RemoteData.Loading (\g_ -> RemoteData.succeed g_) gm.graph
-
-            else
-                RemoteData.Loading
-
         -- if build has changed, set build fields in the model
         mm =
             if not sameBuild then
@@ -4429,6 +4492,25 @@ loadBuildGraphPage model org repo buildNumber =
 
             else
                 model
+
+        usm =
+            model.shared
+
+        urm =
+            usm.repo
+
+        ubm =
+            urm.build
+
+        gm =
+            ubm.graph
+
+        graph =
+            if sameBuild then
+                RemoteData.unwrap RemoteData.Loading (\g_ -> RemoteData.succeed g_) gm.graph
+
+            else
+                RemoteData.Loading
 
         focusedNode =
             if sameBuild then
@@ -4440,7 +4522,10 @@ loadBuildGraphPage model org repo buildNumber =
         um =
             { mm
                 | page = Pages.BuildGraph org repo buildNumber
-                , repo = { rm | build = { bm | graph = { gm | graph = graph, focusedNode = focusedNode } } }
+                , shared =
+                    { usm
+                        | repo = { urm | build = { ubm | graph = { gm | graph = graph, focusedNode = focusedNode } } }
+                    }
             }
     in
     ( um
@@ -4478,34 +4563,40 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
                     False
 
         -- if build has changed, set build fields in the model
-        m =
+        um =
             if not sameBuild then
                 setBuild org repo buildNumber sameResource model
 
             else
                 model
 
-        rm =
-            m.repo
+        usm =
+            um.shared
+
+        urm =
+            usm.repo
     in
-    ( { m
+    ( { um
         | page = Pages.BuildServices org repo buildNumber lineFocus
 
         -- set repo fields
-        , repo =
-            rm
-                -- update services using line focus
-                |> updateBuildServices
-                    (RemoteData.unwrap Loading
-                        (\services ->
-                            RemoteData.succeed <| focusAndClear services lineFocus
-                        )
-                        rm.build.services.services
-                    )
-                -- update line focus in the model
-                |> updateBuildServicesFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
-                -- reset following step
-                |> updateBuildStepsFollowing 0
+        , shared =
+            { usm
+                | repo =
+                    urm
+                        -- update services using line focus
+                        |> updateBuildServices
+                            (RemoteData.unwrap Loading
+                                (\services ->
+                                    RemoteData.succeed <| focusAndClear services lineFocus
+                                )
+                                urm.build.services.services
+                            )
+                        -- update line focus in the model
+                        |> updateBuildServicesFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
+                        -- reset following step
+                        |> updateBuildStepsFollowing 0
+            }
       }
       -- do not load resources if transition is auto refresh, line focus, etc
     , if sameBuild && sameResource then
@@ -4600,7 +4691,7 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
 
         else if sameBuild then
             -- same build, most likely a tab switch
-            case model.repo.build.build of
+            case model.shared.repo.build.build of
                 Success build ->
                     -- build exists, chained request not needed
                     [ getBuilds model org repo Nothing Nothing Nothing
@@ -4649,8 +4740,11 @@ isSameBuild id currentPage =
 setBuild : Org -> Repo -> BuildNumber -> Bool -> Model -> Model
 setBuild org repo buildNumber soft model =
     let
+        sm =
+            model.shared
+
         rm =
-            model.repo
+            sm.repo
 
         gm =
             rm.build.graph
@@ -4668,29 +4762,32 @@ setBuild org repo buildNumber soft model =
                 , expanded = False
             }
         , templates = { data = NotAsked, error = "", show = True }
-        , repo =
-            rm
-                |> updateBuild
-                    (if soft then
-                        model.repo.build.build
+        , shared =
+            { sm
+                | repo =
+                    rm
+                        |> updateBuild
+                            (if soft then
+                                model.shared.repo.build.build
 
-                     else
-                        Loading
-                    )
-                |> updateOrgRepo org repo
-                |> updateBuildNumber buildNumber
-                |> updateBuildSteps NotAsked
-                |> updateBuildStepsFollowing 0
-                |> updateBuildStepsLogs []
-                |> updateBuildStepsFocusFragment Nothing
-                |> updateBuildServices NotAsked
-                |> updateBuildServicesFollowing 0
-                |> updateBuildServicesLogs []
-                |> updateBuildServicesFocusFragment Nothing
-                |> updateBuildGraph NotAsked
-                |> updateBuildGraphShowServices gm.showServices
-                |> updateBuildGraphShowSteps gm.showSteps
-                |> updateBuildGraphFilter gm.filter
+                             else
+                                Loading
+                            )
+                        |> updateOrgRepo org repo
+                        |> updateBuildNumber buildNumber
+                        |> updateBuildSteps NotAsked
+                        |> updateBuildStepsFollowing 0
+                        |> updateBuildStepsLogs []
+                        |> updateBuildStepsFocusFragment Nothing
+                        |> updateBuildServices NotAsked
+                        |> updateBuildServicesFollowing 0
+                        |> updateBuildServicesLogs []
+                        |> updateBuildServicesFocusFragment Nothing
+                        |> updateBuildGraph NotAsked
+                        |> updateBuildGraphShowServices gm.showServices
+                        |> updateBuildGraphShowSteps gm.showSteps
+                        |> updateBuildGraphFilter gm.filter
+            }
     }
 
 
@@ -4752,8 +4849,11 @@ logIds logs =
 updateStepLogs : Model -> Log -> Model
 updateStepLogs model incomingLog =
     let
+        sm =
+            model.shared
+
         rm =
-            model.repo
+            sm.repo
 
         build =
             rm.build
@@ -4765,10 +4865,10 @@ updateStepLogs model incomingLog =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repo = updateBuildStepsLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm }
+        { model | shared = { sm | repo = updateBuildStepsLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
 
     else if incomingLog.id /= 0 then
-        { model | repo = updateBuildStepsLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm }
+        { model | shared = { sm | repo = updateBuildStepsLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
 
     else
         model
@@ -4779,8 +4879,11 @@ updateStepLogs model incomingLog =
 updateServiceLogs : Model -> Log -> Model
 updateServiceLogs model incomingLog =
     let
+        sm =
+            model.shared
+
         rm =
-            model.repo
+            sm.repo
 
         build =
             rm.build
@@ -4792,10 +4895,10 @@ updateServiceLogs model incomingLog =
             List.member incomingLog.id <| logIds logs
     in
     if logExists then
-        { model | repo = updateBuildServicesLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm }
+        { model | shared = { sm | repo = updateBuildServicesLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
 
     else if incomingLog.id /= 0 then
-        { model | repo = updateBuildServicesLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm }
+        { model | shared = { sm | repo = updateBuildServicesLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
 
     else
         model

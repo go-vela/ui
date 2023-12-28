@@ -94,11 +94,11 @@ import Vela
 viewBuild : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 viewBuild model msgs org repo buildNumber =
     wrapWithBuildPreview model msgs org repo buildNumber <|
-        case model.repo.build.steps.steps of
+        case model.shared.repo.build.steps.steps of
             RemoteData.Success steps_ ->
                 viewBuildSteps model
                     msgs
-                    model.repo
+                    model.shared.repo
                     steps_
 
             RemoteData.Failure _ ->
@@ -106,7 +106,7 @@ viewBuild model msgs org repo buildNumber =
 
             _ ->
                 -- Don't show two loaders
-                if Util.isLoading model.repo.build.build then
+                if Util.isLoading model.shared.repo.build.build then
                     text ""
 
                 else
@@ -119,7 +119,7 @@ wrapWithBuildPreview : PartialModel a -> Msgs msgs -> Org -> Repo -> BuildNumber
 wrapWithBuildPreview model msgs org repo buildNumber content =
     let
         rm =
-            model.repo
+            model.shared.repo
 
         build =
             rm.build
@@ -610,7 +610,7 @@ viewStepLogs msgs shift rm step =
 viewBuildServices : PartialModel a -> Msgs msg -> Org -> Repo -> BuildNumber -> Html msg
 viewBuildServices model msgs org repo buildNumber =
     wrapWithBuildPreview model msgs org repo buildNumber <|
-        case model.repo.build.services.services of
+        case model.shared.repo.build.services.services of
             RemoteData.Success services ->
                 if List.isEmpty services then
                     div [ class "no-services" ] [ small [] [ code [] [ text "No services found for this pipeline." ] ] ]
@@ -624,14 +624,14 @@ viewBuildServices model msgs org repo buildNumber =
                                 , Util.testAttribute "log-actions"
                                 ]
                                 [ collapseAllButton msgs.collapseAllServices
-                                , expandAllButton msgs.expandAllServices model.repo.org model.repo.name model.repo.build.buildNumber
+                                , expandAllButton msgs.expandAllServices model.shared.repo.org model.shared.repo.name model.shared.repo.build.buildNumber
                                 ]
                     in
                     div []
                         [ logActions
                         , div [ class "steps" ]
                             [ div [ class "-items", Util.testAttribute "services" ] <|
-                                List.map (\service -> viewService model msgs model.repo service) <|
+                                List.map (\service -> viewService model msgs model.shared.repo service) <|
                                     services
                             ]
                         ]
@@ -641,7 +641,7 @@ viewBuildServices model msgs org repo buildNumber =
 
             _ ->
                 -- Don't show two loaders
-                if Util.isLoading model.repo.build.build then
+                if Util.isLoading model.shared.repo.build.build then
                     text ""
 
                 else

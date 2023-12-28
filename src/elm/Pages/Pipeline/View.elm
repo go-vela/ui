@@ -218,7 +218,7 @@ viewPipelineActions model get expand download =
             model.pipeline
 
         toggle =
-            case model.repo.build.build of
+            case model.shared.repo.build.build of
                 Success build ->
                     div [ class "action", class "expand-pipeline", Util.testAttribute "pipeline-expand" ]
                         [ expandPipelineToggleButton model build.commit get expand
@@ -297,7 +297,7 @@ expandPipelineToggleButton model ref get expand =
             model.pipeline
 
         { org, name, build } =
-            model.repo
+            model.shared.repo
 
         action =
             if pipeline.expanded then

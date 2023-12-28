@@ -39,7 +39,6 @@ type alias PartialModel a =
         , sourceRepos : WebData SourceRepositories
         , page : Page
         , time : Posix
-        , repo : RepoModel
         , buildMenuOpen : List Int
         , pipeline : PipelineModel
     }

@@ -44,7 +44,7 @@ renderDOT model buildGraph =
         isNodeFocused : String -> BuildGraphNode -> Bool
         isNodeFocused filter n =
             n.id
-                == model.repo.build.graph.focusedNode
+                == model.shared.repo.build.graph.focusedNode
                 || (String.length filter > 2)
                 && (String.contains filter n.name
                         || List.any (\s -> String.contains filter s.name) n.steps
@@ -61,14 +61,14 @@ renderDOT model buildGraph =
                 |> List.map
                     (\( _, n ) ->
                         Node n.id
-                            (BuildGraphNode n.cluster n.id n.name n.status n.startedAt n.finishedAt n.steps (isNodeFocused model.repo.build.graph.filter n))
+                            (BuildGraphNode n.cluster n.id n.name n.status n.startedAt n.finishedAt n.steps (isNodeFocused model.shared.repo.build.graph.filter n))
                     )
 
         -- convert BuildGraphEdge to Graph.Edge
         inEdges =
             buildGraph.edges
                 |> List.map
-                    (\e -> Edge e.source e.destination (BuildGraphEdge e.cluster e.source e.destination e.status (isEdgeFocused model.repo.build.graph.focusedNode e)))
+                    (\e -> Edge e.source e.destination (BuildGraphEdge e.cluster e.source e.destination e.status (isEdgeFocused model.shared.repo.build.graph.focusedNode e)))
 
         -- construct a Graph to extract nodes and edges
         ( nodes, edges ) =
@@ -134,7 +134,7 @@ renderDOT model buildGraph =
             clusterSubgraph builtInClusterID builtInSubgraphStyles builtInNodesString builtInEdgesString
 
         serviceSubgraph =
-            if model.repo.build.graph.showServices then
+            if model.shared.repo.build.graph.showServices then
                 clusterSubgraph serviceClusterID serviceSubgraphStyles serviceNodesString serviceEdgesString
 
             else
@@ -142,7 +142,7 @@ renderDOT model buildGraph =
 
         -- reverse the subgraphs for top-bottom rankdir to consistently group services and built-ins
         rotation =
-            case model.repo.build.graph.rankdir of
+            case model.shared.repo.build.graph.rankdir of
                 TB ->
                     List.reverse
 
@@ -162,7 +162,7 @@ renderDOT model buildGraph =
             , serviceSubgraph
             ]
     in
-    digraph (baseGraphStyles model.repo.build.graph.rankdir)
+    digraph (baseGraphStyles model.shared.repo.build.graph.rankdir)
         (rotation subgraphs)
 
 
@@ -437,7 +437,7 @@ nodeAttributes model buildGraph node =
 
         -- track step expansion using the model and OnGraphInteraction
         showSteps =
-            model.repo.build.graph.showSteps
+            model.shared.repo.build.graph.showSteps
     in
     Dict.fromList <|
         -- node attributes

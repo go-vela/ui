@@ -41,7 +41,6 @@ type alias PartialModel a =
         , sourceRepos : WebData SourceRepositories
         , navigationKey : Navigation.Key
         , time : Posix
-        , repo : RepoModel
         , templates : PipelineTemplates
         , pipeline : PipelineModel
         , page : Page

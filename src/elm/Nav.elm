@@ -53,7 +53,6 @@ type alias PartialModel a =
         , page : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories
-        , repo : RepoModel
         , time : Posix
         , pipeline : PipelineModel
     }
@@ -150,29 +149,29 @@ navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild,
 
         Pages.Build org repo _ _ ->
             div [ class "buttons" ]
-                [ approveBuildButton org repo model.repo.build.build approveBuild
-                , cancelBuildButton org repo model.repo.build.build cancelBuild
-                , restartBuildButton org repo model.repo.build.build restartBuild
+                [ approveBuildButton org repo model.shared.repo.build.build approveBuild
+                , cancelBuildButton org repo model.shared.repo.build.build cancelBuild
+                , restartBuildButton org repo model.shared.repo.build.build restartBuild
                 ]
 
         Pages.BuildServices org repo _ _ ->
             div [ class "buttons" ]
-                [ approveBuildButton org repo model.repo.build.build approveBuild
-                , cancelBuildButton org repo model.repo.build.build cancelBuild
-                , restartBuildButton org repo model.repo.build.build restartBuild
+                [ approveBuildButton org repo model.shared.repo.build.build approveBuild
+                , cancelBuildButton org repo model.shared.repo.build.build cancelBuild
+                , restartBuildButton org repo model.shared.repo.build.build restartBuild
                 ]
 
         Pages.BuildPipeline org repo _ _ _ ->
             div [ class "buttons" ]
-                [ approveBuildButton org repo model.repo.build.build approveBuild
-                , cancelBuildButton org repo model.repo.build.build cancelBuild
-                , restartBuildButton org repo model.repo.build.build restartBuild
+                [ approveBuildButton org repo model.shared.repo.build.build approveBuild
+                , cancelBuildButton org repo model.shared.repo.build.build cancelBuild
+                , restartBuildButton org repo model.shared.repo.build.build restartBuild
                 ]
 
         Pages.BuildGraph org repo _ ->
             div [ class "buttons" ]
-                [ cancelBuildButton org repo model.repo.build.build cancelBuild
-                , restartBuildButton org repo model.repo.build.build restartBuild
+                [ cancelBuildButton org repo model.shared.repo.build.build cancelBuild
+                , restartBuildButton org repo model.shared.repo.build.build restartBuild
                 ]
 
         Pages.Hooks org repo _ _ ->
@@ -239,7 +238,7 @@ viewUtil : PartialModel a -> Html msg
 viewUtil model =
     let
         rm =
-            model.repo
+            model.shared.repo
     in
     div [ class "util" ]
         [ case model.page of
@@ -271,16 +270,16 @@ viewUtil model =
                 viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
 
             Pages.Build _ _ _ _ ->
-                Pages.Build.History.view model.time model.shared.zone model.page 10 model.repo
+                Pages.Build.History.view model.time model.shared.zone model.page 10 model.shared.repo
 
             Pages.BuildServices _ _ _ _ ->
-                Pages.Build.History.view model.time model.shared.zone model.page 10 model.repo
+                Pages.Build.History.view model.time model.shared.zone model.page 10 model.shared.repo
 
             Pages.BuildPipeline _ _ _ _ _ ->
-                Pages.Build.History.view model.time model.shared.zone model.page 10 model.repo
+                Pages.Build.History.view model.time model.shared.zone model.page 10 model.shared.repo
 
             Pages.BuildGraph _ _ _ ->
-                Pages.Build.History.view model.time model.shared.zone model.page 10 model.repo
+                Pages.Build.History.view model.time model.shared.zone model.page 10 model.shared.repo
 
             Pages.AddDeployment _ _ ->
                 text ""
@@ -474,7 +473,7 @@ viewBuildTabs : PartialModel a -> Org -> Repo -> BuildNumber -> Page -> Html msg
 viewBuildTabs model org repo buildNumber currentPage =
     let
         bm =
-            model.repo.build
+            model.shared.repo.build
 
         pipeline =
             model.pipeline
