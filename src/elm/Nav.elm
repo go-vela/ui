@@ -51,7 +51,6 @@ type alias PartialModel a =
     { a
         | shared : Shared.Model
         , page : Page
-        , time : Posix
         , pipeline : PipelineModel
     }
 
@@ -268,16 +267,16 @@ viewUtil model =
                 viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
 
             Pages.Build _ _ _ _ ->
-                Pages.Build.History.view model.time model.shared.zone model.page 10 model.shared.repo
+                Pages.Build.History.view model.shared.time model.shared.zone model.page 10 model.shared.repo
 
             Pages.BuildServices _ _ _ _ ->
-                Pages.Build.History.view model.time model.shared.zone model.page 10 model.shared.repo
+                Pages.Build.History.view model.shared.time model.shared.zone model.page 10 model.shared.repo
 
             Pages.BuildPipeline _ _ _ _ _ ->
-                Pages.Build.History.view model.time model.shared.zone model.page 10 model.shared.repo
+                Pages.Build.History.view model.shared.time model.shared.zone model.page 10 model.shared.repo
 
             Pages.BuildGraph _ _ _ ->
-                Pages.Build.History.view model.time model.shared.zone model.page 10 model.shared.repo
+                Pages.Build.History.view model.shared.time model.shared.zone model.page 10 model.shared.repo
 
             Pages.AddDeployment _ _ ->
                 text ""

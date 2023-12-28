@@ -129,14 +129,14 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
                 RemoteData.Success bld ->
                     case bld.status of
                         PendingApproval ->
-                            [ viewPreview msgs model.buildMenuOpen False model.time model.shared.zone org repo rm.builds.showTimestamp bld
+                            [ viewPreview msgs model.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
                             , p [ class "notice", Util.testAttribute "approve-build-notice" ] [ text "An admin of this repository must approve the build to run" ]
                             , viewBuildTabs model org repo buildNumber model.page
                             , content
                             ]
 
                         _ ->
-                            [ viewPreview msgs model.buildMenuOpen False model.time model.shared.zone org repo rm.builds.showTimestamp bld
+                            [ viewPreview msgs model.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
                             , viewBuildTabs model org repo buildNumber model.page
                             , content
                             ]
@@ -502,7 +502,7 @@ viewStepDetails model msgs rm step =
                 [ div
                     [ class "-info" ]
                     [ div [ class "-name" ] [ text step.name ]
-                    , div [ class "-duration" ] [ text <| Util.formatRunTime model.time step.started step.finished ]
+                    , div [ class "-duration" ] [ text <| Util.formatRunTime model.shared.time step.started step.finished ]
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "show build actions" ]
                 ]
@@ -680,7 +680,7 @@ viewServiceDetails model msgs rm service =
                 [ div
                     [ class "-info" ]
                     [ div [ class "-name" ] [ text service.name ]
-                    , div [ class "-duration" ] [ text <| Util.formatRunTime model.time service.started service.finished ]
+                    , div [ class "-duration" ] [ text <| Util.formatRunTime model.shared.time service.started service.finished ]
                     ]
                 , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
                 ]

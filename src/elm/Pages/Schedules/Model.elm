@@ -39,7 +39,6 @@ type alias PartialModel a msg =
     { a
         | shared : Shared.Model
         , page : Page
-        , time : Posix
         , schedulesModel : Model msg
     }
 

@@ -52,7 +52,7 @@ viewAddForm model =
     in
     div [ class "schedule-form" ]
         [ viewNameInput sm.form.name False
-        , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.time)
+        , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.shared.time)
         , viewEnabledCheckbox sm.form
         , viewBranchNameInput sm.form.branch False
         , viewHelp
@@ -70,7 +70,7 @@ viewEditForm model =
     in
     div [ class "schedule-form", class "edit-form" ]
         [ viewNameInput sm.form.name True
-        , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.time)
+        , viewValueInput sm.form.entry "0 0 * * * (runs at 12:00 AM in UTC)" (Util.toUtcString model.shared.time)
         , viewEnabledCheckbox sm.form
         , viewBranchNameInput sm.form.branch False
         , viewHelp

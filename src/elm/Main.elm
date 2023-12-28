@@ -266,7 +266,6 @@ type alias Model =
     { page : Page
     , navigationKey : Navigation.Key
     , shared : Shared.Model
-    , time : Posix
     , entryURL : Url
     , visibility : Visibility
     , buildMenuOpen : List Int
@@ -300,7 +299,6 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , navigationKey = navKey
-            , time = millisToPosix 0
             , entryURL = url
             , visibility = Visible
             , buildMenuOpen = []
@@ -2315,7 +2313,7 @@ update msg model =
             )
 
         AdjustTime newTime ->
-            ( { model | time = newTime }
+            ( { model | shared = { shared | time = newTime } }
             , Cmd.none
             )
 
@@ -2326,7 +2324,7 @@ update msg model =
                         ( favicon, updateFavicon ) =
                             refreshFavicon model.page model.shared.favicon rm.build.build
                     in
-                    ( { model | time = time, shared = { shared | favicon = favicon } }
+                    ( { model | shared = { shared | time = time, favicon = favicon } }
                     , Cmd.batch
                         [ updateFavicon
                         , refreshRenderBuildGraph model
@@ -2341,7 +2339,7 @@ update msg model =
                         ( favicon, cmd ) =
                             refreshFavicon model.page model.shared.favicon rm.build.build
                     in
-                    ( { model | time = time, shared = { shared | favicon = favicon } }, cmd )
+                    ( { model | shared = { shared | time = time, favicon = favicon } }, cmd )
 
                 FiveSecondHidden data ->
                     ( model, refreshPageHidden model data )
@@ -2991,7 +2989,7 @@ viewContent model =
                 [ Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
                 , lazy2 Pages.Hooks.view
                     { hooks = model.shared.repo.hooks
-                    , time = model.time
+                    , time = model.shared.time
                     , org = model.shared.repo.org
                     , repo = model.shared.repo.name
                     }
@@ -3131,7 +3129,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org maybeEvent
+                , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3160,7 +3158,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo maybeEvent
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3189,7 +3187,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo (Just "pull_request")
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3218,7 +3216,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.time model.shared.zone org repo (Just "tag")
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3268,7 +3266,7 @@ viewContent model =
 
         Pages.Settings ->
             ( "Settings"
-            , Pages.Settings.view model.shared.session model.time (Pages.Settings.Msgs Copy)
+            , Pages.Settings.view model.shared.session model.shared.time (Pages.Settings.Msgs Copy)
             )
 
         Pages.Login ->

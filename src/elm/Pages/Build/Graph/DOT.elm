@@ -187,7 +187,7 @@ nodeLabel model buildGraph node showSteps =
                 ++ "</table>"
 
         runtime =
-            Util.formatRunTime model.time node.startedAt node.finishedAt
+            Util.formatRunTime model.shared.time node.startedAt node.finishedAt
 
         header =
             "<tr>"
