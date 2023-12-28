@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Nav exposing (Msgs, viewBuildTabs, viewNav, viewUtil)
 
-import Shared
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
 import Html
@@ -30,6 +29,7 @@ import Pages exposing (Page)
 import Pages.Build.History
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
+import Shared
 import Time exposing (Posix, Zone)
 import Util
 import Vela
@@ -49,7 +49,7 @@ import Vela
 
 type alias PartialModel a =
     { a
-        | shared: Shared.Model
+        | shared : Shared.Model
         , page : Page
         , user : WebData CurrentUser
         , sourceRepos : WebData SourceRepositories

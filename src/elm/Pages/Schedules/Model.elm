@@ -17,7 +17,6 @@ module Pages.Schedules.Model exposing
     , defaultScheduleUpdate
     )
 
-import Shared
 import Api.Pagination as Pagination
 import Auth.Session exposing (Session)
 import Http
@@ -25,6 +24,7 @@ import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
+import Shared
 import Time exposing (Posix, Zone)
 import Vela exposing (Org, Repo, Schedule, Schedules)
 
@@ -37,7 +37,7 @@ import Vela exposing (Org, Repo, Schedule, Schedules)
 -}
 type alias PartialModel a msg =
     { a
-        | shared: Shared.Model
+        | shared : Shared.Model
         , page : Page
         , time : Posix
         , schedulesModel : Model msg

@@ -17,13 +17,13 @@ module Pages.Secrets.Model exposing
     , defaultSecretUpdate
     )
 
-import Shared
 import Auth.Session exposing (Session)
 import Http
 import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
+import Shared
 import Vela exposing (Copy, Engine, Key, Org, Repo, Secret, SecretType, Secrets, Team)
 
 

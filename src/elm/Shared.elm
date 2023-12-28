@@ -14,6 +14,8 @@ import Url exposing (..)
 import Util exposing (..)
 import Vela exposing (..)
 
+
+
 -- INIT
 
 
@@ -21,11 +23,13 @@ type alias Model =
     Shared.Model.Model
 
 
+
 --init : Result Json.Decode.Error Flags -> Route () -> ( Model, Effect Msg )
 --init flagsResult route =
 --    ( {}
 --    , Effect.none
 --    )
+
 
 type alias Flags =
     { isDev : Bool
@@ -38,7 +42,6 @@ type alias Flags =
     , velaMaxBuildLimit : Int
     , velaScheduleAllowlist : String
     }
-
 
 
 init : Flags -> Url -> Model

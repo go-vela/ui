@@ -12,12 +12,12 @@ module Pages.Deployments.Model exposing
     , defaultDeploymentForm
     )
 
-import Shared
 import Auth.Session exposing (Session)
 import Http
 import Http.Detailed
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
+import Shared
 import Vela exposing (Deployment, KeyValuePair, Org, Repo, Repository, Team)
 
 
@@ -29,7 +29,7 @@ import Vela exposing (Deployment, KeyValuePair, Org, Repo, Repository, Team)
 -}
 type alias PartialModel a msg =
     { a
-        | shared: Shared.Model
+        | shared : Shared.Model
         , page : Page
         , deploymentModel : Model msg
     }

@@ -16,11 +16,11 @@ module Pages.Build.Model exposing
     , PartialModel
     )
 
-import Shared
 import Browser.Navigation as Navigation
 import Html exposing (Html)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
+import Shared
 import Time exposing (Posix, Zone)
 import Vela exposing (BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoModel, SourceRepositories)
 

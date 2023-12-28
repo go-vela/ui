@@ -53,7 +53,6 @@ module Api exposing
     , updateSecret
     )
 
-import Shared
 import Api.Endpoint as Endpoint exposing (Endpoint)
 import Api.Pagination as Pagination
 import Auth.Jwt exposing (JwtAccessToken, decodeJwtAccessToken)
@@ -61,6 +60,7 @@ import Auth.Session exposing (Session(..))
 import Http
 import Http.Detailed
 import Json.Decode exposing (Decoder)
+import Shared
 import Task exposing (Task)
 import Vela
     exposing
@@ -155,6 +155,7 @@ type ListResponse a
 -}
 type alias PartialModel a =
     { a | shared : Shared.Model }
+
 
 
 -- HELPERS

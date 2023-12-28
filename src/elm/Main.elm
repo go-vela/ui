@@ -109,6 +109,7 @@ import Pages.Settings
 import Pages.SourceRepos
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
+import Shared
 import String.Extra
 import SvgBuilder exposing (velaLogo)
 import Task
@@ -241,7 +242,6 @@ import Vela
         , updateRepoModels
         , updateRepoTimeout
         )
-import Shared
 import Visualization.DOT as DOT
 
 
@@ -488,7 +488,7 @@ update msg model =
     let
         shared =
             model.shared
-        
+
         rm =
             model.repo
 
@@ -522,10 +522,10 @@ update msg model =
                 filters =
                     Dict.update org (\_ -> Just searchBy) model.shared.filters
             in
-            ( { model | shared = { shared | filters = filters} }, Cmd.none )
+            ( { model | shared = { shared | filters = filters } }, Cmd.none )
 
         SearchFavorites searchBy ->
-            ( { model | shared = { shared | favoritesFilter = searchBy} }, Cmd.none )
+            ( { model | shared = { shared | favoritesFilter = searchBy } }, Cmd.none )
 
         ChangeRepoLimit limit ->
             let
@@ -621,7 +621,7 @@ update msg model =
                 ( model, Cmd.none )
 
             else
-                ( { model | shared = {shared | theme = theme} }, Interop.setTheme <| encodeTheme theme )
+                ( { model | shared = { shared | theme = theme } }, Interop.setTheme <| encodeTheme theme )
 
         GotoPage pageNumber ->
             case model.page of
@@ -696,13 +696,16 @@ update msg model =
 
         ShowHideHelp show ->
             ( { model
-                | shared = { shared | showHelp =
-                    case show of
-                        Just s ->
-                            s
+                | shared =
+                    { shared
+                        | showHelp =
+                            case show of
+                                Just s ->
+                                    s
 
-                        Nothing ->
-                            not model.shared.showHelp}
+                                Nothing ->
+                                    not model.shared.showHelp
+                    }
               }
             , Cmd.none
             )
@@ -739,13 +742,16 @@ update msg model =
 
         ShowHideIdentity show ->
             ( { model
-                | shared = { shared | showIdentity =
-                    case show of
-                        Just s ->
-                            s
+                | shared =
+                    { shared
+                        | showIdentity =
+                            case show of
+                                Just s ->
+                                    s
 
-                        Nothing ->
-                            not model.shared.showIdentity}
+                                Nothing ->
+                                    not model.shared.showIdentity
+                    }
               }
             , Cmd.none
             )
@@ -1419,7 +1425,7 @@ update msg model =
 
         LogoutResponse _ ->
             -- ignoring outcome of request and proceeding to logout
-            ( { model | shared = {shared | session = Unauthenticated} }
+            ( { model | shared = { shared | session = Unauthenticated } }
             , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
             )
 
@@ -1460,7 +1466,7 @@ update msg model =
                                 Authenticated _ ->
                                     []
                     in
-                    ( { model | shared = {shared | session = Authenticated newSessionDetails, fetchingToken = False} }
+                    ( { model | shared = { shared | session = Authenticated newSessionDetails, fetchingToken = False } }
                     , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
                     )
 
@@ -1491,12 +1497,12 @@ update msg model =
                                                     , redirectPage
                                                     ]
                                     in
-                                    ( { model | shared = {shared | session = Unauthenticated, fetchingToken = False }}
+                                    ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
                                     , Cmd.batch actions
                                     )
 
                                 _ ->
-                                    ( { model | shared = {shared | session = Unauthenticated, fetchingToken = False }}
+                                    ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
                                     , Cmd.batch
                                         [ addError error
                                         , redirectPage
@@ -1504,7 +1510,7 @@ update msg model =
                                     )
 
                         _ ->
-                            ( { model | shared = {shared | session = Unauthenticated, fetchingToken = False }}
+                            ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
                             , Cmd.batch
                                 [ addError error
                                 , redirectPage
@@ -1780,7 +1786,7 @@ update msg model =
                             rm
                                 |> updateOrgRepo org repo
                                 |> updateBuild (RemoteData.succeed build)
-                        , shared = {shared | favicon = statusToFavicon build.status}
+                        , shared = { shared | favicon = statusToFavicon build.status }
                       }
                     , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
                     )
@@ -1810,7 +1816,7 @@ update msg model =
                             rm
                                 |> updateOrgRepo org repo
                                 |> updateBuild (RemoteData.succeed build)
-                        , shared = {shared | favicon = statusToFavicon build.status}
+                        , shared = { shared | favicon = statusToFavicon build.status }
                       }
                     , Cmd.batch
                         [ Interop.setFavicon <| Encode.string <| statusToFavicon build.status
@@ -2189,7 +2195,7 @@ update msg model =
 
         -- Time
         AdjustTimeZone newZone ->
-            ( { model | shared = { shared | zone = newZone} }
+            ( { model | shared = { shared | zone = newZone } }
             , Cmd.none
             )
 
@@ -2205,7 +2211,7 @@ update msg model =
                         ( favicon, updateFavicon ) =
                             refreshFavicon model.page model.shared.favicon rm.build.build
                     in
-                    ( { model | time = time, shared = {shared | favicon = favicon} }
+                    ( { model | time = time, shared = { shared | favicon = favicon } }
                     , Cmd.batch
                         [ updateFavicon
                         , refreshRenderBuildGraph model
@@ -2220,7 +2226,7 @@ update msg model =
                         ( favicon, cmd ) =
                             refreshFavicon model.page model.shared.favicon rm.build.build
                     in
-                    ( { model | time = time, shared = {shared | favicon = favicon} }, cmd )
+                    ( { model | time = time, shared = { shared | favicon = favicon } }, cmd )
 
                 FiveSecondHidden data ->
                     ( model, refreshPageHidden model data )
@@ -2261,7 +2267,7 @@ update msg model =
             let
                 m =
                     if key == "Shift" then
-                        { model | shared = {shared | shift = True} }
+                        { model | shared = { shared | shift = True } }
 
                     else
                         model
@@ -2272,7 +2278,7 @@ update msg model =
             let
                 m =
                     if key == "Shift" then
-                        { model | shared = {shared | shift = False} }
+                        { model | shared = { shared | shift = False } }
 
                     else
                         model
@@ -2289,7 +2295,7 @@ update msg model =
                         Hidden ->
                             Cmd.none
             in
-            ( { model | visibility = visibility, shared = {shared | shift = False} }, cmd )
+            ( { model | visibility = visibility, shared = { shared | shift = False } }, cmd )
 
         PushUrl url ->
             ( model
@@ -3347,7 +3353,10 @@ viewThemeToggle theme =
 
 setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
 setNewPage route model =
-    let shared = model.shared in
+    let
+        shared =
+            model.shared
+    in
     case ( route, model.shared.session ) of
         -- Logged in and on auth flow pages - what are you doing here?
         ( Routes.Login, Authenticated _ ) ->

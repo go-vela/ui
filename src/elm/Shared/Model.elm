@@ -11,6 +11,7 @@ import Time
         ( Posix
         , Zone
         )
+import Toasty exposing (Stack)
 import Url exposing (Url)
 import Vela
     exposing
@@ -25,7 +26,7 @@ import Vela
         , SourceRepositories
         , Theme(..)
         )
-import Toasty exposing (Stack)
+
 
 type alias Model =
     { session : Session
@@ -52,6 +53,7 @@ type alias Model =
     , showHelp : Bool
     , showIdentity : Bool
     , favicon : Favicon
+
     -- , schedulesModel : Pages.Schedules.Model.Model Msg
     -- , secretsModel : Pages.Secrets.Model.Model Msg
     -- , deploymentModel : Pages.Deployments.Model.Model Msg
