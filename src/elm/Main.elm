@@ -266,7 +266,6 @@ type alias Model =
     { page : Page
     , navigationKey : Navigation.Key
     , shared : Shared.Model
-    , entryURL : Url
     , visibility : Visibility
     , buildMenuOpen : List Int
     , pipeline : PipelineModel
@@ -299,7 +298,6 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , navigationKey = navKey
-            , entryURL = url
             , visibility = Visible
             , buildMenuOpen = []
             , schedulesModel = initSchedulesModel
@@ -1484,7 +1482,7 @@ update msg model =
                                         redirectTo =
                                             case model.shared.velaRedirect of
                                                 "" ->
-                                                    Url.toString model.entryURL
+                                                    Url.toString model.shared.entryURL
 
                                                 _ ->
                                                     model.shared.velaRedirect
@@ -3000,7 +2998,7 @@ viewContent model =
 
         Pages.RepoSettings org repo ->
             ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy5 Pages.RepoSettings.view model.shared.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.entryURL) model.shared.velaMaxBuildLimit
+            , lazy5 Pages.RepoSettings.view model.shared.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.shared.entryURL) model.shared.velaMaxBuildLimit
             )
 
         Pages.RepoSecrets engine org repo _ _ ->
@@ -3604,7 +3602,7 @@ setNewPage route model =
                     else
                         Pages.Login
               }
-            , Interop.setRedirect <| Encode.string <| Url.toString model.entryURL
+            , Interop.setRedirect <| Encode.string <| Url.toString model.shared.entryURL
             )
 
 
