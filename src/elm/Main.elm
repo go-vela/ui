@@ -266,7 +266,6 @@ type alias Model =
     { page : Page
     , navigationKey : Navigation.Key
     , shared : Shared.Model
-    , visibility : Visibility
     , buildMenuOpen : List Int
     , pipeline : PipelineModel
     , templates : PipelineTemplates
@@ -298,7 +297,6 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , navigationKey = navKey
-            , visibility = Visible
             , buildMenuOpen = []
             , schedulesModel = initSchedulesModel
             , secretsModel = initSecretsModel
@@ -2413,7 +2411,7 @@ update msg model =
                         Hidden ->
                             Cmd.none
             in
-            ( { model | visibility = visibility, shared = { shared | shift = False } }, cmd )
+            ( { model | shared = { shared | visibility = visibility, shift = False } }, cmd )
 
         PushUrl url ->
             ( model
@@ -2550,7 +2548,7 @@ decodeOnGraphInteraction interaction =
 refreshSubscriptions : Model -> Sub Msg
 refreshSubscriptions model =
     Sub.batch <|
-        case model.visibility of
+        case model.shared.visibility of
             Visible ->
                 [ every Util.oneSecondMillis <| Tick OneSecond
                 , every Util.fiveSecondsMillis <| Tick FiveSecond
