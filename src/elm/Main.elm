@@ -266,7 +266,6 @@ type alias Model =
     { page : Page
     , navigationKey : Navigation.Key
     , shared : Shared.Model
-    , sourceRepos : WebData SourceRepositories
     , time : Posix
     , entryURL : Url
     , visibility : Visibility
@@ -300,7 +299,6 @@ init flags url navKey =
         model : Model
         model =
             { page = Pages.Overview
-            , sourceRepos = NotAsked
             , navigationKey = navKey
             , time = millisToPosix 0
             , entryURL = url
@@ -1096,7 +1094,7 @@ update msg model =
             ( model, Navigation.load <| Api.Endpoint.toUrl model.shared.velaAPI Api.Endpoint.Login )
 
         FetchSourceRepositories ->
-            ( { model | sourceRepos = Loading }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+            ( { model | shared = { shared | sourceRepos = Loading } }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
 
         ToggleFavorite org repo ->
             let
@@ -1154,8 +1152,11 @@ update msg model =
                     Http.jsonBody <| encodeEnableRepository payload
             in
             ( { model
-                | sourceRepos = enableUpdate repo Loading model.sourceRepos
-                , shared = { shared | repo = updateRepoEnabling Vela.Enabling rm }
+                | shared =
+                    { shared
+                        | sourceRepos = enableUpdate repo Loading model.shared.sourceRepos
+                        , repo = updateRepoEnabling Vela.Enabling rm
+                    }
               }
             , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
             )
@@ -1561,10 +1562,10 @@ update msg model =
         SourceRepositoriesResponse response ->
             case response of
                 Ok ( _, repositories ) ->
-                    ( { model | sourceRepos = RemoteData.succeed repositories }, Util.dispatch <| FocusOn "global-search-input" )
+                    ( { model | shared = { shared | sourceRepos = RemoteData.succeed repositories } }, Util.dispatch <| FocusOn "global-search-input" )
 
                 Err error ->
-                    ( { model | sourceRepos = toFailure error }, addError error )
+                    ( { model | shared = { shared | sourceRepos = toFailure error } }, addError error )
 
         RepoFavoritedResponse favorite favorited response ->
             case response of
@@ -1621,8 +1622,11 @@ update msg model =
                     let
                         um =
                             { model
-                                | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
-                                , shared = { shared | repo = updateRepoEnabling Vela.Enabled rm }
+                                | shared =
+                                    { shared
+                                        | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.shared.sourceRepos
+                                        , repo = updateRepoEnabling Vela.Enabled rm
+                                    }
                             }
 
                         ( sharedWithAlert, cmd ) =
@@ -1633,9 +1637,9 @@ update msg model =
                 Err error ->
                     let
                         ( sourceRepos, action ) =
-                            repoEnabledError model.sourceRepos repo error
+                            repoEnabledError model.shared.sourceRepos repo error
                     in
-                    ( { model | sourceRepos = sourceRepos }, action )
+                    ( { model | shared = { shared | sourceRepos = sourceRepos } }, action )
 
         RepoDisabledResponse repo response ->
             case response of
@@ -1643,8 +1647,11 @@ update msg model =
                     let
                         um =
                             { model
-                                | shared = { shared | repo = updateRepoEnabling Vela.Disabled rm }
-                                , sourceRepos = enableUpdate repo NotAsked model.sourceRepos
+                                | shared =
+                                    { shared
+                                        | sourceRepos = enableUpdate repo NotAsked model.shared.sourceRepos
+                                        , repo = updateRepoEnabling Vela.Disabled rm
+                                    }
                             }
 
                         ( sharedWithAlert, cmd ) =
@@ -1688,8 +1695,11 @@ update msg model =
                     let
                         um =
                             { model
-                                | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.sourceRepos
-                                , shared = { shared | repo = updateRepoEnabling Vela.Enabled rm }
+                                | shared =
+                                    { shared
+                                        | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.shared.sourceRepos
+                                        , repo = updateRepoEnabling Vela.Enabled rm
+                                    }
                             }
 
                         ( sharedWithAlert, cmd ) =
@@ -2960,7 +2970,7 @@ viewContent model =
             ( "Source Repositories"
             , lazy2 Pages.SourceRepos.view
                 { user = model.shared.user
-                , sourceRepos = model.sourceRepos
+                , sourceRepos = model.shared.sourceRepos
                 , filters = model.shared.filters
                 }
                 sourceReposMsgs
@@ -3411,7 +3421,7 @@ helpArg arg =
 helpArgs : Model -> Help.Commands.Model Msg
 helpArgs model =
     { user = helpArg model.shared.user
-    , sourceRepos = helpArg model.sourceRepos
+    , sourceRepos = helpArg model.shared.sourceRepos
     , orgRepos = helpArg model.shared.repo.orgRepos.orgRepos
     , builds = helpArg model.shared.repo.builds.builds
     , deployments = helpArg model.shared.repo.deployments.deployments
@@ -3602,9 +3612,13 @@ setNewPage route model =
 
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
 loadSourceReposPage model =
-    case model.sourceRepos of
+    let
+        shared =
+            model.shared
+    in
+    case model.shared.sourceRepos of
         NotAsked ->
-            ( { model | page = Pages.SourceRepositories, sourceRepos = Loading }
+            ( { model | page = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
             , Cmd.batch
                 [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
                 , getCurrentUser model
@@ -3612,7 +3626,7 @@ loadSourceReposPage model =
             )
 
         Failure _ ->
-            ( { model | page = Pages.SourceRepositories, sourceRepos = Loading }
+            ( { model | page = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
             , Cmd.batch
                 [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
                 , getCurrentUser model

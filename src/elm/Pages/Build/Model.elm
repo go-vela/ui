@@ -35,7 +35,6 @@ type alias PartialModel a =
     { a
         | shared : Shared.Model
         , navigationKey : Navigation.Key
-        , sourceRepos : WebData SourceRepositories
         , page : Page
         , time : Posix
         , buildMenuOpen : List Int

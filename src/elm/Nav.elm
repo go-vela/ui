@@ -51,7 +51,6 @@ type alias PartialModel a =
     { a
         | shared : Shared.Model
         , page : Page
-        , sourceRepos : WebData SourceRepositories
         , time : Posix
         , pipeline : PipelineModel
     }
@@ -120,10 +119,10 @@ navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild,
                     , ( "-outline", True )
                     ]
                 , onClick fetchSourceRepos
-                , disabled (model.sourceRepos == Loading)
+                , disabled (model.shared.sourceRepos == Loading)
                 , Util.testAttribute "refresh-source-repos"
                 ]
-                [ case model.sourceRepos of
+                [ case model.shared.sourceRepos of
                     Loading ->
                         text "Loading…"
 

@@ -37,7 +37,6 @@ import Vela
 type alias PartialModel a =
     { a
         | shared : Shared.Model
-        , sourceRepos : WebData SourceRepositories
         , navigationKey : Navigation.Key
         , time : Posix
         , templates : PipelineTemplates
