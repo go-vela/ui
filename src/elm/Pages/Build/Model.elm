@@ -36,7 +36,6 @@ type alias PartialModel a =
         | shared : Shared.Model
         , navigationKey : Navigation.Key
         , page : Page
-        , buildMenuOpen : List Int
         , pipeline : PipelineModel
     }
 

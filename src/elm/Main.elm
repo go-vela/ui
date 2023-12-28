@@ -266,7 +266,6 @@ type alias Model =
     { page : Page
     , navigationKey : Navigation.Key
     , shared : Shared.Model
-    , buildMenuOpen : List Int
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , schedulesModel : Pages.Schedules.Model.Model Msg
@@ -297,7 +296,6 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , navigationKey = navKey
-            , buildMenuOpen = []
             , schedulesModel = initSchedulesModel
             , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
@@ -705,7 +703,7 @@ update msg model =
         ShowHideBuildMenu build show ->
             let
                 buildsOpen =
-                    model.buildMenuOpen
+                    model.shared.buildMenuOpen
 
                 replaceList : Int -> List Int -> List Int
                 replaceList id buildList =
@@ -727,7 +725,7 @@ update msg model =
                         build
             in
             ( { model
-                | buildMenuOpen = updatedOpen
+                | shared = { shared | buildMenuOpen = updatedOpen }
               }
             , Cmd.none
             )
@@ -1313,7 +1311,7 @@ update msg model =
         ApproveBuild org repo buildNumber ->
             let
                 newModel =
-                    { model | buildMenuOpen = [] }
+                    { model | shared = { shared | buildMenuOpen = [] } }
             in
             ( newModel
             , approveBuild model org repo buildNumber
@@ -1322,7 +1320,7 @@ update msg model =
         RestartBuild org repo buildNumber ->
             let
                 newModel =
-                    { model | buildMenuOpen = [] }
+                    { model | shared = { shared | buildMenuOpen = [] } }
             in
             ( newModel
             , restartBuild model org repo buildNumber
@@ -1331,7 +1329,7 @@ update msg model =
         CancelBuild org repo buildNumber ->
             let
                 newModel =
-                    { model | buildMenuOpen = [] }
+                    { model | shared = { shared | buildMenuOpen = [] } }
             in
             ( newModel
             , cancelBuild model org repo buildNumber
@@ -2884,7 +2882,7 @@ onMouseDown targetId model triggerMsg =
     else if model.shared.showIdentity then
         Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
 
-    else if List.length model.buildMenuOpen > 0 then
+    else if List.length model.shared.buildMenuOpen > 0 then
         Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
 
     else
@@ -3125,7 +3123,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
+                , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3154,7 +3152,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3183,7 +3181,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )
@@ -3212,7 +3210,7 @@ viewContent model =
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )

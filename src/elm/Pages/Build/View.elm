@@ -129,14 +129,14 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
                 RemoteData.Success bld ->
                     case bld.status of
                         PendingApproval ->
-                            [ viewPreview msgs model.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
+                            [ viewPreview msgs model.shared.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
                             , p [ class "notice", Util.testAttribute "approve-build-notice" ] [ text "An admin of this repository must approve the build to run" ]
                             , viewBuildTabs model org repo buildNumber model.page
                             , content
                             ]
 
                         _ ->
-                            [ viewPreview msgs model.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
+                            [ viewPreview msgs model.shared.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
                             , viewBuildTabs model org repo buildNumber model.page
                             , content
                             ]
