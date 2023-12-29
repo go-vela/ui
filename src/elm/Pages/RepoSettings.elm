@@ -312,63 +312,63 @@ events repo msg =
                     , em [] [ text "Active repositories must have at least one event enabled." ]
                     ]
                 , div [ class "form-controls", class "event-settings" ]
-                    [ div [] [
-                        h4 [ class "event-settings-title" ] [ text "Push" ]
-                    , checkbox "Branch"
-                        "allow_push_branch"
-                        allowEvents.push.branch
-                      <|
-                        msg repo.org repo.name repo "allow_push_branch"
-                    , checkbox "Tag"
-                        "allow_push_tag"
-                        allowEvents.push.tag
-                      <|
-                        msg repo.org repo.name repo "allow_push_tag"
-                    ]
-                    , div [] [
-                    h4 [ class "event-settings-title" ] [ text "Pull Request" ]
-                    , checkbox "Opened"
-                        "allow_pull_opened"
-                        allowEvents.pull.opened
-                      <|
-                        msg repo.org repo.name repo "allow_pull_opened"
-                    , checkbox "Synchronize"
-                        "allow_pull_synchronize"
-                        allowEvents.pull.synchronize
-                      <|
-                        msg repo.org repo.name repo "allow_pull_synchronize"
-                    , checkbox "Edited"
-                        "allow_pull_edited"
-                        allowEvents.pull.edited
-                      <|
-                        msg repo.org repo.name repo "allow_pull_edited"
-                    , checkbox "Reopened"
-                        "allow_pull_reopened"
-                        allowEvents.pull.reopened
-                      <|
-                        msg repo.org repo.name repo "allow_pull_reopened"
-                    ]
-                    , div [] [
-                    h4 [ class "event-settings-title" ] [ text "Deployments" ]
-                    , checkbox "Created"
-                        "allow_deploy_created"
-                        allowEvents.deploy.created
-                      <|
-                        msg repo.org repo.name repo "allow_deploy_created"
-                    ]
-                    , div [] [
-                    h4 [ class "event-settings-title" ] [ text "Comment" ]
-                    , checkbox "Created"
-                        "allow_comment_created"
-                        allowEvents.comment.created
-                      <|
-                        msg repo.org repo.name repo "allow_comment_created"
-                    , checkbox "Edited"
-                        "allow_comment_edited"
-                        allowEvents.comment.edited
-                      <|
-                        msg repo.org repo.name repo "allow_comment_edited"
-                    ]
+                    [ div []
+                        [ h4 [ class "event-settings-title" ] [ text "Push" ]
+                        , checkbox "Branch"
+                            "allow_push_branch"
+                            allowEvents.push.branch
+                          <|
+                            msg repo.org repo.name repo "allow_push_branch"
+                        , checkbox "Tag"
+                            "allow_push_tag"
+                            allowEvents.push.tag
+                          <|
+                            msg repo.org repo.name repo "allow_push_tag"
+                        ]
+                    , div []
+                        [ h4 [ class "event-settings-title" ] [ text "Pull Request" ]
+                        , checkbox "Opened"
+                            "allow_pull_opened"
+                            allowEvents.pull.opened
+                          <|
+                            msg repo.org repo.name repo "allow_pull_opened"
+                        , checkbox "Synchronize"
+                            "allow_pull_synchronize"
+                            allowEvents.pull.synchronize
+                          <|
+                            msg repo.org repo.name repo "allow_pull_synchronize"
+                        , checkbox "Edited"
+                            "allow_pull_edited"
+                            allowEvents.pull.edited
+                          <|
+                            msg repo.org repo.name repo "allow_pull_edited"
+                        , checkbox "Reopened"
+                            "allow_pull_reopened"
+                            allowEvents.pull.reopened
+                          <|
+                            msg repo.org repo.name repo "allow_pull_reopened"
+                        ]
+                    , div []
+                        [ h4 [ class "event-settings-title" ] [ text "Deployments" ]
+                        , checkbox "Created"
+                            "allow_deploy_created"
+                            allowEvents.deploy.created
+                          <|
+                            msg repo.org repo.name repo "allow_deploy_created"
+                        ]
+                    , div []
+                        [ h4 [ class "event-settings-title" ] [ text "Comment" ]
+                        , checkbox "Created"
+                            "allow_comment_created"
+                            allowEvents.comment.created
+                          <|
+                            msg repo.org repo.name repo "allow_comment_created"
+                        , checkbox "Edited"
+                            "allow_comment_edited"
+                            allowEvents.comment.edited
+                          <|
+                            msg repo.org repo.name repo "allow_comment_edited"
+                        ]
                     ]
                 ]
 
