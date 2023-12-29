@@ -18,6 +18,7 @@ module Vela exposing
     , ChownRepo
     , Copy
     , CurrentUser
+    , Dashboard
     , Deployment
     , DeploymentId
     , DeploymentPayload
@@ -108,6 +109,7 @@ module Vela exposing
     , decodeSchedule
     , decodeSchedules
     , decodeSecret
+    , decodeDashboard
     , decodeSecrets
     , decodeService
     , decodeSourceRepositories
@@ -326,6 +328,7 @@ type alias CurrentUser =
     { id : Int
     , name : String
     , favorites : Favorites
+    , dashboards : List String
     , active : Bool
     , admin : Bool
     }
@@ -341,6 +344,7 @@ decodeCurrentUser =
         |> required "id" int
         |> required "name" string
         |> optional "favorites" (Decode.list string) []
+        |> optional "dashboards" (Decode.list string) []
         |> required "active" bool
         |> required "admin" bool
 
@@ -1773,6 +1777,94 @@ type alias Steps =
     List Step
 
 
+
+-- DASHBOARD
+
+
+type alias Dashboard =
+    { dashboard : DashboardItem
+    , repos : List DashboardRepoCard
+    }
+
+
+type alias DashboardItem =
+    { id : String
+    , name : String
+    , created_at : Int
+    , created_by : String
+    , updated_at : Int
+    , updated_by : String
+    , admins : List String
+    , repos : List DashboardRepo
+    }
+
+
+type alias DashboardRepo =
+    { id : Int
+    , name : String
+    , branches : List String
+    , events : List String
+    }
+
+
+type alias DashboardRepoCard =
+    { org : String
+    , name : String
+    , counter : Int
+    , builds : List DashboardRepoCardBuild
+    }
+
+type alias DashboardRepoCardBuild =
+    { number : Int
+    , started : Int
+    , finished : Int
+    , sender : String
+    , status : Status
+    }
+
+
+decodeDashboard : Decoder Dashboard
+decodeDashboard = 
+    Decode.succeed Dashboard
+        |> optional "dashboard" decodeDashboardItem (DashboardItem "" "" 0 "" 0 "" [] [])
+        |> optional "repos" (Decode.list decodeDashboardRepoCard) []
+
+decodeDashboardItem : Decoder DashboardItem
+decodeDashboardItem =
+    Decode.succeed DashboardItem
+        |> optional "id" string ""
+        |> optional "name" string ""
+        |> optional "created_at" int -1
+        |> optional "created_by" string ""
+        |> optional "updated_at" int -1
+        |> optional "updated_by" string ""
+        |> optional "admins" (Decode.list string) []
+        |> optional "repos" (Decode.list decodeDashboardRepo) []
+
+decodeDashboardRepoCard : Decoder DashboardRepoCard
+decodeDashboardRepoCard =
+    Decode.succeed DashboardRepoCard
+        |> optional "org" string ""
+        |> optional "name" string ""
+        |> optional "counter" int -1
+        |> optional "builds" (Decode.list decodeDashboardRepoCardBuild) []
+
+decodeDashboardRepo : Decoder DashboardRepo
+decodeDashboardRepo =
+    Decode.succeed DashboardRepo
+        |> optional "id" int -1
+        |> optional "name" string ""
+        |> optional "branches" (Decode.list string) []
+        |> optional "events" (Decode.list string) []
+
+decodeDashboardRepoCardBuild : Decoder DashboardRepoCardBuild
+decodeDashboardRepoCardBuild =
+    Decode.succeed DashboardRepoCardBuild
+        |> optional "number" int -1
+        |> optional "started" int -1
+        |> optional "finished" int -1
+        |> optional "sender" string ""
+        |> optional "status" buildStatusDecoder Pending
 
 -- SERVICE
 

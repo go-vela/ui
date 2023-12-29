@@ -13,6 +13,7 @@ import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo
 
 type Page
     = Overview
+    | Dashboard String
     | SourceRepositories
     | OrgRepositories Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -56,6 +57,9 @@ toRoute page =
     case page of
         Overview ->
             Routes.Overview
+
+        Dashboard id ->
+            Routes.Dashboard id
 
         SourceRepositories ->
             Routes.SourceRepositories
@@ -155,6 +159,9 @@ strip page =
     case page of
         Overview ->
             Overview
+
+        Dashboard _ ->
+            Dashboard ""
 
         SourceRepositories ->
             SourceRepositories

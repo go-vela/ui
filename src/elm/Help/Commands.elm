@@ -84,6 +84,9 @@ commands page =
         Pages.Overview ->
             [ listFavorites ]
 
+        Pages.Dashboard _ ->
+            []
+
         Pages.SourceRepositories ->
             []
 
@@ -944,6 +947,9 @@ resourceLoaded args =
         Pages.Settings ->
             True
 
+        Pages.Dashboard _ ->
+            True
+
         Pages.Login ->
             True
 
@@ -967,6 +973,9 @@ resourceLoading args =
     case args.page of
         Pages.Overview ->
             args.user.loading
+
+        Pages.Dashboard _ ->
+            False
 
         Pages.SourceRepositories ->
             args.sourceRepos.loading

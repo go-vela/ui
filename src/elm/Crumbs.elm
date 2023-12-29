@@ -95,6 +95,9 @@ toPath page =
                 Pages.Overview ->
                     [ overviewCrumbLink ]
 
+                Pages.Dashboard _ ->
+                    [ ("Dashboard", Nothing) ]
+
                 Pages.SourceRepositories ->
                     [ overviewCrumbLink, accountCrumbStatic, sourceRepositoriesCrumbLink ]
 

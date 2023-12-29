@@ -40,6 +40,7 @@ type Endpoint
     | Login
     | Logout
     | CurrentUser
+    | Dashboard String
     | Deployment Org Repo (Maybe DeploymentId)
     | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
     | Token
@@ -75,6 +76,9 @@ toUrl api endpoint =
     case endpoint of
         Authenticate { code, state } ->
             url api [ "authenticate" ] [ UB.string "code" <| Maybe.withDefault "" code, UB.string "state" <| Maybe.withDefault "" state ]
+
+        Dashboard id ->
+            url api [ "dashboards", id ] []
 
         Login ->
             url api [ "login" ] [ UB.string "type" "web" ]

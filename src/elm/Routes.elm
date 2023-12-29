@@ -14,6 +14,7 @@ import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
+import Url.Parser exposing (int)
 
 
 
@@ -22,6 +23,7 @@ import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Nam
 
 type Route
     = Overview
+    | Dashboard String
     | SourceRepositories
     | OrgRepositories Org (Maybe Pagination.Page) (Maybe Pagination.PerPage)
     | Hooks Org Repo (Maybe Pagination.Page) (Maybe Pagination.PerPage)
@@ -64,6 +66,7 @@ routes : Parser (Route -> a) a
 routes =
     oneOf
         [ map Overview top
+        , map Dashboard (s "dashboards" </> string)
         , map SourceRepositories (s "account" </> s "source-repos")
         , map OrgRepositories (string <?> Query.int "page" <?> Query.int "per_page")
         , map Login (s "account" </> s "login")
@@ -126,6 +129,9 @@ routeToUrl route =
     case route of
         Overview ->
             "/"
+
+        Dashboard id ->
+            "/-/dashboards/" ++ id
 
         SourceRepositories ->
             "/account/source-repos"

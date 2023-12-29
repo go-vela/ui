@@ -105,6 +105,15 @@ navButtons model { fetchSourceRepos, toggleFavorite, restartBuild, cancelBuild }
                 ]
                 [ text "Source Repositories" ]
 
+        Pages.Dashboard _ ->
+            a
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "edit-dashboard"
+                --, Routes.href <| Routes.SourceRepositories
+                ]
+                [ text "Edit Dashboard" ]
+
         Pages.OrgRepositories _ _ _ ->
             a
                 [ class "button"
@@ -285,6 +294,9 @@ viewUtil model =
                 text ""
 
             Pages.Overview ->
+                text ""
+
+            Pages.Dashboard _ ->
                 text ""
 
             Pages.SourceRepositories ->

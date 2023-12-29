@@ -94,6 +94,7 @@ import Pages.Deployments.Model
 import Pages.Deployments.Update exposing (initializeFormFromDeployment)
 import Pages.Deployments.View
 import Pages.Home
+import Pages.Dashboard
 import Pages.Hooks
 import Pages.Organization
 import Pages.Pipeline.Model
@@ -138,6 +139,7 @@ import Vela
         , EnableRepositoryPayload
         , Engine
         , Event
+        , Dashboard
         , Favicon
         , Field
         , FocusFragment
@@ -289,6 +291,7 @@ type alias Model =
     , showIdentity : Bool
     , favicon : Favicon
     , schedulesModel : Pages.Schedules.Model.Model Msg
+    , dashboardModel : WebData Dashboard
     , secretsModel : Pages.Secrets.Model.Model Msg
     , deploymentModel : Pages.Deployments.Model.Model Msg
     , pipeline : PipelineModel
@@ -346,6 +349,7 @@ init flags url navKey =
             , favicon = defaultFavicon
             , schedulesModel = initSchedulesModel
             , secretsModel = initSecretsModel
+            , dashboardModel = NotAsked
             , deploymentModel = initDeploymentsModel
             , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
@@ -448,6 +452,7 @@ type Msg
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
+    | DashboardResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Dashboard ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoFavoritedResponse String Bool (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
@@ -582,6 +587,16 @@ update msg model =
                             Just 0
             in
             ( { model | repo = updateRepoCounter newCounter rm }, Cmd.none )
+
+        DashboardResponse response ->
+            case response of
+                Ok ( _, dashboard ) ->
+                    ( { model | dashboardModel = RemoteData.succeed dashboard }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | dashboardModel = toFailure error }, addError error )
 
         RefreshSettings org repo ->
             ( { model
@@ -2823,6 +2838,11 @@ viewContent model =
             , lazy3 Pages.Home.view model.user model.favoritesFilter homeMsgs
             )
 
+        Pages.Dashboard id ->
+            ( "Dashboard"
+            , lazy2 Pages.Dashboard.view model.dashboardModel id
+            )
+
         Pages.SourceRepositories ->
             ( "Source Repositories"
             , lazy2 Pages.SourceRepos.view
@@ -3354,6 +3374,9 @@ setNewPage route model =
         ( Routes.Overview, Authenticated _ ) ->
             loadOverviewPage model
 
+        ( Routes.Dashboard id, Authenticated _) ->
+            loadDashboard id model
+
         ( Routes.SourceRepositories, Authenticated _ ) ->
             loadSourceReposPage model
 
@@ -3514,6 +3537,12 @@ loadOverviewPage model =
     , Cmd.batch
         [ getCurrentUser model
         ]
+    )
+
+loadDashboard : String -> Model -> ( Model, Cmd Msg )
+loadDashboard id model =
+    ( { model | page = Pages.Dashboard id }
+    , getDashboard model id
     )
 
 
@@ -4917,6 +4946,10 @@ getCurrentUser model =
 
         _ ->
             Cmd.none
+
+getDashboard : Model -> String -> Cmd Msg
+getDashboard model id =
+    Api.try DashboardResponse <| Api.getDashboard model id
 
 
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg

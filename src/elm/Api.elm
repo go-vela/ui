@@ -19,6 +19,7 @@ module Api exposing
     , getAllServices
     , getAllSteps
     , getBuild
+    , getDashboard
     , getBuildGraph
     , getBuilds
     , getCurrentUser
@@ -73,6 +74,7 @@ import Vela
         , Engine
         , Event
         , Hook
+        , Dashboard
         , HookNumber
         , Hooks
         , Key
@@ -103,6 +105,7 @@ import Vela
         , decodeDeployments
         , decodeHooks
         , decodeLog
+        , decodeDashboard
         , decodePipelineConfig
         , decodePipelineExpand
         , decodePipelineTemplates
@@ -631,6 +634,10 @@ getHooks model maybePage maybePerPage org repository =
     get model.velaAPI (Endpoint.Hooks maybePage maybePerPage org repository) decodeHooks
         |> withAuth model.session
 
+getDashboard : PartialModel a -> String -> Request Dashboard
+getDashboard model id =
+    get model.velaAPI (Endpoint.Dashboard id) decodeDashboard
+        |> withAuth model.session
 
 {-| redeliverHook : redelivers a hook
 -}
