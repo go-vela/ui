@@ -27,6 +27,7 @@ import Html
         , div
         , em
         , h2
+        , h4
         , img
         , input
         , label
@@ -80,10 +81,10 @@ import Vela
 -- TYPES
 
 
-{-| CheckboxUpdate : type that takes Msg for forwarding checkbox input callback to Main.elm
+{-| EventsUpdate : type that takes Msg for forwarding event checkbox input callback to Main.elm
 -}
-type alias CheckboxUpdate msg =
-    String -> String -> String -> (Bool -> msg)
+type alias EventsUpdate msg =
+    String -> String -> Repository -> String -> (Bool -> msg)
 
 
 {-| RadioUpdate : type that takes Msg for forwarding radio input callback to Main.elm
@@ -107,7 +108,7 @@ type alias StringInputChange msg =
 {-| Msgs : record containing msgs routeable to Main.elm
 -}
 type alias Msgs msg =
-    { eventsUpdate : CheckboxUpdate msg
+    { eventsUpdate : EventsUpdate msg
     , accessUpdate : RadioUpdate msg
     , forkPolicyUpdate : RadioUpdate msg
     , limitUpdate : NumberInputChange msg
@@ -296,43 +297,80 @@ badge repo velaAPI velaURL copyMsg =
 
 {-| events : takes model and repo and renders the settings category for updating repo webhook events
 -}
-events : Repository -> CheckboxUpdate msg -> Html msg
+events : Repository -> EventsUpdate msg -> Html msg
 events repo msg =
-    section [ class "settings", Util.testAttribute "repo-settings-events" ]
-        [ h2 [ class "settings-title" ] [ text "Webhook Events" ]
-        , p [ class "settings-description" ]
-            [ text "Control which events on Git will trigger Vela pipelines."
-            , br [] []
-            , em [] [ text "Active repositories must have at least one event enabled." ]
-            ]
-        , div [ class "form-controls", class "-stack" ]
-            [ checkbox "Push"
-                "allow_push"
-                repo.allow_push
-              <|
-                msg repo.org repo.name "allow_push"
-            , checkbox "Pull Request"
-                "allow_pull"
-                repo.allow_pull
-              <|
-                msg repo.org repo.name "allow_pull"
-            , checkbox "Tag"
-                "allow_tag"
-                repo.allow_tag
-              <|
-                msg repo.org repo.name "allow_tag"
-            , checkbox "Comment"
-                "allow_comment"
-                repo.allow_comment
-              <|
-                msg repo.org repo.name "allow_comment"
-            , checkbox "Deploy"
-                "allow_deploy"
-                repo.allow_deploy
-              <|
-                msg repo.org repo.name "allow_deploy"
-            ]
-        ]
+    case repo.allow_events of
+        Nothing ->
+            text ""
+
+        Just allowEvents ->
+            section [ class "settings", Util.testAttribute "repo-settings-events" ]
+                [ h2 [ class "settings-title" ] [ text "Webhook Events" ]
+                , p [ class "settings-description" ]
+                    [ text "Control which events on Git will trigger Vela pipelines."
+                    , br [] []
+                    , em [] [ text "Active repositories must have at least one event enabled." ]
+                    ]
+                , div [ class "form-controls", class "event-settings" ]
+                    [ div [] [
+                        h4 [ class "event-settings-title" ] [ text "Push" ]
+                    , checkbox "Branch"
+                        "allow_push_branch"
+                        allowEvents.push.branch
+                      <|
+                        msg repo.org repo.name repo "allow_push_branch"
+                    , checkbox "Tag"
+                        "allow_push_tag"
+                        allowEvents.push.tag
+                      <|
+                        msg repo.org repo.name repo "allow_push_tag"
+                    ]
+                    , div [] [
+                    h4 [ class "event-settings-title" ] [ text "Pull Request" ]
+                    , checkbox "Opened"
+                        "allow_pull_opened"
+                        allowEvents.pull.opened
+                      <|
+                        msg repo.org repo.name repo "allow_pull_opened"
+                    , checkbox "Synchronize"
+                        "allow_pull_synchronize"
+                        allowEvents.pull.synchronize
+                      <|
+                        msg repo.org repo.name repo "allow_pull_synchronize"
+                    , checkbox "Edited"
+                        "allow_pull_edited"
+                        allowEvents.pull.edited
+                      <|
+                        msg repo.org repo.name repo "allow_pull_edited"
+                    , checkbox "Reopened"
+                        "allow_pull_reopened"
+                        allowEvents.pull.reopened
+                      <|
+                        msg repo.org repo.name repo "allow_pull_reopened"
+                    ]
+                    , div [] [
+                    h4 [ class "event-settings-title" ] [ text "Deployments" ]
+                    , checkbox "Created"
+                        "allow_deploy_created"
+                        allowEvents.deploy.created
+                      <|
+                        msg repo.org repo.name repo "allow_deploy_created"
+                    ]
+                    , div [] [
+                    h4 [ class "event-settings-title" ] [ text "Comment" ]
+                    , checkbox "Created"
+                        "allow_comment_created"
+                        allowEvents.comment.created
+                      <|
+                        msg repo.org repo.name repo "allow_comment_created"
+                    , checkbox "Edited"
+                        "allow_comment_edited"
+                        allowEvents.comment.edited
+                      <|
+                        msg repo.org repo.name repo "allow_comment_edited"
+                    ]
+                    ]
+                ]
 
 
 {-| limit : takes model and repo and renders the settings category for updating repo build limit
@@ -392,7 +430,7 @@ checkbox name field state msg =
             , onCheck msg
             ]
             []
-        , label [ class "form-label", for <| "checkbox-" ++ field ] [ strong [] [ text name ] ]
+        , label [ class "form-label", for <| "checkbox-" ++ field ] [ div [] [ text name ] ]
         ]
 
 
@@ -896,20 +934,32 @@ msgPrefix field =
         "approve_build" ->
             "$ approve build policy set to "
 
-        "allow_pull" ->
-            "Pull events for $ "
+        "allow_pull_opened" ->
+            "Pull opened events for $ "
 
-        "allow_push" ->
-            "Push events for $ "
+        "allow_pull_synchronize" ->
+            "Pull synchronize events for $ "
 
-        "allow_deploy" ->
+        "allow_pull_edited" ->
+            "Pull edited events for $ "
+
+        "allow_pull_reopened" ->
+            "Pull reopened events for $ "
+
+        "allow_push_branch" ->
+            "Push branch events for $ "
+
+        "allow_push_tag" ->
+            "Push tag events for $ "
+
+        "allow_deploy_created" ->
             "Deploy events for $ "
 
-        "allow_tag" ->
-            "Tag events for $ "
+        "allow_comment_created" ->
+            "Comment created events for $ "
 
-        "allow_comment" ->
-            "Comment events for $ "
+        "allow_comment_edited" ->
+            "Comment edited events for $ "
 
         "build_limit" ->
             "Build limit for $ "
@@ -944,17 +994,77 @@ msgSuffix field repo =
         "approve_build" ->
             repo.approve_build ++ "."
 
-        "allow_pull" ->
-            toggleText "allow_pull" repo.allow_pull
+        "allow_pull_opened" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
 
-        "allow_push" ->
-            toggleText "allow_push" repo.allow_push
+                Just allowEvents ->
+                    toggleText "allow_pull_opened" allowEvents.pull.opened
 
-        "allow_deploy" ->
-            toggleText "allow_deploy" repo.allow_deploy
+        "allow_pull_synchronize" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
 
-        "allow_comment" ->
-            toggleText "allow_comment" repo.allow_comment
+                Just allowEvents ->
+                    toggleText "allow_pull_synchronize" allowEvents.pull.synchronize
+
+        "allow_pull_edited" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_pull_edited" allowEvents.pull.edited
+
+        "allow_pull_reopened" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_pull_reopened" allowEvents.pull.reopened
+
+        "allow_push_branch" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_push_branch" allowEvents.push.branch
+
+        "allow_push_tag" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_push_tag" allowEvents.push.tag
+
+        "allow_deploy_created" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_deploy_created" allowEvents.deploy.created
+
+        "allow_comment_created" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_comment_created" allowEvents.comment.created
+
+        "allow_comment_edited" ->
+            case repo.allow_events of
+                Nothing ->
+                    ""
+
+                Just allowEvents ->
+                    toggleText "allow_comment_edited" allowEvents.comment.edited
 
         "build_limit" ->
             "set to " ++ String.fromInt repo.limit

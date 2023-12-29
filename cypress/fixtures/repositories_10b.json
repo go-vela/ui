@@ -1,232 +1,422 @@
 [
-  {
-    "id": 10,
-    "user_id": 89,
-    "org": "vela",
-    "name": "gkgdajuj",
-    "full_name": "vela/gkgdajuj",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  },
-  {
-    "id": 11,
-    "user_id": 61,
-    "org": "vela",
-    "name": "slcuueozw",
-    "full_name": "vela/slcuueozw",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  },
-  {
-    "id": 12,
-    "user_id": 23,
-    "org": "vela",
-    "name": "knsrbirh",
-    "full_name": "vela/knsrbirh",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  },
-  {
-    "id": 13,
-    "user_id": 44,
-    "org": "vela",
-    "name": "twlvuybol",
-    "full_name": "vela/twlvuybol",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  },
-  {
-    "id": 14,
-    "user_id": 48,
-    "org": "vela",
-    "name": "cceptb",
-    "full_name": "vela/cceptb",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  },
-  {
-    "id": 15,
-    "user_id": 36,
-    "org": "vela",
-    "name": "biumnadx",
-    "full_name": "vela/biumnadx",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  },
-  {
-    "id": 16,
-    "user_id": 75,
-    "org": "vela",
-    "name": "kjwlvk",
-    "full_name": "vela/kjwlvk",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  },
-  {
-    "id": 17,
-    "user_id": 64,
-    "org": "vela",
-    "name": "guemqmucei",
-    "full_name": "vela/guemqmucei",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  },
-  {
-    "id": 18,
-    "user_id": 55,
-    "org": "vela",
-    "name": "syvdpeb",
-    "full_name": "vela/syvdpeb",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  },
-  {
-    "id": 19,
-    "user_id": 44,
-    "org": "vela",
-    "name": "svjzhodm",
-    "full_name": "vela/svjzhodm",
-    "link": "",
-    "clone": "",
-    "branch": "main",
-    "build_limit": 10,
-    "timeout": 30,
-    "counter": 0,
-    "visibility": "public",
-    "private": false,
-    "trusted": true,
-    "active": true,
-    "allow_pull": false,
-    "allow_push": true,
-    "allow_deploy": false,
-    "allow_tag": false,
-    "allow_comment": false,
-    "pipeline_type": "yaml"
-  }
+    {
+        "id": 10,
+        "user_id": 89,
+        "org": "vela",
+        "name": "gkgdajuj",
+        "full_name": "vela/gkgdajuj",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    },
+    {
+        "id": 11,
+        "user_id": 61,
+        "org": "vela",
+        "name": "slcuueozw",
+        "full_name": "vela/slcuueozw",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    },
+    {
+        "id": 12,
+        "user_id": 23,
+        "org": "vela",
+        "name": "knsrbirh",
+        "full_name": "vela/knsrbirh",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    },
+    {
+        "id": 13,
+        "user_id": 44,
+        "org": "vela",
+        "name": "twlvuybol",
+        "full_name": "vela/twlvuybol",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    },
+    {
+        "id": 14,
+        "user_id": 48,
+        "org": "vela",
+        "name": "cceptb",
+        "full_name": "vela/cceptb",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    },
+    {
+        "id": 15,
+        "user_id": 36,
+        "org": "vela",
+        "name": "biumnadx",
+        "full_name": "vela/biumnadx",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    },
+    {
+        "id": 16,
+        "user_id": 75,
+        "org": "vela",
+        "name": "kjwlvk",
+        "full_name": "vela/kjwlvk",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    },
+    {
+        "id": 17,
+        "user_id": 64,
+        "org": "vela",
+        "name": "guemqmucei",
+        "full_name": "vela/guemqmucei",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    },
+    {
+        "id": 18,
+        "user_id": 55,
+        "org": "vela",
+        "name": "syvdpeb",
+        "full_name": "vela/syvdpeb",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    },
+    {
+        "id": 19,
+        "user_id": 44,
+        "org": "vela",
+        "name": "svjzhodm",
+        "full_name": "vela/svjzhodm",
+        "link": "",
+        "clone": "",
+        "branch": "main",
+        "build_limit": 10,
+        "timeout": 30,
+        "counter": 0,
+        "visibility": "public",
+        "private": false,
+        "trusted": true,
+        "active": true,
+        "allow_pull": false,
+        "allow_push": true,
+        "allow_deploy": false,
+        "allow_tag": false,
+        "allow_comment": false,
+        "pipeline_type": "yaml",
+        "allow_events": {
+            "push": {
+                "branch": true,
+                "tag": false
+            },
+            "pull_request": {
+                "opened": false,
+                "synchronize": false,
+                "edited": false,
+                "reopened": false
+            },
+            "deployment": {
+                "created": false
+            },
+            "comment": {
+                "created": false,
+                "edited": false
+            }
+        }
+    }
 ]

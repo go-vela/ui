@@ -19,6 +19,25 @@
   "allow_deploy": true,
   "allow_tag": true,
   "allow_comment": false,
+  "allow_events": {
+    "push": {
+      "branch": false,
+      "tag": false
+    },
+    "pull_request": {
+      "opened": false,
+      "synchronize": false,
+      "edited": false,
+      "reopened": false
+    },
+    "deployment": {
+      "created": true
+    },
+    "comment": {
+      "created": false,
+      "edited": false
+    }
+  },
   "pipeline_type": "yaml",
   "approve_build": "fork-no-write"
 }

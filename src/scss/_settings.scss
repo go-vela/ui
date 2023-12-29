@@ -25,6 +25,20 @@
   }
 }
 
+.event-settings {
+  flex-wrap: wrap;
+  display: flex;
+
+  &-title {
+    border-bottom: var(--line-width) solid var(--color-white);
+    border-bottom-width: thin;
+  }
+}
+
+.event-settings div {
+  flex: 1 0 80%;
+}
+
 // for the admin action section
 .admin-action-container {
   display: flex;
