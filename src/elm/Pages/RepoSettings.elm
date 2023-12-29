@@ -27,7 +27,7 @@ import Html
         , div
         , em
         , h2
-        , h4
+        , h3
         , img
         , input
         , label
@@ -311,64 +311,62 @@ events repo msg =
                     , br [] []
                     , em [] [ text "Active repositories must have at least one event enabled." ]
                     ]
-                , div [ class "form-controls", class "event-settings" ]
-                    [ div []
-                        [ h4 [ class "event-settings-title" ] [ text "Push" ]
-                        , checkbox "Branch"
-                            "allow_push_branch"
-                            allowEvents.push.branch
-                          <|
-                            msg repo.org repo.name repo "allow_push_branch"
-                        , checkbox "Tag"
-                            "allow_push_tag"
-                            allowEvents.push.tag
-                          <|
-                            msg repo.org repo.name repo "allow_push_tag"
-                        ]
-                    , div []
-                        [ h4 [ class "event-settings-title" ] [ text "Pull Request" ]
-                        , checkbox "Opened"
-                            "allow_pull_opened"
-                            allowEvents.pull.opened
-                          <|
-                            msg repo.org repo.name repo "allow_pull_opened"
-                        , checkbox "Synchronize"
-                            "allow_pull_synchronize"
-                            allowEvents.pull.synchronize
-                          <|
-                            msg repo.org repo.name repo "allow_pull_synchronize"
-                        , checkbox "Edited"
-                            "allow_pull_edited"
-                            allowEvents.pull.edited
-                          <|
-                            msg repo.org repo.name repo "allow_pull_edited"
-                        , checkbox "Reopened"
-                            "allow_pull_reopened"
-                            allowEvents.pull.reopened
-                          <|
-                            msg repo.org repo.name repo "allow_pull_reopened"
-                        ]
-                    , div []
-                        [ h4 [ class "event-settings-title" ] [ text "Deployments" ]
-                        , checkbox "Created"
-                            "allow_deploy_created"
-                            allowEvents.deploy.created
-                          <|
-                            msg repo.org repo.name repo "allow_deploy_created"
-                        ]
-                    , div []
-                        [ h4 [ class "event-settings-title" ] [ text "Comment" ]
-                        , checkbox "Created"
-                            "allow_comment_created"
-                            allowEvents.comment.created
-                          <|
-                            msg repo.org repo.name repo "allow_comment_created"
-                        , checkbox "Edited"
-                            "allow_comment_edited"
-                            allowEvents.comment.edited
-                          <|
-                            msg repo.org repo.name repo "allow_comment_edited"
-                        ]
+                , h3 [ class "settings-subtitle" ] [ text "Push"]
+                , div [ class "form-controls", class "-two-col" ]
+                    [ checkbox "Push"
+                        "allow_push_branch"
+                        allowEvents.push.branch
+                      <|
+                        msg repo.org repo.name repo "allow_push_branch"
+                    , checkbox "Tag"
+                        "allow_push_tag"
+                        allowEvents.push.tag
+                      <|
+                        msg repo.org repo.name repo "allow_push_tag"
+                    ]
+                , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
+                , div [ class "form-controls", class "-two-col" ]
+                    [ checkbox "Opened"
+                        "allow_pull_opened"
+                        allowEvents.pull.opened
+                      <|
+                        msg repo.org repo.name repo "allow_pull_opened"
+                    , checkbox "Synchronize"
+                        "allow_pull_synchronize"
+                        allowEvents.pull.synchronize
+                      <|
+                        msg repo.org repo.name repo "allow_pull_synchronize"
+                    , checkbox "Edited"
+                        "allow_pull_edited"
+                        allowEvents.pull.edited
+                      <|
+                        msg repo.org repo.name repo "allow_pull_edited"
+                    , checkbox "Reopened"
+                        "allow_pull_reopened"
+                        allowEvents.pull.reopened
+                      <|
+                        msg repo.org repo.name repo "allow_pull_reopened"
+                    ]
+                , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
+                , div [ class "form-controls", class "-two-col" ]
+                    [ checkbox "Created"
+                        "allow_deploy_created"
+                        allowEvents.deploy.created
+                      <|
+                        msg repo.org repo.name repo "allow_deploy_created"
+                    ]
+                , h3 [ class "settings-subtitle" ] [ text "Comment" ]
+                , div [ class "form-controls", class "-two-col" ]
+                    [ checkbox "Created"
+                        "allow_comment_created"
+                        allowEvents.comment.created
+                      <|
+                        msg repo.org repo.name repo "allow_comment_created"
+                    , checkbox "Edited"
+                        "allow_comment_edited"
+                        allowEvents.comment.edited
+                      <|
+                        msg repo.org repo.name repo "allow_comment_edited"
                     ]
                 ]
 
@@ -430,7 +428,7 @@ checkbox name field state msg =
             , onCheck msg
             ]
             []
-        , label [ class "form-label", for <| "checkbox-" ++ field ] [ div [] [ text name ] ]
+        , label [ class "form-label", for <| "checkbox-" ++ field ] [ text name ]
         ]
 
 
