@@ -149,7 +149,6 @@ import Vela
         , Name
         , Org
         , PipelineConfig
-        , PipelineTemplates
         , Ref
         , Repo
         , RepoResourceIdentifier
@@ -240,19 +239,6 @@ import Visualization.DOT as DOT
 -- TYPES
 
 
-type alias Flags =
-    { isDev : Bool
-    , velaAPI : String
-    , velaFeedbackURL : String
-    , velaDocsURL : String
-    , velaTheme : String
-    , velaRedirect : String
-    , velaLogBytesLimit : Int
-    , velaMaxBuildLimit : Int
-    , velaScheduleAllowlist : String
-    }
-
-
 type alias Model =
     { page : Page
     , navigationKey : Navigation.Key
@@ -280,7 +266,7 @@ type alias RefreshData =
     }
 
 
-init : Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
+init : Shared.Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
         model : Model
@@ -5339,7 +5325,7 @@ getPipelineTemplates model org repo ref lineFocus refresh =
 -- MAIN
 
 
-main : Program Flags Model Msg
+main : Program Shared.Flags Model Msg
 main =
     Browser.application
         { init = init

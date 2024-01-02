@@ -1,5 +1,7 @@
 module Shared exposing (..)
 
+-- todo: these need to be refined, only expose what is needed
+
 import Alerts exposing (..)
 import Auth.Session exposing (..)
 import Browser.Dom exposing (..)
@@ -23,6 +25,10 @@ type alias Model =
     Shared.Model.Model
 
 
+
+-- todo: comments, what goes in here, why
+
+
 type alias Flags =
     { isDev : Bool
     , velaAPI : String
@@ -36,8 +42,13 @@ type alias Flags =
     }
 
 
+
+-- todo: comments
+
+
 init : Flags -> Url -> Model
 init flags url =
+    -- todo: these need to be logically ordered (flags, session, user, data models, etc)
     { session = Unauthenticated
     , fetchingToken = String.length flags.velaRedirect == 0
     , user = NotAsked
@@ -63,10 +74,11 @@ init flags url =
     , showIdentity = False
     , buildMenuOpen = []
     , favicon = defaultFavicon
+    , pipeline = defaultPipeline
+    , templates = defaultPipelineTemplates
 
+    -- todo: these need to be refactored with Msg
     -- , schedulesModel = initSchedulesModel
     -- , secretsModel = initSecretsModel
     -- , deploymentModel = initDeploymentsModel
-    , pipeline = defaultPipeline
-    , templates = defaultPipelineTemplates
     }
