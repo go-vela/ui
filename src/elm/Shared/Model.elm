@@ -1,4 +1,4 @@
-module Shared.Model exposing (..)
+module Shared.Model exposing (Model)
 
 import Alerts exposing (Alert)
 import Auth.Session exposing (Session(..))
