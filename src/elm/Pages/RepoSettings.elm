@@ -311,7 +311,7 @@ events repo msg =
                     , br [] []
                     , em [] [ text "Active repositories must have at least one event enabled." ]
                     ]
-                , h3 [ class "settings-subtitle" ] [ text "Push"]
+                , h3 [ class "settings-subtitle" ] [ text "Push" ]
                 , div [ class "form-controls", class "-two-col" ]
                     [ checkbox "Push"
                         "allow_push_branch"

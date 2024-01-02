@@ -52,7 +52,9 @@ context('Repo Settings', () => {
     });
 
     it('allow_push_branch checkbox should show', () => {
-      cy.get('[data-test=repo-checkbox-allow_push_branch]').should('be.visible');
+      cy.get('[data-test=repo-checkbox-allow_push_branch]').should(
+        'be.visible',
+      );
     });
 
     it('clicking allow_push_branch checkbox should toggle the value', () => {
