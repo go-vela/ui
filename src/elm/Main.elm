@@ -16,6 +16,7 @@ import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation as Navigation
 import Dict
+import Effect exposing (Effect)
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
 import Favorites exposing (addFavorite, toFavorite, updateFavorites)
 import FeatherIcons
@@ -70,9 +71,12 @@ import Http.Detailed
 import Interop
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Main.Pages.Model
+import Main.Pages.Msg
 import Maybe
 import Maybe.Extra exposing (unwrap)
 import Nav exposing (viewUtil)
+import Page
 import Pager
 import Pages exposing (Page)
 import Pages.Build.Graph.Interop exposing (renderBuildGraph)
@@ -94,6 +98,7 @@ import Pages.Deployments.Model
 import Pages.Deployments.Update exposing (initializeFormFromDeployment)
 import Pages.Deployments.View
 import Pages.Home
+import Pages.Home_
 import Pages.Hooks
 import Pages.Organization
 import Pages.Pipeline.Model
@@ -108,8 +113,11 @@ import Pages.Secrets.View
 import Pages.Settings
 import Pages.SourceRepos
 import RemoteData exposing (RemoteData(..), WebData)
+import Route exposing (Route)
+import Route.Path
 import Routes
 import Shared
+import Shared.Msg
 import String.Extra
 import SvgBuilder exposing (velaLogo)
 import Task
@@ -232,6 +240,7 @@ import Vela
         , updateRepoModels
         , updateRepoTimeout
         )
+import View exposing (View)
 import Visualization.DOT as DOT
 
 
@@ -241,8 +250,15 @@ import Visualization.DOT as DOT
 
 type alias Model =
     { page : Page
-    , navigationKey : Navigation.Key
     , shared : Shared.Model
+
+    -- todo: vader: rename this to 'page'
+    , pageModel : Main.Pages.Model.Model
+    , layout : {}
+
+    -- todo: vader: rename this to 'key'
+    , navigationKey : Navigation.Key
+    , url : Url
 
     -- todo: these need to be refactored with Msg
     , schedulesModel : Pages.Schedules.Model.Model Msg
@@ -269,11 +285,23 @@ type alias RefreshData =
 init : Shared.Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
+        -- todo: vader: remove unnecessary url arg
+        ( sharedModel, sharedEffect ) =
+            Shared.init flags (Route.fromUrl () url) url
+
+        { page, layout } =
+            initPageAndLayout { navigationKey = navKey, url = url, shared = sharedModel, layout = {} }
+
         model : Model
         model =
             { page = Pages.Overview
             , navigationKey = navKey
-            , shared = Shared.init flags url
+            , url = url
+            , shared = sharedModel
+            , pageModel = Tuple.first page
+            , layout = {}
+
+            -- todo: move these into shared model
             , schedulesModel = initSchedulesModel
             , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
@@ -319,17 +347,16 @@ init flags url navKey =
 --     | UrlChanged Url                     ** idk about this
 --     | Page Main.Pages.Msg.Msg            ** idk about this
 --     | Layout Main.Layouts.Msg.Msg        ** ignore for now
-
-
 --     | Shared Shared.Msg                  ** this should be a good start
-
-
 --     | Batch (List Msg)                   ** idk what this does either
 
 
 type Msg
-    = -- User events
-      Shared Shared.Msg
+    = -- NoOp
+      NoOp -- User events
+    | Page Main.Pages.Msg.Msg
+    | Shared Shared.Msg
+    | Batch (List Msg)
       -- todo: move everything below this into Shared.Msg
     | NewRoute Routes.Route
     | ClickedLink UrlRequest
@@ -455,8 +482,102 @@ type Msg
     | OnKeyUp String
     | VisibilityChanged Visibility
     | PushUrl String
-      -- NoOp
-    | NoOp
+
+
+
+-- INTERNALS
+
+
+fromPageEffect : { model | navigationKey : Navigation.Key, url : Url, shared : Shared.Model } -> Effect Main.Pages.Msg.Msg -> Cmd Msg
+fromPageEffect model effect =
+    Effect.toCmd
+        { navigationKey = model.navigationKey
+        , url = model.url
+        , shared = model.shared
+        , fromSharedMsg = Shared
+        , batch = Batch
+        , toCmd = Task.succeed >> Task.perform identity
+        }
+        (Effect.map Page effect)
+
+
+fromSharedEffect : { model | navigationKey : Navigation.Key, url : Url, shared : Shared.Model } -> Effect Shared.Msg -> Cmd Msg
+fromSharedEffect model effect =
+    Effect.toCmd
+        { navigationKey = model.navigationKey
+        , url = model.url
+        , shared = model.shared
+        , fromSharedMsg = Shared
+        , batch = Batch
+        , toCmd = Task.succeed >> Task.perform identity
+        }
+        (Effect.map Shared effect)
+
+
+updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
+updateFromPage msg model =
+    case ( msg, model.pageModel ) of
+        ( Main.Pages.Msg.Home_ pageMsg, Main.Pages.Model.Home_ pageModel ) ->
+            Tuple.mapBoth
+                Main.Pages.Model.Home_
+                (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                (Page.update (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+
+
+initPageAndLayout :
+    { navigationKey : Navigation.Key
+    , url : Url
+    , shared : Shared.Model
+    , layout : {}
+
+    -- , layout : Maybe Main.Layouts.Model.Model
+    }
+    ->
+        { page : ( Main.Pages.Model.Model, Cmd Msg )
+        , layout : {}
+
+        -- , layout : Maybe ( Main.Layouts.Model.Model, Cmd Msg )
+        }
+initPageAndLayout model =
+    case Route.Path.fromUrl model.url of
+        Route.Path.Home_ ->
+            let
+                page : Page.Page Pages.Home_.Model Pages.Home_.Msg
+                page =
+                    Pages.Home_.page model.shared (Route.fromUrl () model.url)
+
+                ( pageModel, pageEffect ) =
+                    Page.init page ()
+            in
+            { page =
+                Tuple.mapBoth
+                    Main.Pages.Model.Home_
+                    (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                    ( pageModel, pageEffect )
+
+            -- , layout = Nothing
+            , layout = {}
+            }
+
+        Route.Path.NotFound_ ->
+            let
+                -- todo: vader implement actual 404 page
+                page : Page.Page Pages.Home_.Model Pages.Home_.Msg
+                page =
+                    Pages.Home_.page model.shared (Route.fromUrl () model.url)
+
+                ( pageModel, pageEffect ) =
+                    Page.init page ()
+            in
+            { page =
+                Tuple.mapBoth
+                    Main.Pages.Model.Home_
+                    (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                    ( pageModel, pageEffect )
+
+            -- , layout = Nothing
+            , layout = {}
+            }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -481,9 +602,65 @@ update msg model =
             shared.pipeline
     in
     case msg of
+        Page pageMsg ->
+            let
+                ( pageModel, pageCmd ) =
+                    updateFromPage pageMsg model
+            in
+            ( { model | pageModel = pageModel }
+            , pageCmd
+            )
+
         -- todo: "handle" msgs like elm-land
-        Shared _ ->
-            ( model, Cmd.none )
+        Shared sharedMsg ->
+            let
+                ( sharedModel, sharedEffect ) =
+                    Shared.update (Route.fromUrl () model.url) sharedMsg model.shared
+
+                -- ( oldAction, newAction ) =
+                --     ( Auth.onPageLoad model.shared (Route.fromUrl () model.url)
+                --     , Auth.onPageLoad sharedModel (Route.fromUrl () model.url)
+                --     )
+                -- in
+                -- if isAuthProtected (Route.fromUrl () model.url).path && (hasActionTypeChanged oldAction newAction) then
+                --     let
+                { layout, page } =
+                    initPageAndLayout
+                        { navigationKey = model.navigationKey
+                        , shared = sharedModel
+                        , url = model.url
+                        , layout = model.layout
+                        }
+
+                ( pageModel, pageCmd ) =
+                    page
+
+                -- ( layoutModel, layoutCmd ) =
+                --     ( layout |> Maybe.map Tuple.first
+                --     , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
+                --     )
+            in
+            ( { model
+                | shared = sharedModel
+                , pageModel = pageModel
+                , layout = {}
+
+                -- , layout = layoutModel
+              }
+            , Cmd.batch
+                [ pageCmd
+
+                --   , layoutCmd
+                , fromSharedEffect { model | shared = sharedModel } sharedEffect
+                ]
+            )
+
+        Batch messages ->
+            ( model
+            , messages
+                |> List.map (Task.succeed >> Task.perform identity)
+                |> Cmd.batch
+            )
 
         -- User events
         NewRoute route ->
@@ -2964,12 +3141,83 @@ view model =
     }
 
 
+
+-- todo: vader
+-- we have a "new" view that renders "new" pages
+-- how do we replace the "old" view with the "new" view without re-writing every single page....
+--  is it even possible?
+
+
+view2 : Model -> Browser.Document Msg
+view2 model =
+    let
+        view_ : View Msg
+        view_ =
+            toView model
+    in
+    View.toBrowserDocument
+        { shared = model.shared
+        , route = Route.fromUrl () model.url
+        , view = view_
+        }
+
+
+toView : Model -> View Msg
+toView model =
+    viewPage model
+
+
+viewPage : Model -> View Msg
+viewPage model =
+    case model.pageModel of
+        Main.Pages.Model.Home_ pageModel ->
+            Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
+                |> View.map Main.Pages.Msg.Home_
+                |> View.map Page
+
+
 viewContent : Model -> ( String, Html Msg )
 viewContent model =
+    case model.pageModel of
+        Main.Pages.Model.Home_ pageModel ->
+            Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
+                |> View.map Main.Pages.Msg.Home_
+                |> View.map Page
+                |> (\x -> ( x.title, Html.div [] x.body ))
+
+
+
+-- viewPage : Model -> View Msg
+-- viewPage model =
+--    case model.page of
+--         Pages.Overview ->
+--             ( "Overview"
+--             -- todo: vader
+--             -- original compiling code for Home
+--             -- , lazy3 Pages.Home.view model.shared.user model.shared.favoritesFilter homeMsgs
+--                 -- place to build the new world
+--                 -- how do i give you Shared.Msg.ToggleFavorite
+--                 -- OR how do i just pull that in and use it inside the func
+--                 ,    Page.view (Pages.Settings.page model.shared (Route.fromUrl () model.url)) pageModel
+--                     |> View.map Main.Pages.Msg.Home_
+--                     |> View.map Page
+--             )
+
+
+viewContentOriginal : Model -> ( String, Html Msg )
+viewContentOriginal model =
     case model.page of
         Pages.Overview ->
             ( "Overview"
+              -- todo: vader
+              -- original compiling code for Home
             , lazy3 Pages.Home.view model.shared.user model.shared.favoritesFilter homeMsgs
+              -- place to build the new world
+              -- how do i give you Shared.Msg.ToggleFavorite
+              -- OR how do i just pull that in and use it inside the func
+              -- ,    Page.view (Pages.Settings.page model.shared (Route.fromUrl () model.url)) pageModel
+              --     |> View.map Main.Pages.Msg.Home_
+              --     |> View.map Page
             )
 
         Pages.SourceRepositories ->
@@ -5027,6 +5275,13 @@ receiveSecrets model response type_ =
 homeMsgs : Pages.Home.Msgs Msg
 homeMsgs =
     Pages.Home.Msgs ToggleFavorite SearchFavorites
+
+
+{-| homeSharedMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
+-}
+homeSharedMsgs : Pages.Home.Msgs Shared.Msg
+homeSharedMsgs =
+    Pages.Home.Msgs Shared.Msg.ToggleFavorite Shared.Msg.SearchFavorites
 
 
 {-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm

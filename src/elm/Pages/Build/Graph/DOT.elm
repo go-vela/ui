@@ -14,7 +14,7 @@ import Routes exposing (Route(..))
 import Util
 import Vela
     exposing
-        (  BuildGraph
+        ( BuildGraph
         , BuildGraphEdge
         , BuildGraphNode
         , statusToString

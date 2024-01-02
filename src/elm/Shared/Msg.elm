@@ -1,17 +1,21 @@
 module Shared.Msg exposing (Msg(..))
 
+import Vela exposing (Org, Repo)
 
-type Msg = 
-    NoOp
 
--- todo: comment this
+type Msg
+    = -- NoOp
+      NoOp
+      -- -- User events
+      --   NewRoute Routes.Route
+      --     | ClickedLink UrlRequest
+      --     | SearchSourceRepos Org String
+    | ActualSharedMsg
+    | SearchFavorites String
+    | ToggleFavorite Org (Maybe Repo)
 
--- type Msg
---     = -- User events
---       NewRoute Routes.Route
---     | ClickedLink UrlRequest
---     | SearchSourceRepos Org String
---     | SearchFavorites String
+
+
 --     | ChangeRepoLimit String
 --     | ChangeRepoTimeout String
 --     | ChangeRepoCounter String
@@ -131,5 +135,3 @@ type Msg =
 --     | OnKeyUp String
 --     | VisibilityChanged Visibility
 --     | PushUrl String
---       -- NoOp
---     | NoOp
