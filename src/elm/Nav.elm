@@ -30,20 +30,16 @@ import Pages.Build.History
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
 import Shared
-import Time exposing (Posix, Zone)
 import Util
 import Vela
     exposing
         ( Build
         , BuildNumber
-        , CurrentUser
         , Engine
         , Org
-        , PipelineModel
         , Repo
         , RepoModel
         , SecretType
-        , SourceRepositories
         )
 
 
@@ -51,7 +47,6 @@ type alias PartialModel a =
     { a
         | shared : Shared.Model
         , page : Page
-        , pipeline : PipelineModel
     }
 
 
@@ -473,7 +468,7 @@ viewBuildTabs model org repo buildNumber currentPage =
             model.shared.repo.build
 
         pipeline =
-            model.pipeline
+            model.shared.pipeline
 
         tabs =
             [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False True

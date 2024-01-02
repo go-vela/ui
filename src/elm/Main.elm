@@ -266,7 +266,6 @@ type alias Model =
     { page : Page
     , navigationKey : Navigation.Key
     , shared : Shared.Model
-    , pipeline : PipelineModel
     , templates : PipelineTemplates
     , schedulesModel : Pages.Schedules.Model.Model Msg
     , secretsModel : Pages.Secrets.Model.Model Msg
@@ -299,7 +298,6 @@ init flags url navKey =
             , schedulesModel = initSchedulesModel
             , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
-            , pipeline = defaultPipeline
             , templates = defaultPipelineTemplates
             , shared = Shared.init flags url
             }
@@ -486,7 +484,7 @@ update msg model =
             model.schedulesModel
 
         pipeline =
-            model.pipeline
+            shared.pipeline
     in
     case msg of
         -- User events
@@ -934,7 +932,7 @@ update msg model =
                 url =
                     lineRangeId "config" "0" line pipeline.lineFocus model.shared.shift
             in
-            ( { model | pipeline = pipeline }
+            ( { model | shared = { shared | pipeline = pipeline } }
             , Navigation.pushUrl model.navigationKey <| url
             )
 
@@ -1342,9 +1340,12 @@ update msg model =
 
         GetPipelineConfig org repo buildNumber ref lineFocus refresh ->
             ( { model
-                | pipeline =
-                    { pipeline
-                        | expanding = True
+                | shared =
+                    { shared
+                        | pipeline =
+                            { pipeline
+                                | expanding = True
+                            }
                     }
               }
             , Cmd.batch
@@ -1355,9 +1356,12 @@ update msg model =
 
         ExpandPipelineConfig org repo buildNumber ref lineFocus refresh ->
             ( { model
-                | pipeline =
-                    { pipeline
-                        | expanding = True
+                | shared =
+                    { shared
+                        | pipeline =
+                            { pipeline
+                                | expanding = True
+                            }
                     }
               }
             , Cmd.batch
@@ -2078,11 +2082,14 @@ update msg model =
                                 Cmd.none
                     in
                     ( { model
-                        | pipeline =
-                            { pipeline
-                                | config = ( RemoteData.succeed <| safeDecodePipelineData config pipeline.config, "" )
-                                , expanded = False
-                                , expanding = False
+                        | shared =
+                            { shared
+                                | pipeline =
+                                    { pipeline
+                                        | config = ( RemoteData.succeed <| safeDecodePipelineData config pipeline.config, "" )
+                                        , expanded = False
+                                        , expanding = False
+                                    }
                             }
                       }
                     , cmd
@@ -2090,9 +2097,12 @@ update msg model =
 
                 Err error ->
                     ( { model
-                        | pipeline =
-                            { pipeline
-                                | config = ( toFailure error, detailedErrorToString error )
+                        | shared =
+                            { shared
+                                | pipeline =
+                                    { pipeline
+                                        | config = ( toFailure error, detailedErrorToString error )
+                                    }
                             }
                       }
                     , Errors.addError error HandleError
@@ -2117,11 +2127,14 @@ update msg model =
                                 Cmd.none
                     in
                     ( { model
-                        | pipeline =
-                            { pipeline
-                                | config = ( RemoteData.succeed { rawData = config, decodedData = config }, "" )
-                                , expanded = True
-                                , expanding = False
+                        | shared =
+                            { shared
+                                | pipeline =
+                                    { pipeline
+                                        | config = ( RemoteData.succeed { rawData = config, decodedData = config }, "" )
+                                        , expanded = True
+                                        , expanding = False
+                                    }
                             }
                       }
                     , cmd
@@ -2129,11 +2142,14 @@ update msg model =
 
                 Err error ->
                     ( { model
-                        | pipeline =
-                            { pipeline
-                                | config = ( Errors.toFailure error, detailedErrorToString error )
-                                , expanding = False
-                                , expanded = True
+                        | shared =
+                            { shared
+                                | pipeline =
+                                    { pipeline
+                                        | config = ( Errors.toFailure error, detailedErrorToString error )
+                                        , expanding = False
+                                        , expanded = True
+                                    }
                             }
                       }
                     , addError error
@@ -4620,6 +4636,9 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
 loadBuildPipelinePage : Model -> Org -> Repo -> BuildNumber -> Maybe ExpandTemplatesQuery -> Maybe Fragment -> ( Model, Cmd Msg )
 loadBuildPipelinePage model org repo buildNumber expand lineFocus =
     let
+        sm =
+            model.shared
+
         -- get resource transition information
         sameBuild =
             isSameBuild ( org, repo, buildNumber ) model.page
@@ -4658,27 +4677,30 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
             parseFocusFragment lineFocus
 
         pipeline =
-            model.pipeline
+            sm.pipeline
     in
     ( { m
         | page = Pages.BuildPipeline org repo buildNumber expand lineFocus
-        , pipeline =
-            pipeline
-                |> updateBuildPipelineConfig
-                    (if sameBuild then
-                        case pipeline.config of
-                            ( Success _, _ ) ->
-                                pipeline.config
+        , shared =
+            { sm
+                | pipeline =
+                    pipeline
+                        |> updateBuildPipelineConfig
+                            (if sameBuild then
+                                case pipeline.config of
+                                    ( Success _, _ ) ->
+                                        pipeline.config
 
-                            _ ->
+                                    _ ->
+                                        ( Loading, "" )
+
+                             else
                                 ( Loading, "" )
-
-                     else
-                        ( Loading, "" )
-                    )
-                |> updateBuildPipelineExpand expand
-                |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
-                |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
+                            )
+                        |> updateBuildPipelineExpand expand
+                        |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
+                        |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
+            }
 
         -- reset templates if build has changed
         , templates =
@@ -4754,18 +4776,10 @@ setBuild org repo buildNumber soft model =
             rm.build.graph
 
         pipeline =
-            model.pipeline
+            sm.pipeline
     in
     { model
-        | pipeline =
-            { pipeline
-                | focusFragment = Nothing
-                , config = ( NotAsked, "" )
-                , expand = Nothing
-                , expanding = False
-                , expanded = False
-            }
-        , templates = { data = NotAsked, error = "", show = True }
+        | templates = { data = NotAsked, error = "", show = True }
         , shared =
             { sm
                 | repo =
@@ -4791,6 +4805,14 @@ setBuild org repo buildNumber soft model =
                         |> updateBuildGraphShowServices gm.showServices
                         |> updateBuildGraphShowSteps gm.showSteps
                         |> updateBuildGraphFilter gm.filter
+                , pipeline =
+                    { pipeline
+                        | focusFragment = Nothing
+                        , config = ( NotAsked, "" )
+                        , expand = Nothing
+                        , expanding = False
+                        , expanded = False
+                    }
             }
     }
 

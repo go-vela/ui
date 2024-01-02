@@ -141,7 +141,7 @@ viewTemplate ( _, t ) =
 -}
 viewPipelineConfiguration : PartialModel a -> Msgs msg -> Html msg
 viewPipelineConfiguration model msgs =
-    case model.pipeline.config of
+    case model.shared.pipeline.config of
         ( Loading, _ ) ->
             Util.smallLoaderWithText "loading pipeline configuration"
 
@@ -157,7 +157,7 @@ viewPipelineConfiguration model msgs =
 viewPipelineConfigurationResponse : PartialModel a -> Msgs msg -> Html msg
 viewPipelineConfigurationResponse model msgs =
     div [ class "logs-container", class "-pipeline" ]
-        [ case model.pipeline.config of
+        [ case model.shared.pipeline.config of
             ( Success config, _ ) ->
                 viewPipelineConfigurationData model config msgs
 
@@ -175,7 +175,7 @@ viewPipelineConfigurationData : PartialModel a -> PipelineConfig -> Msgs msg -> 
 viewPipelineConfigurationData model config msgs =
     wrapPipelineConfigurationContent model msgs (class "") <|
         div [ class "logs", Util.testAttribute "pipeline-configuration-data" ] <|
-            viewLines config model.pipeline.lineFocus msgs.focusLineNumber
+            viewLines config model.shared.pipeline.lineFocus msgs.focusLineNumber
 
 
 {-| viewPipelineConfigurationData : takes model and string and renders a pipeline configuration error.
@@ -215,7 +215,7 @@ viewPipelineActions : PartialModel a -> Get msg -> Expand msg -> Download msg ->
 viewPipelineActions model get expand download =
     let
         pipeline =
-            model.pipeline
+            model.shared.pipeline
 
         toggle =
             case model.shared.repo.build.build of
@@ -294,7 +294,7 @@ expandPipelineToggleButton : PartialModel a -> String -> Get msg -> Expand msg -
 expandPipelineToggleButton model ref get expand =
     let
         pipeline =
-            model.pipeline
+            model.shared.pipeline
 
         { org, name, build } =
             model.shared.repo
