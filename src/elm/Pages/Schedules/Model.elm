@@ -18,14 +18,12 @@ module Pages.Schedules.Model exposing
     )
 
 import Api.Pagination as Pagination
-import Auth.Session exposing (Session)
 import Http
 import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Shared
-import Time exposing (Posix, Zone)
 import Vela exposing (Org, Repo, Schedule, Schedules)
 
 

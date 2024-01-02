@@ -30,7 +30,6 @@ type alias PartialModel a =
     { a
         | shared : Shared.Model
         , navigationKey : Navigation.Key
-        , templates : PipelineTemplates
         , page : Page
     }
 

@@ -119,8 +119,6 @@ import Time
         , Zone
         , every
         , here
-        , millisToPosix
-        , utc
         )
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
@@ -151,13 +149,10 @@ import Vela
         , Name
         , Org
         , PipelineConfig
-        , PipelineModel
         , PipelineTemplates
         , Ref
         , Repo
-        , RepoModel
         , RepoResourceIdentifier
-        , RepoSearchFilters
         , Repositories
         , Repository
         , Schedule
@@ -185,9 +180,6 @@ import Vela
         , decodeTheme
         , defaultEnableRepositoryPayload
         , defaultFavicon
-        , defaultPipeline
-        , defaultPipelineTemplates
-        , defaultRepoModel
         , encodeEnableRepository
         , encodeTheme
         , encodeUpdateRepository
@@ -196,7 +188,6 @@ import Vela
         , secretTypeToString
         , statusToFavicon
         , stringToStatus
-        , stringToTheme
         , updateBuild
         , updateBuildGraph
         , updateBuildGraphFilter
@@ -266,7 +257,8 @@ type alias Model =
     { page : Page
     , navigationKey : Navigation.Key
     , shared : Shared.Model
-    , templates : PipelineTemplates
+
+    -- todo: these need to be refactored with Msg
     , schedulesModel : Pages.Schedules.Model.Model Msg
     , secretsModel : Pages.Secrets.Model.Model Msg
     , deploymentModel : Pages.Deployments.Model.Model Msg
@@ -295,11 +287,10 @@ init flags url navKey =
         model =
             { page = Pages.Overview
             , navigationKey = navKey
+            , shared = Shared.init flags url
             , schedulesModel = initSchedulesModel
             , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
-            , templates = defaultPipelineTemplates
-            , shared = Shared.init flags url
             }
 
         ( newModel, newPage ) =
@@ -923,9 +914,9 @@ update msg model =
         ShowHideTemplates ->
             let
                 templates =
-                    model.templates
+                    shared.templates
             in
-            ( { model | templates = { templates | show = not templates.show } }, Cmd.none )
+            ( { model | shared = { shared | templates = { templates | show = not templates.show } } }, Cmd.none )
 
         FocusPipelineConfigLineNumber line ->
             let
@@ -2159,7 +2150,7 @@ update msg model =
             case response of
                 Ok ( _, templates ) ->
                     ( { model
-                        | templates = { data = RemoteData.succeed templates, error = "", show = model.templates.show }
+                        | shared = { shared | templates = { data = RemoteData.succeed templates, error = "", show = shared.templates.show } }
                       }
                     , if not refresh then
                         Util.dispatch <| FocusOn <| Util.extractFocusIdFromRange <| focusFragmentToFocusId "config" lineFocus
@@ -2169,7 +2160,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | templates = { data = toFailure error, error = detailedErrorToString error, show = model.templates.show } }, addError error )
+                    ( { model | shared = { shared | templates = { data = toFailure error, error = detailedErrorToString error, show = shared.templates.show } } }, addError error )
 
         SecretResponse response ->
             case response of
@@ -4700,15 +4691,15 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
                         |> updateBuildPipelineExpand expand
                         |> updateBuildPipelineLineFocus ( parsed.lineA, parsed.lineB )
                         |> updateBuildPipelineFocusFragment (Maybe.map (\l -> "#" ++ l) lineFocus)
+
+                -- reset templates if build has changed
+                , templates =
+                    if sameBuild then
+                        sm.templates
+
+                    else
+                        { data = Loading, error = "", show = True }
             }
-
-        -- reset templates if build has changed
-        , templates =
-            if sameBuild then
-                model.templates
-
-            else
-                { data = Loading, error = "", show = True }
       }
     , Cmd.batch <|
         -- do not load resources if transition is auto refresh, line focus, etc
@@ -4779,8 +4770,7 @@ setBuild org repo buildNumber soft model =
             sm.pipeline
     in
     { model
-        | templates = { data = NotAsked, error = "", show = True }
-        , shared =
+        | shared =
             { sm
                 | repo =
                     rm
@@ -4813,6 +4803,7 @@ setBuild org repo buildNumber soft model =
                         , expanding = False
                         , expanded = False
                     }
+                , templates = { data = NotAsked, error = "", show = True }
             }
     }
 

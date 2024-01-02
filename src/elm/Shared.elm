@@ -23,14 +23,6 @@ type alias Model =
     Shared.Model.Model
 
 
-
---init : Result Json.Decode.Error Flags -> Route () -> ( Model, Effect Msg )
---init flagsResult route =
---    ( {}
---    , Effect.none
---    )
-
-
 type alias Flags =
     { isDev : Bool
     , velaAPI : String

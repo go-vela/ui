@@ -3,8 +3,6 @@ module Shared.Model exposing (..)
 import Alerts exposing (Alert)
 import Auth.Session exposing (Session(..))
 import Browser.Events exposing (Visibility(..))
-import Browser.Navigation as Navigation
-import Pages exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Time
     exposing
@@ -53,11 +51,12 @@ type alias Model =
     , showHelp : Bool
     , showIdentity : Bool
     , favicon : Favicon
-
-    -- , schedulesModel : Pages.Schedules.Model.Model Msg
-    -- , secretsModel : Pages.Secrets.Model.Model Msg
-    -- , deploymentModel : Pages.Deployments.Model.Model Msg
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int
+
+    -- todo: these need to be refactored with Msg
+    -- , schedulesModel : Pages.Schedules.Model.Model Msg
+    -- , secretsModel : Pages.Secrets.Model.Model Msg
+    -- , deploymentModel : Pages.Deployments.Model.Model Msg
     }

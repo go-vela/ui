@@ -51,7 +51,7 @@ import Vela
 viewPipeline : PartialModel a -> Msgs msg -> Html msg
 viewPipeline model msgs =
     div [ class "pipeline" ]
-        [ viewPipelineTemplates model.templates msgs.showHideTemplates
+        [ viewPipelineTemplates model.shared.templates msgs.showHideTemplates
         , viewPipelineConfiguration model msgs
         ]
 
