@@ -311,11 +311,27 @@ init flags url navKey =
 
 
 -- UPDATE
+-- todo: this is what elm-land looks like
+-- we want OUR "Main.elm Msg" to look like this
+-- we can start with just getting "Page" and "Shared.Msg" working, or just "Shared.Msg"
+-- type Msg
+--     = UrlRequested Browser.UrlRequest    ** idk about this (whats the different between the 3)
+--     | UrlChanged Url                     ** idk about this
+--     | Page Main.Pages.Msg.Msg            ** idk about this
+--     | Layout Main.Layouts.Msg.Msg        ** ignore for now
+
+
+--     | Shared Shared.Msg                  ** this should be a good start
+
+
+--     | Batch (List Msg)                   ** idk what this does either
 
 
 type Msg
     = -- User events
-      NewRoute Routes.Route
+      Shared Shared.Msg
+      -- todo: move everything below this into Shared.Msg
+    | NewRoute Routes.Route
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
     | SearchFavorites String
@@ -416,7 +432,6 @@ type Msg
       -- Schedules
     | SchedulesResponse Org Repo (Result (Http.Detailed.Error String) ( Http.Metadata, Schedules ))
     | ScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
-    | AddScheduleUpdate Pages.Schedules.Model.Msg
     | AddScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | UpdateScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Schedule ))
     | DeleteScheduleResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
@@ -427,6 +442,8 @@ type Msg
     | AdjustTime Posix
     | Tick Interval Posix
       -- Components
+      -- todo: move these into Shared.Msg somehow
+    | AddScheduleUpdate Pages.Schedules.Model.Msg
     | SecretsUpdate Pages.Secrets.Model.Msg
     | AddDeploymentUpdate Pages.Deployments.Model.Msg
       -- Other
@@ -464,6 +481,10 @@ update msg model =
             shared.pipeline
     in
     case msg of
+        -- todo: "handle" msgs like elm-land
+        Shared _ ->
+            ( model, Cmd.none )
+
         -- User events
         NewRoute route ->
             setNewPage route model

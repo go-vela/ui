@@ -10,6 +10,7 @@ import Dict exposing (..)
 import Pages exposing (..)
 import RemoteData exposing (..)
 import Shared.Model
+import Shared.Msg
 import Time exposing (..)
 import Toasty as Alerting
 import Url exposing (..)
@@ -82,3 +83,9 @@ init flags url =
     -- , secretsModel = initSecretsModel
     -- , deploymentModel = initDeploymentsModel
     }
+
+-- UPDATE
+
+
+type alias Msg =
+    Shared.Msg.Msg

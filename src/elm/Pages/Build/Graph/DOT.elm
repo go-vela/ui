@@ -14,11 +14,9 @@ import Routes exposing (Route(..))
 import Util
 import Vela
     exposing
-        ( Build
-        , BuildGraph
+        (  BuildGraph
         , BuildGraphEdge
         , BuildGraphNode
-        , Repository
         , statusToString
         )
 import Visualization.DOT
