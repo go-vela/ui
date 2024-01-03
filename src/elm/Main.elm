@@ -3894,6 +3894,9 @@ loadRepoSubPage model org repo toPage =
                     Pages.RepoSettings o r ->
                         ( model, getRepo model o r )
 
+                    Pages.RepositoryDeployments o r maybePage maybePerPage ->
+                        ( model, getDeployments model o r maybePage maybePerPage )
+
                     Pages.PromoteDeployment o r deploymentNumber ->
                         ( model, getDeployment model o r deploymentNumber )
 
