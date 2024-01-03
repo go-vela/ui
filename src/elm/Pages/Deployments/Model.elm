@@ -16,9 +16,11 @@ module Pages.Deployments.Model exposing
 import Auth.Session exposing (Session)
 import Http
 import Http.Detailed
+import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Vela exposing (Deployment, KeyValuePair, Org, Repo, Repository, Team)
+import Vela exposing (Deployments)
 
 
 
@@ -43,8 +45,12 @@ type alias Model msg =
     , repo : Repo
     , team : Team
     , form : DeploymentForm
+    , deployment : WebData Deployment
+    , deployments : WebData Deployments
+    , pager : List WebLink
     , repo_settings : WebData Repository
     , deploymentResponse : DeploymentResponse msg
+    , repoDeployments : WebData Deployments
     }
 
 
@@ -65,7 +71,6 @@ type alias DeploymentForm =
 defaultDeploymentForm : DeploymentForm
 defaultDeploymentForm =
     DeploymentForm "" "" [] "" "" "" "" ""
-
 
 
 -- MSG

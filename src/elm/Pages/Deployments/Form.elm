@@ -110,7 +110,7 @@ viewValueInput name val placeholder_ =
         ]
 
 
-{-| viewDeployEnabled : displays a message to enable Deploy webhook if it is not enabled
+{-| viewDeployEnabled : displays a message to enable Deploy webhook if it is not enabled HERE
 -}
 viewDeployEnabled : WebData Repository -> Html Msg
 viewDeployEnabled repo_settings =

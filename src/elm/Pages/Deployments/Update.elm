@@ -33,7 +33,12 @@ init deploymentResponse =
         ""
         defaultDeploymentForm
         NotAsked
+        NotAsked
+        []
+        NotAsked
         deploymentResponse
+        NotAsked
+
 
 
 {-| reinitializeDeployment : takes an incoming deployment and reinitialized page input arguments

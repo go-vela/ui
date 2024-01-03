@@ -17,13 +17,13 @@ import Pages.Deployments.Model
         , Msg
         , PartialModel
         )
-import RemoteData
+import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
 import SvgBuilder exposing (hookSuccess)
 import Table
 import Util exposing (largeLoader)
-import Vela exposing (Deployment, Org, Repo, RepoModel, Repository)
+import Vela exposing (Deployment, Org, Repo, Repository)
 
 
 
@@ -64,9 +64,11 @@ addForm deploymentModel =
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : RepoModel -> Org -> Repo -> Html msg
-viewDeployments repoModel org repo =
+viewDeployments : PartialModel a msg -> Org -> Repo -> Html msg
+viewDeployments model org repo =
     let
+        deploymentModel =
+            model.deploymentModel
         addButton =
             a
                 [ class "button"
@@ -74,7 +76,7 @@ viewDeployments repoModel org repo =
                 , class "button-with-icon"
                 , Util.testAttribute "add-deployment"
                 , Routes.href <|
-                    Routes.AddDeploymentRoute org repo
+                    Routes.AddDeploymentRoute org deploymentModel.repo
                 ]
                 [ text "Add Deployment"
                 , FeatherIcons.plus
@@ -89,13 +91,13 @@ viewDeployments repoModel org repo =
                     ]
 
         ( noRowsView, rows ) =
-            case ( repoModel.repo, repoModel.deployments.deployments ) of
-                ( RemoteData.Success repo_, RemoteData.Success s ) ->
+            case deploymentModel.deployments of
+                Success s ->
                     ( text "No deployments found for this repo"
-                    , deploymentsToRows repo_ s
+                    , deploymentsToRows repo s
                     )
 
-                ( _, RemoteData.Failure error ) ->
+                Failure error ->
                     ( span [ Util.testAttribute "repo-deployments-error" ]
                         [ text <|
                             case error of
@@ -106,24 +108,6 @@ viewDeployments repoModel org repo =
 
                                         _ ->
                                             "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
-
-                                _ ->
-                                    "No deployments found for this repo, there was an error with the server"
-                        ]
-                    , []
-                    )
-
-                ( RemoteData.Failure error, _ ) ->
-                    ( span [ Util.testAttribute "repo-deployments-error" ]
-                        [ text <|
-                            case error of
-                                Http.BadStatus statusCode ->
-                                    case statusCode of
-                                        401 ->
-                                            "No repo found, most likely due to not having access to the source control provider"
-
-                                        _ ->
-                                            "No repo found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
                                     "No deployments found for this repo, there was an error with the server"
@@ -152,7 +136,7 @@ viewDeployments repoModel org repo =
 
 {-| deploymentsToRows : takes list of deployments and produces list of Table rows
 -}
-deploymentsToRows : Repository -> List Deployment -> Table.Rows Deployment msg
+deploymentsToRows : Repo -> List Deployment -> Table.Rows Deployment msg
 deploymentsToRows repo_ deployments =
     List.map (\deployment -> Table.Row deployment (renderDeployment repo_)) deployments
 
@@ -168,6 +152,7 @@ tableHeaders =
     , ( Nothing, "commit" )
     , ( Nothing, "ref" )
     , ( Nothing, "description" )
+    , ( Nothing, "builds" )
     , ( Nothing, "user" )
     , ( Nothing, "" )
     ]
@@ -175,7 +160,7 @@ tableHeaders =
 
 {-| renderDeployment : takes deployment and renders a table row
 -}
-renderDeployment : Repository -> Deployment -> Html msg
+renderDeployment : Repo -> Deployment -> Html msg
 renderDeployment repo_ deployment =
     tr [ Util.testAttribute <| "deployments-row" ]
         [ td
@@ -228,6 +213,13 @@ renderDeployment repo_ deployment =
             , scope "row"
             , class "break-word"
             , class "description"
+            ]
+            [ text deployment.description ]
+        , td
+            [ attribute "data-label" "builds"
+            , scope "row"
+            , class "break-word"
+            , class "builds"
             ]
             [ text deployment.description ]
         , td

@@ -16,6 +16,7 @@ module Vela exposing
     , Copy
     , CurrentUser
     , Deployment
+    , Deployments
     , DeploymentId
     , DeploymentPayload
     , DeploymentsModel
@@ -835,6 +836,7 @@ type alias Deployment =
     , target : String
     , description : String
     , payload : Maybe (List KeyValuePair)
+    , builds : (List Build)
     }
 
 
@@ -2007,13 +2009,15 @@ decodeDeployment =
         |> optional "target" string ""
         |> optional "description" string ""
         |> optional "payload" decodeDeploymentParameters Nothing
+        |> optional "builds" (Decode.list decodeBuild) []
 
 
-decodeDeployments : Decoder (List Deployment)
+decodeDeployments : Decoder Deployments
 decodeDeployments =
     Decode.list decodeDeployment
 
-
+type alias Deployments =
+    List Deployment
 
 {- payload -}
 
@@ -2098,8 +2102,6 @@ buildDeploymentPayload org rep commit description ref target task payload =
         target
         task
         payload
-
-
 
 -- SEARCH
 

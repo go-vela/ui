@@ -2694,8 +2694,8 @@ viewContent model =
         Pages.RepositoryDeployments org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
             , div []
-                [ lazy3 Pages.Deployments.View.viewDeployments model.repo org repo
-                , Pager.view model.repo.deployments.pager Pager.defaultLabels GotoPage
+                [ lazy3 Pages.Deployments.View.viewDeployments model org repo
+                , Pager.view model.deploymentModel.pager Pager.defaultLabels GotoPage
                 ]
             )
 
