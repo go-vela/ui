@@ -73,27 +73,49 @@ decoder =
 -- todo: comments
 
 
-init : Flags -> Route () -> Url -> ( Model, Effect Msg )
+init : Result Decode.Error Flags -> Route () -> Url -> ( Model, Effect Msg )
 init flagsResult route url =
+    let
+        flags : Flags
+        flags =
+            case flagsResult of
+                Ok value ->
+                    value
+
+                Err reason ->
+                    -- something went wrong with the flags decoder
+                    -- todo: log the error, crash the app, what to do here
+                    -- and how did Elm handle this before manually decoding
+                    { isDev = True
+                    , velaAPI = ""
+                    , velaFeedbackURL = ""
+                    , velaDocsURL = ""
+                    , velaTheme = ""
+                    , velaRedirect = ""
+                    , velaLogBytesLimit = 0
+                    , velaMaxBuildLimit = 0
+                    , velaScheduleAllowlist = ""
+                    }
+    in
     -- todo: these need to be logically ordered (flags, session, user, data models, etc)
     ( { session = Unauthenticated
-      , fetchingToken = String.length flagsResult.velaRedirect == 0
+      , fetchingToken = String.length flags.velaRedirect == 0
       , user = NotAsked
       , sourceRepos = NotAsked
-      , velaAPI = flagsResult.velaAPI
-      , velaFeedbackURL = flagsResult.velaFeedbackURL
-      , velaDocsURL = flagsResult.velaDocsURL
-      , velaRedirect = flagsResult.velaRedirect
-      , velaLogBytesLimit = flagsResult.velaLogBytesLimit
-      , velaMaxBuildLimit = flagsResult.velaMaxBuildLimit
-      , velaScheduleAllowlist = Util.stringToAllowlist flagsResult.velaScheduleAllowlist
+      , velaAPI = flags.velaAPI
+      , velaFeedbackURL = flags.velaFeedbackURL
+      , velaDocsURL = flags.velaDocsURL
+      , velaRedirect = flags.velaRedirect
+      , velaLogBytesLimit = flags.velaLogBytesLimit
+      , velaMaxBuildLimit = flags.velaMaxBuildLimit
+      , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
       , toasties = Alerting.initialState
       , zone = utc
       , time = millisToPosix 0
       , filters = Dict.empty
       , repo = defaultRepoModel
       , entryURL = url
-      , theme = stringToTheme flagsResult.velaTheme
+      , theme = stringToTheme flags.velaTheme
       , shift = False
       , visibility = Visible
       , showHelp = False

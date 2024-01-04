@@ -72,8 +72,8 @@ import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Json.Decode
+import Json.Encode
 import Main.Pages.Model
 import Main.Pages.Msg
 import Maybe
@@ -280,33 +280,36 @@ type alias RefreshData =
     }
 
 
-init : Shared.Flags -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
-init flags url navKey =
+init : Json.Decode.Value -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
+init json url key =
     let
+        flagsResult : Result Json.Decode.Error Shared.Flags
+        flagsResult =
+            Json.Decode.decodeValue Shared.decoder json
+
         -- todo: vader: remove unnecessary url arg
         ( sharedModel, sharedEffect ) =
-            Shared.init flags (Route.fromUrl () url) url
+            Shared.init flagsResult (Route.fromUrl () url) url
 
         { page, layout } =
-            initPageAndLayout { key = navKey, url = url, shared = sharedModel, layout = {} }
+            initPageAndLayout { key = key, url = url, shared = sharedModel, layout = {} }
 
-        model : Model
-        model =
-            { legacyPage = Pages.Overview
-            , key = navKey
-            , url = url
-            , shared = sharedModel
+        ( model, legacySetNewPageCmd ) =
+            { url = url
+            , key = key
             , page = Tuple.first page
-            , layout = {}
 
-            -- todo: move these into shared model
+            --   , layout = layout |> Maybe.map Tuple.first
+            , layout = {}
+            , shared = sharedModel
+
+            -- todo: remove legacy stuff
+            , legacyPage = Pages.Overview
             , schedulesModel = initSchedulesModel
             , secretsModel = initSecretsModel
             , deploymentModel = initDeploymentsModel
             }
-
-        ( newModel, newPage ) =
-            setNewPage (Routes.match url) model
+                |> setNewPage (Routes.match url)
 
         setTimeZone : Cmd Msg
         setTimeZone =
@@ -324,10 +327,18 @@ init flags url navKey =
             else
                 Cmd.none
     in
-    ( newModel
+    ( model
     , Cmd.batch
-        [ fetchToken
-        , newPage
+        [ Tuple.second page
+
+        --   , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
+        , fromSharedEffect { key = key, url = url, shared = sharedModel } sharedEffect
+
+        -- todo: remove legacy stuff
+        , legacySetNewPageCmd
+
+        -- custom effects
+        , fetchToken
         , Interop.setTheme <| encodeTheme model.shared.theme
         , setTimeZone
         , setTime
@@ -1806,7 +1817,7 @@ update msg model =
                                                 _ ->
                                                     model.shared.velaRedirect
                                     in
-                                    [ Interop.setRedirect Encode.null
+                                    [ Interop.setRedirect Json.Encode.null
                                     , Browser.Navigation.pushUrl model.key redirectTo
                                     ]
 
@@ -2201,7 +2212,7 @@ update msg model =
                                 , favicon = statusToFavicon build.status
                             }
                       }
-                    , Interop.setFavicon <| Encode.string <| statusToFavicon build.status
+                    , Interop.setFavicon <| Json.Encode.string <| statusToFavicon build.status
                     )
 
                 Err error ->
@@ -2235,7 +2246,7 @@ update msg model =
                             }
                       }
                     , Cmd.batch
-                        [ Interop.setFavicon <| Encode.string <| statusToFavicon build.status
+                        [ Interop.setFavicon <| Json.Encode.string <| statusToFavicon build.status
                         , getPipeline model org repo build.commit Nothing False
                         , getPipelineTemplates model org repo build.commit Nothing False
                         ]
@@ -2836,9 +2847,9 @@ updateScheduleResponseAlert schedule =
 -- SUBSCRIPTIONS
 
 
-keyDecoder : Decode.Decoder String
+keyDecoder : Json.Decode.Decoder String
 keyDecoder =
-    Decode.field "key" Decode.string
+    Json.Decode.field "key" Json.Decode.string
 
 
 subscriptions : Model -> Sub Msg
@@ -2849,16 +2860,16 @@ subscriptions model =
         , onMouseDown "contextual-help" model ShowHideHelp
         , onMouseDown "identity" model ShowHideIdentity
         , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
-        , Browser.Events.onKeyDown (Decode.map OnKeyDown keyDecoder)
-        , Browser.Events.onKeyUp (Decode.map OnKeyUp keyDecoder)
+        , Browser.Events.onKeyDown (Json.Decode.map OnKeyDown keyDecoder)
+        , Browser.Events.onKeyUp (Json.Decode.map OnKeyUp keyDecoder)
         , Browser.Events.onVisibilityChange VisibilityChanged
         , refreshSubscriptions model
         ]
 
 
-decodeOnThemeChange : Decode.Value -> Msg
+decodeOnThemeChange : Json.Decode.Value -> Msg
 decodeOnThemeChange inTheme =
-    case Decode.decodeValue decodeTheme inTheme of
+    case Json.Decode.decodeValue decodeTheme inTheme of
         Ok theme ->
             SetTheme theme
 
@@ -2866,9 +2877,9 @@ decodeOnThemeChange inTheme =
             SetTheme Dark
 
 
-decodeOnGraphInteraction : Decode.Value -> Msg
+decodeOnGraphInteraction : Json.Decode.Value -> Msg
 decodeOnGraphInteraction interaction =
-    case Decode.decodeValue decodeGraphInteraction interaction of
+    case Json.Decode.decodeValue decodeGraphInteraction interaction of
         Ok interaction_ ->
             OnBuildGraphInteraction interaction_
 
@@ -2920,7 +2931,7 @@ refreshFavicon page currentFavicon build =
                         statusToFavicon b.status
                 in
                 if currentFavicon /= newFavicon then
-                    ( newFavicon, Interop.setFavicon <| Encode.string newFavicon )
+                    ( newFavicon, Interop.setFavicon <| Json.Encode.string newFavicon )
 
                 else
                     ( currentFavicon, Cmd.none )
@@ -2929,7 +2940,7 @@ refreshFavicon page currentFavicon build =
                 ( currentFavicon, Cmd.none )
 
     else if currentFavicon /= defaultFavicon then
-        ( defaultFavicon, Interop.setFavicon <| Encode.string defaultFavicon )
+        ( defaultFavicon, Interop.setFavicon <| Json.Encode.string defaultFavicon )
 
     else
         ( currentFavicon, Cmd.none )
@@ -3226,39 +3237,39 @@ onMouseDown targetId model triggerMsg =
 
 {-| outsideTarget : returns decoder for handling clicks that occur from outside the currently focused/open dropdown
 -}
-outsideTarget : String -> Msg -> Decode.Decoder Msg
+outsideTarget : String -> Msg -> Json.Decode.Decoder Msg
 outsideTarget targetId msg =
-    Decode.field "target" (isOutsideTarget targetId)
-        |> Decode.andThen
+    Json.Decode.field "target" (isOutsideTarget targetId)
+        |> Json.Decode.andThen
             (\isOutside ->
                 if isOutside then
-                    Decode.succeed msg
+                    Json.Decode.succeed msg
 
                 else
-                    Decode.fail "inside dropdown"
+                    Json.Decode.fail "inside dropdown"
             )
 
 
 {-| isOutsideTarget : returns decoder for determining if click target occurred from within a specified element
 -}
-isOutsideTarget : String -> Decode.Decoder Bool
+isOutsideTarget : String -> Json.Decode.Decoder Bool
 isOutsideTarget targetId =
-    Decode.oneOf
-        [ Decode.field "id" Decode.string
-            |> Decode.andThen
+    Json.Decode.oneOf
+        [ Json.Decode.field "id" Json.Decode.string
+            |> Json.Decode.andThen
                 (\id ->
                     if targetId == id then
                         -- found match by id
-                        Decode.succeed False
+                        Json.Decode.succeed False
 
                     else
                         -- try next decoder
-                        Decode.fail "continue"
+                        Json.Decode.fail "continue"
                 )
-        , Decode.lazy (\_ -> isOutsideTarget targetId |> Decode.field "parentNode")
+        , Json.Decode.lazy (\_ -> isOutsideTarget targetId |> Json.Decode.field "parentNode")
 
         -- fallback if all previous decoders failed
-        , Decode.succeed True
+        , Json.Decode.succeed True
         ]
 
 
@@ -3971,11 +3982,11 @@ setNewPage route model =
                     else
                         Pages.Login
               }
-            , Interop.setRedirect <| Encode.string <| Url.toString model.shared.entryURL
+            , Interop.setRedirect <| Json.Encode.string <| Url.toString model.shared.entryURL
             )
     )
+        -- todo: vader: remove this when there are no more legacy pages
         |> (\( m, c ) ->
-                -- todo: vader: remove this when there are no more legacy pages
                 ( case m.legacyPage of
                     Pages.Overview ->
                         m
@@ -5738,7 +5749,7 @@ getPipelineTemplates model org repo ref lineFocus refresh =
 -- MAIN
 
 
-main : Program Shared.Flags Model Msg
+main : Program Json.Decode.Value Model Msg
 main =
     Browser.application
         { init = init
@@ -5747,4 +5758,7 @@ main =
         , subscriptions = subscriptions
         , onUrlRequest = ClickedLink
         , onUrlChange = Routes.match >> NewRoute
+
+        -- , onUrlChange = UrlChanged
+        -- , onUrlRequest = UrlRequested
         }
