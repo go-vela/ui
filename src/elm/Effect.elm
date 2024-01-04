@@ -4,7 +4,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , someSharedMsg
+    , toggleFavorites
     )
 
 {-|
@@ -42,6 +42,8 @@ type Effect msg
 
 
 
+-- todo: vader: api http requests need to get dispatched here so that they can be converted to Cmd?
+-- or, maybe, we use msg etc? or we somehow map a Task.attempt to Effect msg?
 -- BASICS
 
 
@@ -165,7 +167,7 @@ map fn effect =
 {-| Elm Land depends on this function to perform your effects.
 -}
 toCmd :
-    { navigationKey : Browser.Navigation.Key
+    { key : Browser.Navigation.Key
     , url : Url
     , shared : Shared.Model.Model
     , fromSharedMsg : Shared.Msg.Msg -> msg
@@ -186,10 +188,10 @@ toCmd options effect =
             cmd
 
         PushUrl url ->
-            Browser.Navigation.pushUrl options.navigationKey url
+            Browser.Navigation.pushUrl options.key url
 
         ReplaceUrl url ->
-            Browser.Navigation.replaceUrl options.navigationKey url
+            Browser.Navigation.replaceUrl options.key url
 
         LoadExternalUrl url ->
             Browser.Navigation.load url
@@ -203,10 +205,6 @@ toCmd options effect =
 -- CUSTOM EFFECTS
 
 
-someSharedMsg : Effect msg
-someSharedMsg =
-    let
-        _ =
-            Debug.log "send someSharedMsg" ":1"
-    in
-    SendSharedMsg Shared.Msg.ActualSharedMsg
+toggleFavorites : { org : String, maybeRepo : Maybe String } -> Effect msg
+toggleFavorites options =
+    SendSharedMsg <| Shared.Msg.ToggleFavorites options

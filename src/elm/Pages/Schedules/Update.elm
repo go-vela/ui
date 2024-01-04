@@ -10,7 +10,8 @@ module Pages.Schedules.Update exposing
     , update
     )
 
-import Api
+import Api.Api
+import Api.Operations
 import Http
 import Pages.Schedules.Model
     exposing
@@ -198,8 +199,8 @@ update model msg =
                             Http.jsonBody <| encodeUpdateSchedule payload
                     in
                     ( scheduleModel
-                    , Api.try scheduleModel.addScheduleResponse <|
-                        Api.addSchedule model
+                    , Api.Api.try scheduleModel.addScheduleResponse <|
+                        Api.Operations.addSchedule model
                             scheduleModel.org
                             scheduleModel.repo
                             body
@@ -219,8 +220,8 @@ update model msg =
                             Http.jsonBody <| encodeUpdateSchedule payload
                     in
                     ( scheduleModel
-                    , Api.try scheduleModel.updateScheduleResponse <|
-                        Api.updateSchedule model
+                    , Api.Api.try scheduleModel.updateScheduleResponse <|
+                        Api.Operations.updateSchedule model
                             scheduleModel.org
                             scheduleModel.repo
                             schedule.name
@@ -253,8 +254,8 @@ update model msg =
                                     Cmd.none
 
                                 Confirm ->
-                                    Api.tryString scheduleModel.deleteScheduleResponse <|
-                                        Api.deleteSchedule model
+                                    Api.Api.tryString scheduleModel.deleteScheduleResponse <|
+                                        Api.Operations.deleteSchedule model
                                             scheduleModel.org
                                             scheduleModel.repo
                                             schedule.name

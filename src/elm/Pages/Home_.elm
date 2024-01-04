@@ -11,7 +11,6 @@ import Html
         , details
         , div
         , h1
-        , input
         , p
         , span
         , summary
@@ -20,31 +19,23 @@ import Html
 import Html.Attributes
     exposing
         ( attribute
-        , autofocus
         , class
-        , disabled
-        , id
-        , placeholder
-        , value
         )
-import Html.Events exposing (onInput)
 import List
 import List.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Routes
 import Search
     exposing
-        ( SimpleSearch
-        , homeSearchBar
+        ( homeSearchBar
         , toLowerContains
         )
 import Shared
-import Shared.Msg
 import SvgBuilder
 import Util
-import Vela exposing (CurrentUser, Favorites)
+import Vela exposing (Favorites, Org, Repo)
 import View exposing (View)
 
 
@@ -63,12 +54,14 @@ page shared route =
 
 
 type alias Model =
-    {}
+    { favoritesFilter : String
+    }
 
 
 init : () -> ( Model, Effect Msg )
 init () =
-    ( {}
+    ( { favoritesFilter = ""
+      }
     , Effect.none
     )
 
@@ -79,9 +72,7 @@ init () =
 
 type Msg
     = NoOp
-    | SomeHomeMsg
-    | SomeSharedMsg
-    | ToggleFavorite
+    | ToggleFavorite Org (Maybe Repo)
     | SearchFavorites String
 
 
@@ -93,24 +84,14 @@ update msg model =
             , Effect.none
             )
 
-        SomeHomeMsg ->
-            ( model
+        SearchFavorites searchBy ->
+            ( { model | favoritesFilter = searchBy }
             , Effect.none
             )
 
-        SomeSharedMsg ->
+        ToggleFavorite org maybeRepo ->
             ( model
-            , Effect.someSharedMsg
-            )
-
-        ToggleFavorite ->
-            ( model
-            , Effect.none
-            )
-
-        SearchFavorites _ ->
-            ( model
-            , Effect.none
+            , Effect.toggleFavorites { org = org, maybeRepo = maybeRepo }
             )
 
 
@@ -150,8 +131,8 @@ view shared model =
                 case shared.user of
                     Success u ->
                         if List.length u.favorites > 0 then
-                            [ homeSearchBar shared.favoritesFilter
-                            , viewFavorites u.favorites shared.favoritesFilter
+                            [ homeSearchBar model.favoritesFilter SearchFavorites
+                            , viewFavorites u.favorites model.favoritesFilter
                             ]
 
                         else
@@ -161,10 +142,10 @@ view shared model =
                         [ h1 [] [ text "Loading your Repositories", span [ class "loading-ellipsis" ] [] ] ]
 
                     NotAsked ->
-                        [ text "" ]
+                        [ text "not asked" ]
 
                     Failure _ ->
-                        [ text "" ]
+                        [ text "failed" ]
     in
     { title = "Pages.Home_New_"
     , body =
@@ -175,9 +156,8 @@ view shared model =
 
 {-| viewFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFavorites : Favorites -> String -> Html msg
+viewFavorites : Favorites -> String -> Html Msg
 viewFavorites favorites filter =
-    -- no search input
     if String.isEmpty filter then
         favorites
             |> toOrgFavorites
@@ -189,7 +169,7 @@ viewFavorites favorites filter =
 
 {-| viewFilteredFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFilteredFavorites : Favorites -> String -> Html msg
+viewFilteredFavorites : Favorites -> String -> Html Msg
 viewFilteredFavorites favorites filter =
     let
         filteredRepos =
@@ -197,19 +177,17 @@ viewFilteredFavorites favorites filter =
                 |> List.filter (\repo -> toLowerContains filter repo)
     in
     div [ class "filtered-repos" ] <|
-        -- Render the found repositories
         if not <| List.isEmpty filteredRepos then
             filteredRepos
                 |> List.map (viewFavorite favorites True)
 
         else
-            -- No repos matched the search
             [ div [ class "no-results" ] [ text "No results" ] ]
 
 
 {-| viewFavoritesByOrg : takes favorites dictionary and favorite action and renders favorites by org
 -}
-viewFavoritesByOrg : Dict String Favorites -> Html msg
+viewFavoritesByOrg : Dict String Favorites -> Html Msg
 viewFavoritesByOrg orgFavorites =
     orgFavorites
         |> Dict.toList
@@ -239,7 +217,7 @@ toOrgFavorites favorites =
 
 {-| viewOrg : takes org, favorites and favorite action and renders favorites by org
 -}
-viewOrg : String -> Favorites -> Html msg
+viewOrg : String -> Favorites -> Html Msg
 viewOrg org favorites =
     details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
         (summary [ class "summary" ]
@@ -252,7 +230,7 @@ viewOrg org favorites =
 
 {-| viewFavorite : takes favorites and favorite action and renders single favorite
 -}
-viewFavorite : Favorites -> Bool -> String -> Html msg
+viewFavorite : Favorites -> Bool -> String -> Html Msg
 viewFavorite favorites filtered favorite =
     let
         ( org, repo ) =
@@ -270,8 +248,8 @@ viewFavorite favorites filtered favorite =
     div [ class "item", Util.testAttribute "repo-item" ]
         [ div [] [ text name ]
         , div [ class "buttons" ]
-            -- [ starToggle org repo toggleFavorite <| List.member favorite favorites
-            [ a
+            [ starToggle org repo ToggleFavorite <| List.member favorite favorites
+            , a
                 [ class "button"
                 , class "-outline"
                 , Routes.href <| Routes.RepoSettings org repo
@@ -298,23 +276,4 @@ viewFavorite favorites filtered favorite =
                 ]
                 [ text "View" ]
             ]
-        ]
-
-
-
--- todo: this will eventually move to an elm-land component
-
-
-homeSearchBar : String -> Html Msg
-homeSearchBar filter =
-    div [ class "form-control", class "-with-icon", class "-is-expanded", Util.testAttribute "home-search-bar" ]
-        [ input
-            [ Util.testAttribute "home-search-input"
-            , autofocus True
-            , placeholder "Type to filter all favorites..."
-            , value <| filter
-            , onInput SearchFavorites
-            ]
-            []
-        , FeatherIcons.filter |> FeatherIcons.toHtml [ attribute "aria-label" "filter" ]
         ]

@@ -33,6 +33,7 @@ type Page model msg
         , subscriptions : model -> Sub msg
         , view : model -> View msg
 
+        -- todo: layouts
         -- , toLayout : Maybe (model -> Layout msg)
         , onUrlChanged : Maybe ({ from : Route (), to : Route () } -> msg)
         , onHashChanged : Maybe ({ from : Maybe String, to : Maybe String } -> msg)

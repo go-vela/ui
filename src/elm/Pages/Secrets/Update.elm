@@ -11,7 +11,8 @@ module Pages.Secrets.Update exposing
     , update
     )
 
-import Api
+import Api.Api
+import Api.Operations
 import Http
 import List.Extra
 import Pages.Secrets.Model
@@ -355,8 +356,8 @@ update model msg =
                             Http.jsonBody <| encodeUpdateSecret payload
                     in
                     ( secretsModel
-                    , Api.try secretsModel.addSecretResponse <|
-                        Api.addSecret model
+                    , Api.Api.try secretsModel.addSecretResponse <|
+                        Api.Operations.addSecret model
                             engine
                             (secretTypeToString secretsModel.type_)
                             secretsModel.org
@@ -378,8 +379,8 @@ update model msg =
                             Http.jsonBody <| encodeUpdateSecret payload
                     in
                     ( secretsModel
-                    , Api.try secretsModel.updateSecretResponse <|
-                        Api.updateSecret model
+                    , Api.Api.try secretsModel.updateSecretResponse <|
+                        Api.Operations.updateSecret model
                             engine
                             (secretTypeToString secretsModel.type_)
                             secretsModel.org
@@ -414,8 +415,8 @@ update model msg =
                                     Cmd.none
 
                                 Confirm ->
-                                    Api.tryString secretsModel.deleteSecretResponse <|
-                                        Api.deleteSecret model
+                                    Api.Api.tryString secretsModel.deleteSecretResponse <|
+                                        Api.Operations.deleteSecret model
                                             engine
                                             (secretTypeToString secretsModel.type_)
                                             secretsModel.org

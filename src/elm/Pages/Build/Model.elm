@@ -34,7 +34,7 @@ import Vela exposing (BuildNumber, CurrentUser, Org, PipelineModel, Repo, RepoMo
 type alias PartialModel a =
     { a
         | shared : Shared.Model
-        , navigationKey : Navigation.Key
+        , key : Navigation.Key
         , page : Page
     }
 

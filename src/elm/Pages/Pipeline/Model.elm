@@ -29,7 +29,7 @@ import Vela
 type alias PartialModel a =
     { a
         | shared : Shared.Model
-        , navigationKey : Navigation.Key
+        , key : Navigation.Key
         , page : Page
     }
 

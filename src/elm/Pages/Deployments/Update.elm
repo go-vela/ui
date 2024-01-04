@@ -10,7 +10,8 @@ module Pages.Deployments.Update exposing
     , update
     )
 
-import Api
+import Api.Api
+import Api.Operations
 import Http
 import List.Extra
 import Pages.Deployments.Model exposing (DeploymentForm, DeploymentResponse, Model, Msg(..), PartialModel, defaultDeploymentForm)
@@ -243,8 +244,8 @@ update model msg =
                             Http.jsonBody <| encodeDeploymentPayload payload
                     in
                     ( deploymentModel
-                    , Api.try deploymentModel.deploymentResponse <|
-                        Api.addDeployment model
+                    , Api.Api.try deploymentModel.deploymentResponse <|
+                        Api.Operations.addDeployment model
                             deploymentModel.org
                             deploymentModel.repo
                             body

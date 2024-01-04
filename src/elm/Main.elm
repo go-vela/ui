@@ -3,18 +3,21 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Main exposing (main)
+module Main exposing (fromSharedEffect, main)
+
+-- import Layouts exposing (Layout)
 
 import Alerts exposing (Alert)
-import Api
+import Api.Api
 import Api.Endpoint
+import Api.Operations
 import Api.Pagination as Pagination
 import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
 import Auth.Session exposing (Session(..), SessionDetails, refreshAccessToken)
 import Browser exposing (Document, UrlRequest)
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
-import Browser.Navigation as Navigation
+import Browser.Navigation
 import Dict
 import Effect exposing (Effect)
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
@@ -97,9 +100,9 @@ import Pages.Builds
 import Pages.Deployments.Model
 import Pages.Deployments.Update exposing (initializeFormFromDeployment)
 import Pages.Deployments.View
-import Pages.Home
 import Pages.Home_
 import Pages.Hooks
+import Pages.Legacy
 import Pages.Organization
 import Pages.Pipeline.Model
 import Pages.Pipeline.View exposing (safeDecodePipelineData)
@@ -117,7 +120,6 @@ import Route exposing (Route)
 import Route.Path
 import Routes
 import Shared
-import Shared.Msg
 import String.Extra
 import SvgBuilder exposing (velaLogo)
 import Task
@@ -257,7 +259,7 @@ type alias Model =
     , layout : {}
 
     -- todo: vader: rename this to 'key'
-    , navigationKey : Navigation.Key
+    , key : Browser.Navigation.Key
     , url : Url
 
     -- todo: these need to be refactored with Msg
@@ -282,7 +284,7 @@ type alias RefreshData =
     }
 
 
-init : Shared.Flags -> Url -> Navigation.Key -> ( Model, Cmd Msg )
+init : Shared.Flags -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     let
         -- todo: vader: remove unnecessary url arg
@@ -290,12 +292,12 @@ init flags url navKey =
             Shared.init flags (Route.fromUrl () url) url
 
         { page, layout } =
-            initPageAndLayout { navigationKey = navKey, url = url, shared = sharedModel, layout = {} }
+            initPageAndLayout { key = navKey, url = url, shared = sharedModel, layout = {} }
 
         model : Model
         model =
             { page = Pages.Overview
-            , navigationKey = navKey
+            , key = navKey
             , url = url
             , shared = sharedModel
             , pageModel = Tuple.first page
@@ -354,14 +356,17 @@ init flags url navKey =
 type Msg
     = -- NoOp
       NoOp -- User events
+    | UrlRequested Browser.UrlRequest
+    | UrlChanged Url
     | Page Main.Pages.Msg.Msg
+      -- | Layout Main.Layouts.Msg.Msg
     | Shared Shared.Msg
     | Batch (List Msg)
       -- todo: move everything below this into Shared.Msg
     | NewRoute Routes.Route
     | ClickedLink UrlRequest
     | SearchSourceRepos Org String
-    | SearchFavorites String
+      -- | SearchFavorites String
     | ChangeRepoLimit String
     | ChangeRepoTimeout String
     | ChangeRepoCounter String
@@ -488,10 +493,10 @@ type Msg
 -- INTERNALS
 
 
-fromPageEffect : { model | navigationKey : Navigation.Key, url : Url, shared : Shared.Model } -> Effect Main.Pages.Msg.Msg -> Cmd Msg
+fromPageEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Main.Pages.Msg.Msg -> Cmd Msg
 fromPageEffect model effect =
     Effect.toCmd
-        { navigationKey = model.navigationKey
+        { key = model.key
         , url = model.url
         , shared = model.shared
         , fromSharedMsg = Shared
@@ -501,10 +506,24 @@ fromPageEffect model effect =
         (Effect.map Page effect)
 
 
-fromSharedEffect : { model | navigationKey : Navigation.Key, url : Url, shared : Shared.Model } -> Effect Shared.Msg -> Cmd Msg
+
+-- fromLayoutEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Main.Layouts.Msg.Msg -> Cmd Msg
+-- fromLayoutEffect model effect =
+--     Effect.toCmd
+--         { key = model.key
+--         , url = model.url
+--         , shared = model.shared
+--         , fromSharedMsg = Shared
+--         , batch = Batch
+--         , toCmd = Task.succeed >> Task.perform identity
+--         }
+--         (Effect.map Layout effect)
+
+
+fromSharedEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Shared.Msg -> Cmd Msg
 fromSharedEffect model effect =
     Effect.toCmd
-        { navigationKey = model.navigationKey
+        { key = model.key
         , url = model.url
         , shared = model.shared
         , fromSharedMsg = Shared
@@ -512,6 +531,71 @@ fromSharedEffect model effect =
         , toCmd = Task.succeed >> Task.perform identity
         }
         (Effect.map Shared effect)
+
+
+
+-- URL HOOKS FOR PAGES
+
+
+toPageUrlHookCmd : Model -> { from : Route (), to : Route () } -> Cmd Msg
+toPageUrlHookCmd model routes =
+    let
+        toCommands messages =
+            messages
+                |> List.map (Task.succeed >> Task.perform identity)
+                |> Cmd.batch
+    in
+    case model.pageModel of
+        Main.Pages.Model.Home_ _ ->
+            Cmd.none
+
+        _ ->
+            Cmd.none
+
+
+toLayoutUrlHookCmd : Model -> Model -> { from : Route (), to : Route () } -> Cmd Msg
+toLayoutUrlHookCmd oldModel model routes =
+    -- let
+    --     toCommands messages =
+    --         if shouldFireUrlChangedEvents then
+    --             messages
+    --                 |> List.map (Task.succeed >> Task.perform identity)
+    --                 |> Cmd.batch
+    --         else
+    --             Cmd.none
+    --     shouldFireUrlChangedEvents =
+    --         hasNavigatedWithinNewLayout
+    --             { from = toLayoutFromPage oldModel
+    --             , to = toLayoutFromPage model
+    --             }
+    --     route =
+    --         Route.fromUrl () model.url
+    -- in
+    -- case ( toLayoutFromPage model, model.layout ) of
+    --     _ ->
+    Cmd.none
+
+
+
+-- hasNavigatedWithinNewLayout : { from : Maybe (Layouts.Layout msg), to : Maybe (Layouts.Layout msg) } -> Bool
+-- hasNavigatedWithinNewLayout { from, to } =
+--     let
+--         isRelated maybePair =
+--             case maybePair of
+--                 _ ->
+--                     False
+--     in
+--     List.any isRelated
+--         [ Maybe.map2 Tuple.pair from to
+--         , Maybe.map2 Tuple.pair to from
+--         ]
+-- isAuthProtected : Route.Path.Path -> Bool
+-- isAuthProtected routePath =
+--     case routePath of
+--         Route.Path.Home_ ->
+--             False
+--         Routes.Path.NotFound_ ->
+--             False
 
 
 updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
@@ -523,9 +607,18 @@ updateFromPage msg model =
                 (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
                 (Page.update (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
 
+        ( Main.Pages.Msg.Legacy pageMsg, Main.Pages.Model.Legacy pageModel ) ->
+            Tuple.mapBoth
+                Main.Pages.Model.Legacy
+                (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
+                (Page.update (Pages.Legacy.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+
+        _ ->
+            ( model.pageModel, Cmd.none )
+
 
 initPageAndLayout :
-    { navigationKey : Navigation.Key
+    { key : Browser.Navigation.Key
     , url : Url
     , shared : Shared.Model
     , layout : {}
@@ -559,20 +652,20 @@ initPageAndLayout model =
             , layout = {}
             }
 
-        Route.Path.NotFound_ ->
+        _ ->
             let
                 -- todo: vader implement actual 404 page
-                page : Page.Page Pages.Home_.Model Pages.Home_.Msg
+                page : Page.Page Pages.Legacy.Model Pages.Legacy.Msg
                 page =
-                    Pages.Home_.page model.shared (Route.fromUrl () model.url)
+                    Pages.Legacy.page model.shared (Route.fromUrl () model.url)
 
                 ( pageModel, pageEffect ) =
                     Page.init page ()
             in
             { page =
                 Tuple.mapBoth
-                    Main.Pages.Model.Home_
-                    (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                    Main.Pages.Model.Legacy
+                    (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
                     ( pageModel, pageEffect )
 
             -- , layout = Nothing
@@ -602,6 +695,69 @@ update msg model =
             shared.pipeline
     in
     case msg of
+        -- START NEW WORLD
+        UrlRequested (Browser.Internal url) ->
+            ( model
+            , Browser.Navigation.pushUrl model.key (Url.toString url)
+            )
+
+        UrlRequested (Browser.External url) ->
+            ( model
+            , Browser.Navigation.load url
+            )
+
+        UrlChanged url ->
+            if Route.Path.fromUrl url == Route.Path.fromUrl model.url then
+                let
+                    newModel : Model
+                    newModel =
+                        { model | url = url }
+                in
+                ( newModel
+                , Cmd.batch
+                    [ toPageUrlHookCmd newModel
+                        { from = Route.fromUrl () model.url
+                        , to = Route.fromUrl () newModel.url
+                        }
+                    , toLayoutUrlHookCmd model
+                        newModel
+                        { from = Route.fromUrl () model.url
+                        , to = Route.fromUrl () newModel.url
+                        }
+                    ]
+                )
+
+            else
+                let
+                    { page, layout } =
+                        initPageAndLayout { key = model.key, shared = model.shared, layout = model.layout, url = url }
+
+                    ( pageModel, pageCmd ) =
+                        page
+
+                    -- ( layoutModel, layoutCmd ) =
+                    --     case layout of
+                    --         Just ( layoutModel_, layoutCmd_ ) ->
+                    --             ( Just layoutModel_, layoutCmd_ )
+                    --         Nothing ->
+                    --             ( Nothing, Cmd.none )
+                    newModel =
+                        -- { model | url = url, page = pageModel, layout = layoutModel }
+                        { model | url = url, pageModel = pageModel, layout = {} }
+                in
+                ( newModel
+                , Cmd.batch
+                    [ pageCmd
+
+                    --   , layoutCmd
+                    , toLayoutUrlHookCmd model
+                        newModel
+                        { from = Route.fromUrl () model.url
+                        , to = Route.fromUrl () newModel.url
+                        }
+                    ]
+                )
+
         Page pageMsg ->
             let
                 ( pageModel, pageCmd ) =
@@ -611,12 +767,14 @@ update msg model =
             , pageCmd
             )
 
-        -- todo: "handle" msgs like elm-land
+        -- todo: layouts
+        -- Layout ->
         Shared sharedMsg ->
             let
                 ( sharedModel, sharedEffect ) =
                     Shared.update (Route.fromUrl () model.url) sharedMsg model.shared
 
+                -- todo: auth
                 -- ( oldAction, newAction ) =
                 --     ( Auth.onPageLoad model.shared (Route.fromUrl () model.url)
                 --     , Auth.onPageLoad sharedModel (Route.fromUrl () model.url)
@@ -626,7 +784,7 @@ update msg model =
                 --     let
                 { layout, page } =
                     initPageAndLayout
-                        { navigationKey = model.navigationKey
+                        { key = model.key
                         , shared = sharedModel
                         , url = model.url
                         , layout = model.layout
@@ -662,6 +820,7 @@ update msg model =
                 |> Cmd.batch
             )
 
+        -- END NEW WORLD
         -- User events
         NewRoute route ->
             setNewPage route model
@@ -669,10 +828,10 @@ update msg model =
         ClickedLink urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Navigation.pushUrl model.navigationKey <| Url.toString url )
+                    ( model, Browser.Navigation.pushUrl model.key <| Url.toString url )
 
                 Browser.External url ->
-                    ( model, Navigation.load url )
+                    ( model, Browser.Navigation.load url )
 
         SearchSourceRepos org searchBy ->
             let
@@ -680,9 +839,6 @@ update msg model =
                     Dict.update org (\_ -> Just searchBy) model.shared.filters
             in
             ( { model | shared = { shared | filters = filters } }, Cmd.none )
-
-        SearchFavorites searchBy ->
-            ( { model | shared = { shared | favoritesFilter = searchBy } }, Cmd.none )
 
         ChangeRepoLimit limit ->
             let
@@ -727,7 +883,7 @@ update msg model =
                                 |> updateRepo Loading
                     }
               }
-            , Api.try RepoResponse <| Api.getRepo model org repo
+            , Api.Api.try RepoResponse <| Api.Operations.getRepo model org repo
             )
 
         RefreshHooks org repo ->
@@ -773,7 +929,7 @@ update msg model =
                                 |> updateBuildsPager []
                     }
               }
-            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| route
+            , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| route
             )
 
         ShowHideFullTimestamp ->
@@ -790,27 +946,27 @@ update msg model =
             case model.page of
                 Pages.OrgBuilds org _ maybePerPage maybeEvent ->
                     ( { model | shared = { shared | repo = updateBuilds Loading rm } }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgBuilds org (Just pageNumber) maybePerPage maybeEvent
+                    , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.OrgBuilds org (Just pageNumber) maybePerPage maybeEvent
                     )
 
                 Pages.OrgRepositories org _ maybePerPage ->
                     ( { model | shared = { shared | repo = updateOrgRepositories Loading rm } }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgRepositories org (Just pageNumber) maybePerPage
+                    , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.OrgRepositories org (Just pageNumber) maybePerPage
                     )
 
                 Pages.RepositoryBuilds org repo _ maybePerPage maybeEvent ->
                     ( { model | shared = { shared | repo = updateBuilds Loading rm } }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent
+                    , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.RepositoryBuilds org repo (Just pageNumber) maybePerPage maybeEvent
                     )
 
                 Pages.RepositoryDeployments org repo _ maybePerPage ->
                     ( { model | shared = { shared | repo = updateDeployments Loading rm } }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepositoryDeployments org repo (Just pageNumber) maybePerPage
+                    , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.RepositoryDeployments org repo (Just pageNumber) maybePerPage
                     )
 
                 Pages.Hooks org repo _ maybePerPage ->
                     ( { model | shared = { shared | repo = updateHooks Loading rm } }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage
+                    , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.Hooks org repo (Just pageNumber) maybePerPage
                     )
 
                 Pages.RepoSecrets engine org repo _ maybePerPage ->
@@ -822,7 +978,7 @@ update msg model =
                             { currentSecrets | repoSecrets = Loading }
                     in
                     ( { model | secretsModel = loadingSecrets }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.RepoSecrets engine org repo (Just pageNumber) maybePerPage
+                    , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.RepoSecrets engine org repo (Just pageNumber) maybePerPage
                     )
 
                 Pages.OrgSecrets engine org _ maybePerPage ->
@@ -834,7 +990,7 @@ update msg model =
                             { currentSecrets | orgSecrets = Loading, sharedSecrets = Loading }
                     in
                     ( { model | secretsModel = loadingSecrets }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.OrgSecrets engine org (Just pageNumber) maybePerPage
+                    , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.OrgSecrets engine org (Just pageNumber) maybePerPage
                     )
 
                 Pages.SharedSecrets engine org team _ maybePerPage ->
@@ -846,12 +1002,12 @@ update msg model =
                             { currentSecrets | sharedSecrets = Loading }
                     in
                     ( { model | secretsModel = loadingSecrets }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.SharedSecrets engine org team (Just pageNumber) maybePerPage
+                    , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.SharedSecrets engine org team (Just pageNumber) maybePerPage
                     )
 
                 Pages.Schedules org repo _ maybePerPage ->
                     ( { model | schedulesModel = { sm | schedules = Loading } }
-                    , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl <| Routes.Schedules org repo (Just pageNumber) maybePerPage
+                    , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.Schedules org repo (Just pageNumber) maybePerPage
                     )
 
                 _ ->
@@ -1004,7 +1160,7 @@ update msg model =
             , Cmd.batch <|
                 [ action
                 , if stepOpened then
-                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
+                    Browser.Navigation.pushUrl model.key <| resourceFocusFragment "step" stepNumber []
 
                   else
                     Cmd.none
@@ -1083,7 +1239,7 @@ update msg model =
             , Cmd.batch <|
                 [ action
                 , if serviceOpened then
-                    Navigation.pushUrl model.navigationKey <| resourceFocusFragment "service" serviceNumber []
+                    Browser.Navigation.pushUrl model.key <| resourceFocusFragment "service" serviceNumber []
 
                   else
                     Cmd.none
@@ -1108,7 +1264,7 @@ update msg model =
                     lineRangeId "config" "0" line pipeline.lineFocus model.shared.shift
             in
             ( { model | shared = { shared | pipeline = pipeline } }
-            , Navigation.pushUrl model.navigationKey <| url
+            , Browser.Navigation.pushUrl model.key <| url
             )
 
         BuildGraphRefresh org repo buildNumber ->
@@ -1212,7 +1368,7 @@ update msg model =
                             ( model.shared.repo.build.graph
                             , Cmd.batch
                                 [ Util.dispatch <| FocusOn (focusFragmentToFocusId "step" (Just <| String.Extra.rightOf "#" interaction.href))
-                                , Navigation.pushUrl model.navigationKey interaction.href
+                                , Browser.Navigation.pushUrl model.key interaction.href
                                 ]
                             )
 
@@ -1256,10 +1412,10 @@ update msg model =
         SignInRequested ->
             -- Login on server needs to accept redirect URL and pass it along to as part of 'state' encoded as base64
             -- so we can parse it when the source provider redirects back to the API
-            ( model, Navigation.load <| Api.Endpoint.toUrl model.shared.velaAPI Api.Endpoint.Login )
+            ( model, Browser.Navigation.load <| Api.Endpoint.toUrl model.shared.velaAPI Api.Endpoint.Login )
 
         FetchSourceRepositories ->
-            ( { model | shared = { shared | sourceRepos = Loading } }, Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model )
+            ( { model | shared = { shared | sourceRepos = Loading } }, Api.Api.try SourceRepositoriesResponse <| Api.Operations.getSourceRepositories model )
 
         ToggleFavorite org repo ->
             let
@@ -1278,7 +1434,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateUser payload
             in
             ( model
-            , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
+            , Api.Api.try (RepoFavoritedResponse favorite favorited) (Api.Operations.updateCurrentUser model body)
             )
 
         AddFavorite org repo ->
@@ -1298,7 +1454,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateUser payload
             in
             ( model
-            , Api.try (RepoFavoritedResponse favorite favorited) (Api.updateCurrentUser model body)
+            , Api.Api.try (RepoFavoritedResponse favorite favorited) (Api.Operations.updateCurrentUser model body)
             )
 
         EnableRepos repos ->
@@ -1323,7 +1479,7 @@ update msg model =
                         , repo = updateRepoEnabling Vela.Enabling rm
                     }
               }
-            , Api.try (RepoEnabledResponse repo) <| Api.enableRepository model body
+            , Api.Api.try (RepoEnabledResponse repo) <| Api.Operations.enableRepository model body
             )
 
         DisableRepo repo ->
@@ -1334,7 +1490,7 @@ update msg model =
                             ( Vela.ConfirmDisable, Cmd.none )
 
                         Vela.ConfirmDisable ->
-                            ( Vela.Disabling, Api.try (RepoDisabledResponse repo) <| Api.deleteRepo model repo )
+                            ( Vela.Disabling, Api.Api.try (RepoDisabledResponse repo) <| Api.Operations.deleteRepo model repo )
 
                         _ ->
                             ( repo.enabling, Cmd.none )
@@ -1346,10 +1502,10 @@ update msg model =
             )
 
         ChownRepo repo ->
-            ( model, Api.try (RepoChownedResponse repo) <| Api.chownRepo model repo )
+            ( model, Api.Api.try (RepoChownedResponse repo) <| Api.Operations.chownRepo model repo )
 
         RepairRepo repo ->
-            ( model, Api.try (RepoRepairedResponse repo) <| Api.repairRepo model repo )
+            ( model, Api.Api.try (RepoRepairedResponse repo) <| Api.Operations.repairRepo model repo )
 
         UpdateRepoEvent org repo field value ->
             let
@@ -1364,7 +1520,7 @@ update msg model =
                             body =
                                 Http.jsonBody <| encodeUpdateRepository payload
                         in
-                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+                        Api.Api.try (RepoUpdatedResponse field) (Api.Operations.updateRepository model org repo body)
 
                     else
                         addErrorString "Could not disable webhook event. At least one event must be active." HandleError
@@ -1386,7 +1542,7 @@ update msg model =
                             body =
                                 Http.jsonBody <| encodeUpdateRepository payload
                         in
-                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+                        Api.Api.try (RepoUpdatedResponse field) (Api.Operations.updateRepository model org repo body)
 
                     else
                         Cmd.none
@@ -1408,7 +1564,7 @@ update msg model =
                             body =
                                 Http.jsonBody <| encodeUpdateRepository payload
                         in
-                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+                        Api.Api.try (RepoUpdatedResponse field) (Api.Operations.updateRepository model org repo body)
 
                     else
                         Cmd.none
@@ -1430,7 +1586,7 @@ update msg model =
                             body =
                                 Http.jsonBody <| encodeUpdateRepository payload
                         in
-                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+                        Api.Api.try (RepoUpdatedResponse field) (Api.Operations.updateRepository model org repo body)
 
                     else
                         Cmd.none
@@ -1450,7 +1606,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
             in
             ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            , Api.Api.try (RepoUpdatedResponse field) (Api.Operations.updateRepository model org repo body)
             )
 
         UpdateRepoTimeout org repo field value ->
@@ -1464,7 +1620,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
             in
             ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            , Api.Api.try (RepoUpdatedResponse field) (Api.Operations.updateRepository model org repo body)
             )
 
         UpdateRepoCounter org repo field value ->
@@ -1478,7 +1634,7 @@ update msg model =
                     Http.jsonBody <| encodeUpdateRepository payload
             in
             ( model
-            , Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+            , Api.Api.try (RepoUpdatedResponse field) (Api.Operations.updateRepository model org repo body)
             )
 
         ApproveBuild org repo buildNumber ->
@@ -1525,7 +1681,7 @@ update msg model =
               }
             , Cmd.batch
                 [ getPipelineConfig model org repo ref lineFocus refresh
-                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo buildNumber Nothing lineFocus
+                , Browser.Navigation.replaceUrl model.key <| Routes.routeToUrl <| Routes.BuildPipeline org repo buildNumber Nothing lineFocus
                 ]
             )
 
@@ -1541,7 +1697,7 @@ update msg model =
               }
             , Cmd.batch
                 [ expandPipelineConfig model org repo ref lineFocus refresh
-                , Navigation.replaceUrl model.navigationKey <| Routes.routeToUrl <| Routes.BuildPipeline org repo buildNumber (Just "true") lineFocus
+                , Browser.Navigation.replaceUrl model.key <| Routes.routeToUrl <| Routes.BuildPipeline org repo buildNumber (Just "true") lineFocus
                 ]
             )
 
@@ -1619,7 +1775,7 @@ update msg model =
                             Routes.routeToUrl (Routes.Schedules sm.org sm.repo Nothing Nothing)
 
                         ( sharedWithAlert, cmd ) =
-                            Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing) ( model.shared, Navigation.pushUrl model.navigationKey redirectTo )
+                            Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing) ( model.shared, Browser.Navigation.pushUrl model.key redirectTo )
                     in
                     ( { model | shared = sharedWithAlert }, cmd )
 
@@ -1629,7 +1785,7 @@ update msg model =
         LogoutResponse _ ->
             -- ignoring outcome of request and proceeding to logout
             ( { model | shared = { shared | session = Unauthenticated } }
-            , Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
+            , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Login
             )
 
         TokenResponse response ->
@@ -1663,7 +1819,7 @@ update msg model =
                                                     model.shared.velaRedirect
                                     in
                                     [ Interop.setRedirect Encode.null
-                                    , Navigation.pushUrl model.navigationKey redirectTo
+                                    , Browser.Navigation.pushUrl model.key redirectTo
                                     ]
 
                                 Authenticated _ ->
@@ -1682,7 +1838,7 @@ update msg model =
                                     Cmd.none
 
                                 _ ->
-                                    Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Login
+                                    Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Login
                     in
                     case error of
                         Http.Detailed.BadStatus meta _ ->
@@ -2280,7 +2436,7 @@ update msg model =
                                     }
                             }
                       }
-                    , Errors.addError error HandleError
+                    , addError error
                     )
 
         ExpandPipelineConfigResponse lineFocus refresh response ->
@@ -2452,7 +2608,7 @@ update msg model =
                             Pages.Secrets.Update.deleteSecretRedirect secretsModel
 
                         ( sharedWithAlert, cmd ) =
-                            Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing) ( model.shared, Navigation.pushUrl model.navigationKey redirectTo )
+                            Alerting.addToastIfUnique Alerts.successConfig AlertsUpdate (Alerts.Success "Success" alertMessage Nothing) ( model.shared, Browser.Navigation.pushUrl model.key redirectTo )
                     in
                     ( { model | shared = sharedWithAlert }, cmd )
 
@@ -2604,7 +2760,7 @@ update msg model =
 
         PushUrl url ->
             ( model
-            , Navigation.pushUrl model.navigationKey url
+            , Browser.Navigation.pushUrl model.key url
             )
 
         -- NoOp
@@ -3120,6 +3276,33 @@ isOutsideTarget targetId =
 
 
 -- VIEW
+-- todo: vader: remove this or use it when all pages have been migrated
+-- view : Model -> Browser.Document Msg
+-- view model =
+--     let
+--         view_ : View Msg
+--         view_ =
+--             toView model
+--     in
+--     View.toBrowserDocument
+--         { shared = model.shared
+--         , route = Route.fromUrl () model.url
+--         , view = view_
+--         }
+-- toView : Model -> View Msg
+-- toView model =
+--     viewPage model
+-- viewPage : Model -> View Msg
+-- viewPage model =
+--     case model.pageModel of
+--         Main.Pages.Model.Home_ pageModel ->
+--             Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
+--                 |> View.map Main.Pages.Msg.Home_
+--                 |> View.map Page
+--         Main.Pages.Model.Legacy pageModel ->
+--             Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
+--                 |> View.map Main.Pages.Msg.Home_
+--                 |> View.map Page
 
 
 view : Model -> Document Msg
@@ -3141,43 +3324,9 @@ view model =
     }
 
 
-
--- todo: vader
--- we have a "new" view that renders "new" pages
--- how do we replace the "old" view with the "new" view without re-writing every single page....
---  is it even possible?
-
-
-view2 : Model -> Browser.Document Msg
-view2 model =
-    let
-        view_ : View Msg
-        view_ =
-            toView model
-    in
-    View.toBrowserDocument
-        { shared = model.shared
-        , route = Route.fromUrl () model.url
-        , view = view_
-        }
-
-
-toView : Model -> View Msg
-toView model =
-    viewPage model
-
-
-viewPage : Model -> View Msg
-viewPage model =
-    case model.pageModel of
-        Main.Pages.Model.Home_ pageModel ->
-            Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
-                |> View.map Main.Pages.Msg.Home_
-                |> View.map Page
-
-
 viewContent : Model -> ( String, Html Msg )
 viewContent model =
+    -- todo: vader: move this when we've migrated all pages and no longer need the legacy code
     case model.pageModel of
         Main.Pages.Model.Home_ pageModel ->
             Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
@@ -3185,355 +3334,329 @@ viewContent model =
                 |> View.map Page
                 |> (\x -> ( x.title, Html.div [] x.body ))
 
+        -- todo: vader migrate more pages
+        Main.Pages.Model.Legacy pageModel ->
+            case model.page of
+                -- todo: vader: remove this in favor of migrated page
+                Pages.Overview ->
+                    ( "Overview"
+                    , div [] [ text "Legacy Overview, how'd we get here?" ]
+                    )
 
+                Pages.SourceRepositories ->
+                    ( "Source Repositories"
+                    , lazy2 Pages.SourceRepos.view
+                        { user = model.shared.user
+                        , sourceRepos = model.shared.sourceRepos
+                        , filters = model.shared.filters
+                        }
+                        sourceReposMsgs
+                    )
 
--- viewPage : Model -> View Msg
--- viewPage model =
---    case model.page of
---         Pages.Overview ->
---             ( "Overview"
---             -- todo: vader
---             -- original compiling code for Home
---             -- , lazy3 Pages.Home.view model.shared.user model.shared.favoritesFilter homeMsgs
---                 -- place to build the new world
---                 -- how do i give you Shared.Msg.ToggleFavorite
---                 -- OR how do i just pull that in and use it inside the func
---                 ,    Page.view (Pages.Settings.page model.shared (Route.fromUrl () model.url)) pageModel
---                     |> View.map Main.Pages.Msg.Home_
---                     |> View.map Page
---             )
+                Pages.OrgRepositories org maybePage _ ->
+                    ( org ++ Util.pageToString maybePage
+                    , div []
+                        [ Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
+                        , lazy2 Pages.Organization.viewOrgRepos org model.shared.repo.orgRepos
+                        , Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
+                        ]
+                    )
 
+                Pages.Hooks org repo maybePage _ ->
+                    ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
+                    , div []
+                        [ Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
+                        , lazy2 Pages.Hooks.view
+                            { hooks = model.shared.repo.hooks
+                            , time = model.shared.time
+                            , org = model.shared.repo.org
+                            , repo = model.shared.repo.name
+                            }
+                            RedeliverHook
+                        , Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
+                        ]
+                    )
 
-viewContentOriginal : Model -> ( String, Html Msg )
-viewContentOriginal model =
-    case model.page of
-        Pages.Overview ->
-            ( "Overview"
-              -- todo: vader
-              -- original compiling code for Home
-            , lazy3 Pages.Home.view model.shared.user model.shared.favoritesFilter homeMsgs
-              -- place to build the new world
-              -- how do i give you Shared.Msg.ToggleFavorite
-              -- OR how do i just pull that in and use it inside the func
-              -- ,    Page.view (Pages.Settings.page model.shared (Route.fromUrl () model.url)) pageModel
-              --     |> View.map Main.Pages.Msg.Home_
-              --     |> View.map Page
-            )
+                Pages.RepoSettings org repo ->
+                    ( String.join "/" [ org, repo ] ++ " settings"
+                    , lazy5 Pages.RepoSettings.view model.shared.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.shared.entryURL) model.shared.velaMaxBuildLimit
+                    )
 
-        Pages.SourceRepositories ->
-            ( "Source Repositories"
-            , lazy2 Pages.SourceRepos.view
-                { user = model.shared.user
-                , sourceRepos = model.shared.sourceRepos
-                , filters = model.shared.filters
-                }
-                sourceReposMsgs
-            )
+                Pages.RepoSecrets engine org repo _ _ ->
+                    ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
+                    , div []
+                        [ Html.map SecretsUpdate <| lazy Pages.Secrets.View.viewRepoSecrets model
+                        , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
+                        ]
+                    )
 
-        Pages.OrgRepositories org maybePage _ ->
-            ( org ++ Util.pageToString maybePage
-            , div []
-                [ Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
-                , lazy2 Pages.Organization.viewOrgRepos org model.shared.repo.orgRepos
-                , Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
-                ]
-            )
+                Pages.OrgSecrets engine org maybePage _ ->
+                    ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ Util.pageToString maybePage
+                    , div []
+                        [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
+                        , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
+                        , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
+                        ]
+                    )
 
-        Pages.Hooks org repo maybePage _ ->
-            ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
-            , div []
-                [ Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
-                , lazy2 Pages.Hooks.view
-                    { hooks = model.shared.repo.hooks
-                    , time = model.shared.time
-                    , org = model.shared.repo.org
-                    , repo = model.shared.repo.name
-                    }
-                    RedeliverHook
-                , Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
-                ]
-            )
+                Pages.SharedSecrets engine org team _ _ ->
+                    ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
+                    , div []
+                        [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
+                        , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
+                        ]
+                    )
 
-        Pages.RepoSettings org repo ->
-            ( String.join "/" [ org, repo ] ++ " settings"
-            , lazy5 Pages.RepoSettings.view model.shared.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.shared.entryURL) model.shared.velaMaxBuildLimit
-            )
+                Pages.AddOrgSecret engine _ ->
+                    ( "add " ++ engine ++ " org secret"
+                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
+                    )
 
-        Pages.RepoSecrets engine org repo _ _ ->
-            ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
-            , div []
-                [ Html.map SecretsUpdate <| lazy Pages.Secrets.View.viewRepoSecrets model
-                , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
-                ]
-            )
+                Pages.AddRepoSecret engine _ _ ->
+                    ( "add " ++ engine ++ " repo secret"
+                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
+                    )
 
-        Pages.OrgSecrets engine org maybePage _ ->
-            ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ Util.pageToString maybePage
-            , div []
-                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
-                , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
-                , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
-                ]
-            )
+                Pages.AddSharedSecret engine _ _ ->
+                    ( "add " ++ engine ++ " shared secret"
+                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
+                    )
 
-        Pages.SharedSecrets engine org team _ _ ->
-            ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
-            , div []
-                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
-                , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
-                ]
-            )
+                Pages.OrgSecret engine org name ->
+                    ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
+                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
+                    )
 
-        Pages.AddOrgSecret engine _ ->
-            ( "add " ++ engine ++ " org secret"
-            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
-            )
+                Pages.RepoSecret engine org repo name ->
+                    ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
+                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
+                    )
 
-        Pages.AddRepoSecret engine _ _ ->
-            ( "add " ++ engine ++ " repo secret"
-            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
-            )
+                Pages.SharedSecret engine org team name ->
+                    ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
+                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
+                    )
 
-        Pages.AddSharedSecret engine _ _ ->
-            ( "add " ++ engine ++ " shared secret"
-            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
-            )
+                Pages.AddDeployment org repo ->
+                    ( String.join "/" [ org, repo ] ++ " add deployment"
+                    , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
+                    )
 
-        Pages.OrgSecret engine org name ->
-            ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
-            )
+                Pages.PromoteDeployment org repo buildNumber ->
+                    ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
+                    , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
+                    )
 
-        Pages.RepoSecret engine org repo name ->
-            ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
-            )
+                Pages.RepositoryDeployments org repo maybePage _ ->
+                    ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
+                    , div []
+                        [ lazy3 Pages.Deployments.View.viewDeployments model.shared.repo org repo
+                        , Pager.view model.shared.repo.deployments.pager Pager.defaultLabels GotoPage
+                        ]
+                    )
 
-        Pages.SharedSecret engine org team name ->
-            ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
-            )
+                Pages.AddSchedule org repo ->
+                    ( String.join "/" [ org, repo, "add schedule" ]
+                    , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewAddSchedule model
+                    )
 
-        Pages.AddDeployment org repo ->
-            ( String.join "/" [ org, repo ] ++ " add deployment"
-            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
-            )
+                Pages.Schedule org repo name ->
+                    ( String.join "/" [ org, repo, name ]
+                    , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewEditSchedule model
+                    )
 
-        Pages.PromoteDeployment org repo buildNumber ->
-            ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
-            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
-            )
+                Pages.Schedules org repo maybePage _ ->
+                    let
+                        viewPager =
+                            if Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist then
+                                Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
 
-        Pages.RepositoryDeployments org repo maybePage _ ->
-            ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
-            , div []
-                [ lazy3 Pages.Deployments.View.viewDeployments model.shared.repo org repo
-                , Pager.view model.shared.repo.deployments.pager Pager.defaultLabels GotoPage
-                ]
-            )
+                            else
+                                text ""
+                    in
+                    ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
+                    , div []
+                        [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
+                        , viewPager
+                        ]
+                    )
 
-        Pages.AddSchedule org repo ->
-            ( String.join "/" [ org, repo, "add schedule" ]
-            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewAddSchedule model
-            )
+                Pages.OrgBuilds org maybePage _ maybeEvent ->
+                    let
+                        repo =
+                            ""
 
-        Pages.Schedule org repo name ->
-            ( String.join "/" [ org, repo, name ]
-            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewEditSchedule model
-            )
+                        shouldRenderFilter : Bool
+                        shouldRenderFilter =
+                            case ( model.shared.repo.builds.builds, maybeEvent ) of
+                                ( Success result, Nothing ) ->
+                                    not <| List.length result == 0
 
-        Pages.Schedules org repo maybePage _ ->
-            let
-                viewPager =
-                    if Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist then
-                        Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
+                                ( Success _, _ ) ->
+                                    True
 
-                    else
-                        text ""
-            in
-            ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
-            , div []
-                [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
-                , viewPager
-                ]
-            )
+                                ( Loading, _ ) ->
+                                    True
 
-        Pages.OrgBuilds org maybePage _ maybeEvent ->
-            let
-                repo =
-                    ""
+                                _ ->
+                                    False
+                    in
+                    ( org ++ " builds" ++ Util.pageToString maybePage
+                    , div []
+                        [ div [ class "build-bar" ]
+                            [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                            , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                            ]
+                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                        , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
+                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                        ]
+                    )
 
-                shouldRenderFilter : Bool
-                shouldRenderFilter =
-                    case ( model.shared.repo.builds.builds, maybeEvent ) of
-                        ( Success result, Nothing ) ->
-                            not <| List.length result == 0
+                Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
+                    let
+                        shouldRenderFilter : Bool
+                        shouldRenderFilter =
+                            case ( model.shared.repo.builds.builds, maybeEvent ) of
+                                ( Success result, Nothing ) ->
+                                    not <| List.length result == 0
 
-                        ( Success _, _ ) ->
-                            True
+                                ( Success _, _ ) ->
+                                    True
 
-                        ( Loading, _ ) ->
-                            True
+                                ( Loading, _ ) ->
+                                    True
 
-                        _ ->
-                            False
-            in
-            ( org ++ " builds" ++ Util.pageToString maybePage
-            , div []
-                [ div [ class "build-bar" ]
-                    [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
-                    ]
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                ]
-            )
+                                _ ->
+                                    False
+                    in
+                    ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+                    , div []
+                        [ div [ class "build-bar" ]
+                            [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                            , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                            ]
+                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                        , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
+                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                        ]
+                    )
 
-        Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
-            let
-                shouldRenderFilter : Bool
-                shouldRenderFilter =
-                    case ( model.shared.repo.builds.builds, maybeEvent ) of
-                        ( Success result, Nothing ) ->
-                            not <| List.length result == 0
+                Pages.RepositoryBuildsPulls org repo maybePage _ ->
+                    let
+                        shouldRenderFilter : Bool
+                        shouldRenderFilter =
+                            case ( model.shared.repo.builds.builds, Just "pull_request" ) of
+                                ( Success result, Nothing ) ->
+                                    not <| List.length result == 0
 
-                        ( Success _, _ ) ->
-                            True
+                                ( Success _, _ ) ->
+                                    True
 
-                        ( Loading, _ ) ->
-                            True
+                                ( Loading, _ ) ->
+                                    True
 
-                        _ ->
-                            False
-            in
-            ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
-            , div []
-                [ div [ class "build-bar" ]
-                    [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
-                    ]
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                ]
-            )
+                                _ ->
+                                    False
+                    in
+                    ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+                    , div []
+                        [ div [ class "build-bar" ]
+                            [ viewBuildsFilter shouldRenderFilter org repo (Just "pull_request")
+                            , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                            ]
+                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                        , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
+                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                        ]
+                    )
 
-        Pages.RepositoryBuildsPulls org repo maybePage _ ->
-            let
-                shouldRenderFilter : Bool
-                shouldRenderFilter =
-                    case ( model.shared.repo.builds.builds, Just "pull_request" ) of
-                        ( Success result, Nothing ) ->
-                            not <| List.length result == 0
+                Pages.RepositoryBuildsTags org repo maybePage _ ->
+                    let
+                        shouldRenderFilter : Bool
+                        shouldRenderFilter =
+                            case ( model.shared.repo.builds.builds, Just "tag" ) of
+                                ( Success result, Nothing ) ->
+                                    not <| List.length result == 0
 
-                        ( Success _, _ ) ->
-                            True
+                                ( Success _, _ ) ->
+                                    True
 
-                        ( Loading, _ ) ->
-                            True
+                                ( Loading, _ ) ->
+                                    True
 
-                        _ ->
-                            False
-            in
-            ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
-            , div []
-                [ div [ class "build-bar" ]
-                    [ viewBuildsFilter shouldRenderFilter org repo (Just "pull_request")
-                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
-                    ]
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                ]
-            )
+                                _ ->
+                                    False
+                    in
+                    ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+                    , div []
+                        [ div [ class "build-bar" ]
+                            [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
+                            , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                            ]
+                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                        , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
+                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                        ]
+                    )
 
-        Pages.RepositoryBuildsTags org repo maybePage _ ->
-            let
-                shouldRenderFilter : Bool
-                shouldRenderFilter =
-                    case ( model.shared.repo.builds.builds, Just "tag" ) of
-                        ( Success result, Nothing ) ->
-                            not <| List.length result == 0
+                Pages.Build org repo buildNumber _ ->
+                    ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+                    , Pages.Build.View.viewBuild
+                        model
+                        buildMsgs
+                        org
+                        repo
+                        buildNumber
+                    )
 
-                        ( Success _, _ ) ->
-                            True
+                Pages.BuildServices org repo buildNumber _ ->
+                    ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+                    , Pages.Build.View.viewBuildServices
+                        model
+                        buildMsgs
+                        org
+                        repo
+                        buildNumber
+                    )
 
-                        ( Loading, _ ) ->
-                            True
+                Pages.BuildPipeline org repo buildNumber _ _ ->
+                    ( "Pipeline " ++ String.join "/" [ org, repo ]
+                    , Pages.Pipeline.View.viewPipeline
+                        model
+                        pipelineMsgs
+                        |> Pages.Build.View.wrapWithBuildPreview
+                            model
+                            buildMsgs
+                            org
+                            repo
+                            buildNumber
+                    )
 
-                        _ ->
-                            False
-            in
-            ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
-            , div []
-                [ div [ class "build-bar" ]
-                    [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
-                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
-                    ]
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                ]
-            )
+                Pages.BuildGraph org repo buildNumber ->
+                    ( "Visualize " ++ String.join "/" [ org, repo, buildNumber ]
+                    , Pages.Build.View.viewBuildGraph
+                        model
+                        buildMsgs
+                        org
+                        repo
+                        buildNumber
+                    )
 
-        Pages.Build org repo buildNumber _ ->
-            ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , Pages.Build.View.viewBuild
-                model
-                buildMsgs
-                org
-                repo
-                buildNumber
-            )
+                Pages.Settings ->
+                    ( "Settings"
+                    , Pages.Settings.view model.shared.session model.shared.time (Pages.Settings.Msgs Copy)
+                    )
 
-        Pages.BuildServices org repo buildNumber _ ->
-            ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-            , Pages.Build.View.viewBuildServices
-                model
-                buildMsgs
-                org
-                repo
-                buildNumber
-            )
+                Pages.Login ->
+                    ( "Login"
+                    , viewLogin
+                    )
 
-        Pages.BuildPipeline org repo buildNumber _ _ ->
-            ( "Pipeline " ++ String.join "/" [ org, repo ]
-            , Pages.Pipeline.View.viewPipeline
-                model
-                pipelineMsgs
-                |> Pages.Build.View.wrapWithBuildPreview
-                    model
-                    buildMsgs
-                    org
-                    repo
-                    buildNumber
-            )
-
-        Pages.BuildGraph org repo buildNumber ->
-            ( "Visualize " ++ String.join "/" [ org, repo, buildNumber ]
-            , Pages.Build.View.viewBuildGraph
-                model
-                buildMsgs
-                org
-                repo
-                buildNumber
-            )
-
-        Pages.Settings ->
-            ( "Settings"
-            , Pages.Settings.view model.shared.session model.shared.time (Pages.Settings.Msgs Copy)
-            )
-
-        Pages.Login ->
-            ( "Login"
-            , viewLogin
-            )
-
-        Pages.NotFound ->
-            ( "404"
-            , h1 [] [ text "Not Found" ]
-            )
+                Pages.NotFound ->
+                    ( "404"
+                    , h1 [] [ text "Not Found" ]
+                    )
 
 
 viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
@@ -3733,18 +3856,18 @@ setNewPage route model =
         shared =
             model.shared
     in
-    case ( route, model.shared.session ) of
+    (case ( route, model.shared.session ) of
         -- Logged in and on auth flow pages - what are you doing here?
         ( Routes.Login, Authenticated _ ) ->
-            ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview )
+            ( model, Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Overview )
 
         ( Routes.Authenticate _, Authenticated _ ) ->
-            ( model, Navigation.pushUrl model.navigationKey <| Routes.routeToUrl Routes.Overview )
+            ( model, Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Overview )
 
         -- "Not logged in" (yet) and on auth flow pages, continue on..
         ( Routes.Authenticate { code, state }, Unauthenticated ) ->
             ( { model | page = Pages.Login }
-            , Api.try TokenResponse <| Api.getInitialToken model <| AuthParams code state
+            , Api.Api.try TokenResponse <| Api.Operations.getInitialToken model <| AuthParams code state
             )
 
         -- On the login page but not logged in.. good place to be
@@ -3862,6 +3985,34 @@ setNewPage route model =
               }
             , Interop.setRedirect <| Encode.string <| Url.toString model.shared.entryURL
             )
+    )
+        |> (\( m, c ) ->
+                -- todo: vader: remove this when there are no more legacy pages
+                ( case m.page of
+                    Pages.Overview ->
+                        m
+
+                    _ ->
+                        applyLegacyPage m
+                , c
+                )
+           )
+
+
+
+-- todo: vader: remove this when there are no more legacy pages
+
+
+applyLegacyPage : Model -> Model
+applyLegacyPage model =
+    { model
+        | pageModel =
+            Tuple.first <|
+                Tuple.mapBoth
+                    Main.Pages.Model.Legacy
+                    (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
+                    (Page.init (Pages.Legacy.page model.shared (Route.fromUrl () model.url)) ())
+    }
 
 
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
@@ -3874,7 +4025,7 @@ loadSourceReposPage model =
         NotAsked ->
             ( { model | page = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
             , Cmd.batch
-                [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
+                [ Api.Api.try SourceRepositoriesResponse <| Api.Operations.getSourceRepositories model
                 , getCurrentUser model
                 ]
             )
@@ -3882,7 +4033,7 @@ loadSourceReposPage model =
         Failure _ ->
             ( { model | page = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
             , Cmd.batch
-                [ Api.try SourceRepositoriesResponse <| Api.getSourceRepositories model
+                [ Api.Api.try SourceRepositoriesResponse <| Api.Operations.getSourceRepositories model
                 , getCurrentUser model
                 ]
             )
@@ -3896,26 +4047,34 @@ loadOrgReposPage model org maybePage maybePerPage =
     case model.shared.repo.orgRepos.orgRepos of
         NotAsked ->
             ( { model | page = Pages.OrgRepositories org maybePage maybePerPage }
-            , Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model maybePage maybePerPage org
+            , Api.Api.try OrgRepositoriesResponse <| Api.Operations.getOrgRepositories model maybePage maybePerPage org
             )
 
         Failure _ ->
             ( { model | page = Pages.OrgRepositories org maybePage maybePerPage }
-            , Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model maybePage maybePerPage org
+            , Api.Api.try OrgRepositoriesResponse <| Api.Operations.getOrgRepositories model maybePage maybePerPage org
             )
 
         _ ->
             ( { model | page = Pages.OrgRepositories org maybePage maybePerPage }
             , Cmd.batch
                 [ getCurrentUser model
-                , Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model maybePage maybePerPage org
+                , Api.Api.try OrgRepositoriesResponse <| Api.Operations.getOrgRepositories model maybePage maybePerPage org
                 ]
             )
 
 
 loadOverviewPage : Model -> ( Model, Cmd Msg )
 loadOverviewPage model =
-    ( { model | page = Pages.Overview }
+    ( { model
+        | page = Pages.Overview
+        , pageModel =
+            Tuple.first <|
+                Tuple.mapBoth
+                    Main.Pages.Model.Home_
+                    (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                    (Page.init (Pages.Home_.page model.shared (Route.fromUrl () model.url)) ())
+      }
     , Cmd.batch
         [ getCurrentUser model
         ]
@@ -4287,7 +4446,11 @@ loadRepoSubPage model org repo toPage =
                     _ ->
                         ( model, Cmd.none )
     in
-    ( { loadModel | page = toPage }, loadCmd )
+    ( { loadModel
+        | page = toPage
+      }
+    , loadCmd
+    )
 
 
 {-| loadOrgBuildsPage : takes model org and repo and loads the appropriate builds.
@@ -5106,7 +5269,7 @@ buildEnableRepositoryPayload repo =
 -}
 addError : Http.Detailed.Error String -> Cmd Msg
 addError error =
-    Errors.addError error HandleError
+    Errors.addError HandleError error
 
 
 {-| logIds : extracts Ids from list of logs and returns List Int
@@ -5270,20 +5433,6 @@ receiveSecrets model response type_ =
             ( { model | secretsModel = sm }, showError )
 
 
-{-| homeMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
--}
-homeMsgs : Pages.Home.Msgs Msg
-homeMsgs =
-    Pages.Home.Msgs ToggleFavorite SearchFavorites
-
-
-{-| homeSharedMsgs : prepares the input record required for the Home page to route Msgs back to Main.elm
--}
-homeSharedMsgs : Pages.Home.Msgs Shared.Msg
-homeSharedMsgs =
-    Pages.Home.Msgs Shared.Msg.ToggleFavorite Shared.Msg.SearchFavorites
-
-
 {-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm
 -}
 navMsgs : Nav.Msgs Msg
@@ -5371,19 +5520,19 @@ initDeploymentsModel =
 -}
 getToken : Model -> Cmd Msg
 getToken model =
-    Api.try TokenResponse <| Api.getToken model
+    Api.Api.try TokenResponse <| Api.Operations.getToken model
 
 
 getLogout : Model -> Cmd Msg
 getLogout model =
-    Api.try LogoutResponse <| Api.getLogout model
+    Api.Api.try LogoutResponse <| Api.Operations.getLogout model
 
 
 getCurrentUser : Model -> Cmd Msg
 getCurrentUser model =
     case model.shared.user of
         NotAsked ->
-            Api.try CurrentUserResponse <| Api.getCurrentUser model
+            Api.Api.try CurrentUserResponse <| Api.Operations.getCurrentUser model
 
         _ ->
             Cmd.none
@@ -5391,72 +5540,72 @@ getCurrentUser model =
 
 getHooks : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getHooks model org repo maybePage maybePerPage =
-    Api.try HooksResponse <| Api.getHooks model maybePage maybePerPage org repo
+    Api.Api.try HooksResponse <| Api.Operations.getHooks model maybePage maybePerPage org repo
 
 
 redeliverHook : Model -> Org -> Repo -> HookNumber -> Cmd Msg
 redeliverHook model org repo hookNumber =
-    Api.try (RedeliverHookResponse org repo hookNumber) <| Api.redeliverHook model org repo hookNumber
+    Api.Api.try (RedeliverHookResponse org repo hookNumber) <| Api.Operations.redeliverHook model org repo hookNumber
 
 
 getRepo : Model -> Org -> Repo -> Cmd Msg
 getRepo model org repo =
-    Api.try RepoResponse <| Api.getRepo model org repo
+    Api.Api.try RepoResponse <| Api.Operations.getRepo model org repo
 
 
 getOrgRepos : Model -> Org -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getOrgRepos model org maybePage maybePerPage =
-    Api.try OrgRepositoriesResponse <| Api.getOrgRepositories model maybePage maybePerPage org
+    Api.Api.try OrgRepositoriesResponse <| Api.Operations.getOrgRepositories model maybePage maybePerPage org
 
 
 getOrgBuilds : Model -> Org -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
 getOrgBuilds model org maybePage maybePerPage maybeEvent =
-    Api.try (OrgBuildsResponse org) <| Api.getOrgBuilds model maybePage maybePerPage maybeEvent org
+    Api.Api.try (OrgBuildsResponse org) <| Api.Operations.getOrgBuilds model maybePage maybePerPage maybeEvent org
 
 
 getBuilds : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Maybe Event -> Cmd Msg
 getBuilds model org repo maybePage maybePerPage maybeEvent =
-    Api.try (BuildsResponse org repo) <| Api.getBuilds model maybePage maybePerPage maybeEvent org repo
+    Api.Api.try (BuildsResponse org repo) <| Api.Operations.getBuilds model maybePage maybePerPage maybeEvent org repo
 
 
 getSchedules : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getSchedules model org repo maybePage maybePerPage =
-    Api.try (SchedulesResponse org repo) <| Api.getSchedules model maybePage maybePerPage org repo
+    Api.Api.try (SchedulesResponse org repo) <| Api.Operations.getSchedules model maybePage maybePerPage org repo
 
 
 getBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 getBuild model org repo buildNumber =
-    Api.try (BuildResponse org repo) <| Api.getBuild model org repo buildNumber
+    Api.Api.try (BuildResponse org repo) <| Api.Operations.getBuild model org repo buildNumber
 
 
 getBuildAndPipeline : Model -> Org -> Repo -> BuildNumber -> Maybe ExpandTemplatesQuery -> Cmd Msg
 getBuildAndPipeline model org repo buildNumber expand =
-    Api.try (BuildAndPipelineResponse org repo expand) <| Api.getBuild model org repo buildNumber
+    Api.Api.try (BuildAndPipelineResponse org repo expand) <| Api.Operations.getBuild model org repo buildNumber
 
 
 getBuildGraph : Model -> Org -> Repo -> BuildNumber -> Bool -> Cmd Msg
 getBuildGraph model org repo buildNumber refresh =
-    Api.try (BuildGraphResponse org repo buildNumber refresh) <| Api.getBuildGraph model org repo buildNumber
+    Api.Api.try (BuildGraphResponse org repo buildNumber refresh) <| Api.Operations.getBuildGraph model org repo buildNumber
 
 
 getDeployment : Model -> Org -> Repo -> DeploymentId -> Cmd Msg
 getDeployment model org repo deploymentNumber =
-    Api.try DeploymentResponse <| Api.getDeployment model org repo <| Just deploymentNumber
+    Api.Api.try DeploymentResponse <| Api.Operations.getDeployment model org repo <| Just deploymentNumber
 
 
 getDeployments : Model -> Org -> Repo -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> Cmd Msg
 getDeployments model org repo maybePage maybePerPage =
-    Api.try (DeploymentsResponse org repo) <| Api.getDeployments model maybePage maybePerPage org repo
+    Api.Api.try (DeploymentsResponse org repo) <| Api.Operations.getDeployments model maybePage maybePerPage org repo
 
 
 getAllBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
 getAllBuildSteps model org repo buildNumber logFocus refresh =
-    Api.tryAll (StepsResponse org repo buildNumber logFocus refresh) <| Api.getAllSteps model org repo buildNumber
+    Api.Api.tryAll (StepsResponse org repo buildNumber logFocus refresh) <| Api.Operations.getAllSteps model org repo buildNumber
 
 
 getBuildStepLogs : Model -> Org -> Repo -> BuildNumber -> StepNumber -> FocusFragment -> Bool -> Cmd Msg
 getBuildStepLogs model org repo buildNumber stepNumber logFocus refresh =
-    Api.try (StepLogResponse stepNumber logFocus refresh) <| Api.getStepLogs model org repo buildNumber stepNumber
+    Api.Api.try (StepLogResponse stepNumber logFocus refresh) <| Api.Operations.getStepLogs model org repo buildNumber stepNumber
 
 
 getBuildStepsLogs : Model -> Org -> Repo -> BuildNumber -> Steps -> FocusFragment -> Bool -> Cmd Msg
@@ -5475,12 +5624,12 @@ getBuildStepsLogs model org repo buildNumber steps logFocus refresh =
 
 getAllBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Bool -> Cmd Msg
 getAllBuildServices model org repo buildNumber logFocus refresh =
-    Api.tryAll (ServicesResponse org repo buildNumber logFocus refresh) <| Api.getAllServices model org repo buildNumber
+    Api.Api.tryAll (ServicesResponse org repo buildNumber logFocus refresh) <| Api.Operations.getAllServices model org repo buildNumber
 
 
 getBuildServiceLogs : Model -> Org -> Repo -> BuildNumber -> ServiceNumber -> FocusFragment -> Bool -> Cmd Msg
 getBuildServiceLogs model org repo buildNumber serviceNumber logFocus refresh =
-    Api.try (ServiceLogResponse serviceNumber logFocus refresh) <| Api.getServiceLogs model org repo buildNumber serviceNumber
+    Api.Api.try (ServiceLogResponse serviceNumber logFocus refresh) <| Api.Operations.getServiceLogs model org repo buildNumber serviceNumber
 
 
 getBuildServicesLogs : Model -> Org -> Repo -> BuildNumber -> Services -> FocusFragment -> Bool -> Cmd Msg
@@ -5499,17 +5648,17 @@ getBuildServicesLogs model org repo buildNumber services logFocus refresh =
 
 approveBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 approveBuild model org repo buildNumber =
-    Api.try (ApprovedBuildResponse org repo buildNumber) <| Api.approveBuild model org repo buildNumber
+    Api.Api.try (ApprovedBuildResponse org repo buildNumber) <| Api.Operations.approveBuild model org repo buildNumber
 
 
 restartBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 restartBuild model org repo buildNumber =
-    Api.try (RestartedBuildResponse org repo buildNumber) <| Api.restartBuild model org repo buildNumber
+    Api.Api.try (RestartedBuildResponse org repo buildNumber) <| Api.Operations.restartBuild model org repo buildNumber
 
 
 cancelBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 cancelBuild model org repo buildNumber =
-    Api.try (CancelBuildResponse org repo buildNumber) <| Api.cancelBuild model org repo buildNumber
+    Api.Api.try (CancelBuildResponse org repo buildNumber) <| Api.Operations.cancelBuild model org repo buildNumber
 
 
 getRepoSecrets :
@@ -5521,7 +5670,7 @@ getRepoSecrets :
     -> Repo
     -> Cmd Msg
 getRepoSecrets model maybePage maybePerPage engine org repo =
-    Api.try RepoSecretsResponse <| Api.getSecrets model maybePage maybePerPage engine "repo" org repo
+    Api.Api.try RepoSecretsResponse <| Api.Operations.getSecrets model maybePage maybePerPage engine "repo" org repo
 
 
 getAllRepoSecrets :
@@ -5531,7 +5680,7 @@ getAllRepoSecrets :
     -> Repo
     -> Cmd Msg
 getAllRepoSecrets model engine org repo =
-    Api.tryAll RepoSecretsResponse <| Api.getAllSecrets model engine "repo" org repo
+    Api.Api.tryAll RepoSecretsResponse <| Api.Operations.getAllSecrets model engine "repo" org repo
 
 
 getOrgSecrets :
@@ -5542,7 +5691,7 @@ getOrgSecrets :
     -> Org
     -> Cmd Msg
 getOrgSecrets model maybePage maybePerPage engine org =
-    Api.try OrgSecretsResponse <| Api.getSecrets model maybePage maybePerPage engine "org" org "*"
+    Api.Api.try OrgSecretsResponse <| Api.Operations.getSecrets model maybePage maybePerPage engine "org" org "*"
 
 
 getAllOrgSecrets :
@@ -5551,7 +5700,7 @@ getAllOrgSecrets :
     -> Org
     -> Cmd Msg
 getAllOrgSecrets model engine org =
-    Api.tryAll OrgSecretsResponse <| Api.getAllSecrets model engine "org" org "*"
+    Api.Api.tryAll OrgSecretsResponse <| Api.Operations.getAllSecrets model engine "org" org "*"
 
 
 getSharedSecrets :
@@ -5563,38 +5712,38 @@ getSharedSecrets :
     -> Team
     -> Cmd Msg
 getSharedSecrets model maybePage maybePerPage engine org team =
-    Api.try SharedSecretsResponse <| Api.getSecrets model maybePage maybePerPage engine "shared" org team
+    Api.Api.try SharedSecretsResponse <| Api.Operations.getSecrets model maybePage maybePerPage engine "shared" org team
 
 
 getSecret : Model -> Engine -> Type -> Org -> Key -> Name -> Cmd Msg
 getSecret model engine type_ org key name =
-    Api.try SecretResponse <| Api.getSecret model engine type_ org key name
+    Api.Api.try SecretResponse <| Api.Operations.getSecret model engine type_ org key name
 
 
 getSchedule : Model -> Org -> Repo -> ScheduleName -> Cmd Msg
 getSchedule model org repo id =
-    Api.try ScheduleResponse <| Api.getSchedule model org repo id
+    Api.Api.try ScheduleResponse <| Api.Operations.getSchedule model org repo id
 
 
 {-| getPipelineConfig : takes model, org, repo and ref and fetches a pipeline configuration from the API.
 -}
 getPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineConfig model org repo ref lineFocus refresh =
-    Api.try (GetPipelineConfigResponse lineFocus refresh) <| Api.getPipelineConfig model org repo ref
+    Api.Api.try (GetPipelineConfigResponse lineFocus refresh) <| Api.Operations.getPipelineConfig model org repo ref
 
 
 {-| expandPipelineConfig : takes model, org, repo and ref and expands a pipeline configuration via the API.
 -}
 expandPipelineConfig : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 expandPipelineConfig model org repo ref lineFocus refresh =
-    Api.tryString (ExpandPipelineConfigResponse lineFocus refresh) <| Api.expandPipelineConfig model org repo ref
+    Api.Api.tryString (ExpandPipelineConfigResponse lineFocus refresh) <| Api.Operations.expandPipelineConfig model org repo ref
 
 
 {-| getPipelineTemplates : takes model, org, repo and ref and fetches templates used in a pipeline configuration from the API.
 -}
 getPipelineTemplates : Model -> Org -> Repo -> Ref -> FocusFragment -> Bool -> Cmd Msg
 getPipelineTemplates model org repo ref lineFocus refresh =
-    Api.try (GetPipelineTemplatesResponse lineFocus refresh) <| Api.getPipelineTemplates model org repo ref
+    Api.Api.try (GetPipelineTemplatesResponse lineFocus refresh) <| Api.Operations.getPipelineTemplates model org repo ref
 
 
 

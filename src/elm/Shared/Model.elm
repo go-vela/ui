@@ -47,7 +47,6 @@ type alias Model =
     , zone : Zone
     , time : Posix
     , filters : RepoSearchFilters
-    , favoritesFilter : String
     , entryURL : Url
     , theme : Theme
     , shift : Bool

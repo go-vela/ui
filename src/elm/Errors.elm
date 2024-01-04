@@ -129,8 +129,8 @@ toFailure error =
 
 {-| addError : takes a detailed http error and produces a Cmd Msg that invokes an action in the Errors module
 -}
-addError : Http.Detailed.Error String -> (String -> msg) -> Cmd msg
-addError error m =
+addError : (String -> msg) -> Http.Detailed.Error String -> Cmd msg
+addError m error =
     succeed
         (m <| detailedErrorToString error)
         |> perform identity
