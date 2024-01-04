@@ -2340,7 +2340,7 @@ decodeDeploymentParameters =
     Decode.map decodeKeyValuePairs <| Decode.keyValuePairs Decode.string
 
 
-decodeDeployPairs : List ( Build ) -> Maybe (List Build)
+decodeDeployPairs : List Build -> Maybe (List Build)
 decodeDeployPairs o =
     if List.isEmpty o then
         Nothing
