@@ -72,6 +72,7 @@ import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
+import Interval exposing (Interval(..), RefreshData)
 import Json.Decode
 import Json.Encode
 import Main.Pages.Model
@@ -246,8 +247,24 @@ import View exposing (View)
 import Visualization.DOT as DOT
 
 
+main : Program Json.Decode.Value Model Msg
+main =
+    Browser.application
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        , onUrlRequest = ClickedLink
+        , onUrlChange = Routes.match >> NewRoute
 
--- TYPES
+        -- todo: migrate to non-legacy page changes
+        -- , onUrlChange = UrlChanged
+        -- , onUrlRequest = UrlRequested
+        }
+
+
+
+-- INIT
 
 
 type alias Model =
@@ -265,19 +282,95 @@ type alias Model =
     }
 
 
-type Interval
-    = OneSecond
-    | OneSecondHidden
-    | FiveSecond
-    | FiveSecondHidden RefreshData
+initSecretsModel : Pages.Secrets.Model.Model Msg
+initSecretsModel =
+    Pages.Secrets.Update.init Copy SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
 
 
-type alias RefreshData =
-    { org : Org
-    , repo : Repo
-    , build_number : Maybe BuildNumber
-    , steps : Maybe Steps
-    }
+initSchedulesModel : Pages.Schedules.Model.Model Msg
+initSchedulesModel =
+    Pages.Schedules.Update.init ScheduleResponse AddScheduleResponse UpdateScheduleResponse DeleteScheduleResponse
+
+
+initDeploymentsModel : Pages.Deployments.Model.Model Msg
+initDeploymentsModel =
+    Pages.Deployments.Update.init AddDeploymentResponse
+
+
+{-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
+-}
+addDeploymentResponseAlert :
+    Deployment
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+addDeploymentResponseAlert deployment =
+    let
+        msg =
+            deployment.description ++ " submitted."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| addSecretResponseAlert : takes secret and produces Toasty alert for when adding a secret
+-}
+addSecretResponseAlert :
+    Secret
+    -> ( { s | toasties : Stack Alert }, Cmd Msg )
+    -> ( { s | toasties : Stack Alert }, Cmd Msg )
+addSecretResponseAlert secret =
+    let
+        type_ =
+            secretTypeToString secret.type_
+
+        msg =
+            secret.name ++ " added to " ++ type_ ++ " secrets."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| updateSecretResponseAlert : takes secret and produces Toasty alert for when updating a secret
+-}
+updateSecretResponseAlert :
+    Secret
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+updateSecretResponseAlert secret =
+    let
+        type_ =
+            secretTypeToString secret.type_
+
+        msg =
+            String.Extra.toSentenceCase <| type_ ++ " secret " ++ secret.name ++ " updated."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| addScheduleResponseAlert : takes schedule and produces Toasty alert for when adding a schedule
+-}
+addScheduleResponseAlert :
+    Schedule
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+addScheduleResponseAlert schedule =
+    let
+        msg =
+            schedule.name ++ " added to repo schedules."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+
+
+{-| updateScheduleResponseAlert : takes schedule and produces Toasty alert for when updating a schedule
+-}
+updateScheduleResponseAlert :
+    Schedule
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+    -> ( { m | toasties : Stack Alert }, Cmd Msg )
+updateScheduleResponseAlert schedule =
+    let
+        msg =
+            "Repo schedule " ++ schedule.name ++ " updated."
+    in
+    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
 
 
 init : Json.Decode.Value -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
@@ -346,13 +439,69 @@ init json url key =
     )
 
 
+initPageAndLayout :
+    { key : Browser.Navigation.Key
+    , url : Url
+    , shared : Shared.Model
+    , layout : {}
+
+    -- , layout : Maybe Main.Layouts.Model.Model
+    }
+    ->
+        { page : ( Main.Pages.Model.Model, Cmd Msg )
+        , layout : {}
+
+        -- , layout : Maybe ( Main.Layouts.Model.Model, Cmd Msg )
+        }
+initPageAndLayout model =
+    case Route.Path.fromUrl model.url of
+        Route.Path.Home_ ->
+            let
+                page : Page.Page Pages.Home_.Model Pages.Home_.Msg
+                page =
+                    Pages.Home_.page model.shared (Route.fromUrl () model.url)
+
+                ( pageModel, pageEffect ) =
+                    Page.init page ()
+            in
+            { page =
+                Tuple.mapBoth
+                    Main.Pages.Model.Home_
+                    (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                    ( pageModel, pageEffect )
+
+            -- , layout = Nothing
+            , layout = {}
+            }
+
+        _ ->
+            let
+                -- todo: vader implement actual 404 page
+                page : Page.Page Pages.Legacy.Model Pages.Legacy.Msg
+                page =
+                    Pages.Legacy.page model.shared (Route.fromUrl () model.url)
+
+                ( pageModel, pageEffect ) =
+                    Page.init page ()
+            in
+            { page =
+                Tuple.mapBoth
+                    Main.Pages.Model.Legacy
+                    (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
+                    ( pageModel, pageEffect )
+
+            -- , layout = Nothing
+            , layout = {}
+            }
+
+
 
 -- UPDATE
 
 
 type Msg
     = -- NoOp
-      NoOp -- User events
+      NoOp -- todo: remove NoOp from Main
       -- START NEW WORLD
     | UrlRequested Browser.UrlRequest
     | UrlChanged Url
@@ -486,190 +635,6 @@ type Msg
     | OnKeyUp String
     | VisibilityChanged Visibility
     | PushUrl String
-
-
-
--- INTERNALS
-
-
-fromPageEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Main.Pages.Msg.Msg -> Cmd Msg
-fromPageEffect model effect =
-    Effect.toCmd
-        { key = model.key
-        , url = model.url
-        , shared = model.shared
-        , fromSharedMsg = Shared
-        , batch = Batch
-        , toCmd = Task.succeed >> Task.perform identity
-        }
-        (Effect.map Page effect)
-
-
-
--- fromLayoutEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Main.Layouts.Msg.Msg -> Cmd Msg
--- fromLayoutEffect model effect =
---     Effect.toCmd
---         { key = model.key
---         , url = model.url
---         , shared = model.shared
---         , fromSharedMsg = Shared
---         , batch = Batch
---         , toCmd = Task.succeed >> Task.perform identity
---         }
---         (Effect.map Layout effect)
-
-
-fromSharedEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Shared.Msg -> Cmd Msg
-fromSharedEffect model effect =
-    Effect.toCmd
-        { key = model.key
-        , url = model.url
-        , shared = model.shared
-        , fromSharedMsg = Shared
-        , batch = Batch
-        , toCmd = Task.succeed >> Task.perform identity
-        }
-        (Effect.map Shared effect)
-
-
-
--- URL HOOKS FOR PAGES
-
-
-toPageUrlHookCmd : Model -> { from : Route (), to : Route () } -> Cmd Msg
-toPageUrlHookCmd model routes =
-    let
-        toCommands messages =
-            messages
-                |> List.map (Task.succeed >> Task.perform identity)
-                |> Cmd.batch
-    in
-    case model.page of
-        Main.Pages.Model.Home_ _ ->
-            Cmd.none
-
-        _ ->
-            Cmd.none
-
-
-toLayoutUrlHookCmd : Model -> Model -> { from : Route (), to : Route () } -> Cmd Msg
-toLayoutUrlHookCmd oldModel model routes =
-    -- let
-    --     toCommands messages =
-    --         if shouldFireUrlChangedEvents then
-    --             messages
-    --                 |> List.map (Task.succeed >> Task.perform identity)
-    --                 |> Cmd.batch
-    --         else
-    --             Cmd.none
-    --     shouldFireUrlChangedEvents =
-    --         hasNavigatedWithinNewLayout
-    --             { from = toLayoutFromPage oldModel
-    --             , to = toLayoutFromPage model
-    --             }
-    --     route =
-    --         Route.fromUrl () model.url
-    -- in
-    -- case ( toLayoutFromPage model, model.layout ) of
-    --     _ ->
-    Cmd.none
-
-
-
--- hasNavigatedWithinNewLayout : { from : Maybe (Layouts.Layout msg), to : Maybe (Layouts.Layout msg) } -> Bool
--- hasNavigatedWithinNewLayout { from, to } =
---     let
---         isRelated maybePair =
---             case maybePair of
---                 _ ->
---                     False
---     in
---     List.any isRelated
---         [ Maybe.map2 Tuple.pair from to
---         , Maybe.map2 Tuple.pair to from
---         ]
--- isAuthProtected : Route.Path.Path -> Bool
--- isAuthProtected routePath =
---     case routePath of
---         Route.Path.Home_ ->
---             False
---         Routes.Path.NotFound_ ->
---             False
-
-
-updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
-updateFromPage msg model =
-    case ( msg, model.page ) of
-        ( Main.Pages.Msg.Home_ pageMsg, Main.Pages.Model.Home_ pageModel ) ->
-            Tuple.mapBoth
-                Main.Pages.Model.Home_
-                (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
-                (Page.update (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
-
-        ( Main.Pages.Msg.Legacy pageMsg, Main.Pages.Model.Legacy pageModel ) ->
-            Tuple.mapBoth
-                Main.Pages.Model.Legacy
-                (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
-                (Page.update (Pages.Legacy.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
-
-        _ ->
-            ( model.page, Cmd.none )
-
-
-initPageAndLayout :
-    { key : Browser.Navigation.Key
-    , url : Url
-    , shared : Shared.Model
-    , layout : {}
-
-    -- , layout : Maybe Main.Layouts.Model.Model
-    }
-    ->
-        { page : ( Main.Pages.Model.Model, Cmd Msg )
-        , layout : {}
-
-        -- , layout : Maybe ( Main.Layouts.Model.Model, Cmd Msg )
-        }
-initPageAndLayout model =
-    case Route.Path.fromUrl model.url of
-        Route.Path.Home_ ->
-            let
-                page : Page.Page Pages.Home_.Model Pages.Home_.Msg
-                page =
-                    Pages.Home_.page model.shared (Route.fromUrl () model.url)
-
-                ( pageModel, pageEffect ) =
-                    Page.init page ()
-            in
-            { page =
-                Tuple.mapBoth
-                    Main.Pages.Model.Home_
-                    (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
-                    ( pageModel, pageEffect )
-
-            -- , layout = Nothing
-            , layout = {}
-            }
-
-        _ ->
-            let
-                -- todo: vader implement actual 404 page
-                page : Page.Page Pages.Legacy.Model Pages.Legacy.Msg
-                page =
-                    Pages.Legacy.page model.shared (Route.fromUrl () model.url)
-
-                ( pageModel, pageEffect ) =
-                    Page.init page ()
-            in
-            { page =
-                Tuple.mapBoth
-                    Main.Pages.Model.Legacy
-                    (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
-                    ( pageModel, pageEffect )
-
-            -- , layout = Nothing
-            , layout = {}
-            }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -1465,7 +1430,7 @@ update msg model =
             let
                 payload : EnableRepositoryPayload
                 payload =
-                    buildEnableRepositoryPayload repo
+                    Vela.buildEnableRepositoryPayload repo
 
                 body : Http.Body
                 body =
@@ -1717,7 +1682,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | schedulesModel = { sm | schedules = toFailure error } }, addError error )
+                    ( { model | schedulesModel = { sm | schedules = toFailure error } }, Errors.addError HandleError error )
 
         ScheduleResponse response ->
             case response of
@@ -1731,7 +1696,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         AddScheduleResponse response ->
             case response of
@@ -1746,7 +1711,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         UpdateScheduleResponse response ->
             case response of
@@ -1761,7 +1726,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         DeleteScheduleResponse response ->
             case response of
@@ -1779,7 +1744,7 @@ update msg model =
                     ( { model | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         LogoutResponse _ ->
             -- ignoring outcome of request and proceeding to logout
@@ -1862,7 +1827,7 @@ update msg model =
                                 _ ->
                                     ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
                                     , Cmd.batch
-                                        [ addError error
+                                        [ Errors.addError HandleError error
                                         , redirectPage
                                         ]
                                     )
@@ -1870,7 +1835,7 @@ update msg model =
                         _ ->
                             ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
                             , Cmd.batch
-                                [ addError error
+                                [ Errors.addError HandleError error
                                 , redirectPage
                                 ]
                             )
@@ -1883,7 +1848,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | shared = { shared | user = toFailure error } }, addError error )
+                    ( { model | shared = { shared | user = toFailure error } }, Errors.addError HandleError error )
 
         SourceRepositoriesResponse response ->
             case response of
@@ -1891,7 +1856,7 @@ update msg model =
                     ( { model | shared = { shared | sourceRepos = RemoteData.succeed repositories } }, Util.dispatch <| FocusOn "global-search-input" )
 
                 Err error ->
-                    ( { model | shared = { shared | sourceRepos = toFailure error } }, addError error )
+                    ( { model | shared = { shared | sourceRepos = toFailure error } }, Errors.addError HandleError error )
 
         RepoFavoritedResponse favorite favorited response ->
             case response of
@@ -1910,7 +1875,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( { model | shared = { shared | user = toFailure error } }, addError error )
+                    ( { model | shared = { shared | user = toFailure error } }, Errors.addError HandleError error )
 
         RepoResponse response ->
             case response of
@@ -1922,7 +1887,7 @@ update msg model =
                     ( { model | shared = { shared | repo = updateRepo (RemoteData.succeed repoResponse) rm }, deploymentModel = { dm | repo_settings = RemoteData.succeed repoResponse } }, Cmd.none )
 
                 Err error ->
-                    ( { model | shared = { shared | repo = updateRepo (toFailure error) rm } }, addError error )
+                    ( { model | shared = { shared | repo = updateRepo (toFailure error) rm } }, Errors.addError HandleError error )
 
         OrgRepositoriesResponse response ->
             case response of
@@ -1940,7 +1905,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | shared = { shared | repo = updateOrgRepositories (toFailure error) rm } }, addError error )
+                    ( { model | shared = { shared | repo = updateOrgRepositories (toFailure error) rm } }, Errors.addError HandleError error )
 
         RepoEnabledResponse repo response ->
             case response of
@@ -1986,7 +1951,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         RepoUpdatedResponse field response ->
             case response of
@@ -2001,7 +1966,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         RepoChownedResponse repo response ->
             case response of
@@ -2013,7 +1978,7 @@ update msg model =
                     ( { model | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         RepoRepairedResponse repo response ->
             case response of
@@ -2034,7 +1999,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         ApprovedBuildResponse org repo buildNumber response ->
             case response of
@@ -2046,7 +2011,7 @@ update msg model =
                     ( { model | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         RestartedBuildResponse org repo buildNumber response ->
             case response of
@@ -2069,7 +2034,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         CancelBuildResponse org repo buildNumber response ->
             case response of
@@ -2105,7 +2070,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         BuildsResponse org repo response ->
             case response of
@@ -2124,7 +2089,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | shared = { shared | repo = updateBuilds (toFailure error) rm } }, addError error )
+                    ( { model | shared = { shared | repo = updateBuilds (toFailure error) rm } }, Errors.addError HandleError error )
 
         OrgBuildsResponse org response ->
             case response of
@@ -2143,7 +2108,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | shared = { shared | repo = updateBuilds (toFailure error) rm } }, addError error )
+                    ( { model | shared = { shared | repo = updateBuilds (toFailure error) rm } }, Errors.addError HandleError error )
 
         DeploymentsResponse org repo response ->
             case response of
@@ -2162,7 +2127,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | shared = { shared | repo = updateDeployments (toFailure error) rm } }, addError error )
+                    ( { model | shared = { shared | repo = updateDeployments (toFailure error) rm } }, Errors.addError HandleError error )
 
         HooksResponse response ->
             case response of
@@ -2180,7 +2145,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | shared = { shared | repo = updateHooks (toFailure error) rm } }, addError error )
+                    ( { model | shared = { shared | repo = updateHooks (toFailure error) rm } }, Errors.addError HandleError error )
 
         RedeliverHookResponse org repo hookNumber response ->
             case response of
@@ -2197,7 +2162,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         BuildResponse org repo response ->
             case response of
@@ -2216,7 +2181,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | shared = { shared | repo = updateBuild (toFailure error) rm } }, addError error )
+                    ( { model | shared = { shared | repo = updateBuild (toFailure error) rm } }, Errors.addError HandleError error )
 
         BuildAndPipelineResponse org repo expand response ->
             case response of
@@ -2253,7 +2218,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | shared = { shared | repo = updateBuild (toFailure error) rm } }, addError error )
+                    ( { model | shared = { shared | repo = updateBuild (toFailure error) rm } }, Errors.addError HandleError error )
 
         DeploymentResponse response ->
             case response of
@@ -2275,7 +2240,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         StepsResponse org repo buildNumber logFocus refresh response ->
             case response of
@@ -2295,7 +2260,7 @@ update msg model =
                     ( updatedModel, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         StepLogResponse stepNumber logFocus refresh response ->
             case response of
@@ -2333,7 +2298,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         ServicesResponse org repo buildNumber logFocus refresh response ->
             case response of
@@ -2353,7 +2318,7 @@ update msg model =
                     ( updatedModel, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         ServiceLogResponse serviceNumber logFocus refresh response ->
             case response of
@@ -2391,7 +2356,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         GetPipelineConfigResponse lineFocus refresh response ->
             case response of
@@ -2435,7 +2400,7 @@ update msg model =
                                     }
                             }
                       }
-                    , addError error
+                    , Errors.addError HandleError error
                     )
 
         ExpandPipelineConfigResponse lineFocus refresh response ->
@@ -2482,7 +2447,7 @@ update msg model =
                                     }
                             }
                       }
-                    , addError error
+                    , Errors.addError HandleError error
                     )
 
         GetPipelineTemplatesResponse lineFocus refresh response ->
@@ -2499,7 +2464,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( { model | shared = { shared | templates = { data = toFailure error, error = detailedErrorToString error, show = shared.templates.show } } }, addError error )
+                    ( { model | shared = { shared | templates = { data = toFailure error, error = detailedErrorToString error, show = shared.templates.show } } }, Errors.addError HandleError error )
 
         SecretResponse response ->
             case response of
@@ -2516,7 +2481,7 @@ update msg model =
                     )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         AddSecretResponse response ->
             case response of
@@ -2537,7 +2502,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         AddDeploymentResponse response ->
             case response of
@@ -2558,7 +2523,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         UpdateSecretResponse response ->
             case response of
@@ -2579,7 +2544,7 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         RepoSecretsResponse response ->
             receiveSecrets model response Vela.RepoSecret
@@ -2612,7 +2577,7 @@ update msg model =
                     ( { model | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    ( model, addError error )
+                    ( model, Errors.addError HandleError error )
 
         BuildGraphResponse _ _ buildNumber isRefresh response ->
             case response of
@@ -2643,7 +2608,7 @@ update msg model =
 
                 Err error ->
                     ( { model | shared = { shared | repo = { rm | build = { bm | graph = { gm | graph = toFailure error } } } } }
-                    , addError error
+                    , Errors.addError HandleError error
                     )
 
         -- Time
@@ -2767,89 +2732,100 @@ update msg model =
             ( model, Cmd.none )
 
 
-{-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
--}
-addDeploymentResponseAlert :
-    Deployment
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-addDeploymentResponseAlert deployment =
+
+-- INTERNALS
+
+
+fromPageEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Main.Pages.Msg.Msg -> Cmd Msg
+fromPageEffect model effect =
+    Effect.toCmd
+        { key = model.key
+        , url = model.url
+        , shared = model.shared
+        , fromSharedMsg = Shared
+        , batch = Batch
+        , toCmd = Task.succeed >> Task.perform identity
+        }
+        (Effect.map Page effect)
+
+
+updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
+updateFromPage msg model =
+    case ( msg, model.page ) of
+        ( Main.Pages.Msg.Home_ pageMsg, Main.Pages.Model.Home_ pageModel ) ->
+            Tuple.mapBoth
+                Main.Pages.Model.Home_
+                (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                (Page.update (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+
+        ( Main.Pages.Msg.Legacy pageMsg, Main.Pages.Model.Legacy pageModel ) ->
+            Tuple.mapBoth
+                Main.Pages.Model.Legacy
+                (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
+                (Page.update (Pages.Legacy.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+
+        _ ->
+            ( model.page, Cmd.none )
+
+
+fromSharedEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Shared.Msg -> Cmd Msg
+fromSharedEffect model effect =
+    Effect.toCmd
+        { key = model.key
+        , url = model.url
+        , shared = model.shared
+        , fromSharedMsg = Shared
+        , batch = Batch
+        , toCmd = Task.succeed >> Task.perform identity
+        }
+        (Effect.map Shared effect)
+
+
+
+-- URL HOOKS FOR PAGES
+
+
+toPageUrlHookCmd : Model -> { from : Route (), to : Route () } -> Cmd Msg
+toPageUrlHookCmd model routes =
     let
-        msg =
-            deployment.description ++ " submitted."
+        toCommands messages =
+            messages
+                |> List.map (Task.succeed >> Task.perform identity)
+                |> Cmd.batch
     in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+    case model.page of
+        Main.Pages.Model.Home_ _ ->
+            Cmd.none
+
+        _ ->
+            Cmd.none
 
 
-{-| addSecretResponseAlert : takes secret and produces Toasty alert for when adding a secret
--}
-addSecretResponseAlert :
-    Secret
-    -> ( { s | toasties : Stack Alert }, Cmd Msg )
-    -> ( { s | toasties : Stack Alert }, Cmd Msg )
-addSecretResponseAlert secret =
-    let
-        type_ =
-            secretTypeToString secret.type_
-
-        msg =
-            secret.name ++ " added to " ++ type_ ++ " secrets."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
-
-
-{-| updateSecretResponseAlert : takes secret and produces Toasty alert for when updating a secret
--}
-updateSecretResponseAlert :
-    Secret
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-updateSecretResponseAlert secret =
-    let
-        type_ =
-            secretTypeToString secret.type_
-
-        msg =
-            String.Extra.toSentenceCase <| type_ ++ " secret " ++ secret.name ++ " updated."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
-
-
-{-| addScheduleResponseAlert : takes schedule and produces Toasty alert for when adding a schedule
--}
-addScheduleResponseAlert :
-    Schedule
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-addScheduleResponseAlert schedule =
-    let
-        msg =
-            schedule.name ++ " added to repo schedules."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
-
-
-{-| updateScheduleResponseAlert : takes schedule and produces Toasty alert for when updating a schedule
--}
-updateScheduleResponseAlert :
-    Schedule
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-updateScheduleResponseAlert schedule =
-    let
-        msg =
-            "Repo schedule " ++ schedule.name ++ " updated."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
+toLayoutUrlHookCmd : Model -> Model -> { from : Route (), to : Route () } -> Cmd Msg
+toLayoutUrlHookCmd oldModel model routes =
+    -- let
+    --     toCommands messages =
+    --         if shouldFireUrlChangedEvents then
+    --             messages
+    --                 |> List.map (Task.succeed >> Task.perform identity)
+    --                 |> Cmd.batch
+    --         else
+    --             Cmd.none
+    --     shouldFireUrlChangedEvents =
+    --         hasNavigatedWithinNewLayout
+    --             { from = toLayoutFromPage oldModel
+    --             , to = toLayoutFromPage model
+    --             }
+    --     route =
+    --         Route.fromUrl () model.url
+    -- in
+    -- case ( toLayoutFromPage model, model.layout ) of
+    --     _ ->
+    Cmd.none
 
 
 
 -- SUBSCRIPTIONS
-
-
-keyDecoder : Json.Decode.Decoder String
-keyDecoder =
-    Json.Decode.field "key" Json.Decode.string
 
 
 subscriptions : Model -> Sub Msg
@@ -2860,13 +2836,15 @@ subscriptions model =
         , onMouseDown "contextual-help" model ShowHideHelp
         , onMouseDown "identity" model ShowHideIdentity
         , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
-        , Browser.Events.onKeyDown (Json.Decode.map OnKeyDown keyDecoder)
-        , Browser.Events.onKeyUp (Json.Decode.map OnKeyUp keyDecoder)
+        , Browser.Events.onKeyDown (Json.Decode.map OnKeyDown (Json.Decode.field "key" Json.Decode.string))
+        , Browser.Events.onKeyUp (Json.Decode.map OnKeyUp (Json.Decode.field "key" Json.Decode.string))
         , Browser.Events.onVisibilityChange VisibilityChanged
         , refreshSubscriptions model
         ]
 
 
+{-| decodeOnThemeChange : takes interaction in json and decodes it into a SetTheme Msg
+-}
 decodeOnThemeChange : Json.Decode.Value -> Msg
 decodeOnThemeChange inTheme =
     case Json.Decode.decodeValue decodeTheme inTheme of
@@ -2877,6 +2855,8 @@ decodeOnThemeChange inTheme =
             SetTheme Dark
 
 
+{-| decodeOnGraphInteraction : takes interaction in json and decodes it into a OnBuildGraphInteraction Msg
+-}
 decodeOnGraphInteraction : Json.Decode.Value -> Msg
 decodeOnGraphInteraction interaction =
     case Json.Decode.decodeValue decodeGraphInteraction interaction of
@@ -2885,337 +2865,6 @@ decodeOnGraphInteraction interaction =
 
         Err _ ->
             NoOp
-
-
-{-| refreshSubscriptions : takes model and returns the subscriptions for automatically refreshing page data
--}
-refreshSubscriptions : Model -> Sub Msg
-refreshSubscriptions model =
-    Sub.batch <|
-        case model.shared.visibility of
-            Visible ->
-                [ every Util.oneSecondMillis <| Tick OneSecond
-                , every Util.fiveSecondsMillis <| Tick FiveSecond
-                ]
-
-            Hidden ->
-                [ every Util.oneSecondMillis <| Tick OneSecondHidden
-                , every Util.fiveSecondsMillis <| Tick (FiveSecondHidden <| refreshData model)
-                ]
-
-
-{-| refreshFavicon : takes page and restores the favicon to the default when not viewing the build page
--}
-refreshFavicon : Page -> Favicon -> WebData Build -> ( Favicon, Cmd Msg )
-refreshFavicon page currentFavicon build =
-    let
-        onBuild =
-            case page of
-                Pages.Build _ _ _ _ ->
-                    True
-
-                Pages.BuildServices _ _ _ _ ->
-                    True
-
-                Pages.BuildPipeline _ _ _ _ _ ->
-                    True
-
-                _ ->
-                    False
-    in
-    if onBuild then
-        case build of
-            RemoteData.Success b ->
-                let
-                    newFavicon =
-                        statusToFavicon b.status
-                in
-                if currentFavicon /= newFavicon then
-                    ( newFavicon, Interop.setFavicon <| Json.Encode.string newFavicon )
-
-                else
-                    ( currentFavicon, Cmd.none )
-
-            _ ->
-                ( currentFavicon, Cmd.none )
-
-    else if currentFavicon /= defaultFavicon then
-        ( defaultFavicon, Interop.setFavicon <| Json.Encode.string defaultFavicon )
-
-    else
-        ( currentFavicon, Cmd.none )
-
-
-{-| refreshPage : refreshes Vela data based on current page and build status
--}
-refreshPage : Model -> Cmd Msg
-refreshPage model =
-    let
-        page =
-            model.legacyPage
-    in
-    case page of
-        Pages.OrgBuilds org maybePage maybePerPage maybeEvent ->
-            getOrgBuilds model org maybePage maybePerPage maybeEvent
-
-        Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
-            getBuilds model org repo maybePage maybePerPage maybeEvent
-
-        Pages.RepositoryDeployments org repo maybePage maybePerPage ->
-            getDeployments model org repo maybePage maybePerPage
-
-        Pages.Build org repo buildNumber focusFragment ->
-            Cmd.batch
-                [ getBuilds model org repo Nothing Nothing Nothing
-                , refreshBuild model org repo buildNumber
-                , refreshBuildSteps model org repo buildNumber focusFragment
-                , refreshStepLogs model org repo buildNumber model.shared.repo.build.steps.steps Nothing
-                ]
-
-        Pages.BuildServices org repo buildNumber focusFragment ->
-            Cmd.batch
-                [ getBuilds model org repo Nothing Nothing Nothing
-                , refreshBuild model org repo buildNumber
-                , refreshBuildServices model org repo buildNumber focusFragment
-                , refreshServiceLogs model org repo buildNumber model.shared.repo.build.services.services Nothing
-                ]
-
-        Pages.BuildPipeline org repo buildNumber _ _ ->
-            Cmd.batch
-                [ getBuilds model org repo Nothing Nothing Nothing
-                , refreshBuild model org repo buildNumber
-                ]
-
-        Pages.BuildGraph org repo buildNumber ->
-            Cmd.batch
-                [ getBuilds model org repo Nothing Nothing Nothing
-                , refreshBuild model org repo buildNumber
-                , refreshBuildGraph model org repo buildNumber
-                ]
-
-        Pages.Hooks org repo maybePage maybePerPage ->
-            getHooks model org repo maybePage maybePerPage
-
-        Pages.OrgSecrets engine org maybePage maybePerPage ->
-            Cmd.batch
-                [ getOrgSecrets model maybePage maybePerPage engine org
-                , getSharedSecrets model maybePage maybePerPage engine org "*"
-                ]
-
-        Pages.RepoSecrets engine org repo maybePage maybePerPage ->
-            getRepoSecrets model maybePage maybePerPage engine org repo
-
-        Pages.SharedSecrets engine org team maybePage maybePerPage ->
-            getSharedSecrets model maybePage maybePerPage engine org team
-
-        _ ->
-            Cmd.none
-
-
-{-| refreshPageHidden : refreshes Vela data based on current page and build status when tab is not visible
--}
-refreshPageHidden : Model -> RefreshData -> Cmd Msg
-refreshPageHidden model _ =
-    let
-        page =
-            model.legacyPage
-    in
-    case page of
-        Pages.Build org repo buildNumber _ ->
-            refreshBuild model org repo buildNumber
-
-        _ ->
-            Cmd.none
-
-
-{-| refreshData : takes model and extracts data needed to refresh the page
--}
-refreshData : Model -> RefreshData
-refreshData model =
-    let
-        rm =
-            model.shared.repo
-
-        buildNumber =
-            case rm.build.build of
-                Success build ->
-                    Just <| String.fromInt build.number
-
-                _ ->
-                    Nothing
-    in
-    { org = rm.org, repo = rm.name, build_number = buildNumber, steps = Nothing }
-
-
-{-| refreshBuild : takes model org repo and build number and refreshes the build status
--}
-refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-refreshBuild model org repo buildNumber =
-    if shouldRefresh model.legacyPage model.shared.repo.build then
-        getBuild model org repo buildNumber
-
-    else
-        Cmd.none
-
-
-{-| refreshBuildSteps : takes model org repo and build number and refreshes the build steps based on step status
--}
-refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
-refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefresh model.legacyPage model.shared.repo.build then
-        getAllBuildSteps model org repo buildNumber focusFragment True
-
-    else
-        Cmd.none
-
-
-{-| refreshBuildServices : takes model org repo and build number and refreshes the build services based on service status
--}
-refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
-refreshBuildServices model org repo buildNumber focusFragment =
-    if shouldRefresh model.legacyPage model.shared.repo.build then
-        getAllBuildServices model org repo buildNumber focusFragment True
-
-    else
-        Cmd.none
-
-
-{-| refreshBuildGraph : takes model org repo and build number and refreshes the build graph if necessary
--}
-refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
-refreshBuildGraph model org repo buildNumber =
-    if shouldRefresh model.legacyPage model.shared.repo.build then
-        getBuildGraph model org repo buildNumber True
-
-    else
-        Cmd.none
-
-
-{-| refreshRenderBuildGraph : takes model and refreshes the build graph render if necessary
--}
-refreshRenderBuildGraph : Model -> Cmd Msg
-refreshRenderBuildGraph model =
-    case model.legacyPage of
-        Pages.BuildGraph _ _ _ ->
-            renderBuildGraph model False
-
-        _ ->
-            Cmd.none
-
-
-{-| shouldRefresh : takes build and returns true if a refresh is required
--}
-shouldRefresh : Page -> BuildModel -> Bool
-shouldRefresh page build =
-    case build.build of
-        Success bld ->
-            -- build is incomplete
-            (not <| isComplete bld.status)
-                -- any steps or services are incomplete
-                || (case page of
-                        -- check steps when viewing build tab
-                        Pages.Build _ _ _ _ ->
-                            case build.steps.steps of
-                                Success steps ->
-                                    List.any (\s -> not <| isComplete s.status) steps
-
-                                -- do not use unsuccessful states to dictate refresh
-                                NotAsked ->
-                                    False
-
-                                Failure _ ->
-                                    False
-
-                                Loading ->
-                                    False
-
-                        -- check services when viewing services tab
-                        Pages.BuildServices _ _ _ _ ->
-                            case build.services.services of
-                                Success services ->
-                                    List.any (\s -> not <| isComplete s.status) services
-
-                                -- do not use unsuccessful states to dictate refresh
-                                NotAsked ->
-                                    False
-
-                                Failure _ ->
-                                    False
-
-                                Loading ->
-                                    False
-
-                        -- check graph nodes when viewing graph tab
-                        Pages.BuildGraph _ _ _ ->
-                            case build.graph.graph of
-                                Success graph ->
-                                    List.any (\( _, n ) -> not <| isComplete (stringToStatus n.status)) (Dict.toList graph.nodes)
-
-                                -- do not use unsuccessful states to dictate refresh
-                                NotAsked ->
-                                    False
-
-                                Failure _ ->
-                                    False
-
-                                Loading ->
-                                    False
-
-                        _ ->
-                            False
-                   )
-
-        NotAsked ->
-            True
-
-        -- do not refresh a Failed or Loading build
-        Failure _ ->
-            False
-
-        Loading ->
-            False
-
-
-{-| refreshStepLogs : takes model org repo and build number and steps and refreshes the build step logs depending on their status
--}
-refreshStepLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Cmd Msg
-refreshStepLogs model org repo buildNumber inSteps focusFragment =
-    let
-        stepsToRefresh =
-            case inSteps of
-                Success s ->
-                    -- Do not refresh logs for a step in success or failure state
-                    List.filter (\step -> step.status /= Vela.Success && step.status /= Vela.Failure) s
-
-                _ ->
-                    []
-    in
-    if shouldRefresh model.legacyPage model.shared.repo.build then
-        getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
-
-    else
-        Cmd.none
-
-
-{-| refreshServiceLogs : takes model org repo and build number and services and refreshes the build service logs depending on their status
--}
-refreshServiceLogs : Model -> Org -> Repo -> BuildNumber -> WebData Services -> FocusFragment -> Cmd Msg
-refreshServiceLogs model org repo buildNumber inServices focusFragment =
-    let
-        servicesToRefresh =
-            case inServices of
-                Success s ->
-                    -- Do not refresh logs for a service in success or failure state
-                    List.filter (\service -> service.status /= Vela.Success && service.status /= Vela.Failure) s
-
-                _ ->
-                    []
-    in
-    if shouldRefresh model.legacyPage model.shared.repo.build then
-        getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
-
-    else
-        Cmd.none
 
 
 {-| onMouseDown : takes model and returns subscriptions for handling onMouseDown events at the browser level
@@ -3275,574 +2924,383 @@ isOutsideTarget targetId =
 
 
 -- VIEW
--- todo: vader: remove this or use it when all pages have been migrated
--- view : Model -> Browser.Document Msg
--- view model =
---     let
---         view_ : View Msg
---         view_ =
---             toView model
---     in
---     View.toBrowserDocument
---         { shared = model.shared
---         , route = Route.fromUrl () model.url
---         , view = view_
---         }
--- toView : Model -> View Msg
--- toView model =
---     viewPage model
--- viewPage : Model -> View Msg
--- viewPage model =
---     case model.pageModel of
---         Main.Pages.Model.Home_ pageModel ->
---             Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
---                 |> View.map Main.Pages.Msg.Home_
---                 |> View.map Page
---         Main.Pages.Model.Legacy pageModel ->
---             Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
---                 |> View.map Main.Pages.Msg.Home_
---                 |> View.map Page
+-- todo: move this into a site-wide Layout
 
 
-view : Model -> Document Msg
-view model =
-    let
-        ( title, content ) =
-            viewContent model
-    in
-    { title = title ++ " - Vela"
-    , body =
-        [ lazy2 viewHeader model.shared.session { feedbackLink = model.shared.velaFeedbackURL, docsLink = model.shared.velaDocsURL, theme = model.shared.theme, help = helpArgs model, showId = model.shared.showIdentity }
-        , lazy2 Nav.viewNav model navMsgs
-        , main_ [ class "content-wrap" ]
-            [ viewUtil model
-            , content
+legacyLayout model v =
+    { v
+        | body =
+            [ lazy2 viewHeader
+                model.shared.session
+                { feedbackLink = model.shared.velaFeedbackURL
+                , docsLink = model.shared.velaDocsURL
+                , theme = model.shared.theme
+                , help = helpArgs model
+                , showId = model.shared.showIdentity
+                }
+            , lazy2 Nav.viewNav model navMsgs
+            , main_ [ class "content-wrap" ]
+                (viewUtil model
+                    :: v.body
+                )
+            , footer [] [ lazy viewAlerts model.shared.toasties ]
             ]
-        , footer [] [ lazy viewAlerts model.shared.toasties ]
-        ]
     }
 
 
-viewContent : Model -> ( String, Html Msg )
-viewContent model =
-    -- todo: vader: move this when we've migrated all pages and no longer need the legacy code
+view : Model -> Browser.Document Msg
+view model =
+    let
+        view_ : View Msg
+        view_ =
+            toView model
+                |> legacyLayout model
+    in
+    View.toBrowserDocument
+        { shared = model.shared
+        , route = Route.fromUrl () model.url
+        , view = view_
+        }
+
+
+toView : Model -> View Msg
+toView model =
+    viewPage model
+
+
+viewPage : Model -> View Msg
+viewPage model =
     case model.page of
         Main.Pages.Model.Home_ pageModel ->
             Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
                 |> View.map Main.Pages.Msg.Home_
                 |> View.map Page
-                |> (\x -> ( x.title, Html.div [] x.body ))
 
+        -- todo: vader: move this when we've migrated all pages and no longer need the legacy code
         -- todo: vader migrate more pages
-        Main.Pages.Model.Legacy pageModel ->
-            case model.legacyPage of
-                -- todo: vader: remove this in favor of migrated page
-                Pages.Overview ->
-                    ( "Overview"
-                    , div [] [ text "Legacy Overview, how'd we get here?" ]
-                    )
+        Main.Pages.Model.Legacy _ ->
+            (\( title, body ) -> { title = title, body = [ body ] }) <|
+                case model.legacyPage of
+                    -- todo: vader: remove this in favor of migrated page
+                    Pages.Overview ->
+                        ( "Overview"
+                        , div [] [ text "Legacy Overview, how'd we get here?" ]
+                        )
 
-                Pages.SourceRepositories ->
-                    ( "Source Repositories"
-                    , lazy2 Pages.SourceRepos.view
-                        { user = model.shared.user
-                        , sourceRepos = model.shared.sourceRepos
-                        , filters = model.shared.filters
-                        }
-                        sourceReposMsgs
-                    )
-
-                Pages.OrgRepositories org maybePage _ ->
-                    ( org ++ Util.pageToString maybePage
-                    , div []
-                        [ Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
-                        , lazy2 Pages.Organization.viewOrgRepos org model.shared.repo.orgRepos
-                        , Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
-                        ]
-                    )
-
-                Pages.Hooks org repo maybePage _ ->
-                    ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
-                    , div []
-                        [ Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
-                        , lazy2 Pages.Hooks.view
-                            { hooks = model.shared.repo.hooks
-                            , time = model.shared.time
-                            , org = model.shared.repo.org
-                            , repo = model.shared.repo.name
+                    Pages.SourceRepositories ->
+                        ( "Source Repositories"
+                        , lazy2 Pages.SourceRepos.view
+                            { user = model.shared.user
+                            , sourceRepos = model.shared.sourceRepos
+                            , filters = model.shared.filters
                             }
-                            RedeliverHook
-                        , Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
-                        ]
-                    )
+                            sourceReposMsgs
+                        )
 
-                Pages.RepoSettings org repo ->
-                    ( String.join "/" [ org, repo ] ++ " settings"
-                    , lazy5 Pages.RepoSettings.view model.shared.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.shared.entryURL) model.shared.velaMaxBuildLimit
-                    )
-
-                Pages.RepoSecrets engine org repo _ _ ->
-                    ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
-                    , div []
-                        [ Html.map SecretsUpdate <| lazy Pages.Secrets.View.viewRepoSecrets model
-                        , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
-                        ]
-                    )
-
-                Pages.OrgSecrets engine org maybePage _ ->
-                    ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ Util.pageToString maybePage
-                    , div []
-                        [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
-                        , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
-                        , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
-                        ]
-                    )
-
-                Pages.SharedSecrets engine org team _ _ ->
-                    ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
-                    , div []
-                        [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
-                        , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
-                        ]
-                    )
-
-                Pages.AddOrgSecret engine _ ->
-                    ( "add " ++ engine ++ " org secret"
-                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
-                    )
-
-                Pages.AddRepoSecret engine _ _ ->
-                    ( "add " ++ engine ++ " repo secret"
-                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
-                    )
-
-                Pages.AddSharedSecret engine _ _ ->
-                    ( "add " ++ engine ++ " shared secret"
-                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
-                    )
-
-                Pages.OrgSecret engine org name ->
-                    ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
-                    )
-
-                Pages.RepoSecret engine org repo name ->
-                    ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
-                    )
-
-                Pages.SharedSecret engine org team name ->
-                    ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-                    , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
-                    )
-
-                Pages.AddDeployment org repo ->
-                    ( String.join "/" [ org, repo ] ++ " add deployment"
-                    , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
-                    )
-
-                Pages.PromoteDeployment org repo buildNumber ->
-                    ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
-                    , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
-                    )
-
-                Pages.RepositoryDeployments org repo maybePage _ ->
-                    ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
-                    , div []
-                        [ lazy3 Pages.Deployments.View.viewDeployments model.shared.repo org repo
-                        , Pager.view model.shared.repo.deployments.pager Pager.defaultLabels GotoPage
-                        ]
-                    )
-
-                Pages.AddSchedule org repo ->
-                    ( String.join "/" [ org, repo, "add schedule" ]
-                    , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewAddSchedule model
-                    )
-
-                Pages.Schedule org repo name ->
-                    ( String.join "/" [ org, repo, name ]
-                    , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewEditSchedule model
-                    )
-
-                Pages.Schedules org repo maybePage _ ->
-                    let
-                        viewPager =
-                            if Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist then
-                                Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
-
-                            else
-                                text ""
-                    in
-                    ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
-                    , div []
-                        [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
-                        , viewPager
-                        ]
-                    )
-
-                Pages.OrgBuilds org maybePage _ maybeEvent ->
-                    let
-                        repo =
-                            ""
-
-                        shouldRenderFilter : Bool
-                        shouldRenderFilter =
-                            case ( model.shared.repo.builds.builds, maybeEvent ) of
-                                ( Success result, Nothing ) ->
-                                    not <| List.length result == 0
-
-                                ( Success _, _ ) ->
-                                    True
-
-                                ( Loading, _ ) ->
-                                    True
-
-                                _ ->
-                                    False
-                    in
-                    ( org ++ " builds" ++ Util.pageToString maybePage
-                    , div []
-                        [ div [ class "build-bar" ]
-                            [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                            , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                    Pages.OrgRepositories org maybePage _ ->
+                        ( org ++ Util.pageToString maybePage
+                        , div []
+                            [ Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
+                            , lazy2 Pages.Organization.viewOrgRepos org model.shared.repo.orgRepos
+                            , Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
                             ]
-                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                        , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
-                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                        ]
-                    )
+                        )
 
-                Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
-                    let
-                        shouldRenderFilter : Bool
-                        shouldRenderFilter =
-                            case ( model.shared.repo.builds.builds, maybeEvent ) of
-                                ( Success result, Nothing ) ->
-                                    not <| List.length result == 0
-
-                                ( Success _, _ ) ->
-                                    True
-
-                                ( Loading, _ ) ->
-                                    True
-
-                                _ ->
-                                    False
-                    in
-                    ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
-                    , div []
-                        [ div [ class "build-bar" ]
-                            [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                            , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                    Pages.Hooks org repo maybePage _ ->
+                        ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
+                        , div []
+                            [ Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
+                            , lazy2 Pages.Hooks.view
+                                { hooks = model.shared.repo.hooks
+                                , time = model.shared.time
+                                , org = model.shared.repo.org
+                                , repo = model.shared.repo.name
+                                }
+                                RedeliverHook
+                            , Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
                             ]
-                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                        , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
-                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                        ]
-                    )
+                        )
 
-                Pages.RepositoryBuildsPulls org repo maybePage _ ->
-                    let
-                        shouldRenderFilter : Bool
-                        shouldRenderFilter =
-                            case ( model.shared.repo.builds.builds, Just "pull_request" ) of
-                                ( Success result, Nothing ) ->
-                                    not <| List.length result == 0
+                    Pages.RepoSettings org repo ->
+                        ( String.join "/" [ org, repo ] ++ " settings"
+                        , lazy5 Pages.RepoSettings.view model.shared.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.shared.entryURL) model.shared.velaMaxBuildLimit
+                        )
 
-                                ( Success _, _ ) ->
-                                    True
-
-                                ( Loading, _ ) ->
-                                    True
-
-                                _ ->
-                                    False
-                    in
-                    ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
-                    , div []
-                        [ div [ class "build-bar" ]
-                            [ viewBuildsFilter shouldRenderFilter org repo (Just "pull_request")
-                            , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                    Pages.RepoSecrets engine org repo _ _ ->
+                        ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
+                        , div []
+                            [ Html.map SecretsUpdate <| lazy Pages.Secrets.View.viewRepoSecrets model
+                            , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
                             ]
-                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                        , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
-                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                        ]
-                    )
+                        )
 
-                Pages.RepositoryBuildsTags org repo maybePage _ ->
-                    let
-                        shouldRenderFilter : Bool
-                        shouldRenderFilter =
-                            case ( model.shared.repo.builds.builds, Just "tag" ) of
-                                ( Success result, Nothing ) ->
-                                    not <| List.length result == 0
-
-                                ( Success _, _ ) ->
-                                    True
-
-                                ( Loading, _ ) ->
-                                    True
-
-                                _ ->
-                                    False
-                    in
-                    ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
-                    , div []
-                        [ div [ class "build-bar" ]
-                            [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
-                            , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                    Pages.OrgSecrets engine org maybePage _ ->
+                        ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ Util.pageToString maybePage
+                        , div []
+                            [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
+                            , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
+                            , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
                             ]
-                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                        , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
-                        , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                        ]
-                    )
+                        )
 
-                Pages.Build org repo buildNumber _ ->
-                    ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-                    , Pages.Build.View.viewBuild
-                        model
-                        buildMsgs
-                        org
-                        repo
-                        buildNumber
-                    )
+                    Pages.SharedSecrets engine org team _ _ ->
+                        ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
+                        , div []
+                            [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
+                            , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
+                            ]
+                        )
 
-                Pages.BuildServices org repo buildNumber _ ->
-                    ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-                    , Pages.Build.View.viewBuildServices
-                        model
-                        buildMsgs
-                        org
-                        repo
-                        buildNumber
-                    )
+                    Pages.AddOrgSecret engine _ ->
+                        ( "add " ++ engine ++ " org secret"
+                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
+                        )
 
-                Pages.BuildPipeline org repo buildNumber _ _ ->
-                    ( "Pipeline " ++ String.join "/" [ org, repo ]
-                    , Pages.Pipeline.View.viewPipeline
-                        model
-                        pipelineMsgs
-                        |> Pages.Build.View.wrapWithBuildPreview
+                    Pages.AddRepoSecret engine _ _ ->
+                        ( "add " ++ engine ++ " repo secret"
+                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
+                        )
+
+                    Pages.AddSharedSecret engine _ _ ->
+                        ( "add " ++ engine ++ " shared secret"
+                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
+                        )
+
+                    Pages.OrgSecret engine org name ->
+                        ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
+                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
+                        )
+
+                    Pages.RepoSecret engine org repo name ->
+                        ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
+                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
+                        )
+
+                    Pages.SharedSecret engine org team name ->
+                        ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
+                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
+                        )
+
+                    Pages.AddDeployment org repo ->
+                        ( String.join "/" [ org, repo ] ++ " add deployment"
+                        , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
+                        )
+
+                    Pages.PromoteDeployment org repo buildNumber ->
+                        ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
+                        , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
+                        )
+
+                    Pages.RepositoryDeployments org repo maybePage _ ->
+                        ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
+                        , div []
+                            [ lazy3 Pages.Deployments.View.viewDeployments model.shared.repo org repo
+                            , Pager.view model.shared.repo.deployments.pager Pager.defaultLabels GotoPage
+                            ]
+                        )
+
+                    Pages.AddSchedule org repo ->
+                        ( String.join "/" [ org, repo, "add schedule" ]
+                        , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewAddSchedule model
+                        )
+
+                    Pages.Schedule org repo name ->
+                        ( String.join "/" [ org, repo, name ]
+                        , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewEditSchedule model
+                        )
+
+                    Pages.Schedules org repo maybePage _ ->
+                        let
+                            viewPager =
+                                if Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist then
+                                    Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
+
+                                else
+                                    text ""
+                        in
+                        ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
+                        , div []
+                            [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
+                            , viewPager
+                            ]
+                        )
+
+                    Pages.OrgBuilds org maybePage _ maybeEvent ->
+                        let
+                            repo =
+                                ""
+
+                            shouldRenderFilter : Bool
+                            shouldRenderFilter =
+                                case ( model.shared.repo.builds.builds, maybeEvent ) of
+                                    ( Success result, Nothing ) ->
+                                        not <| List.length result == 0
+
+                                    ( Success _, _ ) ->
+                                        True
+
+                                    ( Loading, _ ) ->
+                                        True
+
+                                    _ ->
+                                        False
+                        in
+                        ( org ++ " builds" ++ Util.pageToString maybePage
+                        , div []
+                            [ div [ class "build-bar" ]
+                                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                                , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                                ]
+                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                            , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
+                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                            ]
+                        )
+
+                    Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
+                        let
+                            shouldRenderFilter : Bool
+                            shouldRenderFilter =
+                                case ( model.shared.repo.builds.builds, maybeEvent ) of
+                                    ( Success result, Nothing ) ->
+                                        not <| List.length result == 0
+
+                                    ( Success _, _ ) ->
+                                        True
+
+                                    ( Loading, _ ) ->
+                                        True
+
+                                    _ ->
+                                        False
+                        in
+                        ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+                        , div []
+                            [ div [ class "build-bar" ]
+                                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                                , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                                ]
+                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                            , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
+                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                            ]
+                        )
+
+                    Pages.RepositoryBuildsPulls org repo maybePage _ ->
+                        let
+                            shouldRenderFilter : Bool
+                            shouldRenderFilter =
+                                case ( model.shared.repo.builds.builds, Just "pull_request" ) of
+                                    ( Success result, Nothing ) ->
+                                        not <| List.length result == 0
+
+                                    ( Success _, _ ) ->
+                                        True
+
+                                    ( Loading, _ ) ->
+                                        True
+
+                                    _ ->
+                                        False
+                        in
+                        ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+                        , div []
+                            [ div [ class "build-bar" ]
+                                [ viewBuildsFilter shouldRenderFilter org repo (Just "pull_request")
+                                , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                                ]
+                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                            , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
+                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                            ]
+                        )
+
+                    Pages.RepositoryBuildsTags org repo maybePage _ ->
+                        let
+                            shouldRenderFilter : Bool
+                            shouldRenderFilter =
+                                case ( model.shared.repo.builds.builds, Just "tag" ) of
+                                    ( Success result, Nothing ) ->
+                                        not <| List.length result == 0
+
+                                    ( Success _, _ ) ->
+                                        True
+
+                                    ( Loading, _ ) ->
+                                        True
+
+                                    _ ->
+                                        False
+                        in
+                        ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+                        , div []
+                            [ div [ class "build-bar" ]
+                                [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
+                                , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                                ]
+                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                            , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
+                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                            ]
+                        )
+
+                    Pages.Build org repo buildNumber _ ->
+                        ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+                        , Pages.Build.View.viewBuild
                             model
                             buildMsgs
                             org
                             repo
                             buildNumber
-                    )
+                        )
 
-                Pages.BuildGraph org repo buildNumber ->
-                    ( "Visualize " ++ String.join "/" [ org, repo, buildNumber ]
-                    , Pages.Build.View.viewBuildGraph
-                        model
-                        buildMsgs
-                        org
-                        repo
-                        buildNumber
-                    )
+                    Pages.BuildServices org repo buildNumber _ ->
+                        ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+                        , Pages.Build.View.viewBuildServices
+                            model
+                            buildMsgs
+                            org
+                            repo
+                            buildNumber
+                        )
 
-                Pages.Settings ->
-                    ( "Settings"
-                    , Pages.Settings.view model.shared.session model.shared.time (Pages.Settings.Msgs Copy)
-                    )
+                    Pages.BuildPipeline org repo buildNumber _ _ ->
+                        ( "Pipeline " ++ String.join "/" [ org, repo ]
+                        , Pages.Pipeline.View.viewPipeline
+                            model
+                            pipelineMsgs
+                            |> Pages.Build.View.wrapWithBuildPreview
+                                model
+                                buildMsgs
+                                org
+                                repo
+                                buildNumber
+                        )
 
-                Pages.Login ->
-                    ( "Login"
-                    , viewLogin
-                    )
+                    Pages.BuildGraph org repo buildNumber ->
+                        ( "Visualize " ++ String.join "/" [ org, repo, buildNumber ]
+                        , Pages.Build.View.viewBuildGraph
+                            model
+                            buildMsgs
+                            org
+                            repo
+                            buildNumber
+                        )
 
-                Pages.NotFound ->
-                    ( "404"
-                    , h1 [] [ text "Not Found" ]
-                    )
+                    Pages.Settings ->
+                        ( "Settings"
+                        , Pages.Settings.view model.shared.session model.shared.time (Pages.Settings.Msgs Copy)
+                        )
 
+                    Pages.Login ->
+                        ( "Login"
+                        , viewLogin
+                        )
 
-viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
-viewBuildsFilter shouldRender org repo maybeEvent =
-    let
-        eventToMaybe : String -> Maybe Event
-        eventToMaybe event =
-            case event of
-                "all" ->
-                    Nothing
-
-                _ ->
-                    Just event
-    in
-    if shouldRender then
-        let
-            eventEnum : List String
-            eventEnum =
-                [ "all"
-                , "push"
-                , "pull_request"
-                , "tag"
-                , "deployment"
-                , "schedule"
-                , "comment"
-                ]
-        in
-        div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
-            div [] [ text "Filter by Event:" ]
-                :: List.map
-                    (\e ->
-                        div [ class "form-control" ]
-                            [ input
-                                [ type_ "radio"
-                                , id <| "filter-" ++ e
-                                , name "build-filter"
-                                , Util.testAttribute <| "build-filter-" ++ e
-                                , checked <| maybeEvent == eventToMaybe e
-                                , onClick <| FilterBuildEventBy (eventToMaybe e) org repo
-                                , attribute "aria-label" <| "filter to show " ++ e ++ " events"
-                                ]
-                                []
-                            , label
-                                [ class "form-label"
-                                , for <| "filter-" ++ e
-                                ]
-                                [ text <| String.replace "_" " " e ]
-                            ]
-                    )
-                    eventEnum
-
-    else
-        text ""
-
-
-viewTimeToggle : Bool -> Bool -> Html Msg
-viewTimeToggle shouldRender showTimestamp =
-    if shouldRender then
-        div [ class "form-controls", class "-stack", class "time-toggle" ]
-            [ div [ class "form-control" ]
-                [ input [ type_ "checkbox", checked showTimestamp, onClick ShowHideFullTimestamp, id "checkbox-time-toggle", Util.testAttribute "time-toggle" ] []
-                , label [ class "form-label", for "checkbox-time-toggle" ] [ text "show full timestamps" ]
-                ]
-            ]
-
-    else
-        text ""
-
-
-viewLogin : Html Msg
-viewLogin =
-    div []
-        [ h1 [] [ text "Authorize Via" ]
-        , button [ class "button", onClick SignInRequested, Util.testAttribute "login-button" ]
-            [ FeatherIcons.github
-                |> FeatherIcons.withSize 20
-                |> FeatherIcons.withClass "login-source-icon"
-                |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
-            , text "GitHub"
-            ]
-        , p [] [ text "You will be taken to GitHub to authenticate." ]
-        ]
-
-
-viewHeader : Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Commands.Model Msg, showId : Bool } -> Html Msg
-viewHeader session { feedbackLink, docsLink, theme, help, showId } =
-    let
-        identityBaseClassList : Html.Attribute Msg
-        identityBaseClassList =
-            classList
-                [ ( "details", True )
-                , ( "-marker-right", True )
-                , ( "-no-pad", True )
-                , ( "identity-name", True )
-                ]
-
-        identityAttributeList : List (Html.Attribute Msg)
-        identityAttributeList =
-            Util.open showId
-    in
-    header []
-        [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
-            [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
-            , case session of
-                Authenticated auth ->
-                    details (identityBaseClassList :: identityAttributeList)
-                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ]
-                            [ text auth.userName
-                            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-                            ]
-                        , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
-                            [ li [ class "identity-menu-item" ]
-                                [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
-                            , li [ class "identity-menu-item" ]
-                                [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
-                            ]
-                        ]
-
-                Unauthenticated ->
-                    details (identityBaseClassList :: identityAttributeList)
-                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
-            ]
-        , nav [ class "help-links" ]
-            [ ul []
-                [ li [] [ viewThemeToggle theme ]
-                , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
-                , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , Help.View.help help
-                ]
-            ]
-        ]
-
-
-helpArg : WebData a -> Help.Commands.Arg
-helpArg arg =
-    { success = Util.isSuccess arg, loading = Util.isLoading arg }
-
-
-helpArgs : Model -> Help.Commands.Model Msg
-helpArgs model =
-    { user = helpArg model.shared.user
-    , sourceRepos = helpArg model.shared.sourceRepos
-    , orgRepos = helpArg model.shared.repo.orgRepos.orgRepos
-    , builds = helpArg model.shared.repo.builds.builds
-    , deployments = helpArg model.shared.repo.deployments.deployments
-    , build = helpArg model.shared.repo.build.build
-    , repo = helpArg model.shared.repo.repo
-    , hooks = helpArg model.shared.repo.hooks.hooks
-    , secrets = helpArg model.secretsModel.repoSecrets
-    , show = model.shared.showHelp
-    , toggle = ShowHideHelp
-    , copy = Copy
-    , noOp = NoOp
-    , page = model.legacyPage
-
-    -- TODO: use env flag velaDocsURL
-    -- , velaDocsURL = model.velaDocsURL
-    , velaDocsURL = "https://go-vela.github.io/docs"
-    }
-
-
-viewAlerts : Stack Alert -> Html Msg
-viewAlerts toasties =
-    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig (Alerts.view Copy) AlertsUpdate toasties ]
-
-
-wrapAlertMessage : String -> String
-wrapAlertMessage message =
-    if not <| String.isEmpty message then
-        "`" ++ message ++ "` "
-
-    else
-        message
-
-
-viewThemeToggle : Theme -> Html Msg
-viewThemeToggle theme =
-    let
-        ( newTheme, themeAria ) =
-            case theme of
-                Dark ->
-                    ( Light, "enable light mode" )
-
-                Light ->
-                    ( Dark, "enable dark mode" )
-    in
-    button [ class "button", class "-link", attribute "aria-label" themeAria, onClick (SetTheme newTheme) ] [ text "switch theme" ]
+                    Pages.NotFound ->
+                        ( "404"
+                        , h1 [] [ text "Not Found" ]
+                        )
 
 
 
@@ -4014,6 +3472,11 @@ applyLegacyPage model =
     }
 
 
+{-| loadSourceReposPage : takes model
+
+    updates the model based on app initialization state and loads source repos page resources
+
+-}
 loadSourceReposPage : Model -> ( Model, Cmd Msg )
 loadSourceReposPage model =
     let
@@ -4041,6 +3504,11 @@ loadSourceReposPage model =
             ( { model | legacyPage = Pages.SourceRepositories }, getCurrentUser model )
 
 
+{-| loadOrgReposPage : takes model
+
+    updates the model based on app initialization state and loads org repos page resources
+
+-}
 loadOrgReposPage : Model -> Org -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadOrgReposPage model org maybePage maybePerPage =
     case model.shared.repo.orgRepos.orgRepos of
@@ -4063,6 +3531,11 @@ loadOrgReposPage model org maybePage maybePerPage =
             )
 
 
+{-| loadOverviewPage : takes model
+
+    updates the model based on app initialization state and loads overview page resources
+
+-}
 loadOverviewPage : Model -> ( Model, Cmd Msg )
 loadOverviewPage model =
     ( { model
@@ -4078,13 +3551,6 @@ loadOverviewPage model =
         [ getCurrentUser model
         ]
     )
-
-
-{-| resourceChanged : takes two repo resource identifiers and returns if the build has changed
--}
-resourceChanged : RepoResourceIdentifier -> RepoResourceIdentifier -> Bool
-resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
-    not <| orgA == orgB && repoA == repoB && idA == idB
 
 
 {-| loadOrgSubPage : takes model org and page destination
@@ -5148,288 +4614,9 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
     )
 
 
-{-| isSameBuild : takes build identifier and current page and returns true if the build has not changed
--}
-isSameBuild : RepoResourceIdentifier -> Page -> Bool
-isSameBuild id currentPage =
-    case currentPage of
-        Pages.Build o r b _ ->
-            not <| resourceChanged id ( o, r, b )
 
-        Pages.BuildServices o r b _ ->
-            not <| resourceChanged id ( o, r, b )
-
-        Pages.BuildPipeline o r b _ _ ->
-            not <| resourceChanged id ( o, r, b )
-
-        Pages.BuildGraph o r b ->
-            not <| resourceChanged id ( o, r, b )
-
-        _ ->
-            False
-
-
-{-| setBuild : takes new build information and sets the appropriate model state
--}
-setBuild : Org -> Repo -> BuildNumber -> Bool -> Model -> Model
-setBuild org repo buildNumber soft model =
-    let
-        sm =
-            model.shared
-
-        rm =
-            sm.repo
-
-        gm =
-            rm.build.graph
-
-        pipeline =
-            sm.pipeline
-    in
-    { model
-        | shared =
-            { sm
-                | repo =
-                    rm
-                        |> updateBuild
-                            (if soft then
-                                model.shared.repo.build.build
-
-                             else
-                                Loading
-                            )
-                        |> updateOrgRepo org repo
-                        |> updateBuildNumber buildNumber
-                        |> updateBuildSteps NotAsked
-                        |> updateBuildStepsFollowing 0
-                        |> updateBuildStepsLogs []
-                        |> updateBuildStepsFocusFragment Nothing
-                        |> updateBuildServices NotAsked
-                        |> updateBuildServicesFollowing 0
-                        |> updateBuildServicesLogs []
-                        |> updateBuildServicesFocusFragment Nothing
-                        |> updateBuildGraph NotAsked
-                        |> updateBuildGraphShowServices gm.showServices
-                        |> updateBuildGraphShowSteps gm.showSteps
-                        |> updateBuildGraphFilter gm.filter
-                , pipeline =
-                    { pipeline
-                        | focusFragment = Nothing
-                        , config = ( NotAsked, "" )
-                        , expand = Nothing
-                        , expanding = False
-                        , expanded = False
-                    }
-                , templates = { data = NotAsked, error = "", show = True }
-            }
-    }
-
-
-{-| repoEnabledError : takes model repo and error and updates the source repos within the model
-
-    repoEnabledError : consumes 409 conflicts that result from the repo already being enabled
-
--}
-repoEnabledError : WebData SourceRepositories -> Repository -> Http.Detailed.Error String -> ( WebData SourceRepositories, Cmd Msg )
-repoEnabledError sourceRepos repo error =
-    let
-        ( enabled, action ) =
-            case error of
-                Http.Detailed.BadStatus metadata _ ->
-                    case metadata.statusCode of
-                        409 ->
-                            ( RemoteData.succeed True, Cmd.none )
-
-                        _ ->
-                            ( toFailure error, addError error )
-
-                _ ->
-                    ( toFailure error, addError error )
-    in
-    ( enableUpdate repo enabled sourceRepos
-    , action
-    )
-
-
-{-| buildEnableRepositoryPayload : builds the payload for adding a repository via the api
--}
-buildEnableRepositoryPayload : Repository -> EnableRepositoryPayload
-buildEnableRepositoryPayload repo =
-    { defaultEnableRepositoryPayload
-        | org = repo.org
-        , name = repo.name
-        , full_name = repo.org ++ "/" ++ repo.name
-        , link = repo.link
-        , clone = repo.clone
-    }
-
-
-{-| addError : takes a detailed http error and produces a Cmd Msg that invokes an action in the Errors module
--}
-addError : Http.Detailed.Error String -> Cmd Msg
-addError error =
-    Errors.addError HandleError error
-
-
-{-| logIds : extracts Ids from list of logs and returns List Int
--}
-logIds : Logs -> List Int
-logIds logs =
-    List.map (\log -> log.id) <| Util.successful logs
-
-
-{-| updateStepLogs : takes model and incoming log and updates the list of step logs if necessary
--}
-updateStepLogs : Model -> Log -> Model
-updateStepLogs model incomingLog =
-    let
-        sm =
-            model.shared
-
-        rm =
-            sm.repo
-
-        build =
-            rm.build
-
-        logs =
-            build.steps.logs
-
-        logExists =
-            List.member incomingLog.id <| logIds logs
-    in
-    if logExists then
-        { model | shared = { sm | repo = updateBuildStepsLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
-
-    else if incomingLog.id /= 0 then
-        { model | shared = { sm | repo = updateBuildStepsLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
-
-    else
-        model
-
-
-{-| updateServiceLogs : takes model and incoming log and updates the list of service logs if necessary
--}
-updateServiceLogs : Model -> Log -> Model
-updateServiceLogs model incomingLog =
-    let
-        sm =
-            model.shared
-
-        rm =
-            sm.repo
-
-        build =
-            rm.build
-
-        logs =
-            build.services.logs
-
-        logExists =
-            List.member incomingLog.id <| logIds logs
-    in
-    if logExists then
-        { model | shared = { sm | repo = updateBuildServicesLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
-
-    else if incomingLog.id /= 0 then
-        { model | shared = { sm | repo = updateBuildServicesLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
-
-    else
-        model
-
-
-receiveSecrets : Model -> Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> SecretType -> ( Model, Cmd Msg )
-receiveSecrets model response type_ =
-    let
-        secretsModel =
-            model.secretsModel
-
-        currentSecrets =
-            case type_ of
-                Vela.RepoSecret ->
-                    secretsModel.repoSecrets
-
-                Vela.OrgSecret ->
-                    secretsModel.orgSecrets
-
-                Vela.SharedSecret ->
-                    secretsModel.sharedSecrets
-    in
-    case response of
-        Ok ( meta, secrets ) ->
-            let
-                mergedSecrets =
-                    RemoteData.succeed <|
-                        List.reverse <|
-                            List.sortBy .id <|
-                                case currentSecrets of
-                                    Success s ->
-                                        Util.mergeListsById s secrets
-
-                                    _ ->
-                                        secrets
-
-                pager =
-                    Pagination.get meta.headers
-
-                sm =
-                    case type_ of
-                        Vela.RepoSecret ->
-                            { secretsModel
-                                | repoSecrets = mergedSecrets
-                                , repoSecretsPager = pager
-                            }
-
-                        Vela.OrgSecret ->
-                            { secretsModel
-                                | orgSecrets = mergedSecrets
-                                , orgSecretsPager = pager
-                            }
-
-                        Vela.SharedSecret ->
-                            { secretsModel
-                                | sharedSecrets = mergedSecrets
-                                , sharedSecretsPager = pager
-                            }
-            in
-            ( { model
-                | secretsModel =
-                    sm
-              }
-            , Cmd.none
-            )
-
-        Err error ->
-            let
-                e =
-                    toFailure error
-
-                -- only show error toasty for 500 error
-                showError =
-                    case error of
-                        Http.Detailed.BadStatus meta _ ->
-                            case meta.statusCode of
-                                500 ->
-                                    addError error
-
-                                _ ->
-                                    Cmd.none
-
-                        _ ->
-                            Cmd.none
-
-                sm =
-                    case type_ of
-                        Vela.RepoSecret ->
-                            { secretsModel | repoSecrets = e }
-
-                        Vela.OrgSecret ->
-                            { secretsModel | orgSecrets = e }
-
-                        Vela.SharedSecret ->
-                            { secretsModel | sharedSecrets = e }
-            in
-            ( { model | secretsModel = sm }, showError )
+-- MINI MSGS
+--todo: these shouldnt be needed with Shared.Msg
 
 
 {-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm
@@ -5496,22 +4683,8 @@ pipelineMsgs =
     }
 
 
-initSecretsModel : Pages.Secrets.Model.Model Msg
-initSecretsModel =
-    Pages.Secrets.Update.init Copy SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
 
-
-initSchedulesModel : Pages.Schedules.Model.Model Msg
-initSchedulesModel =
-    Pages.Schedules.Update.init ScheduleResponse AddScheduleResponse UpdateScheduleResponse DeleteScheduleResponse
-
-
-initDeploymentsModel : Pages.Deployments.Model.Model Msg
-initDeploymentsModel =
-    Pages.Deployments.Update.init AddDeploymentResponse
-
-
-
+-- todo: these shouldnt be needed to use the Effect Api
 -- API HELPERS
 
 
@@ -5746,19 +4919,821 @@ getPipelineTemplates model org repo ref lineFocus refresh =
 
 
 
--- MAIN
+-- REFRESH
+-- todo: refactor this to msg or Effect msg to move it into Refresh.elm
 
 
-main : Program Json.Decode.Value Model Msg
-main =
-    Browser.application
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        , onUrlRequest = ClickedLink
-        , onUrlChange = Routes.match >> NewRoute
+{-| refreshSubscriptions : takes model and returns the subscriptions for automatically refreshing page data
+-}
+refreshSubscriptions : Model -> Sub Msg
+refreshSubscriptions model =
+    Sub.batch <|
+        case model.shared.visibility of
+            Visible ->
+                [ every Util.oneSecondMillis <| Tick OneSecond
+                , every Util.fiveSecondsMillis <| Tick FiveSecond
+                ]
 
-        -- , onUrlChange = UrlChanged
-        -- , onUrlRequest = UrlRequested
-        }
+            Hidden ->
+                [ every Util.oneSecondMillis <| Tick OneSecondHidden
+                , every Util.fiveSecondsMillis <| Tick (FiveSecondHidden <| refreshData model)
+                ]
+
+
+{-| refreshFavicon : takes page and restores the favicon to the default when not viewing the build page
+-}
+refreshFavicon : Page -> Favicon -> WebData Build -> ( Favicon, Cmd Msg )
+refreshFavicon page currentFavicon build =
+    let
+        onBuild =
+            case page of
+                Pages.Build _ _ _ _ ->
+                    True
+
+                Pages.BuildServices _ _ _ _ ->
+                    True
+
+                Pages.BuildPipeline _ _ _ _ _ ->
+                    True
+
+                _ ->
+                    False
+    in
+    if onBuild then
+        case build of
+            RemoteData.Success b ->
+                let
+                    newFavicon =
+                        statusToFavicon b.status
+                in
+                if currentFavicon /= newFavicon then
+                    ( newFavicon, Interop.setFavicon <| Json.Encode.string newFavicon )
+
+                else
+                    ( currentFavicon, Cmd.none )
+
+            _ ->
+                ( currentFavicon, Cmd.none )
+
+    else if currentFavicon /= defaultFavicon then
+        ( defaultFavicon, Interop.setFavicon <| Json.Encode.string defaultFavicon )
+
+    else
+        ( currentFavicon, Cmd.none )
+
+
+{-| refreshPage : refreshes Vela data based on current page and build status
+-}
+refreshPage : Model -> Cmd Msg
+refreshPage model =
+    let
+        page =
+            model.legacyPage
+    in
+    case page of
+        Pages.OrgBuilds org maybePage maybePerPage maybeEvent ->
+            getOrgBuilds model org maybePage maybePerPage maybeEvent
+
+        Pages.RepositoryBuilds org repo maybePage maybePerPage maybeEvent ->
+            getBuilds model org repo maybePage maybePerPage maybeEvent
+
+        Pages.RepositoryDeployments org repo maybePage maybePerPage ->
+            getDeployments model org repo maybePage maybePerPage
+
+        Pages.Build org repo buildNumber focusFragment ->
+            Cmd.batch
+                [ getBuilds model org repo Nothing Nothing Nothing
+                , refreshBuild model org repo buildNumber
+                , refreshBuildSteps model org repo buildNumber focusFragment
+                , refreshStepLogs model org repo buildNumber model.shared.repo.build.steps.steps Nothing
+                ]
+
+        Pages.BuildServices org repo buildNumber focusFragment ->
+            Cmd.batch
+                [ getBuilds model org repo Nothing Nothing Nothing
+                , refreshBuild model org repo buildNumber
+                , refreshBuildServices model org repo buildNumber focusFragment
+                , refreshServiceLogs model org repo buildNumber model.shared.repo.build.services.services Nothing
+                ]
+
+        Pages.BuildPipeline org repo buildNumber _ _ ->
+            Cmd.batch
+                [ getBuilds model org repo Nothing Nothing Nothing
+                , refreshBuild model org repo buildNumber
+                ]
+
+        Pages.BuildGraph org repo buildNumber ->
+            Cmd.batch
+                [ getBuilds model org repo Nothing Nothing Nothing
+                , refreshBuild model org repo buildNumber
+                , refreshBuildGraph model org repo buildNumber
+                ]
+
+        Pages.Hooks org repo maybePage maybePerPage ->
+            getHooks model org repo maybePage maybePerPage
+
+        Pages.OrgSecrets engine org maybePage maybePerPage ->
+            Cmd.batch
+                [ getOrgSecrets model maybePage maybePerPage engine org
+                , getSharedSecrets model maybePage maybePerPage engine org "*"
+                ]
+
+        Pages.RepoSecrets engine org repo maybePage maybePerPage ->
+            getRepoSecrets model maybePage maybePerPage engine org repo
+
+        Pages.SharedSecrets engine org team maybePage maybePerPage ->
+            getSharedSecrets model maybePage maybePerPage engine org team
+
+        _ ->
+            Cmd.none
+
+
+{-| refreshPageHidden : refreshes Vela data based on current page and build status when tab is not visible
+-}
+refreshPageHidden : Model -> RefreshData -> Cmd Msg
+refreshPageHidden model _ =
+    let
+        page =
+            model.legacyPage
+    in
+    case page of
+        Pages.Build org repo buildNumber _ ->
+            refreshBuild model org repo buildNumber
+
+        _ ->
+            Cmd.none
+
+
+{-| refreshData : takes model and extracts data needed to refresh the page
+-}
+refreshData : Model -> RefreshData
+refreshData model =
+    let
+        rm =
+            model.shared.repo
+
+        buildNumber =
+            case rm.build.build of
+                Success build ->
+                    Just <| String.fromInt build.number
+
+                _ ->
+                    Nothing
+    in
+    { org = rm.org, repo = rm.name, build_number = buildNumber, steps = Nothing }
+
+
+{-| refreshBuild : takes model org repo and build number and refreshes the build status
+-}
+refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+refreshBuild model org repo buildNumber =
+    if shouldRefresh model.legacyPage model.shared.repo.build then
+        getBuild model org repo buildNumber
+
+    else
+        Cmd.none
+
+
+{-| refreshBuildSteps : takes model org repo and build number and refreshes the build steps based on step status
+-}
+refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
+refreshBuildSteps model org repo buildNumber focusFragment =
+    if shouldRefresh model.legacyPage model.shared.repo.build then
+        getAllBuildSteps model org repo buildNumber focusFragment True
+
+    else
+        Cmd.none
+
+
+{-| refreshBuildServices : takes model org repo and build number and refreshes the build services based on service status
+-}
+refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
+refreshBuildServices model org repo buildNumber focusFragment =
+    if shouldRefresh model.legacyPage model.shared.repo.build then
+        getAllBuildServices model org repo buildNumber focusFragment True
+
+    else
+        Cmd.none
+
+
+{-| refreshBuildGraph : takes model org repo and build number and refreshes the build graph if necessary
+-}
+refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
+refreshBuildGraph model org repo buildNumber =
+    if shouldRefresh model.legacyPage model.shared.repo.build then
+        getBuildGraph model org repo buildNumber True
+
+    else
+        Cmd.none
+
+
+{-| refreshRenderBuildGraph : takes model and refreshes the build graph render if necessary
+-}
+refreshRenderBuildGraph : Model -> Cmd Msg
+refreshRenderBuildGraph model =
+    case model.legacyPage of
+        Pages.BuildGraph _ _ _ ->
+            renderBuildGraph model False
+
+        _ ->
+            Cmd.none
+
+
+{-| shouldRefresh : takes build and returns true if a refresh is required
+-}
+shouldRefresh : Page -> BuildModel -> Bool
+shouldRefresh page build =
+    case build.build of
+        Success bld ->
+            -- build is incomplete
+            (not <| isComplete bld.status)
+                -- any steps or services are incomplete
+                || (case page of
+                        -- check steps when viewing build tab
+                        Pages.Build _ _ _ _ ->
+                            case build.steps.steps of
+                                Success steps ->
+                                    List.any (\s -> not <| isComplete s.status) steps
+
+                                -- do not use unsuccessful states to dictate refresh
+                                NotAsked ->
+                                    False
+
+                                Failure _ ->
+                                    False
+
+                                Loading ->
+                                    False
+
+                        -- check services when viewing services tab
+                        Pages.BuildServices _ _ _ _ ->
+                            case build.services.services of
+                                Success services ->
+                                    List.any (\s -> not <| isComplete s.status) services
+
+                                -- do not use unsuccessful states to dictate refresh
+                                NotAsked ->
+                                    False
+
+                                Failure _ ->
+                                    False
+
+                                Loading ->
+                                    False
+
+                        -- check graph nodes when viewing graph tab
+                        Pages.BuildGraph _ _ _ ->
+                            case build.graph.graph of
+                                Success graph ->
+                                    List.any (\( _, n ) -> not <| isComplete (stringToStatus n.status)) (Dict.toList graph.nodes)
+
+                                -- do not use unsuccessful states to dictate refresh
+                                NotAsked ->
+                                    False
+
+                                Failure _ ->
+                                    False
+
+                                Loading ->
+                                    False
+
+                        _ ->
+                            False
+                   )
+
+        NotAsked ->
+            True
+
+        -- do not refresh a Failed or Loading build
+        Failure _ ->
+            False
+
+        Loading ->
+            False
+
+
+{-| refreshStepLogs : takes model org repo and build number and steps and refreshes the build step logs depending on their status
+-}
+refreshStepLogs : Model -> Org -> Repo -> BuildNumber -> WebData Steps -> FocusFragment -> Cmd Msg
+refreshStepLogs model org repo buildNumber inSteps focusFragment =
+    let
+        stepsToRefresh =
+            case inSteps of
+                Success s ->
+                    -- Do not refresh logs for a step in success or failure state
+                    List.filter (\step -> step.status /= Vela.Success && step.status /= Vela.Failure) s
+
+                _ ->
+                    []
+    in
+    if shouldRefresh model.legacyPage model.shared.repo.build then
+        getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
+
+    else
+        Cmd.none
+
+
+{-| refreshServiceLogs : takes model org repo and build number and services and refreshes the build service logs depending on their status
+-}
+refreshServiceLogs : Model -> Org -> Repo -> BuildNumber -> WebData Services -> FocusFragment -> Cmd Msg
+refreshServiceLogs model org repo buildNumber inServices focusFragment =
+    let
+        servicesToRefresh =
+            case inServices of
+                Success s ->
+                    -- Do not refresh logs for a service in success or failure state
+                    List.filter (\service -> service.status /= Vela.Success && service.status /= Vela.Failure) s
+
+                _ ->
+                    []
+    in
+    if shouldRefresh model.legacyPage model.shared.repo.build then
+        getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
+
+    else
+        Cmd.none
+
+
+
+-- RANDOM HELPERS
+-- LOGS
+
+
+{-| updateStepLogs : takes model and incoming log and updates the list of step logs if necessary
+-}
+updateStepLogs : Model -> Log -> Model
+updateStepLogs model incomingLog =
+    let
+        sm =
+            model.shared
+
+        rm =
+            sm.repo
+
+        build =
+            rm.build
+
+        logs =
+            build.steps.logs
+
+        logExists =
+            List.member incomingLog.id <| (List.map (\log -> log.id) <| Util.successful logs)
+    in
+    if logExists then
+        { model | shared = { sm | repo = updateBuildStepsLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
+
+    else if incomingLog.id /= 0 then
+        { model | shared = { sm | repo = updateBuildStepsLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
+
+    else
+        model
+
+
+{-| updateServiceLogs : takes model and incoming log and updates the list of service logs if necessary
+-}
+updateServiceLogs : Model -> Log -> Model
+updateServiceLogs model incomingLog =
+    let
+        sm =
+            model.shared
+
+        rm =
+            sm.repo
+
+        build =
+            rm.build
+
+        logs =
+            build.services.logs
+
+        logExists =
+            List.member incomingLog.id <| (List.map (\log -> log.id) <| Util.successful logs)
+    in
+    if logExists then
+        { model | shared = { sm | repo = updateBuildServicesLogs (updateLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
+
+    else if incomingLog.id /= 0 then
+        { model | shared = { sm | repo = updateBuildServicesLogs (addLog incomingLog logs model.shared.velaLogBytesLimit) rm } }
+
+    else
+        model
+
+
+
+-- SECRETS
+
+
+receiveSecrets : Model -> Result (Http.Detailed.Error String) ( Http.Metadata, Secrets ) -> SecretType -> ( Model, Cmd Msg )
+receiveSecrets model response type_ =
+    let
+        secretsModel =
+            model.secretsModel
+
+        currentSecrets =
+            case type_ of
+                Vela.RepoSecret ->
+                    secretsModel.repoSecrets
+
+                Vela.OrgSecret ->
+                    secretsModel.orgSecrets
+
+                Vela.SharedSecret ->
+                    secretsModel.sharedSecrets
+    in
+    case response of
+        Ok ( meta, secrets ) ->
+            let
+                mergedSecrets =
+                    RemoteData.succeed <|
+                        List.reverse <|
+                            List.sortBy .id <|
+                                case currentSecrets of
+                                    Success s ->
+                                        Util.mergeListsById s secrets
+
+                                    _ ->
+                                        secrets
+
+                pager =
+                    Pagination.get meta.headers
+
+                sm =
+                    case type_ of
+                        Vela.RepoSecret ->
+                            { secretsModel
+                                | repoSecrets = mergedSecrets
+                                , repoSecretsPager = pager
+                            }
+
+                        Vela.OrgSecret ->
+                            { secretsModel
+                                | orgSecrets = mergedSecrets
+                                , orgSecretsPager = pager
+                            }
+
+                        Vela.SharedSecret ->
+                            { secretsModel
+                                | sharedSecrets = mergedSecrets
+                                , sharedSecretsPager = pager
+                            }
+            in
+            ( { model
+                | secretsModel =
+                    sm
+              }
+            , Cmd.none
+            )
+
+        Err error ->
+            let
+                e =
+                    toFailure error
+
+                -- only show error toasty for 500 error
+                showError =
+                    case error of
+                        Http.Detailed.BadStatus meta _ ->
+                            case meta.statusCode of
+                                500 ->
+                                    Errors.addError HandleError error
+
+                                _ ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+
+                sm =
+                    case type_ of
+                        Vela.RepoSecret ->
+                            { secretsModel | repoSecrets = e }
+
+                        Vela.OrgSecret ->
+                            { secretsModel | orgSecrets = e }
+
+                        Vela.SharedSecret ->
+                            { secretsModel | sharedSecrets = e }
+            in
+            ( { model | secretsModel = sm }, showError )
+
+
+
+-- BUILD
+
+
+{-| resourceChanged : takes two repo resource identifiers and returns if the build has changed
+-}
+resourceChanged : RepoResourceIdentifier -> RepoResourceIdentifier -> Bool
+resourceChanged ( orgA, repoA, idA ) ( orgB, repoB, idB ) =
+    not <| orgA == orgB && repoA == repoB && idA == idB
+
+
+{-| isSameBuild : takes build identifier and current page and returns true if the build has not changed
+-}
+isSameBuild : RepoResourceIdentifier -> Page -> Bool
+isSameBuild id currentPage =
+    case currentPage of
+        Pages.Build o r b _ ->
+            not <| resourceChanged id ( o, r, b )
+
+        Pages.BuildServices o r b _ ->
+            not <| resourceChanged id ( o, r, b )
+
+        Pages.BuildPipeline o r b _ _ ->
+            not <| resourceChanged id ( o, r, b )
+
+        Pages.BuildGraph o r b ->
+            not <| resourceChanged id ( o, r, b )
+
+        _ ->
+            False
+
+
+{-| setBuild : takes new build information and sets the appropriate model state
+-}
+setBuild : Org -> Repo -> BuildNumber -> Bool -> Model -> Model
+setBuild org repo buildNumber soft model =
+    let
+        sm =
+            model.shared
+
+        rm =
+            sm.repo
+
+        gm =
+            rm.build.graph
+
+        pipeline =
+            sm.pipeline
+    in
+    { model
+        | shared =
+            { sm
+                | repo =
+                    rm
+                        |> updateBuild
+                            (if soft then
+                                model.shared.repo.build.build
+
+                             else
+                                Loading
+                            )
+                        |> updateOrgRepo org repo
+                        |> updateBuildNumber buildNumber
+                        |> updateBuildSteps NotAsked
+                        |> updateBuildStepsFollowing 0
+                        |> updateBuildStepsLogs []
+                        |> updateBuildStepsFocusFragment Nothing
+                        |> updateBuildServices NotAsked
+                        |> updateBuildServicesFollowing 0
+                        |> updateBuildServicesLogs []
+                        |> updateBuildServicesFocusFragment Nothing
+                        |> updateBuildGraph NotAsked
+                        |> updateBuildGraphShowServices gm.showServices
+                        |> updateBuildGraphShowSteps gm.showSteps
+                        |> updateBuildGraphFilter gm.filter
+                , pipeline =
+                    { pipeline
+                        | focusFragment = Nothing
+                        , config = ( NotAsked, "" )
+                        , expand = Nothing
+                        , expanding = False
+                        , expanded = False
+                    }
+                , templates = { data = NotAsked, error = "", show = True }
+            }
+    }
+
+
+
+-- todo: MOST OF THESE RETURN CMD MSG AND THEREFORE REQUIRE MIGRATION TO SHARED IN ORDER TO BE MOVED
+-- REPO ENABLED
+
+
+{-| repoEnabledError : takes model repo and error and updates the source repos within the model
+
+    repoEnabledError : consumes 409 conflicts that result from the repo already being enabled
+
+-}
+repoEnabledError : WebData SourceRepositories -> Repository -> Http.Detailed.Error String -> ( WebData SourceRepositories, Cmd Msg )
+repoEnabledError sourceRepos repo error =
+    let
+        ( enabled, action ) =
+            case error of
+                Http.Detailed.BadStatus metadata _ ->
+                    case metadata.statusCode of
+                        409 ->
+                            ( RemoteData.succeed True, Cmd.none )
+
+                        _ ->
+                            ( toFailure error, Errors.addError HandleError error )
+
+                _ ->
+                    ( toFailure error, Errors.addError HandleError error )
+    in
+    ( enableUpdate repo enabled sourceRepos
+    , action
+    )
+
+
+
+-- RANDOM COMPONENTS
+
+
+viewBuildsFilter : Bool -> Org -> Repo -> Maybe Event -> Html Msg
+viewBuildsFilter shouldRender org repo maybeEvent =
+    let
+        eventToMaybe : String -> Maybe Event
+        eventToMaybe event =
+            case event of
+                "all" ->
+                    Nothing
+
+                _ ->
+                    Just event
+    in
+    if shouldRender then
+        let
+            eventEnum : List String
+            eventEnum =
+                [ "all"
+                , "push"
+                , "pull_request"
+                , "tag"
+                , "deployment"
+                , "schedule"
+                , "comment"
+                ]
+        in
+        div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
+            div [] [ text "Filter by Event:" ]
+                :: List.map
+                    (\e ->
+                        div [ class "form-control" ]
+                            [ input
+                                [ type_ "radio"
+                                , id <| "filter-" ++ e
+                                , name "build-filter"
+                                , Util.testAttribute <| "build-filter-" ++ e
+                                , checked <| maybeEvent == eventToMaybe e
+                                , onClick <| FilterBuildEventBy (eventToMaybe e) org repo
+                                , attribute "aria-label" <| "filter to show " ++ e ++ " events"
+                                ]
+                                []
+                            , label
+                                [ class "form-label"
+                                , for <| "filter-" ++ e
+                                ]
+                                [ text <| String.replace "_" " " e ]
+                            ]
+                    )
+                    eventEnum
+
+    else
+        text ""
+
+
+viewLogin : Html Msg
+viewLogin =
+    div []
+        [ h1 [] [ text "Authorize Via" ]
+        , button [ class "button", onClick SignInRequested, Util.testAttribute "login-button" ]
+            [ FeatherIcons.github
+                |> FeatherIcons.withSize 20
+                |> FeatherIcons.withClass "login-source-icon"
+                |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
+            , text "GitHub"
+            ]
+        , p [] [ text "You will be taken to GitHub to authenticate." ]
+        ]
+
+
+viewHeader : Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Commands.Model Msg, showId : Bool } -> Html Msg
+viewHeader session { feedbackLink, docsLink, theme, help, showId } =
+    let
+        identityBaseClassList : Html.Attribute Msg
+        identityBaseClassList =
+            classList
+                [ ( "details", True )
+                , ( "-marker-right", True )
+                , ( "-no-pad", True )
+                , ( "identity-name", True )
+                ]
+
+        identityAttributeList : List (Html.Attribute Msg)
+        identityAttributeList =
+            Util.open showId
+    in
+    header []
+        [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
+            [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
+            , case session of
+                Authenticated auth ->
+                    details (identityBaseClassList :: identityAttributeList)
+                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ]
+                            [ text auth.userName
+                            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
+                            ]
+                        , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
+                            [ li [ class "identity-menu-item" ]
+                                [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
+                            , li [ class "identity-menu-item" ]
+                                [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
+                            ]
+                        ]
+
+                Unauthenticated ->
+                    details (identityBaseClassList :: identityAttributeList)
+                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
+            ]
+        , nav [ class "help-links" ]
+            [ ul []
+                [ li [] [ viewThemeToggle theme ]
+                , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
+                , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
+                , Help.View.help help
+                ]
+            ]
+        ]
+
+
+viewThemeToggle : Theme -> Html Msg
+viewThemeToggle theme =
+    let
+        ( newTheme, themeAria ) =
+            case theme of
+                Dark ->
+                    ( Light, "enable light mode" )
+
+                Light ->
+                    ( Dark, "enable dark mode" )
+    in
+    button [ class "button", class "-link", attribute "aria-label" themeAria, onClick (SetTheme newTheme) ] [ text "switch theme" ]
+
+
+
+-- ALERTS
+
+
+viewAlerts : Stack Alert -> Html Msg
+viewAlerts toasties =
+    div [ Util.testAttribute "alerts", class "alerts" ] [ Alerting.view Alerts.successConfig (Alerts.view Copy) AlertsUpdate toasties ]
+
+
+wrapAlertMessage : String -> String
+wrapAlertMessage message =
+    if not <| String.isEmpty message then
+        "`" ++ message ++ "` "
+
+    else
+        message
+
+
+
+-- HELP
+
+
+helpArg : WebData a -> Help.Commands.Arg
+helpArg arg =
+    { success = Util.isSuccess arg, loading = Util.isLoading arg }
+
+
+helpArgs : Model -> Help.Commands.Model Msg
+helpArgs model =
+    { user = helpArg model.shared.user
+    , sourceRepos = helpArg model.shared.sourceRepos
+    , orgRepos = helpArg model.shared.repo.orgRepos.orgRepos
+    , builds = helpArg model.shared.repo.builds.builds
+    , deployments = helpArg model.shared.repo.deployments.deployments
+    , build = helpArg model.shared.repo.build.build
+    , repo = helpArg model.shared.repo.repo
+    , hooks = helpArg model.shared.repo.hooks.hooks
+    , secrets = helpArg model.secretsModel.repoSecrets
+    , show = model.shared.showHelp
+    , toggle = ShowHideHelp
+    , copy = Copy
+    , noOp = NoOp
+    , page = model.legacyPage
+
+    -- TODO: use env flag velaDocsURL
+    -- , velaDocsURL = model.velaDocsURL
+    , velaDocsURL = "https://go-vela.github.io/docs"
+    }
+
+
+
+-- TIMESTAMPS?
+
+
+viewTimeToggle : Bool -> Bool -> Html Msg
+viewTimeToggle shouldRender showTimestamp =
+    if shouldRender then
+        div [ class "form-controls", class "-stack", class "time-toggle" ]
+            [ div [ class "form-control" ]
+                [ input [ type_ "checkbox", checked showTimestamp, onClick ShowHideFullTimestamp, id "checkbox-time-toggle", Util.testAttribute "time-toggle" ] []
+                , label [ class "form-label", for "checkbox-time-toggle" ] [ text "show full timestamps" ]
+                ]
+            ]
+
+    else
+        text ""

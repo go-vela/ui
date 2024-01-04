@@ -85,6 +85,7 @@ module Vela exposing
     , UpdateSecretPayload
     , UpdateUserPayload
     , buildDeploymentPayload
+    , buildEnableRepositoryPayload
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
@@ -1095,6 +1096,19 @@ type alias EnableRepositoryPayload =
 defaultEnableRepositoryPayload : EnableRepositoryPayload
 defaultEnableRepositoryPayload =
     EnableRepositoryPayload "" "" "" "" "" False False True False False False False False
+
+
+{-| buildEnableRepositoryPayload : builds the payload for adding a repository via the api
+-}
+buildEnableRepositoryPayload : Repository -> EnableRepositoryPayload
+buildEnableRepositoryPayload repo =
+    { defaultEnableRepositoryPayload
+        | org = repo.org
+        , name = repo.name
+        , full_name = repo.org ++ "/" ++ repo.name
+        , link = repo.link
+        , clone = repo.clone
+    }
 
 
 type alias UpdateRepositoryPayload =
