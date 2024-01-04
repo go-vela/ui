@@ -171,12 +171,14 @@ deploymentsToRows repo_ deployments =
 tableHeaders : Table.Columns
 tableHeaders =
     [ ( Just "-icon", "" )
+    , ( Nothing, "id" )
     , ( Nothing, "number" )
     , ( Nothing, "target" )
     , ( Nothing, "commit" )
     , ( Nothing, "ref" )
     , ( Nothing, "description" )
-    , ( Nothing, "user" )
+    , ( Nothing, "builds" )
+    , ( Nothing, "created by" )
     , ( Nothing, "" )
     ]
 
@@ -200,6 +202,13 @@ renderDeployment repo_ deployment =
             , Util.testAttribute <| "deployments-row-id"
             ]
             [ text <| String.fromInt deployment.id ]
+        , td
+            [ attribute "data-label" "number"
+            , scope "row"
+            , class "break-word"
+            , Util.testAttribute <| "deployments-row-number"
+            ]
+            [ text <| String.fromInt deployment.number ]
         , td
             [ attribute "data-label" "target"
             , scope "row"
@@ -232,11 +241,18 @@ renderDeployment repo_ deployment =
             ]
             [ text deployment.description ]
         , td
-            [ attribute "data-label" "user"
+            [ attribute "data-label" "builds"
+            , scope "row"
+            , class "break-word"
+            , class "build"
+            ]
+            [ linksView (pullBuildLinks deployment) ]
+        , td
+            [ attribute "data-label" "created by"
             , scope "row"
             , class "break-word"
             ]
-            [ text deployment.user ]
+            [ text deployment.created_by ]
         , td
             [ attribute "data-label" ""
             , scope "row"
@@ -258,3 +274,36 @@ redeployLink org repo deployment =
         ]
         [ text "Redeploy"
         ]
+
+{-| pullBuildLinks : takes deployment and creates a list of links to every build in the builds field
+-}
+pullBuildLinks : Deployment -> List String
+pullBuildLinks deployment =
+    case deployment.builds of
+        Nothing ->
+            []
+
+        Just builds ->
+            List.map (String.dropRight 1) (List.map (String.dropLeft 1) (List.map Debug.toString (List.map .link builds)))
+
+
+{-| linksView : takes list of links and creates an HTML msg that displays as a list of links
+-}
+linksView : List String -> Html msg
+linksView links =
+    links
+        |> List.map (\link -> a [ href link ] [ text (String.append "#" (getHead (List.head (List.reverse (String.split "/" link))))) ])
+        |> List.intersperse ( text ", " )
+        |> div []
+
+
+{-| getHead : takes Maybe String and returns either Nothing or the value to help with the linksView function
+-}
+getHead : Maybe String -> String
+getHead link =
+    case link of
+        Nothing ->
+            ""
+        
+        Just val ->
+            val
