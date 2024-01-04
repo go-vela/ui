@@ -46,7 +46,7 @@ import Vela
 type alias PartialModel a =
     { a
         | shared : Shared.Model
-        , page : Page
+        , legacyPage : Page
     }
 
 
@@ -78,7 +78,7 @@ type alias Tab =
 viewNav : PartialModel a -> Msgs msg -> Html msg
 viewNav model msgs =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
-        [ Crumbs.view model.page
+        [ Crumbs.view model.legacyPage
         , navButtons model msgs
         ]
 
@@ -87,7 +87,7 @@ viewNav model msgs =
 -}
 navButtons : PartialModel a -> Msgs msg -> Html msg
 navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild, cancelBuild } =
-    case model.page of
+    case model.legacyPage of
         Pages.Overview ->
             a
                 [ class "button"
@@ -233,45 +233,45 @@ viewUtil model =
             model.shared.repo
     in
     div [ class "util" ]
-        [ case model.page of
+        [ case model.legacyPage of
             Pages.OrgBuilds org _ _ _ ->
-                viewOrgTabs rm org model.page
+                viewOrgTabs rm org model.legacyPage
 
             Pages.OrgSecrets _ org _ _ ->
-                viewOrgTabs rm org model.page
+                viewOrgTabs rm org model.legacyPage
 
             Pages.OrgRepositories org _ _ ->
-                viewOrgTabs rm org model.page
+                viewOrgTabs rm org model.legacyPage
 
             Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
 
             Pages.RepositoryDeployments org repo _ _ ->
-                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
 
             Pages.RepoSecrets _ org repo _ _ ->
-                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
 
             Pages.Schedules org repo _ _ ->
-                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
 
             Pages.Hooks org repo _ _ ->
-                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
 
             Pages.RepoSettings org repo ->
-                viewRepoTabs rm org repo model.page model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
 
             Pages.Build _ _ _ _ ->
-                Pages.Build.History.view model.shared.time model.shared.zone model.page 10 model.shared.repo
+                Pages.Build.History.view model.shared.time model.shared.zone model.legacyPage 10 model.shared.repo
 
             Pages.BuildServices _ _ _ _ ->
-                Pages.Build.History.view model.shared.time model.shared.zone model.page 10 model.shared.repo
+                Pages.Build.History.view model.shared.time model.shared.zone model.legacyPage 10 model.shared.repo
 
             Pages.BuildPipeline _ _ _ _ _ ->
-                Pages.Build.History.view model.shared.time model.shared.zone model.page 10 model.shared.repo
+                Pages.Build.History.view model.shared.time model.shared.zone model.legacyPage 10 model.shared.repo
 
             Pages.BuildGraph _ _ _ ->
-                Pages.Build.History.view model.shared.time model.shared.zone model.page 10 model.shared.repo
+                Pages.Build.History.view model.shared.time model.shared.zone model.legacyPage 10 model.shared.repo
 
             Pages.AddDeployment _ _ ->
                 text ""

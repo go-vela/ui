@@ -36,7 +36,7 @@ import Vela exposing (Org, Repo, Schedule, Schedules)
 type alias PartialModel a msg =
     { a
         | shared : Shared.Model
-        , page : Page
+        , legacyPage : Page
         , schedulesModel : Model msg
     }
 

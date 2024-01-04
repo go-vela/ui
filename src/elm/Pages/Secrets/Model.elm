@@ -36,7 +36,7 @@ import Vela exposing (Copy, Engine, Key, Org, Repo, Secret, SecretType, Secrets,
 type alias PartialModel a msg =
     { a
         | shared : Shared.Model
-        , page : Page
+        , legacyPage : Page
         , secretsModel : Model msg
     }
 

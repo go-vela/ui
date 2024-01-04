@@ -30,7 +30,7 @@ import Vela exposing (Deployment, KeyValuePair, Org, Repo, Repository, Team)
 type alias PartialModel a msg =
     { a
         | shared : Shared.Model
-        , page : Page
+        , legacyPage : Page
         , deploymentModel : Model msg
     }
 

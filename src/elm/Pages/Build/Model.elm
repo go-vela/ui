@@ -35,7 +35,7 @@ type alias PartialModel a =
     { a
         | shared : Shared.Model
         , key : Navigation.Key
-        , page : Page
+        , legacyPage : Page
     }
 
 

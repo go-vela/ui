@@ -251,18 +251,14 @@ import Visualization.DOT as DOT
 
 
 type alias Model =
-    { page : Page
+    { key : Browser.Navigation.Key
+    , url : Url
+    , page : Main.Pages.Model.Model
     , shared : Shared.Model
-
-    -- todo: vader: rename this to 'page'
-    , pageModel : Main.Pages.Model.Model
     , layout : {}
 
-    -- todo: vader: rename this to 'key'
-    , key : Browser.Navigation.Key
-    , url : Url
-
-    -- todo: these need to be refactored with Msg
+    -- todo: these need to be refactored
+    , legacyPage : Page
     , schedulesModel : Pages.Schedules.Model.Model Msg
     , secretsModel : Pages.Secrets.Model.Model Msg
     , deploymentModel : Pages.Deployments.Model.Model Msg
@@ -296,11 +292,11 @@ init flags url navKey =
 
         model : Model
         model =
-            { page = Pages.Overview
+            { legacyPage = Pages.Overview
             , key = navKey
             , url = url
             , shared = sharedModel
-            , pageModel = Tuple.first page
+            , page = Tuple.first page
             , layout = {}
 
             -- todo: move these into shared model
@@ -341,27 +337,19 @@ init flags url navKey =
 
 
 -- UPDATE
--- todo: this is what elm-land looks like
--- we want OUR "Main.elm Msg" to look like this
--- we can start with just getting "Page" and "Shared.Msg" working, or just "Shared.Msg"
--- type Msg
---     = UrlRequested Browser.UrlRequest    ** idk about this (whats the different between the 3)
---     | UrlChanged Url                     ** idk about this
---     | Page Main.Pages.Msg.Msg            ** idk about this
---     | Layout Main.Layouts.Msg.Msg        ** ignore for now
---     | Shared Shared.Msg                  ** this should be a good start
---     | Batch (List Msg)                   ** idk what this does either
 
 
 type Msg
     = -- NoOp
       NoOp -- User events
+      -- START NEW WORLD
     | UrlRequested Browser.UrlRequest
     | UrlChanged Url
     | Page Main.Pages.Msg.Msg
       -- | Layout Main.Layouts.Msg.Msg
     | Shared Shared.Msg
     | Batch (List Msg)
+      -- END NEW WORLD
       -- todo: move everything below this into Shared.Msg
     | NewRoute Routes.Route
     | ClickedLink UrlRequest
@@ -545,7 +533,7 @@ toPageUrlHookCmd model routes =
                 |> List.map (Task.succeed >> Task.perform identity)
                 |> Cmd.batch
     in
-    case model.pageModel of
+    case model.page of
         Main.Pages.Model.Home_ _ ->
             Cmd.none
 
@@ -600,7 +588,7 @@ toLayoutUrlHookCmd oldModel model routes =
 
 updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
 updateFromPage msg model =
-    case ( msg, model.pageModel ) of
+    case ( msg, model.page ) of
         ( Main.Pages.Msg.Home_ pageMsg, Main.Pages.Model.Home_ pageModel ) ->
             Tuple.mapBoth
                 Main.Pages.Model.Home_
@@ -614,7 +602,7 @@ updateFromPage msg model =
                 (Page.update (Pages.Legacy.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
 
         _ ->
-            ( model.pageModel, Cmd.none )
+            ( model.page, Cmd.none )
 
 
 initPageAndLayout :
@@ -743,7 +731,7 @@ update msg model =
                     --             ( Nothing, Cmd.none )
                     newModel =
                         -- { model | url = url, page = pageModel, layout = layoutModel }
-                        { model | url = url, pageModel = pageModel, layout = {} }
+                        { model | url = url, page = pageModel, layout = {} }
                 in
                 ( newModel
                 , Cmd.batch
@@ -763,7 +751,7 @@ update msg model =
                 ( pageModel, pageCmd ) =
                     updateFromPage pageMsg model
             in
-            ( { model | pageModel = pageModel }
+            ( { model | page = pageModel }
             , pageCmd
             )
 
@@ -800,7 +788,7 @@ update msg model =
             in
             ( { model
                 | shared = sharedModel
-                , pageModel = pageModel
+                , page = pageModel
                 , layout = {}
 
                 -- , layout = layoutModel
@@ -943,7 +931,7 @@ update msg model =
                 ( { model | shared = { shared | theme = theme } }, Interop.setTheme <| encodeTheme theme )
 
         GotoPage pageNumber ->
-            case model.page of
+            case model.legacyPage of
                 Pages.OrgBuilds org _ maybePerPage maybeEvent ->
                     ( { model | shared = { shared | repo = updateBuilds Loading rm } }
                     , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl <| Routes.OrgBuilds org (Just pageNumber) maybePerPage maybeEvent
@@ -1833,7 +1821,7 @@ update msg model =
                     let
                         redirectPage : Cmd Msg
                         redirectPage =
-                            case model.page of
+                            case model.legacyPage of
                                 Pages.Login ->
                                     Cmd.none
 
@@ -2618,7 +2606,7 @@ update msg model =
         BuildGraphResponse _ _ buildNumber isRefresh response ->
             case response of
                 Ok ( _, g ) ->
-                    case model.page of
+                    case model.legacyPage of
                         Pages.BuildGraph _ _ _ ->
                             let
                                 ugm =
@@ -2663,7 +2651,7 @@ update msg model =
                 OneSecond ->
                     let
                         ( favicon, updateFavicon ) =
-                            refreshFavicon model.page model.shared.favicon rm.build.build
+                            refreshFavicon model.legacyPage model.shared.favicon rm.build.build
                     in
                     ( { model | shared = { shared | time = time, favicon = favicon } }
                     , Cmd.batch
@@ -2678,7 +2666,7 @@ update msg model =
                 OneSecondHidden ->
                     let
                         ( favicon, cmd ) =
-                            refreshFavicon model.page model.shared.favicon rm.build.build
+                            refreshFavicon model.legacyPage model.shared.favicon rm.build.build
                     in
                     ( { model | shared = { shared | time = time, favicon = favicon } }, cmd )
 
@@ -2953,7 +2941,7 @@ refreshPage : Model -> Cmd Msg
 refreshPage model =
     let
         page =
-            model.page
+            model.legacyPage
     in
     case page of
         Pages.OrgBuilds org maybePage maybePerPage maybeEvent ->
@@ -3019,7 +3007,7 @@ refreshPageHidden : Model -> RefreshData -> Cmd Msg
 refreshPageHidden model _ =
     let
         page =
-            model.page
+            model.legacyPage
     in
     case page of
         Pages.Build org repo buildNumber _ ->
@@ -3052,7 +3040,7 @@ refreshData model =
 -}
 refreshBuild : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuild model org repo buildNumber =
-    if shouldRefresh model.page model.shared.repo.build then
+    if shouldRefresh model.legacyPage model.shared.repo.build then
         getBuild model org repo buildNumber
 
     else
@@ -3063,7 +3051,7 @@ refreshBuild model org repo buildNumber =
 -}
 refreshBuildSteps : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildSteps model org repo buildNumber focusFragment =
-    if shouldRefresh model.page model.shared.repo.build then
+    if shouldRefresh model.legacyPage model.shared.repo.build then
         getAllBuildSteps model org repo buildNumber focusFragment True
 
     else
@@ -3074,7 +3062,7 @@ refreshBuildSteps model org repo buildNumber focusFragment =
 -}
 refreshBuildServices : Model -> Org -> Repo -> BuildNumber -> FocusFragment -> Cmd Msg
 refreshBuildServices model org repo buildNumber focusFragment =
-    if shouldRefresh model.page model.shared.repo.build then
+    if shouldRefresh model.legacyPage model.shared.repo.build then
         getAllBuildServices model org repo buildNumber focusFragment True
 
     else
@@ -3085,7 +3073,7 @@ refreshBuildServices model org repo buildNumber focusFragment =
 -}
 refreshBuildGraph : Model -> Org -> Repo -> BuildNumber -> Cmd Msg
 refreshBuildGraph model org repo buildNumber =
-    if shouldRefresh model.page model.shared.repo.build then
+    if shouldRefresh model.legacyPage model.shared.repo.build then
         getBuildGraph model org repo buildNumber True
 
     else
@@ -3096,7 +3084,7 @@ refreshBuildGraph model org repo buildNumber =
 -}
 refreshRenderBuildGraph : Model -> Cmd Msg
 refreshRenderBuildGraph model =
-    case model.page of
+    case model.legacyPage of
         Pages.BuildGraph _ _ _ ->
             renderBuildGraph model False
 
@@ -3191,7 +3179,7 @@ refreshStepLogs model org repo buildNumber inSteps focusFragment =
                 _ ->
                     []
     in
-    if shouldRefresh model.page model.shared.repo.build then
+    if shouldRefresh model.legacyPage model.shared.repo.build then
         getBuildStepsLogs model org repo buildNumber stepsToRefresh focusFragment True
 
     else
@@ -3212,7 +3200,7 @@ refreshServiceLogs model org repo buildNumber inServices focusFragment =
                 _ ->
                     []
     in
-    if shouldRefresh model.page model.shared.repo.build then
+    if shouldRefresh model.legacyPage model.shared.repo.build then
         getBuildServicesLogs model org repo buildNumber servicesToRefresh focusFragment True
 
     else
@@ -3327,7 +3315,7 @@ view model =
 viewContent : Model -> ( String, Html Msg )
 viewContent model =
     -- todo: vader: move this when we've migrated all pages and no longer need the legacy code
-    case model.pageModel of
+    case model.page of
         Main.Pages.Model.Home_ pageModel ->
             Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
                 |> View.map Main.Pages.Msg.Home_
@@ -3336,7 +3324,7 @@ viewContent model =
 
         -- todo: vader migrate more pages
         Main.Pages.Model.Legacy pageModel ->
-            case model.page of
+            case model.legacyPage of
                 -- todo: vader: remove this in favor of migrated page
                 Pages.Overview ->
                     ( "Overview"
@@ -3810,7 +3798,7 @@ helpArgs model =
     , toggle = ShowHideHelp
     , copy = Copy
     , noOp = NoOp
-    , page = model.page
+    , page = model.legacyPage
 
     -- TODO: use env flag velaDocsURL
     -- , velaDocsURL = model.velaDocsURL
@@ -3866,13 +3854,13 @@ setNewPage route model =
 
         -- "Not logged in" (yet) and on auth flow pages, continue on..
         ( Routes.Authenticate { code, state }, Unauthenticated ) ->
-            ( { model | page = Pages.Login }
+            ( { model | legacyPage = Pages.Login }
             , Api.Api.try TokenResponse <| Api.Operations.getInitialToken model <| AuthParams code state
             )
 
         -- On the login page but not logged in.. good place to be
         ( Routes.Login, Unauthenticated ) ->
-            ( { model | page = Pages.Login }, Cmd.none )
+            ( { model | legacyPage = Pages.Login }, Cmd.none )
 
         -- "Normal" page handling below
         ( Routes.Overview, Authenticated _ ) ->
@@ -3960,14 +3948,14 @@ setNewPage route model =
             loadEditSchedulePage model org repo id
 
         ( Routes.Settings, Authenticated _ ) ->
-            ( { model | page = Pages.Settings, shared = { shared | showIdentity = False } }, Cmd.none )
+            ( { model | legacyPage = Pages.Settings, shared = { shared | showIdentity = False } }, Cmd.none )
 
         ( Routes.Logout, Authenticated _ ) ->
             ( model, getLogout model )
 
         -- Not found page handling
         ( Routes.NotFound, Authenticated _ ) ->
-            ( { model | page = Pages.NotFound }, Cmd.none )
+            ( { model | legacyPage = Pages.NotFound }, Cmd.none )
 
         {--Hitting any page and not being logged in will load the login page content
 
@@ -3976,9 +3964,9 @@ setNewPage route model =
         --}
         ( _, Unauthenticated ) ->
             ( { model
-                | page =
+                | legacyPage =
                     if model.shared.fetchingToken then
-                        model.page
+                        model.legacyPage
 
                     else
                         Pages.Login
@@ -3988,7 +3976,7 @@ setNewPage route model =
     )
         |> (\( m, c ) ->
                 -- todo: vader: remove this when there are no more legacy pages
-                ( case m.page of
+                ( case m.legacyPage of
                     Pages.Overview ->
                         m
 
@@ -4006,7 +3994,7 @@ setNewPage route model =
 applyLegacyPage : Model -> Model
 applyLegacyPage model =
     { model
-        | pageModel =
+        | page =
             Tuple.first <|
                 Tuple.mapBoth
                     Main.Pages.Model.Legacy
@@ -4023,7 +4011,7 @@ loadSourceReposPage model =
     in
     case model.shared.sourceRepos of
         NotAsked ->
-            ( { model | page = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
+            ( { model | legacyPage = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
             , Cmd.batch
                 [ Api.Api.try SourceRepositoriesResponse <| Api.Operations.getSourceRepositories model
                 , getCurrentUser model
@@ -4031,7 +4019,7 @@ loadSourceReposPage model =
             )
 
         Failure _ ->
-            ( { model | page = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
+            ( { model | legacyPage = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
             , Cmd.batch
                 [ Api.Api.try SourceRepositoriesResponse <| Api.Operations.getSourceRepositories model
                 , getCurrentUser model
@@ -4039,24 +4027,24 @@ loadSourceReposPage model =
             )
 
         _ ->
-            ( { model | page = Pages.SourceRepositories }, getCurrentUser model )
+            ( { model | legacyPage = Pages.SourceRepositories }, getCurrentUser model )
 
 
 loadOrgReposPage : Model -> Org -> Maybe Pagination.Page -> Maybe Pagination.PerPage -> ( Model, Cmd Msg )
 loadOrgReposPage model org maybePage maybePerPage =
     case model.shared.repo.orgRepos.orgRepos of
         NotAsked ->
-            ( { model | page = Pages.OrgRepositories org maybePage maybePerPage }
+            ( { model | legacyPage = Pages.OrgRepositories org maybePage maybePerPage }
             , Api.Api.try OrgRepositoriesResponse <| Api.Operations.getOrgRepositories model maybePage maybePerPage org
             )
 
         Failure _ ->
-            ( { model | page = Pages.OrgRepositories org maybePage maybePerPage }
+            ( { model | legacyPage = Pages.OrgRepositories org maybePage maybePerPage }
             , Api.Api.try OrgRepositoriesResponse <| Api.Operations.getOrgRepositories model maybePage maybePerPage org
             )
 
         _ ->
-            ( { model | page = Pages.OrgRepositories org maybePage maybePerPage }
+            ( { model | legacyPage = Pages.OrgRepositories org maybePage maybePerPage }
             , Cmd.batch
                 [ getCurrentUser model
                 , Api.Api.try OrgRepositoriesResponse <| Api.Operations.getOrgRepositories model maybePage maybePerPage org
@@ -4067,8 +4055,8 @@ loadOrgReposPage model org maybePage maybePerPage =
 loadOverviewPage : Model -> ( Model, Cmd Msg )
 loadOverviewPage model =
     ( { model
-        | page = Pages.Overview
-        , pageModel =
+        | legacyPage = Pages.Overview
+        , page =
             Tuple.first <|
                 Tuple.mapBoth
                     Main.Pages.Model.Home_
@@ -4197,7 +4185,7 @@ loadOrgSubPage model org toPage =
                     _ ->
                         ( model, Cmd.none )
     in
-    ( { loadModel | page = toPage }, loadCmd )
+    ( { loadModel | legacyPage = toPage }, loadCmd )
 
 
 {-| loadRepoSubPage : takes model org repo and page destination
@@ -4447,7 +4435,7 @@ loadRepoSubPage model org repo toPage =
                         ( model, Cmd.none )
     in
     ( { loadModel
-        | page = toPage
+        | legacyPage = toPage
       }
     , loadCmd
     )
@@ -4576,7 +4564,7 @@ loadOrgSecretsPage model maybePage maybePerPage engine org =
             model.secretsModel
     in
     ( { model
-        | page =
+        | legacyPage =
             Pages.OrgSecrets engine org maybePage maybePerPage
         , secretsModel =
             { secretsModel
@@ -4611,7 +4599,7 @@ loadSharedSecretsPage model maybePage maybePerPage engine org team =
             model.secretsModel
     in
     ( { model
-        | page =
+        | legacyPage =
             Pages.SharedSecrets engine org team maybePage maybePerPage
         , secretsModel =
             { secretsModel
@@ -4639,7 +4627,7 @@ loadAddOrgSecretPage model engine org =
             Pages.Secrets.Update.reinitializeSecretAdd model.secretsModel
     in
     ( { model
-        | page = Pages.AddOrgSecret engine org
+        | legacyPage = Pages.AddOrgSecret engine org
         , secretsModel =
             { secretsModel
                 | sharedSecrets = Loading
@@ -4662,7 +4650,7 @@ loadAddRepoSecretPage model engine org repo =
             Pages.Secrets.Update.reinitializeSecretAdd model.secretsModel
     in
     ( { model
-        | page = Pages.AddRepoSecret engine org repo
+        | legacyPage = Pages.AddRepoSecret engine org repo
         , secretsModel =
             { secretsModel
                 | org = org
@@ -4685,7 +4673,7 @@ loadAddSchedulePage model org repo =
             Pages.Schedules.Update.reinitializeScheduleAdd model.schedulesModel
     in
     ( { model
-        | page = Pages.AddSchedule org repo
+        | legacyPage = Pages.AddSchedule org repo
         , schedulesModel =
             { scheduleModel
                 | org = org
@@ -4707,7 +4695,7 @@ loadEditSchedulePage model org repo id =
             model.schedulesModel
     in
     ( { model
-        | page = Pages.Schedule org repo id
+        | legacyPage = Pages.Schedule org repo id
         , schedulesModel =
             { scheduleModel
                 | org = org
@@ -4736,7 +4724,7 @@ loadAddSharedSecretPage model engine org team =
             Pages.Secrets.Update.reinitializeSecretAdd model.secretsModel
     in
     ( { model
-        | page = Pages.AddSharedSecret engine org team
+        | legacyPage = Pages.AddSharedSecret engine org team
         , secretsModel =
             { secretsModel
                 | org = org
@@ -4760,7 +4748,7 @@ loadUpdateOrgSecretPage model engine org name =
             model.secretsModel
     in
     ( { model
-        | page = Pages.OrgSecret engine org name
+        | legacyPage = Pages.OrgSecret engine org name
         , secretsModel =
             { secretsModel
                 | org = org
@@ -4786,7 +4774,7 @@ loadUpdateRepoSecretPage model engine org repo name =
             model.secretsModel
     in
     ( { model
-        | page = Pages.RepoSecret engine org repo name
+        | legacyPage = Pages.RepoSecret engine org repo name
         , secretsModel =
             { secretsModel
                 | org = org
@@ -4813,7 +4801,7 @@ loadUpdateSharedSecretPage model engine org team name =
             model.secretsModel
     in
     ( { model
-        | page = Pages.SharedSecret engine org team name
+        | legacyPage = Pages.SharedSecret engine org team name
         , secretsModel =
             { secretsModel
                 | org = org
@@ -4837,10 +4825,10 @@ loadBuildPage model org repo buildNumber lineFocus =
     let
         -- get resource transition information
         sameBuild =
-            isSameBuild ( org, repo, buildNumber ) model.page
+            isSameBuild ( org, repo, buildNumber ) model.legacyPage
 
         sameResource =
-            case model.page of
+            case model.legacyPage of
                 Pages.Build _ _ _ _ ->
                     True
 
@@ -4863,7 +4851,7 @@ loadBuildPage model org repo buildNumber lineFocus =
     in
     -- load page depending on build change
     ( { um
-        | page = Pages.Build org repo buildNumber lineFocus
+        | legacyPage = Pages.Build org repo buildNumber lineFocus
 
         -- set repo fields
         , shared =
@@ -4904,10 +4892,10 @@ loadBuildGraphPage model org repo buildNumber =
     let
         -- get resource transition information
         sameBuild =
-            isSameBuild ( org, repo, buildNumber ) model.page
+            isSameBuild ( org, repo, buildNumber ) model.legacyPage
 
         sameResource =
-            case model.page of
+            case model.legacyPage of
                 Pages.BuildGraph _ _ _ ->
                     True
 
@@ -4950,7 +4938,7 @@ loadBuildGraphPage model org repo buildNumber =
 
         um =
             { mm
-                | page = Pages.BuildGraph org repo buildNumber
+                | legacyPage = Pages.BuildGraph org repo buildNumber
                 , shared =
                     { usm
                         | repo = { urm | build = { ubm | graph = { gm | graph = graph, focusedNode = focusedNode } } }
@@ -4981,10 +4969,10 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
     let
         -- get resource transition information
         sameBuild =
-            isSameBuild ( org, repo, buildNumber ) model.page
+            isSameBuild ( org, repo, buildNumber ) model.legacyPage
 
         sameResource =
-            case model.page of
+            case model.legacyPage of
                 Pages.BuildServices _ _ _ _ ->
                     True
 
@@ -5006,7 +4994,7 @@ loadBuildServicesPage model org repo buildNumber lineFocus =
             usm.repo
     in
     ( { um
-        | page = Pages.BuildServices org repo buildNumber lineFocus
+        | legacyPage = Pages.BuildServices org repo buildNumber lineFocus
 
         -- set repo fields
         , shared =
@@ -5050,10 +5038,10 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
 
         -- get resource transition information
         sameBuild =
-            isSameBuild ( org, repo, buildNumber ) model.page
+            isSameBuild ( org, repo, buildNumber ) model.legacyPage
 
         sameResource =
-            case model.page of
+            case model.legacyPage of
                 Pages.BuildPipeline _ _ _ _ _ ->
                     True
 
@@ -5089,7 +5077,7 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
             sm.pipeline
     in
     ( { m
-        | page = Pages.BuildPipeline org repo buildNumber expand lineFocus
+        | legacyPage = Pages.BuildPipeline org repo buildNumber expand lineFocus
         , shared =
             { sm
                 | pipeline =
