@@ -275,6 +275,7 @@ redeployLink org repo deployment =
         [ text "Redeploy"
         ]
 
+
 {-| pullBuildLinks : takes deployment and creates a list of links to every build in the builds field
 -}
 pullBuildLinks : Deployment -> List String
@@ -293,7 +294,7 @@ linksView : List String -> Html msg
 linksView links =
     links
         |> List.map (\link -> a [ href link ] [ text (String.append "#" (getHead (List.head (List.reverse (String.split "/" link))))) ])
-        |> List.intersperse ( text ", " )
+        |> List.intersperse (text ", ")
         |> div []
 
 
@@ -304,6 +305,6 @@ getHead link =
     case link of
         Nothing ->
             ""
-        
+
         Just val ->
             val
