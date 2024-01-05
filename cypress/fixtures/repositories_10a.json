@@ -20,7 +20,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 1,
@@ -43,7 +62,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 2,
@@ -66,7 +104,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 3,
@@ -89,7 +146,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 4,
@@ -112,7 +188,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 5,
@@ -135,7 +230,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 6,
@@ -158,7 +272,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 7,
@@ -181,7 +314,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 8,
@@ -204,7 +356,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 9,
@@ -227,6 +398,25 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   }
 ]
