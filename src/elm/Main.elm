@@ -5,13 +5,14 @@ SPDX-License-Identifier: Apache-2.0
 
 module Main exposing (fromSharedEffect, main)
 
--- import Layouts exposing (Layout)
-
 import Alerts exposing (Alert)
 import Api.Api
 import Api.Endpoint
 import Api.Operations
+import Api.Operations_
 import Api.Pagination as Pagination
+import Auth
+import Auth.Action
 import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
 import Auth.Session exposing (Session(..), SessionDetails, refreshAccessToken)
 import Browser exposing (Document, UrlRequest)
@@ -75,6 +76,11 @@ import Interop
 import Interval exposing (Interval(..), RefreshData)
 import Json.Decode
 import Json.Encode
+import Layout
+import Layouts exposing (Layout)
+import Layouts.Default
+import Main.Layouts.Model
+import Main.Layouts.Msg
 import Main.Pages.Model
 import Main.Pages.Msg
 import Maybe
@@ -101,9 +107,11 @@ import Pages.Builds
 import Pages.Deployments.Model
 import Pages.Deployments.Update exposing (initializeFormFromDeployment)
 import Pages.Deployments.View
+import Pages.Deployments_
 import Pages.Home_
 import Pages.Hooks
-import Pages.Legacy
+import Pages.Login_
+import Pages.NotFound_
 import Pages.Organization
 import Pages.Pipeline.Model
 import Pages.Pipeline.View exposing (safeDecodePipelineData)
@@ -254,12 +262,8 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , onUrlRequest = ClickedLink
-        , onUrlChange = Routes.match >> NewRoute
-
-        -- todo: migrate to non-legacy page changes
-        -- , onUrlChange = UrlChanged
-        -- , onUrlRequest = UrlRequested
+        , onUrlRequest = UrlRequested
+        , onUrlChange = UrlChanged
         }
 
 
@@ -272,7 +276,7 @@ type alias Model =
     , url : Url
     , page : Main.Pages.Model.Model
     , shared : Shared.Model
-    , layout : {}
+    , layout : Maybe Main.Layouts.Model.Model
 
     -- todo: these need to be refactored
     , legacyPage : Page
@@ -282,97 +286,6 @@ type alias Model =
     }
 
 
-initSecretsModel : Pages.Secrets.Model.Model Msg
-initSecretsModel =
-    Pages.Secrets.Update.init Copy SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
-
-
-initSchedulesModel : Pages.Schedules.Model.Model Msg
-initSchedulesModel =
-    Pages.Schedules.Update.init ScheduleResponse AddScheduleResponse UpdateScheduleResponse DeleteScheduleResponse
-
-
-initDeploymentsModel : Pages.Deployments.Model.Model Msg
-initDeploymentsModel =
-    Pages.Deployments.Update.init AddDeploymentResponse
-
-
-{-| addDeploymentResponseAlert : takes deployment and produces Toasty alert for when adding a deployment
--}
-addDeploymentResponseAlert :
-    Deployment
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-addDeploymentResponseAlert deployment =
-    let
-        msg =
-            deployment.description ++ " submitted."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
-
-
-{-| addSecretResponseAlert : takes secret and produces Toasty alert for when adding a secret
--}
-addSecretResponseAlert :
-    Secret
-    -> ( { s | toasties : Stack Alert }, Cmd Msg )
-    -> ( { s | toasties : Stack Alert }, Cmd Msg )
-addSecretResponseAlert secret =
-    let
-        type_ =
-            secretTypeToString secret.type_
-
-        msg =
-            secret.name ++ " added to " ++ type_ ++ " secrets."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
-
-
-{-| updateSecretResponseAlert : takes secret and produces Toasty alert for when updating a secret
--}
-updateSecretResponseAlert :
-    Secret
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-updateSecretResponseAlert secret =
-    let
-        type_ =
-            secretTypeToString secret.type_
-
-        msg =
-            String.Extra.toSentenceCase <| type_ ++ " secret " ++ secret.name ++ " updated."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
-
-
-{-| addScheduleResponseAlert : takes schedule and produces Toasty alert for when adding a schedule
--}
-addScheduleResponseAlert :
-    Schedule
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-addScheduleResponseAlert schedule =
-    let
-        msg =
-            schedule.name ++ " added to repo schedules."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
-
-
-{-| updateScheduleResponseAlert : takes schedule and produces Toasty alert for when updating a schedule
--}
-updateScheduleResponseAlert :
-    Schedule
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-    -> ( { m | toasties : Stack Alert }, Cmd Msg )
-updateScheduleResponseAlert schedule =
-    let
-        msg =
-            "Repo schedule " ++ schedule.name ++ " updated."
-    in
-    Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" msg Nothing)
-
-
 init : Json.Decode.Value -> Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
 init json url key =
     let
@@ -380,29 +293,11 @@ init json url key =
         flagsResult =
             Json.Decode.decodeValue Shared.decoder json
 
-        -- todo: vader: remove unnecessary url arg
         ( sharedModel, sharedEffect ) =
-            Shared.init flagsResult (Route.fromUrl () url) url
+            Shared.init flagsResult (Route.fromUrl () url)
 
         { page, layout } =
-            initPageAndLayout { key = key, url = url, shared = sharedModel, layout = {} }
-
-        ( model, legacySetNewPageCmd ) =
-            { url = url
-            , key = key
-            , page = Tuple.first page
-
-            --   , layout = layout |> Maybe.map Tuple.first
-            , layout = {}
-            , shared = sharedModel
-
-            -- todo: remove legacy stuff
-            , legacyPage = Pages.Overview
-            , schedulesModel = initSchedulesModel
-            , secretsModel = initSecretsModel
-            , deploymentModel = initDeploymentsModel
-            }
-                |> setNewPage (Routes.match url)
+            initPageAndLayout { key = key, url = url, shared = sharedModel, layout = Nothing }
 
         setTimeZone : Cmd Msg
         setTimeZone =
@@ -412,86 +307,235 @@ init json url key =
         setTime =
             Task.perform AdjustTime Time.now
 
-        fetchToken : Cmd Msg
-        fetchToken =
-            if model.shared.fetchingToken then
-                getToken model
-
-            else
-                Cmd.none
+        -- todo: this shouldnt be needed if we migrate to framework auth
+        -- fetchToken : Cmd Msg
+        -- fetchToken =
+        --     if sharedModel.fetchingToken then
+        --         Api.Api.try TokenResponse <| Api.Operations_.getToken sharedModel.velaAPI
+        --     else
+        --         Cmd.none
     in
-    ( model
+    ( { url = url
+      , key = key
+      , page = Tuple.first page
+      , layout = layout |> Maybe.map Tuple.first
+      , shared = sharedModel
+
+      -- todo: remove legacy stuff
+      , legacyPage = Pages.Overview
+      , schedulesModel = Pages.Schedules.Update.init ScheduleResponse AddScheduleResponse UpdateScheduleResponse DeleteScheduleResponse
+      , secretsModel = Pages.Secrets.Update.init Copy SecretResponse RepoSecretsResponse OrgSecretsResponse SharedSecretsResponse AddSecretResponse UpdateSecretResponse DeleteSecretResponse
+      , deploymentModel = Pages.Deployments.Update.init AddDeploymentResponse
+      }
     , Cmd.batch
         [ Tuple.second page
-
-        --   , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
+        , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
         , fromSharedEffect { key = key, url = url, shared = sharedModel } sharedEffect
 
-        -- todo: remove legacy stuff
-        , legacySetNewPageCmd
-
         -- custom effects
-        , fetchToken
-        , Interop.setTheme <| encodeTheme model.shared.theme
+        -- , fetchToken
+        , Interop.setTheme <| encodeTheme sharedModel.theme
         , setTimeZone
         , setTime
         ]
     )
 
 
+initLayout : { key : Browser.Navigation.Key, url : Url, shared : Shared.Model, layout : Maybe Main.Layouts.Model.Model } -> Layouts.Layout Msg -> ( Main.Layouts.Model.Model, Cmd Msg )
+initLayout model layout =
+    case ( layout, model.layout ) of
+        ( Layouts.Default props, Just (Main.Layouts.Model.Default existing) ) ->
+            ( Main.Layouts.Model.Default existing
+            , Cmd.none
+            )
+
+        ( Layouts.Default props, _ ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultLayout =
+                    Layouts.Default.layout props model.shared route
+
+                ( defaultLayoutModel, defaultLayoutEffect ) =
+                    Layout.init defaultLayout ()
+            in
+            ( Main.Layouts.Model.Default { default = defaultLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+            )
+
+
 initPageAndLayout :
     { key : Browser.Navigation.Key
     , url : Url
     , shared : Shared.Model
-    , layout : {}
-
-    -- , layout : Maybe Main.Layouts.Model.Model
+    , layout : Maybe Main.Layouts.Model.Model
     }
     ->
         { page : ( Main.Pages.Model.Model, Cmd Msg )
-        , layout : {}
-
-        -- , layout : Maybe ( Main.Layouts.Model.Model, Cmd Msg )
+        , layout : Maybe ( Main.Layouts.Model.Model, Cmd Msg )
         }
 initPageAndLayout model =
     case Route.Path.fromUrl model.url of
-        Route.Path.Home_ ->
+        Route.Path.Login_ ->
             let
-                page : Page.Page Pages.Home_.Model Pages.Home_.Msg
+                page : Page.Page Pages.Login_.Model Pages.Login_.Msg
                 page =
-                    Pages.Home_.page model.shared (Route.fromUrl () model.url)
+                    Pages.Login_.page model.shared (Route.fromUrl () model.url)
 
                 ( pageModel, pageEffect ) =
                     Page.init page ()
             in
             { page =
                 Tuple.mapBoth
-                    Main.Pages.Model.Home_
-                    (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                    Main.Pages.Model.Login_
+                    (Effect.map Main.Pages.Msg.Login_ >> fromPageEffect model)
                     ( pageModel, pageEffect )
-
-            -- , layout = Nothing
-            , layout = {}
+            , layout =
+                Page.layout pageModel page
+                    |> Maybe.map (Layouts.map (Main.Pages.Msg.Login_ >> Page))
+                    |> Maybe.map (initLayout model)
             }
 
-        _ ->
+        Route.Path.Authenticate_ ->
             let
-                -- todo: vader implement actual 404 page
-                page : Page.Page Pages.Legacy.Model Pages.Legacy.Msg
+                route =
+                    Route.fromUrl () model.url
+
+                code =
+                    Dict.get "code" route.query
+
+                state =
+                    Dict.get "state" route.query
+            in
+            { page =
+                ( Main.Pages.Model.Redirecting_
+                , Api.Api.try TokenResponse <| Api.Operations.getInitialToken model <| AuthParams code state
+                )
+            , layout = Nothing
+            }
+
+        Route.Path.Home_ ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Home_.Model Pages.Home_.Msg
+                        page =
+                            Pages.Home_.page user model.shared (Route.fromUrl () model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            Main.Pages.Model.Home_
+                            (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.Deployments_ _ _ ->
+            let
+                page : Page.Page Pages.Deployments_.Model Pages.Deployments_.Msg
                 page =
-                    Pages.Legacy.page model.shared (Route.fromUrl () model.url)
+                    Pages.Deployments_.page model.shared (Route.fromUrl () model.url)
 
                 ( pageModel, pageEffect ) =
                     Page.init page ()
             in
             { page =
                 Tuple.mapBoth
-                    Main.Pages.Model.Legacy
-                    (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
+                    Main.Pages.Model.Deployments_
+                    (Effect.map Main.Pages.Msg.Deployments_ >> fromPageEffect model)
                     ( pageModel, pageEffect )
+            , layout = Nothing
+            }
 
-            -- , layout = Nothing
-            , layout = {}
+        Route.Path.NotFound_ ->
+            let
+                page : Page.Page Pages.NotFound_.Model Pages.NotFound_.Msg
+                page =
+                    Pages.NotFound_.page model.shared (Route.fromUrl () model.url)
+
+                ( pageModel, pageEffect ) =
+                    Page.init page ()
+            in
+            { page =
+                Tuple.mapBoth
+                    Main.Pages.Model.NotFound_
+                    (Effect.map Main.Pages.Msg.NotFound_ >> fromPageEffect model)
+                    ( pageModel, pageEffect )
+            , layout = Nothing
+            }
+
+
+runWhenAuthenticated : { model | shared : Shared.Model, url : Url, key : Browser.Navigation.Key } -> (Auth.User -> ( Main.Pages.Model.Model, Cmd Msg )) -> ( Main.Pages.Model.Model, Cmd Msg )
+runWhenAuthenticated model toTuple =
+    let
+        record =
+            runWhenAuthenticatedWithLayout model (\user -> { page = toTuple user, layout = Nothing })
+    in
+    record.page
+
+
+runWhenAuthenticatedWithLayout : { model | shared : Shared.Model, url : Url, key : Browser.Navigation.Key } -> (Auth.User -> { page : ( Main.Pages.Model.Model, Cmd Msg ), layout : Maybe ( Main.Layouts.Model.Model, Cmd Msg ) }) -> { page : ( Main.Pages.Model.Model, Cmd Msg ), layout : Maybe ( Main.Layouts.Model.Model, Cmd Msg ) }
+runWhenAuthenticatedWithLayout model toRecord =
+    let
+        authAction : Auth.Action.Action Auth.User
+        authAction =
+            Auth.onPageLoad model.shared (Route.fromUrl () model.url)
+
+        toCmd : Effect Msg -> Cmd Msg
+        toCmd =
+            Effect.toCmd
+                { key = model.key
+                , url = model.url
+                , shared = model.shared
+                , fromSharedMsg = Shared
+                , batch = Batch
+                , toCmd = Task.succeed >> Task.perform identity
+                }
+    in
+    case authAction of
+        Auth.Action.LoadPageWithUser user ->
+            toRecord user
+
+        Auth.Action.ShowLoadingPage loadingView ->
+            { page =
+                ( Main.Pages.Model.Loading_
+                , Cmd.none
+                )
+            , layout = Nothing
+            }
+
+        Auth.Action.ReplaceRoute options ->
+            { page =
+                ( Main.Pages.Model.Redirecting_
+                , toCmd (Effect.replaceRoute options)
+                )
+            , layout = Nothing
+            }
+
+        Auth.Action.PushRoute options ->
+            { page =
+                ( Main.Pages.Model.Redirecting_
+                , toCmd (Effect.pushRoute options)
+                )
+            , layout = Nothing
+            }
+
+        Auth.Action.LoadExternalUrl externalUrl ->
+            { page =
+                ( Main.Pages.Model.Redirecting_
+                , Browser.Navigation.load externalUrl
+                )
+            , layout = Nothing
             }
 
 
@@ -500,19 +544,23 @@ initPageAndLayout model =
 
 
 type Msg
-    = -- NoOp
-      NoOp -- todo: remove NoOp from Main
-      -- START NEW WORLD
-    | UrlRequested Browser.UrlRequest
+    = UrlRequested Browser.UrlRequest
     | UrlChanged Url
     | Page Main.Pages.Msg.Msg
-      -- | Layout Main.Layouts.Msg.Msg
+    | Layout Main.Layouts.Msg.Msg
     | Shared Shared.Msg
     | Batch (List Msg)
+    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
       -- END NEW WORLD
-      -- todo: move everything below this into Shared.Msg
-    | NewRoute Routes.Route
-    | ClickedLink UrlRequest
+      --
+      --
+      --
+      --
+      --
+      --
+      -- todo: move everything below this into Shared.Msg or completely remove it
+      -- | NewRoute Routes.Route
+      -- | ClickedLink UrlRequest
     | SearchSourceRepos Org String
       -- | SearchFavorites String
     | ChangeRepoLimit String
@@ -572,7 +620,6 @@ type Msg
     | ExpandPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
       -- Inbound HTTP responses
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
-    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoFavoritedResponse String Bool (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
@@ -635,6 +682,8 @@ type Msg
     | OnKeyUp String
     | VisibilityChanged Visibility
     | PushUrl String
+      -- NoOp
+    | NoOp -- todo: remove NoOp from Main
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -671,6 +720,7 @@ update msg model =
             )
 
         UrlChanged url ->
+            -- if the url did not change
             if Route.Path.fromUrl url == Route.Path.fromUrl model.url then
                 let
                     newModel : Model
@@ -699,21 +749,21 @@ update msg model =
                     ( pageModel, pageCmd ) =
                         page
 
-                    -- ( layoutModel, layoutCmd ) =
-                    --     case layout of
-                    --         Just ( layoutModel_, layoutCmd_ ) ->
-                    --             ( Just layoutModel_, layoutCmd_ )
-                    --         Nothing ->
-                    --             ( Nothing, Cmd.none )
+                    ( layoutModel, layoutCmd ) =
+                        case layout of
+                            Just ( layoutModel_, layoutCmd_ ) ->
+                                ( Just layoutModel_, layoutCmd_ )
+
+                            Nothing ->
+                                ( Nothing, Cmd.none )
+
                     newModel =
-                        -- { model | url = url, page = pageModel, layout = layoutModel }
-                        { model | url = url, page = pageModel, layout = {} }
+                        { model | url = url, page = pageModel, layout = layoutModel }
                 in
                 ( newModel
                 , Cmd.batch
                     [ pageCmd
-
-                    --   , layoutCmd
+                    , layoutCmd
                     , toLayoutUrlHookCmd model
                         newModel
                         { from = Route.fromUrl () model.url
@@ -731,51 +781,50 @@ update msg model =
             , pageCmd
             )
 
-        -- todo: layouts
-        -- Layout ->
+        Layout layoutMsg ->
+            let
+                ( layoutModel, layoutCmd ) =
+                    updateFromLayout layoutMsg model
+            in
+            ( { model | layout = layoutModel }
+            , layoutCmd
+            )
+
         Shared sharedMsg ->
             let
                 ( sharedModel, sharedEffect ) =
                     Shared.update (Route.fromUrl () model.url) sharedMsg model.shared
 
-                -- todo: auth
-                -- ( oldAction, newAction ) =
-                --     ( Auth.onPageLoad model.shared (Route.fromUrl () model.url)
-                --     , Auth.onPageLoad sharedModel (Route.fromUrl () model.url)
-                --     )
-                -- in
-                -- if isAuthProtected (Route.fromUrl () model.url).path && (hasActionTypeChanged oldAction newAction) then
-                --     let
-                { layout, page } =
-                    initPageAndLayout
-                        { key = model.key
-                        , shared = sharedModel
-                        , url = model.url
-                        , layout = model.layout
-                        }
-
-                ( pageModel, pageCmd ) =
-                    page
-
-                -- ( layoutModel, layoutCmd ) =
-                --     ( layout |> Maybe.map Tuple.first
-                --     , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
-                --     )
+                ( oldAction, newAction ) =
+                    ( Auth.onPageLoad model.shared (Route.fromUrl () model.url)
+                    , Auth.onPageLoad sharedModel (Route.fromUrl () model.url)
+                    )
             in
-            ( { model
-                | shared = sharedModel
-                , page = pageModel
-                , layout = {}
+            if isAuthProtected (Route.fromUrl () model.url).path && hasActionTypeChanged oldAction newAction then
+                let
+                    { layout, page } =
+                        initPageAndLayout { key = model.key, shared = sharedModel, url = model.url, layout = model.layout }
 
-                -- , layout = layoutModel
-              }
-            , Cmd.batch
-                [ pageCmd
+                    ( pageModel, pageCmd ) =
+                        page
 
-                --   , layoutCmd
+                    ( layoutModel, layoutCmd ) =
+                        ( layout |> Maybe.map Tuple.first
+                        , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
+                        )
+                in
+                ( { model | shared = sharedModel, page = pageModel, layout = layoutModel }
+                , Cmd.batch
+                    [ pageCmd
+                    , layoutCmd
+                    , fromSharedEffect { model | shared = sharedModel } sharedEffect
+                    ]
+                )
+
+            else
+                ( { model | shared = sharedModel }
                 , fromSharedEffect { model | shared = sharedModel } sharedEffect
-                ]
-            )
+                )
 
         Batch messages ->
             ( model
@@ -784,19 +833,123 @@ update msg model =
                 |> Cmd.batch
             )
 
+        TokenResponse response ->
+            case response of
+                Ok ( _, token ) ->
+                    let
+                        currentSession : Session
+                        currentSession =
+                            model.shared.session
+
+                        payload : JwtAccessTokenClaims
+                        payload =
+                            extractJwtClaims token
+
+                        newSessionDetails : SessionDetails
+                        newSessionDetails =
+                            SessionDetails token payload.exp payload.sub
+
+                        actions : List (Cmd Msg)
+                        actions =
+                            case currentSession of
+                                Unauthenticated ->
+                                    let
+                                        redirectTo : String
+                                        redirectTo =
+                                            case model.shared.velaRedirect of
+                                                "" ->
+                                                    Url.toString model.url
+
+                                                _ ->
+                                                    model.shared.velaRedirect
+                                    in
+                                    [ Interop.setRedirect Json.Encode.null
+                                    , Browser.Navigation.pushUrl model.key redirectTo
+                                    ]
+
+                                Authenticated _ ->
+                                    []
+
+                        _ =
+                            Debug.log "got a token" token
+
+                        -- todo: now that we have a token, we need to
+                        -- 1. store it in localstorage
+                        -- 2. grab it out of localstore when the app loads
+                        -- 3. confirm we can login, and get redirected back to where we were
+                        -- 4. once its out of localstorage, we should be considered "authenticated"
+                        -- 5. use token to fetch current user on the home page
+                    in
+                    ( { model
+                        | shared =
+                            { shared
+                                | session = Authenticated newSessionDetails
+                                , fetchingToken = False
+                                , token = Just token
+                            }
+                      }
+                    , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
+                    )
+
+                Err error ->
+                    let
+                        redirectPage : Cmd Msg
+                        redirectPage =
+                            -- todo: create Login_ and convert this to Route.Path etc
+                            -- this isnt going to work with new pages, there is no Login_ page
+                            case model.legacyPage of
+                                Pages.Login ->
+                                    Cmd.none
+
+                                _ ->
+                                    Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Login
+                    in
+                    case error of
+                        Http.Detailed.BadStatus meta _ ->
+                            case meta.statusCode of
+                                401 ->
+                                    let
+                                        actions : List (Cmd Msg)
+                                        actions =
+                                            case model.shared.session of
+                                                Unauthenticated ->
+                                                    [ redirectPage ]
+
+                                                Authenticated _ ->
+                                                    [ addErrorString "Your session has expired or you logged in somewhere else, please log in again." HandleError
+                                                    , redirectPage
+                                                    ]
+                                    in
+                                    ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
+                                    , Cmd.batch actions
+                                    )
+
+                                _ ->
+                                    ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
+                                    , Cmd.batch
+                                        [ Errors.addError HandleError error
+                                        , redirectPage
+                                        ]
+                                    )
+
+                        _ ->
+                            ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
+                            , Cmd.batch
+                                [ Errors.addError HandleError error
+                                , redirectPage
+                                ]
+                            )
+
         -- END NEW WORLD
         -- User events
-        NewRoute route ->
-            setNewPage route model
-
-        ClickedLink urlRequest ->
-            case urlRequest of
-                Browser.Internal url ->
-                    ( model, Browser.Navigation.pushUrl model.key <| Url.toString url )
-
-                Browser.External url ->
-                    ( model, Browser.Navigation.load url )
-
+        -- NewRoute route ->
+        --     setNewPage route model
+        -- ClickedLink urlRequest ->
+        --     case urlRequest of
+        --         Browser.Internal url ->
+        --             ( model, Browser.Navigation.pushUrl model.key <| Url.toString url )
+        --         Browser.External url ->
+        --             ( model, Browser.Navigation.load url )
         SearchSourceRepos org searchBy ->
             let
                 filters =
@@ -1706,7 +1859,7 @@ update msg model =
                             { model | schedulesModel = Pages.Schedules.Update.reinitializeScheduleAdd sm }
 
                         ( sharedWithAlert, cmd ) =
-                            addScheduleResponseAlert schedule ( um.shared, Cmd.none )
+                            Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" (schedule.name ++ " added to repo schedules.") Nothing) ( um.shared, Cmd.none )
                     in
                     ( { um | shared = sharedWithAlert }, cmd )
 
@@ -1721,7 +1874,7 @@ update msg model =
                             { model | schedulesModel = Pages.Schedules.Update.reinitializeScheduleUpdate sm schedule }
 
                         ( sharedWithAlert, cmd ) =
-                            updateScheduleResponseAlert schedule ( um.shared, Cmd.none )
+                            Alerting.addToast Alerts.successConfig AlertsUpdate (Alerts.Success "Success" ("Repo schedule " ++ schedule.name ++ " updated.") Nothing) ( um.shared, Cmd.none )
                     in
                     ( { um | shared = sharedWithAlert }, cmd )
 
@@ -1751,94 +1904,6 @@ update msg model =
             ( { model | shared = { shared | session = Unauthenticated } }
             , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Login
             )
-
-        TokenResponse response ->
-            case response of
-                Ok ( _, token ) ->
-                    let
-                        currentSession : Session
-                        currentSession =
-                            model.shared.session
-
-                        payload : JwtAccessTokenClaims
-                        payload =
-                            extractJwtClaims token
-
-                        newSessionDetails : SessionDetails
-                        newSessionDetails =
-                            SessionDetails token payload.exp payload.sub
-
-                        actions : List (Cmd Msg)
-                        actions =
-                            case currentSession of
-                                Unauthenticated ->
-                                    let
-                                        redirectTo : String
-                                        redirectTo =
-                                            case model.shared.velaRedirect of
-                                                "" ->
-                                                    Url.toString model.shared.entryURL
-
-                                                _ ->
-                                                    model.shared.velaRedirect
-                                    in
-                                    [ Interop.setRedirect Json.Encode.null
-                                    , Browser.Navigation.pushUrl model.key redirectTo
-                                    ]
-
-                                Authenticated _ ->
-                                    []
-                    in
-                    ( { model | shared = { shared | session = Authenticated newSessionDetails, fetchingToken = False } }
-                    , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
-                    )
-
-                Err error ->
-                    let
-                        redirectPage : Cmd Msg
-                        redirectPage =
-                            case model.legacyPage of
-                                Pages.Login ->
-                                    Cmd.none
-
-                                _ ->
-                                    Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Login
-                    in
-                    case error of
-                        Http.Detailed.BadStatus meta _ ->
-                            case meta.statusCode of
-                                401 ->
-                                    let
-                                        actions : List (Cmd Msg)
-                                        actions =
-                                            case model.shared.session of
-                                                Unauthenticated ->
-                                                    [ redirectPage ]
-
-                                                Authenticated _ ->
-                                                    [ addErrorString "Your session has expired or you logged in somewhere else, please log in again." HandleError
-                                                    , redirectPage
-                                                    ]
-                                    in
-                                    ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
-                                    , Cmd.batch actions
-                                    )
-
-                                _ ->
-                                    ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
-                                    , Cmd.batch
-                                        [ Errors.addError HandleError error
-                                        , redirectPage
-                                        ]
-                                    )
-
-                        _ ->
-                            ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
-                            , Cmd.batch
-                                [ Errors.addError HandleError error
-                                , redirectPage
-                                ]
-                            )
 
         CurrentUserResponse response ->
             case response of
@@ -2494,7 +2559,9 @@ update msg model =
                             { model | secretsModel = Pages.Secrets.Update.reinitializeSecretAdd secretsModel }
 
                         ( sharedWithAlert, cmd ) =
-                            addSecretResponseAlert secret
+                            Alerting.addToast Alerts.successConfig
+                                AlertsUpdate
+                                (Alerts.Success "Success" (secret.name ++ " added to " ++ secretTypeToString secret.type_ ++ " secrets.") Nothing)
                                 ( um.shared
                                 , Cmd.none
                                 )
@@ -2515,7 +2582,9 @@ update msg model =
                             { model | deploymentModel = Pages.Deployments.Update.reinitializeDeployment deploymentModel }
 
                         ( sharedWithAlert, cmd ) =
-                            addDeploymentResponseAlert deployment
+                            Alerting.addToast Alerts.successConfig
+                                AlertsUpdate
+                                (Alerts.Success "Success" (deployment.description ++ " submitted.") Nothing)
                                 ( um.shared
                                 , Cmd.none
                                 )
@@ -2536,7 +2605,9 @@ update msg model =
                             { model | secretsModel = Pages.Secrets.Update.reinitializeSecretUpdate secretsModel secret }
 
                         ( sharedWithAlert, cmd ) =
-                            updateSecretResponseAlert secret
+                            Alerting.addToast Alerts.successConfig
+                                AlertsUpdate
+                                (Alerts.Success "Success" (String.Extra.toSentenceCase <| secretTypeToString secret.type_ ++ " secret " ++ secret.name ++ " updated.") Nothing)
                                 ( um.shared
                                 , Cmd.none
                                 )
@@ -2732,6 +2803,220 @@ update msg model =
             ( model, Cmd.none )
 
 
+updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
+updateFromPage msg model =
+    case ( msg, model.page ) of
+        ( Main.Pages.Msg.Login_ pageMsg, Main.Pages.Model.Login_ pageModel ) ->
+            Tuple.mapBoth
+                Main.Pages.Model.Login_
+                (Effect.map Main.Pages.Msg.Login_ >> fromPageEffect model)
+                (Page.update (Pages.Login_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+
+        ( Main.Pages.Msg.Home_ pageMsg, Main.Pages.Model.Home_ pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        Main.Pages.Model.Home_
+                        (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
+                        (Page.update (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                )
+
+        ( Main.Pages.Msg.Deployments_ pageMsg, Main.Pages.Model.Deployments_ pageModel ) ->
+            Tuple.mapBoth
+                Main.Pages.Model.Deployments_
+                (Effect.map Main.Pages.Msg.Deployments_ >> fromPageEffect model)
+                (Page.update (Pages.Deployments_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+
+        ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
+            Tuple.mapBoth
+                Main.Pages.Model.NotFound_
+                (Effect.map Main.Pages.Msg.NotFound_ >> fromPageEffect model)
+                (Page.update (Pages.NotFound_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+
+        -- when you add a new page, remember to fill in this case
+        _ ->
+            ( model.page
+            , Cmd.none
+            )
+
+
+updateFromLayout : Main.Layouts.Msg.Msg -> Model -> ( Maybe Main.Layouts.Model.Model, Cmd Msg )
+updateFromLayout msg model =
+    let
+        route : Route ()
+        route =
+            Route.fromUrl () model.url
+    in
+    case ( toLayoutFromPage model, model.layout, msg ) of
+        _ ->
+            ( model.layout
+            , Cmd.none
+            )
+
+
+toLayoutFromPage : Model -> Maybe (Layouts.Layout Msg)
+toLayoutFromPage model =
+    case model.page of
+        Main.Pages.Model.Login_ pageModel ->
+            Route.fromUrl () model.url
+                |> Pages.Login_.page model.shared
+                |> Page.layout pageModel
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Login_ >> Page))
+
+        Main.Pages.Model.Home_ pageModel ->
+            Route.fromUrl () model.url
+                |> toAuthProtectedPage model Pages.Home_.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
+
+        Main.Pages.Model.Deployments_ pageModel ->
+            Route.fromUrl () model.url
+                |> Pages.Deployments_.page model.shared
+                |> Page.layout pageModel
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Deployments_ >> Page))
+
+        Main.Pages.Model.NotFound_ pageModel ->
+            Route.fromUrl () model.url
+                |> Pages.NotFound_.page model.shared
+                |> Page.layout pageModel
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.NotFound_ >> Page))
+
+        Main.Pages.Model.Redirecting_ ->
+            Nothing
+
+        Main.Pages.Model.Loading_ ->
+            Nothing
+
+
+toAuthProtectedPage : Model -> (Auth.User -> Shared.Model -> Route params -> Page.Page model msg) -> Route params -> Maybe (Page.Page model msg)
+toAuthProtectedPage model toPage route =
+    case Auth.onPageLoad model.shared (Route.fromUrl () model.url) of
+        Auth.Action.LoadPageWithUser user ->
+            Just (toPage user model.shared route)
+
+        _ ->
+            Nothing
+
+
+hasActionTypeChanged : Auth.Action.Action user -> Auth.Action.Action user -> Bool
+hasActionTypeChanged oldAction newAction =
+    case ( newAction, oldAction ) of
+        ( Auth.Action.LoadPageWithUser _, Auth.Action.LoadPageWithUser _ ) ->
+            False
+
+        ( Auth.Action.ShowLoadingPage _, Auth.Action.ShowLoadingPage _ ) ->
+            False
+
+        ( Auth.Action.ReplaceRoute _, Auth.Action.ReplaceRoute _ ) ->
+            False
+
+        ( Auth.Action.PushRoute _, Auth.Action.PushRoute _ ) ->
+            False
+
+        ( Auth.Action.LoadExternalUrl _, Auth.Action.LoadExternalUrl _ ) ->
+            False
+
+        ( _, _ ) ->
+            True
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch <|
+        [ Interop.onThemeChange decodeOnThemeChange
+        , Interop.onGraphInteraction decodeOnGraphInteraction
+        , onMouseDown "contextual-help" model ShowHideHelp
+        , onMouseDown "identity" model ShowHideIdentity
+        , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
+        , Browser.Events.onKeyDown (Json.Decode.map OnKeyDown (Json.Decode.field "key" Json.Decode.string))
+        , Browser.Events.onKeyUp (Json.Decode.map OnKeyUp (Json.Decode.field "key" Json.Decode.string))
+        , Browser.Events.onVisibilityChange VisibilityChanged
+        , refreshSubscriptions model
+        ]
+
+
+
+-- VIEW
+
+
+view : Model -> Browser.Document Msg
+view model =
+    let
+        view_ : View Msg
+        view_ =
+            toView model
+                |> legacyLayout model
+    in
+    View.toBrowserDocument
+        { shared = model.shared
+        , route = Route.fromUrl () model.url
+        , view = view_
+        }
+
+
+toView : Model -> View Msg
+toView model =
+    viewPage model
+
+
+viewPage : Model -> View Msg
+viewPage model =
+    case model.page of
+        Main.Pages.Model.Login_ pageModel ->
+            Page.view (Pages.Login_.page model.shared (Route.fromUrl () model.url)) pageModel
+                |> View.map Main.Pages.Msg.Login_
+                |> View.map Page
+
+        Main.Pages.Model.Home_ pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Home_
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Deployments_ pageModel ->
+            Page.view (Pages.Deployments_.page model.shared (Route.fromUrl () model.url)) pageModel
+                |> View.map Main.Pages.Msg.Deployments_
+                |> View.map Page
+
+        Main.Pages.Model.NotFound_ pageModel ->
+            Page.view (Pages.NotFound_.page model.shared (Route.fromUrl () model.url)) pageModel
+                |> View.map Main.Pages.Msg.NotFound_
+                |> View.map Page
+
+        Main.Pages.Model.Redirecting_ ->
+            View.none
+
+        Main.Pages.Model.Loading_ ->
+            Auth.viewLoadingPage model.shared (Route.fromUrl () model.url)
+                |> View.map never
+
+
+legacyLayout model v =
+    -- todo: move this into a site-wide Layout
+    { v
+        | body =
+            [ lazy2 viewHeader
+                model.shared.session
+                { feedbackLink = model.shared.velaFeedbackURL
+                , docsLink = model.shared.velaDocsURL
+                , theme = model.shared.theme
+                , help = helpArgs model
+                , showId = model.shared.showIdentity
+                }
+            , lazy2 Nav.viewNav model navMsgs
+            , main_ [ class "content-wrap" ]
+                (viewUtil model
+                    :: v.body
+                )
+            , footer [] [ lazy viewAlerts model.shared.toasties ]
+            ]
+    }
+
+
 
 -- INTERNALS
 
@@ -2749,23 +3034,17 @@ fromPageEffect model effect =
         (Effect.map Page effect)
 
 
-updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
-updateFromPage msg model =
-    case ( msg, model.page ) of
-        ( Main.Pages.Msg.Home_ pageMsg, Main.Pages.Model.Home_ pageModel ) ->
-            Tuple.mapBoth
-                Main.Pages.Model.Home_
-                (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
-                (Page.update (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
-
-        ( Main.Pages.Msg.Legacy pageMsg, Main.Pages.Model.Legacy pageModel ) ->
-            Tuple.mapBoth
-                Main.Pages.Model.Legacy
-                (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
-                (Page.update (Pages.Legacy.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
-
-        _ ->
-            ( model.page, Cmd.none )
+fromLayoutEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Main.Layouts.Msg.Msg -> Cmd Msg
+fromLayoutEffect model effect =
+    Effect.toCmd
+        { key = model.key
+        , url = model.url
+        , shared = model.shared
+        , fromSharedMsg = Shared
+        , batch = Batch
+        , toCmd = Task.succeed >> Task.perform identity
+        }
+        (Effect.map Layout effect)
 
 
 fromSharedEffect : { model | key : Browser.Navigation.Key, url : Url, shared : Shared.Model } -> Effect Shared.Msg -> Cmd Msg
@@ -2794,53 +3073,108 @@ toPageUrlHookCmd model routes =
                 |> Cmd.batch
     in
     case model.page of
-        Main.Pages.Model.Home_ _ ->
+        Main.Pages.Model.Login_ pageModel ->
+            Page.toUrlMessages routes (Pages.Login_.page model.shared (Route.fromUrl () model.url))
+                |> List.map Main.Pages.Msg.Login_
+                |> List.map Page
+                |> toCommands
+
+        Main.Pages.Model.Home_ pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Home_.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.Home_
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Deployments_ pageModel ->
+            Page.toUrlMessages routes (Pages.Deployments_.page model.shared (Route.fromUrl () model.url))
+                |> List.map Main.Pages.Msg.Deployments_
+                |> List.map Page
+                |> toCommands
+
+        Main.Pages.Model.NotFound_ pageModel ->
+            Page.toUrlMessages routes (Pages.NotFound_.page model.shared (Route.fromUrl () model.url))
+                |> List.map Main.Pages.Msg.NotFound_
+                |> List.map Page
+                |> toCommands
+
+        Main.Pages.Model.Redirecting_ ->
             Cmd.none
 
-        _ ->
+        Main.Pages.Model.Loading_ ->
             Cmd.none
 
 
 toLayoutUrlHookCmd : Model -> Model -> { from : Route (), to : Route () } -> Cmd Msg
 toLayoutUrlHookCmd oldModel model routes =
-    -- let
-    --     toCommands messages =
-    --         if shouldFireUrlChangedEvents then
-    --             messages
-    --                 |> List.map (Task.succeed >> Task.perform identity)
-    --                 |> Cmd.batch
-    --         else
-    --             Cmd.none
-    --     shouldFireUrlChangedEvents =
-    --         hasNavigatedWithinNewLayout
-    --             { from = toLayoutFromPage oldModel
-    --             , to = toLayoutFromPage model
-    --             }
-    --     route =
-    --         Route.fromUrl () model.url
-    -- in
-    -- case ( toLayoutFromPage model, model.layout ) of
-    --     _ ->
-    Cmd.none
+    let
+        toCommands messages =
+            if shouldFireUrlChangedEvents then
+                messages
+                    |> List.map (Task.succeed >> Task.perform identity)
+                    |> Cmd.batch
+
+            else
+                Cmd.none
+
+        shouldFireUrlChangedEvents =
+            hasNavigatedWithinNewLayout
+                { from = toLayoutFromPage oldModel
+                , to = toLayoutFromPage model
+                }
+
+        route =
+            Route.fromUrl () model.url
+    in
+    case ( toLayoutFromPage model, model.layout ) of
+        ( Just (Layouts.Default props), Just (Main.Layouts.Model.Default layoutModel) ) ->
+            Layout.toUrlMessages routes (Layouts.Default.layout props model.shared route)
+                |> List.map Main.Layouts.Msg.Default
+                |> List.map Layout
+                |> toCommands
+
+        _ ->
+            Cmd.none
 
 
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.batch <|
-        [ Interop.onThemeChange decodeOnThemeChange
-        , Interop.onGraphInteraction decodeOnGraphInteraction
-        , onMouseDown "contextual-help" model ShowHideHelp
-        , onMouseDown "identity" model ShowHideIdentity
-        , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
-        , Browser.Events.onKeyDown (Json.Decode.map OnKeyDown (Json.Decode.field "key" Json.Decode.string))
-        , Browser.Events.onKeyUp (Json.Decode.map OnKeyUp (Json.Decode.field "key" Json.Decode.string))
-        , Browser.Events.onVisibilityChange VisibilityChanged
-        , refreshSubscriptions model
+hasNavigatedWithinNewLayout : { from : Maybe (Layouts.Layout msg), to : Maybe (Layouts.Layout msg) } -> Bool
+hasNavigatedWithinNewLayout { from, to } =
+    let
+        isRelated maybePair =
+            case maybePair of
+                _ ->
+                    False
+    in
+    List.any isRelated
+        [ Maybe.map2 Tuple.pair from to
+        , Maybe.map2 Tuple.pair to from
         ]
+
+
+isAuthProtected : Route.Path.Path -> Bool
+isAuthProtected routePath =
+    case routePath of
+        Route.Path.Login_ ->
+            False
+
+        Route.Path.Authenticate_ ->
+            False
+
+        Route.Path.Home_ ->
+            True
+
+        Route.Path.Deployments_ _ _ ->
+            True
+
+        Route.Path.NotFound_ ->
+            False
+
+
+
+-- LEGACY HELPERS (SUBSCRIPTIONS)
 
 
 {-| decodeOnThemeChange : takes interaction in json and decodes it into a SetTheme Msg
@@ -2923,553 +3257,7 @@ isOutsideTarget targetId =
 
 
 
--- VIEW
--- todo: move this into a site-wide Layout
-
-
-legacyLayout model v =
-    { v
-        | body =
-            [ lazy2 viewHeader
-                model.shared.session
-                { feedbackLink = model.shared.velaFeedbackURL
-                , docsLink = model.shared.velaDocsURL
-                , theme = model.shared.theme
-                , help = helpArgs model
-                , showId = model.shared.showIdentity
-                }
-            , lazy2 Nav.viewNav model navMsgs
-            , main_ [ class "content-wrap" ]
-                (viewUtil model
-                    :: v.body
-                )
-            , footer [] [ lazy viewAlerts model.shared.toasties ]
-            ]
-    }
-
-
-view : Model -> Browser.Document Msg
-view model =
-    let
-        view_ : View Msg
-        view_ =
-            toView model
-                |> legacyLayout model
-    in
-    View.toBrowserDocument
-        { shared = model.shared
-        , route = Route.fromUrl () model.url
-        , view = view_
-        }
-
-
-toView : Model -> View Msg
-toView model =
-    viewPage model
-
-
-viewPage : Model -> View Msg
-viewPage model =
-    case model.page of
-        Main.Pages.Model.Home_ pageModel ->
-            Page.view (Pages.Home_.page model.shared (Route.fromUrl () model.url)) pageModel
-                |> View.map Main.Pages.Msg.Home_
-                |> View.map Page
-
-        -- todo: vader: move this when we've migrated all pages and no longer need the legacy code
-        -- todo: vader migrate more pages
-        Main.Pages.Model.Legacy _ ->
-            (\( title, body ) -> { title = title, body = [ body ] }) <|
-                case model.legacyPage of
-                    -- todo: vader: remove this in favor of migrated page
-                    Pages.Overview ->
-                        ( "Overview"
-                        , div [] [ text "Legacy Overview, how'd we get here?" ]
-                        )
-
-                    Pages.SourceRepositories ->
-                        ( "Source Repositories"
-                        , lazy2 Pages.SourceRepos.view
-                            { user = model.shared.user
-                            , sourceRepos = model.shared.sourceRepos
-                            , filters = model.shared.filters
-                            }
-                            sourceReposMsgs
-                        )
-
-                    Pages.OrgRepositories org maybePage _ ->
-                        ( org ++ Util.pageToString maybePage
-                        , div []
-                            [ Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
-                            , lazy2 Pages.Organization.viewOrgRepos org model.shared.repo.orgRepos
-                            , Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
-                            ]
-                        )
-
-                    Pages.Hooks org repo maybePage _ ->
-                        ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
-                        , div []
-                            [ Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
-                            , lazy2 Pages.Hooks.view
-                                { hooks = model.shared.repo.hooks
-                                , time = model.shared.time
-                                , org = model.shared.repo.org
-                                , repo = model.shared.repo.name
-                                }
-                                RedeliverHook
-                            , Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
-                            ]
-                        )
-
-                    Pages.RepoSettings org repo ->
-                        ( String.join "/" [ org, repo ] ++ " settings"
-                        , lazy5 Pages.RepoSettings.view model.shared.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.shared.entryURL) model.shared.velaMaxBuildLimit
-                        )
-
-                    Pages.RepoSecrets engine org repo _ _ ->
-                        ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
-                        , div []
-                            [ Html.map SecretsUpdate <| lazy Pages.Secrets.View.viewRepoSecrets model
-                            , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
-                            ]
-                        )
-
-                    Pages.OrgSecrets engine org maybePage _ ->
-                        ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ Util.pageToString maybePage
-                        , div []
-                            [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
-                            , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
-                            , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
-                            ]
-                        )
-
-                    Pages.SharedSecrets engine org team _ _ ->
-                        ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
-                        , div []
-                            [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
-                            , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
-                            ]
-                        )
-
-                    Pages.AddOrgSecret engine _ ->
-                        ( "add " ++ engine ++ " org secret"
-                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
-                        )
-
-                    Pages.AddRepoSecret engine _ _ ->
-                        ( "add " ++ engine ++ " repo secret"
-                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
-                        )
-
-                    Pages.AddSharedSecret engine _ _ ->
-                        ( "add " ++ engine ++ " shared secret"
-                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
-                        )
-
-                    Pages.OrgSecret engine org name ->
-                        ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
-                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
-                        )
-
-                    Pages.RepoSecret engine org repo name ->
-                        ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
-                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
-                        )
-
-                    Pages.SharedSecret engine org team name ->
-                        ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
-                        , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
-                        )
-
-                    Pages.AddDeployment org repo ->
-                        ( String.join "/" [ org, repo ] ++ " add deployment"
-                        , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
-                        )
-
-                    Pages.PromoteDeployment org repo buildNumber ->
-                        ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
-                        , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
-                        )
-
-                    Pages.RepositoryDeployments org repo maybePage _ ->
-                        ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
-                        , div []
-                            [ lazy3 Pages.Deployments.View.viewDeployments model.shared.repo org repo
-                            , Pager.view model.shared.repo.deployments.pager Pager.defaultLabels GotoPage
-                            ]
-                        )
-
-                    Pages.AddSchedule org repo ->
-                        ( String.join "/" [ org, repo, "add schedule" ]
-                        , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewAddSchedule model
-                        )
-
-                    Pages.Schedule org repo name ->
-                        ( String.join "/" [ org, repo, name ]
-                        , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewEditSchedule model
-                        )
-
-                    Pages.Schedules org repo maybePage _ ->
-                        let
-                            viewPager =
-                                if Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist then
-                                    Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
-
-                                else
-                                    text ""
-                        in
-                        ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
-                        , div []
-                            [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
-                            , viewPager
-                            ]
-                        )
-
-                    Pages.OrgBuilds org maybePage _ maybeEvent ->
-                        let
-                            repo =
-                                ""
-
-                            shouldRenderFilter : Bool
-                            shouldRenderFilter =
-                                case ( model.shared.repo.builds.builds, maybeEvent ) of
-                                    ( Success result, Nothing ) ->
-                                        not <| List.length result == 0
-
-                                    ( Success _, _ ) ->
-                                        True
-
-                                    ( Loading, _ ) ->
-                                        True
-
-                                    _ ->
-                                        False
-                        in
-                        ( org ++ " builds" ++ Util.pageToString maybePage
-                        , div []
-                            [ div [ class "build-bar" ]
-                                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                                , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
-                                ]
-                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                            , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
-                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                            ]
-                        )
-
-                    Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
-                        let
-                            shouldRenderFilter : Bool
-                            shouldRenderFilter =
-                                case ( model.shared.repo.builds.builds, maybeEvent ) of
-                                    ( Success result, Nothing ) ->
-                                        not <| List.length result == 0
-
-                                    ( Success _, _ ) ->
-                                        True
-
-                                    ( Loading, _ ) ->
-                                        True
-
-                                    _ ->
-                                        False
-                        in
-                        ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
-                        , div []
-                            [ div [ class "build-bar" ]
-                                [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
-                                , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
-                                ]
-                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                            , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
-                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                            ]
-                        )
-
-                    Pages.RepositoryBuildsPulls org repo maybePage _ ->
-                        let
-                            shouldRenderFilter : Bool
-                            shouldRenderFilter =
-                                case ( model.shared.repo.builds.builds, Just "pull_request" ) of
-                                    ( Success result, Nothing ) ->
-                                        not <| List.length result == 0
-
-                                    ( Success _, _ ) ->
-                                        True
-
-                                    ( Loading, _ ) ->
-                                        True
-
-                                    _ ->
-                                        False
-                        in
-                        ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
-                        , div []
-                            [ div [ class "build-bar" ]
-                                [ viewBuildsFilter shouldRenderFilter org repo (Just "pull_request")
-                                , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
-                                ]
-                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                            , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
-                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                            ]
-                        )
-
-                    Pages.RepositoryBuildsTags org repo maybePage _ ->
-                        let
-                            shouldRenderFilter : Bool
-                            shouldRenderFilter =
-                                case ( model.shared.repo.builds.builds, Just "tag" ) of
-                                    ( Success result, Nothing ) ->
-                                        not <| List.length result == 0
-
-                                    ( Success _, _ ) ->
-                                        True
-
-                                    ( Loading, _ ) ->
-                                        True
-
-                                    _ ->
-                                        False
-                        in
-                        ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
-                        , div []
-                            [ div [ class "build-bar" ]
-                                [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
-                                , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
-                                ]
-                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                            , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
-                            , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                            ]
-                        )
-
-                    Pages.Build org repo buildNumber _ ->
-                        ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-                        , Pages.Build.View.viewBuild
-                            model
-                            buildMsgs
-                            org
-                            repo
-                            buildNumber
-                        )
-
-                    Pages.BuildServices org repo buildNumber _ ->
-                        ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
-                        , Pages.Build.View.viewBuildServices
-                            model
-                            buildMsgs
-                            org
-                            repo
-                            buildNumber
-                        )
-
-                    Pages.BuildPipeline org repo buildNumber _ _ ->
-                        ( "Pipeline " ++ String.join "/" [ org, repo ]
-                        , Pages.Pipeline.View.viewPipeline
-                            model
-                            pipelineMsgs
-                            |> Pages.Build.View.wrapWithBuildPreview
-                                model
-                                buildMsgs
-                                org
-                                repo
-                                buildNumber
-                        )
-
-                    Pages.BuildGraph org repo buildNumber ->
-                        ( "Visualize " ++ String.join "/" [ org, repo, buildNumber ]
-                        , Pages.Build.View.viewBuildGraph
-                            model
-                            buildMsgs
-                            org
-                            repo
-                            buildNumber
-                        )
-
-                    Pages.Settings ->
-                        ( "Settings"
-                        , Pages.Settings.view model.shared.session model.shared.time (Pages.Settings.Msgs Copy)
-                        )
-
-                    Pages.Login ->
-                        ( "Login"
-                        , viewLogin
-                        )
-
-                    Pages.NotFound ->
-                        ( "404"
-                        , h1 [] [ text "Not Found" ]
-                        )
-
-
-
--- HELPERS
-
-
-setNewPage : Routes.Route -> Model -> ( Model, Cmd Msg )
-setNewPage route model =
-    let
-        shared =
-            model.shared
-    in
-    (case ( route, model.shared.session ) of
-        -- Logged in and on auth flow pages - what are you doing here?
-        ( Routes.Login, Authenticated _ ) ->
-            ( model, Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Overview )
-
-        ( Routes.Authenticate _, Authenticated _ ) ->
-            ( model, Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Overview )
-
-        -- "Not logged in" (yet) and on auth flow pages, continue on..
-        ( Routes.Authenticate { code, state }, Unauthenticated ) ->
-            ( { model | legacyPage = Pages.Login }
-            , Api.Api.try TokenResponse <| Api.Operations.getInitialToken model <| AuthParams code state
-            )
-
-        -- On the login page but not logged in.. good place to be
-        ( Routes.Login, Unauthenticated ) ->
-            ( { model | legacyPage = Pages.Login }, Cmd.none )
-
-        -- "Normal" page handling below
-        ( Routes.Overview, Authenticated _ ) ->
-            loadOverviewPage model
-
-        ( Routes.SourceRepositories, Authenticated _ ) ->
-            loadSourceReposPage model
-
-        ( Routes.OrgRepositories org maybePage maybePerPage, Authenticated _ ) ->
-            loadOrgReposPage model org maybePage maybePerPage
-
-        ( Routes.Hooks org repo maybePage maybePerPage, Authenticated _ ) ->
-            loadHooksPage model org repo maybePage maybePerPage
-
-        ( Routes.RepoSettings org repo, Authenticated _ ) ->
-            loadRepoSettingsPage model org repo
-
-        ( Routes.OrgSecrets engine org maybePage maybePerPage, Authenticated _ ) ->
-            loadOrgSecretsPage model maybePage maybePerPage engine org
-
-        ( Routes.RepoSecrets engine org repo maybePage maybePerPage, Authenticated _ ) ->
-            loadRepoSecretsPage model maybePage maybePerPage engine org repo
-
-        ( Routes.SharedSecrets engine org team maybePage maybePerPage, Authenticated _ ) ->
-            loadSharedSecretsPage model maybePage maybePerPage engine org team
-
-        ( Routes.AddOrgSecret engine org, Authenticated _ ) ->
-            loadAddOrgSecretPage model engine org
-
-        ( Routes.AddRepoSecret engine org repo, Authenticated _ ) ->
-            loadAddRepoSecretPage model engine org repo
-
-        ( Routes.AddSharedSecret engine org team, Authenticated _ ) ->
-            loadAddSharedSecretPage model engine org team
-
-        ( Routes.OrgSecret engine org name, Authenticated _ ) ->
-            loadUpdateOrgSecretPage model engine org name
-
-        ( Routes.RepoSecret engine org repo name, Authenticated _ ) ->
-            loadUpdateRepoSecretPage model engine org repo name
-
-        ( Routes.SharedSecret engine org team name, Authenticated _ ) ->
-            loadUpdateSharedSecretPage model engine org team name
-
-        ( Routes.OrgBuilds org maybePage maybePerPage maybeEvent, Authenticated _ ) ->
-            loadOrgBuildsPage model org maybePage maybePerPage maybeEvent
-
-        ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
-            loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent
-
-        ( Routes.RepositoryBuildsPulls org repo maybePage maybePerPage, Authenticated _ ) ->
-            loadRepoBuildsPullsPage model org repo maybePage maybePerPage
-
-        ( Routes.RepositoryBuildsTags org repo maybePage maybePerPage, Authenticated _ ) ->
-            loadRepoBuildsTagsPage model org repo maybePage maybePerPage
-
-        ( Routes.RepositoryDeployments org repo maybePage maybePerPage, Authenticated _ ) ->
-            loadRepoDeploymentsPage model org repo maybePage maybePerPage
-
-        ( Routes.Build org repo buildNumber lineFocus, Authenticated _ ) ->
-            loadBuildPage model org repo buildNumber lineFocus
-
-        ( Routes.AddDeploymentRoute org repo, Authenticated _ ) ->
-            loadAddDeploymentPage model org repo
-
-        ( Routes.PromoteDeployment org repo deploymentNumber, Authenticated _ ) ->
-            loadPromoteDeploymentPage model org repo deploymentNumber
-
-        ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
-            loadBuildServicesPage model org repo buildNumber lineFocus
-
-        ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
-            loadBuildPipelinePage model org repo buildNumber expand lineFocus
-
-        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
-            loadBuildGraphPage model org repo buildNumber
-
-        ( Routes.AddSchedule org repo, Authenticated _ ) ->
-            loadAddSchedulePage model org repo
-
-        ( Routes.Schedules org repo maybePage maybePerPage, Authenticated _ ) ->
-            loadRepoSchedulesPage model org repo maybePage maybePerPage
-
-        ( Routes.Schedule org repo id, Authenticated _ ) ->
-            loadEditSchedulePage model org repo id
-
-        ( Routes.Settings, Authenticated _ ) ->
-            ( { model | legacyPage = Pages.Settings, shared = { shared | showIdentity = False } }, Cmd.none )
-
-        ( Routes.Logout, Authenticated _ ) ->
-            ( model, getLogout model )
-
-        -- Not found page handling
-        ( Routes.NotFound, Authenticated _ ) ->
-            ( { model | legacyPage = Pages.NotFound }, Cmd.none )
-
-        {--Hitting any page and not being logged in will load the login page content
-
-           Note: we're not using .pushUrl to retain ability for user to use
-           browser's back button
-        --}
-        ( _, Unauthenticated ) ->
-            ( { model
-                | legacyPage =
-                    if model.shared.fetchingToken then
-                        model.legacyPage
-
-                    else
-                        Pages.Login
-              }
-            , Interop.setRedirect <| Json.Encode.string <| Url.toString model.shared.entryURL
-            )
-    )
-        -- todo: vader: remove this when there are no more legacy pages
-        |> (\( m, c ) ->
-                ( case m.legacyPage of
-                    Pages.Overview ->
-                        m
-
-                    _ ->
-                        applyLegacyPage m
-                , c
-                )
-           )
-
-
-
--- todo: vader: remove this when there are no more legacy pages
-
-
-applyLegacyPage : Model -> Model
-applyLegacyPage model =
-    { model
-        | page =
-            Tuple.first <|
-                Tuple.mapBoth
-                    Main.Pages.Model.Legacy
-                    (Effect.map Main.Pages.Msg.Legacy >> fromPageEffect model)
-                    (Page.init (Pages.Legacy.page model.shared (Route.fromUrl () model.url)) ())
-    }
+-- LEGACY HELPERS (PAGE INIT+LOADING)
 
 
 {-| loadSourceReposPage : takes model
@@ -3540,12 +3328,6 @@ loadOverviewPage : Model -> ( Model, Cmd Msg )
 loadOverviewPage model =
     ( { model
         | legacyPage = Pages.Overview
-        , page =
-            Tuple.first <|
-                Tuple.mapBoth
-                    Main.Pages.Model.Home_
-                    (Effect.map Main.Pages.Msg.Home_ >> fromPageEffect model)
-                    (Page.init (Pages.Home_.page model.shared (Route.fromUrl () model.url)) ())
       }
     , Cmd.batch
         [ getCurrentUser model
@@ -4615,7 +4397,7 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
 
 
 
--- MINI MSGS
+-- LEGACY HELPERS (PAGE MSGS)
 --todo: these shouldnt be needed with Shared.Msg
 
 
@@ -4685,7 +4467,7 @@ pipelineMsgs =
 
 
 -- todo: these shouldnt be needed to use the Effect Api
--- API HELPERS
+-- LEGACY HELPERS (API CALLS)
 
 
 {-| getToken attempts to retrieve a new access token
@@ -5737,3 +5519,469 @@ viewTimeToggle shouldRender showTimestamp =
 
     else
         text ""
+
+
+
+-- UNUSED REFERENCE CODE
+
+
+viewPageUNUSED : Model -> ( String, Html Msg )
+viewPageUNUSED model =
+    case model.legacyPage of
+        -- todo: vader: remove this in favor of migrated page
+        Pages.Overview ->
+            ( "Overview"
+            , div [] [ text "Legacy Overview, how'd we get here?" ]
+            )
+
+        Pages.SourceRepositories ->
+            ( "Source Repositories"
+            , lazy2 Pages.SourceRepos.view
+                { user = model.shared.user
+                , sourceRepos = model.shared.sourceRepos
+                , filters = model.shared.filters
+                }
+                sourceReposMsgs
+            )
+
+        Pages.OrgRepositories org maybePage _ ->
+            ( org ++ Util.pageToString maybePage
+            , div []
+                [ Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
+                , lazy2 Pages.Organization.viewOrgRepos org model.shared.repo.orgRepos
+                , Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
+                ]
+            )
+
+        Pages.Hooks org repo maybePage _ ->
+            ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
+            , div []
+                [ Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
+                , lazy2 Pages.Hooks.view
+                    { hooks = model.shared.repo.hooks
+                    , time = model.shared.time
+                    , org = model.shared.repo.org
+                    , repo = model.shared.repo.name
+                    }
+                    RedeliverHook
+                , Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
+        Pages.RepoSettings org repo ->
+            ( String.join "/" [ org, repo ] ++ " settings"
+            , lazy5 Pages.RepoSettings.view model.shared.repo.repo repoSettingsMsgs model.shared.velaAPI (Url.toString model.url) model.shared.velaMaxBuildLimit
+            )
+
+        Pages.RepoSecrets engine org repo _ _ ->
+            ( String.join "/" [ org, repo ] ++ " " ++ engine ++ " repo secrets"
+            , div []
+                [ Html.map SecretsUpdate <| lazy Pages.Secrets.View.viewRepoSecrets model
+                , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model True False
+                ]
+            )
+
+        Pages.OrgSecrets engine org maybePage _ ->
+            ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ Util.pageToString maybePage
+            , div []
+                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
+                , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
+                , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
+                ]
+            )
+
+        Pages.SharedSecrets engine org team _ _ ->
+            ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
+            , div []
+                [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
+                , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
+                ]
+            )
+
+        Pages.AddOrgSecret engine _ ->
+            ( "add " ++ engine ++ " org secret"
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
+            )
+
+        Pages.AddRepoSecret engine _ _ ->
+            ( "add " ++ engine ++ " repo secret"
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
+            )
+
+        Pages.AddSharedSecret engine _ _ ->
+            ( "add " ++ engine ++ " shared secret"
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.addSecret model
+            )
+
+        Pages.OrgSecret engine org name ->
+            ( String.join "/" [ org, name ] ++ " update " ++ engine ++ " org secret"
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
+            )
+
+        Pages.RepoSecret engine org repo name ->
+            ( String.join "/" [ org, repo, name ] ++ " update " ++ engine ++ " repo secret"
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
+            )
+
+        Pages.SharedSecret engine org team name ->
+            ( String.join "/" [ org, team, name ] ++ " update " ++ engine ++ " shared secret"
+            , Html.map SecretsUpdate <| lazy Pages.Secrets.View.editSecret model
+            )
+
+        Pages.AddDeployment org repo ->
+            ( String.join "/" [ org, repo ] ++ " add deployment"
+            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
+            )
+
+        Pages.PromoteDeployment org repo buildNumber ->
+            ( String.join "/" [ org, repo, buildNumber ] ++ " promote deployment"
+            , Html.map AddDeploymentUpdate <| lazy Pages.Deployments.View.addDeployment model
+            )
+
+        Pages.RepositoryDeployments org repo maybePage _ ->
+            ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
+            , div []
+                [ lazy3 Pages.Deployments.View.viewDeployments model.shared.repo org repo
+                , Pager.view model.shared.repo.deployments.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
+        Pages.AddSchedule org repo ->
+            ( String.join "/" [ org, repo, "add schedule" ]
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewAddSchedule model
+            )
+
+        Pages.Schedule org repo name ->
+            ( String.join "/" [ org, repo, name ]
+            , Html.map AddScheduleUpdate <| lazy Pages.Schedules.View.viewEditSchedule model
+            )
+
+        Pages.Schedules org repo maybePage _ ->
+            let
+                viewPager =
+                    if Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist then
+                        Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
+
+                    else
+                        text ""
+            in
+            ( String.join "/" [ org, repo ] ++ " schedules" ++ Util.pageToString maybePage
+            , div []
+                [ lazy3 Pages.Schedules.View.viewRepoSchedules model org repo
+                , viewPager
+                ]
+            )
+
+        Pages.OrgBuilds org maybePage _ maybeEvent ->
+            let
+                repo =
+                    ""
+
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.shared.repo.builds.builds, maybeEvent ) of
+                        ( Success result, Nothing ) ->
+                            not <| List.length result == 0
+
+                        ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
+                            True
+
+                        _ ->
+                            False
+            in
+            ( org ++ " builds" ++ Util.pageToString maybePage
+            , div []
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                    ]
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
+        Pages.RepositoryBuilds org repo maybePage _ maybeEvent ->
+            let
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.shared.repo.builds.builds, maybeEvent ) of
+                        ( Success result, Nothing ) ->
+                            not <| List.length result == 0
+
+                        ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
+                            True
+
+                        _ ->
+                            False
+            in
+            ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+            , div []
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
+                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                    ]
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
+        Pages.RepositoryBuildsPulls org repo maybePage _ ->
+            let
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.shared.repo.builds.builds, Just "pull_request" ) of
+                        ( Success result, Nothing ) ->
+                            not <| List.length result == 0
+
+                        ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
+                            True
+
+                        _ ->
+                            False
+            in
+            ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+            , div []
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo (Just "pull_request")
+                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                    ]
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
+        Pages.RepositoryBuildsTags org repo maybePage _ ->
+            let
+                shouldRenderFilter : Bool
+                shouldRenderFilter =
+                    case ( model.shared.repo.builds.builds, Just "tag" ) of
+                        ( Success result, Nothing ) ->
+                            not <| List.length result == 0
+
+                        ( Success _, _ ) ->
+                            True
+
+                        ( Loading, _ ) ->
+                            True
+
+                        _ ->
+                            False
+            in
+            ( String.join "/" [ org, repo ] ++ " builds" ++ Util.pageToString maybePage
+            , div []
+                [ div [ class "build-bar" ]
+                    [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
+                    , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
+                    ]
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
+                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                ]
+            )
+
+        Pages.Build org repo buildNumber _ ->
+            ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+            , Pages.Build.View.viewBuild
+                model
+                buildMsgs
+                org
+                repo
+                buildNumber
+            )
+
+        Pages.BuildServices org repo buildNumber _ ->
+            ( "Build #" ++ buildNumber ++ " - " ++ String.join "/" [ org, repo ]
+            , Pages.Build.View.viewBuildServices
+                model
+                buildMsgs
+                org
+                repo
+                buildNumber
+            )
+
+        Pages.BuildPipeline org repo buildNumber _ _ ->
+            ( "Pipeline " ++ String.join "/" [ org, repo ]
+            , Pages.Pipeline.View.viewPipeline
+                model
+                pipelineMsgs
+                |> Pages.Build.View.wrapWithBuildPreview
+                    model
+                    buildMsgs
+                    org
+                    repo
+                    buildNumber
+            )
+
+        Pages.BuildGraph org repo buildNumber ->
+            ( "Visualize " ++ String.join "/" [ org, repo, buildNumber ]
+            , Pages.Build.View.viewBuildGraph
+                model
+                buildMsgs
+                org
+                repo
+                buildNumber
+            )
+
+        Pages.Settings ->
+            ( "Settings"
+            , Pages.Settings.view model.shared.session model.shared.time (Pages.Settings.Msgs Copy)
+            )
+
+        Pages.Login ->
+            ( "Login"
+            , viewLogin
+            )
+
+        Pages.NotFound ->
+            ( "404"
+            , h1 [] [ text "Not Found" ]
+            )
+
+
+setNewPageUNUSED : Routes.Route -> Model -> ( Model, Cmd Msg )
+setNewPageUNUSED route model =
+    let
+        shared =
+            model.shared
+    in
+    case ( route, model.shared.session ) of
+        -- Logged in and on auth flow pages - what are you doing here?
+        ( Routes.Login, Authenticated _ ) ->
+            ( model, Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Overview )
+
+        ( Routes.Authenticate _, Authenticated _ ) ->
+            ( model, Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Overview )
+
+        -- "Not logged in" (yet) and on auth flow pages, continue on..
+        ( Routes.Authenticate { code, state }, Unauthenticated ) ->
+            ( { model | legacyPage = Pages.Login }
+            , Api.Api.try TokenResponse <| Api.Operations.getInitialToken model <| AuthParams code state
+            )
+
+        -- On the login page but not logged in.. good place to be
+        ( Routes.Login, Unauthenticated ) ->
+            ( { model | legacyPage = Pages.Login }, Cmd.none )
+
+        -- "Normal" page handling below
+        ( Routes.Overview, Authenticated _ ) ->
+            loadOverviewPage model
+
+        ( Routes.SourceRepositories, Authenticated _ ) ->
+            loadSourceReposPage model
+
+        ( Routes.OrgRepositories org maybePage maybePerPage, Authenticated _ ) ->
+            loadOrgReposPage model org maybePage maybePerPage
+
+        ( Routes.Hooks org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadHooksPage model org repo maybePage maybePerPage
+
+        ( Routes.RepoSettings org repo, Authenticated _ ) ->
+            loadRepoSettingsPage model org repo
+
+        ( Routes.OrgSecrets engine org maybePage maybePerPage, Authenticated _ ) ->
+            loadOrgSecretsPage model maybePage maybePerPage engine org
+
+        ( Routes.RepoSecrets engine org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoSecretsPage model maybePage maybePerPage engine org repo
+
+        ( Routes.SharedSecrets engine org team maybePage maybePerPage, Authenticated _ ) ->
+            loadSharedSecretsPage model maybePage maybePerPage engine org team
+
+        ( Routes.AddOrgSecret engine org, Authenticated _ ) ->
+            loadAddOrgSecretPage model engine org
+
+        ( Routes.AddRepoSecret engine org repo, Authenticated _ ) ->
+            loadAddRepoSecretPage model engine org repo
+
+        ( Routes.AddSharedSecret engine org team, Authenticated _ ) ->
+            loadAddSharedSecretPage model engine org team
+
+        ( Routes.OrgSecret engine org name, Authenticated _ ) ->
+            loadUpdateOrgSecretPage model engine org name
+
+        ( Routes.RepoSecret engine org repo name, Authenticated _ ) ->
+            loadUpdateRepoSecretPage model engine org repo name
+
+        ( Routes.SharedSecret engine org team name, Authenticated _ ) ->
+            loadUpdateSharedSecretPage model engine org team name
+
+        ( Routes.OrgBuilds org maybePage maybePerPage maybeEvent, Authenticated _ ) ->
+            loadOrgBuildsPage model org maybePage maybePerPage maybeEvent
+
+        ( Routes.RepositoryBuilds org repo maybePage maybePerPage maybeEvent, Authenticated _ ) ->
+            loadRepoBuildsPage model org repo maybePage maybePerPage maybeEvent
+
+        ( Routes.RepositoryBuildsPulls org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoBuildsPullsPage model org repo maybePage maybePerPage
+
+        ( Routes.RepositoryBuildsTags org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoBuildsTagsPage model org repo maybePage maybePerPage
+
+        ( Routes.RepositoryDeployments org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoDeploymentsPage model org repo maybePage maybePerPage
+
+        ( Routes.Build org repo buildNumber lineFocus, Authenticated _ ) ->
+            loadBuildPage model org repo buildNumber lineFocus
+
+        ( Routes.AddDeploymentRoute org repo, Authenticated _ ) ->
+            loadAddDeploymentPage model org repo
+
+        ( Routes.PromoteDeployment org repo deploymentNumber, Authenticated _ ) ->
+            loadPromoteDeploymentPage model org repo deploymentNumber
+
+        ( Routes.BuildServices org repo buildNumber lineFocus, Authenticated _ ) ->
+            loadBuildServicesPage model org repo buildNumber lineFocus
+
+        ( Routes.BuildPipeline org repo buildNumber expand lineFocus, Authenticated _ ) ->
+            loadBuildPipelinePage model org repo buildNumber expand lineFocus
+
+        ( Routes.BuildGraph org repo buildNumber, Authenticated _ ) ->
+            loadBuildGraphPage model org repo buildNumber
+
+        ( Routes.AddSchedule org repo, Authenticated _ ) ->
+            loadAddSchedulePage model org repo
+
+        ( Routes.Schedules org repo maybePage maybePerPage, Authenticated _ ) ->
+            loadRepoSchedulesPage model org repo maybePage maybePerPage
+
+        ( Routes.Schedule org repo id, Authenticated _ ) ->
+            loadEditSchedulePage model org repo id
+
+        ( Routes.Settings, Authenticated _ ) ->
+            ( { model | legacyPage = Pages.Settings, shared = { shared | showIdentity = False } }, Cmd.none )
+
+        ( Routes.Logout, Authenticated _ ) ->
+            ( model, getLogout model )
+
+        -- Not found page handling
+        ( Routes.NotFound, Authenticated _ ) ->
+            ( { model | legacyPage = Pages.NotFound }, Cmd.none )
+
+        {--Hitting any page and not being logged in will load the login page content
+
+           Note: we're not using .pushUrl to retain ability for user to use
+           browser's back button
+        --}
+        ( _, Unauthenticated ) ->
+            ( { model
+                | legacyPage =
+                    if model.shared.fetchingToken then
+                        model.legacyPage
+
+                    else
+                        Pages.Login
+              }
+            , Interop.setRedirect <| Json.Encode.string <| Url.toString model.url
+            )

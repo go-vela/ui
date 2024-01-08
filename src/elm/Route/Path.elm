@@ -12,6 +12,9 @@ import Url.Parser exposing ((</>))
 
 type Path
     = Home_
+    | Deployments_ String String
+    | Login_
+    | Authenticate_
     | NotFound_
 
 
@@ -34,6 +37,13 @@ fromString urlPath =
         [] ->
             Just Home_
 
+        [ "account", "login" ] ->
+            Just Login_
+
+        [ "account", "authenticate" ] ->
+            Just Authenticate_
+
+        -- todo: how do you add a dynamic route? <org>/<repo>/deployments
         _ ->
             Nothing
 
@@ -51,6 +61,15 @@ toString path =
             case path of
                 Home_ ->
                     []
+
+                Login_ ->
+                    [ "account", "login" ]
+
+                Authenticate_ ->
+                    [ "account", "authenticate" ]
+
+                Deployments_ org repo ->
+                    [ org, repo, "deployments" ]
 
                 NotFound_ ->
                     [ "404" ]

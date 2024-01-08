@@ -4,7 +4,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , toggleFavorites
+    , getCurrentUser, gotoPage, toggleFavorites
     )
 
 {-|
@@ -18,14 +18,17 @@ module Effect exposing
 
 -}
 
+import Api.Pagination
 import Browser.Navigation
 import Dict exposing (Dict)
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared.Model
 import Shared.Msg
 import Task
 import Url exposing (Url)
+import Vela exposing (CurrentUser)
 
 
 type Effect msg
@@ -205,6 +208,30 @@ toCmd options effect =
 -- CUSTOM EFFECTS
 
 
+getCurrentUser : { user : WebData CurrentUser } -> Effect msg
+getCurrentUser options =
+    -- todo: verify if this is the right place to put this logic, copied from Main.elm and prevents infinite init loops
+    case options.user of
+        RemoteData.NotAsked ->
+            let
+                _ =
+                    Debug.log "getCurrentUser:1" options
+            in
+            SendSharedMsg <| Shared.Msg.GetCurrentUser
+
+        _ ->
+            let
+                _ =
+                    Debug.log "getCurrentUser:2" options
+            in
+            none
+
+
 toggleFavorites : { org : String, maybeRepo : Maybe String } -> Effect msg
 toggleFavorites options =
     SendSharedMsg <| Shared.Msg.ToggleFavorites options
+
+
+gotoPage : { pageNumber : Int } -> Effect msg
+gotoPage options =
+    SendSharedMsg <| Shared.Msg.GotoPage options

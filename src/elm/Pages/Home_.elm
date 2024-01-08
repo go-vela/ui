@@ -1,5 +1,6 @@
 module Pages.Home_ exposing (Model, Msg, page, view)
 
+import Auth
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import Favorites exposing (ToggleFavorite, starToggle)
@@ -39,10 +40,10 @@ import Vela exposing (Favorites, Org, Repo)
 import View exposing (View)
 
 
-page : Shared.Model -> Route () -> Page Model Msg
-page shared route =
+page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
+page user shared route =
     Page.new
-        { init = init
+        { init = init shared
         , update = update
         , subscriptions = subscriptions
         , view = view shared
@@ -58,10 +59,15 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Effect Msg )
-init () =
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared () =
+    let
+        _ =
+            Debug.log "init:Pages.Home_" shared.user
+    in
     ( { favoritesFilter = ""
       }
+      -- , Effect.getCurrentUser { user = shared.user }
     , Effect.none
     )
 
@@ -139,11 +145,14 @@ view shared model =
                             [ blankMessage ]
 
                     Loading ->
-                        [ h1 [] [ text "Loading your Repositories", span [ class "loading-ellipsis" ] [] ] ]
+                        [ h1 [] [ text "Loading user...", span [ class "loading-ellipsis" ] [] ] ]
 
                     NotAsked ->
-                        [ text "not asked" ]
+                        [ homeSearchBar model.favoritesFilter SearchFavorites
+                        , viewFavorites [] model.favoritesFilter
+                        ]
 
+                    -- [ text "not asked" ]
                     Failure _ ->
                         [ text "failed" ]
     in

@@ -1,5 +1,7 @@
 module Main.Layouts.Model exposing (..)
 
+import Layouts.Default
 
-type alias Model =
-    Never
+
+type Model
+    = Default { default : Layouts.Default.Model }

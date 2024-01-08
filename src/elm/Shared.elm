@@ -9,6 +9,7 @@ import Api.Operations_ exposing (updateCurrentUser)
 import Auth.Session exposing (..)
 import Browser.Dom exposing (..)
 import Browser.Events exposing (Visibility(..))
+import Browser.Navigation
 import Dict exposing (..)
 import Effect exposing (Effect)
 import Errors exposing (Error, addError, toFailure)
@@ -18,8 +19,9 @@ import Http.Detailed
 import Json.Decode as Decode exposing (..)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Pages exposing (..)
-import RemoteData exposing (..)
+import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared.Model
 import Shared.Msg
 import Task exposing (Task)
@@ -52,6 +54,7 @@ type alias Flags =
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
     , velaScheduleAllowlist : String
+    , token : String
     }
 
 
@@ -67,14 +70,15 @@ decoder =
         |> required "velaLogBytesLimit" Decode.int
         |> required "velaMaxBuildLimit" Decode.int
         |> required "velaScheduleAllowlist" Decode.string
+        |> optional "token" Decode.string ""
 
 
 
 -- todo: comments
 
 
-init : Result Decode.Error Flags -> Route () -> Url -> ( Model, Effect Msg )
-init flagsResult route url =
+init : Result Decode.Error Flags -> Route () -> ( Model, Effect Msg )
+init flagsResult route =
     let
         flags : Flags
         flags =
@@ -95,10 +99,12 @@ init flagsResult route url =
                     , velaLogBytesLimit = 0
                     , velaMaxBuildLimit = 0
                     , velaScheduleAllowlist = ""
+                    , token = ""
                     }
     in
     -- todo: these need to be logically ordered (flags, session, user, data models, etc)
     ( { session = Unauthenticated
+      , token = Nothing
       , fetchingToken = String.length flags.velaRedirect == 0
       , user = NotAsked
       , sourceRepos = NotAsked
@@ -114,7 +120,6 @@ init flagsResult route url =
       , time = millisToPosix 0
       , filters = Dict.empty
       , repo = defaultRepoModel
-      , entryURL = url
       , theme = stringToTheme flags.velaTheme
       , shift = False
       , visibility = Visible
@@ -150,6 +155,35 @@ update route msg model =
             , Effect.none
             )
 
+        -- AUTH
+        Shared.Msg.TokenResponse response ->
+            ( model
+            , Effect.none
+            )
+
+        -- PAGINATION
+        Shared.Msg.GotoPage options ->
+            let
+                repo =
+                    model.repo
+
+                deployments =
+                    model.repo.deployments
+            in
+            case route.path of
+                Route.Path.Deployments_ _ _ ->
+                    ( { model | repo = { repo | deployments = { deployments | deployments = Loading } } }
+                    , Effect.pushRoute
+                        { path = route.path
+                        , query = Dict.update "page" (\_ -> Just <| String.fromInt options.pageNumber) route.query
+                        , hash = Just "gotopage"
+                        }
+                    )
+
+                _ ->
+                    ( model, Effect.none )
+
+        -- FAVORITES
         Shared.Msg.ToggleFavorites options ->
             let
                 favorite =
@@ -198,6 +232,35 @@ update route msg model =
                     , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
                     )
 
+        Shared.Msg.GetCurrentUser ->
+            let
+                _ =
+                    Debug.log "GetCurrentUser" model.user
+            in
+            ( { model | user = Loading }
+              -- , Effect.none
+            , Api.try
+                Shared.Msg.CurrentUserResponse
+                (Api.Operations_.getCurrentUser model.velaAPI model.session)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.CurrentUserResponse response ->
+            let
+                _ =
+                    Debug.log "CurrentUserResponse" response
+            in
+            case response of
+                Ok ( _, user ) ->
+                    ( { model | user = RemoteData.succeed user }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | user = toFailure error }
+                    , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
+                    )
+
         -- ERRORS
         Shared.Msg.HandleError error ->
             let
@@ -220,86 +283,9 @@ update route msg model =
 
 
 -- SUBSCRIPTIONS
--- todo: vader: move Main.elm subscriptions into shared
+-- todo: vader: move Main.elm subscriptions into shared and pages
 
 
 subscriptions : () -> Model -> Sub Msg
 subscriptions route model =
     Sub.none
-
-
-
--- API
--- todo: vader: this should be moved when we can solve the cyclical dependency
--- {-| RequestConfig : a basic configuration record for an API request
--- -}
--- type alias RequestConfig a =
---     { method : String
---     , headers : List Http.Header
---     , url : String
---     , body : Http.Body
---     , decoder : Decoder a
---     }
--- {-| Request : wraps a configuration for an API request
--- -}
--- type Request a
---     = Request (RequestConfig a)
--- {-| request : turn a request configuration into a request
--- -}
--- request : RequestConfig a -> Request a
--- request =
---     Request
--- {-| toTask : turn a request config into an HTTP task
--- -}
--- toTask : Request a -> Task (Http.Detailed.Error String) ( Http.Metadata, a )
--- toTask (Request config) =
---     Http.riskyTask
---         { body = config.body
---         , headers = config.headers
---         , method = config.method
---         , resolver = Http.stringResolver <| Http.Detailed.responseToJson config.decoder
---         , timeout = Nothing
---         , url = config.url
---         }
--- {-| try : default way to request information from an endpoint
---     example usage:
---         Api.try UserResponse <| Api.getUser model authParams
--- -}
--- try : (Result (Http.Detailed.Error String) ( Http.Metadata, a ) -> msg) -> Request a -> Effect msg
--- try msg request_ =
---     toTask request_
---         |> Task.attempt msg
---         |> Effect.sendCmd
---         -- map to Effect
---         -- or put this directly into Effects
--- {-| updateCurrentUser : updates the currently authenticated user with the current user endpoint
--- -}
--- updateCurrentUser : Model -> Http.Body -> Request CurrentUser
--- updateCurrentUser model body =
---     put model.velaAPI Endpoint.CurrentUser body decodeCurrentUser
---         |> withAuth model.session
--- {-| put : creates a PUT request configuration
--- -}
--- put : String -> Endpoint -> Http.Body -> Decoder b -> Request b
--- put api endpoint body d =
---     request
---         { method = "PUT"
---         , headers = []
---         , url = Endpoint.toUrl api endpoint
---         , body = body
---         , decoder = d
---         }
--- {-| withAuth : returns an auth header with given Bearer token
--- -}
--- withAuth : Session -> Request a -> Request a
--- withAuth session (Request config) =
---     let
---         token : String
---         token =
---             case session of
---                 Unauthenticated ->
---                     ""
---                 Authenticated auth ->
---                     auth.token
---     in
---     request { config | headers = Http.header "authorization" ("Bearer " ++ token) :: config.headers }

@@ -1,4 +1,4 @@
-module Api.Operations_ exposing (updateCurrentUser)
+module Api.Operations_ exposing (getCurrentUser, getToken, updateCurrentUser)
 
 import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)
 import Api.Endpoint as Endpoint exposing (Endpoint)
@@ -67,6 +67,21 @@ import Vela
 
 
 -- OPERATIONS
+
+
+{-| getToken attempts to retrieve a new access token
+-}
+getToken : String -> Request JwtAccessToken
+getToken baseUrl =
+    get baseUrl Endpoint.Token decodeJwtAccessToken
+
+
+{-| getCurrentUser : retrieves the currently authenticated user with the current user endpoint
+-}
+getCurrentUser : String -> Session -> Request CurrentUser
+getCurrentUser baseUrl session =
+    get baseUrl Endpoint.CurrentUser decodeCurrentUser
+        |> withAuth session
 
 
 {-| updateCurrentUser : updates the currently authenticated user with the current user endpoint

@@ -2,9 +2,8 @@ module Page exposing
     ( Page, new
     , sandbox, element
     , withOnUrlChanged, withOnQueryParameterChanged, withOnHashChanged
-    , init, update, view, subscriptions, toUrlMessages
+    , init, update, view, subscriptions, layout, toUrlMessages
     -- , withLayout
-    -- , layout
     )
 
 {-|
@@ -18,10 +17,9 @@ module Page exposing
 
 -}
 
--- import Layouts exposing (Layout)
-
 import Dict exposing (Dict)
 import Effect exposing (Effect)
+import Layouts exposing (Layout)
 import Route exposing (Route)
 import View exposing (View)
 
@@ -32,9 +30,7 @@ type Page model msg
         , update : msg -> model -> ( model, Effect msg )
         , subscriptions : model -> Sub msg
         , view : model -> View msg
-
-        -- todo: layouts
-        -- , toLayout : Maybe (model -> Layout msg)
+        , toLayout : Maybe (model -> Layout msg)
         , onUrlChanged : Maybe ({ from : Route (), to : Route () } -> msg)
         , onHashChanged : Maybe ({ from : Maybe String, to : Maybe String } -> msg)
         , onQueryParameterChangedDict : Dict String ({ from : Maybe String, to : Maybe String } -> msg)
@@ -54,8 +50,7 @@ new options =
         , update = options.update
         , subscriptions = options.subscriptions
         , view = options.view
-
-        -- , toLayout = Nothing
+        , toLayout = Nothing
         , onUrlChanged = Nothing
         , onHashChanged = Nothing
         , onQueryParameterChangedDict = Dict.empty
@@ -74,8 +69,7 @@ sandbox options =
         , update = \msg model -> ( options.update msg model, Effect.none )
         , subscriptions = \_ -> Sub.none
         , view = options.view
-
-        -- , toLayout = Nothing
+        , toLayout = Nothing
         , onUrlChanged = Nothing
         , onHashChanged = Nothing
         , onQueryParameterChangedDict = Dict.empty
@@ -101,8 +95,7 @@ element options =
                     |> Tuple.mapSecond Effect.sendCmd
         , subscriptions = options.subscriptions
         , view = options.view
-
-        -- , toLayout = Nothing
+        , toLayout = Nothing
         , onUrlChanged = Nothing
         , onHashChanged = Nothing
         , onQueryParameterChangedDict = Dict.empty
@@ -179,10 +172,9 @@ subscriptions (Page page) =
     page.subscriptions
 
 
-
--- layout : model -> Page model msg -> Maybe (Layouts.Layout msg)
--- layout model (Page page) =
---     Maybe.map (\fn -> fn model) page.toLayout
+layout : model -> Page model msg -> Maybe (Layouts.Layout msg)
+layout model (Page page) =
+    Maybe.map (\fn -> fn model) page.toLayout
 
 
 toUrlMessages : { from : Route (), to : Route () } -> Page model msg -> List msg

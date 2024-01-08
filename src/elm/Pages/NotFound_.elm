@@ -1,10 +1,10 @@
-module Pages.Legacy exposing (Model, Msg, page, view)
+module Pages.NotFound_ exposing (Model, Msg, page)
 
 import Effect exposing (Effect)
-import Html
+import Html exposing (..)
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
+import Route.Path
 import Shared
 import View exposing (View)
 
@@ -15,7 +15,7 @@ page shared route =
         { init = init
         , update = update
         , subscriptions = subscriptions
-        , view = view shared
+        , view = view
         }
 
 
@@ -64,12 +64,6 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes current user, user input and action params and renders home page with favorited repos
--}
-view : Shared.Model -> Model -> View Msg
-view shared model =
-    { title = "Pages.Legacy"
-    , body =
-        [ Html.div [] []
-        ]
-    }
+view : Model -> View Msg
+view model =
+    View.fromString "Page not found"

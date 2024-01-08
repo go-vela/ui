@@ -1,5 +1,7 @@
 module Main.Layouts.Msg exposing (..)
 
+import Layouts.Default
 
-type alias Msg =
-    Never
+
+type Msg
+    = Default Layouts.Default.Msg

@@ -103,22 +103,6 @@ updateDeploymentModel value form =
     { form | form = value }
 
 
-{-| onChangeStringField : takes field and value and updates the deployment model
--}
-onChangeStringField : String -> String -> Model msg -> Model msg
-onChangeStringField field value deploymentModel =
-    let
-        deploymentUpdate =
-            Just deploymentModel.form
-    in
-    case deploymentUpdate of
-        Just s ->
-            updateDeploymentModel (updateDeploymentField field value s) deploymentModel
-
-        Nothing ->
-            deploymentModel
-
-
 {-| onAddParameter : takes parameter and updates the list of parameters
 -}
 onAddParameter : DeploymentForm -> Model msg -> Model msg
@@ -222,7 +206,18 @@ update model msg =
         ( sm, action ) =
             case msg of
                 OnChangeStringField field value ->
-                    ( onChangeStringField field value deploymentModel, Cmd.none )
+                    ( let
+                        deploymentUpdate =
+                            Just deploymentModel.form
+                      in
+                      case deploymentUpdate of
+                        Just s ->
+                            updateDeploymentModel (updateDeploymentField field value s) deploymentModel
+
+                        Nothing ->
+                            deploymentModel
+                    , Cmd.none
+                    )
 
                 AddParameter deploymentForm ->
                     ( onAddParameter deploymentForm deploymentModel, Cmd.none )

@@ -47,7 +47,6 @@ type alias Model =
     , zone : Zone
     , time : Posix
     , filters : RepoSearchFilters
-    , entryURL : Url
     , theme : Theme
     , shift : Bool
     , visibility : Visibility
@@ -57,6 +56,7 @@ type alias Model =
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int
+    , token : Maybe String
 
     -- todo: these need to be refactored with Msg
     -- , schedulesModel : Pages.Schedules.Model.Model Msg
