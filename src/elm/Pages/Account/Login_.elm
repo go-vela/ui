@@ -1,4 +1,4 @@
-module Pages.Login_ exposing (..)
+module Pages.Account.Login_ exposing (..)
 
 import Api.Endpoint
 import Browser.Navigation

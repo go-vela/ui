@@ -16,6 +16,7 @@ type Path
     | Login_
     | Logout_
     | Authenticate_
+    | AccountSettings_
     | NotFound_
 
 
@@ -43,6 +44,9 @@ fromString urlPath =
 
         [ "account", "logout" ] ->
             Just Logout_
+
+        [ "account", "settings" ] ->
+            Just AccountSettings_
 
         [ "account", "authenticate" ] ->
             Just Authenticate_
@@ -74,6 +78,9 @@ toString path =
 
                 Logout_ ->
                     [ "account", "logout" ]
+
+                AccountSettings_ ->
+                    [ "account", "settings" ]
 
                 Authenticate_ ->
                     [ "account", "authenticate" ]

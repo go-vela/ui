@@ -4,7 +4,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , getCurrentUser, gotoPage, logout, pushPath, toggleFavorites
+    , getCurrentUser, gotoPage, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
     )
 
 {-|
@@ -226,3 +226,8 @@ toggleFavorites options =
 gotoPage : { pageNumber : Int } -> Effect msg
 gotoPage options =
     SendSharedMsg <| Shared.Msg.GotoPage options
+
+
+showCopyToClipboardAlert : { contentCopied : String } -> Effect msg
+showCopyToClipboardAlert options =
+    SendSharedMsg <| Shared.Msg.ShowCopyToClipboardAlert options

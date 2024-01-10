@@ -89,6 +89,8 @@ import Nav exposing (viewUtil)
 import Page
 import Pager
 import Pages exposing (Page)
+import Pages.Account.Login_
+import Pages.Account.Settings_
 import Pages.Build.Graph.Interop exposing (renderBuildGraph)
 import Pages.Build.Logs
     exposing
@@ -110,7 +112,6 @@ import Pages.Deployments.View
 import Pages.Deployments_
 import Pages.Home_
 import Pages.Hooks
-import Pages.Login_
 import Pages.NotFound_
 import Pages.Organization
 import Pages.Pipeline.Model
@@ -379,9 +380,9 @@ initPageAndLayout model =
     case Route.Path.fromUrl model.url of
         Route.Path.Login_ ->
             let
-                page : Page.Page Pages.Login_.Model Pages.Login_.Msg
+                page : Page.Page Pages.Account.Login_.Model Pages.Account.Login_.Msg
                 page =
-                    Pages.Login_.page model.shared (Route.fromUrl () model.url)
+                    Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)
 
                 ( pageModel, pageEffect ) =
                     Page.init page ()
@@ -396,6 +397,30 @@ initPageAndLayout model =
                     |> Maybe.map (Layouts.map (Main.Pages.Msg.Login_ >> Page))
                     |> Maybe.map (initLayout model)
             }
+
+        Route.Path.AccountSettings_ ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Account.Settings_.Model Pages.Account.Settings_.Msg
+                        page =
+                            Pages.Account.Settings_.page user model.shared (Route.fromUrl () model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            Main.Pages.Model.AccountSettings_
+                            (Effect.map Main.Pages.Msg.AccountSettings_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.AccountSettings_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
 
         Route.Path.Logout_ ->
             { page =
@@ -572,7 +597,7 @@ type Msg
     | Shared Shared.Msg
     | Batch (List Msg)
       -- END NEW WORLD
-      -- todo: do we HAVE to move this to Shared.Msg?
+      -- todo: determine if this should, and if it can, be moved to Shared.Msg
     | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
       --
       --
@@ -2846,7 +2871,17 @@ updateFromPage msg model =
             Tuple.mapBoth
                 Main.Pages.Model.Login_
                 (Effect.map Main.Pages.Msg.Login_ >> fromPageEffect model)
-                (Page.update (Pages.Login_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                (Page.update (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+
+        ( Main.Pages.Msg.AccountSettings_ pageMsg, Main.Pages.Model.AccountSettings_ pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        Main.Pages.Model.AccountSettings_
+                        (Effect.map Main.Pages.Msg.AccountSettings_ >> fromPageEffect model)
+                        (Page.update (Pages.Account.Settings_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                )
 
         ( Main.Pages.Msg.Home_ pageMsg, Main.Pages.Model.Home_ pageModel ) ->
             runWhenAuthenticated
@@ -2859,10 +2894,6 @@ updateFromPage msg model =
                 )
 
         ( Main.Pages.Msg.Deployments_ pageMsg, Main.Pages.Model.Deployments_ pageModel ) ->
-            let
-                _ =
-                    Debug.log "updateFromPage" "Deployments_"
-            in
             runWhenAuthenticated
                 model
                 (\user ->
@@ -2904,9 +2935,15 @@ toLayoutFromPage model =
     case model.page of
         Main.Pages.Model.Login_ pageModel ->
             Route.fromUrl () model.url
-                |> Pages.Login_.page model.shared
+                |> Pages.Account.Login_.page model.shared
                 |> Page.layout pageModel
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Login_ >> Page))
+
+        Main.Pages.Model.AccountSettings_ pageModel ->
+            Route.fromUrl () model.url
+                |> toAuthProtectedPage model Pages.Account.Settings_.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.AccountSettings_ >> Page))
 
         Main.Pages.Model.Home_ pageModel ->
             Route.fromUrl () model.url
@@ -3009,9 +3046,18 @@ viewPage : Model -> View Msg
 viewPage model =
     case model.page of
         Main.Pages.Model.Login_ pageModel ->
-            Page.view (Pages.Login_.page model.shared (Route.fromUrl () model.url)) pageModel
+            Page.view (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)) pageModel
                 |> View.map Main.Pages.Msg.Login_
                 |> View.map Page
+
+        Main.Pages.Model.AccountSettings_ pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Account.Settings_.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.AccountSettings_
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Home_ pageModel ->
             Auth.Action.view
@@ -3123,10 +3169,20 @@ toPageUrlHookCmd model routes =
     in
     case model.page of
         Main.Pages.Model.Login_ pageModel ->
-            Page.toUrlMessages routes (Pages.Login_.page model.shared (Route.fromUrl () model.url))
+            Page.toUrlMessages routes (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url))
                 |> List.map Main.Pages.Msg.Login_
                 |> List.map Page
                 |> toCommands
+
+        Main.Pages.Model.AccountSettings_ pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Account.Settings_.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.AccountSettings_
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Home_ pageModel ->
             Auth.Action.command
@@ -3212,6 +3268,9 @@ isAuthProtected routePath =
     case routePath of
         Route.Path.Login_ ->
             False
+
+        Route.Path.AccountSettings_ ->
+            True
 
         Route.Path.Logout_ ->
             True

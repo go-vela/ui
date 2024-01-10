@@ -282,6 +282,23 @@ update route msg model =
             in
             ( um, cmd |> Effect.sendCmd )
 
+        -- MISC
+        Shared.Msg.ShowCopyToClipboardAlert options ->
+            let
+                ( sharedWithAlert, cmd ) =
+                    Alerting.addToast Alerts.successConfig
+                        Shared.Msg.AlertsUpdate
+                        (Alerts.Success ""
+                            ("Copied " ++ Alerts.wrapAlertMessage options.contentCopied ++ "to your clipboard.")
+                            Nothing
+                        )
+                        ( model, Cmd.none )
+
+                _ =
+                    Debug.log "Shared.Msg.ShowCopyToClipboardAlert" ""
+            in
+            ( sharedWithAlert, cmd |> Effect.sendCmd )
+
 
 
 -- SUBSCRIPTIONS

@@ -26,3 +26,4 @@ type Msg
     | HandleError Error
       -- ALERTS
     | AlertsUpdate (Alerting.Msg Alert)
+    | ShowCopyToClipboardAlert { contentCopied : String }

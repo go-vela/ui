@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Alerts exposing (Alert(..), errorConfig, successConfig, view)
+module Alerts exposing (Alert(..), errorConfig, successConfig, view, wrapAlertMessage)
 
 import FeatherIcons
 import Html exposing (Html, a, button, div, h1, p, text)
@@ -74,6 +74,15 @@ wrapAlert variantClass title message link copy =
           else
             p [ class "-message" ] [ text message, hyperlink ]
         ]
+
+
+wrapAlertMessage : String -> String
+wrapAlertMessage message =
+    if not <| String.isEmpty message then
+        "`" ++ message ++ "` "
+
+    else
+        message
 
 
 copyButton : String -> Maybe (Copy msg) -> Html msg
