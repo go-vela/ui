@@ -33,6 +33,7 @@ import Vela
 type alias Model =
     { session : Session
     , fetchingToken : Bool
+    , fetchingInitialToken : Bool
     , user : WebData CurrentUser
     , toasties : Stack Alert
     , sourceRepos : WebData SourceRepositories

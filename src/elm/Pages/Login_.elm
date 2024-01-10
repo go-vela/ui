@@ -74,13 +74,14 @@ update shared msg model =
             let
                 _ =
                     Debug.log "sign in" "requested"
+
+                -- _ = Debug.log "route" <| route
+                -- todo: somehow check "from" route and pass it along using interops
             in
             -- Login on server needs to accept redirect URL and pass it along to as part of 'state' encoded as base64
             -- so we can parse it when the source provider redirects back to the API
             ( model
               -- todo: dispatch an Effect that will hit the login api endpoint
-              -- ,
-              -- , Browser.Navigation.load <| Api.Endpoint.toUrl model.shared.velaAPI Api.Endpoint.Login
             , (Browser.Navigation.load <| Api.Endpoint.toUrl shared.velaAPI Api.Endpoint.Login) |> Effect.sendCmd
             )
 
@@ -122,7 +123,7 @@ viewLogin =
                 |> FeatherIcons.withSize 20
                 |> FeatherIcons.withClass "login-source-icon"
                 |> FeatherIcons.toHtml [ attribute "aria-hidden" "true" ]
-            , text "GitHub"
+            , text "GitHub!"
             ]
         , p [] [ text "You will be taken to GitHub to authenticate." ]
         ]

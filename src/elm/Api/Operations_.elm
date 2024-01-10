@@ -1,4 +1,4 @@
-module Api.Operations_ exposing (getCurrentUser, getToken, updateCurrentUser)
+module Api.Operations_ exposing (finishAuthentication, getCurrentUser, getToken, logout, updateCurrentUser)
 
 import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)
 import Api.Endpoint as Endpoint exposing (Endpoint)
@@ -74,6 +74,20 @@ import Vela
 getToken : String -> Request JwtAccessToken
 getToken baseUrl =
     get baseUrl Endpoint.Token decodeJwtAccessToken
+
+
+{-| finishAuthentication : complete authentication by supplying code and state to the authenciate endpoint
+which will also set the refresh token cookie
+-}
+finishAuthentication : String -> AuthParams -> Request JwtAccessToken
+finishAuthentication baseUrl { code, state } =
+    get baseUrl (Endpoint.Authenticate { code = code, state = state }) decodeJwtAccessToken
+
+
+logout : String -> Session -> Request String
+logout baseUrl session =
+    get baseUrl Endpoint.Logout Json.Decode.string
+        |> withAuth session
 
 
 {-| getCurrentUser : retrieves the currently authenticated user with the current user endpoint

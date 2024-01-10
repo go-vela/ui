@@ -106,6 +106,7 @@ init flagsResult route =
     ( { session = Unauthenticated
       , token = Nothing
       , fetchingToken = String.length flags.velaRedirect == 0
+      , fetchingInitialToken = String.length flags.velaRedirect == 0
       , user = NotAsked
       , sourceRepos = NotAsked
       , velaAPI = flags.velaAPI
@@ -171,7 +172,7 @@ update route msg model =
                     model.repo.deployments
             in
             case route.path of
-                Route.Path.Deployments_ _ _ ->
+                Route.Path.Deployments_ ->
                     ( { model | repo = { repo | deployments = { deployments | deployments = Loading } } }
                     , Effect.pushRoute
                         { path = route.path

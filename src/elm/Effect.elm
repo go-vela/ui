@@ -208,23 +208,9 @@ toCmd options effect =
 -- CUSTOM EFFECTS
 
 
-getCurrentUser : { user : WebData CurrentUser } -> Effect msg
+getCurrentUser : {} -> Effect msg
 getCurrentUser options =
-    -- todo: verify if this is the right place to put this logic, copied from Main.elm and prevents infinite init loops
-    case options.user of
-        RemoteData.NotAsked ->
-            let
-                _ =
-                    Debug.log "getCurrentUser:1" options
-            in
-            SendSharedMsg <| Shared.Msg.GetCurrentUser
-
-        _ ->
-            let
-                _ =
-                    Debug.log "getCurrentUser:2" options
-            in
-            none
+    SendSharedMsg <| Shared.Msg.GetCurrentUser
 
 
 toggleFavorites : { org : String, maybeRepo : Maybe String } -> Effect msg

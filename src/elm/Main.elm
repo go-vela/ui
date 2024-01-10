@@ -296,6 +296,20 @@ init json url key =
         ( sharedModel, sharedEffect ) =
             Shared.init flagsResult (Route.fromUrl () url)
 
+        _ =
+            Debug.log "init:vela-redirect" sharedModel.velaRedirect
+
+        -- todo: we need to pass something into TokenReponse to say "this is an initial token fetch"
+        -- rather than rely on the fetching bool
+        -- todo: we need to figure out how to handle reloading the page
+        -- when we've just completed an auth redirect token response
+        fetchCmd =
+            if String.length sharedModel.velaRedirect == 0 then
+                Api.Api.try TokenResponse <| Api.Operations_.getToken sharedModel.velaAPI
+
+            else
+                Cmd.none
+
         { page, layout } =
             initPageAndLayout { key = key, url = url, shared = sharedModel, layout = Nothing }
 
@@ -307,6 +321,13 @@ init json url key =
         setTime =
             Task.perform AdjustTime Time.now
 
+        -- scenarios:
+        -- we can get here fresh, no cookies, no redirect
+        -- we can get here with a refresh cookie, no redirect
+        -- we can get here with a redirect AND a refresh cookie
+        --
+        -- 1. init: we have refresh_token in cookies and CAN getToken if its valid
+        -- 2.
         -- todo: this shouldnt be needed if we migrate to framework auth
         -- fetchToken : Cmd Msg
         -- fetchToken =
@@ -314,6 +335,8 @@ init json url key =
         --         Api.Api.try TokenResponse <| Api.Operations_.getToken sharedModel.velaAPI
         --     else
         --         Cmd.none
+        -- fetchToken : Cmd Msg
+        -- can we fetch this initial token and NOT redirect to Login_ if we are still in the middle of redirecting
     in
     ( { url = url
       , key = key
@@ -333,7 +356,7 @@ init json url key =
         , fromSharedEffect { key = key, url = url, shared = sharedModel } sharedEffect
 
         -- custom effects
-        -- , fetchToken
+        , fetchCmd
         , Interop.setTheme <| encodeTheme sharedModel.theme
         , setTimeZone
         , setTime
@@ -377,6 +400,10 @@ initPageAndLayout :
         , layout : Maybe ( Main.Layouts.Model.Model, Cmd Msg )
         }
 initPageAndLayout model =
+    let
+        _ =
+            Debug.log "initPageAndLayout" <| Route.Path.fromUrl model.url
+    in
     case Route.Path.fromUrl model.url of
         Route.Path.Login_ ->
             let
@@ -398,6 +425,14 @@ initPageAndLayout model =
                     |> Maybe.map (initLayout model)
             }
 
+        Route.Path.Logout_ ->
+            { page =
+                ( Main.Pages.Model.Redirecting_
+                , Api.Api.try LogoutResponse <| Api.Operations_.logout model.shared.velaAPI model.shared.session
+                )
+            , layout = Nothing
+            }
+
         Route.Path.Authenticate_ ->
             let
                 route =
@@ -411,7 +446,10 @@ initPageAndLayout model =
             in
             { page =
                 ( Main.Pages.Model.Redirecting_
-                , Api.Api.try TokenResponse <| Api.Operations.getInitialToken model <| AuthParams code state
+                , Cmd.batch
+                    -- this is "getInitialToken" -> /authenticate with code and state
+                    [ Api.Api.try TokenResponse <| Api.Operations_.finishAuthentication model.shared.velaAPI <| AuthParams code state
+                    ]
                 )
             , layout = Nothing
             }
@@ -440,22 +478,29 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.Deployments_ _ _ ->
-            let
-                page : Page.Page Pages.Deployments_.Model Pages.Deployments_.Msg
-                page =
-                    Pages.Deployments_.page model.shared (Route.fromUrl () model.url)
+        Route.Path.Deployments_ ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Deployments_.Model Pages.Deployments_.Msg
+                        page =
+                            Pages.Deployments_.page user model.shared (Route.fromUrl () model.url)
 
-                ( pageModel, pageEffect ) =
-                    Page.init page ()
-            in
-            { page =
-                Tuple.mapBoth
-                    Main.Pages.Model.Deployments_
-                    (Effect.map Main.Pages.Msg.Deployments_ >> fromPageEffect model)
-                    ( pageModel, pageEffect )
-            , layout = Nothing
-            }
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            Main.Pages.Model.Deployments_
+                            (Effect.map Main.Pages.Msg.Deployments_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Deployments_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
 
         Route.Path.NotFound_ ->
             let
@@ -525,7 +570,14 @@ runWhenAuthenticatedWithLayout model toRecord =
         Auth.Action.PushRoute options ->
             { page =
                 ( Main.Pages.Model.Redirecting_
-                , toCmd (Effect.pushRoute options)
+                , Cmd.batch
+                    [ toCmd (Effect.pushRoute options)
+
+                    -- todo: support redirecting with other query parameters ?& and hash #
+                    -- todo: should we set this earlier? because its not getting set until after the redirect and we cant
+                    -- tell if we need to reload the page
+                    , unwrap Cmd.none (\from -> Interop.setRedirect <| Json.Encode.string from) (Dict.get "from" options.query)
+                    ]
                 )
             , layout = Nothing
             }
@@ -706,6 +758,9 @@ update msg model =
 
         pipeline =
             shared.pipeline
+
+        _ =
+            Debug.log "Main.update" msg
     in
     case msg of
         -- START NEW WORLD
@@ -720,8 +775,11 @@ update msg model =
             )
 
         UrlChanged url ->
-            -- if the url did not change
-            if Route.Path.fromUrl url == Route.Path.fromUrl model.url then
+            let
+                authRedirect =
+                    Maybe.withDefault "" (Dict.get "auth_redirect" (Route.fromUrl () url).query)
+            in
+            if Route.Path.fromUrl url == Route.Path.fromUrl model.url && authRedirect /= "true" then
                 let
                     newModel : Model
                     newModel =
@@ -854,55 +912,73 @@ update msg model =
                             case currentSession of
                                 Unauthenticated ->
                                     let
-                                        redirectTo : String
-                                        redirectTo =
-                                            case model.shared.velaRedirect of
+                                        route =
+                                            Route.fromUrl () model.url
+
+                                        from =
+                                            case shared.velaRedirect of
                                                 "" ->
-                                                    Url.toString model.url
+                                                    case Dict.get "from" route.query of
+                                                        Just f ->
+                                                            f
+
+                                                        Nothing ->
+                                                            "/"
 
                                                 _ ->
-                                                    model.shared.velaRedirect
+                                                    shared.velaRedirect
+
+                                        -- attach auth_redirect to the url so we can tell if we are in the middle of auth
                                     in
-                                    [ Interop.setRedirect Json.Encode.null
-                                    , Browser.Navigation.pushUrl model.key redirectTo
+                                    [ Browser.Navigation.pushUrl model.key <| from ++ "?auth_redirect=true"
                                     ]
 
                                 Authenticated _ ->
+                                    let
+                                        _ =
+                                            Debug.log "Authenticated!" ""
+                                    in
                                     []
 
                         _ =
                             Debug.log "got a token" token
 
                         -- todo: now that we have a token, we need to
-                        -- 1. store it in localstorage
-                        -- 2. grab it out of localstore when the app loads
-                        -- 3. confirm we can login, and get redirected back to where we were
-                        -- 4. once its out of localstorage, we should be considered "authenticated"
+                        -- 1. store it in localstorage (cookies?) - (no)
+                        -- when do we store things in cookies today? - write/read by the server
+                        -- 2. grab it out of localstore (cookies?) when the app loads - no
+                        -- 3. once its out of localstorage, we should be considered "authenticated"
+                        -- 4. confirm we can login, and get redirected back to where we were
                         -- 5. use token to fetch current user on the home page
+                        -- 6. set redirect in localstorage still
+                        -- 7.
                     in
                     ( { model
                         | shared =
                             { shared
                                 | session = Authenticated newSessionDetails
                                 , fetchingToken = False
+                                , fetchingInitialToken = False
                                 , token = Just token
                             }
                       }
-                    , Cmd.batch <| actions ++ [ refreshAccessToken RefreshAccessToken newSessionDetails ]
+                    , Cmd.batch <|
+                        actions
+                            ++ [ Interop.setRedirect Json.Encode.null
+                               , refreshAccessToken RefreshAccessToken newSessionDetails
+                               ]
                     )
 
                 Err error ->
                     let
                         redirectPage : Cmd Msg
                         redirectPage =
-                            -- todo: create Login_ and convert this to Route.Path etc
-                            -- this isnt going to work with new pages, there is no Login_ page
-                            case model.legacyPage of
-                                Pages.Login ->
+                            case model.page of
+                                Main.Pages.Model.Login_ _ ->
                                     Cmd.none
 
                                 _ ->
-                                    Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Login
+                                    Browser.Navigation.pushUrl model.key <| Route.Path.toString Route.Path.Login_ ++ "?auth_redirect=true"
                     in
                     case error of
                         Http.Detailed.BadStatus meta _ ->
@@ -920,12 +996,27 @@ update msg model =
                                                     , redirectPage
                                                     ]
                                     in
-                                    ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
+                                    ( { model
+                                        | shared =
+                                            { shared
+                                                | session =
+                                                    Unauthenticated
+                                                , fetchingToken = False
+                                                , fetchingInitialToken = False
+                                            }
+                                      }
                                     , Cmd.batch actions
                                     )
 
                                 _ ->
-                                    ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
+                                    ( { model
+                                        | shared =
+                                            { shared
+                                                | session = Unauthenticated
+                                                , fetchingToken = False
+                                                , fetchingInitialToken = False
+                                            }
+                                      }
                                     , Cmd.batch
                                         [ Errors.addError HandleError error
                                         , redirectPage
@@ -933,7 +1024,14 @@ update msg model =
                                     )
 
                         _ ->
-                            ( { model | shared = { shared | session = Unauthenticated, fetchingToken = False } }
+                            ( { model
+                                | shared =
+                                    { shared
+                                        | session = Unauthenticated
+                                        , fetchingToken = False
+                                        , fetchingInitialToken = False
+                                    }
+                              }
                             , Cmd.batch
                                 [ Errors.addError HandleError error
                                 , redirectPage
@@ -2823,10 +2921,18 @@ updateFromPage msg model =
                 )
 
         ( Main.Pages.Msg.Deployments_ pageMsg, Main.Pages.Model.Deployments_ pageModel ) ->
-            Tuple.mapBoth
-                Main.Pages.Model.Deployments_
-                (Effect.map Main.Pages.Msg.Deployments_ >> fromPageEffect model)
-                (Page.update (Pages.Deployments_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+            let
+                _ =
+                    Debug.log "updateFromPage" "Deployments_"
+            in
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        Main.Pages.Model.Deployments_
+                        (Effect.map Main.Pages.Msg.Deployments_ >> fromPageEffect model)
+                        (Page.update (Pages.Deployments_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                )
 
         ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
             Tuple.mapBoth
@@ -2872,8 +2978,8 @@ toLayoutFromPage model =
 
         Main.Pages.Model.Deployments_ pageModel ->
             Route.fromUrl () model.url
-                |> Pages.Deployments_.page model.shared
-                |> Page.layout pageModel
+                |> toAuthProtectedPage model Pages.Deployments_.page
+                |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Deployments_ >> Page))
 
         Main.Pages.Model.NotFound_ pageModel ->
@@ -2932,7 +3038,8 @@ subscriptions model =
         , Browser.Events.onKeyDown (Json.Decode.map OnKeyDown (Json.Decode.field "key" Json.Decode.string))
         , Browser.Events.onKeyUp (Json.Decode.map OnKeyUp (Json.Decode.field "key" Json.Decode.string))
         , Browser.Events.onVisibilityChange VisibilityChanged
-        , refreshSubscriptions model
+
+        -- , refreshSubscriptions model
         ]
 
 
@@ -2978,9 +3085,13 @@ viewPage model =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Deployments_ pageModel ->
-            Page.view (Pages.Deployments_.page model.shared (Route.fromUrl () model.url)) pageModel
-                |> View.map Main.Pages.Msg.Deployments_
-                |> View.map Page
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Deployments_.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Deployments_
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.NotFound_ pageModel ->
             Page.view (Pages.NotFound_.page model.shared (Route.fromUrl () model.url)) pageModel
@@ -3090,10 +3201,14 @@ toPageUrlHookCmd model routes =
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.Deployments_ pageModel ->
-            Page.toUrlMessages routes (Pages.Deployments_.page model.shared (Route.fromUrl () model.url))
-                |> List.map Main.Pages.Msg.Deployments_
-                |> List.map Page
-                |> toCommands
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Deployments_.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.Deployments_
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
         Main.Pages.Model.NotFound_ pageModel ->
             Page.toUrlMessages routes (Pages.NotFound_.page model.shared (Route.fromUrl () model.url))
@@ -3160,13 +3275,16 @@ isAuthProtected routePath =
         Route.Path.Login_ ->
             False
 
+        Route.Path.Logout_ ->
+            True
+
         Route.Path.Authenticate_ ->
             False
 
         Route.Path.Home_ ->
             True
 
-        Route.Path.Deployments_ _ _ ->
+        Route.Path.Deployments_ ->
             True
 
         Route.Path.NotFound_ ->

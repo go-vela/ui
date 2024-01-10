@@ -67,8 +67,7 @@ init shared () =
     in
     ( { favoritesFilter = ""
       }
-      -- , Effect.getCurrentUser { user = shared.user }
-    , Effect.none
+    , Effect.getCurrentUser {}
     )
 
 
@@ -145,7 +144,7 @@ view shared model =
                             [ blankMessage ]
 
                     Loading ->
-                        [ h1 [] [ text "Loading user...", span [ class "loading-ellipsis" ] [] ] ]
+                        [ h1 [] [ Util.largeLoader ] ]
 
                     NotAsked ->
                         [ homeSearchBar model.favoritesFilter SearchFavorites

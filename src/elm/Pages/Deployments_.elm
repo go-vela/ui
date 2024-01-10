@@ -1,6 +1,7 @@
 module Pages.Deployments_ exposing (..)
 
 import Api.Pagination
+import Auth
 import Effect exposing (Effect)
 import FeatherIcons
 import Html
@@ -39,8 +40,8 @@ import Vela exposing (Deployment, Org, Repo, Repository)
 import View exposing (View)
 
 
-page : Shared.Model -> Route () -> Page Model Msg
-page shared route =
+page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
+page user shared route =
     Page.new
         { init = init
         , update = update
@@ -59,6 +60,10 @@ type alias Model =
 
 init : () -> ( Model, Effect Msg )
 init () =
+    let
+        _ =
+            Debug.log "Pages.Deployments_.init" ""
+    in
     ( {}
     , Effect.none
     )
