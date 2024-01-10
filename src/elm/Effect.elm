@@ -4,7 +4,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , getCurrentUser, gotoPage, toggleFavorites
+    , getCurrentUser, gotoPage, logout, pushPath, toggleFavorites
     )
 
 {-|
@@ -208,8 +208,13 @@ toCmd options effect =
 -- CUSTOM EFFECTS
 
 
+logout : {} -> Effect msg
+logout _ =
+    SendSharedMsg <| Shared.Msg.Logout
+
+
 getCurrentUser : {} -> Effect msg
-getCurrentUser options =
+getCurrentUser _ =
     SendSharedMsg <| Shared.Msg.GetCurrentUser
 
 

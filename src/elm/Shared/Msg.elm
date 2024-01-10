@@ -11,16 +11,17 @@ import Vela exposing (CurrentUser)
 
 type Msg
     = NoOp
-      -- PAGINATION
-    | GotoPage { pageNumber : Int }
       -- AUTH
-    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
+    | Logout
+    | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- USER
     | GetCurrentUser
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
       -- FAVORITES
     | ToggleFavorites { org : String, maybeRepo : Maybe String }
     | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
+      -- PAGINATION
+    | GotoPage { pageNumber : Int }
       -- ERRORS
     | HandleError Error
       -- ALERTS

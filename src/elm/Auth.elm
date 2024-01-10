@@ -17,7 +17,6 @@ type alias User =
 -}
 onPageLoad : Shared.Model -> Route () -> Auth.Action.Action User
 onPageLoad shared route =
-    -- todo: (?) check if the token is valid OR we are in the middle of getting redirected from the auth server
     case shared.token of
         Just token ->
             Auth.Action.loadPageWithUser
@@ -26,19 +25,15 @@ onPageLoad shared route =
 
         Nothing ->
             let
-                authRedirect =
-                    Maybe.withDefault "" <| Dict.get "auth_redirect" route.query
-
                 redirectPage =
-                    if authRedirect == "true" then
+                    if Route.hasAuthRedirect route then
                         route.path
 
                     else
                         Route.Path.Login_
             in
             Auth.Action.pushRoute
-                { -- path = Route.Path.Login_
-                  path = redirectPage
+                { path = redirectPage
                 , query =
                     Dict.fromList
                         [ ( "from", route.url.path )

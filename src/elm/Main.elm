@@ -296,14 +296,7 @@ init json url key =
         ( sharedModel, sharedEffect ) =
             Shared.init flagsResult (Route.fromUrl () url)
 
-        _ =
-            Debug.log "init:vela-redirect" sharedModel.velaRedirect
-
-        -- todo: we need to pass something into TokenReponse to say "this is an initial token fetch"
-        -- rather than rely on the fetching bool
-        -- todo: we need to figure out how to handle reloading the page
-        -- when we've just completed an auth redirect token response
-        fetchCmd =
+        fetchTokenCmd =
             if String.length sharedModel.velaRedirect == 0 then
                 Api.Api.try TokenResponse <| Api.Operations_.getToken sharedModel.velaAPI
 
@@ -320,23 +313,6 @@ init json url key =
         setTime : Cmd Msg
         setTime =
             Task.perform AdjustTime Time.now
-
-        -- scenarios:
-        -- we can get here fresh, no cookies, no redirect
-        -- we can get here with a refresh cookie, no redirect
-        -- we can get here with a redirect AND a refresh cookie
-        --
-        -- 1. init: we have refresh_token in cookies and CAN getToken if its valid
-        -- 2.
-        -- todo: this shouldnt be needed if we migrate to framework auth
-        -- fetchToken : Cmd Msg
-        -- fetchToken =
-        --     if sharedModel.fetchingToken then
-        --         Api.Api.try TokenResponse <| Api.Operations_.getToken sharedModel.velaAPI
-        --     else
-        --         Cmd.none
-        -- fetchToken : Cmd Msg
-        -- can we fetch this initial token and NOT redirect to Login_ if we are still in the middle of redirecting
     in
     ( { url = url
       , key = key
@@ -355,8 +331,8 @@ init json url key =
         , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
         , fromSharedEffect { key = key, url = url, shared = sharedModel } sharedEffect
 
-        -- custom effects
-        , fetchCmd
+        -- custom initialization effects
+        , fetchTokenCmd
         , Interop.setTheme <| encodeTheme sharedModel.theme
         , setTimeZone
         , setTime
@@ -400,10 +376,6 @@ initPageAndLayout :
         , layout : Maybe ( Main.Layouts.Model.Model, Cmd Msg )
         }
 initPageAndLayout model =
-    let
-        _ =
-            Debug.log "initPageAndLayout" <| Route.Path.fromUrl model.url
-    in
     case Route.Path.fromUrl model.url of
         Route.Path.Login_ ->
             let
@@ -428,7 +400,7 @@ initPageAndLayout model =
         Route.Path.Logout_ ->
             { page =
                 ( Main.Pages.Model.Redirecting_
-                , Api.Api.try LogoutResponse <| Api.Operations_.logout model.shared.velaAPI model.shared.session
+                , Effect.logout {} |> Effect.toCmd { key = model.key, url = model.url, shared = model.shared, fromSharedMsg = Shared, batch = Batch, toCmd = Task.succeed >> Task.perform identity }
                 )
             , layout = Nothing
             }
@@ -447,8 +419,9 @@ initPageAndLayout model =
             { page =
                 ( Main.Pages.Model.Redirecting_
                 , Cmd.batch
-                    -- this is "getInitialToken" -> /authenticate with code and state
-                    [ Api.Api.try TokenResponse <| Api.Operations_.finishAuthentication model.shared.velaAPI <| AuthParams code state
+                    [ Api.Api.try TokenResponse <|
+                        Api.Operations_.finishAuthentication model.shared.velaAPI <|
+                            AuthParams code state
                     ]
                 )
             , layout = Nothing
@@ -572,10 +545,6 @@ runWhenAuthenticatedWithLayout model toRecord =
                 ( Main.Pages.Model.Redirecting_
                 , Cmd.batch
                     [ toCmd (Effect.pushRoute options)
-
-                    -- todo: support redirecting with other query parameters ?& and hash #
-                    -- todo: should we set this earlier? because its not getting set until after the redirect and we cant
-                    -- tell if we need to reload the page
                     , unwrap Cmd.none (\from -> Interop.setRedirect <| Json.Encode.string from) (Dict.get "from" options.query)
                     ]
                 )
@@ -602,8 +571,9 @@ type Msg
     | Layout Main.Layouts.Msg.Msg
     | Shared Shared.Msg
     | Batch (List Msg)
-    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
       -- END NEW WORLD
+      -- todo: do we HAVE to move this to Shared.Msg?
+    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
       --
       --
       --
@@ -758,12 +728,8 @@ update msg model =
 
         pipeline =
             shared.pipeline
-
-        _ =
-            Debug.log "Main.update" msg
     in
     case msg of
-        -- START NEW WORLD
         UrlRequested (Browser.Internal url) ->
             ( model
             , Browser.Navigation.pushUrl model.key (Url.toString url)
@@ -775,11 +741,7 @@ update msg model =
             )
 
         UrlChanged url ->
-            let
-                authRedirect =
-                    Maybe.withDefault "" (Dict.get "auth_redirect" (Route.fromUrl () url).query)
-            in
-            if Route.Path.fromUrl url == Route.Path.fromUrl model.url && authRedirect /= "true" then
+            if Route.Path.fromUrl url == Route.Path.fromUrl model.url && not (Route.hasAuthRedirect (Route.fromUrl () url)) then
                 let
                     newModel : Model
                     newModel =
@@ -927,38 +889,18 @@ update msg model =
 
                                                 _ ->
                                                     shared.velaRedirect
-
-                                        -- attach auth_redirect to the url so we can tell if we are in the middle of auth
                                     in
-                                    [ Browser.Navigation.pushUrl model.key <| from ++ "?auth_redirect=true"
+                                    [ Browser.Navigation.pushUrl model.key <| Route.addAuthRedirect from
                                     ]
 
                                 Authenticated _ ->
-                                    let
-                                        _ =
-                                            Debug.log "Authenticated!" ""
-                                    in
                                     []
-
-                        _ =
-                            Debug.log "got a token" token
-
-                        -- todo: now that we have a token, we need to
-                        -- 1. store it in localstorage (cookies?) - (no)
-                        -- when do we store things in cookies today? - write/read by the server
-                        -- 2. grab it out of localstore (cookies?) when the app loads - no
-                        -- 3. once its out of localstorage, we should be considered "authenticated"
-                        -- 4. confirm we can login, and get redirected back to where we were
-                        -- 5. use token to fetch current user on the home page
-                        -- 6. set redirect in localstorage still
-                        -- 7.
                     in
                     ( { model
                         | shared =
                             { shared
                                 | session = Authenticated newSessionDetails
                                 , fetchingToken = False
-                                , fetchingInitialToken = False
                                 , token = Just token
                             }
                       }
@@ -978,7 +920,7 @@ update msg model =
                                     Cmd.none
 
                                 _ ->
-                                    Browser.Navigation.pushUrl model.key <| Route.Path.toString Route.Path.Login_ ++ "?auth_redirect=true"
+                                    Browser.Navigation.pushUrl model.key <| Route.addAuthRedirect <| Route.Path.toString Route.Path.Login_
                     in
                     case error of
                         Http.Detailed.BadStatus meta _ ->
@@ -1002,7 +944,6 @@ update msg model =
                                                 | session =
                                                     Unauthenticated
                                                 , fetchingToken = False
-                                                , fetchingInitialToken = False
                                             }
                                       }
                                     , Cmd.batch actions
@@ -1014,7 +955,6 @@ update msg model =
                                             { shared
                                                 | session = Unauthenticated
                                                 , fetchingToken = False
-                                                , fetchingInitialToken = False
                                             }
                                       }
                                     , Cmd.batch
@@ -1029,7 +969,6 @@ update msg model =
                                     { shared
                                         | session = Unauthenticated
                                         , fetchingToken = False
-                                        , fetchingInitialToken = False
                                     }
                               }
                             , Cmd.batch
@@ -1048,6 +987,21 @@ update msg model =
         --             ( model, Browser.Navigation.pushUrl model.key <| Url.toString url )
         --         Browser.External url ->
         --             ( model, Browser.Navigation.load url )
+        LogoutResponse _ ->
+            ( { model | shared = { shared | session = Unauthenticated } }
+            , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Login
+            )
+
+        CurrentUserResponse response ->
+            case response of
+                Ok ( _, user ) ->
+                    ( { model | shared = { shared | user = RemoteData.succeed user } }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | shared = { shared | user = toFailure error } }, Errors.addError HandleError error )
+
         SearchSourceRepos org searchBy ->
             let
                 filters =
@@ -1996,22 +1950,6 @@ update msg model =
 
                 Err error ->
                     ( model, Errors.addError HandleError error )
-
-        LogoutResponse _ ->
-            -- ignoring outcome of request and proceeding to logout
-            ( { model | shared = { shared | session = Unauthenticated } }
-            , Browser.Navigation.pushUrl model.key <| Routes.routeToUrl Routes.Login
-            )
-
-        CurrentUserResponse response ->
-            case response of
-                Ok ( _, user ) ->
-                    ( { model | shared = { shared | user = RemoteData.succeed user } }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( { model | shared = { shared | user = toFailure error } }, Errors.addError HandleError error )
 
         SourceRepositoriesResponse response ->
             case response of

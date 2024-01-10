@@ -6,6 +6,7 @@ import Alerts
 import Api.Api as Api
 import Api.Endpoint as Endpoint exposing (Endpoint)
 import Api.Operations_ exposing (updateCurrentUser)
+import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
 import Auth.Session exposing (..)
 import Browser.Dom exposing (..)
 import Browser.Events exposing (Visibility(..))
@@ -22,6 +23,7 @@ import Pages exposing (..)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Route.Path
+import Routes
 import Shared.Model
 import Shared.Msg
 import Task exposing (Task)
@@ -106,7 +108,6 @@ init flagsResult route =
     ( { session = Unauthenticated
       , token = Nothing
       , fetchingToken = String.length flags.velaRedirect == 0
-      , fetchingInitialToken = String.length flags.velaRedirect == 0
       , user = NotAsked
       , sourceRepos = NotAsked
       , velaAPI = flags.velaAPI
@@ -157,32 +158,39 @@ update route msg model =
             )
 
         -- AUTH
-        Shared.Msg.TokenResponse response ->
+        Shared.Msg.Logout ->
             ( model
-            , Effect.none
+            , Api.try
+                Shared.Msg.LogoutResponse
+                (Api.Operations_.logout model.velaAPI model.session)
+                |> Effect.sendCmd
             )
 
-        -- PAGINATION
-        Shared.Msg.GotoPage options ->
-            let
-                repo =
-                    model.repo
+        Shared.Msg.LogoutResponse _ ->
+            ( { model | session = Unauthenticated }
+            , Effect.pushPath <| Route.Path.Login_
+            )
 
-                deployments =
-                    model.repo.deployments
-            in
-            case route.path of
-                Route.Path.Deployments_ ->
-                    ( { model | repo = { repo | deployments = { deployments | deployments = Loading } } }
-                    , Effect.pushRoute
-                        { path = route.path
-                        , query = Dict.update "page" (\_ -> Just <| String.fromInt options.pageNumber) route.query
-                        , hash = Just "gotopage"
-                        }
+        -- USER
+        Shared.Msg.GetCurrentUser ->
+            ( { model | user = Loading }
+            , Api.try
+                Shared.Msg.CurrentUserResponse
+                (Api.Operations_.getCurrentUser model.velaAPI model.session)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.CurrentUserResponse response ->
+            case response of
+                Ok ( _, user ) ->
+                    ( { model | user = RemoteData.succeed user }
+                    , Effect.none
                     )
 
-                _ ->
-                    ( model, Effect.none )
+                Err error ->
+                    ( { model | user = toFailure error }
+                    , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
+                    )
 
         -- FAVORITES
         Shared.Msg.ToggleFavorites options ->
@@ -233,34 +241,27 @@ update route msg model =
                     , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
                     )
 
-        Shared.Msg.GetCurrentUser ->
+        -- PAGINATION
+        Shared.Msg.GotoPage options ->
             let
-                _ =
-                    Debug.log "GetCurrentUser" model.user
-            in
-            ( { model | user = Loading }
-              -- , Effect.none
-            , Api.try
-                Shared.Msg.CurrentUserResponse
-                (Api.Operations_.getCurrentUser model.velaAPI model.session)
-                |> Effect.sendCmd
-            )
+                repo =
+                    model.repo
 
-        Shared.Msg.CurrentUserResponse response ->
-            let
-                _ =
-                    Debug.log "CurrentUserResponse" response
+                deployments =
+                    model.repo.deployments
             in
-            case response of
-                Ok ( _, user ) ->
-                    ( { model | user = RemoteData.succeed user }
-                    , Effect.none
+            case route.path of
+                Route.Path.Deployments_ ->
+                    ( { model | repo = { repo | deployments = { deployments | deployments = Loading } } }
+                    , Effect.pushRoute
+                        { path = route.path
+                        , query = Dict.update "page" (\_ -> Just <| String.fromInt options.pageNumber) route.query
+                        , hash = Just "gotopage"
+                        }
                     )
 
-                Err error ->
-                    ( { model | user = toFailure error }
-                    , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
-                    )
+                _ ->
+                    ( model, Effect.none )
 
         -- ERRORS
         Shared.Msg.HandleError error ->
