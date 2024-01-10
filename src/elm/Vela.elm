@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Vela exposing
     ( AddSchedulePayload
+    , AllowEvents
     , AuthParams
     , Build
     , BuildGraph
@@ -87,6 +88,7 @@ module Vela exposing
     , buildDeploymentPayload
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
+    , buildUpdateRepoEventsPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
     , buildUpdateSchedulePayload
@@ -919,6 +921,39 @@ type alias Deployment =
     }
 
 
+type alias PushActions =
+    { branch : Bool
+    , tag : Bool
+    }
+
+
+type alias PullActions =
+    { opened : Bool
+    , synchronize : Bool
+    , edited : Bool
+    , reopened : Bool
+    }
+
+
+type alias DeployActions =
+    { created : Bool
+    }
+
+
+type alias CommentActions =
+    { created : Bool
+    , edited : Bool
+    }
+
+
+type alias AllowEvents =
+    { push : PushActions
+    , pull : PullActions
+    , deploy : DeployActions
+    , comment : CommentActions
+    }
+
+
 type alias Repository =
     { id : Int
     , user_id : Int
@@ -941,6 +976,7 @@ type alias Repository =
     , allow_deploy : Bool
     , allow_tag : Bool
     , allow_comment : Bool
+    , allow_events : Maybe AllowEvents
     , enabled : Enabled
     , enabling : Enabling
     , inLimit : Maybe Int
@@ -961,6 +997,44 @@ type Enabling
     | Enabling
     | Enabled
     | NotAsked_
+
+
+decodePushActions : Decoder PushActions
+decodePushActions =
+    Decode.succeed PushActions
+        |> required "branch" bool
+        |> required "tag" bool
+
+
+decodePullActions : Decoder PullActions
+decodePullActions =
+    Decode.succeed PullActions
+        |> required "opened" bool
+        |> required "synchronize" bool
+        |> required "edited" bool
+        |> required "reopened" bool
+
+
+decodeDeployActions : Decoder DeployActions
+decodeDeployActions =
+    Decode.succeed DeployActions
+        |> required "created" bool
+
+
+decodeCommentActions : Decoder CommentActions
+decodeCommentActions =
+    Decode.succeed CommentActions
+        |> required "created" bool
+        |> required "edited" bool
+
+
+decodeAllowEvents : Decoder AllowEvents
+decodeAllowEvents =
+    Decode.succeed AllowEvents
+        |> required "push" decodePushActions
+        |> required "pull_request" decodePullActions
+        |> required "deployment" decodeDeployActions
+        |> required "comment" decodeCommentActions
 
 
 decodeRepositories : Decoder (List Repository)
@@ -992,6 +1066,7 @@ decodeRepository =
         |> optional "allow_deploy" bool False
         |> optional "allow_tag" bool False
         |> optional "allow_comment" bool False
+        |> optional "allow_events" (Decode.maybe decodeAllowEvents) Nothing
         -- "enabled"
         |> optional "active" enabledDecoder NotAsked
         -- "enabling"
@@ -1074,6 +1149,50 @@ encodeEnableRepository repo =
         , ( "allow_deploy", Encode.bool <| repo.allow_deploy )
         , ( "allow_tag", Encode.bool <| repo.allow_tag )
         , ( "allow_comment", Encode.bool <| repo.allow_comment )
+        , ( "allow_events", encodeOptional encodeAllowEvents repo.allow_events )
+        ]
+
+
+encodeAllowEvents : AllowEventsPayload -> Encode.Value
+encodeAllowEvents events =
+    Encode.object
+        [ ( "push", encodePushActions events.push )
+        , ( "pull_request", encodePullActions events.pull )
+        , ( "deployment", encodeDeployActions events.deploy )
+        , ( "comment", encodeCommentActions events.comment )
+        ]
+
+
+encodePushActions : PushActionsPayload -> Encode.Value
+encodePushActions push =
+    Encode.object
+        [ ( "branch", Encode.bool <| push.branch )
+        , ( "tag", Encode.bool <| push.tag )
+        ]
+
+
+encodePullActions : PullActionsPayload -> Encode.Value
+encodePullActions pull =
+    Encode.object
+        [ ( "opened", Encode.bool <| pull.opened )
+        , ( "synchronize", Encode.bool <| pull.synchronize )
+        , ( "edited", Encode.bool <| pull.edited )
+        , ( "reopened", Encode.bool <| pull.reopened )
+        ]
+
+
+encodeDeployActions : DeployActionsPayload -> Encode.Value
+encodeDeployActions deploy =
+    Encode.object
+        [ ( "created", Encode.bool <| deploy.created )
+        ]
+
+
+encodeCommentActions : CommentActionsPayload -> Encode.Value
+encodeCommentActions comment =
+    Encode.object
+        [ ( "created", Encode.bool <| comment.created )
+        , ( "edited", Encode.bool <| comment.edited )
         ]
 
 
@@ -1091,12 +1210,46 @@ type alias EnableRepositoryPayload =
     , allow_deploy : Bool
     , allow_tag : Bool
     , allow_comment : Bool
+    , allow_events : Maybe AllowEventsPayload
+    }
+
+
+type alias AllowEventsPayload =
+    { push : PushActionsPayload
+    , pull : PullActionsPayload
+    , deploy : DeployActionsPayload
+    , comment : CommentActionsPayload
+    }
+
+
+type alias PushActionsPayload =
+    { branch : Bool
+    , tag : Bool
+    }
+
+
+type alias PullActionsPayload =
+    { opened : Bool
+    , synchronize : Bool
+    , edited : Bool
+    , reopened : Bool
+    }
+
+
+type alias DeployActionsPayload =
+    { created : Bool
+    }
+
+
+type alias CommentActionsPayload =
+    { created : Bool
+    , edited : Bool
     }
 
 
 defaultEnableRepositoryPayload : EnableRepositoryPayload
 defaultEnableRepositoryPayload =
-    EnableRepositoryPayload "" "" "" "" "" False False True False False False False False
+    EnableRepositoryPayload "" "" "" "" "" False False True False False False False False Nothing
 
 
 type alias UpdateRepositoryPayload =
@@ -1108,6 +1261,7 @@ type alias UpdateRepositoryPayload =
     , allow_deploy : Maybe Bool
     , allow_tag : Maybe Bool
     , allow_comment : Maybe Bool
+    , allow_events : Maybe AllowEventsPayload
     , visibility : Maybe String
     , approve_build : Maybe String
     , limit : Maybe Int
@@ -1123,7 +1277,57 @@ type alias Field =
 
 defaultUpdateRepositoryPayload : UpdateRepositoryPayload
 defaultUpdateRepositoryPayload =
-    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+
+
+defaultAllowEventsPayload : Repository -> AllowEventsPayload
+defaultAllowEventsPayload repository =
+    case repository.allow_events of
+        Nothing ->
+            AllowEventsPayload (defaultPushActionsPayload Nothing) (defaultPullActionsPayload Nothing) (defaultDeployActionsPayload Nothing) (defaultCommentActionsPayload Nothing)
+
+        Just events ->
+            AllowEventsPayload (defaultPushActionsPayload (Just events.push)) (defaultPullActionsPayload (Just events.pull)) (defaultDeployActionsPayload (Just events.deploy)) (defaultCommentActionsPayload (Just events.comment))
+
+
+defaultPushActionsPayload : Maybe PushActions -> PushActionsPayload
+defaultPushActionsPayload pushActions =
+    case pushActions of
+        Nothing ->
+            PushActionsPayload False False
+
+        Just push ->
+            PushActionsPayload push.branch push.tag
+
+
+defaultPullActionsPayload : Maybe PullActions -> PullActionsPayload
+defaultPullActionsPayload pullActions =
+    case pullActions of
+        Nothing ->
+            PullActionsPayload False False False False
+
+        Just pull ->
+            PullActionsPayload pull.opened pull.synchronize pull.edited pull.reopened
+
+
+defaultDeployActionsPayload : Maybe DeployActions -> DeployActionsPayload
+defaultDeployActionsPayload deployActions =
+    case deployActions of
+        Nothing ->
+            DeployActionsPayload False
+
+        Just deploy ->
+            DeployActionsPayload deploy.created
+
+
+defaultCommentActionsPayload : Maybe CommentActions -> CommentActionsPayload
+defaultCommentActionsPayload commentActions =
+    case commentActions of
+        Nothing ->
+            CommentActionsPayload False False
+
+        Just comment ->
+            CommentActionsPayload comment.created comment.edited
 
 
 encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
@@ -1137,6 +1341,7 @@ encodeUpdateRepository repo =
         , ( "allow_deploy", encodeOptional Encode.bool repo.allow_deploy )
         , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
         , ( "allow_comment", encodeOptional Encode.bool repo.allow_comment )
+        , ( "allow_events", encodeOptional encodeAllowEvents repo.allow_events )
         , ( "visibility", encodeOptional Encode.string repo.visibility )
         , ( "approve_build", encodeOptional Encode.string repo.approve_build )
         , ( "build_limit", encodeOptional Encode.int repo.limit )
@@ -1164,6 +1369,56 @@ encodeOptionalList encoder value =
 
         Nothing ->
             Encode.null
+
+
+buildUpdateRepoEventsPayload : Repository -> Field -> Bool -> UpdateRepositoryPayload
+buildUpdateRepoEventsPayload repository field value =
+    let
+        events =
+            defaultAllowEventsPayload repository
+
+        pushActions =
+            events.push
+
+        pullActions =
+            events.pull
+
+        deployActions =
+            events.deploy
+
+        commentActions =
+            events.comment
+    in
+    case field of
+        "allow_push_branch" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | push = { pushActions | branch = value } } }
+
+        "allow_push_tag" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | push = { pushActions | tag = value } } }
+
+        "allow_pull_opened" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | opened = value } } }
+
+        "allow_pull_synchronize" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | synchronize = value } } }
+
+        "allow_pull_edited" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | edited = value } } }
+
+        "allow_pull_reopened" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | reopened = value } } }
+
+        "allow_deploy_created" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | deploy = { deployActions | created = value } } }
+
+        "allow_comment_created" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | comment = { commentActions | created = value } } }
+
+        "allow_comment_edited" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | comment = { commentActions | edited = value } } }
+
+        _ ->
+            defaultUpdateRepositoryPayload
 
 
 buildUpdateRepoBoolPayload : Field -> Bool -> UpdateRepositoryPayload

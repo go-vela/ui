@@ -178,6 +178,7 @@ import Vela
         , UpdateUserPayload
         , buildUpdateFavoritesPayload
         , buildUpdateRepoBoolPayload
+        , buildUpdateRepoEventsPayload
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
         , decodeGraphInteraction
@@ -433,7 +434,7 @@ type Msg
     | DisableRepo Repository
     | ChownRepo Repository
     | RepairRepo Repository
-    | UpdateRepoEvent Org Repo Field Bool
+    | UpdateRepoEvent Org Repo Repository Field Bool
     | UpdateRepoAccess Org Repo Field String
     | UpdateRepoForkPolicy Org Repo Field String
     | UpdateRepoPipelineType Org Repo Field String
@@ -1182,11 +1183,11 @@ update msg model =
         RepairRepo repo ->
             ( model, Api.try (RepoRepairedResponse repo) <| Api.repairRepo model repo )
 
-        UpdateRepoEvent org repo field value ->
+        UpdateRepoEvent org name repo field value ->
             let
                 payload : UpdateRepositoryPayload
                 payload =
-                    buildUpdateRepoBoolPayload field value
+                    buildUpdateRepoEventsPayload repo field value
 
                 cmd =
                     if Pages.RepoSettings.validEventsUpdate rm.repo payload then
@@ -1195,7 +1196,7 @@ update msg model =
                             body =
                                 Http.jsonBody <| encodeUpdateRepository payload
                         in
-                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org repo body)
+                        Api.try (RepoUpdatedResponse field) (Api.updateRepository model org name body)
 
                     else
                         addErrorString "Could not disable webhook event. At least one event must be active." HandleError
