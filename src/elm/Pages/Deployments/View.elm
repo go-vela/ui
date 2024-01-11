@@ -275,7 +275,6 @@ redeployLink org repo deployment =
         [ text "Redeploy"
         ]
 
-
 {-| pullBuildLinks : takes deployment and creates a list of links to every build in the builds field
 -}
 pullBuildLinks : Deployment -> List String
@@ -285,7 +284,7 @@ pullBuildLinks deployment =
             []
 
         Just builds ->
-            List.map (String.dropRight 1) (List.map (String.dropLeft 1) (List.map Debug.toString (List.map .link builds)))
+           (List.map .link builds)
 
 
 {-| linksView : takes list of links and creates an HTML msg that displays as a list of links
@@ -293,18 +292,15 @@ pullBuildLinks deployment =
 linksView : List String -> Html msg
 linksView links =
     links
-        |> List.map (\link -> a [ href link ] [ text (String.append "#" (getHead (List.head (List.reverse (String.split "/" link))))) ])
+        |> List.map (\link -> a 
+                        [ href link ] 
+                        [ text (link
+                                    |> String.split "/"
+                                    |> List.reverse
+                                    |> List.head
+                                    |> Maybe.withDefault ""
+                                    |> String.append "#" )
+                        ]
+                    )
         |> List.intersperse (text ", ")
         |> div []
-
-
-{-| getHead : takes Maybe String and returns either Nothing or the value to help with the linksView function
--}
-getHead : Maybe String -> String
-getHead link =
-    case link of
-        Nothing ->
-            ""
-
-        Just val ->
-            val
