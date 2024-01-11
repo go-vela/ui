@@ -20,7 +20,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 18,
@@ -43,7 +62,26 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 17,
@@ -65,7 +103,26 @@
     "allow_push": true,
     "allow_deploy": false,
     "allow_tag": false,
-    "allow_comment": false
+    "allow_comment": false,
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   },
   {
     "id": 16,
@@ -88,6 +145,25 @@
     "allow_deploy": false,
     "allow_tag": false,
     "allow_comment": false,
-    "pipeline_type": "yaml"
+    "pipeline_type": "yaml",
+    "allow_events": {
+      "push": {
+        "branch": true,
+        "tag": false
+      },
+      "pull_request": {
+        "opened": false,
+        "synchronize": false,
+        "edited": false,
+        "reopened": false
+      },
+      "deployment": {
+        "created": false
+      },
+      "comment": {
+        "created": false,
+        "edited": false
+      }
+    }
   }
 ]
