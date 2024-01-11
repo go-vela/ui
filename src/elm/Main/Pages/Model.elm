@@ -1,5 +1,6 @@
 module Main.Pages.Model exposing (Model(..))
 
+import Pages.Account.Authenticate_
 import Pages.Account.Login_
 import Pages.Account.Settings_
 import Pages.Deployments_
@@ -9,6 +10,7 @@ import Pages.NotFound_
 
 type Model
     = Login_ Pages.Account.Login_.Model
+      -- | AccountAuthenticate_ Pages.Account.Authenticate_.Model
     | AccountSettings_ Pages.Account.Settings_.Model
     | Home_ Pages.Home_.Model
     | Deployments_ Pages.Deployments_.Model

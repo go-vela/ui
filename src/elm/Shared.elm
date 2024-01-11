@@ -167,7 +167,7 @@ update route msg model =
             )
 
         Shared.Msg.LogoutResponse _ ->
-            ( { model | session = Unauthenticated }
+            ( { model | session = Unauthenticated, token = Nothing }
             , Effect.pushPath <| Route.Path.Login_
             )
 
@@ -293,9 +293,6 @@ update route msg model =
                             Nothing
                         )
                         ( model, Cmd.none )
-
-                _ =
-                    Debug.log "Shared.Msg.ShowCopyToClipboardAlert" ""
             in
             ( sharedWithAlert, cmd |> Effect.sendCmd )
 

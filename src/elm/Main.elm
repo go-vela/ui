@@ -766,7 +766,11 @@ update msg model =
             )
 
         UrlChanged url ->
-            if Route.Path.fromUrl url == Route.Path.fromUrl model.url && not (Route.hasAuthRedirect (Route.fromUrl () url)) then
+            if
+                Route.Path.fromUrl url
+                    == Route.Path.fromUrl model.url
+                -- && not (Route.hasAuthRedirect (Route.fromUrl () url))
+            then
                 let
                     newModel : Model
                     newModel =
@@ -952,6 +956,9 @@ update msg model =
                             case meta.statusCode of
                                 401 ->
                                     let
+                                        _ =
+                                            Debug.log "TokenResponse 401, redirecting from" model.page
+
                                         actions : List (Cmd Msg)
                                         actions =
                                             case model.shared.session of
@@ -968,7 +975,7 @@ update msg model =
                                             { shared
                                                 | session =
                                                     Unauthenticated
-                                                , fetchingToken = False
+                                                , token = Nothing
                                             }
                                       }
                                     , Cmd.batch actions
@@ -979,7 +986,7 @@ update msg model =
                                         | shared =
                                             { shared
                                                 | session = Unauthenticated
-                                                , fetchingToken = False
+                                                , token = Nothing
                                             }
                                       }
                                     , Cmd.batch
@@ -993,7 +1000,7 @@ update msg model =
                                 | shared =
                                     { shared
                                         | session = Unauthenticated
-                                        , fetchingToken = False
+                                        , token = Nothing
                                     }
                               }
                             , Cmd.batch
