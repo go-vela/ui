@@ -4,34 +4,37 @@ module Shared exposing (Flags, Model, Msg, decoder, init, update)
 
 import Alerts
 import Api.Api as Api
-import Api.Endpoint as Endpoint exposing (Endpoint)
-import Api.Operations_ exposing (updateCurrentUser)
-import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
+import Api.Operations_
 import Auth.Session exposing (..)
 import Browser.Dom exposing (..)
 import Browser.Events exposing (Visibility(..))
-import Browser.Navigation
 import Dict exposing (..)
 import Effect exposing (Effect)
-import Errors exposing (Error, addError, toFailure)
-import Favorites exposing (addFavorite, toFavorite, updateFavorites)
+import Errors
+import Favorites
 import Http
-import Http.Detailed
 import Json.Decode as Decode exposing (..)
-import Json.Decode.Pipeline exposing (hardcoded, optional, required)
+import Json.Decode.Pipeline exposing (required)
 import Pages exposing (..)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Route.Path
-import Routes
 import Shared.Model
 import Shared.Msg
-import Task exposing (Task)
 import Time exposing (..)
 import Toasty as Alerting
 import Url exposing (..)
 import Util exposing (..)
-import Vela exposing (UpdateUserPayload, buildUpdateFavoritesPayload, defaultFavicon, defaultPipeline, defaultPipelineTemplates, defaultRepoModel, encodeUpdateUser, stringToTheme)
+import Vela
+    exposing
+        ( UpdateUserPayload
+        , defaultFavicon
+        , defaultPipeline
+        , defaultPipelineTemplates
+        , defaultRepoModel
+        , encodeUpdateUser
+        , stringToTheme
+        )
 
 
 
@@ -56,7 +59,6 @@ type alias Flags =
     , velaLogBytesLimit : Int
     , velaMaxBuildLimit : Int
     , velaScheduleAllowlist : String
-    , token : String
     }
 
 
@@ -72,7 +74,6 @@ decoder =
         |> required "velaLogBytesLimit" Decode.int
         |> required "velaMaxBuildLimit" Decode.int
         |> required "velaScheduleAllowlist" Decode.string
-        |> optional "token" Decode.string ""
 
 
 
@@ -101,13 +102,10 @@ init flagsResult route =
                     , velaLogBytesLimit = 0
                     , velaMaxBuildLimit = 0
                     , velaScheduleAllowlist = ""
-                    , token = ""
                     }
     in
     -- todo: these need to be logically ordered (flags, session, user, data models, etc)
     ( { session = Unauthenticated
-      , token = Nothing
-      , fetchingToken = String.length flags.velaRedirect == 0
       , user = NotAsked
       , sourceRepos = NotAsked
       , velaAPI = flags.velaAPI
@@ -167,7 +165,7 @@ update route msg model =
             )
 
         Shared.Msg.LogoutResponse _ ->
-            ( { model | session = Unauthenticated, token = Nothing }
+            ( { model | session = Unauthenticated }
             , Effect.pushPath <| Route.Path.Login_
             )
 
@@ -188,22 +186,22 @@ update route msg model =
                     )
 
                 Err error ->
-                    ( { model | user = toFailure error }
-                    , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
+                    ( { model | user = Errors.toFailure error }
+                    , Effect.addError error
                     )
 
         -- FAVORITES
         Shared.Msg.ToggleFavorites options ->
             let
                 favorite =
-                    toFavorite options.org options.maybeRepo
+                    Favorites.toFavorite options.org options.maybeRepo
 
                 ( favorites, favorited ) =
-                    updateFavorites model.user favorite
+                    Favorites.updateFavorites model.user favorite
 
                 payload : UpdateUserPayload
                 payload =
-                    buildUpdateFavoritesPayload favorites
+                    Vela.buildUpdateFavoritesPayload favorites
 
                 body : Http.Body
                 body =
@@ -237,8 +235,41 @@ update route msg model =
                     ( um, cmd |> Effect.sendCmd )
 
                 Err error ->
-                    ( { model | user = toFailure error }
-                    , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
+                    ( { model | user = Errors.toFailure error }
+                    , Effect.addError error
+                    )
+
+        -- SOURCE REPOS
+        Shared.Msg.GetUserSourceRepos ->
+            ( { model
+                | sourceRepos =
+                    if model.sourceRepos == NotAsked then
+                        Loading
+
+                    else
+                        model.sourceRepos
+              }
+            , Api.try
+                Shared.Msg.GetUserSourceReposResponse
+                (Api.Operations_.getUserSourceRepos model.velaAPI model.session)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.GetUserSourceReposResponse response ->
+            case response of
+                Ok ( _, repositories ) ->
+                    ( { model
+                        | sourceRepos = RemoteData.succeed repositories
+                      }
+                    , Effect.none
+                      -- , Util.dispatch <| FocusOn "global-search-input"
+                    )
+
+                Err error ->
+                    ( { model
+                        | sourceRepos = Errors.toFailure error
+                      }
+                    , Effect.addError error
                     )
 
         -- PAGINATION
@@ -264,6 +295,11 @@ update route msg model =
                     ( model, Effect.none )
 
         -- ERRORS
+        Shared.Msg.AddError error ->
+            ( model
+            , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
+            )
+
         Shared.Msg.HandleError error ->
             let
                 ( um, cmd ) =

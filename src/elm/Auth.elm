@@ -1,6 +1,7 @@
 module Auth exposing (User, onPageLoad, viewLoadingPage)
 
 import Auth.Action
+import Auth.Session exposing (Session(..))
 import Dict
 import Route exposing (Route)
 import Route.Path
@@ -17,23 +18,15 @@ type alias User =
 -}
 onPageLoad : Shared.Model -> Route () -> Auth.Action.Action User
 onPageLoad shared route =
-    case shared.token of
-        Just token ->
+    case shared.session of
+        Authenticated { token } ->
             Auth.Action.loadPageWithUser
                 { token = token
                 }
 
-        Nothing ->
-            let
-                redirectPage =
-                    if Route.hasAuthRedirect route then
-                        route.path
-
-                    else
-                        Route.Path.Login_
-            in
+        Unauthenticated ->
             Auth.Action.pushRoute
-                { path = redirectPage
+                { path = Route.Path.Login_
                 , query =
                     Dict.fromList
                         [ ( "from", route.url.path )

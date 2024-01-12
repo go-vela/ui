@@ -32,10 +32,8 @@ import Vela
 
 type alias Model =
     { session : Session
-    , fetchingToken : Bool
     , user : WebData CurrentUser
     , toasties : Stack Alert
-    , sourceRepos : WebData SourceRepositories
     , repo : RepoModel
     , velaAPI : String
     , velaFeedbackURL : String
@@ -46,7 +44,6 @@ type alias Model =
     , velaScheduleAllowlist : List ( Org, Repo )
     , zone : Zone
     , time : Posix
-    , filters : RepoSearchFilters
     , theme : Theme
     , shift : Bool
     , visibility : Visibility
@@ -56,10 +53,12 @@ type alias Model =
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int
-    , token : Maybe String
 
     -- todo: these need to be refactored with Msg
     -- , schedulesModel : Pages.Schedules.Model.Model Msg
     -- , secretsModel : Pages.Secrets.Model.Model Msg
     -- , deploymentModel : Pages.Deployments.Model.Model Msg
+    -- migrated to pages, but cant remove until legacy pages are removed
+    , sourceRepos : WebData SourceRepositories
+    , filters : RepoSearchFilters
     }

@@ -12,11 +12,12 @@ import Url.Parser exposing ((</>))
 
 type Path
     = Home_
-    | Deployments_
     | Login_
     | Logout_
     | Authenticate_
     | AccountSettings_
+    | AccountSourceRepos_
+    | Deployments_
     | NotFound_
 
 
@@ -45,11 +46,14 @@ fromString urlPath =
         [ "account", "logout" ] ->
             Just Logout_
 
+        [ "account", "authenticate" ] ->
+            Just Authenticate_
+
         [ "account", "settings" ] ->
             Just AccountSettings_
 
-        [ "account", "authenticate" ] ->
-            Just Authenticate_
+        [ "account", "source-repos" ] ->
+            Just AccountSourceRepos_
 
         -- todo: how do you add a dynamic route? <org>/<repo>/deployments
         [ "deployments" ] ->
@@ -79,11 +83,14 @@ toString path =
                 Logout_ ->
                     [ "account", "logout" ]
 
+                Authenticate_ ->
+                    [ "account", "authenticate" ]
+
                 AccountSettings_ ->
                     [ "account", "settings" ]
 
-                Authenticate_ ->
-                    [ "account", "authenticate" ]
+                AccountSourceRepos_ ->
+                    [ "account", "source-repos" ]
 
                 Deployments_ ->
                     [ "deployments" ]

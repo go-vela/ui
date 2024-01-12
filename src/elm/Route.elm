@@ -1,4 +1,4 @@
-module Route exposing (Route, addAuthRedirect, authRedirectKey, fromUrl, hasAuthRedirect, href, toString)
+module Route exposing (Route, fromUrl, href, toString)
 
 import Dict exposing (Dict)
 import Html
@@ -42,18 +42,3 @@ toString route =
             |> Maybe.map (String.append "#")
             |> Maybe.withDefault ""
         ]
-
-
-authRedirectKey : String
-authRedirectKey =
-    "auth_redirect"
-
-
-hasAuthRedirect : Route params -> Bool
-hasAuthRedirect route =
-    (Maybe.withDefault "" <| Dict.get authRedirectKey route.query) == "true"
-
-
-addAuthRedirect : String -> String
-addAuthRedirect path =
-    String.join "" [ path, "?", authRedirectKey, "=true" ]

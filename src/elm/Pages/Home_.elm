@@ -61,10 +61,6 @@ type alias Model =
 
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared () =
-    let
-        _ =
-            Debug.log "init:Pages.Home_" shared.user
-    in
     ( { favoritesFilter = ""
       }
     , Effect.getCurrentUser {}

@@ -4,7 +4,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , getCurrentUser, gotoPage, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
+    , addError, getCurrentUser, getUserSourceRepos, gotoPage, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
     )
 
 {-|
@@ -21,6 +21,8 @@ module Effect exposing
 import Api.Pagination
 import Browser.Navigation
 import Dict exposing (Dict)
+import Errors
+import Http.Detailed
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Route.Path
@@ -223,6 +225,11 @@ toggleFavorites options =
     SendSharedMsg <| Shared.Msg.ToggleFavorites options
 
 
+getUserSourceRepos : {} -> Effect msg
+getUserSourceRepos _ =
+    SendSharedMsg <| Shared.Msg.GetUserSourceRepos
+
+
 gotoPage : { pageNumber : Int } -> Effect msg
 gotoPage options =
     SendSharedMsg <| Shared.Msg.GotoPage options
@@ -231,3 +238,8 @@ gotoPage options =
 showCopyToClipboardAlert : { contentCopied : String } -> Effect msg
 showCopyToClipboardAlert options =
     SendSharedMsg <| Shared.Msg.ShowCopyToClipboardAlert options
+
+
+addError : Http.Detailed.Error String -> Effect msg
+addError error =
+    SendSharedMsg <| Shared.Msg.AddError error

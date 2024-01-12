@@ -71,17 +71,9 @@ update shared msg model =
             )
 
         SignInRequested ->
-            let
-                _ =
-                    Debug.log "sign in" "requested"
-
-                -- _ = Debug.log "route" <| route
-                -- todo: somehow check "from" route and pass it along using interops
-            in
             -- Login on server needs to accept redirect URL and pass it along to as part of 'state' encoded as base64
             -- so we can parse it when the source provider redirects back to the API
             ( model
-              -- todo: dispatch an Effect that will hit the login api endpoint
             , (Browser.Navigation.load <| Api.Endpoint.toUrl shared.velaAPI Api.Endpoint.Login) |> Effect.sendCmd
             )
 
@@ -105,7 +97,13 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     let
         body =
-            div [ Util.testAttribute "login_" ] [ viewLogin ]
+            div [ Util.testAttribute "login_" ]
+                [ if String.length shared.velaRedirect /= 0 then
+                    viewLogin
+
+                  else
+                    text ""
+                ]
     in
     { title = "Pages.Login_"
     , body =
