@@ -1,4 +1,4 @@
-module Pages.Deployments_ exposing (..)
+module Pages.Org_.Repo_.Deployments_ exposing (..)
 
 import Api.Pagination
 import Auth
@@ -62,7 +62,7 @@ init : () -> ( Model, Effect Msg )
 init () =
     let
         _ =
-            Debug.log "Pages.Deployments_.init" ""
+            Debug.log "Pages.Org_.Repo_.Deployments_.init" ""
     in
     ( {}
     , Effect.none
@@ -113,7 +113,7 @@ view shared model =
         table =
             viewDeployments shared.repo
     in
-    { title = "Pages.Deployments_"
+    { title = "Pages.Org_.Repo_.Deployments_"
     , body =
         [ table
         , Pager.view shared.repo.deployments.pager Pager.defaultLabels GotoPage

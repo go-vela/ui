@@ -22,6 +22,7 @@ import Html.Attributes
         ( attribute
         , class
         )
+import Layouts
 import List
 import List.Extra
 import Page exposing (Page)
@@ -48,6 +49,7 @@ page user shared route =
         , subscriptions = subscriptions
         , view = view shared
         }
+        |> Page.withLayout (toLayout user)
 
 
 
@@ -103,6 +105,16 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
+
+
+
+-- LAYOUT
+
+
+toLayout : Auth.User -> Model -> Layouts.Layout Msg
+toLayout user model =
+    Layouts.Default
+        {}
 
 
 

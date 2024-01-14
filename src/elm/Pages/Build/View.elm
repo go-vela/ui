@@ -14,6 +14,7 @@ module Pages.Build.View exposing
 import Ansi
 import Ansi.Log
 import Array
+import Components.Nav exposing (viewBuildTabs)
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
@@ -38,7 +39,6 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import List.Extra exposing (unique)
-import Nav exposing (viewBuildTabs)
 import Pages.Build.Graph.View
 import Pages.Build.Logs
     exposing
@@ -131,13 +131,13 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
                         PendingApproval ->
                             [ viewPreview msgs model.shared.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
                             , p [ class "notice", Util.testAttribute "approve-build-notice" ] [ text "An admin of this repository must approve the build to run" ]
-                            , viewBuildTabs model org repo buildNumber model.legacyPage
+                            , viewBuildTabs model.shared org repo buildNumber model.legacyPage
                             , content
                             ]
 
                         _ ->
                             [ viewPreview msgs model.shared.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
-                            , viewBuildTabs model org repo buildNumber model.legacyPage
+                            , viewBuildTabs model.shared org repo buildNumber model.legacyPage
                             , content
                             ]
 

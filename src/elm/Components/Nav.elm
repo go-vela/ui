@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Nav exposing (Msgs, viewBuildTabs, viewNav, viewUtil)
+module Components.Nav exposing (Msgs, view, viewBuildTabs, viewUtil)
 
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
@@ -43,13 +43,6 @@ import Vela
         )
 
 
-type alias PartialModel a =
-    { a
-        | shared : Shared.Model
-        , legacyPage : Page
-    }
-
-
 type alias Msgs msg =
     { fetchSourceRepos : msg
     , toggleFavorite : ToggleFavorite msg
@@ -73,21 +66,19 @@ type alias Tab =
     }
 
 
-{-| viewNav : uses current state to render navigation, such as breadcrumb
--}
-viewNav : PartialModel a -> Msgs msg -> Html msg
-viewNav model msgs =
+view : Shared.Model -> Msgs msg -> Page -> Html msg
+view shared msgs legacyPage =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
-        [ Crumbs.view model.legacyPage
-        , navButtons model msgs
+        [ Crumbs.view legacyPage
+        , navButtons shared msgs legacyPage
         ]
 
 
 {-| navButtons : uses current page to build the commonly used button on the right side of the nav
 -}
-navButtons : PartialModel a -> Msgs msg -> Html msg
-navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild, cancelBuild } =
-    case model.legacyPage of
+navButtons : Shared.Model -> Msgs msg -> Page -> Html msg
+navButtons shared { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild, cancelBuild } legacyPage =
+    case legacyPage of
         Pages.Overview ->
             a
                 [ class "button"
@@ -113,10 +104,10 @@ navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild,
                     , ( "-outline", True )
                     ]
                 , onClick fetchSourceRepos
-                , disabled (model.shared.sourceRepos == Loading)
+                , disabled (shared.sourceRepos == Loading)
                 , Util.testAttribute "refresh-source-repos"
                 ]
-                [ case model.shared.sourceRepos of
+                [ case shared.sourceRepos of
                     Loading ->
                         text "Loading…"
 
@@ -125,49 +116,49 @@ navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild,
                 ]
 
         Pages.RepositoryBuilds org repo _ _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
 
         Pages.RepositoryDeployments org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
 
         Pages.Schedules org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
 
         Pages.RepoSettings org repo ->
-            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
 
         Pages.RepoSecrets _ org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
 
         Pages.Build org repo _ _ ->
             div [ class "buttons" ]
-                [ approveBuildButton org repo model.shared.repo.build.build approveBuild
-                , cancelBuildButton org repo model.shared.repo.build.build cancelBuild
-                , restartBuildButton org repo model.shared.repo.build.build restartBuild
+                [ approveBuildButton org repo shared.repo.build.build approveBuild
+                , cancelBuildButton org repo shared.repo.build.build cancelBuild
+                , restartBuildButton org repo shared.repo.build.build restartBuild
                 ]
 
         Pages.BuildServices org repo _ _ ->
             div [ class "buttons" ]
-                [ approveBuildButton org repo model.shared.repo.build.build approveBuild
-                , cancelBuildButton org repo model.shared.repo.build.build cancelBuild
-                , restartBuildButton org repo model.shared.repo.build.build restartBuild
+                [ approveBuildButton org repo shared.repo.build.build approveBuild
+                , cancelBuildButton org repo shared.repo.build.build cancelBuild
+                , restartBuildButton org repo shared.repo.build.build restartBuild
                 ]
 
         Pages.BuildPipeline org repo _ _ _ ->
             div [ class "buttons" ]
-                [ approveBuildButton org repo model.shared.repo.build.build approveBuild
-                , cancelBuildButton org repo model.shared.repo.build.build cancelBuild
-                , restartBuildButton org repo model.shared.repo.build.build restartBuild
+                [ approveBuildButton org repo shared.repo.build.build approveBuild
+                , cancelBuildButton org repo shared.repo.build.build cancelBuild
+                , restartBuildButton org repo shared.repo.build.build restartBuild
                 ]
 
         Pages.BuildGraph org repo _ ->
             div [ class "buttons" ]
-                [ cancelBuildButton org repo model.shared.repo.build.build cancelBuild
-                , restartBuildButton org repo model.shared.repo.build.build restartBuild
+                [ cancelBuildButton org repo shared.repo.build.build cancelBuild
+                , restartBuildButton org repo shared.repo.build.build restartBuild
                 ]
 
         Pages.Hooks org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited model.shared.user <| org ++ "/" ++ repo
+            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
 
         Pages.OrgSecrets _ _ _ _ ->
             text ""
@@ -226,52 +217,52 @@ navButtons model { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild,
 
 {-| viewUtil : uses current state to render navigation in util area below nav
 -}
-viewUtil : PartialModel a -> Html msg
-viewUtil model =
+viewUtil : Shared.Model -> Page -> Html msg
+viewUtil shared legacyPage =
     let
         rm =
-            model.shared.repo
+            shared.repo
     in
     div [ class "util" ]
-        [ case model.legacyPage of
+        [ case legacyPage of
             Pages.OrgBuilds org _ _ _ ->
-                viewOrgTabs rm org model.legacyPage
+                viewOrgTabs rm org legacyPage
 
             Pages.OrgSecrets _ org _ _ ->
-                viewOrgTabs rm org model.legacyPage
+                viewOrgTabs rm org legacyPage
 
             Pages.OrgRepositories org _ _ ->
-                viewOrgTabs rm org model.legacyPage
+                viewOrgTabs rm org legacyPage
 
             Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
 
             Pages.RepositoryDeployments org repo _ _ ->
-                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
 
             Pages.RepoSecrets _ org repo _ _ ->
-                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
 
             Pages.Schedules org repo _ _ ->
-                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
 
             Pages.Hooks org repo _ _ ->
-                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
 
             Pages.RepoSettings org repo ->
-                viewRepoTabs rm org repo model.legacyPage model.shared.velaScheduleAllowlist
+                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
 
             Pages.Build _ _ _ _ ->
-                Pages.Build.History.view model.shared.time model.shared.zone model.legacyPage 10 model.shared.repo
+                Pages.Build.History.view shared.time shared.zone legacyPage 10 shared.repo
 
             Pages.BuildServices _ _ _ _ ->
-                Pages.Build.History.view model.shared.time model.shared.zone model.legacyPage 10 model.shared.repo
+                Pages.Build.History.view shared.time shared.zone legacyPage 10 shared.repo
 
             Pages.BuildPipeline _ _ _ _ _ ->
-                Pages.Build.History.view model.shared.time model.shared.zone model.legacyPage 10 model.shared.repo
+                Pages.Build.History.view shared.time shared.zone legacyPage 10 shared.repo
 
             Pages.BuildGraph _ _ _ ->
-                Pages.Build.History.view model.shared.time model.shared.zone model.legacyPage 10 model.shared.repo
+                Pages.Build.History.view shared.time shared.zone legacyPage 10 shared.repo
 
             Pages.AddDeployment _ _ ->
                 text ""
@@ -461,14 +452,14 @@ viewRepoTabs rm org repo currentPage scheduleAllowlist =
 
 {-| viewBuildTabs : takes model information and current page and renders build navigation tabs
 -}
-viewBuildTabs : PartialModel a -> Org -> Repo -> BuildNumber -> Page -> Html msg
-viewBuildTabs model org repo buildNumber currentPage =
+viewBuildTabs : Shared.Model -> Org -> Repo -> BuildNumber -> Page -> Html msg
+viewBuildTabs shared org repo buildNumber currentPage =
     let
         bm =
-            model.shared.repo.build
+            shared.repo.build
 
         pipeline =
-            model.shared.pipeline
+            shared.pipeline
 
         tabs =
             [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False True

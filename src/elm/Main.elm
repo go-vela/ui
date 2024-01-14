@@ -19,6 +19,7 @@ import Browser
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation
+import Components.Nav
 import Dict
 import Effect exposing (Effect)
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
@@ -85,7 +86,6 @@ import Main.Pages.Model
 import Main.Pages.Msg
 import Maybe
 import Maybe.Extra exposing (unwrap)
-import Nav exposing (viewUtil)
 import Page
 import Pager
 import Pages exposing (Page)
@@ -110,10 +110,10 @@ import Pages.Builds
 import Pages.Deployments.Model
 import Pages.Deployments.Update exposing (initializeFormFromDeployment)
 import Pages.Deployments.View
-import Pages.Deployments_
 import Pages.Home_
 import Pages.Hooks
 import Pages.NotFound_
+import Pages.Org_.Repo_.Deployments_
 import Pages.Organization
 import Pages.Pipeline.Model
 import Pages.Pipeline.View exposing (safeDecodePipelineData)
@@ -505,26 +505,26 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.Deployments_ ->
+        Route.Path.Org_Repo_Deployments_ params ->
             runWhenAuthenticatedWithLayout
                 model
                 (\user ->
                     let
-                        page : Page.Page Pages.Deployments_.Model Pages.Deployments_.Msg
+                        page : Page.Page Pages.Org_.Repo_.Deployments_.Model Pages.Org_.Repo_.Deployments_.Msg
                         page =
-                            Pages.Deployments_.page user model.shared (Route.fromUrl () model.url)
+                            Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl () model.url)
 
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
                     { page =
                         Tuple.mapBoth
-                            Main.Pages.Model.Deployments_
-                            (Effect.map Main.Pages.Msg.Deployments_ >> fromPageEffect model)
+                            Main.Pages.Model.Org_Repo_Deployments_
+                            (Effect.map Main.Pages.Msg.Org_Repo_Deployments_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
                         Page.layout pageModel page
-                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Deployments_ >> Page))
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Deployments_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -2912,14 +2912,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.Deployments_ pageMsg, Main.Pages.Model.Deployments_ pageModel ) ->
+        ( Main.Pages.Msg.Org_Repo_Deployments_ pageMsg, Main.Pages.Model.Org_Repo_Deployments_ pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        Main.Pages.Model.Deployments_
-                        (Effect.map Main.Pages.Msg.Deployments_ >> fromPageEffect model)
-                        (Page.update (Pages.Deployments_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                        Main.Pages.Model.Org_Repo_Deployments_
+                        (Effect.map Main.Pages.Msg.Org_Repo_Deployments_ >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
@@ -2943,6 +2943,12 @@ updateFromLayout msg model =
             Route.fromUrl () model.url
     in
     case ( toLayoutFromPage model, model.layout, msg ) of
+        ( Just (Layouts.Default props), Just (Main.Layouts.Model.Default layoutModel), Main.Layouts.Msg.Default layoutMsg ) ->
+            Tuple.mapBoth
+                (\newModel -> Just (Main.Layouts.Model.Default { layoutModel | default = newModel }))
+                (Effect.map Main.Layouts.Msg.Default >> fromLayoutEffect model)
+                (Layout.update (Layouts.Default.layout props model.shared route) layoutMsg layoutModel.default)
+
         _ ->
             ( model.layout
             , Cmd.none
@@ -2976,11 +2982,11 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
 
-        Main.Pages.Model.Deployments_ pageModel ->
+        Main.Pages.Model.Org_Repo_Deployments_ pageModel ->
             Route.fromUrl () model.url
-                |> toAuthProtectedPage model Pages.Deployments_.page
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Deployments_.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.Deployments_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Deployments_ >> Page))
 
         Main.Pages.Model.NotFound_ pageModel ->
             Route.fromUrl () model.url
@@ -3053,7 +3059,8 @@ view model =
         view_ : View Msg
         view_ =
             toView model
-                |> legacyLayout model
+
+        -- |> legacyLayout model
     in
     View.toBrowserDocument
         { shared = model.shared
@@ -3064,7 +3071,22 @@ view model =
 
 toView : Model -> View Msg
 toView model =
-    viewPage model
+    let
+        route : Route ()
+        route =
+            Route.fromUrl () model.url
+    in
+    case ( toLayoutFromPage model, model.layout ) of
+        ( Just (Layouts.Default props), Just (Main.Layouts.Model.Default layoutModel) ) ->
+            Layout.view
+                (Layouts.Default.layout props model.shared route)
+                { model = layoutModel.default
+                , toContentMsg = Main.Layouts.Msg.Default >> Layout
+                , content = viewPage model
+                }
+
+        _ ->
+            viewPage model
 
 
 viewPage : Model -> View Msg
@@ -3102,11 +3124,11 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Deployments_ pageModel ->
+        Main.Pages.Model.Org_Repo_Deployments_ pageModel ->
             Auth.Action.view
                 (\user ->
-                    Page.view (Pages.Deployments_.page user model.shared (Route.fromUrl () model.url)) pageModel
-                        |> View.map Main.Pages.Msg.Deployments_
+                    Page.view (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl () model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org_Repo_Deployments_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -3128,21 +3150,23 @@ legacyLayout model v =
     -- todo: move this into a site-wide Layout
     { v
         | body =
-            [ lazy2 viewHeader
-                model.shared.session
-                { feedbackLink = model.shared.velaFeedbackURL
-                , docsLink = model.shared.velaDocsURL
-                , theme = model.shared.theme
-                , help = helpArgs model
-                , showId = model.shared.showIdentity
-                }
-            , lazy2 Nav.viewNav model navMsgs
-            , main_ [ class "content-wrap" ]
-                (viewUtil model
-                    :: v.body
-                )
-            , footer [] [ lazy viewAlerts model.shared.toasties ]
-            ]
+            v.body
+
+        -- [ lazy2 viewHeader
+        --     model.shared.session
+        --     { feedbackLink = model.shared.velaFeedbackURL
+        --     , docsLink = model.shared.velaDocsURL
+        --     , theme = model.shared.theme
+        --     , help = helpArgs model
+        --     , showId = model.shared.showIdentity
+        --     }
+        -- , lazy2 Components.Nav.viewNav model navMsgs
+        -- , main_ [ class "content-wrap" ]
+        --     (Components.Nav.viewUtil model
+        --         :: v.body
+        --     )
+        -- , footer [] [ lazy viewAlerts model.shared.toasties ]
+        -- ]
     }
 
 
@@ -3238,11 +3262,11 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Deployments_ pageModel ->
+        Main.Pages.Model.Org_Repo_Deployments_ pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Deployments_.page user model.shared (Route.fromUrl () model.url))
-                        |> List.map Main.Pages.Msg.Deployments_
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl () model.url))
+                        |> List.map Main.Pages.Msg.Org_Repo_Deployments_
                         |> List.map Page
                         |> toCommands
                 )
@@ -3328,7 +3352,7 @@ isAuthProtected routePath =
         Route.Path.Home_ ->
             True
 
-        Route.Path.Deployments_ ->
+        Route.Path.Org_Repo_Deployments_ _ ->
             True
 
         Route.Path.NotFound_ ->
@@ -4565,9 +4589,9 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
 
 {-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm
 -}
-navMsgs : Nav.Msgs Msg
+navMsgs : Components.Nav.Msgs Msg
 navMsgs =
-    Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets ApproveBuild RestartBuild CancelBuild
+    Components.Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets ApproveBuild RestartBuild CancelBuild
 
 
 {-| sourceReposMsgs : prepares the input record required for the SourceRepos page to route Msgs back to Main.elm

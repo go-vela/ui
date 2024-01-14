@@ -28,6 +28,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
+import Layouts
 import List.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -56,6 +57,7 @@ page user shared route =
         , subscriptions = subscriptions
         , view = view shared
         }
+        |> Page.withLayout (toLayout user)
 
 
 
@@ -131,6 +133,16 @@ update shared msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
+
+
+
+-- LAYOUT
+
+
+toLayout : Auth.User -> Model -> Layouts.Layout Msg
+toLayout user model =
+    Layouts.Default
+        {}
 
 
 

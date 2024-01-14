@@ -282,7 +282,7 @@ update route msg model =
                     model.repo.deployments
             in
             case route.path of
-                Route.Path.Deployments_ ->
+                Route.Path.Org_Repo_Deployments_ params ->
                     ( { model | repo = { repo | deployments = { deployments | deployments = Loading } } }
                     , Effect.pushRoute
                         { path = route.path

@@ -1,9 +1,9 @@
 module Page exposing
     ( Page, new
     , sandbox, element
+    , withLayout
     , withOnUrlChanged, withOnQueryParameterChanged, withOnHashChanged
     , init, update, view, subscriptions, layout, toUrlMessages
-    -- , withLayout
     )
 
 {-|
@@ -104,9 +104,18 @@ element options =
 
 
 -- LAYOUTS
--- withLayout : (model -> (Layout) msg) -> Page model msg -> Page model msg
--- withLayout toLayout_ (Page page) =
---     Page { page | toLayout = Just toLayout_ }
+
+
+withLayout : (model -> Layout msg) -> Page model msg -> Page model msg
+withLayout toLayout_ (Page page) =
+    let
+        _ =
+            Debug.log "with layout"
+    in
+    Page { page | toLayout = Just toLayout_ }
+
+
+
 -- URL CHANGES
 
 

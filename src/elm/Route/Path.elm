@@ -17,7 +17,7 @@ type Path
     | Authenticate_
     | AccountSettings_
     | AccountSourceRepos_
-    | Deployments_
+    | Org_Repo_Deployments_ { org : String, repo : String }
     | NotFound_
 
 
@@ -55,9 +55,12 @@ fromString urlPath =
         [ "account", "source-repos" ] ->
             Just AccountSourceRepos_
 
-        -- todo: how do you add a dynamic route? <org>/<repo>/deployments
-        [ "deployments" ] ->
-            Just Deployments_
+        org :: repo :: "deployments" :: [] ->
+            Org_Repo_Deployments_
+                { org = org
+                , repo = repo
+                }
+                |> Just
 
         _ ->
             Nothing
@@ -92,8 +95,8 @@ toString path =
                 AccountSourceRepos_ ->
                     [ "account", "source-repos" ]
 
-                Deployments_ ->
-                    [ "deployments" ]
+                Org_Repo_Deployments_ params ->
+                    [ params.org, params.repo, "deployments" ]
 
                 NotFound_ ->
                     [ "404" ]

@@ -4,7 +4,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addError, getCurrentUser, getUserSourceRepos, gotoPage, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
+    , addError, alertsUpdate, getCurrentUser, getUserSourceRepos, gotoPage, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
     )
 
 {-|
@@ -18,6 +18,7 @@ module Effect exposing
 
 -}
 
+import Alerts exposing (Alert)
 import Api.Pagination
 import Browser.Navigation
 import Dict exposing (Dict)
@@ -29,6 +30,7 @@ import Route.Path
 import Shared.Model
 import Shared.Msg
 import Task
+import Toasty as Alerting
 import Url exposing (Url)
 import Vela exposing (CurrentUser)
 
@@ -243,3 +245,8 @@ showCopyToClipboardAlert options =
 addError : Http.Detailed.Error String -> Effect msg
 addError error =
     SendSharedMsg <| Shared.Msg.AddError error
+
+
+alertsUpdate : Alerting.Msg Alert -> Effect msg
+alertsUpdate alert =
+    SendSharedMsg <| Shared.Msg.AlertsUpdate alert
