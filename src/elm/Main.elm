@@ -668,7 +668,6 @@ type Msg
     | OnBuildGraphInteraction GraphInteraction
       -- Outgoing HTTP requests
     | SignInRequested
-    | FetchSourceRepositories
     | ToggleFavorite Org (Maybe Repo)
     | AddFavorite Org (Maybe Repo)
     | EnableRepos Repositories
@@ -691,7 +690,6 @@ type Msg
     | ExpandPipelineConfig Org Repo BuildNumber Ref FocusFragment Bool
       -- Inbound HTTP responses
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
-    | SourceRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | RepoFavoritedResponse String Bool (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | OrgRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Repository ))
@@ -789,10 +787,7 @@ update msg model =
             )
 
         UrlChanged url ->
-            if
-                Route.Path.fromUrl url
-                    == Route.Path.fromUrl model.url
-            then
+            if Route.Path.fromUrl url == Route.Path.fromUrl model.url then
                 let
                     newModel : Model
                     newModel =
@@ -1040,12 +1035,13 @@ update msg model =
                     ( { model | shared = { shared | user = toFailure error } }, Errors.addError HandleError error )
 
         SearchSourceRepos org searchBy ->
-            let
-                filters =
-                    Dict.update org (\_ -> Just searchBy) model.shared.filters
-            in
-            ( { model | shared = { shared | filters = filters } }, Cmd.none )
+            ( model, Cmd.none )
 
+        -- let
+        --     filters =
+        --         Dict.update org (\_ -> Just searchBy) model.shared.filters
+        -- in
+        -- ( { model | shared = { shared | filters = filters } }, Cmd.none )
         ChangeRepoLimit limit ->
             let
                 newLimit =
@@ -1617,9 +1613,6 @@ update msg model =
             -- so we can parse it when the source provider redirects back to the API
             ( model, Browser.Navigation.load <| Api.Endpoint.toUrl model.shared.velaAPI Api.Endpoint.Login )
 
-        FetchSourceRepositories ->
-            ( { model | shared = { shared | sourceRepos = Loading } }, Api.Api.try SourceRepositoriesResponse <| Api.Operations.getSourceRepositories model )
-
         ToggleFavorite org repo ->
             let
                 favorite =
@@ -1678,8 +1671,10 @@ update msg model =
             ( { model
                 | shared =
                     { shared
-                        | sourceRepos = enableUpdate repo Loading model.shared.sourceRepos
-                        , repo = updateRepoEnabling Vela.Enabling rm
+                        | -- todo: source repos enable repo update, but is this different than repo settings page update?
+                          -- sourceRepos = enableUpdate repo Loading model.shared.sourceRepos
+                          -- ,
+                          repo = updateRepoEnabling Vela.Enabling rm
                     }
               }
             , Api.Api.try (RepoEnabledResponse repo) <| Api.Operations.enableRepository model body
@@ -1985,14 +1980,6 @@ update msg model =
                 Err error ->
                     ( model, Errors.addError HandleError error )
 
-        SourceRepositoriesResponse response ->
-            case response of
-                Ok ( _, repositories ) ->
-                    ( { model | shared = { shared | sourceRepos = RemoteData.succeed repositories } }, Util.dispatch <| FocusOn "global-search-input" )
-
-                Err error ->
-                    ( { model | shared = { shared | sourceRepos = toFailure error } }, Errors.addError HandleError error )
-
         RepoFavoritedResponse favorite favorited response ->
             case response of
                 Ok ( _, user ) ->
@@ -2050,8 +2037,10 @@ update msg model =
                             { model
                                 | shared =
                                     { shared
-                                        | sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.shared.sourceRepos
-                                        , repo = updateRepoEnabling Vela.Enabled rm
+                                        | -- todo: source repos enable repo update, but is this different than repo settings page update?
+                                          -- sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.shared.sourceRepos
+                                          -- ,
+                                          repo = updateRepoEnabling Vela.Enabled rm
                                     }
                             }
 
@@ -2061,12 +2050,14 @@ update msg model =
                     ( { um | shared = sharedWithAlert }, cmd )
 
                 Err error ->
-                    let
-                        ( sourceRepos, action ) =
-                            repoEnabledError model.shared.sourceRepos repo error
-                    in
-                    ( { model | shared = { shared | sourceRepos = sourceRepos } }, action )
+                    -- todo: source repos enable repo update, but is this different than repo settings page update?
+                    ( model, Cmd.none )
 
+        -- let
+        --     ( sourceRepos, action ) =
+        --         repoEnabledError model.shared.sourceRepos repo error
+        -- in
+        -- ( { model | shared = { shared | sourceRepos = sourceRepos } }, action )
         RepoDisabledResponse repo response ->
             case response of
                 Ok _ ->
@@ -2075,8 +2066,10 @@ update msg model =
                             { model
                                 | shared =
                                     { shared
-                                        | sourceRepos = enableUpdate repo NotAsked model.shared.sourceRepos
-                                        , repo = updateRepoEnabling Vela.Disabled rm
+                                        | -- todo: source repos enable repo update, but is this different than repo settings page update?
+                                          -- sourceRepos = enableUpdate repo NotAsked model.shared.sourceRepos
+                                          -- ,
+                                          repo = updateRepoEnabling Vela.Disabled rm
                                     }
                             }
 
@@ -2123,8 +2116,10 @@ update msg model =
                             { model
                                 | shared =
                                     { shared
-                                        | sourceRepos = enableUpdate repo (RemoteData.succeed True) model.shared.sourceRepos
-                                        , repo = updateRepoEnabling Vela.Enabled rm
+                                        | -- todo: source repos repair update? is this even necessary?
+                                          -- sourceRepos = enableUpdate repo (RemoteData.succeed True) model.shared.sourceRepos
+                                          -- ,
+                                          repo = updateRepoEnabling Vela.Enabled rm
                                     }
                             }
 
@@ -3146,30 +3141,6 @@ viewPage model =
                 |> View.map never
 
 
-legacyLayout model v =
-    -- todo: move this into a site-wide Layout
-    { v
-        | body =
-            v.body
-
-        -- [ lazy2 viewHeader
-        --     model.shared.session
-        --     { feedbackLink = model.shared.velaFeedbackURL
-        --     , docsLink = model.shared.velaDocsURL
-        --     , theme = model.shared.theme
-        --     , help = helpArgs model
-        --     , showId = model.shared.showIdentity
-        --     }
-        -- , lazy2 Components.Nav.viewNav model navMsgs
-        -- , main_ [ class "content-wrap" ]
-        --     (Components.Nav.viewUtil model
-        --         :: v.body
-        --     )
-        -- , footer [] [ lazy viewAlerts model.shared.toasties ]
-        -- ]
-    }
-
-
 
 -- INTERNALS
 
@@ -3440,42 +3411,6 @@ isOutsideTarget targetId =
         -- fallback if all previous decoders failed
         , Json.Decode.succeed True
         ]
-
-
-
--- LEGACY HELPERS (PAGE INIT+LOADING)
-
-
-{-| loadSourceReposPage : takes model
-
-    updates the model based on app initialization state and loads source repos page resources
-
--}
-loadSourceReposPage : Model -> ( Model, Cmd Msg )
-loadSourceReposPage model =
-    let
-        shared =
-            model.shared
-    in
-    case model.shared.sourceRepos of
-        NotAsked ->
-            ( { model | legacyPage = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
-            , Cmd.batch
-                [ Api.Api.try SourceRepositoriesResponse <| Api.Operations.getSourceRepositories model
-                , getCurrentUser model
-                ]
-            )
-
-        Failure _ ->
-            ( { model | legacyPage = Pages.SourceRepositories, shared = { shared | sourceRepos = Loading } }
-            , Cmd.batch
-                [ Api.Api.try SourceRepositoriesResponse <| Api.Operations.getSourceRepositories model
-                , getCurrentUser model
-                ]
-            )
-
-        _ ->
-            ( { model | legacyPage = Pages.SourceRepositories }, getCurrentUser model )
 
 
 {-| loadOrgReposPage : takes model
@@ -4587,13 +4522,6 @@ loadBuildPipelinePage model org repo buildNumber expand lineFocus =
 --todo: these shouldnt be needed with Shared.Msg
 
 
-{-| navMsgs : prepares the input record required for the nav component to route Msgs back to Main.elm
--}
-navMsgs : Components.Nav.Msgs Msg
-navMsgs =
-    Components.Nav.Msgs FetchSourceRepositories ToggleFavorite RefreshSettings RefreshHooks RefreshSecrets ApproveBuild RestartBuild CancelBuild
-
-
 {-| sourceReposMsgs : prepares the input record required for the SourceRepos page to route Msgs back to Main.elm
 -}
 sourceReposMsgs : Pages.SourceRepos.Msgs Msg
@@ -5646,38 +5574,6 @@ wrapAlertMessage message =
 
 
 
--- HELP
-
-
-helpArg : WebData a -> Help.Commands.Arg
-helpArg arg =
-    { success = Util.isSuccess arg, loading = Util.isLoading arg }
-
-
-helpArgs : Model -> Help.Commands.Model Msg
-helpArgs model =
-    { user = helpArg model.shared.user
-    , sourceRepos = helpArg model.shared.sourceRepos
-    , orgRepos = helpArg model.shared.repo.orgRepos.orgRepos
-    , builds = helpArg model.shared.repo.builds.builds
-    , deployments = helpArg model.shared.repo.deployments.deployments
-    , build = helpArg model.shared.repo.build.build
-    , repo = helpArg model.shared.repo.repo
-    , hooks = helpArg model.shared.repo.hooks.hooks
-    , secrets = helpArg model.secretsModel.repoSecrets
-    , show = model.shared.showHelp
-    , toggle = ShowHideHelp
-    , copy = Copy
-    , noOp = NoOp
-    , page = model.legacyPage
-
-    -- TODO: use env flag velaDocsURL
-    -- , velaDocsURL = model.velaDocsURL
-    , velaDocsURL = "https://go-vela.github.io/docs"
-    }
-
-
-
 -- TIMESTAMPS?
 
 
@@ -5712,8 +5608,8 @@ viewPageUNUSED model =
             ( "Source Repositories"
             , lazy2 Pages.SourceRepos.view
                 { user = model.shared.user
-                , sourceRepos = model.shared.sourceRepos
-                , filters = model.shared.filters
+                , sourceRepos = NotAsked
+                , filters = Dict.empty
                 }
                 sourceReposMsgs
             )
@@ -6053,7 +5949,8 @@ setNewPageUNUSED route model =
             loadOverviewPage model
 
         ( Routes.SourceRepositories, Authenticated _ ) ->
-            loadSourceReposPage model
+            -- loadSourceReposPage model
+            ( model, Cmd.none )
 
         ( Routes.OrgRepositories org maybePage maybePerPage, Authenticated _ ) ->
             loadOrgReposPage model org maybePage maybePerPage

@@ -20,6 +20,7 @@ import Html.Attributes
         , class
         )
 import Html.Events exposing (onClick)
+import Layouts
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
@@ -35,6 +36,19 @@ page shared route =
         , update = update shared
         , subscriptions = subscriptions
         , view = view shared
+        }
+        |> Page.withLayout toLayout
+
+
+
+-- LAYOUT
+
+
+toLayout : Model -> Layouts.Layout Msg
+toLayout model =
+    Layouts.Default
+        { navButtons = []
+        , utilButtons = []
         }
 
 

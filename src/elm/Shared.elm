@@ -107,7 +107,6 @@ init flagsResult route =
     -- todo: these need to be logically ordered (flags, session, user, data models, etc)
     ( { session = Unauthenticated
       , user = NotAsked
-      , sourceRepos = NotAsked
       , velaAPI = flags.velaAPI
       , velaFeedbackURL = flags.velaFeedbackURL
       , velaDocsURL = flags.velaDocsURL
@@ -118,7 +117,6 @@ init flagsResult route =
       , toasties = Alerting.initialState
       , zone = utc
       , time = millisToPosix 0
-      , filters = Dict.empty
       , repo = defaultRepoModel
       , theme = stringToTheme flags.velaTheme
       , shift = False
@@ -236,39 +234,6 @@ update route msg model =
 
                 Err error ->
                     ( { model | user = Errors.toFailure error }
-                    , Effect.addError error
-                    )
-
-        -- SOURCE REPOS
-        Shared.Msg.GetUserSourceRepos ->
-            ( { model
-                | sourceRepos =
-                    if model.sourceRepos == NotAsked then
-                        Loading
-
-                    else
-                        model.sourceRepos
-              }
-            , Api.try
-                Shared.Msg.GetUserSourceReposResponse
-                (Api.Operations_.getUserSourceRepos model.velaAPI model.session)
-                |> Effect.sendCmd
-            )
-
-        Shared.Msg.GetUserSourceReposResponse response ->
-            case response of
-                Ok ( _, repositories ) ->
-                    ( { model
-                        | sourceRepos = RemoteData.succeed repositories
-                      }
-                    , Effect.none
-                      -- , Util.dispatch <| FocusOn "global-search-input"
-                    )
-
-                Err error ->
-                    ( { model
-                        | sourceRepos = Errors.toFailure error
-                      }
                     , Effect.addError error
                     )
 

@@ -24,6 +24,7 @@ import Html.Attributes
         )
 import Html.Events
 import Http
+import Layouts
 import List
 import Page exposing (Page)
 import Pager
@@ -47,6 +48,19 @@ page user shared route =
         , update = update
         , subscriptions = subscriptions
         , view = view shared
+        }
+        |> Page.withLayout (toLayout user)
+
+
+
+-- LAYOUT
+
+
+toLayout : Auth.User -> Model -> Layouts.Layout Msg
+toLayout user model =
+    Layouts.Default
+        { navButtons = []
+        , utilButtons = []
         }
 
 

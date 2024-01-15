@@ -28,6 +28,7 @@ import List.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
+import Route.Path
 import Routes
 import Search
     exposing
@@ -50,6 +51,26 @@ page user shared route =
         , view = view shared
         }
         |> Page.withLayout (toLayout user)
+
+
+
+-- LAYOUT
+
+
+toLayout : Auth.User -> Model -> Layouts.Layout Msg
+toLayout user model =
+    Layouts.Default
+        { navButtons =
+            [ a
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "source-repos"
+                , Route.Path.href Route.Path.AccountSourceRepos_
+                ]
+                [ text "Source Repositories" ]
+            ]
+        , utilButtons = []
+        }
 
 
 
@@ -105,16 +126,6 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
-
-
-
--- LAYOUT
-
-
-toLayout : Auth.User -> Model -> Layouts.Layout Msg
-toLayout user model =
-    Layouts.Default
-        {}
 
 
 

@@ -10,7 +10,6 @@ import Time
         , Zone
         )
 import Toasty exposing (Stack)
-import Url exposing (Url)
 import Vela
     exposing
         ( CurrentUser
@@ -20,14 +19,9 @@ import Vela
         , PipelineTemplates
         , Repo
         , RepoModel
-        , RepoSearchFilters
         , SourceRepositories
         , Theme(..)
         )
-
-
-
--- todo: comments
 
 
 type alias Model =
@@ -58,7 +52,4 @@ type alias Model =
     -- , schedulesModel : Pages.Schedules.Model.Model Msg
     -- , secretsModel : Pages.Secrets.Model.Model Msg
     -- , deploymentModel : Pages.Deployments.Model.Model Msg
-    -- migrated to pages, but cant remove until legacy pages are removed
-    , sourceRepos : WebData SourceRepositories
-    , filters : RepoSearchFilters
     }

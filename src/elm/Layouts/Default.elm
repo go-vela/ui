@@ -1,9 +1,10 @@
-module Layouts.Default exposing (Model, Msg, Props, layout)
+module Layouts.Default exposing (Model, Msg, Props, layout, map)
 
 import Alerts exposing (Alert)
 import Components.Footer
 import Components.Header
 import Components.Nav
+import Components.Util
 import Effect exposing (Effect)
 import Help.Commands
 import Html exposing (..)
@@ -19,16 +20,29 @@ import Vela exposing (Theme)
 import View exposing (View)
 
 
-type alias Props =
-    {}
+type alias Props contentMsg =
+    { navButtons : List (Html contentMsg)
+    , utilButtons : List (Html contentMsg)
+    }
 
 
-layout : Props -> Shared.Model -> Route () -> Layout () Model Msg contentMsg
+map : (msg1 -> msg2) -> Props msg1 -> Props msg2
+map fn props =
+    { navButtons =
+        props.navButtons
+            |> List.map (Html.map fn)
+    , utilButtons =
+        props.utilButtons
+            |> List.map (Html.map fn)
+    }
+
+
+layout : Props contentMsg -> Shared.Model -> Route () -> Layout () Model Msg contentMsg
 layout props shared route =
     Layout.new
         { init = init
         , update = update
-        , view = view shared route
+        , view = view props shared route
         , subscriptions = subscriptions
         }
 
@@ -104,8 +118,8 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
-view shared route { toContentMsg, model, content } =
+view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
+view props shared route { toContentMsg, model, content } =
     { title =
         if String.isEmpty content.title then
             "Vela"
@@ -124,17 +138,11 @@ view shared route { toContentMsg, model, content } =
             , showHideIdentity = ShowHideIdentity
             }
             |> Html.map toContentMsg
-
-        -- todo: implement the nav msgs somewhere....
-        -- in layout? makes sense for setTheme and showHideHelp
-        -- in each page? makes sense for restart/cancelBuild
-        -- todo: SetTheme effect
-        -- , Components.Nav.view shared {} |> Html.map toContentMsg
+        , Components.Nav.view shared route props.navButtons
         , main_ [ class "content-wrap" ]
-            -- todo: add "util buttons" as layout props
-            -- viewUtil model
-            -- ::
-            content.body
+            (Components.Util.view shared route props.utilButtons
+                :: content.body
+            )
         , Components.Footer.view
             { toasties = shared.toasties
             , copyAlertMsg = CopyAlert
@@ -142,42 +150,7 @@ view shared route { toContentMsg, model, content } =
             }
             |> Html.map toContentMsg
         ]
-
-    -- [ div [ class "layout" ]
-    --     [ div [] [ text "hello header" ]
-    --     , div [ class "page" ] content.body
-    --     , Components.Footer.view
-    --         { toasties = shared.toasties
-    --         , copyAlertMsg = CopyAlert
-    --         , alertsUpdateMsg = AlertsUpdate
-    --         }
-    --         |> Html.map toContentMsg
-    --     ]
-    -- ]
     }
-
-
-
--- legacyLayout model v =
---     -- todo: move this into a site-wide Layout
---     { v
---         | body =
---             [ viewHeader
---                 model.shared.session
---                 { feedbackLink = model.shared.velaFeedbackURL
---                 , docsLink = model.shared.velaDocsURL
---                 , theme = model.shared.theme
---                 -- , help = helpArgs model
---                 , showId = model.shared.showIdentity
---                 }
---             , Nav.viewNav model navMsgs
---             , main_ [ class "content-wrap" ]
---                 (viewUtil model
---                     :: v.body
---                 )
---             , footer [] [ viewAlerts model.shared.toasties ]
---             ]
---     }
 
 
 helpArg : WebData a -> Help.Commands.Arg
@@ -188,7 +161,9 @@ helpArg arg =
 helpArgs : Shared.Model -> Help.Commands.Model Msg
 helpArgs shared =
     { user = helpArg shared.user
-    , sourceRepos = helpArg shared.sourceRepos
+
+    -- todo: this needs to also be a layout prop input
+    , sourceRepos = helpArg RemoteData.NotAsked
     , orgRepos = helpArg shared.repo.orgRepos.orgRepos
     , builds = helpArg shared.repo.builds.builds
     , deployments = helpArg shared.repo.deployments.deployments

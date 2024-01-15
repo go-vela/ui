@@ -4,7 +4,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addError, alertsUpdate, getCurrentUser, getUserSourceRepos, gotoPage, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
+    , addError, alertsUpdate, getCurrentUser, gotoPage, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
     )
 
 {-|
@@ -225,11 +225,6 @@ getCurrentUser _ =
 toggleFavorites : { org : String, maybeRepo : Maybe String } -> Effect msg
 toggleFavorites options =
     SendSharedMsg <| Shared.Msg.ToggleFavorites options
-
-
-getUserSourceRepos : {} -> Effect msg
-getUserSourceRepos _ =
-    SendSharedMsg <| Shared.Msg.GetUserSourceRepos
 
 
 gotoPage : { pageNumber : Int } -> Effect msg

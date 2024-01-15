@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Nav exposing (Msgs, view, viewBuildTabs, viewUtil)
+module Components.Nav exposing (Msgs, Tab, view, viewTabs)
 
 import Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
@@ -26,8 +26,9 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Pages exposing (Page)
-import Pages.Build.History
 import RemoteData exposing (RemoteData(..), WebData)
+import Route exposing (Route)
+import Route.Path
 import Routes
 import Shared
 import Util
@@ -66,18 +67,16 @@ type alias Tab =
     }
 
 
-view : Shared.Model -> Msgs msg -> Page -> Html msg
-view shared msgs legacyPage =
+view : Shared.Model -> Route () -> List (Html msg) -> Html msg
+view shared route buttons =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
-        [ Crumbs.view legacyPage
-        , navButtons shared msgs legacyPage
-        ]
+        (Crumbs.view route.path
+            :: buttons
+        )
 
 
-{-| navButtons : uses current page to build the commonly used button on the right side of the nav
--}
-navButtons : Shared.Model -> Msgs msg -> Page -> Html msg
-navButtons shared { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild, cancelBuild } legacyPage =
+navButtonsLegacy : Shared.Model -> Msgs msg -> Page -> Html msg
+navButtonsLegacy shared { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild, cancelBuild } legacyPage =
     case legacyPage of
         Pages.Overview ->
             a
@@ -104,15 +103,15 @@ navButtons shared { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild
                     , ( "-outline", True )
                     ]
                 , onClick fetchSourceRepos
-                , disabled (shared.sourceRepos == Loading)
+
+                -- , disabled (shared.sourceRepos == Loading)
                 , Util.testAttribute "refresh-source-repos"
                 ]
-                [ case shared.sourceRepos of
-                    Loading ->
-                        text "Loading…"
-
-                    _ ->
-                        text "Refresh List"
+                [-- case shared.sourceRepos of
+                 -- Loading ->
+                 --     text "Loading…"
+                 -- _ ->
+                 --     text "Refresh List"
                 ]
 
         Pages.RepositoryBuilds org repo _ _ _ ->
@@ -213,111 +212,6 @@ navButtons shared { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild
 
         Pages.NotFound ->
             text ""
-
-
-{-| viewUtil : uses current state to render navigation in util area below nav
--}
-viewUtil : Shared.Model -> Page -> Html msg
-viewUtil shared legacyPage =
-    let
-        rm =
-            shared.repo
-    in
-    div [ class "util" ]
-        [ case legacyPage of
-            Pages.OrgBuilds org _ _ _ ->
-                viewOrgTabs rm org legacyPage
-
-            Pages.OrgSecrets _ org _ _ ->
-                viewOrgTabs rm org legacyPage
-
-            Pages.OrgRepositories org _ _ ->
-                viewOrgTabs rm org legacyPage
-
-            Pages.RepositoryBuilds org repo _ _ _ ->
-                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
-
-            Pages.RepositoryDeployments org repo _ _ ->
-                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
-
-            Pages.RepoSecrets _ org repo _ _ ->
-                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
-
-            Pages.Schedules org repo _ _ ->
-                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
-
-            Pages.Hooks org repo _ _ ->
-                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
-
-            Pages.RepoSettings org repo ->
-                viewRepoTabs rm org repo legacyPage shared.velaScheduleAllowlist
-
-            Pages.Build _ _ _ _ ->
-                Pages.Build.History.view shared.time shared.zone legacyPage 10 shared.repo
-
-            Pages.BuildServices _ _ _ _ ->
-                Pages.Build.History.view shared.time shared.zone legacyPage 10 shared.repo
-
-            Pages.BuildPipeline _ _ _ _ _ ->
-                Pages.Build.History.view shared.time shared.zone legacyPage 10 shared.repo
-
-            Pages.BuildGraph _ _ _ ->
-                Pages.Build.History.view shared.time shared.zone legacyPage 10 shared.repo
-
-            Pages.AddDeployment _ _ ->
-                text ""
-
-            Pages.PromoteDeployment _ _ _ ->
-                text ""
-
-            Pages.Overview ->
-                text ""
-
-            Pages.SourceRepositories ->
-                text ""
-
-            Pages.SharedSecrets _ _ _ _ _ ->
-                text ""
-
-            Pages.AddOrgSecret _ _ ->
-                text ""
-
-            Pages.AddRepoSecret _ _ _ ->
-                text ""
-
-            Pages.AddSharedSecret _ _ _ ->
-                text ""
-
-            Pages.OrgSecret _ _ _ ->
-                text ""
-
-            Pages.RepoSecret _ _ _ _ ->
-                text ""
-
-            Pages.SharedSecret _ _ _ _ ->
-                text ""
-
-            Pages.RepositoryBuildsPulls _ _ _ _ ->
-                text ""
-
-            Pages.RepositoryBuildsTags _ _ _ _ ->
-                text ""
-
-            Pages.AddSchedule _ _ ->
-                text ""
-
-            Pages.Schedule _ _ _ ->
-                text ""
-
-            Pages.Settings ->
-                text ""
-
-            Pages.Login ->
-                text ""
-
-            Pages.NotFound ->
-                text ""
-        ]
 
 
 {-| viewTabs : takes list of tab records and renders them with spacers and horizontal filler
@@ -448,27 +342,6 @@ viewRepoTabs rm org repo currentPage scheduleAllowlist =
 
 
 -- BUILD
-
-
-{-| viewBuildTabs : takes model information and current page and renders build navigation tabs
--}
-viewBuildTabs : Shared.Model -> Org -> Repo -> BuildNumber -> Page -> Html msg
-viewBuildTabs shared org repo buildNumber currentPage =
-    let
-        bm =
-            shared.repo.build
-
-        pipeline =
-            shared.pipeline
-
-        tabs =
-            [ Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False True
-            , Tab "Services" currentPage (Pages.BuildServices org repo buildNumber bm.services.focusFragment) False True
-            , Tab "Pipeline" currentPage (Pages.BuildPipeline org repo buildNumber pipeline.expand pipeline.focusFragment) False True
-            , Tab "Visualize" currentPage (Pages.BuildGraph org repo buildNumber) False True
-            ]
-    in
-    viewTabs tabs "jump-bar-build"
 
 
 {-| cancelBuildButton : takes org repo and build number and renders button to cancel a build

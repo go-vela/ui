@@ -24,6 +24,8 @@ import Html.Attributes
     exposing
         ( attribute
         , class
+        , classList
+        , disabled
         )
 import Html.Events exposing (onClick)
 import Http
@@ -57,7 +59,36 @@ page user shared route =
         , subscriptions = subscriptions
         , view = view shared
         }
-        |> Page.withLayout (toLayout user)
+        |> Page.withLayout (toLayout user shared)
+
+
+
+-- LAYOUT
+
+
+toLayout : Auth.User -> Shared.Model -> Model -> Layouts.Layout Msg
+toLayout user shared model =
+    Layouts.Default
+        { navButtons =
+            [ button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick (GetUserSourceRepos True)
+                , disabled (model.sourceRepos == Loading)
+                , Util.testAttribute "refresh-source-repos"
+                ]
+                [ case model.sourceRepos of
+                    Loading ->
+                        text "Loading…"
+
+                    _ ->
+                        text "Refresh List"
+                ]
+            ]
+        , utilButtons = []
+        }
 
 
 
@@ -66,14 +97,16 @@ page user shared route =
 
 type alias Model =
     { searchFilters : RepoSearchFilters
+    , sourceRepos : WebData SourceRepositories
     }
 
 
 init : () -> ( Model, Effect Msg )
 init () =
     ( { searchFilters = Dict.empty
+      , sourceRepos = NotAsked
       }
-    , Effect.sendMsg GetUserSourceRepos
+    , Effect.sendMsg (GetUserSourceRepos False)
     )
 
 
@@ -83,7 +116,9 @@ init () =
 
 type Msg
     = NoOp
-    | GetUserSourceRepos
+      -- SOURCE REPOS
+    | GetUserSourceRepos Bool
+    | GetUserSourceReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | ToggleFavorite Org (Maybe String)
     | EnableRepo Repository
     | EnableRepos Repositories
@@ -98,10 +133,37 @@ update shared msg model =
             , Effect.none
             )
 
-        GetUserSourceRepos ->
-            ( model
-            , Effect.getUserSourceRepos {}
+        GetUserSourceRepos reload ->
+            ( { model
+                | sourceRepos =
+                    if reload || model.sourceRepos == NotAsked then
+                        Loading
+
+                    else
+                        model.sourceRepos
+              }
+            , Api.try
+                GetUserSourceReposResponse
+                (Api.Operations_.getUserSourceRepos shared.velaAPI shared.session)
+                |> Effect.sendCmd
             )
+
+        GetUserSourceReposResponse response ->
+            case response of
+                Ok ( _, repositories ) ->
+                    ( { model
+                        | sourceRepos = RemoteData.succeed repositories
+                      }
+                    , Effect.none
+                      -- , Util.dispatch <| FocusOn "global-search-input"
+                    )
+
+                Err error ->
+                    ( { model
+                        | sourceRepos = Errors.toFailure error
+                      }
+                    , Effect.addError error
+                    )
 
         ToggleFavorite org maybeRepo ->
             ( model
@@ -136,16 +198,6 @@ subscriptions model =
 
 
 
--- LAYOUT
-
-
-toLayout : Auth.User -> Model -> Layouts.Layout Msg
-toLayout user model =
-    Layouts.Default
-        {}
-
-
-
 -- VIEW
 
 
@@ -171,7 +223,7 @@ view shared model =
 -}
 viewSourceRepos : Shared.Model -> Model -> Html Msg
 viewSourceRepos shared model =
-    case shared.sourceRepos of
+    case model.sourceRepos of
         RemoteData.Success repos ->
             if shouldSearch <| searchFilterGlobal model.searchFilters then
                 searchReposGlobal shared model repos EnableRepo ToggleFavorite

@@ -14,7 +14,7 @@ module Pages.Build.View exposing
 import Ansi
 import Ansi.Log
 import Array
-import Components.Nav exposing (viewBuildTabs)
+import Components.Nav
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Focus
@@ -39,6 +39,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import List.Extra exposing (unique)
+import Pages exposing (Page)
 import Pages.Build.Graph.View
 import Pages.Build.Logs
     exposing
@@ -63,6 +64,7 @@ import Pages.Build.Model
         )
 import RemoteData exposing (WebData)
 import Routes
+import Shared
 import String
 import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone)
@@ -424,6 +426,27 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
             , buildAnimation build.status build.number
             ]
         ]
+
+
+{-| viewBuildTabs : takes model information and current page and renders build navigation tabs
+-}
+viewBuildTabs : Shared.Model -> Org -> Repo -> BuildNumber -> Page -> Html msg
+viewBuildTabs shared org repo buildNumber currentPage =
+    let
+        bm =
+            shared.repo.build
+
+        pipeline =
+            shared.pipeline
+
+        tabs =
+            [ Components.Nav.Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False True
+            , Components.Nav.Tab "Services" currentPage (Pages.BuildServices org repo buildNumber bm.services.focusFragment) False True
+            , Components.Nav.Tab "Pipeline" currentPage (Pages.BuildPipeline org repo buildNumber pipeline.expand pipeline.focusFragment) False True
+            , Components.Nav.Tab "Visualize" currentPage (Pages.BuildGraph org repo buildNumber) False True
+            ]
+    in
+    Components.Nav.viewTabs tabs "jump-bar-build"
 
 
 

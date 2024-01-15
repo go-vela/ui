@@ -1,12 +1,11 @@
 module Shared.Msg exposing (Msg(..))
 
 import Alerts exposing (Alert)
-import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
 import Errors exposing (Error)
 import Http
 import Http.Detailed
-import Toasty as Alerting exposing (Stack)
-import Vela exposing (CurrentUser, SourceRepositories)
+import Toasty as Alerting
+import Vela exposing (CurrentUser)
 
 
 type Msg
@@ -17,9 +16,6 @@ type Msg
       -- USER
     | GetCurrentUser
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
-      -- SOURCE REPOS
-    | GetUserSourceRepos
-    | GetUserSourceReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
       -- FAVORITES
     | ToggleFavorites { org : String, maybeRepo : Maybe String }
     | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
