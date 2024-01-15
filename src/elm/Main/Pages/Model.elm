@@ -9,7 +9,7 @@ import Pages.Org_.Repo_.Deployments_
 
 
 type Model
-    = Login_ Pages.Account.Login_.Model
+    = AccountLogin_ Pages.Account.Login_.Model
     | AccountSettings_ Pages.Account.Settings_.Model
     | AccountSourceRepos_ Pages.Account.SourceRepos_.Model
     | Home_ Pages.Home_.Model

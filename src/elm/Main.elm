@@ -394,7 +394,7 @@ initPageAndLayout model =
             in
             { page =
                 Tuple.mapBoth
-                    Main.Pages.Model.Login_
+                    Main.Pages.Model.AccountLogin_
                     (Effect.map Main.Pages.Msg.Login_ >> fromPageEffect model)
                     ( pageModel, pageEffect )
             , layout =
@@ -916,7 +916,7 @@ update msg model =
 
                 redirectPage =
                     case model.page of
-                        Main.Pages.Model.Login_ _ ->
+                        Main.Pages.Model.AccountLogin_ _ ->
                             Cmd.none
 
                         _ ->
@@ -2871,9 +2871,9 @@ update msg model =
 updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
 updateFromPage msg model =
     case ( msg, model.page ) of
-        ( Main.Pages.Msg.Login_ pageMsg, Main.Pages.Model.Login_ pageModel ) ->
+        ( Main.Pages.Msg.Login_ pageMsg, Main.Pages.Model.AccountLogin_ pageModel ) ->
             Tuple.mapBoth
-                Main.Pages.Model.Login_
+                Main.Pages.Model.AccountLogin_
                 (Effect.map Main.Pages.Msg.Login_ >> fromPageEffect model)
                 (Page.update (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
 
@@ -2953,7 +2953,7 @@ updateFromLayout msg model =
 toLayoutFromPage : Model -> Maybe (Layouts.Layout Msg)
 toLayoutFromPage model =
     case model.page of
-        Main.Pages.Model.Login_ pageModel ->
+        Main.Pages.Model.AccountLogin_ pageModel ->
             Route.fromUrl () model.url
                 |> Pages.Account.Login_.page model.shared
                 |> Page.layout pageModel
@@ -3087,7 +3087,7 @@ toView model =
 viewPage : Model -> View Msg
 viewPage model =
     case model.page of
-        Main.Pages.Model.Login_ pageModel ->
+        Main.Pages.Model.AccountLogin_ pageModel ->
             Page.view (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)) pageModel
                 |> View.map Main.Pages.Msg.Login_
                 |> View.map Page
@@ -3197,7 +3197,7 @@ toPageUrlHookCmd model routes =
                 |> Cmd.batch
     in
     case model.page of
-        Main.Pages.Model.Login_ pageModel ->
+        Main.Pages.Model.AccountLogin_ pageModel ->
             Page.toUrlMessages routes (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url))
                 |> List.map Main.Pages.Msg.Login_
                 |> List.map Page
