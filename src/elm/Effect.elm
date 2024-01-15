@@ -4,7 +4,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addError, alertsUpdate, getCurrentUser, gotoPage, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
+    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, getCurrentUser, gotoPage, handleHttpError, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
     )
 
 {-|
@@ -19,10 +19,13 @@ module Effect exposing
 -}
 
 import Alerts exposing (Alert)
-import Api.Pagination
+import Api.Api as Api
+import Api.Operations_
+import Auth.Session exposing (Session(..))
 import Browser.Navigation
 import Dict exposing (Dict)
 import Errors
+import Http
 import Http.Detailed
 import RemoteData exposing (WebData)
 import Route exposing (Route)
@@ -32,7 +35,7 @@ import Shared.Msg
 import Task
 import Toasty as Alerting
 import Url exposing (Url)
-import Vela exposing (CurrentUser)
+import Vela exposing (CurrentUser, Repository)
 
 
 type Effect msg
@@ -49,8 +52,6 @@ type Effect msg
 
 
 
--- todo: vader: api http requests need to get dispatched here so that they can be converted to Cmd?
--- or, maybe, we use msg etc? or we somehow map a Task.attempt to Effect msg?
 -- BASICS
 
 
@@ -237,11 +238,44 @@ showCopyToClipboardAlert options =
     SendSharedMsg <| Shared.Msg.ShowCopyToClipboardAlert options
 
 
-addError : Http.Detailed.Error String -> Effect msg
-addError error =
-    SendSharedMsg <| Shared.Msg.AddError error
+handleHttpError : Http.Detailed.Error String -> Effect msg
+handleHttpError error =
+    SendSharedMsg <| Shared.Msg.HandleHttpError error
+
+
+addAlertSuccess : { content : String, unique : Bool } -> Effect msg
+addAlertSuccess options =
+    SendSharedMsg <| Shared.Msg.AddAlertSuccess options
+
+
+addAlertError : { content : String, unique : Bool } -> Effect msg
+addAlertError options =
+    SendSharedMsg <| Shared.Msg.AddAlertError options
 
 
 alertsUpdate : Alerting.Msg Alert -> Effect msg
 alertsUpdate alert =
     SendSharedMsg <| Shared.Msg.AlertsUpdate alert
+
+
+enableRepo :
+    { baseUrl : String
+    , session : Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Repository ) -> msg
+    , repo : Repository
+    }
+    -> Effect msg
+enableRepo options =
+    let
+        payload : Vela.EnableRepositoryPayload
+        payload =
+            Vela.buildEnableRepositoryPayload options.repo
+
+        body : Http.Body
+        body =
+            Http.jsonBody <| Vela.encodeEnableRepository payload
+    in
+    Api.try
+        options.onResponse
+        (Api.Operations_.enableRepo options.baseUrl options.session body)
+        |> sendCmd

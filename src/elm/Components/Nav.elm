@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.Nav exposing (Msgs, Tab, view, viewTabs)
 
-import Crumbs
+import Components.Crumbs
 import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
 import Html
     exposing
@@ -70,7 +70,7 @@ type alias Tab =
 view : Shared.Model -> Route () -> List (Html msg) -> Html msg
 view shared route buttons =
     nav [ class "navigation", attribute "aria-label" "Navigation" ]
-        (Crumbs.view route.path
+        (Components.Crumbs.view route.path
             :: buttons
         )
 
@@ -79,6 +79,7 @@ navButtonsLegacy : Shared.Model -> Msgs msg -> Page -> Html msg
 navButtonsLegacy shared { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild, cancelBuild } legacyPage =
     case legacyPage of
         Pages.Overview ->
+            -- migrated
             a
                 [ class "button"
                 , class "-outline"
@@ -97,6 +98,7 @@ navButtonsLegacy shared { fetchSourceRepos, toggleFavorite, approveBuild, restar
                 [ text "Source Repositories" ]
 
         Pages.SourceRepositories ->
+            -- migrated
             button
                 [ classList
                     [ ( "button", True )

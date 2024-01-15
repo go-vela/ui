@@ -121,6 +121,7 @@ module Vela exposing
     , defaultPipelineTemplates
     , defaultRepoModel
     , defaultStep
+    , enableUpdate
     , encodeBuildGraphRenderData
     , encodeDeploymentPayload
     , encodeEnableRepository
@@ -1040,9 +1041,43 @@ toEnabling active =
         succeed Disabled
 
 
-decodeSourceRepositories : Decoder SourceRepositories
-decodeSourceRepositories =
-    Decode.dict (Decode.list decodeRepository)
+{-| enableUpdate : takes repo, enabled status and source repos and sets enabled status of the specified repo
+-}
+enableUpdate : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
+enableUpdate repo status sourceRepos =
+    case sourceRepos of
+        RemoteData.Success repos ->
+            case Dict.get repo.org repos of
+                Just orgRepos ->
+                    RemoteData.succeed <| enableRepoDict repo status repos orgRepos
+
+                _ ->
+                    sourceRepos
+
+        _ ->
+            sourceRepos
+
+
+{-| enableRepoDict : update the dictionary containing org source repo lists
+-}
+enableRepoDict : Repository -> Enabled -> Dict String Repositories -> Repositories -> Dict String Repositories
+enableRepoDict repo status repos orgRepos =
+    Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
+
+
+{-| enableRepoList : list map for updating single repo status by repo name
+-}
+enableRepoList : Repository -> Enabled -> Repositories -> Repositories
+enableRepoList repo status orgRepos =
+    List.map
+        (\sourceRepo ->
+            if sourceRepo.name == repo.name then
+                { sourceRepo | enabled = status }
+
+            else
+                sourceRepo
+        )
+        orgRepos
 
 
 {-| Repositories : type alias for list of enabled repositories
@@ -1055,6 +1090,11 @@ type alias Repositories =
 -}
 type alias SourceRepositories =
     Dict String Repositories
+
+
+decodeSourceRepositories : Decoder SourceRepositories
+decodeSourceRepositories =
+    Decode.dict (Decode.list decodeRepository)
 
 
 encodeEnableRepository : EnableRepositoryPayload -> Encode.Value

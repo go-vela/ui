@@ -185,7 +185,7 @@ update route msg model =
 
                 Err error ->
                     ( { model | user = Errors.toFailure error }
-                    , Effect.addError error
+                    , Effect.handleHttpError error
                     )
 
         -- FAVORITES
@@ -234,7 +234,7 @@ update route msg model =
 
                 Err error ->
                     ( { model | user = Errors.toFailure error }
-                    , Effect.addError error
+                    , Effect.handleHttpError error
                     )
 
         -- PAGINATION
@@ -260,20 +260,16 @@ update route msg model =
                     ( model, Effect.none )
 
         -- ERRORS
-        Shared.Msg.AddError error ->
+        Shared.Msg.HandleError error ->
+            ( model
+            , Effect.none
+              -- , Effect.addAlertError { content = error, unique = True }
+            )
+
+        Shared.Msg.HandleHttpError error ->
             ( model
             , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
             )
-
-        Shared.Msg.HandleError error ->
-            let
-                ( um, cmd ) =
-                    Alerting.addToastIfUnique Alerts.errorConfig
-                        Shared.Msg.AlertsUpdate
-                        (Alerts.Error "Error" error)
-                        ( model, Cmd.none )
-            in
-            ( um, cmd |> Effect.sendCmd )
 
         -- ALERTS
         Shared.Msg.AlertsUpdate subMsg ->
@@ -282,6 +278,40 @@ update route msg model =
                     Alerting.update Alerts.successConfig Shared.Msg.AlertsUpdate subMsg model
             in
             ( um, cmd |> Effect.sendCmd )
+
+        Shared.Msg.AddAlertSuccess options ->
+            let
+                addAlert =
+                    if options.unique then
+                        Alerting.addToastIfUnique
+
+                    else
+                        Alerting.addToast
+
+                ( shared, cmd ) =
+                    addAlert Alerts.successConfig
+                        Shared.Msg.AlertsUpdate
+                        (Alerts.Success "Success" options.content Nothing)
+                        ( model, Cmd.none )
+            in
+            ( shared, cmd |> Effect.sendCmd )
+
+        Shared.Msg.AddAlertError options ->
+            let
+                addAlert =
+                    if options.unique then
+                        Alerting.addToastIfUnique
+
+                    else
+                        Alerting.addToast
+
+                ( shared, cmd ) =
+                    addAlert Alerts.errorConfig
+                        Shared.Msg.AlertsUpdate
+                        (Alerts.Error "Error" options.content)
+                        ( model, Cmd.none )
+            in
+            ( shared, cmd |> Effect.sendCmd )
 
         -- MISC
         Shared.Msg.ShowCopyToClipboardAlert options ->

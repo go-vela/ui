@@ -5,7 +5,7 @@ import Errors exposing (Error)
 import Http
 import Http.Detailed
 import Toasty as Alerting
-import Vela exposing (CurrentUser)
+import Vela exposing (CurrentUser, Repositories, Repository)
 
 
 type Msg
@@ -22,8 +22,10 @@ type Msg
       -- PAGINATION
     | GotoPage { pageNumber : Int }
       -- ERRORS
-    | AddError (Http.Detailed.Error String)
-    | HandleError Error
+    | HandleError String
+    | HandleHttpError (Http.Detailed.Error String)
       -- ALERTS
+    | AddAlertError { content : String, unique : Bool }
+    | AddAlertSuccess { content : String, unique : Bool }
     | AlertsUpdate (Alerting.Msg Alert)
     | ShowCopyToClipboardAlert { contentCopied : String }

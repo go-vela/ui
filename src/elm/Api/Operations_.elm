@@ -1,4 +1,4 @@
-module Api.Operations_ exposing (finishAuthentication, getCurrentUser, getToken, getUserSourceRepos, logout, updateCurrentUser)
+module Api.Operations_ exposing (enableRepo, finishAuthentication, getCurrentUser, getToken, getUserSourceRepos, logout, updateCurrentUser)
 
 import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)
 import Api.Endpoint as Endpoint exposing (Endpoint)
@@ -111,4 +111,12 @@ updateCurrentUser baseUrl session body =
 getUserSourceRepos : String -> Session -> Request SourceRepositories
 getUserSourceRepos baseUrl session =
     get baseUrl Endpoint.UserSourceRepositories decodeSourceRepositories
+        |> withAuth session
+
+
+{-| enableRepo : enable a repo
+-}
+enableRepo : String -> Session -> Http.Body -> Request Repository
+enableRepo baseUrl session body =
+    post baseUrl (Endpoint.Repositories Nothing Nothing) body decodeRepository
         |> withAuth session

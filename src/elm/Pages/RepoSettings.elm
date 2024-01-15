@@ -7,7 +7,6 @@ module Pages.RepoSettings exposing
     ( Msgs
     , alert
     , checkbox
-    , enableUpdate
     , validAccessUpdate
     , validEventsUpdate
     , validForkPolicyUpdate
@@ -1017,42 +1016,3 @@ disableable status =
 
         Vela.NotAsked_ ->
             False
-
-
-{-| enableUpdate : takes repo, enabled status and source repos and sets enabled status of the specified repo
--}
-enableUpdate : Repository -> Enabled -> WebData SourceRepositories -> WebData SourceRepositories
-enableUpdate repo status sourceRepos =
-    case sourceRepos of
-        Success repos ->
-            case Dict.get repo.org repos of
-                Just orgRepos ->
-                    RemoteData.succeed <| enableRepoDict repo status repos orgRepos
-
-                _ ->
-                    sourceRepos
-
-        _ ->
-            sourceRepos
-
-
-{-| enableRepoDict : update the dictionary containing org source repo lists
--}
-enableRepoDict : Repository -> Enabled -> Dict String Repositories -> Repositories -> Dict String Repositories
-enableRepoDict repo status repos orgRepos =
-    Dict.update repo.org (\_ -> Just <| enableRepoList repo status orgRepos) repos
-
-
-{-| enableRepoList : list map for updating single repo status by repo name
--}
-enableRepoList : Repository -> Enabled -> Repositories -> Repositories
-enableRepoList repo status orgRepos =
-    List.map
-        (\sourceRepo ->
-            if sourceRepo.name == repo.name then
-                { sourceRepo | enabled = status }
-
-            else
-                sourceRepo
-        )
-        orgRepos

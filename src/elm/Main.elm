@@ -117,7 +117,7 @@ import Pages.Org_.Repo_.Deployments_
 import Pages.Organization
 import Pages.Pipeline.Model
 import Pages.Pipeline.View exposing (safeDecodePipelineData)
-import Pages.RepoSettings exposing (enableUpdate)
+import Pages.RepoSettings
 import Pages.Schedules.Model
 import Pages.Schedules.Update
 import Pages.Schedules.View
@@ -383,11 +383,7 @@ initPageAndLayout model =
             let
                 page : Page.Page Pages.Account.Login_.Model Pages.Account.Login_.Msg
                 page =
-                    if String.length model.shared.velaRedirect == 0 then
-                        Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)
-
-                    else
-                        Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)
+                    Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)
 
                 ( pageModel, pageEffect ) =
                     Page.init page ()
@@ -630,6 +626,9 @@ type Msg
     | RefreshAccessToken
       --
       --
+    | EnableRepos Repositories
+    | EnableRepo Repository
+    | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
       --
       --
       --
@@ -670,8 +669,6 @@ type Msg
     | SignInRequested
     | ToggleFavorite Org (Maybe Repo)
     | AddFavorite Org (Maybe Repo)
-    | EnableRepos Repositories
-    | EnableRepo Repository
     | DisableRepo Repository
     | ChownRepo Repository
     | RepairRepo Repository
@@ -693,7 +690,6 @@ type Msg
     | RepoFavoritedResponse String Bool (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
     | RepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | OrgRepositoriesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Repository ))
-    | RepoEnabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoDisabledResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | RepoUpdatedResponse Field (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
     | RepoChownedResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
@@ -1034,6 +1030,7 @@ update msg model =
                 Err error ->
                     ( { model | shared = { shared | user = toFailure error } }, Errors.addError HandleError error )
 
+        -- migrated
         SearchSourceRepos org searchBy ->
             ( model, Cmd.none )
 
@@ -1672,7 +1669,7 @@ update msg model =
                 | shared =
                     { shared
                         | -- todo: source repos enable repo update, but is this different than repo settings page update?
-                          -- sourceRepos = enableUpdate repo Loading model.shared.sourceRepos
+                          -- sourceRepos = Vela.enableUpdate repo Loading model.shared.sourceRepos
                           -- ,
                           repo = updateRepoEnabling Vela.Enabling rm
                     }
@@ -2038,7 +2035,7 @@ update msg model =
                                 | shared =
                                     { shared
                                         | -- todo: source repos enable repo update, but is this different than repo settings page update?
-                                          -- sourceRepos = enableUpdate enabledRepo (RemoteData.succeed True) model.shared.sourceRepos
+                                          -- sourceRepos = Vela.enableUpdate enabledRepo (RemoteData.succeed True) model.shared.sourceRepos
                                           -- ,
                                           repo = updateRepoEnabling Vela.Enabled rm
                                     }
@@ -2067,7 +2064,7 @@ update msg model =
                                 | shared =
                                     { shared
                                         | -- todo: source repos enable repo update, but is this different than repo settings page update?
-                                          -- sourceRepos = enableUpdate repo NotAsked model.shared.sourceRepos
+                                          -- sourceRepos = Vela.enableUpdate repo NotAsked model.shared.sourceRepos
                                           -- ,
                                           repo = updateRepoEnabling Vela.Disabled rm
                                     }
@@ -2117,7 +2114,7 @@ update msg model =
                                 | shared =
                                     { shared
                                         | -- todo: source repos repair update? is this even necessary?
-                                          -- sourceRepos = enableUpdate repo (RemoteData.succeed True) model.shared.sourceRepos
+                                          -- sourceRepos = Vela.enableUpdate repo (RemoteData.succeed True) model.shared.sourceRepos
                                           -- ,
                                           repo = updateRepoEnabling Vela.Enabled rm
                                     }
@@ -5392,35 +5389,6 @@ setBuild org repo buildNumber soft model =
 
 -- todo: MOST OF THESE RETURN CMD MSG AND THEREFORE REQUIRE MIGRATION TO SHARED IN ORDER TO BE MOVED
 -- REPO ENABLED
-
-
-{-| repoEnabledError : takes model repo and error and updates the source repos within the model
-
-    repoEnabledError : consumes 409 conflicts that result from the repo already being enabled
-
--}
-repoEnabledError : WebData SourceRepositories -> Repository -> Http.Detailed.Error String -> ( WebData SourceRepositories, Cmd Msg )
-repoEnabledError sourceRepos repo error =
-    let
-        ( enabled, action ) =
-            case error of
-                Http.Detailed.BadStatus metadata _ ->
-                    case metadata.statusCode of
-                        409 ->
-                            ( RemoteData.succeed True, Cmd.none )
-
-                        _ ->
-                            ( toFailure error, Errors.addError HandleError error )
-
-                _ ->
-                    ( toFailure error, Errors.addError HandleError error )
-    in
-    ( enableUpdate repo enabled sourceRepos
-    , action
-    )
-
-
-
 -- RANDOM COMPONENTS
 
 

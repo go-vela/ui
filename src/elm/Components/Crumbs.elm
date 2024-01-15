@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Crumbs exposing (view)
+module Components.Crumbs exposing (view)
 
 import Html exposing (Html, a, li, ol, text)
 import Html.Attributes exposing (attribute)
@@ -34,7 +34,7 @@ view : Route.Path.Path -> Html msg
 view path =
     let
         crumbs =
-            toPath path
+            toCrumbs path
 
         items =
             List.map (\p -> item p path) crumbs
@@ -74,10 +74,10 @@ item crumb path =
 -- HELPERS
 
 
-{-| toPath : maps a Route to the appropriate breadcrumb trail
+{-| toCrumbs : maps a Route to the appropriate breadcrumb trail
 -}
-toPath : Route.Path.Path -> List Crumb
-toPath path =
+toCrumbs : Route.Path.Path -> List Crumb
+toCrumbs path =
     let
         -- crumbs used across multiple pages
         overviewCrumbLink =
@@ -337,7 +337,25 @@ toPath path =
                 --     in
                 --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
                 Route.Path.Login_ ->
-                    []
+                    let
+                        loginCrumbStatic =
+                            ( "Login", Nothing )
+                    in
+                    [ accountCrumbStatic, loginCrumbStatic ]
+
+                Route.Path.Logout_ ->
+                    let
+                        logoutCrumbStatic =
+                            ( "Logout", Nothing )
+                    in
+                    [ accountCrumbStatic, logoutCrumbStatic ]
+
+                Route.Path.Authenticate_ ->
+                    let
+                        loginCrumbStatic =
+                            ( "Login", Nothing )
+                    in
+                    [ accountCrumbStatic, loginCrumbStatic ]
 
                 Route.Path.AccountSettings_ ->
                     let
@@ -346,14 +364,23 @@ toPath path =
                     in
                     [ overviewCrumbLink, settingsCrumbStatic ]
 
+                Route.Path.Org_Repo_Deployments_ params ->
+                    let
+                        orgReposCrumbLink =
+                            -- todo: needs org route
+                            -- ( params.org, Just <| Pages.OrgRepositories params.org )
+                            ( params.org, Nothing )
+
+                        repoCrumbStatic =
+                            ( params.repo, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
+
                 Route.Path.NotFound_ ->
                     let
                         notFoundCrumbStatic =
                             ( "Not Found", Nothing )
                     in
                     [ overviewCrumbLink, notFoundCrumbStatic ]
-
-                _ ->
-                    []
     in
     pages
