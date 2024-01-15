@@ -23,7 +23,7 @@ import Components.Nav
 import Dict
 import Effect exposing (Effect)
 import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
-import Favorites exposing (addFavorite, toFavorite, updateFavorites)
+import Favorites exposing (addFavorite, toFavorite, toggleFavorite)
 import FeatherIcons
 import File.Download as Download
 import Focus
@@ -644,9 +644,7 @@ type Msg
     | ShowHideFullTimestamp
     | SetTheme Theme
     | GotoPage Pagination.Page
-    | ShowHideHelp (Maybe Bool)
     | ShowHideBuildMenu (Maybe Int) (Maybe Bool)
-    | ShowHideIdentity (Maybe Bool)
     | Copy String
     | DownloadFile String (String -> String) String String
     | ExpandAllSteps Org Repo BuildNumber
@@ -1212,22 +1210,6 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        ShowHideHelp show ->
-            ( { model
-                | shared =
-                    { shared
-                        | showHelp =
-                            case show of
-                                Just s ->
-                                    s
-
-                                Nothing ->
-                                    not model.shared.showHelp
-                    }
-              }
-            , Cmd.none
-            )
-
         ShowHideBuildMenu build show ->
             let
                 buildsOpen =
@@ -1254,22 +1236,6 @@ update msg model =
             in
             ( { model
                 | shared = { shared | buildMenuOpen = updatedOpen }
-              }
-            , Cmd.none
-            )
-
-        ShowHideIdentity show ->
-            ( { model
-                | shared =
-                    { shared
-                        | showIdentity =
-                            case show of
-                                Just s ->
-                                    s
-
-                                Nothing ->
-                                    not model.shared.showIdentity
-                    }
               }
             , Cmd.none
             )
@@ -1616,7 +1582,7 @@ update msg model =
                     toFavorite org repo
 
                 ( favorites, favorited ) =
-                    updateFavorites model.shared.user favorite
+                    toggleFavorite model.shared.user favorite
 
                 payload : UpdateUserPayload
                 payload =
@@ -3027,17 +2993,79 @@ hasActionTypeChanged oldAction newAction =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch <|
-        [ Interop.onThemeChange decodeOnThemeChange
+    let
+        subscriptionsFromPage : Sub Msg
+        subscriptionsFromPage =
+            case model.page of
+                Main.Pages.Model.AccountLogin_ pageModel ->
+                    -- todo: fill in subscriptions
+                    -- Auth.Action.subscriptions
+                    --     (\user ->
+                    --         Page.subscriptions (Pages.Editor.page user model.shared (Route.fromUrl () model.url)) pageModel
+                    --             |> Sub.map Main.Pages.Msg.Editor
+                    --             |> Sub.map Page
+                    --     )
+                    --     (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+                    Sub.none
+
+                Main.Pages.Model.AccountSettings_ pageModel ->
+                    Sub.none
+
+                Main.Pages.Model.AccountSourceRepos_ pageModel ->
+                    Sub.none
+
+                Main.Pages.Model.Home_ pageModel ->
+                    Sub.none
+
+                Main.Pages.Model.Org_Repo_Deployments_ pageModel ->
+                    Sub.none
+
+                Main.Pages.Model.NotFound_ pageModel ->
+                    Page.subscriptions (Pages.NotFound_.page model.shared (Route.fromUrl () model.url)) pageModel
+                        |> Sub.map Main.Pages.Msg.NotFound_
+                        |> Sub.map Page
+
+                Main.Pages.Model.Redirecting_ ->
+                    Sub.none
+
+                Main.Pages.Model.Loading_ ->
+                    Sub.none
+
+        maybeLayout : Maybe (Layouts.Layout Msg)
+        maybeLayout =
+            toLayoutFromPage model
+
+        route : Route ()
+        route =
+            Route.fromUrl () model.url
+
+        subscriptionsFromLayout : Sub Msg
+        subscriptionsFromLayout =
+            case ( maybeLayout, model.layout ) of
+                ( Just (Layouts.Default props), Just (Main.Layouts.Model.Default layoutModel) ) ->
+                    Layout.subscriptions (Layouts.Default.layout props model.shared route) layoutModel.default
+                        |> Sub.map Main.Layouts.Msg.Default
+                        |> Sub.map Layout
+
+                _ ->
+                    Sub.none
+    in
+    Sub.batch
+        [ Shared.subscriptions route model.shared
+            |> Sub.map Shared
+        , subscriptionsFromPage
+        , subscriptionsFromLayout
+
+        -- LEGACY SUBSCRIPTIONS
+        , Interop.onThemeChange decodeOnThemeChange
         , Interop.onGraphInteraction decodeOnGraphInteraction
-        , onMouseDown "contextual-help" model ShowHideHelp
-        , onMouseDown "identity" model ShowHideIdentity
+
+        -- , onMouseDown "contextual-help" model ShowHideHelp
+        -- , onMouseDown "identity" model ShowHideIdentity
         , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
         , Browser.Events.onKeyDown (Json.Decode.map OnKeyDown (Json.Decode.field "key" Json.Decode.string))
         , Browser.Events.onKeyUp (Json.Decode.map OnKeyUp (Json.Decode.field "key" Json.Decode.string))
         , Browser.Events.onVisibilityChange VisibilityChanged
-
-        -- , refreshSubscriptions model
         ]
 
 
@@ -3359,13 +3387,11 @@ decodeOnGraphInteraction interaction =
 -}
 onMouseDown : String -> Model -> (Maybe Bool -> Msg) -> Sub Msg
 onMouseDown targetId model triggerMsg =
-    if model.shared.showHelp then
-        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
-
-    else if model.shared.showIdentity then
-        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
-
-    else if List.length model.shared.buildMenuOpen > 0 then
+    -- if model.shared.showHelp then
+    --     Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
+    -- else if model.shared.showIdentity then
+    --     Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
+    if List.length model.shared.buildMenuOpen > 0 then
         Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
 
     else
@@ -5460,69 +5486,6 @@ viewLogin =
         ]
 
 
-viewHeader : Session -> { feedbackLink : String, docsLink : String, theme : Theme, help : Help.Commands.Model Msg, showId : Bool } -> Html Msg
-viewHeader session { feedbackLink, docsLink, theme, help, showId } =
-    let
-        identityBaseClassList : Html.Attribute Msg
-        identityBaseClassList =
-            classList
-                [ ( "details", True )
-                , ( "-marker-right", True )
-                , ( "-no-pad", True )
-                , ( "identity-name", True )
-                ]
-
-        identityAttributeList : List (Html.Attribute Msg)
-        identityAttributeList =
-            Util.open showId
-    in
-    header []
-        [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
-            [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
-            , case session of
-                Authenticated auth ->
-                    details (identityBaseClassList :: identityAttributeList)
-                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ]
-                            [ text auth.userName
-                            , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
-                            ]
-                        , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
-                            [ li [ class "identity-menu-item" ]
-                                [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
-                            , li [ class "identity-menu-item" ]
-                                [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
-                            ]
-                        ]
-
-                Unauthenticated ->
-                    details (identityBaseClassList :: identityAttributeList)
-                        [ summary [ class "summary", Util.onClickPreventDefault (ShowHideIdentity Nothing), Util.testAttribute "identity-summary" ] [ text "Vela" ] ]
-            ]
-        , nav [ class "help-links" ]
-            [ ul []
-                [ li [] [ viewThemeToggle theme ]
-                , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
-                , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , Help.View.help help
-                ]
-            ]
-        ]
-
-
-viewThemeToggle : Theme -> Html Msg
-viewThemeToggle theme =
-    let
-        ( newTheme, themeAria ) =
-            case theme of
-                Dark ->
-                    ( Light, "enable light mode" )
-
-                Light ->
-                    ( Dark, "enable dark mode" )
-    in
-    button [ class "button", class "-link", attribute "aria-label" themeAria, onClick (SetTheme newTheme) ] [ text "switch theme" ]
-
-
 
 -- ALERTS
 
@@ -5999,7 +5962,11 @@ setNewPageUNUSED route model =
             loadEditSchedulePage model org repo id
 
         ( Routes.Settings, Authenticated _ ) ->
-            ( { model | legacyPage = Pages.Settings, shared = { shared | showIdentity = False } }, Cmd.none )
+            ( { model
+                | legacyPage = Pages.Settings
+              }
+            , Cmd.none
+            )
 
         ( Routes.Logout, Authenticated _ ) ->
             ( model

@@ -30,6 +30,7 @@ module Util exposing
     , mergeListsById
     , noBlanks
     , onClickPreventDefault
+    , onMouseDownSubscription
     , oneSecondMillis
     , open
     , overwriteById
@@ -48,6 +49,7 @@ module Util exposing
     )
 
 import Base64
+import Browser.Events
 import Bytes
 import Bytes.Decode
 import DateFormat
@@ -56,12 +58,61 @@ import Filesize
 import Html exposing (Attribute, Html, div, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (custom)
-import Json.Decode as Decode
+import Json.Decode
 import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import String.Extra
 import Task exposing (perform, succeed)
 import Time exposing (Posix, Zone, posixToMillis, toHour, toMinute, utc)
+
+
+{-| onMouseDownShowHelp : takes model and returns subscriptions for handling onMouseDown events at the browser level
+-}
+onMouseDownSubscription : String -> Bool -> (Maybe Bool -> msg) -> Sub msg
+onMouseDownSubscription targetId show triggerMsg =
+    if show then
+        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
+
+    else
+        Sub.none
+
+
+{-| outsideTarget : returns decoder for handling clicks that occur from outside the currently focused/open dropdown
+-}
+outsideTarget : String -> msg -> Json.Decode.Decoder msg
+outsideTarget targetId msg =
+    Json.Decode.field "target" (isOutsideTarget targetId)
+        |> Json.Decode.andThen
+            (\isOutside ->
+                if isOutside then
+                    Json.Decode.succeed msg
+
+                else
+                    Json.Decode.fail "inside dropdown"
+            )
+
+
+{-| isOutsideTarget : returns decoder for determining if click target occurred from within a specified element
+-}
+isOutsideTarget : String -> Json.Decode.Decoder Bool
+isOutsideTarget targetId =
+    Json.Decode.oneOf
+        [ Json.Decode.field "id" Json.Decode.string
+            |> Json.Decode.andThen
+                (\id ->
+                    if targetId == id then
+                        -- found match by id
+                        Json.Decode.succeed False
+
+                    else
+                        -- try next decoder
+                        Json.Decode.fail "continue"
+                )
+        , Json.Decode.lazy (\_ -> isOutsideTarget targetId |> Json.Decode.field "parentNode")
+
+        -- fallback if all previous decoders failed
+        , Json.Decode.succeed True
+        ]
 
 
 {-| testAttribute : returns an html attribute that produces msgs for selecting the element during automated testing
@@ -432,7 +483,7 @@ stringToMaybe str =
 -}
 onClickPreventDefault : msg -> Html.Attribute msg
 onClickPreventDefault message =
-    custom "click" (Decode.succeed { message = message, stopPropagation = False, preventDefault = True })
+    custom "click" (Json.Decode.succeed { message = message, stopPropagation = False, preventDefault = True })
 
 
 {-| successful : extracts successful items from list of WebData items and returns List item

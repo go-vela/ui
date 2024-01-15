@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Components.Nav exposing (Msgs, Tab, view, viewTabs)
 
 import Components.Crumbs
-import Favorites exposing (ToggleFavorite, isFavorited, starToggle)
+import Favorites exposing (UpdateFavorites, isFavorited, starToggle)
 import Html
     exposing
         ( Html
@@ -46,7 +46,7 @@ import Vela
 
 type alias Msgs msg =
     { fetchSourceRepos : msg
-    , toggleFavorite : ToggleFavorite msg
+    , toggleFavorite : UpdateFavorites msg
     , refreshSettings : Org -> Repo -> msg
     , refreshHooks : Org -> Repo -> msg
     , refreshSecrets : Engine -> SecretType -> Org -> Repo -> msg

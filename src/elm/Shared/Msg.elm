@@ -1,15 +1,17 @@
 module Shared.Msg exposing (Msg(..))
 
 import Alerts exposing (Alert)
-import Errors exposing (Error)
+import Browser.Dom
+import Favorites
 import Http
 import Http.Detailed
 import Toasty as Alerting
-import Vela exposing (CurrentUser, Repositories, Repository)
+import Vela exposing (CurrentUser)
 
 
 type Msg
     = NoOp
+    | SetTheme Vela.Theme
       -- AUTH
     | Logout
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
@@ -17,15 +19,16 @@ type Msg
     | GetCurrentUser
     | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
       -- FAVORITES
-    | ToggleFavorites { org : String, maybeRepo : Maybe String }
+    | UpdateFavorites { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType }
     | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
       -- PAGINATION
     | GotoPage { pageNumber : Int }
-      -- ERRORS
-    | HandleError String
-    | HandleHttpError (Http.Detailed.Error String)
       -- ALERTS
-    | AddAlertError { content : String, unique : Bool }
-    | AddAlertSuccess { content : String, unique : Bool }
+    | AddAlertError { content : String, addToastIfUnique : Bool }
+    | AddAlertSuccess { content : String, addToastIfUnique : Bool }
     | AlertsUpdate (Alerting.Msg Alert)
-    | ShowCopyToClipboardAlert { contentCopied : String }
+      -- ERRORS
+    | HandleHttpError (Http.Detailed.Error String)
+      -- DOM
+    | FocusOn String
+    | FocusResult (Result Browser.Dom.Error ())

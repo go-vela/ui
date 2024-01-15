@@ -2,7 +2,7 @@ module Pages.Deployment_ exposing (..)
 
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Favorites exposing (ToggleFavorite, starToggle)
+import Favorites exposing (UpdateFavorites, starToggle)
 import FeatherIcons
 import Html
     exposing

@@ -1,4 +1,4 @@
-module Shared exposing (Flags, Model, Msg, decoder, init, update)
+module Shared exposing (Flags, Model, Msg, decoder, init, subscriptions, update)
 
 -- todo: these need to be refined, only expose what is needed
 
@@ -13,6 +13,7 @@ import Effect exposing (Effect)
 import Errors
 import Favorites
 import Http
+import Interop
 import Json.Decode as Decode exposing (..)
 import Json.Decode.Pipeline exposing (required)
 import Pages exposing (..)
@@ -21,6 +22,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared.Model
 import Shared.Msg
+import Task
 import Time exposing (..)
 import Toasty as Alerting
 import Url exposing (..)
@@ -121,8 +123,6 @@ init flagsResult route =
       , theme = stringToTheme flags.velaTheme
       , shift = False
       , visibility = Visible
-      , showHelp = False
-      , showIdentity = False
       , buildMenuOpen = []
       , favicon = defaultFavicon
       , pipeline = defaultPipeline
@@ -152,6 +152,14 @@ update route msg model =
             ( model
             , Effect.none
             )
+
+        -- THEME
+        Shared.Msg.SetTheme theme ->
+            if theme == model.theme then
+                ( model, Effect.none )
+
+            else
+                ( { model | theme = theme }, Effect.sendCmd <| Interop.setTheme <| Vela.encodeTheme theme )
 
         -- AUTH
         Shared.Msg.Logout ->
@@ -185,17 +193,25 @@ update route msg model =
 
                 Err error ->
                     ( { model | user = Errors.toFailure error }
-                    , Effect.handleHttpError error
+                    , Effect.handleHttpError { httpError = error }
                     )
 
         -- FAVORITES
-        Shared.Msg.ToggleFavorites options ->
+        Shared.Msg.UpdateFavorites options ->
             let
                 favorite =
                     Favorites.toFavorite options.org options.maybeRepo
 
+                favoriteUpdateFn =
+                    case options.updateType of
+                        Favorites.Add ->
+                            Favorites.addFavorite
+
+                        Favorites.Toggle ->
+                            Favorites.toggleFavorite
+
                 ( favorites, favorited ) =
-                    Favorites.updateFavorites model.user favorite
+                    favoriteUpdateFn model.user favorite
 
                 payload : UpdateUserPayload
                 payload =
@@ -222,19 +238,14 @@ update route msg model =
 
                             else
                                 options.favorite ++ " removed from favorites."
-
-                        ( um, cmd ) =
-                            Alerting.addToast
-                                Alerts.successConfig
-                                Shared.Msg.AlertsUpdate
-                                (Alerts.Success "Success" alertMsg Nothing)
-                                ( { model | user = RemoteData.succeed user }, Cmd.none )
                     in
-                    ( um, cmd |> Effect.sendCmd )
+                    ( { model | user = RemoteData.succeed user }
+                    , Effect.addAlertSuccess { content = alertMsg, addToastIfUnique = True }
+                    )
 
                 Err error ->
                     ( { model | user = Errors.toFailure error }
-                    , Effect.handleHttpError error
+                    , Effect.handleHttpError { httpError = error }
                     )
 
         -- PAGINATION
@@ -259,80 +270,63 @@ update route msg model =
                 _ ->
                     ( model, Effect.none )
 
-        -- ERRORS
-        Shared.Msg.HandleError error ->
-            ( model
-            , Effect.none
-              -- , Effect.addAlertError { content = error, unique = True }
-            )
-
-        Shared.Msg.HandleHttpError error ->
-            ( model
-            , Errors.addError Shared.Msg.HandleError error |> Effect.sendCmd
-            )
-
         -- ALERTS
         Shared.Msg.AlertsUpdate subMsg ->
-            let
-                ( um, cmd ) =
-                    Alerting.update Alerts.successConfig Shared.Msg.AlertsUpdate subMsg model
-            in
-            ( um, cmd |> Effect.sendCmd )
+            Alerting.update Alerts.successConfig Shared.Msg.AlertsUpdate subMsg model
+                |> Tuple.mapSecond Effect.sendCmd
 
         Shared.Msg.AddAlertSuccess options ->
             let
-                addAlert =
-                    if options.unique then
+                addAlertFn =
+                    if options.addToastIfUnique then
                         Alerting.addToastIfUnique
 
                     else
                         Alerting.addToast
-
-                ( shared, cmd ) =
-                    addAlert Alerts.successConfig
-                        Shared.Msg.AlertsUpdate
-                        (Alerts.Success "Success" options.content Nothing)
-                        ( model, Cmd.none )
             in
-            ( shared, cmd |> Effect.sendCmd )
+            addAlertFn Alerts.successConfig
+                Shared.Msg.AlertsUpdate
+                (Alerts.Success "Success" options.content Nothing)
+                ( model, Cmd.none )
+                |> Tuple.mapSecond Effect.sendCmd
 
         Shared.Msg.AddAlertError options ->
             let
-                addAlert =
-                    if options.unique then
+                addAlertFn =
+                    if options.addToastIfUnique then
                         Alerting.addToastIfUnique
 
                     else
                         Alerting.addToast
-
-                ( shared, cmd ) =
-                    addAlert Alerts.errorConfig
-                        Shared.Msg.AlertsUpdate
-                        (Alerts.Error "Error" options.content)
-                        ( model, Cmd.none )
             in
-            ( shared, cmd |> Effect.sendCmd )
+            addAlertFn Alerts.errorConfig
+                Shared.Msg.AlertsUpdate
+                (Alerts.Error "Error" options.content)
+                ( model, Cmd.none )
+                |> Tuple.mapSecond Effect.sendCmd
 
-        -- MISC
-        Shared.Msg.ShowCopyToClipboardAlert options ->
-            let
-                ( sharedWithAlert, cmd ) =
-                    Alerting.addToast Alerts.successConfig
-                        Shared.Msg.AlertsUpdate
-                        (Alerts.Success ""
-                            ("Copied " ++ Alerts.wrapAlertMessage options.contentCopied ++ "to your clipboard.")
-                            Nothing
-                        )
-                        ( model, Cmd.none )
-            in
-            ( sharedWithAlert, cmd |> Effect.sendCmd )
+        -- ERRORS
+        Shared.Msg.HandleHttpError error ->
+            ( model
+            , Effect.addAlertError { content = Errors.detailedErrorToString error, addToastIfUnique = True }
+            )
+
+        -- DOM
+        Shared.Msg.FocusOn target ->
+            ( model, Browser.Dom.focus target |> Task.attempt Shared.Msg.FocusResult |> Effect.sendCmd )
+
+        Shared.Msg.FocusResult result ->
+            -- handle success or failure here
+            case result of
+                Err (Browser.Dom.NotFound _) ->
+                    -- unable to find dom 'id'
+                    ( model, Effect.none )
+
+                Ok _ ->
+                    -- successfully focus the dom
+                    ( model, Effect.none )
 
 
-
--- SUBSCRIPTIONS
--- todo: vader: move Main.elm subscriptions into shared and pages
-
-
-subscriptions : () -> Model -> Sub Msg
-subscriptions route model =
+subscriptions : Route () -> Model -> Sub Msg
+subscriptions _ _ =
     Sub.none

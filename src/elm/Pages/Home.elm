@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Home exposing (Msgs, view)
 
 import Dict exposing (Dict)
-import Favorites exposing (ToggleFavorite, starToggle)
+import Favorites exposing (UpdateFavorites, starToggle)
 import FeatherIcons
 import Html
     exposing
@@ -47,7 +47,7 @@ import Vela
 {-| Msgs : record for routing msg updates to Main.elm
 -}
 type alias Msgs msg =
-    { toggleFavorite : ToggleFavorite msg
+    { toggleFavorite : UpdateFavorites msg
     , search : SimpleSearch msg
     }
 
@@ -93,7 +93,7 @@ view user filter { toggleFavorite, search } =
 
 {-| viewFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFavorites : Favorites -> String -> ToggleFavorite msg -> Html msg
+viewFavorites : Favorites -> String -> UpdateFavorites msg -> Html msg
 viewFavorites favorites filter toggleFavorite =
     -- no search input
     if String.isEmpty filter then
@@ -107,7 +107,7 @@ viewFavorites favorites filter toggleFavorite =
 
 {-| viewFilteredFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFilteredFavorites : Favorites -> String -> ToggleFavorite msg -> Html msg
+viewFilteredFavorites : Favorites -> String -> UpdateFavorites msg -> Html msg
 viewFilteredFavorites favorites filter toggleFavorite =
     let
         filteredRepos =
@@ -127,7 +127,7 @@ viewFilteredFavorites favorites filter toggleFavorite =
 
 {-| viewFavoritesByOrg : takes favorites dictionary and favorite action and renders favorites by org
 -}
-viewFavoritesByOrg : ToggleFavorite msg -> Dict String Favorites -> Html msg
+viewFavoritesByOrg : UpdateFavorites msg -> Dict String Favorites -> Html msg
 viewFavoritesByOrg toggleFavorite orgFavorites =
     orgFavorites
         |> Dict.toList
@@ -157,7 +157,7 @@ toOrgFavorites favorites =
 
 {-| viewOrg : takes org, favorites and favorite action and renders favorites by org
 -}
-viewOrg : String -> ToggleFavorite msg -> Favorites -> Html msg
+viewOrg : String -> UpdateFavorites msg -> Favorites -> Html msg
 viewOrg org toggleFavorite favorites =
     details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
         (summary [ class "summary" ]
@@ -170,7 +170,7 @@ viewOrg org toggleFavorite favorites =
 
 {-| viewFavorite : takes favorites and favorite action and renders single favorite
 -}
-viewFavorite : Favorites -> ToggleFavorite msg -> Bool -> String -> Html msg
+viewFavorite : Favorites -> UpdateFavorites msg -> Bool -> String -> Html msg
 viewFavorite favorites toggleFavorite filtered favorite =
     let
         ( org, repo ) =

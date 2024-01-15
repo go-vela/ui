@@ -8,7 +8,7 @@ module Pages.SourceRepos exposing (Msgs, PartialModel, view)
 import Dict
 import Favorites
     exposing
-        ( ToggleFavorite
+        ( UpdateFavorites
         , isFavorited
         , starToggle
         )
@@ -76,7 +76,7 @@ type alias Msgs msg =
     { search : Search msg
     , enableRepo : EnableRepo msg
     , enableRepos : EnableRepos msg
-    , toggleFavorite : ToggleFavorite msg
+    , toggleFavorite : UpdateFavorites msg
     }
 
 
@@ -236,7 +236,7 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
     viewSourceRepo uses model.sourceRepos and enableRepoButton to determine the state of each specific 'Enable' button
 
 -}
-viewSourceRepo : WebData CurrentUser -> EnableRepo msg -> ToggleFavorite msg -> Repository -> Html msg
+viewSourceRepo : WebData CurrentUser -> EnableRepo msg -> UpdateFavorites msg -> Repository -> Html msg
 viewSourceRepo user enableRepo toggleFavorite repo =
     let
         favorited =
@@ -250,7 +250,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : EnableRepo msg -> ToggleFavorite msg -> Repository -> Bool -> Html msg
+viewSearchedSourceRepo : EnableRepo msg -> UpdateFavorites msg -> Repository -> Bool -> Html msg
 viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
     div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
@@ -282,7 +282,7 @@ enableReposButton org repos filtered enableRepos =
 
 {-| enableRepoButton : builds action button for enabling single repos
 -}
-enableRepoButton : Repository -> EnableRepo msg -> ToggleFavorite msg -> Bool -> Html msg
+enableRepoButton : Repository -> EnableRepo msg -> UpdateFavorites msg -> Bool -> Html msg
 enableRepoButton repo enableRepo toggleFavorite favorited =
     case repo.enabled of
         RemoteData.NotAsked ->
@@ -346,7 +346,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : PartialModel -> SourceRepositories -> EnableRepo msg -> ToggleFavorite msg -> Html msg
+searchReposGlobal : PartialModel -> SourceRepositories -> EnableRepo msg -> UpdateFavorites msg -> Html msg
 searchReposGlobal model repos enableRepo toggleFavorite =
     let
         ( user, filters ) =
@@ -371,7 +371,7 @@ searchReposGlobal model repos enableRepo toggleFavorite =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : WebData CurrentUser -> Org -> RepoSearchFilters -> Repositories -> EnableRepo msg -> ToggleFavorite msg -> ( Repositories, Bool, List (Html msg) )
+searchReposLocal : WebData CurrentUser -> Org -> RepoSearchFilters -> Repositories -> EnableRepo msg -> UpdateFavorites msg -> ( Repositories, Bool, List (Html msg) )
 searchReposLocal user org filters repos enableRepo toggleFavorite =
     -- Filter the repos if the user typed more than 2 characters
     let

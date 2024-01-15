@@ -52,12 +52,16 @@ layout props shared route =
 
 
 type alias Model =
-    {}
+    { showIdentity : Bool
+    , showHelp : Bool
+    }
 
 
 init : () -> ( Model, Effect Msg )
 init _ =
-    ( {}
+    ( { showIdentity = False
+      , showHelp = False
+      }
     , Effect.none
     )
 
@@ -85,33 +89,50 @@ update msg model =
 
         CopyAlert contentCopied ->
             ( model
-            , Effect.showCopyToClipboardAlert { contentCopied = contentCopied }
+            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
             )
 
         AlertsUpdate alert ->
             ( model
-            , Effect.alertsUpdate alert
+            , Effect.alertsUpdate { alert = alert }
             )
 
-        SetTheme _ ->
-            ( model
+        SetTheme theme ->
+            ( model, Effect.setTheme theme )
+
+        ShowHideIdentity show ->
+            ( { model
+                | showIdentity =
+                    case show of
+                        Just s ->
+                            s
+
+                        Nothing ->
+                            not model.showIdentity
+              }
             , Effect.none
             )
 
-        ShowHideIdentity _ ->
-            ( model
-            , Effect.none
-            )
+        ShowHideHelp show ->
+            ( { model
+                | showHelp =
+                    case show of
+                        Just s ->
+                            s
 
-        ShowHideHelp _ ->
-            ( model
+                        Nothing ->
+                            not model.showHelp
+              }
             , Effect.none
             )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ Util.onMouseDownSubscription "identity" model.showIdentity ShowHideIdentity
+        , Util.onMouseDownSubscription "contextual-help" model.showHelp ShowHideHelp
+        ]
 
 
 
@@ -133,8 +154,8 @@ view props shared route { toContentMsg, model, content } =
             , docsLink = shared.velaDocsURL
             , theme = shared.theme
             , setTheme = SetTheme
-            , help = helpArgs shared
-            , showId = shared.showIdentity
+            , help = helpArgs shared model
+            , showId = model.showIdentity
             , showHideIdentity = ShowHideIdentity
             }
             |> Html.map toContentMsg
@@ -158,8 +179,8 @@ helpArg arg =
     { success = Util.isSuccess arg, loading = Util.isLoading arg }
 
 
-helpArgs : Shared.Model -> Help.Commands.Model Msg
-helpArgs shared =
+helpArgs : Shared.Model -> Model -> Help.Commands.Model Msg
+helpArgs shared model =
     { user = helpArg shared.user
 
     -- todo: this needs to also be a layout prop input
@@ -173,7 +194,7 @@ helpArgs shared =
 
     -- , secrets = helpArg secretsModel.repoSecrets
     , secrets = helpArg RemoteData.NotAsked
-    , show = shared.showHelp
+    , show = model.showHelp
     , toggle = ShowHideHelp
     , copy = CopyAlert
     , noOp = NoOp

@@ -12,12 +12,10 @@ import Html
         , button
         , div
         , em
-        , h1
         , h2
         , label
         , p
         , section
-        , span
         , text
         , textarea
         )
@@ -34,7 +32,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Layouts
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Shared
 import Time
@@ -86,7 +84,7 @@ init () =
 
 type Msg
     = NoOp
-    | CopyToClipboardShowAlert String
+    | AddAlertCopiedToClipboard String
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -97,9 +95,9 @@ update msg model =
             , Effect.none
             )
 
-        CopyToClipboardShowAlert contentCopied ->
+        AddAlertCopiedToClipboard contentCopied ->
             ( model
-            , Effect.showCopyToClipboardAlert { contentCopied = contentCopied }
+            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
             )
 
 
@@ -167,7 +165,7 @@ viewAccountSettings shared model =
                             , attribute "data-clipboard-text" auth.token
                             , attribute "aria-label" "copy token"
                             , Util.testAttribute "copy-token"
-                            , onClick <| CopyToClipboardShowAlert auth.token
+                            , onClick <| AddAlertCopiedToClipboard auth.token
                             ]
                             [ FeatherIcons.copy
                                 |> FeatherIcons.withSize 18

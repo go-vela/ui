@@ -4,7 +4,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, getCurrentUser, gotoPage, handleHttpError, logout, pushPath, showCopyToClipboardAlert, toggleFavorites
+    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, gotoPage, handleHttpError, logout, pushPath, setTheme, updateFavorites
     )
 
 {-|
@@ -25,6 +25,7 @@ import Auth.Session exposing (Session(..))
 import Browser.Navigation
 import Dict exposing (Dict)
 import Errors
+import Favorites
 import Http
 import Http.Detailed
 import RemoteData exposing (WebData)
@@ -213,6 +214,11 @@ toCmd options effect =
 -- CUSTOM EFFECTS
 
 
+setTheme : Vela.Theme -> Effect msg
+setTheme theme =
+    SendSharedMsg <| Shared.Msg.SetTheme theme
+
+
 logout : {} -> Effect msg
 logout _ =
     SendSharedMsg <| Shared.Msg.Logout
@@ -223,39 +229,9 @@ getCurrentUser _ =
     SendSharedMsg <| Shared.Msg.GetCurrentUser
 
 
-toggleFavorites : { org : String, maybeRepo : Maybe String } -> Effect msg
-toggleFavorites options =
-    SendSharedMsg <| Shared.Msg.ToggleFavorites options
-
-
-gotoPage : { pageNumber : Int } -> Effect msg
-gotoPage options =
-    SendSharedMsg <| Shared.Msg.GotoPage options
-
-
-showCopyToClipboardAlert : { contentCopied : String } -> Effect msg
-showCopyToClipboardAlert options =
-    SendSharedMsg <| Shared.Msg.ShowCopyToClipboardAlert options
-
-
-handleHttpError : Http.Detailed.Error String -> Effect msg
-handleHttpError error =
-    SendSharedMsg <| Shared.Msg.HandleHttpError error
-
-
-addAlertSuccess : { content : String, unique : Bool } -> Effect msg
-addAlertSuccess options =
-    SendSharedMsg <| Shared.Msg.AddAlertSuccess options
-
-
-addAlertError : { content : String, unique : Bool } -> Effect msg
-addAlertError options =
-    SendSharedMsg <| Shared.Msg.AddAlertError options
-
-
-alertsUpdate : Alerting.Msg Alert -> Effect msg
-alertsUpdate alert =
-    SendSharedMsg <| Shared.Msg.AlertsUpdate alert
+updateFavorites : { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType } -> Effect msg
+updateFavorites options =
+    SendSharedMsg <| Shared.Msg.UpdateFavorites options
 
 
 enableRepo :
@@ -279,3 +255,33 @@ enableRepo options =
         options.onResponse
         (Api.Operations_.enableRepo options.baseUrl options.session body)
         |> sendCmd
+
+
+gotoPage : { pageNumber : Int } -> Effect msg
+gotoPage options =
+    SendSharedMsg <| Shared.Msg.GotoPage options
+
+
+handleHttpError : { httpError : Http.Detailed.Error String } -> Effect msg
+handleHttpError options =
+    SendSharedMsg <| Shared.Msg.HandleHttpError options.httpError
+
+
+addAlertSuccess : { content : String, addToastIfUnique : Bool } -> Effect msg
+addAlertSuccess options =
+    SendSharedMsg <| Shared.Msg.AddAlertSuccess options
+
+
+addAlertError : { content : String, addToastIfUnique : Bool } -> Effect msg
+addAlertError options =
+    SendSharedMsg <| Shared.Msg.AddAlertError options
+
+
+alertsUpdate : { alert : Alerting.Msg Alert } -> Effect msg
+alertsUpdate options =
+    SendSharedMsg <| Shared.Msg.AlertsUpdate options.alert
+
+
+focusOn : { target : String } -> Effect msg
+focusOn options =
+    SendSharedMsg <| Shared.Msg.FocusOn options.target

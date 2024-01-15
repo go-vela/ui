@@ -3,7 +3,7 @@ module Pages.Home_ exposing (Model, Msg, page, view)
 import Auth
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Favorites exposing (ToggleFavorite, starToggle)
+import Favorites exposing (UpdateFavorites, starToggle)
 import FeatherIcons
 import Html
     exposing
@@ -115,7 +115,7 @@ update msg model =
 
         ToggleFavorite org maybeRepo ->
             ( model
-            , Effect.toggleFavorites { org = org, maybeRepo = maybeRepo }
+            , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
             )
 
 

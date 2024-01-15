@@ -19,7 +19,6 @@ import Vela
         , PipelineTemplates
         , Repo
         , RepoModel
-        , SourceRepositories
         , Theme(..)
         )
 
@@ -41,8 +40,6 @@ type alias Model =
     , theme : Theme
     , shift : Bool
     , visibility : Visibility
-    , showHelp : Bool
-    , showIdentity : Bool
     , favicon : Favicon
     , pipeline : PipelineModel
     , templates : PipelineTemplates

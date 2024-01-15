@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Favorites exposing (ToggleFavorite, addFavorite, isFavorited, starToggle, toFavorite, updateFavorites)
+module Favorites exposing (UpdateFavorites, UpdateType(..), addFavorite, isFavorited, starToggle, toFavorite, toggleFavorite)
 
 import Html exposing (Html, button)
 import Html.Attributes exposing (attribute, class)
@@ -15,10 +15,15 @@ import Util
 import Vela exposing (CurrentUser, Org, Repo)
 
 
-{-| ToggleFavorite : takes org and maybe repo and toggles its favorite status them on Vela
+{-| UpdateFavorites : takes org and maybe repo and updates favorites
 -}
-type alias ToggleFavorite msg =
+type alias UpdateFavorites msg =
     Org -> Maybe Repo -> msg
+
+
+type UpdateType
+    = Add
+    | Toggle
 
 
 
@@ -27,11 +32,11 @@ type alias ToggleFavorite msg =
 
 {-| starToggle : takes org repo msg and favorited status and renders the favorites toggle star
 -}
-starToggle : Org -> Repo -> ToggleFavorite msg -> Bool -> Html msg
-starToggle org repo toggleFavorite favorited =
+starToggle : Org -> Repo -> UpdateFavorites msg -> Bool -> Html msg
+starToggle org repo updateFn favorited =
     button
         [ Util.testAttribute <| "star-toggle-" ++ org ++ "-" ++ repo
-        , onClick <| toggleFavorite org <| Just repo
+        , onClick <| updateFn org <| Just repo
         , starToggleAriaLabel org repo favorited
         , class "button"
         , class "-icon"
@@ -69,10 +74,10 @@ isFavorited user favorite =
             False
 
 
-{-| updateFavorites : takes current user and favorite key and updates/returns that user's list of favorites
+{-| toggleFavorite : takes current user and favorite key and updates/returns that user's list of favorites
 -}
-updateFavorites : WebData CurrentUser -> String -> ( List String, Bool )
-updateFavorites user favorite =
+toggleFavorite : WebData CurrentUser -> String -> ( List String, Bool )
+toggleFavorite user favorite =
     case user of
         Success u ->
             let

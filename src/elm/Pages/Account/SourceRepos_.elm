@@ -1,6 +1,5 @@
 module Pages.Account.SourceRepos_ exposing (..)
 
-import Alerts
 import Api.Api as Api
 import Api.Operations_
 import Auth
@@ -16,7 +15,6 @@ import Html
         , button
         , details
         , div
-        , h1
         , span
         , summary
         , text
@@ -47,9 +45,8 @@ import Search
         , shouldSearch
         )
 import Shared
-import Toasty as Alerting
 import Util
-import Vela exposing (CurrentUser, Org, Repo, RepoSearchFilters, Repositories, Repository, SourceRepositories)
+import Vela exposing (CurrentUser, Org, RepoSearchFilters, Repository, SourceRepositories)
 import View exposing (View)
 
 
@@ -72,7 +69,23 @@ toLayout : Auth.User -> Shared.Model -> Model -> Layouts.Layout Msg
 toLayout user shared model =
     Layouts.Default
         { navButtons =
-            [ refreshButton model ]
+            [ button
+                [ classList
+                    [ ( "button", True )
+                    , ( "-outline", True )
+                    ]
+                , onClick (GetUserSourceRepos True)
+                , disabled (model.sourceRepos == Loading)
+                , Util.testAttribute "refresh-source-repos"
+                ]
+                [ case model.sourceRepos of
+                    Loading ->
+                        text "Loading…"
+
+                    _ ->
+                        text "Refresh List"
+                ]
+            ]
         , utilButtons = []
         }
 
@@ -105,14 +118,13 @@ init () =
 
 type Msg
     = NoOp
-      -- SOURCE REPOS
     | GetUserSourceRepos Bool
     | GetUserSourceReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
     | ToggleFavorite Org (Maybe String)
+    | EnableRepos (List Repository)
     | EnableRepo Repository
     | EnableRepoResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
-    | EnableRepos Repositories
-    | Search Org String
+    | UpdateSearchFilter Org String
 
 
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -123,10 +135,10 @@ update shared msg model =
             , Effect.none
             )
 
-        GetUserSourceRepos reload ->
+        GetUserSourceRepos isReload ->
             ( { model
                 | sourceRepos =
-                    if reload || model.sourceRepos == NotAsked then
+                    if isReload || model.sourceRepos == NotAsked then
                         Loading
 
                     else
@@ -144,21 +156,27 @@ update shared msg model =
                     ( { model
                         | sourceRepos = RemoteData.succeed repositories
                       }
-                    , Effect.none
-                      -- todo:
-                      -- , Util.dispatch <| FocusOn "global-search-input"
+                    , Effect.focusOn { target = "global-search-input" }
                     )
 
                 Err error ->
                     ( { model
                         | sourceRepos = Errors.toFailure error
                       }
-                    , Effect.handleHttpError error
+                    , Effect.handleHttpError { httpError = error }
                     )
 
         ToggleFavorite org maybeRepo ->
             ( model
-            , Effect.toggleFavorites { org = org, maybeRepo = maybeRepo }
+            , Effect.updateFavorites { org = org, maybeRepo = maybeRepo, updateType = Favorites.Toggle }
+            )
+
+        EnableRepos repos ->
+            ( model
+            , repos
+                |> List.map EnableRepo
+                |> List.map Effect.sendMsg
+                |> Effect.batch
             )
 
         EnableRepo repo ->
@@ -182,56 +200,39 @@ update shared msg model =
                     ( { model
                         | sourceRepos = Vela.enableUpdate enabledRepo (RemoteData.succeed True) model.sourceRepos
 
+                        -- todo: need this moved to the repo settings page
                         -- , repo = updateRepoEnabling Vela.Enabled rm
                       }
-                      -- , Util.dispatch <| AddFavorite repo.org <| Just repo.name
-                    , Effect.addAlertSuccess { content = enabledRepo.full_name ++ " enabled.", unique = True }
+                    , Effect.batch
+                        [ Effect.addAlertSuccess
+                            { content = enabledRepo.full_name ++ " enabled.", addToastIfUnique = True }
+                        , Effect.updateFavorites { org = enabledRepo.org, maybeRepo = Just enabledRepo.name, updateType = Favorites.Add }
+                        ]
                     )
 
                 Err error ->
-                    let
-                        ( sourceRepos, action ) =
-                            repoEnabledError model.sourceRepos repo error
-                    in
-                    ( { model | sourceRepos = sourceRepos }, action )
+                    (case error of
+                        Http.Detailed.BadStatus metadata _ ->
+                            case metadata.statusCode of
+                                409 ->
+                                    ( RemoteData.succeed True, Effect.none )
 
-        EnableRepos repositories ->
-            ( model
-            , Effect.none
-            )
-
-        Search org searchBy ->
-            let
-                filters =
-                    Dict.update org (\_ -> Just searchBy) model.searchFilters
-            in
-            ( { model | searchFilters = filters }, Effect.none )
-
-
-{-| repoEnabledError : takes model repo and error and updates the source repos within the model
-
-    repoEnabledError : consumes 409 conflicts that result from the repo already being enabled
-
--}
-repoEnabledError : WebData SourceRepositories -> Repository -> Http.Detailed.Error String -> ( WebData SourceRepositories, Effect msg )
-repoEnabledError sourceRepos repo error =
-    let
-        ( enabled, action ) =
-            case error of
-                Http.Detailed.BadStatus metadata _ ->
-                    case metadata.statusCode of
-                        409 ->
-                            ( RemoteData.succeed True, Effect.none )
+                                _ ->
+                                    ( Errors.toFailure error, Effect.handleHttpError { httpError = error } )
 
                         _ ->
-                            ( Errors.toFailure error, Effect.handleHttpError error )
+                            ( Errors.toFailure error, Effect.handleHttpError { httpError = error } )
+                    )
+                        |> Tuple.mapFirst (\m -> Vela.enableUpdate repo m model.sourceRepos)
+                        |> Tuple.mapFirst (\m -> { model | sourceRepos = m })
 
-                _ ->
-                    ( Errors.toFailure error, Effect.handleHttpError error )
-    in
-    ( Vela.enableUpdate repo enabled sourceRepos
-    , action
-    )
+        UpdateSearchFilter org searchBy ->
+            ( { model
+                | searchFilters =
+                    Dict.update org (\_ -> Just searchBy) model.searchFilters
+              }
+            , Effect.none
+            )
 
 
 
@@ -254,7 +255,7 @@ view shared model =
     let
         body =
             div [ Util.testAttribute "source-repos" ]
-                [ repoSearchBarGlobal model.searchFilters Search
+                [ repoSearchBarGlobal model.searchFilters UpdateSearchFilter
                 , viewSourceRepos shared model
                 ]
     in
@@ -350,7 +351,7 @@ viewErrorSourceOrg =
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
 -}
-viewSourceOrg : WebData CurrentUser -> RepoSearchFilters -> Org -> Repositories -> Html Msg
+viewSourceOrg : WebData CurrentUser -> RepoSearchFilters -> Org -> List Repository -> Html Msg
 viewSourceOrg user filters org repos =
     let
         ( repos_, filtered, content ) =
@@ -362,12 +363,12 @@ viewSourceOrg user filters org repos =
                 -- Render repos normally
                 ( repos, False, List.map (viewSourceRepo user EnableRepo ToggleFavorite) repos )
     in
-    viewSourceOrgDetails filters org repos_ filtered content Search EnableRepos
+    viewSourceOrgDetails filters org repos_ filtered content UpdateSearchFilter EnableRepos
 
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element
 -}
-viewSourceOrgDetails : RepoSearchFilters -> Org -> Repositories -> Bool -> List (Html msg) -> Search msg -> Vela.EnableRepos msg -> Html msg
+viewSourceOrgDetails : RepoSearchFilters -> Org -> List Repository -> Bool -> List (Html msg) -> Search msg -> Vela.EnableRepos msg -> Html msg
 viewSourceOrgDetails filters org repos filtered content search enableRepos =
     details [ class "details", class "-with-border" ] <|
         viewSourceOrgSummary filters org repos filtered content search enableRepos
@@ -375,7 +376,7 @@ viewSourceOrgDetails filters org repos filtered content search enableRepos =
 
 {-| viewSourceOrgSummary : renders the source repositories details summary
 -}
-viewSourceOrgSummary : RepoSearchFilters -> Org -> Repositories -> Bool -> List (Html msg) -> Search msg -> Vela.EnableRepos msg -> List (Html msg)
+viewSourceOrgSummary : RepoSearchFilters -> Org -> List Repository -> Bool -> List (Html msg) -> Search msg -> Vela.EnableRepos msg -> List (Html msg)
 viewSourceOrgSummary filters org repos filtered content search enableRepos =
     summary [ class "summary", Util.testAttribute <| "source-org-" ++ org ]
         [ text org
@@ -392,7 +393,7 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
 {-| viewSourceRepo : renders single repo within a list of org repos
 viewSourceRepo uses model.sourceRepos and enableRepoButton to determine the state of each specific 'Enable' button
 -}
-viewSourceRepo : WebData CurrentUser -> Vela.EnableRepo msg -> Favorites.ToggleFavorite msg -> Repository -> Html msg
+viewSourceRepo : WebData CurrentUser -> Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> Repository -> Html msg
 viewSourceRepo user enableRepo toggleFavorite repo =
     let
         favorited =
@@ -406,7 +407,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : Vela.EnableRepo msg -> Favorites.ToggleFavorite msg -> Repository -> Bool -> Html msg
+viewSearchedSourceRepo : Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> Repository -> Bool -> Html msg
 viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
     div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
@@ -424,7 +425,7 @@ viewRepoCount repos =
 
 {-| enableReposButton : takes List of repos and renders a button to enable them all at once, texts depends on user input filter
 -}
-enableReposButton : Org -> Repositories -> Bool -> Vela.EnableRepos msg -> Html msg
+enableReposButton : Org -> List Repository -> Bool -> Vela.EnableRepos msg -> Html msg
 enableReposButton org repos filtered enableRepos =
     button [ class "button", class "-outline", Util.testAttribute <| "enable-org-" ++ org, onClick (enableRepos repos) ]
         [ text <|
@@ -438,7 +439,7 @@ enableReposButton org repos filtered enableRepos =
 
 {-| enableRepoButton : builds action button for enabling single repos
 -}
-enableRepoButton : Repository -> Vela.EnableRepo msg -> Favorites.ToggleFavorite msg -> Bool -> Html msg
+enableRepoButton : Repository -> Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> Bool -> Html msg
 enableRepoButton repo enableRepo toggleFavorite favorited =
     case repo.enabled of
         RemoteData.NotAsked ->
@@ -503,7 +504,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : Shared.Model -> Model -> SourceRepositories -> Vela.EnableRepo msg -> Favorites.ToggleFavorite msg -> Html msg
+searchReposGlobal : Shared.Model -> Model -> SourceRepositories -> Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> Html msg
 searchReposGlobal shared model repos enableRepo toggleFavorite =
     let
         ( user, filters ) =
@@ -528,7 +529,7 @@ searchReposGlobal shared model repos enableRepo toggleFavorite =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : WebData CurrentUser -> Org -> RepoSearchFilters -> Repositories -> Vela.EnableRepo msg -> Favorites.ToggleFavorite msg -> ( Repositories, Bool, List (Html msg) )
+searchReposLocal : WebData CurrentUser -> Org -> RepoSearchFilters -> List Repository -> Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> ( List Repository, Bool, List (Html msg) )
 searchReposLocal user org filters repos enableRepo toggleFavorite =
     -- Filter the repos if the user typed more than 2 characters
     let
@@ -543,25 +544,3 @@ searchReposLocal user org filters repos enableRepo toggleFavorite =
       else
         [ div [ class "item" ] [ text "No results" ] ]
     )
-
-
-{-| refreshButton : takes model with source repos and renders a button to refresh the list
--}
-refreshButton : Model -> Html Msg
-refreshButton model =
-    button
-        [ classList
-            [ ( "button", True )
-            , ( "-outline", True )
-            ]
-        , onClick (GetUserSourceRepos True)
-        , disabled (model.sourceRepos == Loading)
-        , Util.testAttribute "refresh-source-repos"
-        ]
-        [ case model.sourceRepos of
-            Loading ->
-                text "Loading…"
-
-            _ ->
-                text "Refresh List"
-        ]
