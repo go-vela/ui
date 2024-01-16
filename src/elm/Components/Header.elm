@@ -18,7 +18,7 @@ import Utils.Helpers as Util
 import Vela exposing (Theme(..))
 
 
-view : { session : Session, feedbackLink : String, docsLink : String, theme : Theme, setTheme : Theme -> msg, help : Help.Commands.Model msg, showId : Bool, showHideIdentity : Maybe Bool -> msg } -> Html msg
+view : { session : Session, feedbackLink : String, docsLink : String, theme : Theme, setTheme : Theme -> msg, help : Utils.HelpCommands.Model msg, showId : Bool, showHideIdentity : Maybe Bool -> msg } -> Html msg
 view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideIdentity } =
     let
         identityBaseClassList : Html.Attribute msg

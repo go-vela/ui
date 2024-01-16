@@ -194,12 +194,12 @@ view props shared route { toContentMsg, model, content } =
     }
 
 
-helpArg : WebData a -> Help.Commands.Arg
+helpArg : WebData a -> Utils.HelpCommands.Arg
 helpArg arg =
     { success = Util.isSuccess arg, loading = Util.isLoading arg }
 
 
-helpArgs : Shared.Model -> Model -> Help.Commands.Model Msg
+helpArgs : Shared.Model -> Model -> Utils.HelpCommands.Model Msg
 helpArgs shared model =
     { user = helpArg shared.user
 
