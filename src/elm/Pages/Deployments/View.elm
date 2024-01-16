@@ -21,7 +21,7 @@ import Pages.Deployments.Model
 import RemoteData
 import Routes
 import Svg.Attributes
-import Util.Helpers as Util exposing (largeLoader)
+import Utils.Helpers as Util exposing (largeLoader)
 import Vela exposing (Deployment, Org, Repo, RepoModel, Repository)
 
 

@@ -16,7 +16,7 @@ import Http
 import List.Extra
 import Pages.Deployments.Model exposing (DeploymentForm, DeploymentResponse, Model, Msg(..), PartialModel, defaultDeploymentForm)
 import RemoteData exposing (RemoteData(..))
-import Util.Helpers as Util exposing (stringToMaybe)
+import Utils.Helpers as Util exposing (stringToMaybe)
 import Vela exposing (DeploymentPayload, KeyValuePair, buildDeploymentPayload, encodeDeploymentPayload)
 
 

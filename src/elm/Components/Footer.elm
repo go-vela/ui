@@ -9,7 +9,7 @@ import Components.Alerts as Alerts exposing (Alert)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class)
 import Toasty as Alerting exposing (Stack)
-import Util.Helpers as Util
+import Utils.Helpers as Util
 
 
 view :

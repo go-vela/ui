@@ -56,8 +56,8 @@ import Html.Attributes
         )
 import Html.Events exposing (onCheck, onClick, onInput)
 import RemoteData exposing (RemoteData(..), WebData)
-import Util.Errors as Errors exposing (viewResourceError)
-import Util.Helpers as Util
+import Utils.Errors as Errors exposing (viewResourceError)
+import Utils.Helpers as Util
 import Vela
     exposing
         ( ChownRepo

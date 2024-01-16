@@ -29,7 +29,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Routes
 import Shared
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela
     exposing
         ( Build

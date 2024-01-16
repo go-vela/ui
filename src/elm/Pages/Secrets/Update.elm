@@ -31,7 +31,7 @@ import Pages.Secrets.Model
         )
 import RemoteData exposing (RemoteData(..))
 import Routes
-import Util.Helpers as Util exposing (stringToMaybe)
+import Utils.Helpers as Util exposing (stringToMaybe)
 import Vela
     exposing
         ( Copy

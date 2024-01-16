@@ -34,8 +34,8 @@ import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
 import Time exposing (Zone)
-import Util.Errors as Errors exposing (viewResourceError)
-import Util.Helpers as Util exposing (largeLoader)
+import Utils.Errors as Errors exposing (viewResourceError)
+import Utils.Helpers as Util exposing (largeLoader)
 import Vela
     exposing
         ( Org

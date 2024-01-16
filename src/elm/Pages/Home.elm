@@ -36,7 +36,7 @@ import List
 import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela
     exposing
         ( CurrentUser

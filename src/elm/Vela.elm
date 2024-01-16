@@ -194,7 +194,7 @@ import Json.Encode as Encode exposing (Value)
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
-import Util.Errors as Errors exposing (Error)
+import Utils.Errors as Errors exposing (Error)
 import Visualization.DOT as DOT
 
 

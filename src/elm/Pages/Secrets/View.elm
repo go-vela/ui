@@ -21,8 +21,8 @@ import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
 import Url exposing (percentEncode)
-import Util.Errors as Errors exposing (viewResourceError)
-import Util.Helpers as Util exposing (largeLoader)
+import Utils.Errors as Errors exposing (viewResourceError)
+import Utils.Helpers as Util exposing (largeLoader)
 import Vela
     exposing
         ( Secret

@@ -25,8 +25,8 @@ import Pages.Build.View exposing (viewPreview)
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Time exposing (Posix, Zone)
-import Util.Errors as Errors exposing (viewResourceError)
-import Util.Helpers as Util exposing (largeLoader)
+import Utils.Errors as Errors exposing (viewResourceError)
+import Utils.Helpers as Util exposing (largeLoader)
 import Vela exposing (BuildsModel, Event, Org, OrgReposModel, Repository)
 
 

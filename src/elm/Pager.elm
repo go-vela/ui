@@ -11,7 +11,7 @@ import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (attribute, class, disabled)
 import Html.Events exposing (onClick)
 import LinkHeader exposing (WebLink)
-import Util.Helpers as Util
+import Utils.Helpers as Util
 
 
 type alias Labels =

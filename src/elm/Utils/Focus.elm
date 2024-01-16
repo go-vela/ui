@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Util.Focus exposing
+module Utils.Focus exposing
     ( ExpandTemplatesQuery
     , FocusTarget
     , Fragment

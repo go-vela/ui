@@ -29,7 +29,7 @@ import Html.Attributes
         , value
         )
 import Html.Events exposing (onInput)
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela exposing (Org, RepoSearchFilters, SearchFilter)
 
 

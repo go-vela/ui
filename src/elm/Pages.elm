@@ -7,7 +7,7 @@ module Pages exposing (Page(..), strip, toRoute)
 
 import Api.Pagination as Pagination
 import Routes exposing (Route)
-import Util.Focus as Focus exposing (ExpandTemplatesQuery, Fragment)
+import Utils.Focus as Focus exposing (ExpandTemplatesQuery, Fragment)
 import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
 
 

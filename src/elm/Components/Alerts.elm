@@ -11,7 +11,7 @@ import Html.Attributes exposing (attribute, class, href)
 import Html.Events
 import Toasty as Alerting
 import Toasty.Defaults as Alerts
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela exposing (Copy)
 
 

@@ -13,8 +13,8 @@ import Html exposing (Html, a, button, details, div, header, li, nav, summary, t
 import Html.Attributes exposing (attribute, class, classList, href, id)
 import Html.Events exposing (onClick)
 import Routes
-import Util.HelpCommands
-import Util.Helpers as Util
+import Utils.HelpCommands
+import Utils.Helpers as Util
 import Vela exposing (Theme(..))
 
 

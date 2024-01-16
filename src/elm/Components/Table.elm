@@ -30,7 +30,7 @@ import Html.Attributes
         , scope
         )
 import String.Extra
-import Util.Helpers as Util
+import Utils.Helpers as Util
 
 
 {-| Column : string alias for table column headers

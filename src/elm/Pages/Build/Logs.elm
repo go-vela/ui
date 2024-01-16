@@ -25,8 +25,8 @@ import Ansi.Log
 import Array
 import List.Extra exposing (updateIf)
 import RemoteData exposing (WebData)
-import Util.Focus as Focus exposing (FocusTarget, parseFocusFragment)
-import Util.Helpers as Util exposing (overwriteById)
+import Utils.Focus as Focus exposing (FocusTarget, parseFocusFragment)
+import Utils.Helpers as Util exposing (overwriteById)
 import Vela
     exposing
         ( BuildNumber

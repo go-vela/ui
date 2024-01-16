@@ -39,7 +39,7 @@ import Route exposing (Route)
 import Routes
 import Shared
 import Svg.Attributes
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela exposing (Deployment, Org, Repo, Repository)
 import View exposing (View)
 

@@ -117,8 +117,8 @@ import Time
         )
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
-import Util.Errors as Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
-import Util.Focus as Focus
+import Utils.Errors as Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
+import Utils.Focus as Focus
     exposing
         ( ExpandTemplatesQuery
         , Fragment
@@ -127,8 +127,8 @@ import Util.Focus as Focus
         , parseFocusFragment
         , resourceFocusFragment
         )
-import Util.Helpers as Util
-import Util.Interval as Interval exposing (Interval(..), RefreshData)
+import Utils.Helpers as Util
+import Utils.Interval as Interval exposing (Interval(..), RefreshData)
 import Vela
     exposing
         ( AuthParams

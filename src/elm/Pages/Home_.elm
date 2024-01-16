@@ -41,7 +41,7 @@ import Route exposing (Route)
 import Route.Path
 import Routes
 import Shared
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela exposing (Favorites, Org, Repo)
 import View exposing (View)
 

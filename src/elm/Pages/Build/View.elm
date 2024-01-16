@@ -60,7 +60,7 @@ import Shared
 import String
 import Time exposing (Posix, Zone)
 import Url
-import Util.Focus as Focus
+import Utils.Focus as Focus
     exposing
         ( ResourceID
         , ResourceType
@@ -69,7 +69,7 @@ import Util.Focus as Focus
         , resourceAndLineToFocusId
         , resourceToFocusId
         )
-import Util.Helpers as Util exposing (getNameFromRef)
+import Utils.Helpers as Util exposing (getNameFromRef)
 import Vela
     exposing
         ( Build

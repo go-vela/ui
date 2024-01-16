@@ -12,7 +12,7 @@ import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
-import Util.Focus as Focus exposing (ExpandTemplatesQuery)
+import Utils.Focus as Focus exposing (ExpandTemplatesQuery)
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
 
 

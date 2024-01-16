@@ -30,8 +30,8 @@ import Task
 import Time exposing (..)
 import Toasty as Alerting
 import Url exposing (..)
-import Util.Errors as Errors
-import Util.Helpers as Util exposing (..)
+import Utils.Errors as Errors
+import Utils.Helpers as Util exposing (..)
 import Vela
     exposing
         ( UpdateUserPayload

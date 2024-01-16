@@ -40,7 +40,7 @@ import Svg.Attributes
         , y1
         , y2
         )
-import Util.Helpers as Util exposing (ariaHidden)
+import Utils.Helpers as Util exposing (ariaHidden)
 import Vela exposing (Status)
 
 

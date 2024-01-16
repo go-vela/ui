@@ -32,7 +32,7 @@ import Http
 import Pages.Build.Logs exposing (decodeAnsi)
 import RemoteData
 import Time exposing (Posix)
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela
     exposing
         ( Hook

@@ -10,8 +10,8 @@ import Graph exposing (Edge, Node)
 import Pages.Build.Model as BuildModel
 import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
-import Util.Focus as Focus
-import Util.Helpers as Util
+import Utils.Focus as Focus
+import Utils.Helpers as Util
 import Vela
     exposing
         ( BuildGraph

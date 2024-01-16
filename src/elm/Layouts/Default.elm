@@ -21,8 +21,8 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Toasty as Alerting
-import Util.HelpCommands
-import Util.Helpers as Util
+import Utils.HelpCommands
+import Utils.Helpers as Util
 import Vela exposing (Theme)
 import View exposing (View)
 

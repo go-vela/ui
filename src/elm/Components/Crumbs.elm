@@ -10,7 +10,7 @@ import Html.Attributes exposing (attribute)
 import Route.Path
 import Tuple exposing (first, second)
 import Url exposing (percentDecode)
-import Util.Helpers as Util
+import Utils.Helpers as Util
 
 
 

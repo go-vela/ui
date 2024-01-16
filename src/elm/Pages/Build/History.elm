@@ -7,7 +7,7 @@ import Pages exposing (Page)
 import RemoteData
 import Routes
 import Time exposing (Posix, Zone)
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela exposing (Build, Org, Repo, RepoModel)
 
 

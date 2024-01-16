@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Util.Interval exposing (Interval(..), RefreshData)
+module Utils.Interval exposing (Interval(..), RefreshData)
 
 import Vela exposing (BuildNumber, Org, Repo, Steps)
 

@@ -43,7 +43,7 @@ import Html.Events exposing (onClick)
 import List.Extra
 import RemoteData exposing (WebData)
 import Routes
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela
     exposing
         ( CurrentUser

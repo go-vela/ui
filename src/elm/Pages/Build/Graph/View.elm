@@ -15,7 +15,7 @@ import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
 import Svg
 import Svg.Attributes
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela exposing (BuildNumber, Org, Repo)
 import Visualization.DOT as DOT exposing (Attribute(..), AttributeValue(..))
 

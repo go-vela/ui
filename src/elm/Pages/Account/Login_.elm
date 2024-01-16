@@ -30,7 +30,7 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import View exposing (View)
 
 

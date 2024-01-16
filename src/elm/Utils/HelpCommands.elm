@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Util.HelpCommands exposing
+module Utils.HelpCommands exposing
     ( Arg
     , Command
     , Commands
@@ -18,7 +18,7 @@ module Util.HelpCommands exposing
 
 import Pages exposing (Page)
 import String.Extra
-import Util.Helpers as Util exposing (anyBlank, noBlanks)
+import Utils.Helpers as Util exposing (anyBlank, noBlanks)
 import Vela
     exposing
         ( BuildNumber

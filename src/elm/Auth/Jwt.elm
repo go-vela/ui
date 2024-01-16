@@ -13,7 +13,7 @@ module Auth.Jwt exposing
 import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
 import Json.Decode.Pipeline exposing (required)
 import Time
-import Util.Helpers as Util
+import Utils.Helpers as Util
 
 
 type alias JwtAccessToken =

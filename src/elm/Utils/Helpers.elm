@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Util.Helpers exposing
+module Utils.Helpers exposing
     ( anyBlank
     , ariaHidden
     , attrIf

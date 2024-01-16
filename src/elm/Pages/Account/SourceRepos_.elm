@@ -49,8 +49,8 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
-import Util.Errors as Errors
-import Util.Helpers as Util
+import Utils.Errors as Errors
+import Utils.Helpers as Util
 import Vela exposing (CurrentUser, Org, RepoSearchFilters, Repository, SourceRepositories)
 import View exposing (View)
 

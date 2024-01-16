@@ -27,7 +27,7 @@ import Pages.Schedules.Model
         , defaultScheduleUpdate
         )
 import RemoteData exposing (RemoteData(..))
-import Util.Helpers as Util exposing (stringToMaybe)
+import Utils.Helpers as Util exposing (stringToMaybe)
 import Vela
     exposing
         ( Schedule

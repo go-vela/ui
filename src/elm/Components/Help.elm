@@ -10,7 +10,7 @@ import FeatherIcons
 import Html exposing (Html, a, button, details, div, label, li, span, strong, summary, text)
 import Html.Attributes exposing (attribute, class, for, href, id, size, value)
 import Html.Events
-import Util.HelpCommands
+import Utils.HelpCommands
     exposing
         ( Command
         , Model
@@ -21,7 +21,7 @@ import Util.HelpCommands
         , resourceLoading
         , usageDocsUrl
         )
-import Util.Helpers as Util
+import Utils.Helpers as Util
 import Vela exposing (Copy)
 
 

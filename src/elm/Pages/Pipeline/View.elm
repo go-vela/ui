@@ -28,9 +28,9 @@ import Html.Events exposing (onClick)
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
-import Util.Errors as Errors exposing (Error)
-import Util.Focus as Focus exposing (ResourceID, ResourceType, lineFocusStyles, resourceAndLineToFocusId)
-import Util.Helpers as Util
+import Utils.Errors as Errors exposing (Error)
+import Utils.Focus as Focus exposing (ResourceID, ResourceType, lineFocusStyles, resourceAndLineToFocusId)
+import Utils.Helpers as Util
 import Vela
     exposing
         ( LogFocus
