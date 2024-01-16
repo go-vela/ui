@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Builds exposing (view)
 
-import Errors exposing (viewResourceError)
 import Html
     exposing
         ( Html
@@ -25,7 +24,8 @@ import Pages.Build.Model exposing (Msgs)
 import Pages.Build.View exposing (viewPreview)
 import RemoteData
 import Time exposing (Posix, Zone)
-import Util exposing (largeLoader)
+import Util.Errors as Errors exposing (viewResourceError)
+import Util.Helpers as Util exposing (largeLoader)
 import Vela exposing (BuildsModel, Event, Org, Repo)
 
 

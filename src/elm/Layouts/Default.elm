@@ -1,6 +1,11 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Layouts.Default exposing (Model, Msg, Props, layout, map)
 
-import Alerts exposing (Alert)
+import Components.Alerts as Alerts exposing (Alert)
 import Components.Footer
 import Components.Header
 import Components.Nav
@@ -9,13 +14,15 @@ import Effect exposing (Effect)
 import Help.Commands
 import Html exposing (..)
 import Html.Attributes exposing (class)
+import Interop
+import Json.Decode
 import Layout exposing (Layout)
 import Pages
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Toasty as Alerting
-import Util
+import Util.Helpers as Util
 import Vela exposing (Theme)
 import View exposing (View)
 
@@ -40,7 +47,7 @@ map fn props =
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout () Model Msg contentMsg
 layout props shared route =
     Layout.new
-        { init = init
+        { init = init shared
         , update = update
         , view = view props shared route
         , subscriptions = subscriptions
@@ -57,8 +64,8 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Effect Msg )
-init _ =
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared _ =
     ( { showIdentity = False
       , showHelp = False
       }
@@ -132,7 +139,20 @@ subscriptions model =
     Sub.batch
         [ Util.onMouseDownSubscription "identity" model.showIdentity ShowHideIdentity
         , Util.onMouseDownSubscription "contextual-help" model.showHelp ShowHideHelp
+        , Interop.onThemeChange decodeOnThemeChange
         ]
+
+
+{-| decodeOnThemeChange : takes interaction in json and decodes it into a SetTheme Msg
+-}
+decodeOnThemeChange : Json.Decode.Value -> Msg
+decodeOnThemeChange inTheme =
+    case Json.Decode.decodeValue Vela.decodeTheme inTheme of
+        Ok theme ->
+            SetTheme theme
+
+        Err _ ->
+            SetTheme Vela.Dark
 
 
 

@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Route.Path exposing (Path(..), fromString, fromUrl, href, toString)
 
 import Html

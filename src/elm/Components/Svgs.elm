@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module SvgBuilder exposing
+module Components.Svgs exposing
     ( buildStatusAnimation
     , buildStatusToIcon
     , buildVizLegendEdge
@@ -40,7 +40,7 @@ import Svg.Attributes
         , y1
         , y2
         )
-import Util exposing (ariaHidden)
+import Util.Helpers as Util exposing (ariaHidden)
 import Vela exposing (Status)
 
 

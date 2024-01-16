@@ -1,4 +1,9 @@
-module Focus exposing
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
+module Util.Focus exposing
     ( ExpandTemplatesQuery
     , FocusTarget
     , Fragment

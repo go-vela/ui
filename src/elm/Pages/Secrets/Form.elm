@@ -49,7 +49,7 @@ import Html.Attributes
 import Html.Events exposing (onClick, onInput)
 import Pages.RepoSettings exposing (checkbox)
 import Pages.Secrets.Model exposing (DeleteSecretState(..), Model, Msg(..), PartialModel, SecretForm)
-import Util
+import Util.Helpers as Util
 import Vela exposing (Field)
 
 

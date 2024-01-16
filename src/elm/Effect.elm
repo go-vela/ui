@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Effect exposing
     ( Effect
     , none, batch
@@ -18,25 +23,23 @@ module Effect exposing
 
 -}
 
-import Alerts exposing (Alert)
 import Api.Api as Api
 import Api.Operations_
 import Auth.Session exposing (Session(..))
 import Browser.Navigation
+import Components.Alerts exposing (Alert)
+import Components.Favorites as Favorites
 import Dict exposing (Dict)
-import Errors
-import Favorites
 import Http
 import Http.Detailed
-import RemoteData exposing (WebData)
-import Route exposing (Route)
+import Route
 import Route.Path
 import Shared.Model
 import Shared.Msg
 import Task
 import Toasty as Alerting
 import Url exposing (Url)
-import Vela exposing (CurrentUser, Repository)
+import Vela exposing (Repository)
 
 
 type Effect msg

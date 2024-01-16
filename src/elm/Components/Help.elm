@@ -3,8 +3,9 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Help.View exposing (help)
+module Components.Help exposing (help)
 
+import Components.Svgs as SvgBuilder
 import FeatherIcons
 import Help.Commands
     exposing
@@ -20,8 +21,7 @@ import Help.Commands
 import Html exposing (Html, a, button, details, div, label, li, span, strong, summary, text)
 import Html.Attributes exposing (attribute, class, for, href, id, size, value)
 import Html.Events
-import SvgBuilder
-import Util
+import Util.Helpers as Util
 import Vela exposing (Copy)
 
 

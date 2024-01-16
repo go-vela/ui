@@ -1,17 +1,21 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Shared exposing (Flags, Model, Msg, decoder, init, subscriptions, update)
 
 -- todo: these need to be refined, only expose what is needed
 
-import Alerts
 import Api.Api as Api
 import Api.Operations_
 import Auth.Session exposing (..)
 import Browser.Dom exposing (..)
 import Browser.Events exposing (Visibility(..))
+import Components.Alerts as Alerts
+import Components.Favorites as Favorites
 import Dict exposing (..)
 import Effect exposing (Effect)
-import Errors
-import Favorites
 import Http
 import Interop
 import Json.Decode as Decode exposing (..)
@@ -26,7 +30,8 @@ import Task
 import Time exposing (..)
 import Toasty as Alerting
 import Url exposing (..)
-import Util exposing (..)
+import Util.Errors as Errors
+import Util.Helpers as Util exposing (..)
 import Vela
     exposing
         ( UpdateUserPayload
@@ -328,5 +333,5 @@ update route msg model =
 
 
 subscriptions : Route () -> Model -> Sub Msg
-subscriptions _ _ =
+subscriptions _ model =
     Sub.none

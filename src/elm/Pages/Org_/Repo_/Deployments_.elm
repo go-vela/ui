@@ -1,7 +1,14 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Pages.Org_.Repo_.Deployments_ exposing (..)
 
 import Api.Pagination
 import Auth
+import Components.Svgs as SvgBuilder
+import Components.Table as Table
 import Effect exposing (Effect)
 import FeatherIcons
 import Html
@@ -22,7 +29,6 @@ import Html.Attributes
         , rows
         , scope
         )
-import Html.Events
 import Http
 import Layouts
 import List
@@ -32,16 +38,13 @@ import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Routes
 import Shared
-import Shared.Msg
 import Svg.Attributes
-import SvgBuilder
-import Table
-import Util
+import Util.Helpers as Util
 import Vela exposing (Deployment, Org, Repo, Repository)
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route () -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init
@@ -74,10 +77,6 @@ type alias Model =
 
 init : () -> ( Model, Effect Msg )
 init () =
-    let
-        _ =
-            Debug.log "Pages.Org_.Repo_.Deployments_.init" ""
-    in
     ( {}
     , Effect.none
     )

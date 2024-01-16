@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Main exposing (fromSharedEffect, main)
 
-import Alerts exposing (Alert)
 import Api.Api
 import Api.Endpoint
 import Api.Operations
@@ -19,52 +18,29 @@ import Browser
 import Browser.Dom as Dom
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation
-import Components.Nav
+import Components.Alerts as Alerts exposing (Alert)
+import Components.Favorites as Favorites exposing (addFavorite, toFavorite, toggleFavorite)
 import Dict
 import Effect exposing (Effect)
-import Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
-import Favorites exposing (addFavorite, toFavorite, toggleFavorite)
 import FeatherIcons
 import File.Download as Download
-import Focus
-    exposing
-        ( ExpandTemplatesQuery
-        , Fragment
-        , focusFragmentToFocusId
-        , lineRangeId
-        , parseFocusFragment
-        , resourceFocusFragment
-        )
-import Help.Commands
-import Help.View
 import Html
     exposing
         ( Html
-        , a
         , button
-        , details
         , div
-        , footer
         , h1
-        , header
         , input
         , label
-        , li
-        , main_
-        , nav
         , p
-        , summary
         , text
-        , ul
         )
 import Html.Attributes
     exposing
         ( attribute
         , checked
         , class
-        , classList
         , for
-        , href
         , id
         , name
         , type_
@@ -74,7 +50,6 @@ import Html.Lazy exposing (lazy, lazy2, lazy3, lazy5, lazy7, lazy8)
 import Http
 import Http.Detailed
 import Interop
-import Interval exposing (Interval(..), RefreshData)
 import Json.Decode
 import Json.Encode
 import Layout
@@ -132,7 +107,6 @@ import Route.Path
 import Routes
 import Shared
 import String.Extra
-import SvgBuilder exposing (velaLogo)
 import Task
 import Time
     exposing
@@ -143,7 +117,18 @@ import Time
         )
 import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
-import Util
+import Util.Errors as Errors exposing (Error, addErrorString, detailedErrorToString, toFailure)
+import Util.Focus as Focus
+    exposing
+        ( ExpandTemplatesQuery
+        , Fragment
+        , focusFragmentToFocusId
+        , lineRangeId
+        , parseFocusFragment
+        , resourceFocusFragment
+        )
+import Util.Helpers as Util
+import Util.Interval as Interval exposing (Interval(..), RefreshData)
 import Vela
     exposing
         ( AuthParams
@@ -183,7 +168,6 @@ import Vela
         , Secrets
         , ServiceNumber
         , Services
-        , SourceRepositories
         , StepNumber
         , Steps
         , Team
@@ -197,8 +181,6 @@ import Vela
         , buildUpdateRepoIntPayload
         , buildUpdateRepoStringPayload
         , decodeGraphInteraction
-        , decodeTheme
-        , defaultEnableRepositoryPayload
         , defaultFavicon
         , encodeEnableRepository
         , encodeTheme
@@ -391,11 +373,11 @@ initPageAndLayout model =
             { page =
                 Tuple.mapBoth
                     Main.Pages.Model.AccountLogin_
-                    (Effect.map Main.Pages.Msg.Login_ >> fromPageEffect model)
+                    (Effect.map Main.Pages.Msg.AccountLogin_ >> fromPageEffect model)
                     ( pageModel, pageEffect )
             , layout =
                 Page.layout pageModel page
-                    |> Maybe.map (Layouts.map (Main.Pages.Msg.Login_ >> Page))
+                    |> Maybe.map (Layouts.map (Main.Pages.Msg.AccountLogin_ >> Page))
                     |> Maybe.map (initLayout model)
             }
 
@@ -508,14 +490,14 @@ initPageAndLayout model =
                     let
                         page : Page.Page Pages.Org_.Repo_.Deployments_.Model Pages.Org_.Repo_.Deployments_.Msg
                         page =
-                            Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl () model.url)
+                            Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)
 
                         ( pageModel, pageEffect ) =
                             Page.init page ()
                     in
                     { page =
                         Tuple.mapBoth
-                            Main.Pages.Model.Org_Repo_Deployments_
+                            (Main.Pages.Model.Org_Repo_Deployments_ params)
                             (Effect.map Main.Pages.Msg.Org_Repo_Deployments_ >> fromPageEffect model)
                             ( pageModel, pageEffect )
                     , layout =
@@ -539,7 +521,10 @@ initPageAndLayout model =
                     Main.Pages.Model.NotFound_
                     (Effect.map Main.Pages.Msg.NotFound_ >> fromPageEffect model)
                     ( pageModel, pageEffect )
-            , layout = Nothing
+            , layout =
+                Page.layout pageModel page
+                    |> Maybe.map (Layouts.map (Main.Pages.Msg.NotFound_ >> Page))
+                    |> Maybe.map (initLayout model)
             }
 
 
@@ -895,15 +880,18 @@ update msg model =
 
         TokenResponse response ->
             let
+                route =
+                    Route.fromUrl () model.url
+
                 velaRedirect =
                     case shared.velaRedirect of
                         "" ->
-                            case Dict.get "from" (Route.fromUrl () model.url).query of
+                            case Dict.get "from" route.query of
                                 Just f ->
                                     f
 
                                 Nothing ->
-                                    "/"
+                                    Route.Path.toString route.path
 
                         _ ->
                             shared.velaRedirect
@@ -1032,11 +1020,6 @@ update msg model =
         SearchSourceRepos org searchBy ->
             ( model, Cmd.none )
 
-        -- let
-        --     filters =
-        --         Dict.update org (\_ -> Just searchBy) model.shared.filters
-        -- in
-        -- ( { model | shared = { shared | filters = filters } }, Cmd.none )
         ChangeRepoLimit limit ->
             let
                 newLimit =
@@ -2834,10 +2817,10 @@ update msg model =
 updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
 updateFromPage msg model =
     case ( msg, model.page ) of
-        ( Main.Pages.Msg.Login_ pageMsg, Main.Pages.Model.AccountLogin_ pageModel ) ->
+        ( Main.Pages.Msg.AccountLogin_ pageMsg, Main.Pages.Model.AccountLogin_ pageModel ) ->
             Tuple.mapBoth
                 Main.Pages.Model.AccountLogin_
-                (Effect.map Main.Pages.Msg.Login_ >> fromPageEffect model)
+                (Effect.map Main.Pages.Msg.AccountLogin_ >> fromPageEffect model)
                 (Page.update (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
 
         ( Main.Pages.Msg.AccountSettings_ pageMsg, Main.Pages.Model.AccountSettings_ pageModel ) ->
@@ -2870,14 +2853,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.Org_Repo_Deployments_ pageMsg, Main.Pages.Model.Org_Repo_Deployments_ pageModel ) ->
+        ( Main.Pages.Msg.Org_Repo_Deployments_ pageMsg, Main.Pages.Model.Org_Repo_Deployments_ params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        Main.Pages.Model.Org_Repo_Deployments_
+                        (Main.Pages.Model.Org_Repo_Deployments_ params)
                         (Effect.map Main.Pages.Msg.Org_Repo_Deployments_ >> fromPageEffect model)
-                        (Page.update (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
+                        (Page.update (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
@@ -2920,7 +2903,7 @@ toLayoutFromPage model =
             Route.fromUrl () model.url
                 |> Pages.Account.Login_.page model.shared
                 |> Page.layout pageModel
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.Login_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.AccountLogin_ >> Page))
 
         Main.Pages.Model.AccountSettings_ pageModel ->
             Route.fromUrl () model.url
@@ -2940,8 +2923,8 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
 
-        Main.Pages.Model.Org_Repo_Deployments_ pageModel ->
-            Route.fromUrl () model.url
+        Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
+            Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Org_.Repo_.Deployments_.page
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Deployments_ >> Page))
@@ -2999,14 +2982,9 @@ subscriptions model =
             case model.page of
                 Main.Pages.Model.AccountLogin_ pageModel ->
                     -- todo: fill in subscriptions
-                    -- Auth.Action.subscriptions
-                    --     (\user ->
-                    --         Page.subscriptions (Pages.Editor.page user model.shared (Route.fromUrl () model.url)) pageModel
-                    --             |> Sub.map Main.Pages.Msg.Editor
-                    --             |> Sub.map Page
-                    --     )
-                    --     (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
-                    Sub.none
+                    Page.subscriptions (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)) pageModel
+                        |> Sub.map Main.Pages.Msg.AccountLogin_
+                        |> Sub.map Page
 
                 Main.Pages.Model.AccountSettings_ pageModel ->
                     Sub.none
@@ -3017,8 +2995,14 @@ subscriptions model =
                 Main.Pages.Model.Home_ pageModel ->
                     Sub.none
 
-                Main.Pages.Model.Org_Repo_Deployments_ pageModel ->
-                    Sub.none
+                Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repo_Deployments_
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
                 Main.Pages.Model.NotFound_ pageModel ->
                     Page.subscriptions (Pages.NotFound_.page model.shared (Route.fromUrl () model.url)) pageModel
@@ -3057,11 +3041,7 @@ subscriptions model =
         , subscriptionsFromLayout
 
         -- LEGACY SUBSCRIPTIONS
-        , Interop.onThemeChange decodeOnThemeChange
         , Interop.onGraphInteraction decodeOnGraphInteraction
-
-        -- , onMouseDown "contextual-help" model ShowHideHelp
-        -- , onMouseDown "identity" model ShowHideIdentity
         , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
         , Browser.Events.onKeyDown (Json.Decode.map OnKeyDown (Json.Decode.field "key" Json.Decode.string))
         , Browser.Events.onKeyUp (Json.Decode.map OnKeyUp (Json.Decode.field "key" Json.Decode.string))
@@ -3114,7 +3094,7 @@ viewPage model =
     case model.page of
         Main.Pages.Model.AccountLogin_ pageModel ->
             Page.view (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)) pageModel
-                |> View.map Main.Pages.Msg.Login_
+                |> View.map Main.Pages.Msg.AccountLogin_
                 |> View.map Page
 
         Main.Pages.Model.AccountSettings_ pageModel ->
@@ -3144,10 +3124,10 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Org_Repo_Deployments_ pageModel ->
+        Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
             Auth.Action.view
                 (\user ->
-                    Page.view (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl () model.url)) pageModel
+                    Page.view (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org_Repo_Deployments_
                         |> View.map Page
                 )
@@ -3224,7 +3204,7 @@ toPageUrlHookCmd model routes =
     case model.page of
         Main.Pages.Model.AccountLogin_ pageModel ->
             Page.toUrlMessages routes (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url))
-                |> List.map Main.Pages.Msg.Login_
+                |> List.map Main.Pages.Msg.AccountLogin_
                 |> List.map Page
                 |> toCommands
 
@@ -3258,10 +3238,10 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
-        Main.Pages.Model.Org_Repo_Deployments_ pageModel ->
+        Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
             Auth.Action.command
                 (\user ->
-                    Page.toUrlMessages routes (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl () model.url))
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org_Repo_Deployments_
                         |> List.map Page
                         |> toCommands
@@ -3357,18 +3337,6 @@ isAuthProtected routePath =
 
 
 -- LEGACY HELPERS (SUBSCRIPTIONS)
-
-
-{-| decodeOnThemeChange : takes interaction in json and decodes it into a SetTheme Msg
--}
-decodeOnThemeChange : Json.Decode.Value -> Msg
-decodeOnThemeChange inTheme =
-    case Json.Decode.decodeValue decodeTheme inTheme of
-        Ok theme ->
-            SetTheme theme
-
-        Err _ ->
-            SetTheme Dark
 
 
 {-| decodeOnGraphInteraction : takes interaction in json and decodes it into a OnBuildGraphInteraction Msg

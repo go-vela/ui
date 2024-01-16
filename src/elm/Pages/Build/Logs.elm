@@ -23,10 +23,10 @@ module Pages.Build.Logs exposing
 
 import Ansi.Log
 import Array
-import Focus exposing (FocusTarget, parseFocusFragment)
 import List.Extra exposing (updateIf)
 import RemoteData exposing (WebData)
-import Util exposing (overwriteById)
+import Util.Focus as Focus exposing (FocusTarget, parseFocusFragment)
+import Util.Helpers as Util exposing (overwriteById)
 import Vela
     exposing
         ( BuildNumber

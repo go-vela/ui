@@ -1,8 +1,13 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Shared.Model exposing (Model)
 
-import Alerts exposing (Alert)
 import Auth.Session exposing (Session(..))
 import Browser.Events exposing (Visibility(..))
+import Components.Alerts as Alerts exposing (Alert)
 import RemoteData exposing (RemoteData(..), WebData)
 import Time
     exposing

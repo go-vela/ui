@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Pages.Template_ exposing (..)
 
 import Effect exposing (Effect)
@@ -16,7 +21,7 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
-import Util
+import Util.Helpers as Util
 import View exposing (View)
 
 

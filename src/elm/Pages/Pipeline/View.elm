@@ -8,9 +8,7 @@ module Pages.Pipeline.View exposing (safeDecodePipelineData, viewPipeline)
 import Ansi.Log
 import Array
 import Dict
-import Errors exposing (Error)
 import FeatherIcons exposing (Icon)
-import Focus exposing (ResourceID, ResourceType, lineFocusStyles, resourceAndLineToFocusId)
 import Html
     exposing
         ( Html
@@ -30,7 +28,9 @@ import Html.Events exposing (onClick)
 import Pages.Build.Logs exposing (decodeAnsi)
 import Pages.Pipeline.Model exposing (Download, Expand, Get, Msgs, PartialModel)
 import RemoteData exposing (RemoteData(..), WebData)
-import Util
+import Util.Errors as Errors exposing (Error)
+import Util.Focus as Focus exposing (ResourceID, ResourceType, lineFocusStyles, resourceAndLineToFocusId)
+import Util.Helpers as Util
 import Vela
     exposing
         ( LogFocus

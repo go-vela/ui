@@ -15,17 +15,9 @@ import Ansi
 import Ansi.Log
 import Array
 import Components.Nav
+import Components.Svgs as SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
-import Focus
-    exposing
-        ( ResourceID
-        , ResourceType
-        , lineFocusStyles
-        , lineRangeId
-        , resourceAndLineToFocusId
-        , resourceToFocusId
-        )
 import Html exposing (Html, a, button, code, details, div, li, p, small, span, strong, summary, table, td, text, tr, ul)
 import Html.Attributes
     exposing
@@ -66,10 +58,18 @@ import RemoteData exposing (WebData)
 import Routes
 import Shared
 import String
-import SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import Time exposing (Posix, Zone)
 import Url
-import Util exposing (getNameFromRef)
+import Util.Focus as Focus
+    exposing
+        ( ResourceID
+        , ResourceType
+        , lineFocusStyles
+        , lineRangeId
+        , resourceAndLineToFocusId
+        , resourceToFocusId
+        )
+import Util.Helpers as Util exposing (getNameFromRef)
 import Vela
     exposing
         ( Build

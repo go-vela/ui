@@ -1,12 +1,26 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Pages.Account.SourceRepos_ exposing (..)
 
 import Api.Api as Api
 import Api.Operations_
 import Auth
+import Components.Favorites as Favorites
+import Components.Search as Search
+    exposing
+        ( Search
+        , filterRepo
+        , repoSearchBarGlobal
+        , repoSearchBarLocal
+        , searchFilterGlobal
+        , searchFilterLocal
+        , shouldSearch
+        )
 import Dict
 import Effect exposing (Effect)
-import Errors
-import Favorites
 import FeatherIcons
 import Html
     exposing
@@ -34,18 +48,9 @@ import List.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
-import Search
-    exposing
-        ( Search
-        , filterRepo
-        , repoSearchBarGlobal
-        , repoSearchBarLocal
-        , searchFilterGlobal
-        , searchFilterLocal
-        , shouldSearch
-        )
 import Shared
-import Util
+import Util.Errors as Errors
+import Util.Helpers as Util
 import Vela exposing (CurrentUser, Org, RepoSearchFilters, Repository, SourceRepositories)
 import View exposing (View)
 

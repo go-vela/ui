@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Search exposing
+module Components.Search exposing
     ( Search
     , SimpleSearch
     , filterRepo
@@ -24,13 +24,12 @@ import Html.Attributes
         ( attribute
         , autofocus
         , class
-        , disabled
         , id
         , placeholder
         , value
         )
 import Html.Events exposing (onInput)
-import Util
+import Util.Helpers as Util
 import Vela exposing (Org, RepoSearchFilters, SearchFilter)
 
 

@@ -6,8 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 module Pages exposing (Page(..), strip, toRoute)
 
 import Api.Pagination as Pagination
-import Focus exposing (ExpandTemplatesQuery, Fragment)
 import Routes exposing (Route)
+import Util.Focus as Focus exposing (ExpandTemplatesQuery, Fragment)
 import Vela exposing (BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
 
 

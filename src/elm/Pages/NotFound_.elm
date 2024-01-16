@@ -1,10 +1,15 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Pages.NotFound_ exposing (Model, Msg, page)
 
 import Effect exposing (Effect)
 import Html exposing (..)
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
-import Route.Path
 import Shared
 import View exposing (View)
 
@@ -15,7 +20,20 @@ page shared route =
         { init = init
         , update = update
         , subscriptions = subscriptions
-        , view = view
+        , view = view shared
+        }
+        |> Page.withLayout toLayout
+
+
+
+-- LAYOUT
+
+
+toLayout : Model -> Layouts.Layout Msg
+toLayout model =
+    Layouts.Default
+        { navButtons = []
+        , utilButtons = []
         }
 
 
@@ -64,6 +82,12 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> View Msg
-view model =
-    View.fromString "Page not found"
+{-| view : takes current user, user input and action params and renders home page with favorited repos
+-}
+view : Shared.Model -> Model -> View Msg
+view shared model =
+    { title = "Pages.NotFound_"
+    , body =
+        [ text "page not found"
+        ]
+    }

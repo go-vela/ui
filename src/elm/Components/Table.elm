@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Table exposing
+module Components.Table exposing
     ( Column
     , Columns
     , Config
@@ -30,7 +30,7 @@ import Html.Attributes
         , scope
         )
 import String.Extra
-import Util
+import Util.Helpers as Util
 
 
 {-| Column : string alias for table column headers

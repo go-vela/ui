@@ -1,9 +1,13 @@
-module Components.Util exposing (..)
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
 
-import Html exposing (Html, div, text)
+
+module Components.Util exposing (view)
+
+import Html exposing (Html, div)
 import Html.Attributes exposing (class)
 import Route exposing (Route)
-import Route.Path
 import Shared
 
 

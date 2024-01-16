@@ -1,10 +1,15 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Components.Footer exposing (view)
 
-import Alerts exposing (Alert)
+import Components.Alerts as Alerts exposing (Alert)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class)
 import Toasty as Alerting exposing (Stack)
-import Util
+import Util.Helpers as Util
 
 
 view :

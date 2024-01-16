@@ -6,13 +6,13 @@ SPDX-License-Identifier: Apache-2.0
 module Routes exposing (Route(..), href, match, routeToUrl)
 
 import Api.Pagination as Pagination
-import Focus exposing (ExpandTemplatesQuery)
 import Html
 import Html.Attributes as Attr
 import Url exposing (Url)
 import Url.Builder as UB
 import Url.Parser exposing ((</>), (<?>), Parser, fragment, map, oneOf, parse, s, string, top)
 import Url.Parser.Query as Query
+import Util.Focus as Focus exposing (ExpandTemplatesQuery)
 import Vela exposing (AuthParams, BuildNumber, Engine, Event, FocusFragment, Name, Org, Repo, ScheduleName, Team)
 
 

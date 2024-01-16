@@ -3,15 +3,15 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Favorites exposing (UpdateFavorites, UpdateType(..), addFavorite, isFavorited, starToggle, toFavorite, toggleFavorite)
+module Components.Favorites exposing (UpdateFavorites, UpdateType(..), addFavorite, isFavorited, starToggle, toFavorite, toggleFavorite)
 
+import Components.Svgs exposing (star)
 import Html exposing (Html, button)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
-import SvgBuilder exposing (star)
-import Util
+import Util.Helpers as Util
 import Vela exposing (CurrentUser, Org, Repo)
 
 

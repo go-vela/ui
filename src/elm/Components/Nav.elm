@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Components.Nav exposing (Msgs, Tab, view, viewTabs)
 
 import Components.Crumbs
-import Favorites exposing (UpdateFavorites, isFavorited, starToggle)
+import Components.Favorites exposing (UpdateFavorites)
 import Html
     exposing
         ( Html
@@ -22,16 +22,14 @@ import Html.Attributes
         ( attribute
         , class
         , classList
-        , disabled
         )
 import Html.Events exposing (onClick)
 import Pages exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
-import Route.Path
 import Routes
 import Shared
-import Util
+import Util.Helpers as Util
 import Vela
     exposing
         ( Build
@@ -73,147 +71,6 @@ view shared route buttons =
         (Components.Crumbs.view route.path
             :: buttons
         )
-
-
-navButtonsLegacy : Shared.Model -> Msgs msg -> Page -> Html msg
-navButtonsLegacy shared { fetchSourceRepos, toggleFavorite, approveBuild, restartBuild, cancelBuild } legacyPage =
-    case legacyPage of
-        Pages.Overview ->
-            -- migrated
-            a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "source-repos"
-                , Routes.href <| Routes.SourceRepositories
-                ]
-                [ text "Source Repositories" ]
-
-        Pages.OrgRepositories _ _ _ ->
-            a
-                [ class "button"
-                , class "-outline"
-                , Util.testAttribute "source-repos"
-                , Routes.href <| Routes.SourceRepositories
-                ]
-                [ text "Source Repositories" ]
-
-        Pages.SourceRepositories ->
-            -- migrated
-            button
-                [ classList
-                    [ ( "button", True )
-                    , ( "-outline", True )
-                    ]
-                , onClick fetchSourceRepos
-
-                -- , disabled (shared.sourceRepos == Loading)
-                , Util.testAttribute "refresh-source-repos"
-                ]
-                [-- case shared.sourceRepos of
-                 -- Loading ->
-                 --     text "Loading…"
-                 -- _ ->
-                 --     text "Refresh List"
-                ]
-
-        Pages.RepositoryBuilds org repo _ _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
-
-        Pages.RepositoryDeployments org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
-
-        Pages.Schedules org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
-
-        Pages.RepoSettings org repo ->
-            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
-
-        Pages.RepoSecrets _ org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
-
-        Pages.Build org repo _ _ ->
-            div [ class "buttons" ]
-                [ approveBuildButton org repo shared.repo.build.build approveBuild
-                , cancelBuildButton org repo shared.repo.build.build cancelBuild
-                , restartBuildButton org repo shared.repo.build.build restartBuild
-                ]
-
-        Pages.BuildServices org repo _ _ ->
-            div [ class "buttons" ]
-                [ approveBuildButton org repo shared.repo.build.build approveBuild
-                , cancelBuildButton org repo shared.repo.build.build cancelBuild
-                , restartBuildButton org repo shared.repo.build.build restartBuild
-                ]
-
-        Pages.BuildPipeline org repo _ _ _ ->
-            div [ class "buttons" ]
-                [ approveBuildButton org repo shared.repo.build.build approveBuild
-                , cancelBuildButton org repo shared.repo.build.build cancelBuild
-                , restartBuildButton org repo shared.repo.build.build restartBuild
-                ]
-
-        Pages.BuildGraph org repo _ ->
-            div [ class "buttons" ]
-                [ cancelBuildButton org repo shared.repo.build.build cancelBuild
-                , restartBuildButton org repo shared.repo.build.build restartBuild
-                ]
-
-        Pages.Hooks org repo _ _ ->
-            starToggle org repo toggleFavorite <| isFavorited shared.user <| org ++ "/" ++ repo
-
-        Pages.OrgSecrets _ _ _ _ ->
-            text ""
-
-        Pages.SharedSecrets _ _ _ _ _ ->
-            text ""
-
-        Pages.AddOrgSecret _ _ ->
-            text ""
-
-        Pages.AddRepoSecret _ _ _ ->
-            text ""
-
-        Pages.AddDeployment _ _ ->
-            text ""
-
-        Pages.PromoteDeployment _ _ _ ->
-            text ""
-
-        Pages.AddSharedSecret _ _ _ ->
-            text ""
-
-        Pages.OrgSecret _ _ _ ->
-            text ""
-
-        Pages.RepoSecret _ _ _ _ ->
-            text ""
-
-        Pages.SharedSecret _ _ _ _ ->
-            text ""
-
-        Pages.RepositoryBuildsPulls _ _ _ _ ->
-            text ""
-
-        Pages.RepositoryBuildsTags _ _ _ _ ->
-            text ""
-
-        Pages.OrgBuilds _ _ _ _ ->
-            text ""
-
-        Pages.AddSchedule _ _ ->
-            text ""
-
-        Pages.Schedule _ _ _ ->
-            text ""
-
-        Pages.Settings ->
-            text ""
-
-        Pages.Login ->
-            text ""
-
-        Pages.NotFound ->
-            text ""
 
 
 {-| viewTabs : takes list of tab records and renders them with spacers and horizontal filler

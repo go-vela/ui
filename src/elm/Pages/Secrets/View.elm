@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Secrets.View exposing (addSecret, editSecret, viewOrgSecrets, viewRepoSecrets, viewSharedSecrets)
 
-import Errors exposing (viewResourceError)
+import Components.Table as Table
 import FeatherIcons
 import Html exposing (Html, a, button, div, h2, span, td, text, tr)
 import Html.Attributes exposing (attribute, class, scope)
@@ -20,9 +20,9 @@ import Pages.Secrets.Model
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
-import Table
 import Url exposing (percentEncode)
-import Util exposing (largeLoader)
+import Util.Errors as Errors exposing (viewResourceError)
+import Util.Helpers as Util exposing (largeLoader)
 import Vela
     exposing
         ( Secret

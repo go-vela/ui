@@ -12,7 +12,7 @@ import Html exposing (Html, br, button, div, em, h2, label, p, section, text, te
 import Html.Attributes exposing (attribute, class, for, id, readonly, rows, wrap)
 import Html.Events exposing (onClick)
 import Time
-import Util
+import Util.Helpers as Util
 import Vela exposing (Copy)
 
 

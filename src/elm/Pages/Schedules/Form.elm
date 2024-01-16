@@ -38,7 +38,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick, onInput)
 import Pages.Schedules.Model exposing (DeleteScheduleState(..), Model, Msg(..), PartialModel, ScheduleForm)
-import Util
+import Util.Helpers as Util
 import Vela exposing (Field)
 
 

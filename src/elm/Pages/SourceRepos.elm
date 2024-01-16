@@ -5,13 +5,23 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.SourceRepos exposing (Msgs, PartialModel, view)
 
-import Dict
-import Favorites
+import Components.Favorites as Favorites
     exposing
         ( UpdateFavorites
         , isFavorited
         , starToggle
         )
+import Components.Search as Search
+    exposing
+        ( Search
+        , filterRepo
+        , repoSearchBarGlobal
+        , repoSearchBarLocal
+        , searchFilterGlobal
+        , searchFilterLocal
+        , shouldSearch
+        )
+import Dict
 import FeatherIcons
 import Html
     exposing
@@ -33,17 +43,7 @@ import Html.Events exposing (onClick)
 import List.Extra
 import RemoteData exposing (WebData)
 import Routes
-import Search
-    exposing
-        ( Search
-        , filterRepo
-        , repoSearchBarGlobal
-        , repoSearchBarLocal
-        , searchFilterGlobal
-        , searchFilterLocal
-        , shouldSearch
-        )
-import Util
+import Util.Helpers as Util
 import Vela
     exposing
         ( CurrentUser

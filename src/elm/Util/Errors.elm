@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Errors exposing (Error, addError, addErrorString, detailedErrorToString, toFailure, viewResourceError)
+module Util.Errors exposing (Error, addError, addErrorString, detailedErrorToString, toFailure, viewResourceError)
 
 import Html exposing (Html, div, p, text)
 import Http
@@ -11,7 +11,7 @@ import Http.Detailed
 import Json.Decode as Decode
 import RemoteData exposing (RemoteData(..), WebData)
 import Task exposing (perform, succeed)
-import Util
+import Util.Helpers as Util
 
 
 

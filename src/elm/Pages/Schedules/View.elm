@@ -9,7 +9,7 @@ module Pages.Schedules.View exposing
     , viewRepoSchedules
     )
 
-import Errors exposing (viewResourceError)
+import Components.Table as Table
 import FeatherIcons
 import Html
     exposing
@@ -33,9 +33,9 @@ import Pages.Schedules.Model exposing (Msg, PartialModel)
 import RemoteData exposing (RemoteData(..))
 import Routes
 import Svg.Attributes
-import Table
 import Time exposing (Zone)
-import Util exposing (largeLoader)
+import Util.Errors as Errors exposing (viewResourceError)
+import Util.Helpers as Util exposing (largeLoader)
 import Vela
     exposing
         ( Org

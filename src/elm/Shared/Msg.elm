@@ -1,8 +1,13 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Shared.Msg exposing (Msg(..))
 
-import Alerts exposing (Alert)
 import Browser.Dom
-import Favorites
+import Components.Alerts as Alerts exposing (Alert)
+import Components.Favorites as Favorites
 import Http
 import Http.Detailed
 import Toasty as Alerting

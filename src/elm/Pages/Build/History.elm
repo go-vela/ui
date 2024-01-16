@@ -1,13 +1,13 @@
 module Pages.Build.History exposing (view)
 
+import Components.Svgs as SvgBuilder exposing (recentBuildStatusToIcon)
 import Html exposing (Html, a, div, em, li, p, span, text, ul)
 import Html.Attributes exposing (attribute, class)
 import Pages exposing (Page)
 import RemoteData
 import Routes
-import SvgBuilder exposing (recentBuildStatusToIcon)
 import Time exposing (Posix, Zone)
-import Util
+import Util.Helpers as Util
 import Vela exposing (Build, Org, Repo, RepoModel)
 
 

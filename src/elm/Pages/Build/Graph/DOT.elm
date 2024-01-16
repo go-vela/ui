@@ -6,12 +6,12 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Build.Graph.DOT exposing (renderDOT)
 
 import Dict exposing (Dict)
-import Focus
 import Graph exposing (Edge, Node)
 import Pages.Build.Model as BuildModel
 import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
-import Util
+import Util.Focus as Focus
+import Util.Helpers as Util
 import Vela
     exposing
         ( BuildGraph

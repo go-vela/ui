@@ -18,7 +18,7 @@ module Help.Commands exposing
 
 import Pages exposing (Page)
 import String.Extra
-import Util exposing (anyBlank, noBlanks)
+import Util.Helpers as Util exposing (anyBlank, noBlanks)
 import Vela
     exposing
         ( BuildNumber

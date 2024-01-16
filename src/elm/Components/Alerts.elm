@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Alerts exposing (Alert(..), errorConfig, successConfig, view, wrapAlertMessage)
+module Components.Alerts exposing (Alert(..), errorConfig, successConfig, view, wrapAlertMessage)
 
 import FeatherIcons
 import Html exposing (Html, a, button, div, h1, p, text)
@@ -11,7 +11,7 @@ import Html.Attributes exposing (attribute, class, href)
 import Html.Events
 import Toasty as Alerting
 import Toasty.Defaults as Alerts
-import Util
+import Util.Helpers as Util
 import Vela exposing (Copy)
 
 

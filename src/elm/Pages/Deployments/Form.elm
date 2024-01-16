@@ -31,7 +31,7 @@ import Html.Attributes exposing (class, disabled, for, href, id, placeholder, ro
 import Html.Events exposing (onClick, onInput)
 import Pages.Deployments.Model exposing (DeploymentForm, Msg(..))
 import RemoteData exposing (WebData)
-import Util exposing (testAttribute)
+import Util.Helpers as Util exposing (testAttribute)
 import Vela exposing (KeyValuePair, Repository)
 
 

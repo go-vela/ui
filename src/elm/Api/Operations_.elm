@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Api.Operations_ exposing (enableRepo, finishAuthentication, getCurrentUser, getToken, getUserSourceRepos, logout, updateCurrentUser)
 
 import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)

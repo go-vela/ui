@@ -15,7 +15,6 @@ module Pages.RepoSettings exposing
     )
 
 import Dict exposing (Dict)
-import Errors exposing (viewResourceError)
 import FeatherIcons
 import Html
     exposing
@@ -57,7 +56,8 @@ import Html.Attributes
         )
 import Html.Events exposing (onCheck, onClick, onInput)
 import RemoteData exposing (RemoteData(..), WebData)
-import Util
+import Util.Errors as Errors exposing (viewResourceError)
+import Util.Helpers as Util
 import Vela
     exposing
         ( ChownRepo

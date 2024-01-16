@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Auth exposing (User, onPageLoad, viewLoadingPage)
 
 import Auth.Action

@@ -7,6 +7,8 @@ module Pages.Hooks exposing (view)
 
 import Ansi.Log
 import Array
+import Components.Svgs as SvgBuilder exposing (hookStatusToIcon)
+import Components.Table as Table
 import Html
     exposing
         ( Html
@@ -29,10 +31,8 @@ import Html.Attributes
 import Http
 import Pages.Build.Logs exposing (decodeAnsi)
 import RemoteData
-import SvgBuilder exposing (hookStatusToIcon)
-import Table
 import Time exposing (Posix)
-import Util
+import Util.Helpers as Util
 import Vela
     exposing
         ( Hook

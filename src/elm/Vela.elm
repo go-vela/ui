@@ -187,7 +187,6 @@ module Vela exposing
 import Api.Pagination as Pagination
 import Bytes.Encode
 import Dict exposing (Dict)
-import Errors exposing (Error)
 import Json.Decode as Decode exposing (Decoder, andThen, bool, int, string, succeed)
 import Json.Decode.Extra exposing (dict2)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
@@ -195,6 +194,7 @@ import Json.Encode as Encode exposing (Value)
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
+import Util.Errors as Errors exposing (Error)
 import Visualization.DOT as DOT
 
 

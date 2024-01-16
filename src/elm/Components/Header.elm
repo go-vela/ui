@@ -1,15 +1,20 @@
-module Components.Header exposing (..)
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
+module Components.Header exposing (view)
 
 import Auth.Session exposing (Session(..))
+import Components.Help
+import Components.Svgs exposing (velaLogo)
 import FeatherIcons
 import Help.Commands
-import Help.View
 import Html exposing (Html, a, button, details, div, header, li, nav, summary, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id)
 import Html.Events exposing (onClick)
 import Routes
-import SvgBuilder exposing (velaLogo)
-import Util
+import Util.Helpers as Util
 import Vela exposing (Theme(..))
 
 
@@ -56,7 +61,7 @@ view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideI
                 [ li [] [ viewThemeToggle theme setTheme ]
                 , li [] [ a [ href feedbackLink, attribute "aria-label" "go to feedback" ] [ text "feedback" ] ]
                 , li [] [ a [ href docsLink, attribute "aria-label" "go to docs" ] [ text "docs" ] ]
-                , Help.View.help help
+                , Components.Help.help help
                 ]
             ]
         ]

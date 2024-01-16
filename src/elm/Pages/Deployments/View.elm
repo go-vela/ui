@@ -5,6 +5,8 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Deployments.View exposing (addDeployment, viewDeployments)
 
+import Components.Svgs as SvgBuilder exposing (hookSuccess)
+import Components.Table as Table
 import FeatherIcons
 import Html exposing (Html, a, div, h2, span, td, text, tr)
 import Html.Attributes exposing (attribute, class, href, scope)
@@ -19,9 +21,7 @@ import Pages.Deployments.Model
 import RemoteData
 import Routes
 import Svg.Attributes
-import SvgBuilder exposing (hookSuccess)
-import Table
-import Util exposing (largeLoader)
+import Util.Helpers as Util exposing (largeLoader)
 import Vela exposing (Deployment, Org, Repo, RepoModel, Repository)
 
 

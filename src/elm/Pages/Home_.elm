@@ -1,9 +1,20 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Pages.Home_ exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Favorites as Favorites
+import Components.Search
+    exposing
+        ( homeSearchBar
+        , toLowerContains
+        )
+import Components.Svgs as SvgBuilder
 import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Favorites exposing (UpdateFavorites, starToggle)
 import FeatherIcons
 import Html
     exposing
@@ -13,7 +24,6 @@ import Html
         , div
         , h1
         , p
-        , span
         , summary
         , text
         )
@@ -30,14 +40,8 @@ import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Route.Path
 import Routes
-import Search
-    exposing
-        ( homeSearchBar
-        , toLowerContains
-        )
 import Shared
-import SvgBuilder
-import Util
+import Util.Helpers as Util
 import Vela exposing (Favorites, Org, Repo)
 import View exposing (View)
 
@@ -275,7 +279,7 @@ viewFavorite favorites filtered favorite =
     div [ class "item", Util.testAttribute "repo-item" ]
         [ div [] [ text name ]
         , div [ class "buttons" ]
-            [ starToggle org repo ToggleFavorite <| List.member favorite favorites
+            [ Favorites.starToggle org repo ToggleFavorite <| List.member favorite favorites
             , a
                 [ class "button"
                 , class "-outline"

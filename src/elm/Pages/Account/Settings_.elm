@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Pages.Account.Settings_ exposing (..)
 
 import Auth
@@ -36,7 +41,7 @@ import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Shared
 import Time
-import Util
+import Util.Helpers as Util
 import View exposing (View)
 
 

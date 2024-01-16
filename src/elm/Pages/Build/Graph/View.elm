@@ -5,6 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Build.Graph.View exposing (view)
 
+import Components.Svgs as SvgBuilder exposing (buildVizLegendEdge, buildVizLegendNode)
 import FeatherIcons
 import Html exposing (Html, button, div, li, text, ul)
 import Html.Attributes exposing (class, id)
@@ -14,8 +15,7 @@ import RemoteData exposing (RemoteData(..))
 import Routes exposing (Route(..))
 import Svg
 import Svg.Attributes
-import SvgBuilder exposing (buildVizLegendEdge, buildVizLegendNode)
-import Util
+import Util.Helpers as Util
 import Vela exposing (BuildNumber, Org, Repo)
 import Visualization.DOT as DOT exposing (Attribute(..), AttributeValue(..))
 

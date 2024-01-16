@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Route.Query exposing (fromUrl, toString)
 
 import Dict exposing (Dict)

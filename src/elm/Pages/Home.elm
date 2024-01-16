@@ -5,8 +5,15 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Home exposing (Msgs, view)
 
+import Components.Favorites as Favorites exposing (UpdateFavorites, starToggle)
+import Components.Search as Search
+    exposing
+        ( SimpleSearch
+        , homeSearchBar
+        , toLowerContains
+        )
+import Components.Svgs as SvgBuilder
 import Dict exposing (Dict)
-import Favorites exposing (UpdateFavorites, starToggle)
 import FeatherIcons
 import Html
     exposing
@@ -29,14 +36,7 @@ import List
 import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import Routes
-import Search
-    exposing
-        ( SimpleSearch
-        , homeSearchBar
-        , toLowerContains
-        )
-import SvgBuilder
-import Util
+import Util.Helpers as Util
 import Vela
     exposing
         ( CurrentUser

@@ -1,3 +1,8 @@
+{--
+SPDX-License-Identifier: Apache-2.0
+--}
+
+
 module Route exposing (Route, fromUrl, href, toString)
 
 import Dict exposing (Dict)
