@@ -11,7 +11,6 @@ import Components.Header
 import Components.Nav
 import Components.Util
 import Effect exposing (Effect)
-import Help.Commands
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import Interop
@@ -22,6 +21,7 @@ import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
 import Toasty as Alerting
+import Util.HelpCommands
 import Util.Helpers as Util
 import Vela exposing (Theme)
 import View exposing (View)

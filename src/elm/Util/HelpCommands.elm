@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Help.Commands exposing
+module Util.HelpCommands exposing
     ( Arg
     , Command
     , Commands

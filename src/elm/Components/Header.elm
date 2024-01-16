@@ -9,11 +9,11 @@ import Auth.Session exposing (Session(..))
 import Components.Help
 import Components.Svgs exposing (velaLogo)
 import FeatherIcons
-import Help.Commands
 import Html exposing (Html, a, button, details, div, header, li, nav, summary, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id)
 import Html.Events exposing (onClick)
 import Routes
+import Util.HelpCommands
 import Util.Helpers as Util
 import Vela exposing (Theme(..))
 

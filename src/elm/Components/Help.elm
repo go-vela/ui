@@ -7,7 +7,10 @@ module Components.Help exposing (help)
 
 import Components.Svgs as SvgBuilder
 import FeatherIcons
-import Help.Commands
+import Html exposing (Html, a, button, details, div, label, li, span, strong, summary, text)
+import Html.Attributes exposing (attribute, class, for, href, id, size, value)
+import Html.Events
+import Util.HelpCommands
     exposing
         ( Command
         , Model
@@ -18,9 +21,6 @@ import Help.Commands
         , resourceLoading
         , usageDocsUrl
         )
-import Html exposing (Html, a, button, details, div, label, li, span, strong, summary, text)
-import Html.Attributes exposing (attribute, class, for, href, id, size, value)
-import Html.Events
 import Util.Helpers as Util
 import Vela exposing (Copy)
 
