@@ -373,6 +373,18 @@ toCrumbs path =
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
 
+                Route.Path.Org_Repo_ params ->
+                    let
+                        orgReposCrumbLink =
+                            -- todo: needs org route
+                            -- ( params.org, Just <| Pages.OrgRepositories params.org )
+                            ( params.org, Nothing )
+
+                        repoCrumbStatic =
+                            ( params.repo, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
+
                 Route.Path.NotFound_ ->
                     let
                         notFoundCrumbStatic =

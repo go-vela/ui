@@ -10,6 +10,7 @@ import Pages.Account.Settings_
 import Pages.Account.SourceRepos_
 import Pages.Home_
 import Pages.NotFound_
+import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Deployments_
 
 
@@ -18,6 +19,7 @@ type Model
     | AccountSettings_ Pages.Account.Settings_.Model
     | AccountSourceRepos_ Pages.Account.SourceRepos_.Model
     | Home_ Pages.Home_.Model
+    | Org_Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
     | Org_Repo_Deployments_ { org : String, repo : String } Pages.Org_.Repo_.Deployments_.Model
     | Redirecting_
     | Loading_

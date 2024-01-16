@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, gotoPage, handleHttpError, logout, pushPath, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, getOrgRepoBuilds, gotoPage, handleHttpError, logout, pushPath, setTheme, updateFavorites
     )
 
 {-|
@@ -39,7 +39,7 @@ import Shared.Msg
 import Task
 import Toasty as Alerting
 import Url exposing (Url)
-import Vela exposing (Repository)
+import Vela
 
 
 type Effect msg
@@ -240,8 +240,8 @@ updateFavorites options =
 enableRepo :
     { baseUrl : String
     , session : Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Repository ) -> msg
-    , repo : Repository
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ) -> msg
+    , repo : Vela.Repository
     }
     -> Effect msg
 enableRepo options =
@@ -257,6 +257,21 @@ enableRepo options =
     Api.try
         options.onResponse
         (Api.Operations_.enableRepo options.baseUrl options.session body)
+        |> sendCmd
+
+
+getOrgRepoBuilds :
+    { baseUrl : String
+    , session : Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ) -> msg
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+getOrgRepoBuilds options =
+    Api.try
+        options.onResponse
+        (Api.Operations_.getOrgRepoBuilds options.baseUrl options.session options)
         |> sendCmd
 
 

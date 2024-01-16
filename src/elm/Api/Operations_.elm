@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Api.Operations_ exposing (enableRepo, finishAuthentication, getCurrentUser, getToken, getUserSourceRepos, logout, updateCurrentUser)
+module Api.Operations_ exposing (enableRepo, finishAuthentication, getCurrentUser, getOrgRepoBuilds, getToken, getUserSourceRepos, logout, updateCurrentUser)
 
 import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)
 import Api.Endpoint as Endpoint exposing (Endpoint)
@@ -124,4 +124,12 @@ getUserSourceRepos baseUrl session =
 enableRepo : String -> Session -> Http.Body -> Request Repository
 enableRepo baseUrl session body =
     post baseUrl (Endpoint.Repositories Nothing Nothing) body decodeRepository
+        |> withAuth session
+
+
+{-| getOrgRepoBuilds : retrieves the current users source repositories
+-}
+getOrgRepoBuilds : String -> Session -> { a | org : String, repo : String } -> Request (List Build)
+getOrgRepoBuilds baseUrl session { org, repo } =
+    get baseUrl (Endpoint.Builds Nothing Nothing Nothing org repo) decodeBuilds
         |> withAuth session

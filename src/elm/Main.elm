@@ -88,6 +88,7 @@ import Pages.Deployments.View
 import Pages.Home_
 import Pages.Hooks
 import Pages.NotFound_
+import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Deployments_
 import Pages.Organization
 import Pages.Pipeline.Model
@@ -479,6 +480,30 @@ initPageAndLayout model =
                     , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.Org_Repo_ params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Org_.Repo_.Model Pages.Org_.Repo_.Msg
+                        page =
+                            Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Org_Repo_ params)
+                            (Effect.map Main.Pages.Msg.Org_Repo_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -891,7 +916,7 @@ update msg model =
                                     f
 
                                 Nothing ->
-                                    Route.Path.toString route.path
+                                    "/"
 
                         _ ->
                             shared.velaRedirect
@@ -2863,6 +2888,16 @@ updateFromPage msg model =
                         (Page.update (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
+        ( Main.Pages.Msg.Org_Repo_ pageMsg, Main.Pages.Model.Org_Repo_ params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.Org_Repo_ params)
+                        (Effect.map Main.Pages.Msg.Org_Repo_ >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
         ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
             Tuple.mapBoth
                 Main.Pages.Model.NotFound_
@@ -2929,6 +2964,12 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Deployments_ >> Page))
 
+        Main.Pages.Model.Org_Repo_ params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Org_.Repo_.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_ >> Page))
+
         Main.Pages.Model.NotFound_ pageModel ->
             Route.fromUrl () model.url
                 |> Pages.NotFound_.page model.shared
@@ -2981,7 +3022,6 @@ subscriptions model =
         subscriptionsFromPage =
             case model.page of
                 Main.Pages.Model.AccountLogin_ pageModel ->
-                    -- todo: fill in subscriptions
                     Page.subscriptions (Pages.Account.Login_.page model.shared (Route.fromUrl () model.url)) pageModel
                         |> Sub.map Main.Pages.Msg.AccountLogin_
                         |> Sub.map Page
@@ -3000,6 +3040,15 @@ subscriptions model =
                         (\user ->
                             Page.subscriptions (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)) pageModel
                                 |> Sub.map Main.Pages.Msg.Org_Repo_Deployments_
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.Org_Repo_ params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repo_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -3124,6 +3173,15 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Org_Repo_ params pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org_Repo_
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
             Auth.Action.view
                 (\user ->
@@ -3238,6 +3296,16 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Org_Repo_ params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org_Repo_
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
             Auth.Action.command
                 (\user ->
@@ -3326,6 +3394,9 @@ isAuthProtected routePath =
             True
 
         Route.Path.Home_ ->
+            True
+
+        Route.Path.Org_Repo_ _ ->
             True
 
         Route.Path.Org_Repo_Deployments_ _ ->

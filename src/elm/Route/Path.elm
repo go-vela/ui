@@ -22,6 +22,7 @@ type Path
     | Authenticate_
     | AccountSettings_
     | AccountSourceRepos_
+    | Org_Repo_ { org : String, repo : String }
     | Org_Repo_Deployments_ { org : String, repo : String }
     | NotFound_
 
@@ -67,6 +68,13 @@ fromString urlPath =
                 }
                 |> Just
 
+        org :: repo :: [] ->
+            Org_Repo_
+                { org = org
+                , repo = repo
+                }
+                |> Just
+
         _ ->
             Nothing
 
@@ -99,6 +107,9 @@ toString path =
 
                 AccountSourceRepos_ ->
                     [ "account", "source-repos" ]
+
+                Org_Repo_ params ->
+                    [ params.org, params.repo ]
 
                 Org_Repo_Deployments_ params ->
                     [ params.org, params.repo, "deployments" ]
