@@ -34,10 +34,12 @@ import Util exposing (stringToMaybe)
 import Vela
     exposing
         ( Copy
+        , Field
         , Secret
         , SecretType(..)
         , UpdateSecretPayload
         , buildUpdateSecretPayload
+        , defaultSecretAllowEventsPayload
         , encodeUpdateSecret
         , secretTypeToString
         )
@@ -153,17 +155,64 @@ onChangeEvent event secretsModel =
     in
     case secretUpdate of
         Just s ->
-            updateSecretModel (updateSecretEvents event s) secretsModel
+            case secretsModel.secret of
+                RemoteData.Success secret ->
+                    updateSecretModel (updateSecretEvents secret event s) secretsModel
+                _ ->
+                    secretsModel
 
         Nothing ->
             secretsModel
 
 
-{-| updateSecretEvents : takes event and updates secret update events
--}
-updateSecretEvents : String -> SecretForm -> SecretForm
-updateSecretEvents event secret =
-    { secret | events = toggleEvent event secret.events }
+updateSecretEvents : Secret -> Field -> Bool -> SecretForm
+updateSecretEvents secret field value =
+    let
+        events =
+            defaultSecretAllowEventsPayload secret
+
+        pushActions =
+            events.push
+
+        pullActions =
+            events.pull
+
+        deployActions =
+            events.deploy
+
+        commentActions =
+            events.comment
+    in
+    case field of
+        "allow_push_branch" ->
+            { defaultSecretUpdate secret| allowEvents = { events | push = { pushActions | branch = value } } }
+
+        "allow_push_tag" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | push = { pushActions | tag = value } } }
+
+        "allow_pull_opened" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | opened = value } } }
+
+        "allow_pull_synchronize" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | synchronize = value } } }
+
+        "allow_pull_edited" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | edited = value } } }
+
+        "allow_pull_reopened" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | reopened = value } } }
+
+        "allow_deploy_created" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | deploy = { deployActions | created = value } } }
+
+        "allow_comment_created" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | comment = { commentActions | created = value } } }
+
+        "allow_comment_edited" ->
+            { defaultUpdateRepositoryPayload | allow_events = Just { events | comment = { commentActions | edited = value } } }
+
+        _ ->
+            defaultUpdateRepositoryPayload
 
 
 {-| onAddImage : takes image and updates secret update images

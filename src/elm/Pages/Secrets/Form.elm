@@ -18,10 +18,13 @@ import Html
     exposing
         ( Html
         , a
+        , br
         , button
         , code
         , div
         , em
+        , h2
+        , h3
         , input
         , label
         , p
@@ -166,7 +169,7 @@ viewValueInput val placeholder_ =
 {-| viewEventsSelect : renders events input selection
 -}
 viewEventsSelect : SecretForm -> PartialModel a msg -> Html Msg
-viewEventsSelect secretUpdate model =
+viewEventsSelect secret model =
     let
         schedulesAllowed =
             Util.checkScheduleAllowlist model.secretsModel.org model.secretsModel.repo model.velaScheduleAllowlist
@@ -175,55 +178,78 @@ viewEventsSelect secretUpdate model =
             if schedulesAllowed then
                 checkbox "Schedule"
                     "schedule"
-                    (eventEnabled "schedule" secretUpdate.events)
+                    (secret.allowEvents.schedule.run)
                 <|
                     OnChangeEvent "schedule"
 
             else
                 text ""
     in
-    section []
-        [ div [ for "events-select" ]
-            [ strong [] [ text "Limit to Events" ]
-            , span [ class "field-description" ]
-                [ text "( "
-                , em [] [ text "at least one event must be selected" ]
-                , text " )"
+            section [ class "settings", Util.testAttribute "repo-settings-events" ]
+                [ h2 [ class "settings-title" ] [ text "Webhook Events" ]
+                , p [ class "settings-description" ]
+                    [ text "Control which events on Git will trigger Vela pipelines."
+                    , br [] []
+                    , em [] [ text "Active repositories must have at least one event enabled." ]
+                    ]
+                , h3 [ class "settings-subtitle" ] [ text "Push" ]
+                , div [ class "form-controls", class "-two-col" ]
+                    [ checkbox "Push"
+                        "allow_push_branch"
+                        secret.allowEvents.push.branch
+                      <|
+                        OnChangeEvent "allow_push_branch"
+                    , checkbox "Tag"
+                        "allow_push_tag"
+                        secret.allowEvents.push.tag
+                      <|
+                        OnChangeEvent "allow_push_tag"
+                    ]
+                , h3 [ class "settings-subtitle" ] [ text "Pull Request" ]
+                , div [ class "form-controls", class "-two-col" ]
+                    [ checkbox "Opened"
+                        "allow_pull_opened"
+                        secret.allowEvents.pull.opened
+                      <|
+                        OnChangeEvent "allow_pull_opened"
+                    , checkbox "Synchronize"
+                        "allow_pull_synchronize"
+                        secret.allowEvents.pull.synchronize
+                      <|
+                        OnChangeEvent "allow_pull_synchronize"
+                    , checkbox "Edited"
+                        "allow_pull_edited"
+                        secret.allowEvents.pull.edited
+                      <|
+                        OnChangeEvent "allow_pull_edited"
+                    , checkbox "Reopened"
+                        "allow_pull_reopened"
+                        secret.allowEvents.pull.reopened
+                      <|
+                        OnChangeEvent "allow_pull_reopened"
+                    ]
+                , h3 [ class "settings-subtitle" ] [ text "Deployments" ]
+                , div [ class "form-controls", class "-two-col" ]
+                    [ checkbox "Created"
+                        "allow_deploy_created"
+                        secret.allowEvents.deploy.created
+                      <|
+                        OnChangeEvent "allow_deploy_created"
+                    ]
+                , h3 [ class "settings-subtitle" ] [ text "Comment" ]
+                , div [ class "form-controls", class "-two-col" ]
+                    [ checkbox "Created"
+                        "allow_comment_created"
+                        secret.allowEvents.comment.created
+                      <|
+                        OnChangeEvent "allow_comment_created"
+                    , checkbox "Edited"
+                        "allow_comment_edited"
+                        secret.allowEvents.comment.edited
+                      <|
+                        OnChangeEvent "allow_comment_edited"
+                    ]
                 ]
-            , pullRequestWarning
-            ]
-        , div
-            [ class "form-controls"
-            , class "-stack"
-            ]
-            [ checkbox "Push"
-                "push"
-                (eventEnabled "push" secretUpdate.events)
-              <|
-                OnChangeEvent "push"
-            , checkbox "Pull Request"
-                "pull_request"
-                (eventEnabled "pull_request" secretUpdate.events)
-              <|
-                OnChangeEvent "pull_request"
-            , checkbox "Tag"
-                "tag"
-                (eventEnabled "tag" secretUpdate.events)
-              <|
-                OnChangeEvent "tag"
-            , checkbox "Comment"
-                "comment"
-                (eventEnabled "comment" secretUpdate.events)
-              <|
-                OnChangeEvent "comment"
-            , checkbox "Deployment"
-                "deployment"
-                (eventEnabled "deployment" secretUpdate.events)
-              <|
-                OnChangeEvent "deployment"
-            , scheduleOption
-            ]
-        ]
 
 
 {-| pullRequestWarning : renders disclaimer for pull request exposure

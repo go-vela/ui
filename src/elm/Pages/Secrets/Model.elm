@@ -24,6 +24,7 @@ import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
 import Vela exposing (Copy, Engine, Key, Org, Repo, Secret, SecretType, Secrets, Team)
+import Vela exposing (AllowEventsPayload, defaultSecretAllowEventsPayload)
 
 
 
@@ -79,14 +80,15 @@ type alias SecretForm =
     , events : List String
     , imageInput : String
     , images : List String
+    , allowEvents : AllowEventsPayload
     , allowCommand : Bool
     , team : Key
     }
 
 
-defaultSecretUpdate : SecretForm
-defaultSecretUpdate =
-    SecretForm "" "" defaultSecretEvents "" [] True ""
+defaultSecretUpdate : Secret -> SecretForm
+defaultSecretUpdate secret =
+    SecretForm "" "" defaultSecretEvents "" [] (defaultSecretAllowEventsPayload secret) True ""
 
 
 defaultSecretEvents : List String
