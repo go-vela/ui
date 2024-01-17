@@ -116,7 +116,7 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeTheme
-    , defaultAllowEvents
+    , defaultSecretAllowEvents
     , defaultBuildGraph
     , defaultEnableRepositoryPayload
     , defaultFavicon
@@ -2500,10 +2500,9 @@ secretToKey secret =
             secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name
 
 
-defaultAllowEvents : AllowEvents
-defaultAllowEvents =
-    { push = defaultPushActionsPayload Nothing, pull = defaultPullActionsPayload Nothing, deploy = defaultDeployActionsPayload Nothing, comment = defaultCommentActionsPayload Nothing, schedule = defaultScheduleActionsPayload Nothing }
-
+defaultSecretAllowEvents : AllowEvents
+defaultSecretAllowEvents =
+    { push = { branch = True, tag = True }, pull = defaultPullActionsPayload Nothing, deploy = { created = True }, comment = defaultCommentActionsPayload Nothing, schedule = defaultScheduleActionsPayload Nothing }
 
 decodeSecret : Decoder Secret
 decodeSecret =
@@ -2517,7 +2516,7 @@ decodeSecret =
         |> optional "type" secretTypeDecoder RepoSecret
         |> optional "images" (Decode.list string) []
         |> optional "events" (Decode.list string) []
-        |> optional "allow_events" decodeAllowEvents defaultAllowEvents
+        |> optional "allow_events" decodeAllowEvents defaultSecretAllowEvents
         |> optional "allow_command" bool False
 
 
