@@ -361,24 +361,27 @@ toCrumbs path =
                     in
                     [ overviewCrumbLink, settingsCrumbStatic ]
 
-                Route.Path.Org_Repo_Deployments_ params ->
+                Route.Path.Org_Repos params ->
                     let
                         orgReposCrumbLink =
-                            -- todo: needs org route
-                            -- ( params.org, Just <| Pages.OrgRepositories params.org )
-                            ( params.org, Nothing )
+                            ( params.org, Just <| Route.Path.Org_Repos { org = params.org } )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink ]
+
+                Route.Path.Org_Repo_ params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_Repos { org = params.org } )
 
                         repoCrumbStatic =
                             ( params.repo, Nothing )
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
 
-                Route.Path.Org_Repo_ params ->
+                Route.Path.Org_Repo_Deployments_ params ->
                     let
                         orgReposCrumbLink =
-                            -- todo: needs org route
-                            -- ( params.org, Just <| Pages.OrgRepositories params.org )
-                            ( params.org, Nothing )
+                            ( params.org, Just <| Route.Path.Org_Repos { org = params.org } )
 
                         repoCrumbStatic =
                             ( params.repo, Nothing )

@@ -1,4 +1,4 @@
-module Components.Builds exposing (viewPreview)
+module Components.Builds exposing (view, viewPreview)
 
 import Ansi
 import Ansi.Log
@@ -7,7 +7,7 @@ import Components.Nav
 import Components.Svgs as SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
-import Html exposing (Html, a, button, code, details, div, li, p, small, span, strong, summary, table, td, text, tr, ul)
+import Html exposing (Html, a, br, button, code, details, div, em, h1, h2, h3, h4, h5, h6, li, ol, p, small, span, strong, summary, table, td, text, tr, ul)
 import Html.Attributes
     exposing
         ( attribute
@@ -49,6 +49,7 @@ import Shared
 import String
 import Time exposing (Posix, Zone)
 import Url
+import Utils.Errors as Errors
 import Utils.Focus as Focus
     exposing
         ( ResourceID
@@ -80,19 +81,103 @@ import Vela
 -- TYPES
 
 
-type alias PreviewMsgs msg =
+type alias Msgs msg =
     { approveBuild : Org -> Repo -> BuildNumber -> msg
     , restartBuild : Org -> Repo -> BuildNumber -> msg
     , cancelBuild : Org -> Repo -> BuildNumber -> msg
-    , toggleActionsMenu : Maybe Int -> Maybe Bool -> msg
+    , showHideActionsMenus : Maybe Int -> Maybe Bool -> msg
     }
+
+
+type alias Props msg =
+    { msgs : Msgs msg
+    , builds : WebData (List Vela.Build)
+    , showActionsMenus : List Int
+    , maybeEvent : Maybe String
+    , showFullTimestamps : Bool
+    }
+
+
+view : Shared.Model -> Props msg -> Html msg
+view shared props =
+    let
+        -- todo: handle query parameters ?event=push etc
+        webhooks =
+            text "configured webhook events"
+
+        -- case props.maybeRepo of
+        --     Just repo ->
+        --         a [ href <| "/" ++ String.join "/" [ props.org, repo ] ++ "/settings" ] [ text "configured webhook events" ]
+        --     Nothing ->
+        --         text "configured webhook events"
+        none : Html msg
+        none =
+            case props.maybeEvent of
+                Nothing ->
+                    div []
+                        [ h1 [] [ text "Your repository has been enabled!" ]
+                        , p [] [ text "Builds will show up here once you have:" ]
+                        , ol [ class "list" ]
+                            [ li []
+                                [ text "A "
+                                , code [] [ text ".vela.yml" ]
+                                , text " file that describes your build pipeline in the root of your repository."
+                                , br [] []
+                                , a [ href "https://go-vela.github.io/docs/usage/" ] [ text "Review the documentation" ]
+                                , text " for help or "
+                                , a [ href "https://go-vela.github.io/docs/usage/examples/" ] [ text "check some of the pipeline examples" ]
+                                , text "."
+                                ]
+                            , li []
+                                [ text "Trigger one of the "
+                                , webhooks
+                                , text " by performing the respective action via "
+                                , em [] [ text "Git" ]
+                                , text "."
+                                ]
+                            ]
+                        , p [] [ text "Happy building!" ]
+                        ]
+
+                Just event ->
+                    div []
+                        [ h1 [] [ text <| "No builds for \"" ++ event ++ "\" event found." ] ]
+    in
+    case props.builds of
+        RemoteData.Success builds ->
+            if List.length builds == 0 then
+                none
+
+            else
+                div [ class "builds", Util.testAttribute "builds" ] <|
+                    List.map
+                        (viewPreview shared props)
+                        builds
+
+        RemoteData.Loading ->
+            Util.largeLoader
+
+        RemoteData.NotAsked ->
+            Util.largeLoader
+
+        RemoteData.Failure _ ->
+            Errors.viewResourceError { resourceLabel = "builds", testLabel = "builds" }
 
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : PreviewMsgs msg -> List Int -> Bool -> Posix -> Zone -> Org -> Repo -> Bool -> Build -> Html msg
-viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
+viewPreview : Shared.Model -> Props msg -> Build -> Html msg
+viewPreview shared props build =
     let
+        showMenu =
+            List.member build.id props.showActionsMenus
+
+        org =
+            Maybe.withDefault "" <| List.head (List.drop 3 (String.split "/" build.link))
+
+        repo =
+            Maybe.withDefault "" <| List.head (List.drop 4 (String.split "/" build.link))
+
         buildMenuBaseClassList : Html.Attribute msg
         buildMenuBaseClassList =
             classList
@@ -104,7 +189,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         buildMenuAttributeList : List (Html.Attribute msg)
         buildMenuAttributeList =
-            Util.open (List.member build.id openMenu) ++ [ id "build-actions" ]
+            Util.open (List.member build.id props.showActionsMenus) ++ [ id "build-actions" ]
 
         approveBuild : Html msg
         approveBuild =
@@ -114,7 +199,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         [ a
                             [ href "#"
                             , class "menu-item"
-                            , Util.onClickPreventDefault <| msgs.approveBuild org repo <| String.fromInt build.number
+                            , Util.onClickPreventDefault <| props.msgs.approveBuild org repo <| String.fromInt build.number
                             , Util.testAttribute "approve-build"
                             ]
                             [ text "Approve Build"
@@ -135,7 +220,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         [ a
                             [ href "#"
                             , class "menu-item"
-                            , Util.onClickPreventDefault <| msgs.restartBuild org repo <| String.fromInt build.number
+                            , Util.onClickPreventDefault <| props.msgs.restartBuild org repo <| String.fromInt build.number
                             , Util.testAttribute "restart-build"
                             ]
                             [ text "Restart Build"
@@ -150,7 +235,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         [ a
                             [ href "#"
                             , class "menu-item"
-                            , Util.onClickPreventDefault <| msgs.cancelBuild org repo <| String.fromInt build.number
+                            , Util.onClickPreventDefault <| props.msgs.cancelBuild org repo <| String.fromInt build.number
                             , Util.testAttribute "cancel-build"
                             ]
                             [ text "Cancel Build"
@@ -162,7 +247,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         [ a
                             [ href "#"
                             , class "menu-item"
-                            , Util.onClickPreventDefault <| msgs.cancelBuild org repo <| String.fromInt build.number
+                            , Util.onClickPreventDefault <| props.msgs.cancelBuild org repo <| String.fromInt build.number
                             , Util.testAttribute "cancel-build"
                             ]
                             [ text "Cancel Build"
@@ -174,7 +259,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
                         [ a
                             [ href "#"
                             , class "menu-item"
-                            , Util.onClickPreventDefault <| msgs.cancelBuild org repo <| String.fromInt build.number
+                            , Util.onClickPreventDefault <| props.msgs.cancelBuild org repo <| String.fromInt build.number
                             , Util.testAttribute "cancel-build"
                             ]
                             [ text "Cancel Build"
@@ -187,7 +272,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
         actionsMenu =
             if showMenu then
                 details (buildMenuBaseClassList :: buildMenuAttributeList)
-                    [ summary [ class "summary", Util.onClickPreventDefault (msgs.toggleActionsMenu (Just build.id) Nothing), Util.testAttribute "build-menu" ]
+                    [ summary [ class "summary", Util.onClickPreventDefault (props.msgs.showHideActionsMenus (Just build.id) Nothing), Util.testAttribute "build-menu" ]
                         [ text "Actions"
                         , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "show build actions" ]
                         ]
@@ -201,24 +286,11 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
             else
                 div [] []
 
-        repoName =
-            case repo of
-                "" ->
-                    List.head (List.drop 4 (String.split "/" build.link))
-
-                _ ->
-                    Nothing
-
         repoLink =
-            case repoName of
-                Just name ->
-                    span []
-                        [ a [ Routes.href <| Routes.RepositoryBuilds org name Nothing Nothing Nothing ] [ text name ]
-                        , text ": "
-                        ]
-
-                _ ->
-                    text ""
+            span []
+                [ a [ Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing ] [ text repo ]
+                , text ": "
+                ]
 
         buildNumber =
             String.fromInt build.number
@@ -288,20 +360,20 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
             Time.millisToPosix <| Util.secondsToMillis build.created
 
         age =
-            relativeTime now <| buildCreatedPosix
+            relativeTime shared.time <| buildCreatedPosix
 
         timestamp =
-            Util.humanReadableDateTimeFormatter zone buildCreatedPosix
+            Util.humanReadableDateTimeFormatter shared.zone buildCreatedPosix
 
         displayTime =
-            if showTimestamp then
+            if props.showFullTimestamps then
                 [ text <| timestamp ++ " " ]
 
             else
                 [ text age ]
 
         hoverTime =
-            if showTimestamp then
+            if props.showFullTimestamps then
                 age
 
             else
@@ -309,7 +381,7 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
 
         -- calculate build runtime
         runtime =
-            Util.formatRunTime now build.started build.finished
+            Util.formatRunTime shared.time build.started build.finished
 
         -- mask completed/pending builds that have not finished
         duration =

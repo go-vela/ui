@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, getOrgRepoBuilds, gotoPage, handleHttpError, logout, pushPath, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, getOrgRepoBuilds, getOrgRepos, gotoPage, handleHttpError, logout, pushPath, setTheme, updateFavorites
     )
 
 {-|
@@ -272,6 +272,20 @@ getOrgRepoBuilds options =
     Api.try
         options.onResponse
         (Api.Operations_.getOrgRepoBuilds options.baseUrl options.session options)
+        |> sendCmd
+
+
+getOrgRepos :
+    { baseUrl : String
+    , session : Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Repository ) -> msg
+    , org : String
+    }
+    -> Effect msg
+getOrgRepos options =
+    Api.try
+        options.onResponse
+        (Api.Operations_.getOrgRepos options.baseUrl options.session options)
         |> sendCmd
 
 

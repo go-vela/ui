@@ -3,7 +3,17 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Api.Operations_ exposing (enableRepo, finishAuthentication, getCurrentUser, getOrgRepoBuilds, getToken, getUserSourceRepos, logout, updateCurrentUser)
+module Api.Operations_ exposing
+    ( enableRepo
+    , finishAuthentication
+    , getCurrentUser
+    , getOrgRepoBuilds
+    , getOrgRepos
+    , getToken
+    , getUserSourceRepos
+    , logout
+    , updateCurrentUser
+    )
 
 import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)
 import Api.Endpoint as Endpoint exposing (Endpoint)
@@ -15,7 +25,6 @@ import Json.Decode
 import Vela
     exposing
         ( AuthParams
-        , Build
         , BuildGraph
         , BuildNumber
         , Builds
@@ -34,7 +43,6 @@ import Vela
         , PipelineConfig
         , Ref
         , Repo
-        , Repository
         , Schedule
         , ScheduleName
         , Schedules
@@ -47,26 +55,6 @@ import Vela
         , StepNumber
         , Templates
         , Type
-        , decodeBuild
-        , decodeBuildGraph
-        , decodeBuilds
-        , decodeCurrentUser
-        , decodeDeployment
-        , decodeDeployments
-        , decodeHooks
-        , decodeLog
-        , decodePipelineConfig
-        , decodePipelineExpand
-        , decodePipelineTemplates
-        , decodeRepositories
-        , decodeRepository
-        , decodeSchedule
-        , decodeSchedules
-        , decodeSecret
-        , decodeSecrets
-        , decodeService
-        , decodeSourceRepositories
-        , decodeStep
         )
 
 
@@ -99,7 +87,7 @@ logout baseUrl session =
 -}
 getCurrentUser : String -> Session -> Request CurrentUser
 getCurrentUser baseUrl session =
-    get baseUrl Endpoint.CurrentUser decodeCurrentUser
+    get baseUrl Endpoint.CurrentUser Vela.decodeCurrentUser
         |> withAuth session
 
 
@@ -107,7 +95,7 @@ getCurrentUser baseUrl session =
 -}
 updateCurrentUser : String -> Session -> Http.Body -> Request CurrentUser
 updateCurrentUser baseUrl session body =
-    put baseUrl Endpoint.CurrentUser body decodeCurrentUser
+    put baseUrl Endpoint.CurrentUser body Vela.decodeCurrentUser
         |> withAuth session
 
 
@@ -115,21 +103,29 @@ updateCurrentUser baseUrl session body =
 -}
 getUserSourceRepos : String -> Session -> Request SourceRepositories
 getUserSourceRepos baseUrl session =
-    get baseUrl Endpoint.UserSourceRepositories decodeSourceRepositories
+    get baseUrl Endpoint.UserSourceRepositories Vela.decodeSourceRepositories
         |> withAuth session
 
 
 {-| enableRepo : enable a repo
 -}
-enableRepo : String -> Session -> Http.Body -> Request Repository
+enableRepo : String -> Session -> Http.Body -> Request Vela.Repository
 enableRepo baseUrl session body =
-    post baseUrl (Endpoint.Repositories Nothing Nothing) body decodeRepository
+    post baseUrl (Endpoint.Repositories Nothing Nothing) body Vela.decodeRepository
+        |> withAuth session
+
+
+{-| getOrgRepos : retrieves the current users source repositories
+-}
+getOrgRepos : String -> Session -> { a | org : String } -> Request (List Vela.Repository)
+getOrgRepos baseUrl session { org } =
+    get baseUrl (Endpoint.OrgRepositories Nothing Nothing org) Vela.decodeRepositories
         |> withAuth session
 
 
 {-| getOrgRepoBuilds : retrieves the current users source repositories
 -}
-getOrgRepoBuilds : String -> Session -> { a | org : String, repo : String } -> Request (List Build)
+getOrgRepoBuilds : String -> Session -> { a | org : String, repo : String } -> Request (List Vela.Build)
 getOrgRepoBuilds baseUrl session { org, repo } =
-    get baseUrl (Endpoint.Builds Nothing Nothing Nothing org repo) decodeBuilds
+    get baseUrl (Endpoint.Builds Nothing Nothing Nothing org repo) Vela.decodeBuilds
         |> withAuth session

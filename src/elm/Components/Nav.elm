@@ -3,8 +3,9 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Components.Nav exposing (Msgs, Tab, view, viewTabs)
+module Components.Nav exposing (Msgs, Tab, view, viewOrgTabs, viewTabs)
 
+import Api.Pagination as Pagination
 import Components.Crumbs
 import Components.Favorites exposing (UpdateFavorites)
 import Html
@@ -134,13 +135,20 @@ viewingTab p1 p2 =
 -- ORG
 
 
-viewOrgTabs : RepoModel -> Org -> Page -> Html msg
-viewOrgTabs rm org currentPage =
+viewOrgTabs :
+    { org : String
+    , currentPage : Page
+    , maybePage : Maybe Pagination.Page
+    , maybePerPage : Maybe Pagination.PerPage
+    , maybeEvent : Maybe String
+    }
+    -> Html msg
+viewOrgTabs props =
     let
         tabs =
-            [ Tab "Repositories" currentPage (Pages.OrgRepositories org Nothing Nothing) False True
-            , Tab "Builds" currentPage (Pages.OrgBuilds org rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False True
-            , Tab "Secrets" currentPage (Pages.OrgSecrets "native" org Nothing Nothing) False True
+            [ Tab "Repositories" props.currentPage (Pages.OrgRepositories props.org Nothing Nothing) False True
+            , Tab "Builds" props.currentPage (Pages.OrgBuilds props.org props.maybePage props.maybePerPage props.maybeEvent) False True
+            , Tab "Secrets" props.currentPage (Pages.OrgSecrets "native" props.org Nothing Nothing) False True
             ]
     in
     viewTabs tabs "jump-bar-repo"

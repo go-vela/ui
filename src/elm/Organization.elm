@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Organization exposing (..)
+module Organization exposing (..)
 
 import Html
     exposing
@@ -30,9 +30,7 @@ import Utils.Helpers as Util exposing (largeLoader)
 import Vela exposing (BuildsModel, Event, Org, OrgReposModel, Repository)
 
 
-{-| view : takes org and renders build previews
--}
-viewBuilds : BuildsModel -> Msgs msgs -> List Int -> Posix -> Zone -> Org -> Maybe Event -> Html msgs
+viewBuilds : BuildsModel -> Msgs msg -> List Int -> Posix -> Zone -> Org -> Maybe Event -> Html msg
 viewBuilds buildsModel msgs openMenus now zone org maybeEvent =
     let
         none : Html msg

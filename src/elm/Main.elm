@@ -55,12 +55,14 @@ import Json.Encode
 import Layout
 import Layouts exposing (Layout)
 import Layouts.Default
+import Layouts.Default.Org
 import Main.Layouts.Model
 import Main.Layouts.Msg
 import Main.Pages.Model
 import Main.Pages.Msg
 import Maybe
 import Maybe.Extra exposing (unwrap)
+import Organization
 import Page
 import Pager
 import Pages exposing (Page)
@@ -90,7 +92,7 @@ import Pages.Hooks
 import Pages.NotFound_
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Deployments_
-import Pages.Organization
+import Pages.Org_Repos
 import Pages.Pipeline.Model
 import Pages.Pipeline.View exposing (safeDecodePipelineData)
 import Pages.RepoSettings
@@ -333,6 +335,11 @@ initLayout model layout =
             , Cmd.none
             )
 
+        ( Layouts.Default props, Just (Main.Layouts.Model.Default_Org existing) ) ->
+            ( Main.Layouts.Model.Default { default = existing.default }
+            , Cmd.none
+            )
+
         ( Layouts.Default props, _ ) ->
             let
                 route : Route ()
@@ -347,6 +354,52 @@ initLayout model layout =
             in
             ( Main.Layouts.Model.Default { default = defaultLayoutModel }
             , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+            )
+
+        ( Layouts.Default_Org props, Just (Main.Layouts.Model.Default existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultNestedLayout =
+                    Layouts.Default.Org.layout props model.shared route
+
+                ( nestedLayoutModel, nestedLayoutEffect ) =
+                    Layout.init defaultNestedLayout ()
+            in
+            ( Main.Layouts.Model.Default_Org { default = existing.default, org = nestedLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Org nestedLayoutEffect)
+            )
+
+        ( Layouts.Default_Org props, Just (Main.Layouts.Model.Default_Org existing) ) ->
+            ( Main.Layouts.Model.Default_Org existing
+            , Cmd.none
+            )
+
+        ( Layouts.Default_Org props, _ ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultNestedLayout =
+                    Layouts.Default.Org.layout props model.shared route
+
+                defaultLayout =
+                    Layouts.Default.layout (Layout.parentProps defaultNestedLayout) model.shared route
+
+                ( nestedLayoutModel, nestedLayoutEffect ) =
+                    Layout.init defaultNestedLayout ()
+
+                ( defaultLayoutModel, defaultLayoutEffect ) =
+                    Layout.init defaultLayout ()
+            in
+            ( Main.Layouts.Model.Default_Org { default = defaultLayoutModel, org = nestedLayoutModel }
+            , Cmd.batch
+                [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Org nestedLayoutEffect)
+                , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+                ]
             )
 
 
@@ -480,6 +533,30 @@ initPageAndLayout model =
                     , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.Org_Repos params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Org_Repos.Model Pages.Org_Repos.Msg
+                        page =
+                            Pages.Org_Repos.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Org_Repos params)
+                            (Effect.map Main.Pages.Msg.Org_Repos >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repos >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -2878,14 +2955,14 @@ updateFromPage msg model =
                         (Page.update (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) pageMsg pageModel)
                 )
 
-        ( Main.Pages.Msg.Org_Repo_Deployments_ pageMsg, Main.Pages.Model.Org_Repo_Deployments_ params pageModel ) ->
+        ( Main.Pages.Msg.Org_Repos pageMsg, Main.Pages.Model.Org_Repos params pageModel ) ->
             runWhenAuthenticated
                 model
                 (\user ->
                     Tuple.mapBoth
-                        (Main.Pages.Model.Org_Repo_Deployments_ params)
-                        (Effect.map Main.Pages.Msg.Org_Repo_Deployments_ >> fromPageEffect model)
-                        (Page.update (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                        (Main.Pages.Model.Org_Repos params)
+                        (Effect.map Main.Pages.Msg.Org_Repos >> fromPageEffect model)
+                        (Page.update (Pages.Org_Repos.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.Org_Repo_ pageMsg, Main.Pages.Model.Org_Repo_ params pageModel ) ->
@@ -2896,6 +2973,16 @@ updateFromPage msg model =
                         (Main.Pages.Model.Org_Repo_ params)
                         (Effect.map Main.Pages.Msg.Org_Repo_ >> fromPageEffect model)
                         (Page.update (Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
+        ( Main.Pages.Msg.Org_Repo_Deployments_ pageMsg, Main.Pages.Model.Org_Repo_Deployments_ params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.Org_Repo_Deployments_ params)
+                        (Effect.map Main.Pages.Msg.Org_Repo_Deployments_ >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
         ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
@@ -2924,6 +3011,23 @@ updateFromLayout msg model =
                 (\newModel -> Just (Main.Layouts.Model.Default { layoutModel | default = newModel }))
                 (Effect.map Main.Layouts.Msg.Default >> fromLayoutEffect model)
                 (Layout.update (Layouts.Default.layout props model.shared route) layoutMsg layoutModel.default)
+
+        ( Just (Layouts.Default_Org props), Just (Main.Layouts.Model.Default_Org layoutModel), Main.Layouts.Msg.Default layoutMsg ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Org.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Tuple.mapBoth
+                (\newModel -> Just (Main.Layouts.Model.Default_Org { layoutModel | default = newModel }))
+                (Effect.map Main.Layouts.Msg.Default >> fromLayoutEffect model)
+                (Layout.update (Layouts.Default.layout defaultProps model.shared route) layoutMsg layoutModel.default)
+
+        ( Just (Layouts.Default_Org props), Just (Main.Layouts.Model.Default_Org layoutModel), Main.Layouts.Msg.Default_Org layoutMsg ) ->
+            Tuple.mapBoth
+                (\newModel -> Just (Main.Layouts.Model.Default_Org { layoutModel | org = newModel }))
+                (Effect.map Main.Layouts.Msg.Default_Org >> fromLayoutEffect model)
+                (Layout.update (Layouts.Default.Org.layout props model.shared route) layoutMsg layoutModel.org)
 
         _ ->
             ( model.layout
@@ -2958,17 +3062,23 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Home_ >> Page))
 
-        Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
+        Main.Pages.Model.Org_Repos params pageModel ->
             Route.fromUrl params model.url
-                |> toAuthProtectedPage model Pages.Org_.Repo_.Deployments_.page
+                |> toAuthProtectedPage model Pages.Org_Repos.page
                 |> Maybe.andThen (Page.layout pageModel)
-                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Deployments_ >> Page))
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repos >> Page))
 
         Main.Pages.Model.Org_Repo_ params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Org_.Repo_.page
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_ >> Page))
+
+        Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Deployments_.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Deployments_ >> Page))
 
         Main.Pages.Model.NotFound_ pageModel ->
             Route.fromUrl () model.url
@@ -3035,11 +3145,11 @@ subscriptions model =
                 Main.Pages.Model.Home_ pageModel ->
                     Sub.none
 
-                Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
+                Main.Pages.Model.Org_Repos params pageModel ->
                     Auth.Action.subscriptions
                         (\user ->
-                            Page.subscriptions (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)) pageModel
-                                |> Sub.map Main.Pages.Msg.Org_Repo_Deployments_
+                            Page.subscriptions (Pages.Org_Repos.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repos
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -3049,6 +3159,15 @@ subscriptions model =
                         (\user ->
                             Page.subscriptions (Pages.Org_.Repo_.page user model.shared (Route.fromUrl params model.url)) pageModel
                                 |> Sub.map Main.Pages.Msg.Org_Repo_
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.Org_Repo_Deployments_ params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Org_.Repo_.Deployments_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repo_Deployments_
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -3080,6 +3199,21 @@ subscriptions model =
                         |> Sub.map Main.Layouts.Msg.Default
                         |> Sub.map Layout
 
+                ( Just (Layouts.Default_Org props), Just (Main.Layouts.Model.Default_Org layoutModel) ) ->
+                    let
+                        defaultProps =
+                            Layouts.Default.Org.layout props model.shared route
+                                |> Layout.parentProps
+                    in
+                    Sub.batch
+                        [ Layout.subscriptions (Layouts.Default.layout defaultProps model.shared route) layoutModel.default
+                            |> Sub.map Main.Layouts.Msg.Default
+                            |> Sub.map Layout
+                        , Layout.subscriptions (Layouts.Default.Org.layout props model.shared route) layoutModel.org
+                            |> Sub.map Main.Layouts.Msg.Default_Org
+                            |> Sub.map Layout
+                        ]
+
                 _ ->
                     Sub.none
     in
@@ -3091,7 +3225,6 @@ subscriptions model =
 
         -- LEGACY SUBSCRIPTIONS
         , Interop.onGraphInteraction decodeOnGraphInteraction
-        , onMouseDown "build-actions" model (ShowHideBuildMenu Nothing)
         , Browser.Events.onKeyDown (Json.Decode.map OnKeyDown (Json.Decode.field "key" Json.Decode.string))
         , Browser.Events.onKeyUp (Json.Decode.map OnKeyUp (Json.Decode.field "key" Json.Decode.string))
         , Browser.Events.onVisibilityChange VisibilityChanged
@@ -3134,6 +3267,25 @@ toView model =
                 , content = viewPage model
                 }
 
+        ( Just (Layouts.Default_Org props), Just (Main.Layouts.Model.Default_Org layoutModel) ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Org.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Layout.view
+                (Layouts.Default.layout defaultProps model.shared route)
+                { model = layoutModel.default
+                , toContentMsg = Main.Layouts.Msg.Default >> Layout
+                , content =
+                    Layout.view
+                        (Layouts.Default.Org.layout props model.shared route)
+                        { model = layoutModel.org
+                        , toContentMsg = Main.Layouts.Msg.Default_Org >> Layout
+                        , content = viewPage model
+                        }
+                }
+
         _ ->
             viewPage model
 
@@ -3169,6 +3321,15 @@ viewPage model =
                 (\user ->
                     Page.view (Pages.Home_.page user model.shared (Route.fromUrl () model.url)) pageModel
                         |> View.map Main.Pages.Msg.Home_
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Org_Repos params pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Org_Repos.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org_Repos
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -3296,6 +3457,16 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Org_Repos params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Org_Repos.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org_Repos
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Org_Repo_ params pageModel ->
             Auth.Action.command
                 (\user ->
@@ -3357,6 +3528,23 @@ toLayoutUrlHookCmd oldModel model routes =
                 |> List.map Layout
                 |> toCommands
 
+        ( Just (Layouts.Default_Org props), Just (Main.Layouts.Model.Default_Org layoutModel) ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Org.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Cmd.batch
+                [ Layout.toUrlMessages routes (Layouts.Default.layout defaultProps model.shared route)
+                    |> List.map Main.Layouts.Msg.Default
+                    |> List.map Layout
+                    |> toCommands
+                , Layout.toUrlMessages routes (Layouts.Default.Org.layout props model.shared route)
+                    |> List.map Main.Layouts.Msg.Default_Org
+                    |> List.map Layout
+                    |> toCommands
+                ]
+
         _ ->
             Cmd.none
 
@@ -3366,6 +3554,15 @@ hasNavigatedWithinNewLayout { from, to } =
     let
         isRelated maybePair =
             case maybePair of
+                Just ( Layouts.Default _, Layouts.Default _ ) ->
+                    True
+
+                Just ( Layouts.Default_Org _, Layouts.Default_Org _ ) ->
+                    True
+
+                Just ( Layouts.Default_Org _, Layouts.Default _ ) ->
+                    True
+
                 _ ->
                     False
     in
@@ -3396,6 +3593,9 @@ isAuthProtected routePath =
         Route.Path.Home_ ->
             True
 
+        Route.Path.Org_Repos _ ->
+            True
+
         Route.Path.Org_Repo_ _ ->
             True
 
@@ -3420,59 +3620,6 @@ decodeOnGraphInteraction interaction =
 
         Err _ ->
             NoOp
-
-
-{-| onMouseDown : takes model and returns subscriptions for handling onMouseDown events at the browser level
--}
-onMouseDown : String -> Model -> (Maybe Bool -> Msg) -> Sub Msg
-onMouseDown targetId model triggerMsg =
-    -- if model.shared.showHelp then
-    --     Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
-    -- else if model.shared.showIdentity then
-    --     Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
-    if List.length model.shared.buildMenuOpen > 0 then
-        Browser.Events.onMouseDown (outsideTarget targetId <| triggerMsg <| Just False)
-
-    else
-        Sub.none
-
-
-{-| outsideTarget : returns decoder for handling clicks that occur from outside the currently focused/open dropdown
--}
-outsideTarget : String -> Msg -> Json.Decode.Decoder Msg
-outsideTarget targetId msg =
-    Json.Decode.field "target" (isOutsideTarget targetId)
-        |> Json.Decode.andThen
-            (\isOutside ->
-                if isOutside then
-                    Json.Decode.succeed msg
-
-                else
-                    Json.Decode.fail "inside dropdown"
-            )
-
-
-{-| isOutsideTarget : returns decoder for determining if click target occurred from within a specified element
--}
-isOutsideTarget : String -> Json.Decode.Decoder Bool
-isOutsideTarget targetId =
-    Json.Decode.oneOf
-        [ Json.Decode.field "id" Json.Decode.string
-            |> Json.Decode.andThen
-                (\id ->
-                    if targetId == id then
-                        -- found match by id
-                        Json.Decode.succeed False
-
-                    else
-                        -- try next decoder
-                        Json.Decode.fail "continue"
-                )
-        , Json.Decode.lazy (\_ -> isOutsideTarget targetId |> Json.Decode.field "parentNode")
-
-        -- fallback if all previous decoders failed
-        , Json.Decode.succeed True
-        ]
 
 
 {-| loadOrgReposPage : takes model
@@ -5588,7 +5735,7 @@ viewPageUNUSED model =
             ( org ++ Util.pageToString maybePage
             , div []
                 [ Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
-                , lazy2 Pages.Organization.viewOrgRepos org model.shared.repo.orgRepos
+                , lazy2 Organization.viewOrgRepos org model.shared.repo.orgRepos
                 , Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
                 ]
             )
@@ -5739,7 +5886,7 @@ viewPageUNUSED model =
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
-                , lazy7 Pages.Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
+                , lazy7 Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
                 , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
                 ]
             )

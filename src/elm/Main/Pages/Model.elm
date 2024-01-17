@@ -12,6 +12,7 @@ import Pages.Home_
 import Pages.NotFound_
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Deployments_
+import Pages.Org_Repos
 
 
 type Model
@@ -19,6 +20,7 @@ type Model
     | AccountSettings_ Pages.Account.Settings_.Model
     | AccountSourceRepos_ Pages.Account.SourceRepos_.Model
     | Home_ Pages.Home_.Model
+    | Org_Repos { org : String } Pages.Org_Repos.Model
     | Org_Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
     | Org_Repo_Deployments_ { org : String, repo : String } Pages.Org_.Repo_.Deployments_.Model
     | Redirecting_
