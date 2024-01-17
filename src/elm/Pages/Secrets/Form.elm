@@ -180,7 +180,7 @@ viewEventsSelect secret model =
                 [ strong [ class "settings-subtitle" ] [ text "Schedule" ]
                 , div [ class "form-controls", class "-two-col-secrets" ]
                     [ checkbox "Schedule"
-                        "allow_schedule_run"
+                        "schedule"
                         secret.allowEvents.schedule.run
                       <|
                         OnChangeEvent "allow_schedule_run"
