@@ -116,13 +116,13 @@ module Vela exposing
     , decodeSourceRepositories
     , decodeStep
     , decodeTheme
-    , defaultSecretAllowEvents
     , defaultBuildGraph
     , defaultEnableRepositoryPayload
     , defaultFavicon
     , defaultPipeline
     , defaultPipelineTemplates
     , defaultRepoModel
+    , defaultSecretAllowEvents
     , defaultSecretAllowEventsPayload
     , defaultStep
     , encodeBuildGraphRenderData
@@ -2503,6 +2503,7 @@ secretToKey secret =
 defaultSecretAllowEvents : AllowEvents
 defaultSecretAllowEvents =
     { push = { branch = True, tag = True }, pull = defaultPullActionsPayload Nothing, deploy = { created = True }, comment = defaultCommentActionsPayload Nothing, schedule = defaultScheduleActionsPayload Nothing }
+
 
 decodeSecret : Decoder Secret
 decodeSecret =
