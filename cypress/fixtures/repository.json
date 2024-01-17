@@ -36,6 +36,9 @@
     "comment": {
       "created": false,
       "edited": false
+    },
+    "schedule": {
+      "run": false
     }
   },
   "pipeline_type": "yaml",
