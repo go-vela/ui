@@ -39,7 +39,6 @@ import Vela
         , SecretType(..)
         , UpdateSecretPayload
         , buildUpdateSecretPayload
-        , defaultSecretAllowEventsPayload
         , encodeUpdateSecret
         , secretTypeToString
         )
@@ -98,7 +97,7 @@ reinitializeSecretUpdate secretsModel secret =
 
 initSecretUpdate : Secret -> SecretForm
 initSecretUpdate secret =
-    SecretForm secret.name "" secret.events "" secret.images secret.allowCommand secret.team
+    SecretForm secret.name "" secret.events "" secret.images secret.allowEvents secret.allowCommand secret.team
 
 
 {-| updateSecretModel : makes an update to the appropriate secret update
@@ -147,29 +146,25 @@ updateSecretField field value secret =
 
 {-| onChangeEvent : takes event and updates the secrets model based on the appropriate event
 -}
-onChangeEvent : String -> Model msg -> Model msg
-onChangeEvent event secretsModel =
+onChangeEvent : String -> Bool -> Model msg -> Model msg
+onChangeEvent event val secretsModel =
     let
         secretUpdate =
             Just secretsModel.form
     in
     case secretUpdate of
         Just s ->
-            case secretsModel.secret of
-                RemoteData.Success secret ->
-                    updateSecretModel (updateSecretEvents secret event s) secretsModel
-                _ ->
-                    secretsModel
+            updateSecretModel (updateSecretEvents s event val) secretsModel
 
         Nothing ->
             secretsModel
 
 
-updateSecretEvents : Secret -> Field -> Bool -> SecretForm
-updateSecretEvents secret field value =
+updateSecretEvents : SecretForm -> Field -> Bool -> SecretForm
+updateSecretEvents sform field value =
     let
         events =
-            defaultSecretAllowEventsPayload secret
+            sform.allowEvents
 
         pushActions =
             events.push
@@ -182,37 +177,43 @@ updateSecretEvents secret field value =
 
         commentActions =
             events.comment
+
+        scheduleActions =
+            events.schedule
     in
     case field of
         "allow_push_branch" ->
-            { defaultSecretUpdate secret| allowEvents = { events | push = { pushActions | branch = value } } }
+            { sform | allowEvents = { events | push = { pushActions | branch = value } } }
 
         "allow_push_tag" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | push = { pushActions | tag = value } } }
+            { sform | allowEvents = { events | push = { pushActions | tag = value } } }
 
         "allow_pull_opened" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | opened = value } } }
+            { sform | allowEvents = { events | pull = { pullActions | opened = value } } }
 
         "allow_pull_synchronize" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | synchronize = value } } }
+            { sform | allowEvents = { events | pull = { pullActions | synchronize = value } } }
 
         "allow_pull_edited" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | edited = value } } }
+            { sform | allowEvents = { events | pull = { pullActions | edited = value } } }
 
         "allow_pull_reopened" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | pull = { pullActions | reopened = value } } }
+            { sform | allowEvents = { events | pull = { pullActions | reopened = value } } }
 
         "allow_deploy_created" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | deploy = { deployActions | created = value } } }
+            { sform | allowEvents = { events | deploy = { deployActions | created = value } } }
 
         "allow_comment_created" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | comment = { commentActions | created = value } } }
+            { sform | allowEvents = { events | comment = { commentActions | created = value } } }
 
         "allow_comment_edited" ->
-            { defaultUpdateRepositoryPayload | allow_events = Just { events | comment = { commentActions | edited = value } } }
+            { sform | allowEvents = { events | comment = { commentActions | edited = value } } }
+
+        "allow_schedule_run" ->
+            { sform | allowEvents = { events | schedule = { scheduleActions | run = value } } }
 
         _ ->
-            defaultUpdateRepositoryPayload
+            sform
 
 
 {-| onAddImage : takes image and updates secret update images
@@ -277,17 +278,6 @@ onChangeAllowCommand allow secretsModel =
             secretsModel
 
 
-{-| toggleEvent : takes event and toggles inclusion in the events array
--}
-toggleEvent : String -> List String -> List String
-toggleEvent event events =
-    if List.member event events && List.length events > 1 then
-        List.Extra.remove event events
-
-    else
-        event :: events
-
-
 {-| getKey : gets the appropriate secret key based on type
 -}
 getKey : Model msg -> String
@@ -332,6 +322,7 @@ toAddSecretPayload secretsModel secret =
         (stringToMaybe secret.value)
         (Just secret.events)
         (Just secret.images)
+        (Just secret.allowEvents)
         (Just secret.allowCommand)
 
 
@@ -349,10 +340,11 @@ toUpdateSecretPayload secretsModel secret =
             , value = stringToMaybe secret.value
             , events = Just secret.events
             , images = Just secret.images
+            , allowEvents = Just secret.allowEvents
             , allowCommand = Just secret.allowCommand
             }
     in
-    buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowCommand
+    buildUpdateSecretPayload args.type_ args.org args.repo args.team args.name args.value args.events args.images args.allowEvents args.allowCommand
 
 
 
@@ -370,8 +362,8 @@ update model msg =
                 OnChangeStringField field value ->
                     ( onChangeStringField field value secretsModel, Cmd.none )
 
-                OnChangeEvent event _ ->
-                    ( onChangeEvent event secretsModel, Cmd.none )
+                OnChangeEvent event val ->
+                    ( onChangeEvent event val secretsModel, Cmd.none )
 
                 AddImage image ->
                     ( onAddImage image secretsModel, Cmd.none )

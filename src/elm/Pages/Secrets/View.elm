@@ -25,7 +25,8 @@ import Url exposing (percentEncode)
 import Util exposing (largeLoader)
 import Vela
     exposing
-        ( Secret
+        ( AllowEvents
+        , Secret
         , SecretType(..)
         , Secrets
         , secretTypeToString
@@ -360,7 +361,7 @@ renderSecret type_ secret =
             , scope "row"
             , class "break-word"
             ]
-            [ renderListCell secret.events "no events" "secret-event" ]
+            [ renderListCell (allowEventsToList secret.allowEvents) "no events" "secret-event" ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
@@ -421,7 +422,7 @@ renderSharedSecret type_ secret =
             , scope "row"
             , class "break-word"
             ]
-            [ renderListCell secret.events "no events" "secret-event" ]
+            [ renderListCell (allowEventsToList secret.allowEvents) "no events" "secret-event" ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
@@ -452,6 +453,36 @@ renderListCell items none itemClassName =
                     (\item ->
                         listItemView itemClassName item
                     )
+
+
+
+-- rename this XD
+
+
+fieldToConcatList : Bool -> String -> List String -> List String
+fieldToConcatList enabled label inList =
+    inList
+        ++ (if enabled then
+                [ label ]
+
+            else
+                []
+           )
+
+
+allowEventsToList : AllowEvents -> List String
+allowEventsToList events =
+    []
+        |> fieldToConcatList events.push.branch "push"
+        |> fieldToConcatList events.push.tag "tag"
+        |> fieldToConcatList events.pull.opened "pull_request:opened"
+        |> fieldToConcatList events.pull.synchronize "pull_request:synchronize"
+        |> fieldToConcatList events.pull.edited "pull_request:edited"
+        |> fieldToConcatList events.pull.reopened "pull_request:reopened"
+        |> fieldToConcatList events.deploy.created "deployment"
+        |> fieldToConcatList events.comment.created "comment:created"
+        |> fieldToConcatList events.comment.edited "comment:edited"
+        |> fieldToConcatList events.schedule.run "schedule"
 
 
 {-| listItemView : takes classname, text and size constraints and renders a list element

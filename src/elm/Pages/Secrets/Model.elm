@@ -23,8 +23,7 @@ import Http.Detailed
 import LinkHeader exposing (WebLink)
 import Pages exposing (Page)
 import RemoteData exposing (WebData)
-import Vela exposing (Copy, Engine, Key, Org, Repo, Secret, SecretType, Secrets, Team)
-import Vela exposing (AllowEventsPayload, defaultSecretAllowEventsPayload)
+import Vela exposing (AllowEventsPayload, Copy, Engine, Key, Org, Repo, Secret, SecretType, Secrets, Team, defaultAllowEvents)
 
 
 
@@ -86,9 +85,9 @@ type alias SecretForm =
     }
 
 
-defaultSecretUpdate : Secret -> SecretForm
-defaultSecretUpdate secret =
-    SecretForm "" "" defaultSecretEvents "" [] (defaultSecretAllowEventsPayload secret) True ""
+defaultSecretUpdate : SecretForm
+defaultSecretUpdate =
+    SecretForm "" "" defaultSecretEvents "" [] defaultAllowEvents True ""
 
 
 defaultSecretEvents : List String
