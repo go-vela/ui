@@ -8,7 +8,7 @@ module Layouts.Default.Org exposing (Model, Msg, Props, layout, map)
 import Components.Alerts as Alerts exposing (Alert)
 import Components.Footer
 import Components.Header
-import Components.Nav
+import Components.Tabs
 import Components.Util
 import Effect exposing (Effect)
 import Html exposing (..)
@@ -48,7 +48,7 @@ layout props shared route =
         |> Layout.withParentProps
             { navButtons = []
             , utilButtons =
-                [ Components.Nav.viewOrgTabs
+                [ Components.Tabs.viewOrgTabs
                     { org = props.org
                     , currentPage = Pages.NotFound
                     , maybePage = Nothing

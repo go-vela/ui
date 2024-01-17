@@ -14,8 +14,8 @@ module Pages.Build.View exposing
 import Ansi
 import Ansi.Log
 import Array
-import Components.Nav
 import Components.Svgs as SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
+import Components.Tabs
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
 import Html exposing (Html, a, button, code, details, div, li, p, small, span, strong, summary, table, td, text, tr, ul)
@@ -133,13 +133,13 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
                         PendingApproval ->
                             [ viewPreview msgs model.shared.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
                             , p [ class "notice", Util.testAttribute "approve-build-notice" ] [ text "An admin of this repository must approve the build to run" ]
-                            , viewBuildTabs model.shared org repo buildNumber model.legacyPage
+                            , Components.Tabs.viewBuildTabs model.shared { org = org, repo = repo, buildNumber = buildNumber, currentPage = model.legacyPage }
                             , content
                             ]
 
                         _ ->
                             [ viewPreview msgs model.shared.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
-                            , viewBuildTabs model.shared org repo buildNumber model.legacyPage
+                            , Components.Tabs.viewBuildTabs model.shared { org = org, repo = repo, buildNumber = buildNumber, currentPage = model.legacyPage }
                             , content
                             ]
 
@@ -426,27 +426,6 @@ viewPreview msgs openMenu showMenu now zone org repo showTimestamp build =
             , buildAnimation build.status build.number
             ]
         ]
-
-
-{-| viewBuildTabs : takes model information and current page and renders build navigation tabs
--}
-viewBuildTabs : Shared.Model -> Org -> Repo -> BuildNumber -> Page -> Html msg
-viewBuildTabs shared org repo buildNumber currentPage =
-    let
-        bm =
-            shared.repo.build
-
-        pipeline =
-            shared.pipeline
-
-        tabs =
-            [ Components.Nav.Tab "Build" currentPage (Pages.Build org repo buildNumber bm.steps.focusFragment) False True
-            , Components.Nav.Tab "Services" currentPage (Pages.BuildServices org repo buildNumber bm.services.focusFragment) False True
-            , Components.Nav.Tab "Pipeline" currentPage (Pages.BuildPipeline org repo buildNumber pipeline.expand pipeline.focusFragment) False True
-            , Components.Nav.Tab "Visualize" currentPage (Pages.BuildGraph org repo buildNumber) False True
-            ]
-    in
-    Components.Nav.viewTabs tabs "jump-bar-build"
 
 
 

@@ -2,12 +2,10 @@ module Components.Builds exposing (view, viewPreview)
 
 import Ansi
 import Ansi.Log
-import Array
-import Components.Nav
-import Components.Svgs as SvgBuilder exposing (buildStatusToIcon, stepStatusToIcon)
+import Components.Svgs as SvgBuilder exposing (buildStatusToIcon)
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
-import Html exposing (Html, a, br, button, code, details, div, em, h1, h2, h3, h4, h5, h6, li, ol, p, small, span, strong, summary, table, td, text, tr, ul)
+import Html exposing (Html, a, br, code, details, div, em, h1, li, ol, p, span, strong, summary, table, td, text, tr, ul)
 import Html.Attributes
     exposing
         ( attribute
@@ -18,62 +16,25 @@ import Html.Attributes
         , style
         , title
         )
-import Html.Events exposing (onClick)
-import List.Extra exposing (unique)
-import Pages exposing (Page)
-import Pages.Build.Graph.View
-import Pages.Build.Logs
-    exposing
-        ( bottomTrackerFocusId
-        , defaultAnsiLogModel
-        , downloadFileName
-        , getLog
-        , isEmpty
-        , topTrackerFocusId
-        )
+import List.Extra
 import Pages.Build.Model
     exposing
-        ( Download
-        , ExpandAll
-        , FocusLine
-        , FocusOn
-        , FollowResource
-        , LogLine
-        , LogsMsgs
-        , Msgs
-        , PartialModel
+        ( Msgs
         )
 import RemoteData exposing (WebData)
 import Routes
 import Shared
 import String
-import Time exposing (Posix, Zone)
-import Url
+import Time
 import Utils.Errors as Errors
-import Utils.Focus as Focus
-    exposing
-        ( ResourceID
-        , ResourceType
-        , lineFocusStyles
-        , lineRangeId
-        , resourceAndLineToFocusId
-        , resourceToFocusId
-        )
 import Utils.Helpers as Util exposing (getNameFromRef)
 import Vela
     exposing
         ( Build
         , BuildNumber
-        , Log
-        , LogFocus
         , Org
         , Repo
-        , RepoModel
-        , Service
         , Status(..)
-        , Step
-        , Steps
-        , defaultStep
         )
 
 
