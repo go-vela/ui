@@ -910,15 +910,17 @@ type alias KeyValuePair =
 
 type alias Deployment =
     { id : Int
+    , number : Int
     , repo_id : Int
     , url : String
-    , user : String
+    , created_by : String
     , commit : String
     , ref : String
     , task : String
     , target : String
     , description : String
     , payload : Maybe (List KeyValuePair)
+    , builds : Maybe (List Build)
     }
 
 
@@ -1636,6 +1638,7 @@ type alias Build =
     , started : Int
     , finished : Int
     , deploy : String
+    , deploy_number : Int
     , clone : String
     , source : String
     , title : String
@@ -1671,6 +1674,7 @@ decodeBuild =
         |> optional "started" int -1
         |> optional "finished" int -1
         |> optional "deploy" string ""
+        |> optional "deploy_number" int -1
         |> optional "clone" string ""
         |> optional "source" string ""
         |> optional "title" string ""
@@ -2590,15 +2594,17 @@ decodeDeployment : Decoder Deployment
 decodeDeployment =
     Decode.succeed Deployment
         |> optional "id" int -1
+        |> optional "number" int -1
         |> optional "repo_id" int -1
         |> optional "url" string ""
-        |> optional "user" string ""
+        |> optional "created_by" string ""
         |> optional "commit" string ""
         |> optional "ref" string ""
         |> optional "task" string ""
         |> optional "target" string ""
         |> optional "description" string ""
         |> optional "payload" decodeDeploymentParameters Nothing
+        |> optional "builds" decodeDeploymentBuilds Nothing
 
 
 decodeDeployments : Decoder (List Deployment)
@@ -2642,6 +2648,20 @@ decodeKeyValuePairs o =
 decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
     Decode.map decodeKeyValuePairs <| Decode.keyValuePairs Decode.string
+
+
+decodeDeployPairs : List Build -> Maybe (List Build)
+decodeDeployPairs o =
+    if List.isEmpty o then
+        Nothing
+
+    else
+        Just o
+
+
+decodeDeploymentBuilds : Decoder (Maybe (List Build))
+decodeDeploymentBuilds =
+    Decode.map decodeDeployPairs <| Decode.list decodeBuild
 
 
 type alias DeploymentPayload =
