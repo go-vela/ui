@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Layouts.Default.Org exposing (Model, Msg, Props, layout, map)
+module Layouts.Default.Repo exposing (Model, Msg, Props, layout, map)
 
 import Components.Alerts as Alerts exposing (Alert)
 import Components.Footer
@@ -29,12 +29,12 @@ import View exposing (View)
 
 
 type alias Props contentMsg =
-    { org : String, nil : List contentMsg }
+    { org : String, repo : String, nil : List contentMsg }
 
 
 map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
-    { org = props.org, nil = List.map fn props.nil }
+    { org = props.org, repo = props.repo, nil = List.map fn props.nil }
 
 
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
@@ -48,12 +48,12 @@ layout props shared route =
         |> Layout.withParentProps
             { navButtons = []
             , utilButtons =
-                [ Components.Tabs.viewOrgTabs
+                [ Components.Tabs.viewRepoTabs
+                    shared
                     { org = props.org
+                    , repo = props.repo
                     , currentPath = route.path
-                    , maybePage = Nothing
-                    , maybePerPage = Nothing
-                    , maybeEvent = Nothing
+                    , scheduleAllowlist = shared.velaScheduleAllowlist
                     }
                 ]
             }

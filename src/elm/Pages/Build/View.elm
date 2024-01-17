@@ -55,6 +55,7 @@ import Pages.Build.Model
         , PartialModel
         )
 import RemoteData exposing (WebData)
+import Route.Path
 import Routes
 import Shared
 import String
@@ -133,13 +134,27 @@ wrapWithBuildPreview model msgs org repo buildNumber content =
                         PendingApproval ->
                             [ viewPreview msgs model.shared.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
                             , p [ class "notice", Util.testAttribute "approve-build-notice" ] [ text "An admin of this repository must approve the build to run" ]
-                            , Components.Tabs.viewBuildTabs model.shared { org = org, repo = repo, buildNumber = buildNumber, currentPage = model.legacyPage }
+                            , Components.Tabs.viewBuildTabs model.shared
+                                { org = org
+                                , repo = repo
+                                , buildNumber = buildNumber
+                                , currentPath = Route.Path.NotFound_
+
+                                -- , currentPage = model.legacyPage
+                                }
                             , content
                             ]
 
                         _ ->
                             [ viewPreview msgs model.shared.buildMenuOpen False model.shared.time model.shared.zone org repo rm.builds.showTimestamp bld
-                            , Components.Tabs.viewBuildTabs model.shared { org = org, repo = repo, buildNumber = buildNumber, currentPage = model.legacyPage }
+                            , Components.Tabs.viewBuildTabs model.shared
+                                { org = org
+                                , repo = repo
+                                , buildNumber = buildNumber
+                                , currentPath = Route.Path.NotFound_
+
+                                -- , currentPage = model.legacyPage
+                                }
                             , content
                             ]
 

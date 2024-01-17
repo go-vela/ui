@@ -7,8 +7,9 @@ module Api.Operations_ exposing
     ( enableRepo
     , finishAuthentication
     , getCurrentUser
-    , getOrgRepoBuilds
     , getOrgRepos
+    , getRepoBuilds
+    , getRepoDeployments
     , getToken
     , getUserSourceRepos
     , logout
@@ -77,6 +78,8 @@ finishAuthentication baseUrl { code, state } =
     get baseUrl (Endpoint.Authenticate { code = code, state = state }) decodeJwtAccessToken
 
 
+{-| logout: logs the user out by deleting the refresh token cookie
+-}
 logout : String -> Session -> Request String
 logout baseUrl session =
     get baseUrl Endpoint.Logout Json.Decode.string
@@ -107,7 +110,7 @@ getUserSourceRepos baseUrl session =
         |> withAuth session
 
 
-{-| enableRepo : enable a repo
+{-| enableRepo : enables a repo
 -}
 enableRepo : String -> Session -> Http.Body -> Request Vela.Repository
 enableRepo baseUrl session body =
@@ -115,7 +118,7 @@ enableRepo baseUrl session body =
         |> withAuth session
 
 
-{-| getOrgRepos : retrieves the current users source repositories
+{-| getOrgRepos : retrieves the repositories for an org
 -}
 getOrgRepos : String -> Session -> { a | org : String } -> Request (List Vela.Repository)
 getOrgRepos baseUrl session { org } =
@@ -123,9 +126,17 @@ getOrgRepos baseUrl session { org } =
         |> withAuth session
 
 
-{-| getOrgRepoBuilds : retrieves the current users source repositories
+{-| getRepoBuilds : retrieves builds for a repo
 -}
-getOrgRepoBuilds : String -> Session -> { a | org : String, repo : String } -> Request (List Vela.Build)
-getOrgRepoBuilds baseUrl session { org, repo } =
+getRepoBuilds : String -> Session -> { a | org : String, repo : String } -> Request (List Vela.Build)
+getRepoBuilds baseUrl session { org, repo } =
     get baseUrl (Endpoint.Builds Nothing Nothing Nothing org repo) Vela.decodeBuilds
+        |> withAuth session
+
+
+{-| getRepoDeployments : retrieves deployments for a repo
+-}
+getRepoDeployments : String -> Session -> { a | org : String, repo : String } -> Request (List Vela.Deployment)
+getRepoDeployments baseUrl session { org, repo } =
+    get baseUrl (Endpoint.Deployments Nothing Nothing org repo) Vela.decodeDeployments
         |> withAuth session

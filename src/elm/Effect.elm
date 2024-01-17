@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, getOrgRepoBuilds, getOrgRepos, gotoPage, handleHttpError, logout, pushPath, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, getOrgRepos, getRepoBuilds, getRepoDeployments, gotoPage, handleHttpError, logout, pushPath, setTheme, updateFavorites
     )
 
 {-|
@@ -260,7 +260,7 @@ enableRepo options =
         |> sendCmd
 
 
-getOrgRepoBuilds :
+getRepoBuilds :
     { baseUrl : String
     , session : Session
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ) -> msg
@@ -268,10 +268,10 @@ getOrgRepoBuilds :
     , repo : String
     }
     -> Effect msg
-getOrgRepoBuilds options =
+getRepoBuilds options =
     Api.try
         options.onResponse
-        (Api.Operations_.getOrgRepoBuilds options.baseUrl options.session options)
+        (Api.Operations_.getRepoBuilds options.baseUrl options.session options)
         |> sendCmd
 
 
@@ -286,6 +286,21 @@ getOrgRepos options =
     Api.try
         options.onResponse
         (Api.Operations_.getOrgRepos options.baseUrl options.session options)
+        |> sendCmd
+
+
+getRepoDeployments :
+    { baseUrl : String
+    , session : Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ) -> msg
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+getRepoDeployments options =
+    Api.try
+        options.onResponse
+        (Api.Operations_.getRepoDeployments options.baseUrl options.session options)
         |> sendCmd
 
 

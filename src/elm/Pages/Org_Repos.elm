@@ -18,6 +18,7 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (BuildNumber, Org, Repo)
 import View exposing (View)
@@ -87,9 +88,8 @@ update msg model =
                     )
 
                 Err error ->
-                    -- todo: handle GET builds errors
-                    ( model
-                    , Effect.none
+                    ( { model | repos = Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
                     )
 
 

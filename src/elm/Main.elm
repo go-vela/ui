@@ -56,6 +56,7 @@ import Layout
 import Layouts exposing (Layout)
 import Layouts.Default
 import Layouts.Default.Org
+import Layouts.Default.Repo
 import Main.Layouts.Model
 import Main.Layouts.Msg
 import Main.Pages.Model
@@ -398,6 +399,52 @@ initLayout model layout =
             ( Main.Layouts.Model.Default_Org { default = defaultLayoutModel, org = nestedLayoutModel }
             , Cmd.batch
                 [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Org nestedLayoutEffect)
+                , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+                ]
+            )
+
+        ( Layouts.Default_Repo props, Just (Main.Layouts.Model.Default existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultNestedLayout =
+                    Layouts.Default.Repo.layout props model.shared route
+
+                ( nestedLayoutModel, nestedLayoutEffect ) =
+                    Layout.init defaultNestedLayout ()
+            in
+            ( Main.Layouts.Model.Default_Repo { default = existing.default, repo = nestedLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Repo nestedLayoutEffect)
+            )
+
+        ( Layouts.Default_Repo props, Just (Main.Layouts.Model.Default_Repo existing) ) ->
+            ( Main.Layouts.Model.Default_Repo existing
+            , Cmd.none
+            )
+
+        ( Layouts.Default_Repo props, _ ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultNestedLayout =
+                    Layouts.Default.Repo.layout props model.shared route
+
+                defaultLayout =
+                    Layouts.Default.layout (Layout.parentProps defaultNestedLayout) model.shared route
+
+                ( nestedLayoutModel, nestedLayoutEffect ) =
+                    Layout.init defaultNestedLayout ()
+
+                ( defaultLayoutModel, defaultLayoutEffect ) =
+                    Layout.init defaultLayout ()
+            in
+            ( Main.Layouts.Model.Default_Repo { default = defaultLayoutModel, repo = nestedLayoutModel }
+            , Cmd.batch
+                [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Repo nestedLayoutEffect)
                 , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
                 ]
             )
@@ -3029,6 +3076,23 @@ updateFromLayout msg model =
                 (Effect.map Main.Layouts.Msg.Default_Org >> fromLayoutEffect model)
                 (Layout.update (Layouts.Default.Org.layout props model.shared route) layoutMsg layoutModel.org)
 
+        ( Just (Layouts.Default_Repo props), Just (Main.Layouts.Model.Default_Repo layoutModel), Main.Layouts.Msg.Default layoutMsg ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Repo.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Tuple.mapBoth
+                (\newModel -> Just (Main.Layouts.Model.Default_Repo { layoutModel | default = newModel }))
+                (Effect.map Main.Layouts.Msg.Default >> fromLayoutEffect model)
+                (Layout.update (Layouts.Default.layout defaultProps model.shared route) layoutMsg layoutModel.default)
+
+        ( Just (Layouts.Default_Repo props), Just (Main.Layouts.Model.Default_Repo layoutModel), Main.Layouts.Msg.Default_Repo layoutMsg ) ->
+            Tuple.mapBoth
+                (\newModel -> Just (Main.Layouts.Model.Default_Repo { layoutModel | repo = newModel }))
+                (Effect.map Main.Layouts.Msg.Default_Repo >> fromLayoutEffect model)
+                (Layout.update (Layouts.Default.Repo.layout props model.shared route) layoutMsg layoutModel.repo)
+
         _ ->
             ( model.layout
             , Cmd.none
@@ -3214,6 +3278,21 @@ subscriptions model =
                             |> Sub.map Layout
                         ]
 
+                ( Just (Layouts.Default_Repo props), Just (Main.Layouts.Model.Default_Repo layoutModel) ) ->
+                    let
+                        defaultProps =
+                            Layouts.Default.Repo.layout props model.shared route
+                                |> Layout.parentProps
+                    in
+                    Sub.batch
+                        [ Layout.subscriptions (Layouts.Default.layout defaultProps model.shared route) layoutModel.default
+                            |> Sub.map Main.Layouts.Msg.Default
+                            |> Sub.map Layout
+                        , Layout.subscriptions (Layouts.Default.Repo.layout props model.shared route) layoutModel.repo
+                            |> Sub.map Main.Layouts.Msg.Default_Repo
+                            |> Sub.map Layout
+                        ]
+
                 _ ->
                     Sub.none
     in
@@ -3282,6 +3361,25 @@ toView model =
                         (Layouts.Default.Org.layout props model.shared route)
                         { model = layoutModel.org
                         , toContentMsg = Main.Layouts.Msg.Default_Org >> Layout
+                        , content = viewPage model
+                        }
+                }
+
+        ( Just (Layouts.Default_Repo props), Just (Main.Layouts.Model.Default_Repo layoutModel) ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Repo.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Layout.view
+                (Layouts.Default.layout defaultProps model.shared route)
+                { model = layoutModel.default
+                , toContentMsg = Main.Layouts.Msg.Default >> Layout
+                , content =
+                    Layout.view
+                        (Layouts.Default.Repo.layout props model.shared route)
+                        { model = layoutModel.repo
+                        , toContentMsg = Main.Layouts.Msg.Default_Repo >> Layout
                         , content = viewPage model
                         }
                 }
@@ -3545,6 +3643,23 @@ toLayoutUrlHookCmd oldModel model routes =
                     |> toCommands
                 ]
 
+        ( Just (Layouts.Default_Repo props), Just (Main.Layouts.Model.Default_Repo layoutModel) ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Repo.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Cmd.batch
+                [ Layout.toUrlMessages routes (Layouts.Default.layout defaultProps model.shared route)
+                    |> List.map Main.Layouts.Msg.Default
+                    |> List.map Layout
+                    |> toCommands
+                , Layout.toUrlMessages routes (Layouts.Default.Repo.layout props model.shared route)
+                    |> List.map Main.Layouts.Msg.Default_Repo
+                    |> List.map Layout
+                    |> toCommands
+                ]
+
         _ ->
             Cmd.none
 
@@ -3561,6 +3676,12 @@ hasNavigatedWithinNewLayout { from, to } =
                     True
 
                 Just ( Layouts.Default_Org _, Layouts.Default _ ) ->
+                    True
+
+                Just ( Layouts.Default_Repo _, Layouts.Default_Repo _ ) ->
+                    True
+
+                Just ( Layouts.Default_Repo _, Layouts.Default _ ) ->
                     True
 
                 _ ->

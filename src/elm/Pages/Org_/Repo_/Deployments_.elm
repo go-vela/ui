@@ -30,15 +30,17 @@ import Html.Attributes
         , scope
         )
 import Http
+import Http.Detailed
 import Layouts
 import List
 import Page exposing (Page)
 import Pager
-import RemoteData exposing (RemoteData(..))
+import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Routes
 import Shared
 import Svg.Attributes
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (Deployment, Org, Repo, Repository)
 import View exposing (View)
@@ -47,23 +49,24 @@ import View exposing (View)
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
-        { init = init
+        { init = init shared route
         , update = update
         , subscriptions = subscriptions
-        , view = view shared
+        , view = view shared route
         }
-        |> Page.withLayout (toLayout user)
+        |> Page.withLayout (toLayout user route)
 
 
 
 -- LAYOUT
 
 
-toLayout : Auth.User -> Model -> Layouts.Layout Msg
-toLayout user model =
-    Layouts.Default
-        { navButtons = []
-        , utilButtons = []
+toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
+toLayout user route model =
+    Layouts.Default_Repo
+        { org = route.params.org
+        , repo = route.params.repo
+        , nil = []
         }
 
 
@@ -72,13 +75,21 @@ toLayout user model =
 
 
 type alias Model =
-    {}
+    { deployments : WebData (List Vela.Deployment)
+    }
 
 
-init : () -> ( Model, Effect Msg )
-init () =
-    ( {}
-    , Effect.none
+init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
+init shared route () =
+    ( { deployments = RemoteData.Loading
+      }
+    , Effect.getRepoDeployments
+        { baseUrl = shared.velaAPI
+        , session = shared.session
+        , onResponse = GetRepoDeploymentsResponse
+        , org = route.params.org
+        , repo = route.params.repo
+        }
     )
 
 
@@ -87,22 +98,23 @@ init () =
 
 
 type Msg
-    = NoOp
-    | GotoPage Api.Pagination.Page
+    = GetRepoDeploymentsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ))
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model
-            , Effect.none
-            )
+        GetRepoDeploymentsResponse response ->
+            case response of
+                Ok ( _, deployments ) ->
+                    ( { model | deployments = RemoteData.Success deployments }
+                    , Effect.none
+                    )
 
-        GotoPage pageNumber ->
-            ( model
-            , Effect.gotoPage { pageNumber = pageNumber }
-            )
+                Err error ->
+                    ( { model | deployments = Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
 
 
 
@@ -118,26 +130,28 @@ subscriptions model =
 -- VIEW
 
 
-{-| view : takes current user, user input and action params and renders home page with favorited repos
--}
-view : Shared.Model -> Model -> View Msg
-view shared model =
+view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
+view shared route model =
     let
+        cloneUrlChangeMe =
+            ""
+
         table =
-            viewDeployments shared.repo
+            viewDeployments route.params.org route.params.repo cloneUrlChangeMe model.deployments
     in
     { title = "Pages.Org_.Repo_.Deployments_"
     , body =
         [ table
-        , Pager.view shared.repo.deployments.pager Pager.defaultLabels GotoPage
+
+        -- , Pager.view shared.repo.deployments.pager Pager.defaultLabels GotoPage
         ]
     }
 
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : Vela.RepoModel -> Html Msg
-viewDeployments repo =
+viewDeployments : String -> String -> String -> WebData (List Vela.Deployment) -> Html Msg
+viewDeployments org repo clone deployments =
     let
         addButton =
             a
@@ -146,7 +160,7 @@ viewDeployments repo =
                 , class "button-with-icon"
                 , Util.testAttribute "add-deployment"
                 , Routes.href <|
-                    Routes.AddDeploymentRoute repo.org repo.name
+                    Routes.AddDeploymentRoute org repo
                 ]
                 [ text "Add Deployment"
                 , FeatherIcons.plus
@@ -161,13 +175,13 @@ viewDeployments repo =
                     ]
 
         ( noRowsView, rows ) =
-            case ( repo.repo, repo.deployments.deployments ) of
-                ( RemoteData.Success repo_, RemoteData.Success s ) ->
+            case deployments of
+                RemoteData.Success d ->
                     ( text "No deployments found for this repo"
-                    , deploymentsToRows repo_ s
+                    , deploymentsToRows org repo clone d
                     )
 
-                ( _, RemoteData.Failure error ) ->
+                RemoteData.Failure error ->
                     ( span [ Util.testAttribute "repo-deployments-error" ]
                         [ text <|
                             case error of
@@ -178,24 +192,6 @@ viewDeployments repo =
 
                                         _ ->
                                             "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
-
-                                _ ->
-                                    "No deployments found for this repo, there was an error with the server"
-                        ]
-                    , []
-                    )
-
-                ( RemoteData.Failure error, _ ) ->
-                    ( span [ Util.testAttribute "repo-deployments-error" ]
-                        [ text <|
-                            case error of
-                                Http.BadStatus statusCode ->
-                                    case statusCode of
-                                        401 ->
-                                            "No repo found, most likely due to not having access to the source control provider"
-
-                                        _ ->
-                                            "No repo found, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
                                     "No deployments found for this repo, there was an error with the server"
@@ -226,9 +222,9 @@ viewDeployments repo =
 
 {-| deploymentsToRows : takes list of deployments and produces list of Table rows
 -}
-deploymentsToRows : Repository -> List Deployment -> Table.Rows Deployment Msg
-deploymentsToRows repo_ deployments =
-    List.map (\deployment -> Table.Row deployment (renderDeployment repo_)) deployments
+deploymentsToRows : String -> String -> String -> List Deployment -> Table.Rows Deployment Msg
+deploymentsToRows org repo clone deployments =
+    List.map (\deployment -> Table.Row deployment (renderDeployment org repo clone)) deployments
 
 
 {-| tableHeaders : returns table headers for deployments table
@@ -248,8 +244,8 @@ tableHeaders =
 
 {-| renderDeployment : takes deployment and renders a table row
 -}
-renderDeployment : Repository -> Deployment -> Html Msg
-renderDeployment repo_ deployment =
+renderDeployment : String -> String -> String -> Deployment -> Html Msg
+renderDeployment org repo clone deployment =
     tr [ Util.testAttribute <| "deployments-row" ]
         [ td
             [ attribute "data-label" ""
@@ -278,7 +274,7 @@ renderDeployment repo_ deployment =
             , class "break-word"
             , Util.testAttribute <| "deployments-row-commit"
             ]
-            [ a [ href <| Util.buildRefURL repo_.clone deployment.commit ]
+            [ a [ href <| Util.buildRefURL clone deployment.commit ]
                 [ text <| Util.trimCommitHash deployment.commit ]
             ]
         , td
@@ -307,7 +303,7 @@ renderDeployment repo_ deployment =
             , scope "row"
             , class "break-word"
             ]
-            [ redeployLink repo_.org repo_.name deployment ]
+            [ redeployLink org repo deployment ]
         ]
 
 

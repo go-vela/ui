@@ -158,14 +158,6 @@ update route msg model =
             , Effect.none
             )
 
-        -- THEME
-        Shared.Msg.SetTheme theme ->
-            if theme == model.theme then
-                ( model, Effect.none )
-
-            else
-                ( { model | theme = theme }, Effect.sendCmd <| Interop.setTheme <| Vela.encodeTheme theme )
-
         -- AUTH
         Shared.Msg.Logout ->
             ( model
@@ -330,6 +322,14 @@ update route msg model =
                 Ok _ ->
                     -- successfully focus the dom
                     ( model, Effect.none )
+
+        -- THEME
+        Shared.Msg.SetTheme theme ->
+            if theme == model.theme then
+                ( model, Effect.none )
+
+            else
+                ( { model | theme = theme }, Effect.sendCmd <| Interop.setTheme <| Vela.encodeTheme theme )
 
 
 subscriptions : Route () -> Model -> Sub Msg

@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Shared.Msg exposing (Msg(..))
 
 import Browser.Dom
-import Components.Alerts as Alerts exposing (Alert)
+import Components.Alerts exposing (Alert)
 import Components.Favorites as Favorites
 import Http
 import Http.Detailed
@@ -16,7 +16,6 @@ import Vela exposing (CurrentUser)
 
 type Msg
     = NoOp
-    | SetTheme Vela.Theme
       -- AUTH
     | Logout
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
@@ -37,3 +36,5 @@ type Msg
       -- DOM
     | FocusOn String
     | FocusResult (Result Browser.Dom.Error ())
+      -- THEME
+    | SetTheme Vela.Theme

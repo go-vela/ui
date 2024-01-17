@@ -3,9 +3,8 @@ module Components.Tabs exposing (Tab, view, viewBuildTabs, viewOrgTabs, viewRepo
 import Api.Pagination as Pagination
 import Html exposing (Html, a, div, span, text)
 import Html.Attributes exposing (class, classList)
-import Pages exposing (Page)
 import RemoteData
-import Routes
+import Route.Path
 import Shared
 import Utils.Helpers as Util
 import Vela
@@ -14,9 +13,9 @@ import Vela
 {-| Tab : record to represent information used by page navigation tab
 -}
 type alias Tab =
-    { name : String
-    , currentPage : Page
-    , toPage : Page
+    { currentPath : Route.Path.Path
+    , toPath : Route.Path.Path
+    , name : String
     , isAlerting : Bool
     , show : Bool
     }
@@ -36,7 +35,7 @@ view tabs testLabel =
 {-| viewTab : takes single tab record and renders jump link, uses current page to display conditional style
 -}
 viewTab : Tab -> Maybe (Html msg)
-viewTab { name, currentPage, toPage, isAlerting, show } =
+viewTab { name, currentPath, toPath, isAlerting, show } =
     if show then
         Just <|
             a
@@ -44,8 +43,8 @@ viewTab { name, currentPage, toPage, isAlerting, show } =
                     [ ( "jump", True )
                     , ( "alerting", isAlerting )
                     ]
-                , viewingTab currentPage toPage
-                , Routes.href <| Pages.toRoute toPage
+                , currentPathClass currentPath toPath
+                , Route.Path.href toPath
                 , Util.testAttribute <| "jump-" ++ name
                 ]
                 [ text name ]
@@ -68,11 +67,11 @@ viewFiller =
     span [ class "jump", class "fill" ] []
 
 
-{-| viewingTab : returns true if user is viewing this tab
+{-| currentPathClass : returns css class if current path matches tab path
 -}
-viewingTab : Page -> Page -> Html.Attribute msg
-viewingTab p1 p2 =
-    if Pages.strip p1 == Pages.strip p2 then
+currentPathClass : Route.Path.Path -> Route.Path.Path -> Html.Attribute msg
+currentPathClass p1 p2 =
+    if p1 == p2 then
         class "current"
 
     else
@@ -84,8 +83,8 @@ viewingTab p1 p2 =
 
 
 viewOrgTabs :
-    { org : String
-    , currentPage : Page
+    { currentPath : Route.Path.Path
+    , org : String
     , maybePage : Maybe Pagination.Page
     , maybePerPage : Maybe Pagination.PerPage
     , maybeEvent : Maybe String
@@ -94,9 +93,24 @@ viewOrgTabs :
 viewOrgTabs props =
     let
         tabs =
-            [ Tab "Repositories" props.currentPage (Pages.OrgRepositories props.org Nothing Nothing) False True
-            , Tab "Builds" props.currentPage (Pages.OrgBuilds props.org props.maybePage props.maybePerPage props.maybeEvent) False True
-            , Tab "Secrets" props.currentPage (Pages.OrgSecrets "native" props.org Nothing Nothing) False True
+            [ { name = "Repositories"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.Org_Repos { org = props.org }
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Builds"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Secrets"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = False
+              , show = True
+              }
             ]
     in
     view tabs "jump-bar-repo"
@@ -106,14 +120,12 @@ viewOrgTabs props =
 -- REPO
 
 
-{-| viewRepoTabs : takes RepoModel and current page and renders navigation tabs
--}
 viewRepoTabs :
     Shared.Model
     ->
-        { org : String
+        { currentPath : Route.Path.Path
+        , org : String
         , repo : String
-        , currentPage : Page
         , scheduleAllowlist : List ( Vela.Org, Vela.Repo )
         }
     -> Html msg
@@ -138,7 +150,7 @@ viewRepoTabs shared props =
                 _ ->
                     Nothing
 
-        isAlerting =
+        auditAlerting =
             case ( lastHook, lastBuild ) of
                 ( Just hook, Just build ) ->
                     case hook.status of
@@ -155,12 +167,42 @@ viewRepoTabs shared props =
             Util.checkScheduleAllowlist props.org props.repo props.scheduleAllowlist
 
         tabs =
-            [ Tab "Builds" props.currentPage (Pages.RepositoryBuilds props.org props.repo rm.builds.maybePage rm.builds.maybePerPage rm.builds.maybeEvent) False True
-            , Tab "Deployments" props.currentPage (Pages.RepositoryDeployments props.org props.repo rm.builds.maybePage rm.builds.maybePerPage) False True
-            , Tab "Secrets" props.currentPage (Pages.RepoSecrets "native" props.org props.repo Nothing Nothing) False True
-            , Tab "Schedules" props.currentPage (Pages.Schedules props.org props.repo Nothing Nothing) False showSchedules
-            , Tab "Audit" props.currentPage (Pages.Hooks props.org props.repo rm.hooks.maybePage rm.hooks.maybePerPage) isAlerting True
-            , Tab "Settings" props.currentPage (Pages.RepoSettings props.org props.repo) False True
+            [ { name = "Builds"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.Org_Repo_ { org = props.org, repo = props.repo }
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Deployments"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.Org_Repo_Deployments_ { org = props.org, repo = props.repo }
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Secrets"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Schedules"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = False
+              , show = showSchedules
+              }
+            , { name = "Audit"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = auditAlerting
+              , show = True
+              }
+            , { name = "Settings"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = False
+              , show = True
+              }
             ]
     in
     view tabs "jump-bar-repo"
@@ -170,30 +212,42 @@ viewRepoTabs shared props =
 -- BUILD
 
 
-{-| viewBuildTabs : takes model information and current page and renders build navigation tabs
--}
 viewBuildTabs :
     Shared.Model
     ->
         { org : String
         , repo : String
         , buildNumber : String
-        , currentPage : Page
+        , currentPath : Route.Path.Path
         }
     -> Html msg
 viewBuildTabs shared props =
     let
-        bm =
-            shared.repo.build
-
-        pipeline =
-            shared.pipeline
-
         tabs =
-            [ Tab "Build" props.currentPage (Pages.Build props.org props.repo props.buildNumber bm.steps.focusFragment) False True
-            , Tab "Services" props.currentPage (Pages.BuildServices props.org props.repo props.buildNumber bm.services.focusFragment) False True
-            , Tab "Pipeline" props.currentPage (Pages.BuildPipeline props.org props.repo props.buildNumber pipeline.expand pipeline.focusFragment) False True
-            , Tab "Visualize" props.currentPage (Pages.BuildGraph props.org props.repo props.buildNumber) False True
+            [ { name = "Build"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Services"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Pipeline"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = False
+              , show = True
+              }
+            , { name = "Visualize"
+              , currentPath = props.currentPath
+              , toPath = Route.Path.NotFound_
+              , isAlerting = False
+              , show = True
+              }
             ]
     in
     view tabs "jump-bar-build"

@@ -17,6 +17,7 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
+import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela exposing (BuildNumber, Org, Repo)
 import View exposing (View)
@@ -30,18 +31,19 @@ page user shared route =
         , subscriptions = subscriptions
         , view = view shared route
         }
-        |> Page.withLayout (toLayout user)
+        |> Page.withLayout (toLayout user route)
 
 
 
 -- LAYOUT
 
 
-toLayout : Auth.User -> Model -> Layouts.Layout Msg
-toLayout user model =
-    Layouts.Default
-        { navButtons = []
-        , utilButtons = []
+toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
+toLayout user route model =
+    Layouts.Default_Repo
+        { org = route.params.org
+        , repo = route.params.repo
+        , nil = []
         }
 
 
@@ -60,10 +62,10 @@ init shared route () =
     ( { builds = RemoteData.Loading
       , showActionsMenus = []
       }
-    , Effect.getOrgRepoBuilds
+    , Effect.getRepoBuilds
         { baseUrl = shared.velaAPI
         , session = shared.session
-        , onResponse = GetOrgRepoBuildsResponse
+        , onResponse = GetRepoBuildsResponse
         , org = route.params.org
         , repo = route.params.repo
         }
@@ -75,7 +77,7 @@ init shared route () =
 
 
 type Msg
-    = GetOrgRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
+    = GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | ApproveBuild Org Repo BuildNumber
     | RestartBuild Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
@@ -85,7 +87,7 @@ type Msg
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        GetOrgRepoBuildsResponse response ->
+        GetRepoBuildsResponse response ->
             case response of
                 Ok ( _, builds ) ->
                     ( { model | builds = RemoteData.Success builds }
@@ -93,9 +95,8 @@ update msg model =
                     )
 
                 Err error ->
-                    -- todo: handle GET builds errors
-                    ( model
-                    , Effect.none
+                    ( { model | builds = Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
                     )
 
         ApproveBuild _ _ _ ->
