@@ -7,6 +7,7 @@ module Pages.Org_.Repo_.Deployments_ exposing (..)
 
 import Api.Pagination
 import Auth
+import Components.Pager
 import Components.Svgs as SvgBuilder
 import Components.Table as Table
 import Effect exposing (Effect)
@@ -34,7 +35,6 @@ import Http.Detailed
 import Layouts
 import List
 import Page exposing (Page)
-import Pager
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Routes

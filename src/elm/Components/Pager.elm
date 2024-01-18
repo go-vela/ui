@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pager exposing (defaultLabels, prevNextLabels, view)
+module Components.Pager exposing (defaultLabels, prevNextLabels, view)
 
 import Api.Pagination as Pagination
 import FeatherIcons

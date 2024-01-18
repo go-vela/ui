@@ -20,6 +20,7 @@ import Browser.Events exposing (Visibility(..))
 import Browser.Navigation
 import Components.Alerts as Alerts exposing (Alert)
 import Components.Favorites as Favorites exposing (addFavorite, toFavorite, toggleFavorite)
+import Components.Pager
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
@@ -65,7 +66,6 @@ import Maybe
 import Maybe.Extra exposing (unwrap)
 import Organization
 import Page
-import Pager
 import Pages exposing (Page)
 import Pages.Account.Login_
 import Pages.Account.Settings_
@@ -5855,16 +5855,16 @@ viewPageUNUSED model =
         Pages.OrgRepositories org maybePage _ ->
             ( org ++ Util.pageToString maybePage
             , div []
-                [ Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
+                [ Components.Pager.view model.shared.repo.orgRepos.pager Components.Pager.prevNextLabels GotoPage
                 , lazy2 Organization.viewOrgRepos org model.shared.repo.orgRepos
-                , Pager.view model.shared.repo.orgRepos.pager Pager.prevNextLabels GotoPage
+                , Components.Pager.view model.shared.repo.orgRepos.pager Components.Pager.prevNextLabels GotoPage
                 ]
             )
 
         Pages.Hooks org repo maybePage _ ->
             ( String.join "/" [ org, repo ] ++ " hooks" ++ Util.pageToString maybePage
             , div []
-                [ Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
+                [ Components.Pager.view model.shared.repo.hooks.pager Components.Pager.defaultLabels GotoPage
                 , lazy2 Pages.Hooks.view
                     { hooks = model.shared.repo.hooks
                     , time = model.shared.time
@@ -5872,7 +5872,7 @@ viewPageUNUSED model =
                     , repo = model.shared.repo.name
                     }
                     RedeliverHook
-                , Pager.view model.shared.repo.hooks.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.hooks.pager Components.Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -5893,7 +5893,7 @@ viewPageUNUSED model =
             ( String.join "/" [ org ] ++ " " ++ engine ++ " org secrets" ++ Util.pageToString maybePage
             , div []
                 [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewOrgSecrets model False True
-                , Pager.view model.secretsModel.orgSecretsPager Pager.prevNextLabels GotoPage
+                , Components.Pager.view model.secretsModel.orgSecretsPager Components.Pager.prevNextLabels GotoPage
                 , Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model True False
                 ]
             )
@@ -5902,7 +5902,7 @@ viewPageUNUSED model =
             ( String.join "/" [ org, team ] ++ " " ++ engine ++ " shared secrets"
             , div []
                 [ Html.map SecretsUpdate <| lazy3 Pages.Secrets.View.viewSharedSecrets model False True
-                , Pager.view model.secretsModel.sharedSecretsPager Pager.prevNextLabels GotoPage
+                , Components.Pager.view model.secretsModel.sharedSecretsPager Components.Pager.prevNextLabels GotoPage
                 ]
             )
 
@@ -5950,7 +5950,7 @@ viewPageUNUSED model =
             ( String.join "/" [ org, repo ] ++ " deployments" ++ Util.pageToString maybePage
             , div []
                 [ lazy3 Pages.Deployments.View.viewDeployments model.shared.repo org repo
-                , Pager.view model.shared.repo.deployments.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.deployments.pager Components.Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -5968,7 +5968,7 @@ viewPageUNUSED model =
             let
                 viewPager =
                     if Util.checkScheduleAllowlist org repo model.shared.velaScheduleAllowlist then
-                        Pager.view model.schedulesModel.pager Pager.defaultLabels GotoPage
+                        Components.Pager.view model.schedulesModel.pager Components.Pager.defaultLabels GotoPage
 
                     else
                         text ""
@@ -6006,9 +6006,9 @@ viewPageUNUSED model =
                     [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.builds.pager Components.Pager.defaultLabels GotoPage
                 , lazy7 Organization.viewBuilds model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org maybeEvent
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.builds.pager Components.Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -6035,9 +6035,9 @@ viewPageUNUSED model =
                     [ viewBuildsFilter shouldRenderFilter org repo maybeEvent
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.builds.pager Components.Pager.defaultLabels GotoPage
                 , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo maybeEvent
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.builds.pager Components.Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -6064,9 +6064,9 @@ viewPageUNUSED model =
                     [ viewBuildsFilter shouldRenderFilter org repo (Just "pull_request")
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.builds.pager Components.Pager.defaultLabels GotoPage
                 , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "pull_request")
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.builds.pager Components.Pager.defaultLabels GotoPage
                 ]
             )
 
@@ -6093,9 +6093,9 @@ viewPageUNUSED model =
                     [ viewBuildsFilter shouldRenderFilter org repo (Just "tag")
                     , viewTimeToggle shouldRenderFilter model.shared.repo.builds.showTimestamp
                     ]
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.builds.pager Components.Pager.defaultLabels GotoPage
                 , lazy8 Pages.Builds.view model.shared.repo.builds buildMsgs model.shared.buildMenuOpen model.shared.time model.shared.zone org repo (Just "tag")
-                , Pager.view model.shared.repo.builds.pager Pager.defaultLabels GotoPage
+                , Components.Pager.view model.shared.repo.builds.pager Components.Pager.defaultLabels GotoPage
                 ]
             )
 
