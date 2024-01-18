@@ -84,6 +84,7 @@ type alias Props msg =
     , showActionsMenus : List Int
     , maybeEvent : Maybe String
     , showFullTimestamps : Bool
+    , showActionsMenuBool : Bool
     }
 
 
@@ -158,7 +159,7 @@ view shared props =
 viewPreview : Shared.Model -> Props msg -> Build -> Html msg
 viewPreview shared props build =
     let
-        showMenu =
+        isMenuOpen =
             List.member build.id props.showActionsMenus
 
         org =
@@ -259,7 +260,7 @@ viewPreview shared props build =
                     text ""
 
         actionsMenu =
-            if showMenu then
+            if props.showActionsMenuBool then
                 details (buildMenuBaseClassList :: buildMenuAttributeList)
                     [ summary [ class "summary", Util.onClickPreventDefault (props.msgs.showHideActionsMenus (Just build.id) Nothing), Util.testAttribute "build-menu" ]
                         [ text "Actions"

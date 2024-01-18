@@ -264,6 +264,7 @@ view shared route model =
             , showActionsMenus = model.showActionsMenus
             , maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
+            , showActionsMenuBool = True
             }
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
