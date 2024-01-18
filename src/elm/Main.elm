@@ -1032,6 +1032,9 @@ update msg model =
                 route =
                     Route.fromUrl () model.url
 
+                -- todo: how do we capture the scenario where
+                -- the user is logged off a page and we need to
+                -- redirect them back to the page they were on?
                 velaRedirect =
                     case shared.velaRedirect of
                         "" ->
@@ -1044,14 +1047,6 @@ update msg model =
 
                         _ ->
                             shared.velaRedirect
-
-                redirectPage =
-                    case model.page of
-                        Main.Pages.Model.AccountLogin_ _ ->
-                            Cmd.none
-
-                        _ ->
-                            Browser.Navigation.pushUrl model.key <| Route.Path.toString Route.Path.Login_
             in
             case response of
                 Ok ( _, token ) ->
@@ -1082,7 +1077,7 @@ update msg model =
                         | shared =
                             { shared
                                 | session = Authenticated newSessionDetails
-                                , velaRedirect = velaRedirect
+                                , velaRedirect = ""
                             }
                       }
                     , Cmd.batch <|
@@ -1093,6 +1088,15 @@ update msg model =
                     )
 
                 Err error ->
+                    let
+                        redirectPage =
+                            case model.page of
+                                Main.Pages.Model.AccountLogin_ _ ->
+                                    Cmd.none
+
+                                _ ->
+                                    Browser.Navigation.pushUrl model.key <| Route.Path.toString Route.Path.Login_
+                    in
                     case error of
                         Http.Detailed.BadStatus meta _ ->
                             case meta.statusCode of
@@ -1152,6 +1156,10 @@ update msg model =
                             )
 
         RefreshAccessToken ->
+            let
+                _ =
+                    Debug.log "refreshing access token"
+            in
             ( model, Api.Api.try TokenResponse <| Api.Operations_.getToken shared.velaAPI )
 
         -- END NEW WORLD

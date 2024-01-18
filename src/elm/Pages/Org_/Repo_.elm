@@ -139,12 +139,32 @@ update shared route msg model =
             )
 
         ApproveBuild _ _ _ ->
+            let
+                _ =
+                    Debug.log "approve build clicked" ""
+
+                -- todo:
+                -- 1. write func in Effect.elm for "approveBuild"
+                -- 2. write Api.Operations_.approveBuild that uses it
+                --   look at the code in Api.Operations and the other funcs in Api.Operations_ for inspiration
+                -- 3. write ApproveBuildResponse Msg in this file
+                -- 4. in ApproveBuildResponse, create a toasty?
+                -- look at how it's done in Main.elm
+            in
             ( model, Effect.none )
 
         RestartBuild _ _ _ ->
+            let
+                _ =
+                    Debug.log "restart build clicked" ""
+            in
             ( model, Effect.none )
 
         CancelBuild _ _ _ ->
+            let
+                _ =
+                    Debug.log "cancel build clicked" ""
+            in
             ( model, Effect.none )
 
         ShowHideActionsMenus build show ->
