@@ -454,13 +454,8 @@ renderListCell items none itemClassName =
                         listItemView itemClassName item
                     )
 
-
-
--- rename this XD
-
-
-fieldToConcatList : Bool -> String -> List String -> List String
-fieldToConcatList enabled label inList =
+appendLabel : Bool -> String -> List String -> List String
+appendLabel enabled label inList =
     inList
         ++ (if enabled then
                 [ label ]
@@ -473,16 +468,16 @@ fieldToConcatList enabled label inList =
 allowEventsToList : AllowEvents -> List String
 allowEventsToList events =
     []
-        |> fieldToConcatList events.push.branch "push"
-        |> fieldToConcatList events.push.tag "tag"
-        |> fieldToConcatList events.pull.opened "pull_request:opened"
-        |> fieldToConcatList events.pull.synchronize "pull_request:synchronize"
-        |> fieldToConcatList events.pull.edited "pull_request:edited"
-        |> fieldToConcatList events.pull.reopened "pull_request:reopened"
-        |> fieldToConcatList events.deploy.created "deployment"
-        |> fieldToConcatList events.comment.created "comment:created"
-        |> fieldToConcatList events.comment.edited "comment:edited"
-        |> fieldToConcatList events.schedule.run "schedule"
+        |> appendLabel events.push.branch "push"
+        |> appendLabel events.push.tag "tag"
+        |> appendLabel events.pull.opened "pull_request:opened"
+        |> appendLabel events.pull.synchronize "pull_request:synchronize"
+        |> appendLabel events.pull.edited "pull_request:edited"
+        |> appendLabel events.pull.reopened "pull_request:reopened"
+        |> appendLabel events.deploy.created "deployment"
+        |> appendLabel events.comment.created "comment:created"
+        |> appendLabel events.comment.edited "comment:edited"
+        |> appendLabel events.schedule.run "schedule"
 
 
 {-| listItemView : takes classname, text and size constraints and renders a list element
