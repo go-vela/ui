@@ -128,15 +128,15 @@ getOrgRepos baseUrl session { org } =
 
 {-| getRepoBuilds : retrieves builds for a repo
 -}
-getRepoBuilds : String -> Session -> { a | org : String, repo : String } -> Request (List Vela.Build)
-getRepoBuilds baseUrl session { org, repo } =
-    get baseUrl (Endpoint.Builds Nothing Nothing Nothing org repo) Vela.decodeBuilds
+getRepoBuilds : String -> Session -> { a | org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String } -> Request (List Vela.Build)
+getRepoBuilds baseUrl session options =
+    get baseUrl (Endpoint.Builds options.pageNumber options.perPage options.maybeEvent options.org options.repo) Vela.decodeBuilds
         |> withAuth session
 
 
 {-| getRepoDeployments : retrieves deployments for a repo
 -}
-getRepoDeployments : String -> Session -> { a | org : String, repo : String } -> Request (List Vela.Deployment)
-getRepoDeployments baseUrl session { org, repo } =
-    get baseUrl (Endpoint.Deployments Nothing Nothing org repo) Vela.decodeDeployments
+getRepoDeployments : String -> Session -> { a | org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int } -> Request (List Vela.Deployment)
+getRepoDeployments baseUrl session options =
+    get baseUrl (Endpoint.Deployments options.pageNumber options.perPage options.org options.repo) Vela.decodeDeployments
         |> withAuth session

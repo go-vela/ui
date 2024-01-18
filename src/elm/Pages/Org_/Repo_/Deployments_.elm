@@ -10,6 +10,7 @@ import Auth
 import Components.Pager
 import Components.Svgs as SvgBuilder
 import Components.Table as Table
+import Dict
 import Effect exposing (Effect)
 import FeatherIcons
 import Html
@@ -33,16 +34,17 @@ import Html.Attributes
 import Http
 import Http.Detailed
 import Layouts
+import LinkHeader exposing (WebLink)
 import List
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
-import Routes
+import Route.Path
 import Shared
 import Svg.Attributes
 import Utils.Errors as Errors
 import Utils.Helpers as Util
-import Vela exposing (Deployment, Org, Repo, Repository)
+import Vela
 import View exposing (View)
 
 
@@ -50,7 +52,7 @@ page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Pag
 page user shared route =
     Page.new
         { init = init shared route
-        , update = update
+        , update = update shared route
         , subscriptions = subscriptions
         , view = view shared route
         }
@@ -76,17 +78,21 @@ toLayout user route model =
 
 type alias Model =
     { deployments : WebData (List Vela.Deployment)
+    , pager : List WebLink
     }
 
 
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { deployments = RemoteData.Loading
+      , pager = []
       }
     , Effect.getRepoDeployments
         { baseUrl = shared.velaAPI
         , session = shared.session
         , onResponse = GetRepoDeploymentsResponse
+        , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+        , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
         , org = route.params.org
         , repo = route.params.repo
         }
@@ -99,15 +105,19 @@ init shared route () =
 
 type Msg
     = GetRepoDeploymentsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ))
+    | GotoPage Int
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
+update shared route msg model =
     case msg of
         GetRepoDeploymentsResponse response ->
             case response of
-                Ok ( _, deployments ) ->
-                    ( { model | deployments = RemoteData.Success deployments }
+                Ok ( meta, deployments ) ->
+                    ( { model
+                        | deployments = RemoteData.Success deployments
+                        , pager = Api.Pagination.get meta.headers
+                      }
                     , Effect.none
                     )
 
@@ -115,6 +125,27 @@ update msg model =
                     ( { model | deployments = Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
+
+        GotoPage pageNumber ->
+            ( { model | deployments = RemoteData.Loading }
+            , Effect.batch
+                [ Effect.replaceRoute
+                    { path = route.path
+                    , query =
+                        Dict.update "page" (\_ -> Just <| String.fromInt pageNumber) route.query
+                    , hash = route.hash
+                    }
+                , Effect.getRepoDeployments
+                    { baseUrl = shared.velaAPI
+                    , session = shared.session
+                    , onResponse = GetRepoDeploymentsResponse
+                    , pageNumber = Just pageNumber
+                    , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                    , org = route.params.org
+                    , repo = route.params.repo
+                    }
+                ]
+            )
 
 
 
@@ -132,26 +163,18 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    let
-        cloneUrlChangeMe =
-            ""
-
-        table =
-            viewDeployments route.params.org route.params.repo cloneUrlChangeMe model.deployments
-    in
     { title = "Pages.Org_.Repo_.Deployments_"
     , body =
-        [ table
-
-        -- , Pager.view shared.repo.deployments.pager Pager.defaultLabels GotoPage
+        [ viewDeployments route.params.org route.params.repo model.deployments
+        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }
 
 
 {-| viewDeployments : renders a list of deployments
 -}
-viewDeployments : String -> String -> String -> WebData (List Vela.Deployment) -> Html Msg
-viewDeployments org repo clone deployments =
+viewDeployments : String -> String -> WebData (List Vela.Deployment) -> Html Msg
+viewDeployments org repo deployments =
     let
         addButton =
             a
@@ -159,8 +182,10 @@ viewDeployments org repo clone deployments =
                 , class "-outline"
                 , class "button-with-icon"
                 , Util.testAttribute "add-deployment"
-                , Routes.href <|
-                    Routes.AddDeploymentRoute org repo
+
+                -- todo: need add deployment path to do this
+                -- , Route.Path.href <|
+                --     Route.Path.Org_Repo_Deployments_ { org = org, repo = repo }
                 ]
                 [ text "Add Deployment"
                 , FeatherIcons.plus
@@ -178,7 +203,7 @@ viewDeployments org repo clone deployments =
             case deployments of
                 RemoteData.Success d ->
                     ( text "No deployments found for this repo"
-                    , deploymentsToRows org repo clone d
+                    , deploymentsToRows org repo d
                     )
 
                 RemoteData.Failure error ->
@@ -222,9 +247,9 @@ viewDeployments org repo clone deployments =
 
 {-| deploymentsToRows : takes list of deployments and produces list of Table rows
 -}
-deploymentsToRows : String -> String -> String -> List Deployment -> Table.Rows Deployment Msg
-deploymentsToRows org repo clone deployments =
-    List.map (\deployment -> Table.Row deployment (renderDeployment org repo clone)) deployments
+deploymentsToRows : String -> String -> List Vela.Deployment -> Table.Rows Vela.Deployment Msg
+deploymentsToRows org repo deployments =
+    List.map (\deployment -> Table.Row deployment (renderDeployment org repo)) deployments
 
 
 {-| tableHeaders : returns table headers for deployments table
@@ -244,8 +269,14 @@ tableHeaders =
 
 {-| renderDeployment : takes deployment and renders a table row
 -}
-renderDeployment : String -> String -> String -> Deployment -> Html Msg
-renderDeployment org repo clone deployment =
+renderDeployment : String -> String -> Vela.Deployment -> Html Msg
+renderDeployment org repo deployment =
+    let
+        -- todo: somehow build the repo clone link and append the commit hash
+        -- Util.buildRepoCloneLink org repo
+        repoCloneLink =
+            ""
+    in
     tr [ Util.testAttribute <| "deployments-row" ]
         [ td
             [ attribute "data-label" ""
@@ -274,7 +305,7 @@ renderDeployment org repo clone deployment =
             , class "break-word"
             , Util.testAttribute <| "deployments-row-commit"
             ]
-            [ a [ href <| Util.buildRefURL clone deployment.commit ]
+            [ a [ href <| Util.buildRefURL repoCloneLink deployment.commit ]
                 [ text <| Util.trimCommitHash deployment.commit ]
             ]
         , td
@@ -309,12 +340,16 @@ renderDeployment org repo clone deployment =
 
 {-| redeployLink : takes org, repo and deployment and renders a link to redirect to the promote deployment page
 -}
-redeployLink : Org -> Repo -> Deployment -> Html Msg
+redeployLink : String -> String -> Vela.Deployment -> Html Msg
 redeployLink org repo deployment =
     a
         [ class "redeploy-link"
         , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
-        , Routes.href <| Routes.PromoteDeployment org repo (String.fromInt deployment.id)
+
+        -- todo: need add deployment path to do this
+        -- , Routes.href <| Routes.PromoteDeployment org repo (String.fromInt deployment.id)
+        -- , Route.Path.href <|
+        --     Route.Path.Org_Repo_Deployments_ { org = org, repo = repo }
         , Util.testAttribute "redeploy-deployment"
         ]
         [ text "Redeploy"

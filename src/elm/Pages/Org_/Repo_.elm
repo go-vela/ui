@@ -5,12 +5,16 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Org_.Repo_ exposing (Model, Msg, page, view)
 
+import Api.Pagination
 import Auth
 import Components.Builds
+import Components.Pager
+import Dict
 import Effect exposing (Effect)
 import Http
 import Http.Detailed
 import Layouts
+import LinkHeader exposing (WebLink)
 import List
 import Maybe.Extra
 import Page exposing (Page)
@@ -27,7 +31,7 @@ page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Pag
 page user shared route =
     Page.new
         { init = init shared route
-        , update = update
+        , update = update shared route
         , subscriptions = subscriptions
         , view = view shared route
         }
@@ -53,6 +57,8 @@ toLayout user route model =
 
 type alias Model =
     { builds : WebData Vela.Builds
+    , pager : List WebLink
+    , showFullTimestamps : Bool
     , showActionsMenus : List Int
     }
 
@@ -60,12 +66,17 @@ type alias Model =
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { builds = RemoteData.Loading
+      , pager = []
+      , showFullTimestamps = False
       , showActionsMenus = []
       }
     , Effect.getRepoBuilds
         { baseUrl = shared.velaAPI
         , session = shared.session
         , onResponse = GetRepoBuildsResponse
+        , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+        , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+        , maybeEvent = Dict.get "event" route.query
         , org = route.params.org
         , repo = route.params.repo
         }
@@ -78,19 +89,25 @@ init shared route () =
 
 type Msg
     = GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
+    | GotoPage Int
     | ApproveBuild Org Repo BuildNumber
     | RestartBuild Org Repo BuildNumber
     | CancelBuild Org Repo BuildNumber
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
+    | FilterByEvent (Maybe String)
+    | ShowHideFullTimestamps
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
+update shared route msg model =
     case msg of
         GetRepoBuildsResponse response ->
             case response of
-                Ok ( _, builds ) ->
-                    ( { model | builds = RemoteData.Success builds }
+                Ok ( meta, builds ) ->
+                    ( { model
+                        | builds = RemoteData.Success builds
+                        , pager = Api.Pagination.get meta.headers
+                      }
                     , Effect.none
                     )
 
@@ -98,6 +115,28 @@ update msg model =
                     ( { model | builds = Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
+
+        GotoPage pageNumber ->
+            ( { model | builds = RemoteData.Loading }
+            , Effect.batch
+                [ Effect.pushRoute
+                    { path = route.path
+                    , query =
+                        Dict.update "page" (\_ -> Just <| String.fromInt pageNumber) route.query
+                    , hash = route.hash
+                    }
+                , Effect.getRepoBuilds
+                    { baseUrl = shared.velaAPI
+                    , session = shared.session
+                    , onResponse = GetRepoBuildsResponse
+                    , pageNumber = Just pageNumber
+                    , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                    , maybeEvent = Dict.get "event" route.query
+                    , org = route.params.org
+                    , repo = route.params.repo
+                    }
+                ]
+            )
 
         ApproveBuild _ _ _ ->
             ( model, Effect.none )
@@ -138,6 +177,34 @@ update msg model =
             , Effect.none
             )
 
+        FilterByEvent maybeEvent ->
+            ( { model
+                | builds = RemoteData.Loading
+                , pager = []
+              }
+            , Effect.batch
+                [ Effect.pushRoute
+                    { path = route.path
+                    , query =
+                        Dict.update "event" (\_ -> maybeEvent) route.query
+                    , hash = route.hash
+                    }
+                , Effect.getRepoBuilds
+                    { baseUrl = shared.velaAPI
+                    , session = shared.session
+                    , onResponse = GetRepoBuildsResponse
+                    , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                    , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                    , maybeEvent = maybeEvent
+                    , org = route.params.org
+                    , repo = route.params.repo
+                    }
+                ]
+            )
+
+        ShowHideFullTimestamps ->
+            ( { model | showFullTimestamps = not model.showFullTimestamps }, Effect.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -161,18 +228,23 @@ view shared route model =
             , cancelBuild = CancelBuild
             , showHideActionsMenus = ShowHideActionsMenus
             }
-
-        body =
-            Components.Builds.view shared
-                { msgs = msgs
-                , builds = model.builds
-                , showActionsMenus = model.showActionsMenus
-                , maybeEvent = Nothing
-                , showFullTimestamps = True
-                }
     in
     { title = route.params.org ++ "/" ++ route.params.repo
     , body =
-        [ body
+        [ Components.Builds.viewHeader
+            { maybeEvent = Dict.get "event" route.query
+            , showFullTimestamps = model.showFullTimestamps
+            , filterByEvent = FilterByEvent
+            , showHideFullTimestamps = ShowHideFullTimestamps
+            }
+        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
+        , Components.Builds.view shared
+            { msgs = msgs
+            , builds = model.builds
+            , showActionsMenus = model.showActionsMenus
+            , maybeEvent = Dict.get "event" route.query
+            , showFullTimestamps = model.showFullTimestamps
+            }
+        , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }

@@ -1,21 +1,49 @@
-module Components.Builds exposing (view, viewPreview)
+module Components.Builds exposing (view, viewHeader)
 
 import Ansi
 import Ansi.Log
 import Components.Svgs as SvgBuilder exposing (buildStatusToIcon)
 import DateFormat.Relative exposing (relativeTime)
 import FeatherIcons
-import Html exposing (Html, a, br, code, details, div, em, h1, li, ol, p, span, strong, summary, table, td, text, tr, ul)
+import Html
+    exposing
+        ( Html
+        , a
+        , br
+        , code
+        , details
+        , div
+        , em
+        , h1
+        , input
+        , label
+        , li
+        , ol
+        , p
+        , span
+        , strong
+        , summary
+        , table
+        , td
+        , text
+        , tr
+        , ul
+        )
 import Html.Attributes
     exposing
         ( attribute
+        , checked
         , class
         , classList
+        , for
         , href
         , id
+        , name
         , style
         , title
+        , type_
         )
+import Html.Events exposing (onClick)
 import List.Extra
 import Pages.Build.Model
     exposing
@@ -714,3 +742,73 @@ colorClassesAnsi suffix bold mc =
 
         Just Ansi.BrightWhite ->
             [ brightPrefix ++ "white" ++ suffix ]
+
+
+viewHeader :
+    { maybeEvent : Maybe String
+    , showFullTimestamps : Bool
+    , filterByEvent : Maybe String -> msg
+    , showHideFullTimestamps : msg
+    }
+    -> Html msg
+viewHeader props =
+    div [ class "build-bar" ]
+        [ viewFilter props.maybeEvent props.filterByEvent
+        , viewTimeToggle props.showFullTimestamps props.showHideFullTimestamps
+        ]
+
+
+viewFilter : Maybe String -> (Maybe String -> msg) -> Html msg
+viewFilter maybeEvent filterByEventMsg =
+    let
+        eventToMaybe event =
+            case event of
+                "all" ->
+                    Nothing
+
+                _ ->
+                    Just event
+
+        eventEnum =
+            [ "all"
+            , "push"
+            , "pull_request"
+            , "tag"
+            , "deployment"
+            , "schedule"
+            , "comment"
+            ]
+    in
+    div [ class "form-controls", class "build-filters", Util.testAttribute "build-filter" ] <|
+        div [] [ text "Filter by Event:" ]
+            :: List.map
+                (\e ->
+                    div [ class "form-control" ]
+                        [ input
+                            [ type_ "radio"
+                            , id <| "filter-" ++ e
+                            , name "build-filter"
+                            , Util.testAttribute <| "build-filter-" ++ e
+                            , checked <| maybeEvent == eventToMaybe e
+                            , onClick <| filterByEventMsg (eventToMaybe e)
+                            , attribute "aria-label" <| "filter to show " ++ e ++ " events"
+                            ]
+                            []
+                        , label
+                            [ class "form-label"
+                            , for <| "filter-" ++ e
+                            ]
+                            [ text <| String.replace "_" " " e ]
+                        ]
+                )
+                eventEnum
+
+
+viewTimeToggle : Bool -> msg -> Html msg
+viewTimeToggle showTimestamp showHideFullTimestampMsg =
+    div [ class "form-controls", class "-stack", class "time-toggle" ]
+        [ div [ class "form-control" ]
+            [ input [ type_ "checkbox", checked showTimestamp, onClick showHideFullTimestampMsg, id "checkbox-time-toggle", Util.testAttribute "time-toggle" ] []
+            , label [ class "form-label", for "checkbox-time-toggle" ] [ text "show full timestamps" ]
+            ]
+        ]

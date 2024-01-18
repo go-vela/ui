@@ -10,6 +10,7 @@ import Auth.Session exposing (Session(..))
 import Dict
 import Route exposing (Route)
 import Route.Path
+import Route.Query
 import Shared
 import View exposing (View)
 
@@ -34,8 +35,7 @@ onPageLoad shared route =
                 { path = Route.Path.Login_
                 , query =
                     Dict.fromList
-                        [ ( "from", route.url.path )
-                        ]
+                        [ ( "from", Route.toString route ) ]
                 , hash = Nothing
                 }
 

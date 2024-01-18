@@ -267,6 +267,14 @@ update route msg model =
                 _ ->
                     ( model, Effect.none )
 
+        -- THEME
+        Shared.Msg.SetTheme options ->
+            if options.theme == model.theme then
+                ( model, Effect.none )
+
+            else
+                ( { model | theme = options.theme }, Effect.sendCmd <| Interop.setTheme <| Vela.encodeTheme options.theme )
+
         -- ALERTS
         Shared.Msg.AlertsUpdate subMsg ->
             Alerting.update Alerts.successConfig Shared.Msg.AlertsUpdate subMsg model
@@ -309,8 +317,8 @@ update route msg model =
             )
 
         -- DOM
-        Shared.Msg.FocusOn target ->
-            ( model, Browser.Dom.focus target |> Task.attempt Shared.Msg.FocusResult |> Effect.sendCmd )
+        Shared.Msg.FocusOn options ->
+            ( model, Browser.Dom.focus options.target |> Task.attempt Shared.Msg.FocusResult |> Effect.sendCmd )
 
         Shared.Msg.FocusResult result ->
             -- handle success or failure here
@@ -322,14 +330,6 @@ update route msg model =
                 Ok _ ->
                     -- successfully focus the dom
                     ( model, Effect.none )
-
-        -- THEME
-        Shared.Msg.SetTheme theme ->
-            if theme == model.theme then
-                ( model, Effect.none )
-
-            else
-                ( { model | theme = theme }, Effect.sendCmd <| Interop.setTheme <| Vela.encodeTheme theme )
 
 
 subscriptions : Route () -> Model -> Sub Msg

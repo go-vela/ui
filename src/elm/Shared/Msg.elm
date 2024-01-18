@@ -27,6 +27,8 @@ type Msg
     | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
       -- PAGINATION
     | GotoPage { pageNumber : Int }
+      -- THEME
+    | SetTheme { theme : Vela.Theme }
       -- ALERTS
     | AddAlertError { content : String, addToastIfUnique : Bool }
     | AddAlertSuccess { content : String, addToastIfUnique : Bool }
@@ -34,7 +36,5 @@ type Msg
       -- ERRORS
     | HandleHttpError (Http.Detailed.Error String)
       -- DOM
-    | FocusOn String
+    | FocusOn { target : String }
     | FocusResult (Result Browser.Dom.Error ())
-      -- THEME
-    | SetTheme Vela.Theme

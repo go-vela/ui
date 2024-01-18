@@ -217,9 +217,9 @@ toCmd options effect =
 -- CUSTOM EFFECTS
 
 
-setTheme : Vela.Theme -> Effect msg
-setTheme theme =
-    SendSharedMsg <| Shared.Msg.SetTheme theme
+setTheme : { theme : Vela.Theme } -> Effect msg
+setTheme options =
+    SendSharedMsg <| Shared.Msg.SetTheme options
 
 
 logout : {} -> Effect msg
@@ -264,6 +264,9 @@ getRepoBuilds :
     { baseUrl : String
     , session : Session
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ) -> msg
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , maybeEvent : Maybe String
     , org : String
     , repo : String
     }
@@ -293,6 +296,8 @@ getRepoDeployments :
     { baseUrl : String
     , session : Session
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ) -> msg
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
     , org : String
     , repo : String
     }
@@ -331,4 +336,4 @@ alertsUpdate options =
 
 focusOn : { target : String } -> Effect msg
 focusOn options =
-    SendSharedMsg <| Shared.Msg.FocusOn options.target
+    SendSharedMsg <| Shared.Msg.FocusOn options

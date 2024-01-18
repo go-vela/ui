@@ -79,11 +79,11 @@ init shared _ =
 
 type Msg
     = NoOp
-    | CopyAlert String
-    | AlertsUpdate (Alerting.Msg Alert)
-    | SetTheme Theme
     | ShowHideIdentity (Maybe Bool)
     | ShowHideHelp (Maybe Bool)
+    | SetTheme Theme
+    | AlertsUpdate (Alerting.Msg Alert)
+    | CopyAlert String
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -93,19 +93,6 @@ update msg model =
             ( model
             , Effect.none
             )
-
-        CopyAlert contentCopied ->
-            ( model
-            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
-            )
-
-        AlertsUpdate alert ->
-            ( model
-            , Effect.alertsUpdate { alert = alert }
-            )
-
-        SetTheme theme ->
-            ( model, Effect.setTheme theme )
 
         ShowHideIdentity show ->
             ( { model
@@ -131,6 +118,19 @@ update msg model =
                             not model.showHelp
               }
             , Effect.none
+            )
+
+        SetTheme theme ->
+            ( model, Effect.setTheme { theme = theme } )
+
+        AlertsUpdate alert ->
+            ( model
+            , Effect.alertsUpdate { alert = alert }
+            )
+
+        CopyAlert contentCopied ->
+            ( model
+            , Effect.addAlertSuccess { content = contentCopied, addToastIfUnique = False }
             )
 
 
