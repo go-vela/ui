@@ -39,7 +39,6 @@ import List
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
-import Route.Path
 import Shared
 import Svg.Attributes
 import Utils.Errors as Errors
@@ -127,7 +126,7 @@ update shared route msg model =
                     )
 
         GotoPage pageNumber ->
-            ( { model | deployments = RemoteData.Loading }
+            ( model
             , Effect.batch
                 [ Effect.replaceRoute
                     { path = route.path

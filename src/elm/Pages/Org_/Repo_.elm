@@ -118,7 +118,7 @@ update shared route msg model =
                     )
 
         GotoPage pageNumber ->
-            ( { model | builds = RemoteData.Loading }
+            ( model
             , Effect.batch
                 [ Effect.pushRoute
                     { path = route.path
