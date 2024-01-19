@@ -305,8 +305,7 @@ viewFavorite favorites filtered favorite =
             , a
                 [ class "button"
                 , Util.testAttribute "repo-view"
-
-                -- , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
+                , Route.Path.href <| Route.Path.Org_Repo_ { org = org, repo = repo }
                 ]
                 [ text "View" ]
             ]

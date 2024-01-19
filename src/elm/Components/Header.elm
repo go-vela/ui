@@ -61,7 +61,7 @@ view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideI
                             , li [ class "identity-menu-item" ]
                                 [ a
                                     [ Util.testAttribute "logout-link"
-                                    , Route.Path.href Route.Path.Logout_
+                                    , Route.Path.href Route.Path.AccountLogout_
                                     , attribute "role" "menuitem"
                                     ]
                                     [ text "Logout" ]

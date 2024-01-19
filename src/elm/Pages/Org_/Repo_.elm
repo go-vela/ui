@@ -11,6 +11,7 @@ import Components.Builds
 import Components.Pager
 import Dict
 import Effect exposing (Effect)
+import Html exposing (text)
 import Http
 import Http.Detailed
 import Layouts
@@ -145,8 +146,8 @@ update shared route msg model =
 
                 -- todo:
                 -- 1. write func in Effect.elm for "approveBuild"
-                -- 2. write Api.Operations_.approveBuild that uses it
-                --   look at the code in Api.Operations and the other funcs in Api.Operations_ for inspiration
+                -- 2. write Api.Operations.approveBuild that uses it
+                --   look at the code in Api.Operations and the other funcs in Api.Operations for inspiration
                 -- 3. write ApproveBuildResponse Msg in this file
                 -- 4. in ApproveBuildResponse, create a toasty?
                 -- look at how it's done in Main.elm
@@ -251,12 +252,16 @@ view shared route model =
     in
     { title = route.params.org ++ "/" ++ route.params.repo
     , body =
-        [ Components.Builds.viewHeader
-            { maybeEvent = Dict.get "event" route.query
-            , showFullTimestamps = model.showFullTimestamps
-            , filterByEvent = FilterByEvent
-            , showHideFullTimestamps = ShowHideFullTimestamps
-            }
+        [ if List.length (RemoteData.withDefault [] model.builds) > 0 then
+            Components.Builds.viewHeader
+                { maybeEvent = Dict.get "event" route.query
+                , showFullTimestamps = model.showFullTimestamps
+                , filterByEvent = FilterByEvent
+                , showHideFullTimestamps = ShowHideFullTimestamps
+                }
+
+          else
+            text ""
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         , Components.Builds.view shared
             { msgs = msgs

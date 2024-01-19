@@ -5,20 +5,13 @@ SPDX-License-Identifier: Apache-2.0
 
 module Main exposing (main)
 
-import Api.Api
-import Api.Operations_
 import Auth
 import Auth.Action
-import Auth.Jwt exposing (JwtAccessToken, JwtAccessTokenClaims, extractJwtClaims)
-import Auth.Session exposing (Session(..), SessionDetails, refreshAccessToken)
 import Browser
 import Browser.Events exposing (Visibility(..))
 import Browser.Navigation
-import Components.Alerts as Alerts exposing (Alert)
 import Dict
 import Effect exposing (Effect)
-import Http
-import Http.Detailed
 import Interop
 import Json.Decode
 import Json.Encode
@@ -42,22 +35,11 @@ import Pages.NotFound_
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Deployments_
 import Pages.Org_Repos
-import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
 import Task
-import Time
-    exposing
-        ( Posix
-        , Zone
-        , every
-        , here
-        )
-import Toasty as Alerting exposing (Stack)
 import Url exposing (Url)
-import Utils.Errors as Errors exposing (Error, addErrorString)
-import Utils.Interval as Interval exposing (Interval(..), RefreshData)
 import Vela
 import View exposing (View)
 
@@ -99,21 +81,6 @@ init json url key =
 
         { page, layout } =
             initPageAndLayout { key = key, url = url, shared = sharedModel, layout = Nothing }
-
-        setTimeZone : Cmd Msg
-        setTimeZone =
-            Task.perform AdjustTimeZone here
-
-        setTime : Cmd Msg
-        setTime =
-            Task.perform AdjustTime Time.now
-
-        fetchInitialTokenCmd =
-            if String.length sharedModel.velaRedirect == 0 then
-                Api.Api.try TokenResponse <| Api.Operations_.getToken sharedModel.velaAPI
-
-            else
-                Cmd.none
     in
     ( { url = url
       , key = key
@@ -126,11 +93,10 @@ init json url key =
         , layout |> Maybe.map Tuple.second |> Maybe.withDefault Cmd.none
         , fromSharedEffect { key = key, url = url, shared = sharedModel } sharedEffect
 
-        -- custom initialization effects
-        , Interop.setTheme <| Vela.encodeTheme sharedModel.theme
-        , setTimeZone
-        , setTime
-        , fetchInitialTokenCmd
+        -- need to reference these interops to let the app load properly
+        -- this should be removed when build graph and refresh logic are implemented
+        , Interop.renderBuildGraph Json.Encode.null
+        , Interop.setFavicon Json.Encode.null
         ]
     )
 
@@ -269,7 +235,7 @@ initPageAndLayout :
         }
 initPageAndLayout model =
     case Route.Path.fromUrl model.url of
-        Route.Path.Login_ ->
+        Route.Path.AccountLogin_ ->
             let
                 page : Page.Page Pages.Account.Login_.Model Pages.Account.Login_.Msg
                 page =
@@ -337,7 +303,7 @@ initPageAndLayout model =
                     }
                 )
 
-        Route.Path.Logout_ ->
+        Route.Path.AccountLogout_ ->
             { page =
                 ( Main.Pages.Model.Redirecting_
                 , Effect.logout {} |> Effect.toCmd { key = model.key, url = model.url, shared = model.shared, fromSharedMsg = Shared, batch = Batch, toCmd = Task.succeed >> Task.perform identity }
@@ -345,7 +311,7 @@ initPageAndLayout model =
             , layout = Nothing
             }
 
-        Route.Path.Authenticate_ ->
+        Route.Path.AccountAuthenticate_ ->
             let
                 route =
                     Route.fromUrl () model.url
@@ -358,11 +324,8 @@ initPageAndLayout model =
             in
             { page =
                 ( Main.Pages.Model.Redirecting_
-                , Cmd.batch
-                    [ Api.Api.try TokenResponse <|
-                        Api.Operations_.finishAuthentication model.shared.velaAPI <|
-                            Vela.AuthParams code state
-                    ]
+                , Effect.finishAuthentication { code = code, state = state }
+                    |> Effect.toCmd { key = model.key, url = model.url, shared = model.shared, fromSharedMsg = Shared, batch = Batch, toCmd = Task.succeed >> Task.perform identity }
                 )
             , layout = Nothing
             }
@@ -556,22 +519,13 @@ runWhenAuthenticatedWithLayout model toRecord =
 
 
 type Msg
-    = UrlRequested Browser.UrlRequest
+    = NoOp
+    | UrlRequested Browser.UrlRequest
     | UrlChanged Url
     | Page Main.Pages.Msg.Msg
     | Layout Main.Layouts.Msg.Msg
     | Shared Shared.Msg
     | Batch (List Msg)
-      -- AUTH
-    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, JwtAccessToken ))
-    | RefreshAccessToken
-      -- Time
-    | AdjustTimeZone Zone
-    | AdjustTime Posix
-    | Tick Interval Posix
-      -- Other
-    | HandleError Error
-    | AlertsUpdate (Alerting.Msg Alert)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -581,6 +535,9 @@ update msg model =
             model.shared
     in
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         UrlRequested (Browser.Internal url) ->
             ( model
             , Browser.Navigation.pushUrl model.key (Url.toString url)
@@ -703,188 +660,6 @@ update msg model =
                 |> List.map (Task.succeed >> Task.perform identity)
                 |> Cmd.batch
             )
-
-        TokenResponse response ->
-            let
-                route =
-                    Route.fromUrl () model.url
-
-                -- todo: how do we capture the scenario where
-                -- the user is logged off a page and we need to
-                -- redirect them back to the page they were on?
-                velaRedirect =
-                    case shared.velaRedirect of
-                        "" ->
-                            case Dict.get "from" route.query of
-                                Just f ->
-                                    f
-
-                                Nothing ->
-                                    "/"
-
-                        _ ->
-                            shared.velaRedirect
-            in
-            case response of
-                Ok ( _, token ) ->
-                    let
-                        currentSession : Session
-                        currentSession =
-                            model.shared.session
-
-                        payload : JwtAccessTokenClaims
-                        payload =
-                            extractJwtClaims token
-
-                        newSessionDetails : SessionDetails
-                        newSessionDetails =
-                            SessionDetails token payload.exp payload.sub
-
-                        actions : List (Cmd Msg)
-                        actions =
-                            case currentSession of
-                                Unauthenticated ->
-                                    [ Browser.Navigation.pushUrl model.key velaRedirect
-                                    ]
-
-                                Authenticated _ ->
-                                    []
-                    in
-                    ( { model
-                        | shared =
-                            { shared
-                                | session = Authenticated newSessionDetails
-                                , velaRedirect = ""
-                            }
-                      }
-                    , Cmd.batch <|
-                        actions
-                            ++ [ Interop.setRedirect Json.Encode.null
-                               , refreshAccessToken RefreshAccessToken newSessionDetails
-                               ]
-                    )
-
-                Err error ->
-                    let
-                        redirectPage =
-                            case model.page of
-                                Main.Pages.Model.AccountLogin_ _ ->
-                                    Cmd.none
-
-                                _ ->
-                                    Browser.Navigation.pushUrl model.key <| Route.Path.toString Route.Path.Login_
-                    in
-                    case error of
-                        Http.Detailed.BadStatus meta _ ->
-                            case meta.statusCode of
-                                401 ->
-                                    let
-                                        actions : List (Cmd Msg)
-                                        actions =
-                                            case model.shared.session of
-                                                Unauthenticated ->
-                                                    [ redirectPage
-                                                    , Interop.setRedirect <| Json.Encode.string velaRedirect
-                                                    ]
-
-                                                Authenticated _ ->
-                                                    [ addErrorString "Your session has expired or you logged in somewhere else, please log in again." HandleError
-                                                    , redirectPage
-                                                    , Interop.setRedirect <| Json.Encode.string velaRedirect
-                                                    ]
-                                    in
-                                    ( { model
-                                        | shared =
-                                            { shared
-                                                | session =
-                                                    Unauthenticated
-                                                , velaRedirect = velaRedirect
-                                            }
-                                      }
-                                    , Cmd.batch actions
-                                    )
-
-                                _ ->
-                                    ( { model
-                                        | shared =
-                                            { shared
-                                                | session = Unauthenticated
-                                                , velaRedirect = velaRedirect
-                                            }
-                                      }
-                                    , Cmd.batch
-                                        [ Errors.addError HandleError error
-                                        , redirectPage
-                                        ]
-                                    )
-
-                        _ ->
-                            ( { model
-                                | shared =
-                                    { shared
-                                        | session = Unauthenticated
-                                        , velaRedirect = velaRedirect
-                                    }
-                              }
-                            , Cmd.batch
-                                [ Errors.addError HandleError error
-                                , redirectPage
-                                ]
-                            )
-
-        RefreshAccessToken ->
-            ( model, Api.Api.try TokenResponse <| Api.Operations_.getToken shared.velaAPI )
-
-        -- Time
-        AdjustTimeZone newZone ->
-            ( { model | shared = { shared | zone = newZone } }
-            , Cmd.none
-            )
-
-        AdjustTime newTime ->
-            ( { model | shared = { shared | time = newTime } }
-            , Cmd.none
-            )
-
-        Tick interval time ->
-            ( model, Cmd.none )
-
-        -- case interval of
-        --     OneSecond ->
-        --         let
-        --             ( favicon, updateFavicon ) =
-        --                 refreshFavicon model.legacyPage model.shared.favicon rm.build.build
-        --         in
-        --         ( { model | shared = { shared | time = time, favicon = favicon } }
-        --         , Cmd.batch
-        --             [ updateFavicon
-        --             , refreshRenderBuildGraph model
-        --             ]
-        --         )
-        --     FiveSecond ->
-        --         ( model, refreshPage model )
-        --     OneSecondHidden ->
-        --         let
-        --             ( favicon, cmd ) =
-        --                 refreshFavicon model.legacyPage model.shared.favicon rm.build.build
-        --         in
-        --         ( { model | shared = { shared | time = time, favicon = favicon } }, cmd )
-        --     FiveSecondHidden data ->
-        --         ( model, refreshPageHidden model data )
-        -- Other
-        HandleError error ->
-            let
-                ( sharedWithAlert, cmd ) =
-                    Alerting.addToastIfUnique Alerts.errorConfig AlertsUpdate (Alerts.Error "Error" error) ( model.shared, Cmd.none )
-            in
-            ( { model | shared = sharedWithAlert }, cmd )
-
-        AlertsUpdate subMsg ->
-            let
-                ( sharedWithAlert, cmd ) =
-                    Alerting.update Alerts.successConfig AlertsUpdate subMsg model.shared
-            in
-            ( { model | shared = sharedWithAlert }, cmd )
 
 
 updateFromPage : Main.Pages.Msg.Msg -> Model -> ( Main.Pages.Model.Model, Cmd Msg )
@@ -1614,13 +1389,13 @@ hasNavigatedWithinNewLayout { from, to } =
 isAuthProtected : Route.Path.Path -> Bool
 isAuthProtected routePath =
     case routePath of
-        Route.Path.Login_ ->
+        Route.Path.AccountLogin_ ->
             False
 
-        Route.Path.Logout_ ->
+        Route.Path.AccountLogout_ ->
             True
 
-        Route.Path.Authenticate_ ->
+        Route.Path.AccountAuthenticate_ ->
             False
 
         Route.Path.AccountSettings_ ->

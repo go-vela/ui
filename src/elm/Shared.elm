@@ -8,7 +8,8 @@ module Shared exposing (Flags, Model, Msg, decoder, init, subscriptions, update)
 -- todo: these need to be refined, only expose what is needed
 
 import Api.Api as Api
-import Api.Operations_
+import Api.Operations
+import Auth.Jwt
 import Auth.Session exposing (..)
 import Browser.Dom exposing (..)
 import Browser.Events exposing (Visibility(..))
@@ -17,8 +18,9 @@ import Components.Favorites as Favorites
 import Dict exposing (..)
 import Effect exposing (Effect)
 import Http
+import Http.Detailed
 import Interop
-import Json.Decode as Decode exposing (..)
+import Json.Decode
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
@@ -26,7 +28,7 @@ import Route.Path
 import Shared.Model
 import Shared.Msg
 import Task
-import Time exposing (..)
+import Time
 import Toasty as Alerting
 import Url exposing (..)
 import Utils.Errors as Errors
@@ -51,10 +53,6 @@ type alias Model =
     Shared.Model.Model
 
 
-
--- todo: comments, what goes in here, why
-
-
 type alias Flags =
     { isDev : Bool
     , velaAPI : String
@@ -68,28 +66,27 @@ type alias Flags =
     }
 
 
-decoder : Decode.Decoder Flags
+decoder : Json.Decode.Decoder Flags
 decoder =
-    Decode.succeed Flags
-        |> required "isDev" Decode.bool
-        |> required "velaAPI" Decode.string
-        |> required "velaFeedbackURL" Decode.string
-        |> required "velaDocsURL" Decode.string
-        |> required "velaTheme" Decode.string
-        |> required "velaRedirect" Decode.string
-        |> required "velaLogBytesLimit" Decode.int
-        |> required "velaMaxBuildLimit" Decode.int
-        |> required "velaScheduleAllowlist" Decode.string
+    Json.Decode.succeed Flags
+        |> required "isDev" Json.Decode.bool
+        |> required "velaAPI" Json.Decode.string
+        |> required "velaFeedbackURL" Json.Decode.string
+        |> required "velaDocsURL" Json.Decode.string
+        |> required "velaTheme" Json.Decode.string
+        |> required "velaRedirect" Json.Decode.string
+        |> required "velaLogBytesLimit" Json.Decode.int
+        |> required "velaMaxBuildLimit" Json.Decode.int
+        |> required "velaScheduleAllowlist" Json.Decode.string
 
 
 
 -- todo: comments
 
 
-init : Result Decode.Error Flags -> Route () -> ( Model, Effect Msg )
+init : Result Json.Decode.Error Flags -> Route () -> ( Model, Effect Msg )
 init flagsResult route =
     let
-        flags : Flags
         flags =
             case flagsResult of
                 Ok value ->
@@ -109,6 +106,28 @@ init flagsResult route =
                     , velaMaxBuildLimit = 0
                     , velaScheduleAllowlist = ""
                     }
+
+        setTimeZone =
+            Task.perform (\zone -> Shared.Msg.AdjustTimeZone { zone = zone }) Time.here
+                |> Effect.sendCmd
+
+        setTime =
+            Task.perform (\time -> Shared.Msg.AdjustTime { time = time }) Time.now
+                |> Effect.sendCmd
+
+        setTheme =
+            flags.velaTheme
+                |> stringToTheme
+                |> Vela.encodeTheme
+                |> Interop.setTheme
+                |> Effect.sendCmd
+
+        fetchInitialToken =
+            if String.length flags.velaRedirect == 0 then
+                Effect.sendCmd <| Api.try Shared.Msg.TokenResponse <| Api.Operations.getToken flags.velaAPI
+
+            else
+                Effect.none
     in
     -- todo: these need to be logically ordered (flags, session, user, data models, etc)
     ( { session = Unauthenticated
@@ -121,8 +140,8 @@ init flagsResult route =
       , velaMaxBuildLimit = flags.velaMaxBuildLimit
       , velaScheduleAllowlist = Util.stringToAllowlist flags.velaScheduleAllowlist
       , toasties = Alerting.initialState
-      , zone = utc
-      , time = millisToPosix 0
+      , zone = Time.utc
+      , time = Time.millisToPosix 0
       , repo = defaultRepoModel
       , theme = stringToTheme flags.velaTheme
       , shift = False
@@ -131,13 +150,13 @@ init flagsResult route =
       , favicon = defaultFavicon
       , pipeline = defaultPipeline
       , templates = defaultPipelineTemplates
-
-      -- todo: these need to be refactored with Msg
-      -- , schedulesModel = initSchedulesModel
-      -- , secretsModel = initSecretsModel
-      -- , deploymentModel = initDeploymentsModel
       }
-    , Effect.none
+    , Effect.batch
+        [ setTimeZone
+        , setTime
+        , setTheme
+        , fetchInitialToken
+        ]
     )
 
 
@@ -157,18 +176,41 @@ update route msg model =
             , Effect.none
             )
 
+        -- TIME
+        Shared.Msg.AdjustTimeZone options ->
+            ( { model | zone = options.zone }
+            , Effect.none
+            )
+
+        Shared.Msg.AdjustTime options ->
+            ( { model | time = options.time }
+            , Effect.none
+            )
+
+        -- REFRESH
+        Shared.Msg.Tick options ->
+            ( model, Effect.none )
+
         -- AUTH
+        Shared.Msg.FinishAuthentication options ->
+            ( model
+            , Effect.sendCmd <|
+                Api.try Shared.Msg.TokenResponse <|
+                    Api.Operations.finishAuthentication model.velaAPI <|
+                        Vela.AuthParams options.code options.state
+            )
+
         Shared.Msg.Logout ->
             ( model
             , Api.try
                 Shared.Msg.LogoutResponse
-                (Api.Operations_.logout model.velaAPI model.session)
+                (Api.Operations.logout model.velaAPI model.session)
                 |> Effect.sendCmd
             )
 
         Shared.Msg.LogoutResponse _ ->
             ( { model | session = Unauthenticated }
-            , Effect.pushPath <| Route.Path.Login_
+            , Effect.pushPath <| Route.Path.AccountLogin_
             )
 
         -- USER
@@ -176,7 +218,7 @@ update route msg model =
             ( { model | user = Loading }
             , Api.try
                 Shared.Msg.CurrentUserResponse
-                (Api.Operations_.getCurrentUser model.velaAPI model.session)
+                (Api.Operations.getCurrentUser model.velaAPI model.session)
                 |> Effect.sendCmd
             )
 
@@ -220,7 +262,7 @@ update route msg model =
             ( model
             , Api.try
                 (Shared.Msg.RepoFavoriteResponse { favorite = favorite, favorited = favorited })
-                (Api.Operations_.updateCurrentUser model.velaAPI model.session body)
+                (Api.Operations.updateCurrentUser model.velaAPI model.session body)
                 |> Effect.sendCmd
             )
 
@@ -243,6 +285,10 @@ update route msg model =
                     ( { model | user = Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
+
+        -- BUILD GRAPH
+        Shared.Msg.BuildGraphInteraction _ ->
+            ( model, Effect.none )
 
         -- PAGINATION
         Shared.Msg.GotoPage options ->
@@ -330,7 +376,128 @@ update route msg model =
                     -- successfully focus the dom
                     ( model, Effect.none )
 
+        Shared.Msg.TokenResponse response ->
+            let
+                -- todo: how do we capture the scenario where
+                -- the user is logged off a page and we need to
+                -- redirect them back to the page they were on?
+                velaRedirect =
+                    case model.velaRedirect of
+                        "" ->
+                            case Dict.get "from" route.query of
+                                Just f ->
+                                    f
+
+                                Nothing ->
+                                    "/"
+
+                        _ ->
+                            model.velaRedirect
+            in
+            case response of
+                Ok ( _, token ) ->
+                    let
+                        currentSession =
+                            model.session
+
+                        payload =
+                            Auth.Jwt.extractJwtClaims token
+
+                        newSessionDetails =
+                            SessionDetails token payload.exp payload.sub
+
+                        actions =
+                            case currentSession of
+                                Unauthenticated ->
+                                    velaRedirect
+                                        |> Route.Path.fromString
+                                        |> Maybe.withDefault Route.Path.Home_
+                                        |> Effect.pushPath
+                                        |> List.singleton
+
+                                Authenticated _ ->
+                                    []
+                    in
+                    ( { model
+                        | session = Authenticated newSessionDetails
+                        , velaRedirect = ""
+                      }
+                    , Effect.batch <|
+                        actions
+                            ++ [ Effect.clearRedirect {}
+                               , refreshAccessToken Shared.Msg.RefreshAccessToken newSessionDetails |> Effect.sendCmd
+                               ]
+                    )
+
+                Err error ->
+                    let
+                        redirectPage =
+                            Effect.none
+
+                        -- case model.page of
+                        --     Main.Pages.Model.AccountLogin_ _ ->
+                        --         Cmd.none
+                        --     _ ->
+                        --         Browser.Navigation.pushUrl model.key <| Route.Path.toString Route.Path.Login_
+                    in
+                    case error of
+                        Http.Detailed.BadStatus meta _ ->
+                            case meta.statusCode of
+                                401 ->
+                                    let
+                                        actions =
+                                            case model.session of
+                                                Unauthenticated ->
+                                                    [ redirectPage
+                                                    , Effect.setRedirect { redirect = velaRedirect }
+                                                    ]
+
+                                                Authenticated _ ->
+                                                    [ Effect.addAlertError { content = "Your session has expired or you logged in somewhere else, please log in again.", addToastIfUnique = True }
+                                                    , redirectPage
+                                                    , Effect.setRedirect { redirect = velaRedirect }
+                                                    ]
+                                    in
+                                    ( { model
+                                        | session =
+                                            Unauthenticated
+                                        , velaRedirect = velaRedirect
+                                      }
+                                    , Effect.batch actions
+                                    )
+
+                                _ ->
+                                    ( { model
+                                        | session = Unauthenticated
+                                        , velaRedirect = velaRedirect
+                                      }
+                                    , Effect.batch
+                                        [ Effect.handleHttpError { httpError = error }
+                                        , redirectPage
+                                        ]
+                                    )
+
+                        _ ->
+                            ( { model
+                                | session = Unauthenticated
+                                , velaRedirect = velaRedirect
+                              }
+                            , Effect.batch
+                                [ Effect.handleHttpError { httpError = error }
+                                , redirectPage
+                                ]
+                            )
+
+        Shared.Msg.RefreshAccessToken ->
+            ( model
+            , Effect.sendCmd <| Api.try Shared.Msg.TokenResponse <| Api.Operations.getToken model.velaAPI
+            )
+
 
 subscriptions : Route () -> Model -> Sub Msg
 subscriptions _ model =
-    Sub.none
+    Sub.batch
+        [ -- todo: move this to the build graph page, when we have one
+          Interop.onGraphInteraction
+            (Vela.decodeOnGraphInteraction Shared.Msg.BuildGraphInteraction Shared.Msg.NoOp)
+        ]

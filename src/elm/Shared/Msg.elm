@@ -5,18 +5,29 @@ SPDX-License-Identifier: Apache-2.0
 
 module Shared.Msg exposing (Msg(..))
 
+import Auth.Jwt
 import Browser.Dom
 import Components.Alerts exposing (Alert)
 import Components.Favorites as Favorites
 import Http
 import Http.Detailed
+import Time
 import Toasty as Alerting
+import Utils.Interval as Interval
 import Vela exposing (CurrentUser)
 
 
 type Msg
     = NoOp
+      -- TIME
+    | AdjustTimeZone { zone : Time.Zone }
+    | AdjustTime { time : Time.Posix }
+      --REFRESH
+    | Tick { interval : Interval.Interval, time : Time.Posix }
       -- AUTH
+    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Auth.Jwt.JwtAccessToken ))
+    | RefreshAccessToken
+    | FinishAuthentication { code : Maybe String, state : Maybe String }
     | Logout
     | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- USER
@@ -25,6 +36,8 @@ type Msg
       -- FAVORITES
     | UpdateFavorites { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType }
     | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
+      -- BUILD GRAPH
+    | BuildGraphInteraction Vela.BuildGraphInteraction
       -- PAGINATION
     | GotoPage { pageNumber : Int }
       -- THEME

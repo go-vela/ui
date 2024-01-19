@@ -9,6 +9,7 @@ module Vela exposing
     , Build
     , BuildGraph
     , BuildGraphEdge
+    , BuildGraphInteraction
     , BuildGraphModel
     , BuildGraphNode
     , BuildModel
@@ -34,7 +35,6 @@ module Vela exposing
     , Favorites
     , Field
     , FocusFragment
-    , GraphInteraction
     , Hook
     , HookNumber
     , Hooks
@@ -101,6 +101,7 @@ module Vela exposing
     , decodeGraphInteraction
     , decodeHooks
     , decodeLog
+    , decodeOnGraphInteraction
     , decodePipelineConfig
     , decodePipelineExpand
     , decodePipelineTemplates
@@ -187,14 +188,14 @@ module Vela exposing
 import Api.Pagination as Pagination
 import Bytes.Encode
 import Dict exposing (Dict)
-import Json.Decode as Decode exposing (Decoder, andThen, bool, int, string, succeed)
+import Json.Decode exposing (Decoder, andThen, bool, int, string, succeed)
 import Json.Decode.Extra exposing (dict2)
 import Json.Decode.Pipeline exposing (hardcoded, optional, required)
-import Json.Encode as Encode exposing (Value)
+import Json.Encode
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
 import Url.Builder as UB
-import Utils.Errors as Errors exposing (Error)
+import Utils.Errors as Errors
 import Visualization.DOT as DOT
 
 
@@ -303,21 +304,21 @@ stringToTheme theme =
 
 decodeTheme : Decoder Theme
 decodeTheme =
-    Decode.string
-        |> Decode.andThen
+    Json.Decode.string
+        |> Json.Decode.andThen
             (\str ->
-                Decode.succeed <| stringToTheme str
+                Json.Decode.succeed <| stringToTheme str
             )
 
 
-encodeTheme : Theme -> Encode.Value
+encodeTheme : Theme -> Json.Encode.Value
 encodeTheme theme =
     case theme of
         Light ->
-            Encode.string "theme-light"
+            Json.Encode.string "theme-light"
 
         _ ->
-            Encode.string "theme-dark"
+            Json.Encode.string "theme-dark"
 
 
 
@@ -339,10 +340,10 @@ type alias Favorites =
 
 decodeCurrentUser : Decoder CurrentUser
 decodeCurrentUser =
-    Decode.succeed CurrentUser
+    Json.Decode.succeed CurrentUser
         |> required "id" int
         |> required "name" string
-        |> optional "favorites" (Decode.list string) []
+        |> optional "favorites" (Json.Decode.list string) []
         |> required "active" bool
         |> required "admin" bool
 
@@ -358,10 +359,10 @@ defaultUpdateUserPayload =
     UpdateUserPayload Nothing Nothing
 
 
-encodeUpdateUser : UpdateUserPayload -> Encode.Value
+encodeUpdateUser : UpdateUserPayload -> Json.Encode.Value
 encodeUpdateUser user =
-    Encode.object
-        [ ( "favorites", encodeOptionalList Encode.string user.favorites )
+    Json.Encode.object
+        [ ( "favorites", encodeOptionalList Json.Encode.string user.favorites )
         ]
 
 
@@ -843,7 +844,7 @@ updateBuildServicesLogs update rm =
     { rm | build = { b | services = { s | logs = update } } }
 
 
-updateBuildPipelineConfig : ( WebData PipelineConfig, Error ) -> PipelineModel -> PipelineModel
+updateBuildPipelineConfig : ( WebData PipelineConfig, Errors.Error ) -> PipelineModel -> PipelineModel
 updateBuildPipelineConfig update pipeline =
     { pipeline | config = update }
 
@@ -965,12 +966,12 @@ type Enabling
 
 decodeRepositories : Decoder (List Repository)
 decodeRepositories =
-    Decode.list decodeRepository
+    Json.Decode.list decodeRepository
 
 
 decodeRepository : Decoder Repository
 decodeRepository =
-    Decode.succeed Repository
+    Json.Decode.succeed Repository
         |> optional "id" int -1
         |> optional "user_id" int -1
         |> required "org" string
@@ -1094,25 +1095,25 @@ type alias SourceRepositories =
 
 decodeSourceRepositories : Decoder SourceRepositories
 decodeSourceRepositories =
-    Decode.dict (Decode.list decodeRepository)
+    Json.Decode.dict (Json.Decode.list decodeRepository)
 
 
-encodeEnableRepository : EnableRepositoryPayload -> Encode.Value
+encodeEnableRepository : EnableRepositoryPayload -> Json.Encode.Value
 encodeEnableRepository repo =
-    Encode.object
-        [ ( "org", Encode.string <| repo.org )
-        , ( "name", Encode.string <| repo.name )
-        , ( "full_name", Encode.string <| repo.full_name )
-        , ( "link", Encode.string <| repo.link )
-        , ( "clone", Encode.string <| repo.clone )
-        , ( "private", Encode.bool <| repo.private )
-        , ( "trusted", Encode.bool <| repo.trusted )
-        , ( "active", Encode.bool <| repo.active )
-        , ( "allow_pull", Encode.bool <| repo.allow_pull )
-        , ( "allow_push", Encode.bool <| repo.allow_push )
-        , ( "allow_deploy", Encode.bool <| repo.allow_deploy )
-        , ( "allow_tag", Encode.bool <| repo.allow_tag )
-        , ( "allow_comment", Encode.bool <| repo.allow_comment )
+    Json.Encode.object
+        [ ( "org", Json.Encode.string <| repo.org )
+        , ( "name", Json.Encode.string <| repo.name )
+        , ( "full_name", Json.Encode.string <| repo.full_name )
+        , ( "link", Json.Encode.string <| repo.link )
+        , ( "clone", Json.Encode.string <| repo.clone )
+        , ( "private", Json.Encode.bool <| repo.private )
+        , ( "trusted", Json.Encode.bool <| repo.trusted )
+        , ( "active", Json.Encode.bool <| repo.active )
+        , ( "allow_pull", Json.Encode.bool <| repo.allow_pull )
+        , ( "allow_push", Json.Encode.bool <| repo.allow_push )
+        , ( "allow_deploy", Json.Encode.bool <| repo.allow_deploy )
+        , ( "allow_tag", Json.Encode.bool <| repo.allow_tag )
+        , ( "allow_comment", Json.Encode.bool <| repo.allow_comment )
         ]
 
 
@@ -1178,44 +1179,44 @@ defaultUpdateRepositoryPayload =
     UpdateRepositoryPayload Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 
-encodeUpdateRepository : UpdateRepositoryPayload -> Encode.Value
+encodeUpdateRepository : UpdateRepositoryPayload -> Json.Encode.Value
 encodeUpdateRepository repo =
-    Encode.object
-        [ ( "active", encodeOptional Encode.bool repo.active )
-        , ( "private", encodeOptional Encode.bool repo.private )
-        , ( "trusted", encodeOptional Encode.bool repo.trusted )
-        , ( "allow_pull", encodeOptional Encode.bool repo.allow_pull )
-        , ( "allow_push", encodeOptional Encode.bool repo.allow_push )
-        , ( "allow_deploy", encodeOptional Encode.bool repo.allow_deploy )
-        , ( "allow_tag", encodeOptional Encode.bool repo.allow_tag )
-        , ( "allow_comment", encodeOptional Encode.bool repo.allow_comment )
-        , ( "visibility", encodeOptional Encode.string repo.visibility )
-        , ( "approve_build", encodeOptional Encode.string repo.approve_build )
-        , ( "build_limit", encodeOptional Encode.int repo.limit )
-        , ( "timeout", encodeOptional Encode.int repo.timeout )
-        , ( "counter", encodeOptional Encode.int repo.counter )
-        , ( "pipeline_type", encodeOptional Encode.string repo.pipeline_type )
+    Json.Encode.object
+        [ ( "active", encodeOptional Json.Encode.bool repo.active )
+        , ( "private", encodeOptional Json.Encode.bool repo.private )
+        , ( "trusted", encodeOptional Json.Encode.bool repo.trusted )
+        , ( "allow_pull", encodeOptional Json.Encode.bool repo.allow_pull )
+        , ( "allow_push", encodeOptional Json.Encode.bool repo.allow_push )
+        , ( "allow_deploy", encodeOptional Json.Encode.bool repo.allow_deploy )
+        , ( "allow_tag", encodeOptional Json.Encode.bool repo.allow_tag )
+        , ( "allow_comment", encodeOptional Json.Encode.bool repo.allow_comment )
+        , ( "visibility", encodeOptional Json.Encode.string repo.visibility )
+        , ( "approve_build", encodeOptional Json.Encode.string repo.approve_build )
+        , ( "build_limit", encodeOptional Json.Encode.int repo.limit )
+        , ( "timeout", encodeOptional Json.Encode.int repo.timeout )
+        , ( "counter", encodeOptional Json.Encode.int repo.counter )
+        , ( "pipeline_type", encodeOptional Json.Encode.string repo.pipeline_type )
         ]
 
 
-encodeOptional : (a -> Encode.Value) -> Maybe a -> Encode.Value
+encodeOptional : (a -> Json.Encode.Value) -> Maybe a -> Json.Encode.Value
 encodeOptional encoder value =
     case value of
         Just value_ ->
             encoder value_
 
         Nothing ->
-            Encode.null
+            Json.Encode.null
 
 
-encodeOptionalList : (a -> Encode.Value) -> Maybe (List a) -> Encode.Value
+encodeOptionalList : (a -> Json.Encode.Value) -> Maybe (List a) -> Json.Encode.Value
 encodeOptionalList encoder value =
     case value of
         Just value_ ->
-            Encode.list encoder value_
+            Json.Encode.list encoder value_
 
         Nothing ->
-            Encode.null
+            Json.Encode.null
 
 
 buildUpdateRepoBoolPayload : Field -> Bool -> UpdateRepositoryPayload
@@ -1286,7 +1287,7 @@ buildUpdateRepoIntPayload field value =
 
 
 type alias PipelineModel =
-    { config : ( WebData PipelineConfig, Error )
+    { config : ( WebData PipelineConfig, Errors.Error )
     , expanded : Bool
     , expanding : Bool
     , expand : Maybe String
@@ -1308,7 +1309,7 @@ type alias PipelineConfig =
 
 type alias PipelineTemplates =
     { data : WebData Templates
-    , error : Error
+    , error : Errors.Error
     , show : Bool
     }
 
@@ -1330,9 +1331,9 @@ defaultPipelineTemplates =
     PipelineTemplates NotAsked "" True
 
 
-decodePipelineConfig : Decode.Decoder PipelineConfig
+decodePipelineConfig : Json.Decode.Decoder PipelineConfig
 decodePipelineConfig =
-    Decode.succeed
+    Json.Decode.succeed
         (\data ->
             PipelineConfig
                 data
@@ -1342,19 +1343,19 @@ decodePipelineConfig =
         |> optional "data" string ""
 
 
-decodePipelineExpand : Decode.Decoder String
+decodePipelineExpand : Json.Decode.Decoder String
 decodePipelineExpand =
-    Decode.string
+    Json.Decode.string
 
 
-decodePipelineTemplates : Decode.Decoder Templates
+decodePipelineTemplates : Json.Decode.Decoder Templates
 decodePipelineTemplates =
-    Decode.dict decodeTemplate
+    Json.Decode.dict decodeTemplate
 
 
-decodeTemplate : Decode.Decoder Template
+decodeTemplate : Json.Decode.Decoder Template
 decodeTemplate =
-    Decode.succeed Template
+    Json.Decode.succeed Template
         |> optional "link" string ""
         |> optional "name" string ""
         |> optional "source" string ""
@@ -1412,7 +1413,7 @@ type alias Build =
 
 decodeBuild : Decoder Build
 decodeBuild =
-    Decode.succeed Build
+    Json.Decode.succeed Build
         |> optional "id" int -1
         |> optional "repository_id" int -1
         |> optional "number" int -1
@@ -1454,16 +1455,16 @@ defaultBuildGraph =
     BuildGraph -1 -1 "" "" Dict.empty []
 
 
-encodeBuildGraphRenderData : BuildGraphRenderInteropData -> Encode.Value
+encodeBuildGraphRenderData : BuildGraphRenderInteropData -> Json.Encode.Value
 encodeBuildGraphRenderData graphData =
-    Encode.object
-        [ ( "dot", Encode.string graphData.dot )
-        , ( "buildID", Encode.int graphData.buildID )
-        , ( "filter", Encode.string graphData.filter )
-        , ( "focusedNode", Encode.int graphData.focusedNode )
-        , ( "showServices", Encode.bool graphData.showServices )
-        , ( "showSteps", Encode.bool graphData.showSteps )
-        , ( "freshDraw", Encode.bool graphData.freshDraw )
+    Json.Encode.object
+        [ ( "dot", Json.Encode.string graphData.dot )
+        , ( "buildID", Json.Encode.int graphData.buildID )
+        , ( "filter", Json.Encode.string graphData.filter )
+        , ( "focusedNode", Json.Encode.int graphData.focusedNode )
+        , ( "showServices", Json.Encode.bool graphData.showServices )
+        , ( "showSteps", Json.Encode.bool graphData.showSteps )
+        , ( "freshDraw", Json.Encode.bool graphData.freshDraw )
         ]
 
 
@@ -1522,32 +1523,32 @@ type alias BuildGraphEdge =
 
 decodeBuildGraph : Decoder BuildGraph
 decodeBuildGraph =
-    Decode.succeed BuildGraph
+    Json.Decode.succeed BuildGraph
         |> required "build_id" int
         |> required "build_number" int
         |> required "org" string
         |> required "repo" string
         |> required "nodes" (dict2 int decodeBuildGraphNode)
-        |> optional "edges" (Decode.list decodeEdge) []
+        |> optional "edges" (Json.Decode.list decodeEdge) []
 
 
 decodeBuildGraphNode : Decoder BuildGraphNode
 decodeBuildGraphNode =
-    Decode.succeed BuildGraphNode
+    Json.Decode.succeed BuildGraphNode
         |> required "cluster" int
         |> required "id" int
-        |> required "name" Decode.string
+        |> required "name" Json.Decode.string
         |> optional "status" string ""
         |> required "started_at" int
         |> required "finished_at" int
-        |> optional "steps" (Decode.list decodeStep) []
+        |> optional "steps" (Json.Decode.list decodeStep) []
         -- focused
         |> hardcoded False
 
 
 decodeEdge : Decoder BuildGraphEdge
 decodeEdge =
-    Decode.succeed BuildGraphEdge
+    Json.Decode.succeed BuildGraphEdge
         |> required "cluster" int
         |> required "source" int
         |> required "destination" int
@@ -1556,16 +1557,26 @@ decodeEdge =
         |> hardcoded False
 
 
-type alias GraphInteraction =
+type alias BuildGraphInteraction =
     { eventType : String
     , href : String
     , nodeID : String
     }
 
 
-decodeGraphInteraction : Decoder GraphInteraction
+decodeOnGraphInteraction : (BuildGraphInteraction -> msg) -> msg -> Json.Decode.Value -> msg
+decodeOnGraphInteraction msg noop interaction =
+    case Json.Decode.decodeValue decodeGraphInteraction interaction of
+        Ok interaction_ ->
+            msg interaction_
+
+        Err _ ->
+            noop
+
+
+decodeGraphInteraction : Decoder BuildGraphInteraction
 decodeGraphInteraction =
-    Decode.succeed GraphInteraction
+    Json.Decode.succeed BuildGraphInteraction
         |> required "eventType" string
         |> optional "href" string ""
         |> optional "nodeID" string "-1"
@@ -1575,7 +1586,7 @@ decodeGraphInteraction =
 -}
 decodeBuilds : Decoder Builds
 decodeBuilds =
-    Decode.list decodeBuild
+    Json.Decode.list decodeBuild
 
 
 {-| buildStatusDecoder : decodes string field "status" to the union type BuildStatus
@@ -1824,7 +1835,7 @@ defaultStep =
 -}
 decodeStep : Decoder Step
 decodeStep =
-    Decode.succeed Step
+    Json.Decode.succeed Step
         |> optional "id" int -1
         |> optional "build_id" int -1
         |> optional "repo_id" int -1
@@ -1880,7 +1891,7 @@ type alias Service =
 -}
 decodeService : Decoder Service
 decodeService =
-    Decode.succeed Service
+    Json.Decode.succeed Service
         |> optional "id" int -1
         |> optional "build_id" int -1
         |> optional "repo_id" int -1
@@ -1949,7 +1960,7 @@ type alias Log =
 -}
 decodeLog : Decoder Log
 decodeLog =
-    Decode.succeed
+    Json.Decode.succeed
         (\id step_id service_id build_id repository_id data ->
             Log
                 id
@@ -2016,7 +2027,7 @@ type alias Hook =
 
 decodeHook : Decoder Hook
 decodeHook =
-    Decode.succeed Hook
+    Json.Decode.succeed Hook
         |> optional "id" int -1
         |> optional "repo_id" int -1
         |> optional "build_id" int -1
@@ -2035,7 +2046,7 @@ decodeHook =
 -}
 decodeHooks : Decoder Hooks
 decodeHooks =
-    Decode.list decodeHook
+    Json.Decode.list decodeHook
 
 
 type alias Hooks =
@@ -2105,7 +2116,7 @@ buildUpdateSchedulePayload org repo name entry enabled branch =
 
 decodeSchedule : Decoder Schedule
 decodeSchedule =
-    Decode.succeed Schedule
+    Json.Decode.succeed Schedule
         |> optional "id" int -1
         |> optional "repo.org" string ""
         |> optional "repo.repo" string ""
@@ -2122,16 +2133,16 @@ decodeSchedule =
 
 decodeSchedules : Decoder Schedules
 decodeSchedules =
-    Decode.list decodeSchedule
+    Json.Decode.list decodeSchedule
 
 
-encodeUpdateSchedule : UpdateSchedulePayload -> Encode.Value
+encodeUpdateSchedule : UpdateSchedulePayload -> Json.Encode.Value
 encodeUpdateSchedule schedule =
-    Encode.object
-        [ ( "name", encodeOptional Encode.string schedule.name )
-        , ( "entry", encodeOptional Encode.string schedule.entry )
-        , ( "active", encodeOptional Encode.bool schedule.enabled )
-        , ( "branch", encodeOptional Encode.string schedule.branch )
+    Json.Encode.object
+        [ ( "name", encodeOptional Json.Encode.string schedule.name )
+        , ( "entry", encodeOptional Json.Encode.string schedule.entry )
+        , ( "active", encodeOptional Json.Encode.bool schedule.enabled )
+        , ( "branch", encodeOptional Json.Encode.string schedule.branch )
         ]
 
 
@@ -2183,7 +2194,7 @@ toSecretTypeDecoder type_ =
             succeed RepoSecret
 
         _ ->
-            Decode.fail "unrecognized secret type"
+            Json.Decode.fail "unrecognized secret type"
 
 
 {-| secretTypeToString : helper to convert SecretType to string
@@ -2251,7 +2262,7 @@ secretToKey secret =
 
 decodeSecret : Decoder Secret
 decodeSecret =
-    Decode.succeed Secret
+    Json.Decode.succeed Secret
         |> optional "id" int -1
         |> optional "org" string ""
         |> optional "repo" string ""
@@ -2259,8 +2270,8 @@ decodeSecret =
         |> optional "key" string ""
         |> optional "name" string ""
         |> optional "type" secretTypeDecoder RepoSecret
-        |> optional "images" (Decode.list string) []
-        |> optional "events" (Decode.list string) []
+        |> optional "images" (Json.Decode.list string) []
+        |> optional "events" (Json.Decode.list string) []
         |> optional "allow_command" bool False
 
 
@@ -2268,7 +2279,7 @@ decodeSecret =
 -}
 decodeSecrets : Decoder Secrets
 decodeSecrets =
-    Decode.list decodeSecret
+    Json.Decode.list decodeSecret
 
 
 type alias Secrets =
@@ -2288,18 +2299,18 @@ type alias UpdateSecretPayload =
     }
 
 
-encodeUpdateSecret : UpdateSecretPayload -> Encode.Value
+encodeUpdateSecret : UpdateSecretPayload -> Json.Encode.Value
 encodeUpdateSecret secret =
-    Encode.object
-        [ ( "type", encodeOptional Encode.string <| maybeSecretTypeToMaybeString secret.type_ )
-        , ( "org", encodeOptional Encode.string secret.org )
-        , ( "repo", encodeOptional Encode.string secret.repo )
-        , ( "team", encodeOptional Encode.string secret.team )
-        , ( "name", encodeOptional Encode.string secret.name )
-        , ( "value", encodeOptional Encode.string secret.value )
-        , ( "events", encodeOptionalList Encode.string secret.events )
-        , ( "images", encodeOptionalList Encode.string secret.images )
-        , ( "allow_command", encodeOptional Encode.bool secret.allowCommand )
+    Json.Encode.object
+        [ ( "type", encodeOptional Json.Encode.string <| maybeSecretTypeToMaybeString secret.type_ )
+        , ( "org", encodeOptional Json.Encode.string secret.org )
+        , ( "repo", encodeOptional Json.Encode.string secret.repo )
+        , ( "team", encodeOptional Json.Encode.string secret.team )
+        , ( "name", encodeOptional Json.Encode.string secret.name )
+        , ( "value", encodeOptional Json.Encode.string secret.value )
+        , ( "events", encodeOptionalList Json.Encode.string secret.events )
+        , ( "images", encodeOptionalList Json.Encode.string secret.images )
+        , ( "allow_command", encodeOptional Json.Encode.bool secret.allowCommand )
         ]
 
 
@@ -2332,7 +2343,7 @@ type alias DeploymentsModel =
 
 decodeDeployment : Decoder Deployment
 decodeDeployment =
-    Decode.succeed Deployment
+    Json.Decode.succeed Deployment
         |> optional "id" int -1
         |> optional "repo_id" int -1
         |> optional "url" string ""
@@ -2347,26 +2358,26 @@ decodeDeployment =
 
 decodeDeployments : Decoder (List Deployment)
 decodeDeployments =
-    Decode.list decodeDeployment
+    Json.Decode.list decodeDeployment
 
 
 
 {- payload -}
 
 
-encodeKeyValuePair : KeyValuePair -> ( String, Value )
+encodeKeyValuePair : KeyValuePair -> ( String, Json.Encode.Value )
 encodeKeyValuePair kvp =
-    ( kvp.key, Encode.string kvp.value )
+    ( kvp.key, Json.Encode.string kvp.value )
 
 
-encodeOptionalKeyValuePairList : Maybe (List KeyValuePair) -> Encode.Value
+encodeOptionalKeyValuePairList : Maybe (List KeyValuePair) -> Json.Encode.Value
 encodeOptionalKeyValuePairList value =
     case value of
         Just value_ ->
-            Encode.object (List.map encodeKeyValuePair value_)
+            Json.Encode.object (List.map encodeKeyValuePair value_)
 
         Nothing ->
-            Encode.null
+            Json.Encode.null
 
 
 decodeKeyValuePair : ( String, String ) -> KeyValuePair
@@ -2385,7 +2396,7 @@ decodeKeyValuePairs o =
 
 decodeDeploymentParameters : Decoder (Maybe (List KeyValuePair))
 decodeDeploymentParameters =
-    Decode.map decodeKeyValuePairs <| Decode.keyValuePairs Decode.string
+    Json.Decode.map decodeKeyValuePairs <| Json.Decode.keyValuePairs Json.Decode.string
 
 
 type alias DeploymentPayload =
@@ -2400,16 +2411,16 @@ type alias DeploymentPayload =
     }
 
 
-encodeDeploymentPayload : DeploymentPayload -> Encode.Value
+encodeDeploymentPayload : DeploymentPayload -> Json.Encode.Value
 encodeDeploymentPayload deployment =
-    Encode.object
-        [ ( "org", encodeOptional Encode.string deployment.org )
-        , ( "repo", encodeOptional Encode.string deployment.repo )
-        , ( "commit", encodeOptional Encode.string deployment.commit )
-        , ( "description", encodeOptional Encode.string deployment.description )
-        , ( "ref", encodeOptional Encode.string deployment.ref )
-        , ( "target", encodeOptional Encode.string deployment.target )
-        , ( "task", encodeOptional Encode.string deployment.task )
+    Json.Encode.object
+        [ ( "org", encodeOptional Json.Encode.string deployment.org )
+        , ( "repo", encodeOptional Json.Encode.string deployment.repo )
+        , ( "commit", encodeOptional Json.Encode.string deployment.commit )
+        , ( "description", encodeOptional Json.Encode.string deployment.description )
+        , ( "ref", encodeOptional Json.Encode.string deployment.ref )
+        , ( "target", encodeOptional Json.Encode.string deployment.target )
+        , ( "task", encodeOptional Json.Encode.string deployment.task )
         , ( "payload", encodeOptionalKeyValuePairList deployment.payload )
         ]
 

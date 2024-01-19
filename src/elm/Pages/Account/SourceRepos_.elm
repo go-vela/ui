@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Account.SourceRepos_ exposing (..)
 
 import Api.Api as Api
-import Api.Operations_
+import Api.Operations
 import Auth
 import Components.Favorites as Favorites
 import Components.Search as Search
@@ -151,7 +151,7 @@ update shared msg model =
               }
             , Api.try
                 GetUserSourceReposResponse
-                (Api.Operations_.getUserSourceRepos shared.velaAPI shared.session)
+                (Api.Operations.getUserSourceRepos shared.velaAPI shared.session)
                 |> Effect.sendCmd
             )
 

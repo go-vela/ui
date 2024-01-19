@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, getOrgRepos, getRepoBuilds, getRepoDeployments, gotoPage, handleHttpError, logout, pushPath, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, alertsUpdate, clearRedirect, enableRepo, finishAuthentication, focusOn, getCurrentUser, getOrgRepos, getRepoBuilds, getRepoDeployments, gotoPage, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
     )
 
 {-|
@@ -24,7 +24,7 @@ module Effect exposing
 -}
 
 import Api.Api as Api
-import Api.Operations_
+import Api.Operations
 import Auth.Session exposing (Session(..))
 import Browser.Navigation
 import Components.Alerts exposing (Alert)
@@ -32,6 +32,8 @@ import Components.Favorites as Favorites
 import Dict exposing (Dict)
 import Http
 import Http.Detailed
+import Interop
+import Json.Encode
 import Route
 import Route.Path
 import Shared.Model
@@ -222,6 +224,21 @@ setTheme options =
     SendSharedMsg <| Shared.Msg.SetTheme options
 
 
+setRedirect : { redirect : String } -> Effect msg
+setRedirect options =
+    sendCmd <| Interop.setRedirect <| Json.Encode.string options.redirect
+
+
+clearRedirect : {} -> Effect msg
+clearRedirect _ =
+    sendCmd <| Interop.setRedirect <| Json.Encode.null
+
+
+finishAuthentication : { code : Maybe String, state : Maybe String } -> Effect msg
+finishAuthentication options =
+    SendSharedMsg <| Shared.Msg.FinishAuthentication options
+
+
 logout : {} -> Effect msg
 logout _ =
     SendSharedMsg <| Shared.Msg.Logout
@@ -256,7 +273,7 @@ enableRepo options =
     in
     Api.try
         options.onResponse
-        (Api.Operations_.enableRepo options.baseUrl options.session body)
+        (Api.Operations.enableRepo options.baseUrl options.session body)
         |> sendCmd
 
 
@@ -274,7 +291,7 @@ getRepoBuilds :
 getRepoBuilds options =
     Api.try
         options.onResponse
-        (Api.Operations_.getRepoBuilds options.baseUrl options.session options)
+        (Api.Operations.getRepoBuilds options.baseUrl options.session options)
         |> sendCmd
 
 
@@ -288,7 +305,7 @@ getOrgRepos :
 getOrgRepos options =
     Api.try
         options.onResponse
-        (Api.Operations_.getOrgRepos options.baseUrl options.session options)
+        (Api.Operations.getOrgRepos options.baseUrl options.session options)
         |> sendCmd
 
 
@@ -305,7 +322,7 @@ getRepoDeployments :
 getRepoDeployments options =
     Api.try
         options.onResponse
-        (Api.Operations_.getRepoDeployments options.baseUrl options.session options)
+        (Api.Operations.getRepoDeployments options.baseUrl options.session options)
         |> sendCmd
 
 

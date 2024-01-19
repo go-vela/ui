@@ -49,9 +49,4 @@ type alias Model =
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int
-
-    -- todo: these need to be refactored with Msg
-    -- , schedulesModel : Pages.Schedules.Model.Model Msg
-    -- , secretsModel : Pages.Secrets.Model.Model Msg
-    -- , deploymentModel : Pages.Deployments.Model.Model Msg
     }

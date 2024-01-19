@@ -17,9 +17,9 @@ import Url.Parser exposing ((</>))
 
 type Path
     = Home_
-    | Login_
-    | Logout_
-    | Authenticate_
+    | AccountLogin_
+    | AccountLogout_
+    | AccountAuthenticate_
     | AccountSettings_
     | AccountSourceRepos_
     | Org_Repos { org : String }
@@ -48,13 +48,13 @@ fromString urlPath =
             Just Home_
 
         [ "account", "login" ] ->
-            Just Login_
+            Just AccountLogin_
 
         [ "account", "logout" ] ->
-            Just Logout_
+            Just AccountLogout_
 
         [ "account", "authenticate" ] ->
-            Just Authenticate_
+            Just AccountAuthenticate_
 
         [ "account", "settings" ] ->
             Just AccountSettings_
@@ -100,13 +100,13 @@ toString path =
                 Home_ ->
                     []
 
-                Login_ ->
+                AccountLogin_ ->
                     [ "account", "login" ]
 
-                Logout_ ->
+                AccountLogout_ ->
                     [ "account", "logout" ]
 
-                Authenticate_ ->
+                AccountAuthenticate_ ->
                     [ "account", "authenticate" ]
 
                 AccountSettings_ ->

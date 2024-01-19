@@ -333,21 +333,21 @@ toCrumbs path =
                 --             ( "#" ++ buildNumber, Nothing )
                 --     in
                 --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
-                Route.Path.Login_ ->
+                Route.Path.AccountLogin_ ->
                     let
                         loginCrumbStatic =
                             ( "Login", Nothing )
                     in
                     [ accountCrumbStatic, loginCrumbStatic ]
 
-                Route.Path.Logout_ ->
+                Route.Path.AccountLogout_ ->
                     let
                         logoutCrumbStatic =
                             ( "Logout", Nothing )
                     in
                     [ accountCrumbStatic, logoutCrumbStatic ]
 
-                Route.Path.Authenticate_ ->
+                Route.Path.AccountAuthenticate_ ->
                     let
                         loginCrumbStatic =
                             ( "Login", Nothing )
