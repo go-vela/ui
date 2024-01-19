@@ -20,7 +20,6 @@ import Http
 import Interop
 import Json.Decode as Decode exposing (..)
 import Json.Decode.Pipeline exposing (required)
-import Pages exposing (..)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Route.Path

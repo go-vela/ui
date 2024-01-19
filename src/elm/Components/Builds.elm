@@ -45,12 +45,8 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import List.Extra
-import Pages.Build.Model
-    exposing
-        ( Msgs
-        )
 import RemoteData exposing (WebData)
-import Routes
+import Route.Path
 import Shared
 import String
 import Time
@@ -278,7 +274,10 @@ viewPreview shared props build =
 
         repoLink =
             span []
-                [ a [ Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing ] [ text repo ]
+                [ a
+                    [ Route.Path.href <| Route.Path.Org_Repo_ { org = org, repo = repo }
+                    ]
+                    [ text repo ]
                 , text ": "
                 ]
 

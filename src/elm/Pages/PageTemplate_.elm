@@ -39,7 +39,6 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Route.Path
-import Routes
 import Shared
 import Utils.Helpers as Util
 import Vela exposing (Favorites, Org, Repo)

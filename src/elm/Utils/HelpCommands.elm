@@ -6,7 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 module Utils.HelpCommands exposing
     ( Arg
     , Command
-    , Commands
     , Model
     , cliDocsUrl
     , commands
@@ -16,7 +15,7 @@ module Utils.HelpCommands exposing
     , usageDocsUrl
     )
 
-import Pages exposing (Page)
+import Route.Path
 import String.Extra
 import Utils.Helpers as Util exposing (anyBlank, noBlanks)
 import Vela
@@ -51,7 +50,8 @@ type alias Model msg =
     , toggle : Maybe Bool -> msg
     , copy : Copy msg
     , noOp : msg
-    , page : Page
+
+    -- , page : Page
     , velaDocsURL : String
     }
 
@@ -72,107 +72,77 @@ type alias Command =
     }
 
 
-type alias Commands =
-    List Command
-
-
 {-| commands : takes current page and returns list of cli commands to help with resources on that page
 -}
-commands : Page -> Commands
-commands page =
-    case page of
-        Pages.Overview ->
-            [ listFavorites ]
+commands : Route.Path.Path -> List Command
+commands path =
+    []
 
-        Pages.SourceRepositories ->
-            []
 
-        Pages.OrgRepositories _ _ _ ->
-            []
 
-        Pages.Hooks org repo _ _ ->
-            [ validate, listHooks org repo, viewHook org repo ]
-
-        Pages.OrgBuilds _ _ _ _ ->
-            []
-
-        Pages.RepositoryBuilds org repo _ _ _ ->
-            [ listBuilds org repo ]
-
-        Pages.RepositoryBuildsPulls org repo _ _ ->
-            [ listBuilds org repo ]
-
-        Pages.RepositoryBuildsTags org repo _ _ ->
-            [ listBuilds org repo ]
-
-        Pages.RepositoryDeployments org repo _ _ ->
-            [ listDeployments org repo ]
-
-        Pages.Build org repo buildNumber _ ->
-            [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
-
-        Pages.BuildServices org repo buildNumber _ ->
-            [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
-
-        Pages.BuildPipeline org repo buildNumber _ _ ->
-            [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber ]
-
-        Pages.BuildGraph org repo buildNumber ->
-            [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
-
-        Pages.RepoSettings org repo ->
-            [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
-
-        Pages.OrgSecrets secretEngine org _ _ ->
-            [ listSecrets secretEngine Vela.OrgSecret org Nothing ]
-
-        Pages.RepoSecrets secretEngine org repo _ _ ->
-            [ listSecrets secretEngine Vela.RepoSecret org <| Just repo ]
-
-        Pages.SharedSecrets secretEngine org key _ _ ->
-            [ listSecrets secretEngine Vela.SharedSecret org <| Just key ]
-
-        Pages.AddOrgSecret secretEngine org ->
-            [ addSecret secretEngine Vela.OrgSecret org Nothing ]
-
-        Pages.AddRepoSecret secretEngine org repo ->
-            [ addSecret secretEngine Vela.RepoSecret org <| Just repo ]
-
-        Pages.AddDeployment org repo ->
-            [ addDeployment org repo ]
-
-        Pages.PromoteDeployment org repo _ ->
-            [ addDeployment org repo ]
-
-        Pages.AddSharedSecret secretEngine org team ->
-            [ addSecret secretEngine Vela.SharedSecret org <| Just team ]
-
-        Pages.OrgSecret secretEngine org name ->
-            [ viewSecret secretEngine Vela.OrgSecret org Nothing name, updateSecret secretEngine Vela.OrgSecret org Nothing name ]
-
-        Pages.RepoSecret secretEngine org repo name ->
-            [ viewSecret secretEngine Vela.RepoSecret org (Just repo) name, updateSecret secretEngine Vela.RepoSecret org (Just repo) name ]
-
-        Pages.SharedSecret secretEngine org team name ->
-            [ viewSecret secretEngine Vela.SharedSecret org (Just team) name, updateSecret secretEngine Vela.SharedSecret org (Just team) name ]
-
-        Pages.Settings ->
-            []
-
-        Pages.Login ->
-            [ authenticate ]
-
-        Pages.NotFound ->
-            []
-
-        Pages.AddSchedule org repo ->
-            [ addSchedule org repo ]
-
-        Pages.Schedule org repo name ->
-            [ viewSchedule org repo name, updateSchedule org repo name ]
-
-        Pages.Schedules org repo _ _ ->
-            [ listSchedules org repo ]
+-- case page of
+-- Pages.Overview ->
+--     [ listFavorites ]
+-- Pages.SourceRepositories ->
+--     []
+-- Pages.OrgRepositories _ _ _ ->
+--     []
+-- Pages.Hooks org repo _ _ ->
+--     [ validate, listHooks org repo, viewHook org repo ]
+-- Pages.OrgBuilds _ _ _ _ ->
+--     []
+-- Pages.RepositoryBuilds org repo _ _ _ ->
+--     [ listBuilds org repo ]
+-- Pages.RepositoryBuildsPulls org repo _ _ ->
+--     [ listBuilds org repo ]
+-- Pages.RepositoryBuildsTags org repo _ _ ->
+--     [ listBuilds org repo ]
+-- Pages.RepositoryDeployments org repo _ _ ->
+--     [ listDeployments org repo ]
+-- Pages.Build org repo buildNumber _ ->
+--     [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listSteps org repo buildNumber, viewStep org repo buildNumber ]
+-- Pages.BuildServices org repo buildNumber _ ->
+--     [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber, cancelBuild org repo buildNumber, listServices org repo buildNumber, viewService org repo buildNumber ]
+-- Pages.BuildPipeline org repo buildNumber _ _ ->
+--     [ viewBuild org repo buildNumber, approveBuild org repo buildNumber, restartBuild org repo buildNumber ]
+-- Pages.BuildGraph org repo buildNumber ->
+--     [ viewBuild org repo buildNumber, restartBuild org repo buildNumber ]
+-- Pages.RepoSettings org repo ->
+--     [ viewRepo org repo, repairRepo org repo, chownRepo org repo ]
+-- Pages.OrgSecrets secretEngine org _ _ ->
+--     [ listSecrets secretEngine Vela.OrgSecret org Nothing ]
+-- Pages.RepoSecrets secretEngine org repo _ _ ->
+--     [ listSecrets secretEngine Vela.RepoSecret org <| Just repo ]
+-- Pages.SharedSecrets secretEngine org key _ _ ->
+--     [ listSecrets secretEngine Vela.SharedSecret org <| Just key ]
+-- Pages.AddOrgSecret secretEngine org ->
+--     [ addSecret secretEngine Vela.OrgSecret org Nothing ]
+-- Pages.AddRepoSecret secretEngine org repo ->
+--     [ addSecret secretEngine Vela.RepoSecret org <| Just repo ]
+-- Pages.AddDeployment org repo ->
+--     [ addDeployment org repo ]
+-- Pages.PromoteDeployment org repo _ ->
+--     [ addDeployment org repo ]
+-- Pages.AddSharedSecret secretEngine org team ->
+--     [ addSecret secretEngine Vela.SharedSecret org <| Just team ]
+-- Pages.OrgSecret secretEngine org name ->
+--     [ viewSecret secretEngine Vela.OrgSecret org Nothing name, updateSecret secretEngine Vela.OrgSecret org Nothing name ]
+-- Pages.RepoSecret secretEngine org repo name ->
+--     [ viewSecret secretEngine Vela.RepoSecret org (Just repo) name, updateSecret secretEngine Vela.RepoSecret org (Just repo) name ]
+-- Pages.SharedSecret secretEngine org team name ->
+--     [ viewSecret secretEngine Vela.SharedSecret org (Just team) name, updateSecret secretEngine Vela.SharedSecret org (Just team) name ]
+-- Pages.Settings ->
+--     []
+-- Pages.Login ->
+--     [ authenticate ]
+-- Pages.NotFound ->
+--     []
+-- Pages.AddSchedule org repo ->
+--     [ addSchedule org repo ]
+-- Pages.Schedule org repo name ->
+--     [ viewSchedule org repo name, updateSchedule org repo name ]
+-- Pages.Schedules org repo _ _ ->
+--     [ listSchedules org repo ]
 
 
 {-| listFavorites : returns cli command for listing favorites
@@ -886,195 +856,143 @@ issuesBaseUrl =
 -}
 resourceLoaded : Model msg -> Bool
 resourceLoaded args =
-    case args.page of
-        Pages.Overview ->
-            args.user.success
+    False
 
-        Pages.SourceRepositories ->
-            args.sourceRepos.success
 
-        Pages.OrgRepositories _ _ _ ->
-            args.orgRepos.success
 
-        Pages.OrgBuilds _ _ _ _ ->
-            args.builds.success
-
-        Pages.RepositoryBuilds _ _ _ _ _ ->
-            args.builds.success
-
-        Pages.RepositoryBuildsPulls _ _ _ _ ->
-            args.builds.success
-
-        Pages.RepositoryBuildsTags _ _ _ _ ->
-            args.builds.success
-
-        Pages.RepositoryDeployments _ _ _ _ ->
-            args.deployments.success
-
-        Pages.Build _ _ _ _ ->
-            args.build.success
-
-        Pages.BuildServices _ _ _ _ ->
-            args.build.success
-
-        Pages.BuildPipeline _ _ _ _ _ ->
-            args.build.success
-
-        Pages.BuildGraph org repo _ ->
-            args.build.success
-
-        Pages.AddOrgSecret secretEngine org ->
-            noBlanks [ secretEngine, org ]
-
-        Pages.AddRepoSecret secretEngine org repo ->
-            noBlanks [ secretEngine, org, repo ]
-
-        Pages.AddSharedSecret secretEngine org team ->
-            noBlanks [ secretEngine, org, team ]
-
-        Pages.AddDeployment org repo ->
-            noBlanks [ org, repo ]
-
-        Pages.PromoteDeployment org repo _ ->
-            noBlanks [ org, repo ]
-
-        Pages.OrgSecrets secretEngine org _ _ ->
-            noBlanks [ secretEngine, org ]
-
-        Pages.RepoSecrets secretEngine org repo _ _ ->
-            noBlanks [ secretEngine, org, repo ]
-
-        Pages.SharedSecrets secretEngine org team _ _ ->
-            noBlanks [ secretEngine, org, team ]
-
-        Pages.OrgSecret secretEngine org name ->
-            noBlanks [ secretEngine, org, name ]
-
-        Pages.RepoSecret secretEngine org repo name ->
-            noBlanks [ secretEngine, org, repo, name ]
-
-        Pages.SharedSecret secretEngine org team name ->
-            noBlanks [ secretEngine, org, team, name ]
-
-        Pages.RepoSettings _ _ ->
-            args.repo.success
-
-        Pages.Hooks _ _ _ _ ->
-            args.hooks.success
-
-        Pages.Settings ->
-            True
-
-        Pages.Login ->
-            True
-
-        Pages.NotFound ->
-            False
-
-        Pages.AddSchedule org repo ->
-            noBlanks [ org, repo ]
-
-        Pages.Schedule org repo name ->
-            noBlanks [ org, repo, name ]
-
-        Pages.Schedules org repo _ _ ->
-            noBlanks [ org, repo ]
+-- case args.page of
+--     Pages.Overview ->
+--         args.user.success
+--     Pages.SourceRepositories ->
+--         args.sourceRepos.success
+--     Pages.OrgRepositories _ _ _ ->
+--         args.orgRepos.success
+--     Pages.OrgBuilds _ _ _ _ ->
+--         args.builds.success
+--     Pages.RepositoryBuilds _ _ _ _ _ ->
+--         args.builds.success
+--     Pages.RepositoryBuildsPulls _ _ _ _ ->
+--         args.builds.success
+--     Pages.RepositoryBuildsTags _ _ _ _ ->
+--         args.builds.success
+--     Pages.RepositoryDeployments _ _ _ _ ->
+--         args.deployments.success
+--     Pages.Build _ _ _ _ ->
+--         args.build.success
+--     Pages.BuildServices _ _ _ _ ->
+--         args.build.success
+--     Pages.BuildPipeline _ _ _ _ _ ->
+--         args.build.success
+--     Pages.BuildGraph org repo _ ->
+--         args.build.success
+--     Pages.AddOrgSecret secretEngine org ->
+--         noBlanks [ secretEngine, org ]
+--     Pages.AddRepoSecret secretEngine org repo ->
+--         noBlanks [ secretEngine, org, repo ]
+--     Pages.AddSharedSecret secretEngine org team ->
+--         noBlanks [ secretEngine, org, team ]
+--     Pages.AddDeployment org repo ->
+--         noBlanks [ org, repo ]
+--     Pages.PromoteDeployment org repo _ ->
+--         noBlanks [ org, repo ]
+--     Pages.OrgSecrets secretEngine org _ _ ->
+--         noBlanks [ secretEngine, org ]
+--     Pages.RepoSecrets secretEngine org repo _ _ ->
+--         noBlanks [ secretEngine, org, repo ]
+--     Pages.SharedSecrets secretEngine org team _ _ ->
+--         noBlanks [ secretEngine, org, team ]
+--     Pages.OrgSecret secretEngine org name ->
+--         noBlanks [ secretEngine, org, name ]
+--     Pages.RepoSecret secretEngine org repo name ->
+--         noBlanks [ secretEngine, org, repo, name ]
+--     Pages.SharedSecret secretEngine org team name ->
+--         noBlanks [ secretEngine, org, team, name ]
+--     Pages.RepoSettings _ _ ->
+--         args.repo.success
+--     Pages.Hooks _ _ _ _ ->
+--         args.hooks.success
+--     Pages.Settings ->
+--         True
+--     Pages.Login ->
+--         True
+--     Pages.NotFound ->
+--         False
+--     Pages.AddSchedule org repo ->
+--         noBlanks [ org, repo ]
+--     Pages.Schedule org repo name ->
+--         noBlanks [ org, repo, name ]
+--     Pages.Schedules org repo _ _ ->
+--         noBlanks [ org, repo ]
 
 
 {-| resourceLoading : takes help args and returns if the resource is loading
 -}
 resourceLoading : Model msg -> Bool
 resourceLoading args =
-    case args.page of
-        Pages.Overview ->
-            args.user.loading
+    False
 
-        Pages.SourceRepositories ->
-            args.sourceRepos.loading
 
-        Pages.OrgRepositories _ _ _ ->
-            args.sourceRepos.loading
 
-        Pages.OrgBuilds _ _ _ _ ->
-            args.builds.loading
-
-        Pages.RepositoryBuilds _ _ _ _ _ ->
-            args.builds.loading
-
-        Pages.RepositoryBuildsPulls _ _ _ _ ->
-            args.builds.loading
-
-        Pages.RepositoryBuildsTags _ _ _ _ ->
-            args.builds.loading
-
-        Pages.RepositoryDeployments _ _ _ _ ->
-            args.deployments.loading
-
-        Pages.Build _ _ _ _ ->
-            args.build.loading
-
-        Pages.BuildServices _ _ _ _ ->
-            args.build.loading
-
-        Pages.BuildPipeline _ _ _ _ _ ->
-            args.build.loading
-
-        Pages.BuildGraph _ _ _ ->
-            args.build.loading
-
-        Pages.OrgSecrets _ _ _ _ ->
-            args.secrets.loading
-
-        Pages.RepoSecrets _ _ _ _ _ ->
-            args.secrets.loading
-
-        Pages.SharedSecrets _ _ _ _ _ ->
-            args.secrets.loading
-
-        Pages.AddOrgSecret secretEngine org ->
-            anyBlank [ secretEngine, org ]
-
-        Pages.AddRepoSecret secretEngine org repo ->
-            anyBlank [ secretEngine, org, repo ]
-
-        Pages.AddDeployment org repo ->
-            anyBlank [ org, repo ]
-
-        Pages.PromoteDeployment org repo _ ->
-            anyBlank [ org, repo ]
-
-        Pages.AddSharedSecret secretEngine org team ->
-            anyBlank [ secretEngine, org, team ]
-
-        Pages.OrgSecret secretEngine org name ->
-            anyBlank [ secretEngine, org, name ]
-
-        Pages.RepoSecret secretEngine org repo name ->
-            anyBlank [ secretEngine, org, repo, name ]
-
-        Pages.SharedSecret secretEngine org team name ->
-            anyBlank [ secretEngine, org, team, name ]
-
-        Pages.RepoSettings _ _ ->
-            args.repo.loading
-
-        Pages.Hooks _ _ _ _ ->
-            args.hooks.loading
-
-        Pages.Settings ->
-            False
-
-        Pages.Login ->
-            False
-
-        Pages.NotFound ->
-            False
-
-        Pages.AddSchedule _ _ ->
-            False
-
-        Pages.Schedule _ _ _ ->
-            False
-
-        Pages.Schedules _ _ _ _ ->
-            False
+-- case args.page of
+--     Pages.Overview ->
+--         args.user.loading
+--     Pages.SourceRepositories ->
+--         args.sourceRepos.loading
+--     Pages.OrgRepositories _ _ _ ->
+--         args.sourceRepos.loading
+--     Pages.OrgBuilds _ _ _ _ ->
+--         args.builds.loading
+--     Pages.RepositoryBuilds _ _ _ _ _ ->
+--         args.builds.loading
+--     Pages.RepositoryBuildsPulls _ _ _ _ ->
+--         args.builds.loading
+--     Pages.RepositoryBuildsTags _ _ _ _ ->
+--         args.builds.loading
+--     Pages.RepositoryDeployments _ _ _ _ ->
+--         args.deployments.loading
+--     Pages.Build _ _ _ _ ->
+--         args.build.loading
+--     Pages.BuildServices _ _ _ _ ->
+--         args.build.loading
+--     Pages.BuildPipeline _ _ _ _ _ ->
+--         args.build.loading
+--     Pages.BuildGraph _ _ _ ->
+--         args.build.loading
+--     Pages.OrgSecrets _ _ _ _ ->
+--         args.secrets.loading
+--     Pages.RepoSecrets _ _ _ _ _ ->
+--         args.secrets.loading
+--     Pages.SharedSecrets _ _ _ _ _ ->
+--         args.secrets.loading
+--     Pages.AddOrgSecret secretEngine org ->
+--         anyBlank [ secretEngine, org ]
+--     Pages.AddRepoSecret secretEngine org repo ->
+--         anyBlank [ secretEngine, org, repo ]
+--     Pages.AddDeployment org repo ->
+--         anyBlank [ org, repo ]
+--     Pages.PromoteDeployment org repo _ ->
+--         anyBlank [ org, repo ]
+--     Pages.AddSharedSecret secretEngine org team ->
+--         anyBlank [ secretEngine, org, team ]
+--     Pages.OrgSecret secretEngine org name ->
+--         anyBlank [ secretEngine, org, name ]
+--     Pages.RepoSecret secretEngine org repo name ->
+--         anyBlank [ secretEngine, org, repo, name ]
+--     Pages.SharedSecret secretEngine org team name ->
+--         anyBlank [ secretEngine, org, team, name ]
+--     Pages.RepoSettings _ _ ->
+--         args.repo.loading
+--     Pages.Hooks _ _ _ _ ->
+--         args.hooks.loading
+--     Pages.Settings ->
+--         False
+--     Pages.Login ->
+--         False
+--     Pages.NotFound ->
+--         False
+--     Pages.AddSchedule _ _ ->
+--         False
+--     Pages.Schedule _ _ _ ->
+--         False
+--     Pages.Schedules _ _ _ _ ->
+--         False

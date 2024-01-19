@@ -16,7 +16,7 @@ import Html
         )
 import Html.Attributes exposing (class)
 import RemoteData exposing (RemoteData(..), WebData)
-import Routes
+import Route.Path
 import Shared
 import Utils.Errors as Errors
 import Utils.Helpers as Util
@@ -42,7 +42,7 @@ view shared props =
                         [ class "button"
                         , class "-outline"
                         , Util.testAttribute "source-repos"
-                        , Routes.href <| Routes.SourceRepositories
+                        , Route.Path.href Route.Path.AccountSourceRepos_
                         ]
                         [ text "Source Repositories" ]
                     ]
@@ -70,27 +70,30 @@ viewRepo repo =
             [ a
                 [ class "button"
                 , class "-outline"
-                , Routes.href <| Routes.RepoSettings repo.org repo.name
+
+                -- , Routes.href <| Routes.RepoSettings repo.org repo.name
                 ]
                 [ text "Settings" ]
             , a
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
+
+                -- , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
                 ]
                 [ text "Hooks" ]
             , a
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-secrets"
-                , Routes.href <| Routes.RepoSecrets "native" repo.org repo.name Nothing Nothing
+
+                -- , Routes.href <| Routes.RepoSecrets "native" repo.org repo.name Nothing Nothing
                 ]
                 [ text "Secrets" ]
             , a
                 [ class "button"
                 , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds repo.org repo.name Nothing Nothing Nothing
+                , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
                 ]
                 [ text "View" ]
             ]

@@ -16,7 +16,6 @@ import Html.Attributes exposing (class)
 import Interop
 import Json.Decode
 import Layout exposing (Layout)
-import Pages
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
@@ -218,8 +217,8 @@ helpArgs shared model =
     , toggle = ShowHideHelp
     , copy = CopyAlert
     , noOp = NoOp
-    , page = Pages.NotFound
 
+    -- , page = Pages.NotFound
     -- TODO: use env flag velaDocsURL
     -- , velaDocsURL = model.velaDocsURL
     , velaDocsURL = "https://go-vela.github.io/docs"

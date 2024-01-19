@@ -68,7 +68,10 @@ body : Model msg -> List (Html msg)
 body args =
     let
         ( copy, cmds ) =
-            ( args.copy, commands args.page )
+            ( args.copy
+            , []
+              -- , commands args.page
+            )
     in
     if resourceLoading args then
         [ Util.largeLoader ]

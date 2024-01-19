@@ -39,7 +39,6 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Route.Path
-import Routes
 import Shared
 import Utils.Helpers as Util
 import Vela exposing (Favorites, Org, Repo)
@@ -151,7 +150,7 @@ view shared model =
                     , SvgBuilder.star False
                     ]
                 , p [] [ text "Enable repositories from your GitHub account on Vela now!" ]
-                , a [ class "button", Routes.href Routes.SourceRepositories ] [ text "Source Repositories" ]
+                , a [ class "button", Route.Path.href Route.Path.AccountSourceRepos_ ] [ text "Source Repositories" ]
                 ]
 
         body =
@@ -252,7 +251,7 @@ viewOrg : String -> Favorites -> Html Msg
 viewOrg org favorites =
     details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
         (summary [ class "summary" ]
-            [ a [ Routes.href <| Routes.OrgRepositories org Nothing Nothing ] [ text org ]
+            [ a [ Route.Path.href <| Route.Path.Org_Repos { org = org } ] [ text org ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
             :: List.map (viewFavorite favorites False) favorites
@@ -283,27 +282,31 @@ viewFavorite favorites filtered favorite =
             , a
                 [ class "button"
                 , class "-outline"
-                , Routes.href <| Routes.RepoSettings org repo
+
+                -- , Routes.href <| Routes.RepoSettings org repo
                 ]
                 [ text "Settings" ]
             , a
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-hooks"
-                , Routes.href <| Routes.Hooks org repo Nothing Nothing
+
+                -- , Routes.href <| Routes.Hooks org repo Nothing Nothing
                 ]
                 [ text "Hooks" ]
             , a
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-secrets"
-                , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
+
+                -- , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
                 ]
                 [ text "Secrets" ]
             , a
                 [ class "button"
                 , Util.testAttribute "repo-view"
-                , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
+
+                -- , Routes.href <| Routes.RepositoryBuilds org repo Nothing Nothing Nothing
                 ]
                 [ text "View" ]
             ]

@@ -25,10 +25,8 @@ import Html.Attributes
         , classList
         )
 import Html.Events exposing (onClick)
-import Pages exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
-import Routes
 import Shared
 import Utils.Helpers as Util
 import Vela

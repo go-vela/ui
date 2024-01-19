@@ -12,7 +12,7 @@ import FeatherIcons
 import Html exposing (Html, a, button, details, div, header, li, nav, summary, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id)
 import Html.Events exposing (onClick)
-import Routes
+import Route.Path
 import Utils.HelpCommands
 import Utils.Helpers as Util
 import Vela exposing (Theme(..))
@@ -36,7 +36,12 @@ view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideI
     in
     header []
         [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
-            [ a [ Routes.href Routes.Overview, class "identity-logo-link", attribute "aria-label" "Home" ] [ velaLogo 24 ]
+            [ a
+                [ Route.Path.href Route.Path.Home_
+                , class "identity-logo-link"
+                , attribute "aria-label" "Home"
+                ]
+                [ velaLogo 24 ]
             , case session of
                 Authenticated auth ->
                     details (identityBaseClassList :: identityAttributeList)
@@ -46,9 +51,21 @@ view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideI
                             ]
                         , ul [ class "identity-menu", attribute "aria-hidden" "true", attribute "role" "menu" ]
                             [ li [ class "identity-menu-item" ]
-                                [ a [ Routes.href Routes.Settings, Util.testAttribute "settings-link", attribute "role" "menuitem" ] [ text "Settings" ] ]
+                                [ a
+                                    [ Util.testAttribute "settings-link"
+                                    , Route.Path.href Route.Path.AccountSettings_
+                                    , attribute "role" "menuitem"
+                                    ]
+                                    [ text "Settings" ]
+                                ]
                             , li [ class "identity-menu-item" ]
-                                [ a [ Routes.href Routes.Logout, Util.testAttribute "logout-link", attribute "role" "menuitem" ] [ text "Logout" ] ]
+                                [ a
+                                    [ Util.testAttribute "logout-link"
+                                    , Route.Path.href Route.Path.Logout_
+                                    , attribute "role" "menuitem"
+                                    ]
+                                    [ text "Logout" ]
+                                ]
                             ]
                         ]
 

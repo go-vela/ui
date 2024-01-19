@@ -17,7 +17,6 @@ import Interop
 import Json.Decode
 import Layout exposing (Layout)
 import Layouts.Default
-import Pages
 import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
