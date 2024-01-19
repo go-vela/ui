@@ -13,6 +13,7 @@ module Api.Operations_ exposing
     , getToken
     , getUserSourceRepos
     , logout
+    , restartBuild
     , updateCurrentUser
     )
 
@@ -131,6 +132,12 @@ getOrgRepos baseUrl session { org } =
 getRepoBuilds : String -> Session -> { a | org : String, repo : String, pageNumber : Maybe Int, perPage : Maybe Int, maybeEvent : Maybe String } -> Request (List Vela.Build)
 getRepoBuilds baseUrl session options =
     get baseUrl (Endpoint.Builds options.pageNumber options.perPage options.maybeEvent options.org options.repo) Vela.decodeBuilds
+        |> withAuth session
+
+
+restartBuild : String -> Session -> { a | org : String, repo : String, buildNumber : String } -> Request Vela.Build
+restartBuild baseUrl session options =
+    post baseUrl (Endpoint.Build options.org options.repo options.buildNumber) Http.emptyBody Vela.decodeBuild
         |> withAuth session
 
 

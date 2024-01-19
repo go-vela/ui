@@ -153,12 +153,18 @@ update shared route msg model =
             in
             ( model, Effect.none )
 
-        RestartBuild _ _ _ ->
+        RestartBuild org repo buildNumber ->
             let
                 _ =
                     Debug.log "restart build clicked" ""
             in
-            ( model, Effect.none )
+            ( model
+            , Effect.restartBuild
+                { org = org
+                , repo = repo
+                , buildNumber = buildNumber
+                }
+            )
 
         CancelBuild _ _ _ ->
             let

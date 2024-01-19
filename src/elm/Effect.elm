@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, getOrgRepos, getRepoBuilds, getRepoDeployments, gotoPage, handleHttpError, logout, pushPath, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, alertsUpdate, enableRepo, focusOn, getCurrentUser, getOrgRepos, getRepoBuilds, getRepoDeployments, gotoPage, handleHttpError, logout, pushPath, restartBuild, setTheme, updateFavorites
     )
 
 {-|
@@ -307,6 +307,11 @@ getRepoDeployments options =
         options.onResponse
         (Api.Operations_.getRepoDeployments options.baseUrl options.session options)
         |> sendCmd
+
+
+restartBuild : { org : String, repo : String, buildNumber : String } -> Effect msg
+restartBuild options =
+    SendSharedMsg <| Shared.Msg.RestartBuild options
 
 
 gotoPage : { pageNumber : Int } -> Effect msg

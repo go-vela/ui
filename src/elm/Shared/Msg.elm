@@ -25,6 +25,9 @@ type Msg
       -- FAVORITES
     | UpdateFavorites { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType }
     | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
+      -- BUILD
+    | RestartBuild { org : String, repo : String, buildNumber : String }
+    | RestartBuildResponse { org : String, repo : String, buildNumber : String } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
       -- PAGINATION
     | GotoPage { pageNumber : Int }
       -- THEME
