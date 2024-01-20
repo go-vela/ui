@@ -6,24 +6,9 @@ SPDX-License-Identifier: Apache-2.0
 module Api.Endpoint exposing (Endpoint(..), toUrl)
 
 import Api.Pagination as Pagination
+import Auth.Session
 import Url.Builder as UB exposing (QueryParameter)
 import Vela
-    exposing
-        ( AuthParams
-        , BuildNumber
-        , DeploymentId
-        , Engine
-        , Event
-        , HookNumber
-        , Name
-        , Org
-        , Ref
-        , Repo
-        , ScheduleName
-        , ServiceNumber
-        , StepNumber
-        , Type
-        )
 
 
 {-| apiBase : is the versioned base of all API paths
@@ -36,37 +21,37 @@ apiBase =
 {-| Endpoint : represents any one unique API endpoint
 -}
 type Endpoint
-    = Authenticate AuthParams
+    = Authenticate Auth.Session.AuthParams
     | Login
     | Logout
     | CurrentUser
-    | Deployment Org Repo (Maybe DeploymentId)
-    | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
+    | Deployment Vela.Org Vela.Repo (Maybe Vela.DeploymentId)
+    | Deployments (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
     | Token
     | Repositories (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | Repository Org Repo
-    | OrgRepositories (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org
-    | RepositoryChown Org Repo
-    | RepositoryRepair Org Repo
+    | Repository Vela.Org Vela.Repo
+    | OrgRepositories (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org
+    | RepositoryChown Vela.Org Vela.Repo
+    | RepositoryRepair Vela.Org Vela.Repo
     | UserSourceRepositories
-    | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo
-    | Hook Org Repo HookNumber
-    | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org
-    | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Event) Org Repo
-    | Build Org Repo BuildNumber
-    | CancelBuild Org Repo BuildNumber
-    | ApproveBuild Org Repo BuildNumber
-    | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
-    | ServiceLogs Org Repo BuildNumber ServiceNumber
-    | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Org Repo BuildNumber
-    | StepLogs Org Repo BuildNumber StepNumber
-    | BuildGraph Org Repo BuildNumber
-    | Schedule Org Repo (Maybe ScheduleName) (Maybe Pagination.Page) (Maybe Pagination.PerPage)
-    | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Engine Type Org Name
-    | Secret Engine Type Org String Name
-    | PipelineConfig Org Repo Ref
-    | ExpandPipelineConfig Org Repo Ref
-    | PipelineTemplates Org Repo Ref
+    | Hooks (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
+    | Hook Vela.Org Vela.Repo Vela.HookNumber
+    | OrgBuilds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Vela.Event) Vela.Org
+    | Builds (Maybe Pagination.Page) (Maybe Pagination.PerPage) (Maybe Vela.Event) Vela.Org Vela.Repo
+    | Build Vela.Org Vela.Repo Vela.BuildNumber
+    | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | Services (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo Vela.BuildNumber
+    | ServiceLogs Vela.Org Vela.Repo Vela.BuildNumber Vela.ServiceNumber
+    | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo Vela.BuildNumber
+    | StepLogs Vela.Org Vela.Repo Vela.BuildNumber Vela.StepNumber
+    | BuildGraph Vela.Org Vela.Repo Vela.BuildNumber
+    | Schedule Vela.Org Vela.Repo (Maybe Vela.ScheduleName) (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Engine Vela.Type Vela.Org Vela.Name
+    | Secret Vela.Engine Vela.Type Vela.Org String Vela.Name
+    | PipelineConfig Vela.Org Vela.Repo Vela.Ref
+    | ExpandPipelineConfig Vela.Org Vela.Repo Vela.Ref
+    | PipelineTemplates Vela.Org Vela.Repo Vela.Ref
 
 
 {-| toUrl : turns and Endpoint into a URL string

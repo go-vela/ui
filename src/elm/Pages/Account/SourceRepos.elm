@@ -3,13 +3,13 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Account.SourceRepos_ exposing (..)
+module Pages.Account.SourceRepos exposing (..)
 
 import Api.Api as Api
 import Api.Operations
 import Auth
 import Components.Favorites as Favorites
-import Components.Search as Search
+import Components.Search
     exposing
         ( Search
         , filterRepo
@@ -19,7 +19,7 @@ import Components.Search as Search
         , searchFilterLocal
         , shouldSearch
         )
-import Dict
+import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
 import Html
@@ -51,7 +51,7 @@ import Route exposing (Route)
 import Shared
 import Utils.Errors as Errors
 import Utils.Helpers as Util
-import Vela exposing (CurrentUser, Org, RepoSearchFilters, Repository, SourceRepositories)
+import Vela
 import View exposing (View)
 
 
@@ -100,8 +100,8 @@ toLayout user shared model =
 
 
 type alias Model =
-    { searchFilters : RepoSearchFilters
-    , sourceRepos : WebData SourceRepositories
+    { searchFilters : Dict Vela.Org String
+    , sourceRepos : WebData Vela.SourceRepositories
     }
 
 
@@ -124,12 +124,12 @@ init () =
 type Msg
     = NoOp
     | GetUserSourceRepos Bool
-    | GetUserSourceReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, SourceRepositories ))
-    | ToggleFavorite Org (Maybe String)
-    | EnableRepos (List Repository)
-    | EnableRepo Repository
-    | EnableRepoResponse Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Repository ))
-    | UpdateSearchFilter Org String
+    | GetUserSourceReposResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.SourceRepositories ))
+    | ToggleFavorite Vela.Org (Maybe String)
+    | EnableRepos (List Vela.Repository)
+    | EnableRepo Vela.Repository
+    | EnableRepoResponse Vela.Repository (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | UpdateSearchFilter Vela.Org String
 
 
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -264,7 +264,7 @@ view shared model =
                 , viewSourceRepos shared model
                 ]
     in
-    { title = "Pages.Account.SourceRepos_"
+    { title = "Source Repos"
     , body =
         [ body
         ]
@@ -356,7 +356,12 @@ viewErrorSourceOrg =
 
 {-| viewSourceOrg : renders the source repositories available to a user by org
 -}
-viewSourceOrg : WebData CurrentUser -> RepoSearchFilters -> Org -> List Repository -> Html Msg
+viewSourceOrg :
+    WebData Vela.CurrentUser
+    -> Dict Vela.Org String
+    -> Vela.Org
+    -> List Vela.Repository
+    -> Html Msg
 viewSourceOrg user filters org repos =
     let
         ( repos_, filtered, content ) =
@@ -373,7 +378,15 @@ viewSourceOrg user filters org repos =
 
 {-| viewSourceOrgDetails : renders the source repositories by org as an html details element
 -}
-viewSourceOrgDetails : RepoSearchFilters -> Org -> List Repository -> Bool -> List (Html msg) -> Search msg -> Vela.EnableRepos msg -> Html msg
+viewSourceOrgDetails :
+    Dict Vela.Org String
+    -> Vela.Org
+    -> List Vela.Repository
+    -> Bool
+    -> List (Html msg)
+    -> Search msg
+    -> (List Vela.Repository -> msg)
+    -> Html msg
 viewSourceOrgDetails filters org repos filtered content search enableRepos =
     details [ class "details", class "-with-border" ] <|
         viewSourceOrgSummary filters org repos filtered content search enableRepos
@@ -381,7 +394,15 @@ viewSourceOrgDetails filters org repos filtered content search enableRepos =
 
 {-| viewSourceOrgSummary : renders the source repositories details summary
 -}
-viewSourceOrgSummary : RepoSearchFilters -> Org -> List Repository -> Bool -> List (Html msg) -> Search msg -> Vela.EnableRepos msg -> List (Html msg)
+viewSourceOrgSummary :
+    Dict Vela.Org String
+    -> Vela.Org
+    -> List Vela.Repository
+    -> Bool
+    -> List (Html msg)
+    -> Search msg
+    -> (List Vela.Repository -> msg)
+    -> List (Html msg)
 viewSourceOrgSummary filters org repos filtered content search enableRepos =
     summary [ class "summary", Util.testAttribute <| "source-org-" ++ org ]
         [ text org
@@ -398,7 +419,12 @@ viewSourceOrgSummary filters org repos filtered content search enableRepos =
 {-| viewSourceRepo : renders single repo within a list of org repos
 viewSourceRepo uses model.sourceRepos and enableRepoButton to determine the state of each specific 'Enable' button
 -}
-viewSourceRepo : WebData CurrentUser -> Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> Repository -> Html msg
+viewSourceRepo :
+    WebData Vela.CurrentUser
+    -> (Vela.Repository -> msg)
+    -> Favorites.UpdateFavorites msg
+    -> Vela.Repository
+    -> Html msg
 viewSourceRepo user enableRepo toggleFavorite repo =
     let
         favorited =
@@ -412,7 +438,7 @@ viewSourceRepo user enableRepo toggleFavorite repo =
 
 {-| viewSearchedSourceRepo : renders single repo when searching across all repos
 -}
-viewSearchedSourceRepo : Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> Repository -> Bool -> Html msg
+viewSearchedSourceRepo : (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> Vela.Repository -> Bool -> Html msg
 viewSearchedSourceRepo enableRepo toggleFavorite repo favorited =
     div [ class "item", Util.testAttribute <| "source-repo-" ++ repo.name ]
         [ div []
@@ -430,7 +456,7 @@ viewRepoCount repos =
 
 {-| enableReposButton : takes List of repos and renders a button to enable them all at once, texts depends on user input filter
 -}
-enableReposButton : Org -> List Repository -> Bool -> Vela.EnableRepos msg -> Html msg
+enableReposButton : Vela.Org -> List Vela.Repository -> Bool -> (List Vela.Repository -> msg) -> Html msg
 enableReposButton org repos filtered enableRepos =
     button [ class "button", class "-outline", Util.testAttribute <| "enable-org-" ++ org, onClick (enableRepos repos) ]
         [ text <|
@@ -444,7 +470,7 @@ enableReposButton org repos filtered enableRepos =
 
 {-| enableRepoButton : builds action button for enabling single repos
 -}
-enableRepoButton : Repository -> Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> Bool -> Html msg
+enableRepoButton : Vela.Repository -> (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> Bool -> Html msg
 enableRepoButton repo enableRepo toggleFavorite favorited =
     case repo.enabled of
         RemoteData.NotAsked ->
@@ -509,7 +535,7 @@ enableRepoButton repo enableRepo toggleFavorite favorited =
 
 {-| searchReposGlobal : takes source repositories and search filters and renders filtered repos
 -}
-searchReposGlobal : Shared.Model -> Model -> SourceRepositories -> Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> Html msg
+searchReposGlobal : Shared.Model -> Model -> Vela.SourceRepositories -> (Vela.Repository -> msg) -> Favorites.UpdateFavorites msg -> Html msg
 searchReposGlobal shared model repos enableRepo toggleFavorite =
     let
         ( user, filters ) =
@@ -534,7 +560,14 @@ searchReposGlobal shared model repos enableRepo toggleFavorite =
 
 {-| searchReposLocal : takes repo search filters, the org, and repos and renders a list of repos based on user-entered text
 -}
-searchReposLocal : WebData CurrentUser -> Org -> RepoSearchFilters -> List Repository -> Vela.EnableRepo msg -> Favorites.UpdateFavorites msg -> ( List Repository, Bool, List (Html msg) )
+searchReposLocal :
+    WebData Vela.CurrentUser
+    -> Vela.Org
+    -> Dict Vela.Org String
+    -> List Vela.Repository
+    -> (Vela.Repository -> msg)
+    -> Favorites.UpdateFavorites msg
+    -> ( List Vela.Repository, Bool, List (Html msg) )
 searchReposLocal user org filters repos enableRepo toggleFavorite =
     -- Filter the repos if the user typed more than 2 characters
     let

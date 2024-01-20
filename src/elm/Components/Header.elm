@@ -8,20 +8,34 @@ module Components.Header exposing (view)
 import Auth.Session exposing (Session(..))
 import Components.Help
 import Components.Svgs exposing (velaLogo)
+import Dict
 import FeatherIcons
 import Html exposing (Html, a, button, details, div, header, li, nav, summary, text, ul)
 import Html.Attributes exposing (attribute, class, classList, href, id)
 import Html.Events exposing (onClick)
+import Route
 import Route.Path
 import Utils.HelpCommands
 import Utils.Helpers as Util
-import Vela exposing (Theme(..))
+import Utils.Theme as Theme
 
 
-view : { session : Session, feedbackLink : String, docsLink : String, theme : Theme, setTheme : Theme -> msg, help : Utils.HelpCommands.Model msg, showId : Bool, showHideIdentity : Maybe Bool -> msg } -> Html msg
-view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideIdentity } =
+type alias Props msg =
+    { session : Session
+    , from : String
+    , feedbackLink : String
+    , docsLink : String
+    , theme : Theme.Theme
+    , setTheme : Theme.Theme -> msg
+    , help : Utils.HelpCommands.Model msg
+    , showId : Bool
+    , showHideIdentity : Maybe Bool -> msg
+    }
+
+
+view : Props msg -> Html msg
+view { session, from, feedbackLink, docsLink, theme, setTheme, help, showId, showHideIdentity } =
     let
-        identityBaseClassList : Html.Attribute msg
         identityBaseClassList =
             classList
                 [ ( "details", True )
@@ -30,14 +44,13 @@ view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideI
                 , ( "identity-name", True )
                 ]
 
-        identityAttributeList : List (Html.Attribute msg)
         identityAttributeList =
             Util.open showId
     in
     header []
         [ div [ class "identity", id "identity", Util.testAttribute "identity" ]
             [ a
-                [ Route.Path.href Route.Path.Home_
+                [ Route.Path.href Route.Path.Home
                 , class "identity-logo-link"
                 , attribute "aria-label" "Home"
                 ]
@@ -53,7 +66,7 @@ view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideI
                             [ li [ class "identity-menu-item" ]
                                 [ a
                                     [ Util.testAttribute "settings-link"
-                                    , Route.Path.href Route.Path.AccountSettings_
+                                    , Route.Path.href Route.Path.AccountSettings
                                     , attribute "role" "menuitem"
                                     ]
                                     [ text "Settings" ]
@@ -61,7 +74,13 @@ view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideI
                             , li [ class "identity-menu-item" ]
                                 [ a
                                     [ Util.testAttribute "logout-link"
-                                    , Route.Path.href Route.Path.AccountLogout_
+                                    , Route.href
+                                        { path = Route.Path.AccountLogout
+                                        , query =
+                                            Dict.fromList
+                                                [ ( "from", from ) ]
+                                        , hash = Nothing
+                                        }
                                     , attribute "role" "menuitem"
                                     ]
                                     [ text "Logout" ]
@@ -84,15 +103,15 @@ view { session, feedbackLink, docsLink, theme, setTheme, help, showId, showHideI
         ]
 
 
-viewThemeToggle : Theme -> (Theme -> msg) -> Html msg
+viewThemeToggle : Theme.Theme -> (Theme.Theme -> msg) -> Html msg
 viewThemeToggle theme setTheme =
     let
         ( newTheme, themeAria ) =
             case theme of
-                Dark ->
-                    ( Light, "enable light mode" )
+                Theme.Dark ->
+                    ( Theme.Light, "enable light mode" )
 
-                Light ->
-                    ( Dark, "enable dark mode" )
+                Theme.Light ->
+                    ( Theme.Dark, "enable dark mode" )
     in
     button [ class "button", class "-link", attribute "aria-label" themeAria, onClick (setTheme newTheme) ] [ text "switch theme" ]

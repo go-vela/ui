@@ -19,7 +19,7 @@ module Utils.Focus exposing
     , resourceToFocusId
     )
 
-import Vela exposing (FocusFragment, LogFocus)
+import Vela
 
 
 type alias RefQuery =
@@ -73,7 +73,7 @@ resourceAndLineToFocusId resource resourceID lineNumber =
 
 {-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus id for auto focusing on page load
 -}
-focusFragmentToFocusId : ResourceType -> FocusFragment -> String
+focusFragmentToFocusId : ResourceType -> Vela.FocusFragment -> String
 focusFragmentToFocusId resource focusFragment =
     let
         parsed =
@@ -95,7 +95,7 @@ focusFragmentToFocusId resource focusFragment =
 
 {-| parseFocusFragment : takes URL fragment and parses it into appropriate line focus chunks
 -}
-parseFocusFragment : FocusFragment -> FocusTarget
+parseFocusFragment : Vela.FocusFragment -> FocusTarget
 parseFocusFragment focusFragment =
     case String.split ":" (Maybe.withDefault "" focusFragment) of
         target :: resourceID :: lineA :: lineB :: _ ->
@@ -113,7 +113,7 @@ parseFocusFragment focusFragment =
 
 {-| lineRangeId : takes resource, line, and focus information and returns the fragment for focusing a range of lines
 -}
-lineRangeId : ResourceType -> ResourceID -> Int -> LogFocus -> Bool -> String
+lineRangeId : ResourceType -> ResourceID -> Int -> Vela.LogFocus -> Bool -> String
 lineRangeId resource resourceID lineNumber lineFocus shiftDown =
     resourceFocusFragment resource resourceID <|
         List.map String.fromInt
@@ -140,7 +140,7 @@ lineRangeId resource resourceID lineNumber lineFocus shiftDown =
 
 {-| lineFocusStyles : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
 -}
-lineFocusStyles : LogFocus -> Int -> String
+lineFocusStyles : Vela.LogFocus -> Int -> String
 lineFocusStyles logFocus lineNumber =
     case logFocus of
         ( Just lineA, Just lineB ) ->

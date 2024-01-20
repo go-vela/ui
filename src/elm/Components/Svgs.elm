@@ -41,7 +41,7 @@ import Svg.Attributes
         , y2
         )
 import Utils.Helpers as Util exposing (ariaHidden)
-import Vela exposing (Status)
+import Vela
 
 
 {-| velaLogo: produces the svg for the Vela logo
@@ -582,7 +582,7 @@ buildHistoryCanceled _ =
 
 {-| buildStatusToIcon : takes build status and returns Icon from SvgBuilder
 -}
-buildStatusToIcon : Status -> Html msg
+buildStatusToIcon : Vela.Status -> Html msg
 buildStatusToIcon status =
     case status of
         Vela.Pending ->
@@ -612,7 +612,7 @@ buildStatusToIcon status =
 
 {-| recentBuildStatusToIcon : takes build status string and returns Icon from SvgBuilder
 -}
-recentBuildStatusToIcon : Status -> Int -> Html msg
+recentBuildStatusToIcon : Vela.Status -> Int -> Html msg
 recentBuildStatusToIcon status index =
     case status of
         Vela.Pending ->
@@ -642,7 +642,7 @@ recentBuildStatusToIcon status index =
 
 {-| stepStatusToIcon : takes build status and returns Icon from SvgBuilder
 -}
-stepStatusToIcon : Status -> Html msg
+stepStatusToIcon : Vela.Status -> Html msg
 stepStatusToIcon status =
     case status of
         Vela.Pending ->

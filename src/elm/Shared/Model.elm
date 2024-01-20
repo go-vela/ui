@@ -15,16 +15,16 @@ import Time
         , Zone
         )
 import Toasty exposing (Stack)
+import Utils.Favicons as Favicons
+import Utils.Theme as Theme
 import Vela
     exposing
         ( CurrentUser
-        , Favicon
         , Org
         , PipelineModel
         , PipelineTemplates
         , Repo
         , RepoModel
-        , Theme(..)
         )
 
 
@@ -42,10 +42,10 @@ type alias Model =
     , velaScheduleAllowlist : List ( Org, Repo )
     , zone : Zone
     , time : Posix
-    , theme : Theme
+    , theme : Theme.Theme
     , shift : Bool
     , visibility : Visibility
-    , favicon : Favicon
+    , favicon : Favicons.Favicon
     , pipeline : PipelineModel
     , templates : PipelineTemplates
     , buildMenuOpen : List Int

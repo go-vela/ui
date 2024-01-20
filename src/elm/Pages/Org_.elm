@@ -3,24 +3,20 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_Repos exposing (Model, Msg, page, view)
+module Pages.Org_ exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Repos
 import Effect exposing (Effect)
-import Html
 import Http
 import Http.Detailed
 import Layouts
-import List
-import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
 import Utils.Errors as Errors
-import Utils.Helpers as Util
-import Vela exposing (BuildNumber, Org, Repo)
+import Vela
 import View exposing (View)
 
 

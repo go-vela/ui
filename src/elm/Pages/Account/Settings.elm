@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Account.Settings_ exposing (..)
+module Pages.Account.Settings exposing (..)
 
 import Auth
 import Auth.Session exposing (Session(..))
@@ -37,7 +37,6 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Layouts
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Shared
 import Time
@@ -123,11 +122,11 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     let
         body =
-            div [ Util.testAttribute "login_" ]
+            div [ Util.testAttribute "user-settings" ]
                 [ viewAccountSettings shared model
                 ]
     in
-    { title = "Pages.Account.Settings_"
+    { title = "My Settings"
     , body =
         [ body
         ]

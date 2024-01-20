@@ -16,15 +16,15 @@ import Url.Parser exposing ((</>))
 
 
 type Path
-    = Home_
-    | AccountLogin_
-    | AccountLogout_
+    = Home
+    | AccountLogin
+    | AccountLogout
     | AccountAuthenticate_
-    | AccountSettings_
-    | AccountSourceRepos_
-    | Org_Repos { org : String }
+    | AccountSettings
+    | AccountSourceRepos
+    | Org_ { org : String }
     | Org_Repo_ { org : String, repo : String }
-    | Org_Repo_Deployments_ { org : String, repo : String }
+    | Org_Repo_Deployments { org : String, repo : String }
     | NotFound_
 
 
@@ -45,31 +45,31 @@ fromString urlPath =
     in
     case urlPathSegments of
         [] ->
-            Just Home_
+            Just Home
 
         [ "account", "login" ] ->
-            Just AccountLogin_
+            Just AccountLogin
 
         [ "account", "logout" ] ->
-            Just AccountLogout_
+            Just AccountLogout
 
         [ "account", "authenticate" ] ->
             Just AccountAuthenticate_
 
         [ "account", "settings" ] ->
-            Just AccountSettings_
+            Just AccountSettings
 
         [ "account", "source-repos" ] ->
-            Just AccountSourceRepos_
+            Just AccountSourceRepos
 
         org :: [] ->
-            Org_Repos
+            Org_
                 { org = org
                 }
                 |> Just
 
         org :: repo :: "deployments" :: [] ->
-            Org_Repo_Deployments_
+            Org_Repo_Deployments
                 { org = org
                 , repo = repo
                 }
@@ -97,31 +97,31 @@ toString path =
         pieces : List String
         pieces =
             case path of
-                Home_ ->
+                Home ->
                     []
 
-                AccountLogin_ ->
+                AccountLogin ->
                     [ "account", "login" ]
 
-                AccountLogout_ ->
+                AccountLogout ->
                     [ "account", "logout" ]
 
                 AccountAuthenticate_ ->
                     [ "account", "authenticate" ]
 
-                AccountSettings_ ->
+                AccountSettings ->
                     [ "account", "settings" ]
 
-                AccountSourceRepos_ ->
+                AccountSourceRepos ->
                     [ "account", "source-repos" ]
 
-                Org_Repos params ->
+                Org_ params ->
                     [ params.org ]
 
                 Org_Repo_ params ->
                     [ params.org, params.repo ]
 
-                Org_Repo_Deployments_ params ->
+                Org_Repo_Deployments params ->
                     [ params.org, params.repo, "deployments" ]
 
                 NotFound_ ->

@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, alertsUpdate, clearRedirect, enableRepo, finishAuthentication, focusOn, getCurrentUser, getOrgRepos, getRepoBuilds, getRepoDeployments, gotoPage, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, alertsUpdate, clearRedirect, enableRepo, finishAuthentication, focusOn, getCurrentUser, getOrgRepos, getRepoBuilds, getRepoDeployments, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
     )
 
 {-|
@@ -25,7 +25,7 @@ module Effect exposing
 
 import Api.Api as Api
 import Api.Operations
-import Auth.Session exposing (Session(..))
+import Auth.Session
 import Browser.Navigation
 import Components.Alerts exposing (Alert)
 import Components.Favorites as Favorites
@@ -41,6 +41,7 @@ import Shared.Msg
 import Task
 import Toasty as Alerting
 import Url exposing (Url)
+import Utils.Theme as Theme
 import Vela
 
 
@@ -219,7 +220,7 @@ toCmd options effect =
 -- CUSTOM EFFECTS
 
 
-setTheme : { theme : Vela.Theme } -> Effect msg
+setTheme : { theme : Theme.Theme } -> Effect msg
 setTheme options =
     SendSharedMsg <| Shared.Msg.SetTheme options
 
@@ -239,9 +240,9 @@ finishAuthentication options =
     SendSharedMsg <| Shared.Msg.FinishAuthentication options
 
 
-logout : {} -> Effect msg
-logout _ =
-    SendSharedMsg <| Shared.Msg.Logout
+logout : { from : Maybe String } -> Effect msg
+logout options =
+    SendSharedMsg <| Shared.Msg.Logout options
 
 
 getCurrentUser : {} -> Effect msg
@@ -256,7 +257,7 @@ updateFavorites options =
 
 enableRepo :
     { baseUrl : String
-    , session : Session
+    , session : Auth.Session.Session
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ) -> msg
     , repo : Vela.Repository
     }
@@ -279,7 +280,7 @@ enableRepo options =
 
 getRepoBuilds :
     { baseUrl : String
-    , session : Session
+    , session : Auth.Session.Session
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ) -> msg
     , pageNumber : Maybe Int
     , perPage : Maybe Int
@@ -297,7 +298,7 @@ getRepoBuilds options =
 
 getOrgRepos :
     { baseUrl : String
-    , session : Session
+    , session : Auth.Session.Session
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Repository ) -> msg
     , org : String
     }
@@ -311,7 +312,7 @@ getOrgRepos options =
 
 getRepoDeployments :
     { baseUrl : String
-    , session : Session
+    , session : Auth.Session.Session
     , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ) -> msg
     , pageNumber : Maybe Int
     , perPage : Maybe Int
@@ -324,11 +325,6 @@ getRepoDeployments options =
         options.onResponse
         (Api.Operations.getRepoDeployments options.baseUrl options.session options)
         |> sendCmd
-
-
-gotoPage : { pageNumber : Int } -> Effect msg
-gotoPage options =
-    SendSharedMsg <| Shared.Msg.GotoPage options
 
 
 handleHttpError : { httpError : Http.Detailed.Error String } -> Effect msg

@@ -24,7 +24,7 @@ import Route exposing (Route)
 import Shared
 import Utils.Errors as Errors
 import Utils.Helpers as Util
-import Vela exposing (BuildNumber, Org, Repo)
+import Vela
 import View exposing (View)
 
 
@@ -91,9 +91,9 @@ init shared route () =
 type Msg
     = GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | GotoPage Int
-    | ApproveBuild Org Repo BuildNumber
-    | RestartBuild Org Repo BuildNumber
-    | CancelBuild Org Repo BuildNumber
+    | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | RestartBuild Vela.Org Vela.Repo Vela.BuildNumber
+    | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps

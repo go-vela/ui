@@ -17,21 +17,7 @@ module Utils.HelpCommands exposing
 
 import Route.Path
 import String.Extra
-import Utils.Helpers as Util exposing (anyBlank, noBlanks)
 import Vela
-    exposing
-        ( BuildNumber
-        , Copy
-        , Engine
-        , Key
-        , Name
-        , Org
-        , Repo
-        , ScheduleName
-        , SecretType
-        , StepNumber
-        , secretTypeToString
-        )
 
 
 {-| Model : wrapper for help args, meant to slim down the input required to render contextual help for each page
@@ -48,7 +34,7 @@ type alias Model msg =
     , secrets : Arg
     , show : Bool
     , toggle : Maybe Bool -> msg
-    , copy : Copy msg
+    , copy : String -> msg
     , noOp : msg
 
     -- , page : Page
@@ -168,7 +154,7 @@ listFavorites =
     vela get builds --org octocat --repo hello-world
 
 -}
-listBuilds : Org -> Repo -> Command
+listBuilds : Vela.Org -> Vela.Repo -> Command
 listBuilds org repo =
     let
         name =
@@ -189,7 +175,7 @@ listBuilds org repo =
     vela get builds --org octocat --repo hello-world
 
 -}
-listDeployments : Org -> Repo -> Command
+listDeployments : Vela.Org -> Vela.Repo -> Command
 listDeployments org repo =
     let
         name =
@@ -210,7 +196,7 @@ listDeployments org repo =
     vela view build --org octocat --repo hello-world --build 1
 
 -}
-viewBuild : Org -> Repo -> BuildNumber -> Command
+viewBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Command
 viewBuild org repo buildNumber =
     let
         name =
@@ -231,7 +217,7 @@ viewBuild org repo buildNumber =
     vela approve build --org octocat --repo hello-world --build 1
 
 -}
-approveBuild : Org -> Repo -> BuildNumber -> Command
+approveBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Command
 approveBuild org repo buildNumber =
     let
         name =
@@ -252,7 +238,7 @@ approveBuild org repo buildNumber =
     vela restart build --org octocat --repo hello-world --build 1
 
 -}
-restartBuild : Org -> Repo -> BuildNumber -> Command
+restartBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Command
 restartBuild org repo buildNumber =
     let
         name =
@@ -273,7 +259,7 @@ restartBuild org repo buildNumber =
     vela cancel build --org octocat --repo hello-world --build 1
 
 -}
-cancelBuild : Org -> Repo -> BuildNumber -> Command
+cancelBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Command
 cancelBuild org repo buildNumber =
     let
         name =
@@ -294,7 +280,7 @@ cancelBuild org repo buildNumber =
     vela get steps --org octocat --repo hello-world --build 1
 
 -}
-listSteps : Org -> Repo -> BuildNumber -> Command
+listSteps : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Command
 listSteps org repo buildNumber =
     let
         name =
@@ -315,7 +301,7 @@ listSteps org repo buildNumber =
     vela view step --org octocat --repo hello-world --build 1 --step 1
 
 -}
-viewStep : Org -> Repo -> BuildNumber -> Command
+viewStep : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Command
 viewStep org repo buildNumber =
     let
         name =
@@ -336,7 +322,7 @@ viewStep org repo buildNumber =
     vela get services --org octocat --repo hello-world --build 1
 
 -}
-listServices : Org -> Repo -> BuildNumber -> Command
+listServices : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Command
 listServices org repo buildNumber =
     let
         name =
@@ -357,7 +343,7 @@ listServices org repo buildNumber =
     vela view service --org octocat --repo hello-world --build 14 --service 1
 
 -}
-viewService : Org -> Repo -> BuildNumber -> Command
+viewService : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Command
 viewService org repo buildNumber =
     let
         name =
@@ -378,11 +364,11 @@ viewService org repo buildNumber =
     vela view repo --org octocat --repo hello-world
 
 -}
-viewRepo : Org -> Repo -> Command
+viewRepo : Vela.Org -> Vela.Repo -> Command
 viewRepo org repo =
     let
         name =
-            "View Repo"
+            "View Vela.Repo"
 
         content =
             Just <| "vela view repo " ++ repoArgs org repo
@@ -399,11 +385,11 @@ viewRepo org repo =
     vela repair repo --org octocat --repo hello-world
 
 -}
-repairRepo : Org -> Repo -> Command
+repairRepo : Vela.Org -> Vela.Repo -> Command
 repairRepo org repo =
     let
         name =
-            "Repair Repo"
+            "Repair Vela.Repo"
 
         content =
             Just <| "vela repair repo " ++ repoArgs org repo
@@ -420,11 +406,11 @@ repairRepo org repo =
     vela chown repo --org octocat --repo hello-world
 
 -}
-chownRepo : Org -> Repo -> Command
+chownRepo : Vela.Org -> Vela.Repo -> Command
 chownRepo org repo =
     let
         name =
-            "Chown Repo"
+            "Chown Vela.Repo"
 
         content =
             Just <| "vela chown repo " ++ repoArgs org repo
@@ -462,7 +448,7 @@ validate =
     vela get hooks --org octocat --repo hello-world
 
 -}
-listHooks : Org -> Repo -> Command
+listHooks : Vela.Org -> Vela.Repo -> Command
 listHooks org repo =
     let
         name =
@@ -483,7 +469,7 @@ listHooks org repo =
     vela view hook --org octocat --repo hello-world --hook 1
 
 -}
-viewHook : Org -> Repo -> Command
+viewHook : Vela.Org -> Vela.Repo -> Command
 viewHook org repo =
     let
         name =
@@ -504,11 +490,11 @@ viewHook org repo =
     vela get secrets --secret.engine native --secret.type repo --org octocat --team ghe-admins
 
 -}
-listSecrets : Engine -> SecretType -> Org -> Maybe Key -> Command
+listSecrets : Vela.Engine -> Vela.SecretType -> Vela.Org -> Maybe Vela.Key -> Command
 listSecrets secretEngine secretType org key =
     let
         name =
-            "List " ++ (String.Extra.toSentenceCase <| secretTypeToString secretType) ++ " Secrets"
+            "List " ++ (String.Extra.toSentenceCase <| Vela.secretTypeToString secretType) ++ " Secrets"
 
         content =
             Just <| "vela get secrets " ++ secretBaseArgs secretEngine secretType org key
@@ -525,11 +511,11 @@ listSecrets secretEngine secretType org key =
     vela add secret --secret.engine native --secret.type repo --org octocat --team ghe-admins --name password --value vela --event push
 
 -}
-addSecret : Engine -> SecretType -> Org -> Maybe Key -> Command
+addSecret : Vela.Engine -> Vela.SecretType -> Vela.Org -> Maybe Vela.Key -> Command
 addSecret secretEngine secretType org key =
     let
         name =
-            "Add " ++ (String.Extra.toSentenceCase <| secretTypeToString secretType) ++ " Secret"
+            "Add " ++ (String.Extra.toSentenceCase <| Vela.secretTypeToString secretType) ++ " Secret"
 
         content =
             Just <| "vela add secret " ++ secretBaseArgs secretEngine secretType org key ++ addSecretArgs
@@ -546,7 +532,7 @@ addSecret secretEngine secretType org key =
     vela add deployment vela add deployment --repo some-repp --org some-org
 
 -}
-addDeployment : Org -> Repo -> Command
+addDeployment : Vela.Org -> Vela.Repo -> Command
 addDeployment org repo =
     let
         name =
@@ -569,11 +555,11 @@ addDeployment org repo =
     vela view secret --secret.engine native --secret.type shared --org octocat --team ghe-admins --name password
 
 -}
-viewSecret : Engine -> SecretType -> Org -> Maybe Key -> Name -> Command
+viewSecret : Vela.Engine -> Vela.SecretType -> Vela.Org -> Maybe Vela.Key -> Vela.Name -> Command
 viewSecret secretEngine secretType org key name_ =
     let
         name =
-            "View " ++ (String.Extra.toSentenceCase <| secretTypeToString secretType) ++ " Secret"
+            "View " ++ (String.Extra.toSentenceCase <| Vela.secretTypeToString secretType) ++ " Secret"
 
         content =
             Just <| "vela view secret " ++ secretBaseArgs secretEngine secretType org key ++ " --name " ++ name_
@@ -592,11 +578,11 @@ viewSecret secretEngine secretType org key name_ =
     vela update secret --secret.engine native --secret.type shared --org octocat --team ghe-admins --name password --value new_value
 
 -}
-updateSecret : Engine -> SecretType -> Org -> Maybe Key -> Name -> Command
+updateSecret : Vela.Engine -> Vela.SecretType -> Vela.Org -> Maybe Vela.Key -> Vela.Name -> Command
 updateSecret secretEngine secretType org key name_ =
     let
         name =
-            "Update " ++ (String.Extra.toSentenceCase <| secretTypeToString secretType) ++ " Secret"
+            "Update " ++ (String.Extra.toSentenceCase <| Vela.secretTypeToString secretType) ++ " Secret"
 
         content =
             Just <| "vela update secret " ++ secretBaseArgs secretEngine secretType org key ++ " --name " ++ name_ ++ " --value new_value"
@@ -634,7 +620,7 @@ authenticate =
     --org octocat --repo hello-world
 
 -}
-repoArgs : Org -> Repo -> String
+repoArgs : Vela.Org -> Vela.Repo -> String
 repoArgs org repo =
     "--org " ++ org ++ " --repo " ++ repo
 
@@ -645,7 +631,7 @@ repoArgs org repo =
     --org octocat --repo hello-world --build 1
 
 -}
-buildArgs : Org -> Repo -> BuildNumber -> String
+buildArgs : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> String
 buildArgs org repo buildNumber =
     repoArgs org repo ++ " --build " ++ buildNumber
 
@@ -656,7 +642,7 @@ buildArgs org repo buildNumber =
     --org octocat --repo hello-world --build 1 --step 1
 
 -}
-stepArgs : Org -> Repo -> BuildNumber -> StepNumber -> String
+stepArgs : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Vela.StepNumber -> String
 stepArgs org repo buildNumber stepNumber =
     buildArgs org repo buildNumber ++ " --step " ++ stepNumber
 
@@ -667,7 +653,7 @@ stepArgs org repo buildNumber stepNumber =
     --org octocat --repo hello-world --build 1 --service 1
 
 -}
-serviceArgs : Org -> Repo -> BuildNumber -> StepNumber -> String
+serviceArgs : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> Vela.StepNumber -> String
 serviceArgs org repo buildNumber stepNumber =
     buildArgs org repo buildNumber ++ " --service " ++ stepNumber
 
@@ -678,7 +664,7 @@ serviceArgs org repo buildNumber stepNumber =
     --org octocat --repo hello-world --build 1 --hook 1
 
 -}
-hookArgs : Org -> Repo -> String -> String
+hookArgs : Vela.Org -> Vela.Repo -> String -> String
 hookArgs org repo hookNumber =
     repoArgs org repo ++ " --hook " ++ hookNumber
 
@@ -691,7 +677,7 @@ hookArgs org repo hookNumber =
     --secret.type shared --org octocat --team ghe-admins
 
 -}
-secretBaseArgs : Engine -> SecretType -> Org -> Maybe Key -> String
+secretBaseArgs : Vela.Engine -> Vela.SecretType -> Vela.Org -> Maybe Vela.Key -> String
 secretBaseArgs secretEngine secretType org key =
     let
         keyFlag =
@@ -705,7 +691,7 @@ secretBaseArgs secretEngine secretType org key =
                 Vela.SharedSecret ->
                     " --team " ++ Maybe.withDefault "" key
     in
-    "--secret.engine " ++ secretEngine ++ " --secret.type " ++ secretTypeToString secretType ++ " --org " ++ org ++ keyFlag
+    "--secret.engine " ++ secretEngine ++ " --secret.type " ++ Vela.secretTypeToString secretType ++ " --org " ++ org ++ keyFlag
 
 
 {-| addSecretArgs : returns cli args for adding a secret
@@ -725,7 +711,7 @@ addSecretArgs =
       vela list schedules --org <org> --repo <repo>
 
 -}
-listSchedules : Org -> Repo -> Command
+listSchedules : Vela.Org -> Vela.Repo -> Command
 listSchedules org repo =
     let
         name =
@@ -745,7 +731,7 @@ listSchedules org repo =
       vela view schedule --org <org> --repo <repo>  --schedule <name>
 
 -}
-viewSchedule : Org -> Repo -> ScheduleName -> Command
+viewSchedule : Vela.Org -> Vela.Repo -> Vela.ScheduleName -> Command
 viewSchedule org repo name =
     let
         name_ =
@@ -766,7 +752,7 @@ viewSchedule org repo name =
       vela update schedule --org <org> --repo <repo> --schedule <name> --entry <entry>
 
 -}
-updateSchedule : Org -> Repo -> ScheduleName -> Command
+updateSchedule : Vela.Org -> Vela.Repo -> Vela.ScheduleName -> Command
 updateSchedule org repo name =
     let
         name_ =
@@ -787,7 +773,7 @@ updateSchedule org repo name =
       vela add schedule --org <org> --repo <repo> --schedule <name> --entry <entry>
 
 -}
-addSchedule : Org -> Repo -> Command
+addSchedule : Vela.Org -> Vela.Repo -> Command
 addSchedule org repo =
     let
         name_ =

@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Account.Login_ exposing (..)
+module Pages.Account.Login exposing (..)
 
 import Api.Endpoint
 import Browser.Navigation
@@ -124,7 +124,7 @@ view shared model =
                     text ""
                 ]
     in
-    { title = "Pages.Login_"
+    { title = "Login"
     , body =
         [ body
         ]

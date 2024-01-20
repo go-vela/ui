@@ -42,7 +42,7 @@ view shared props =
                         [ class "button"
                         , class "-outline"
                         , Util.testAttribute "source-repos"
-                        , Route.Path.href Route.Path.AccountSourceRepos_
+                        , Route.Path.href Route.Path.AccountSourceRepos
                         ]
                         [ text "Source Repositories" ]
                     ]

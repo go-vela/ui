@@ -22,7 +22,7 @@ import Utils.HelpCommands
         , usageDocsUrl
         )
 import Utils.Helpers as Util
-import Vela exposing (Copy)
+import Vela
 
 
 {-| help : takes help args and renders nav button for viewing contextual help for each page
@@ -119,7 +119,7 @@ cliDocs args =
 
 {-| contents : takes help args and renders body content for command
 -}
-contents : Model msg -> Copy msg -> Command -> Html msg
+contents : Model msg -> (String -> msg) -> Command -> Html msg
 contents args copyMsg command =
     case ( command.content, command.issue ) of
         ( Just content, _ ) ->
@@ -139,9 +139,9 @@ contents args copyMsg command =
             text "no commands on this page"
 
 
-{-| row : takes cmd content and maybe copy msg and renders cmd help row with code block and copy button
+{-| row : takes cmd content and maybe (String -> msg) and renders cmd help row with code block and copy button
 -}
-row : String -> String -> Maybe (Copy msg) -> Html msg
+row : String -> String -> Maybe (String -> msg) -> Html msg
 row content forName copy =
     div
         [ class "cmd"

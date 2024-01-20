@@ -12,13 +12,13 @@ import Html.Events exposing (onClick)
 import List.Extra
 import RemoteData exposing (RemoteData(..), WebData)
 import Utils.Helpers as Util
-import Vela exposing (CurrentUser, Org, Repo)
+import Vela
 
 
 {-| UpdateFavorites : takes org and maybe repo and updates favorites
 -}
 type alias UpdateFavorites msg =
-    Org -> Maybe Repo -> msg
+    Vela.Org -> Maybe Vela.Repo -> msg
 
 
 type UpdateType
@@ -32,7 +32,7 @@ type UpdateType
 
 {-| starToggle : takes org repo msg and favorited status and renders the favorites toggle star
 -}
-starToggle : Org -> Repo -> UpdateFavorites msg -> Bool -> Html msg
+starToggle : Vela.Org -> Vela.Repo -> UpdateFavorites msg -> Bool -> Html msg
 starToggle org repo updateFn favorited =
     button
         [ Util.testAttribute <| "star-toggle-" ++ org ++ "-" ++ repo
@@ -44,7 +44,7 @@ starToggle org repo updateFn favorited =
         [ star favorited ]
 
 
-starToggleAriaLabel : Org -> Repo -> Bool -> Html.Attribute msg
+starToggleAriaLabel : Vela.Org -> Vela.Repo -> Bool -> Html.Attribute msg
 starToggleAriaLabel org repo favorited =
     let
         favorite =
@@ -64,7 +64,7 @@ starToggleAriaLabel org repo favorited =
 
 {-| isFavorited : takes current user and favorite key and returns if the repo is favorited by that user
 -}
-isFavorited : WebData CurrentUser -> String -> Bool
+isFavorited : WebData Vela.CurrentUser -> String -> Bool
 isFavorited user favorite =
     case user of
         RemoteData.Success u ->
@@ -76,7 +76,7 @@ isFavorited user favorite =
 
 {-| toggleFavorite : takes current user and favorite key and updates/returns that user's list of favorites
 -}
-toggleFavorite : WebData CurrentUser -> String -> ( List String, Bool )
+toggleFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
 toggleFavorite user favorite =
     case user of
         Success u ->
@@ -99,7 +99,7 @@ toggleFavorite user favorite =
 
 {-| addFavorite : takes current user and favorite key and adds favorite to list of favorites
 -}
-addFavorite : WebData CurrentUser -> String -> ( List String, Bool )
+addFavorite : WebData Vela.CurrentUser -> String -> ( List String, Bool )
 addFavorite user favorite =
     case user of
         Success u ->
@@ -115,6 +115,6 @@ addFavorite user favorite =
 
 {-| toFavorite : takes org and maybe repo and builds the appropriate favorites key
 -}
-toFavorite : Org -> Maybe Repo -> String
+toFavorite : Vela.Org -> Maybe Vela.Repo -> String
 toFavorite org repo =
     org ++ "/" ++ Maybe.withDefault "*" repo

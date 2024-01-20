@@ -39,7 +39,7 @@ getToken baseUrl =
 {-| finishAuthentication : complete authentication by supplying code and state to the authenciate endpoint
 which will also set the refresh token cookie
 -}
-finishAuthentication : String -> Vela.AuthParams -> Request JwtAccessToken
+finishAuthentication : String -> Auth.Session.AuthParams -> Request JwtAccessToken
 finishAuthentication baseUrl { code, state } =
     get baseUrl (Api.Endpoint.Authenticate { code = code, state = state }) Auth.Jwt.decodeJwtAccessToken
 

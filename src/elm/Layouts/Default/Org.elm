@@ -5,25 +5,13 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default.Org exposing (Model, Msg, Props, layout, map)
 
-import Components.Alerts as Alerts exposing (Alert)
-import Components.Footer
-import Components.Header
 import Components.Tabs
-import Components.Util
 import Effect exposing (Effect)
 import Html exposing (..)
-import Html.Attributes exposing (class)
-import Interop
-import Json.Decode
 import Layout exposing (Layout)
 import Layouts.Default
-import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
-import Toasty as Alerting
-import Utils.HelpCommands
-import Utils.Helpers as Util
-import Vela exposing (Theme)
 import View exposing (View)
 
 
@@ -101,12 +89,7 @@ subscriptions model =
 
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
-    { title =
-        if String.isEmpty content.title then
-            "Vela"
-
-        else
-            content.title ++ " | Vela"
+    { title = content.title
     , body =
         [ Html.span [] content.body
         ]

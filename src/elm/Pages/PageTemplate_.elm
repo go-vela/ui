@@ -6,42 +6,16 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.PageTemplate_ exposing (Model, Msg, page, view)
 
 import Auth
-import Components.Favorites as Favorites
-import Components.Search
-    exposing
-        ( homeSearchBar
-        , toLowerContains
-        )
-import Components.Svgs as SvgBuilder
-import Dict exposing (Dict)
 import Effect exposing (Effect)
-import FeatherIcons
 import Html
     exposing
-        ( Html
-        , a
-        , details
-        , div
-        , h1
-        , p
-        , summary
-        , text
-        )
-import Html.Attributes
-    exposing
-        ( attribute
-        , class
+        ( text
         )
 import Layouts
-import List
-import List.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
-import Route.Path
 import Shared
-import Utils.Helpers as Util
-import Vela exposing (Favorites, Org, Repo)
 import View exposing (View)
 
 

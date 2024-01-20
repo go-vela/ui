@@ -78,23 +78,23 @@ toCrumbs path =
     let
         -- crumbs used across multiple pages
         overviewCrumbLink =
-            ( "Overview", Just Route.Path.Home_ )
+            ( "Overview", Just Route.Path.Home )
 
         accountCrumbStatic =
             ( "Account", Nothing )
 
         sourceRepositoriesCrumbLink =
-            ( "Source Repositories", Just Route.Path.AccountSourceRepos_ )
+            ( "Source Repositories", Just Route.Path.AccountSourceRepos )
 
         addCrumbStatic =
             ( "Add", Nothing )
 
         pages =
             case path of
-                Route.Path.Home_ ->
+                Route.Path.Home ->
                     [ overviewCrumbLink ]
 
-                Route.Path.AccountSourceRepos_ ->
+                Route.Path.AccountSourceRepos ->
                     [ overviewCrumbLink, accountCrumbStatic, sourceRepositoriesCrumbLink ]
 
                 -- Pages.OrgRepositories org _ _ ->
@@ -333,14 +333,14 @@ toCrumbs path =
                 --             ( "#" ++ buildNumber, Nothing )
                 --     in
                 --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
-                Route.Path.AccountLogin_ ->
+                Route.Path.AccountLogin ->
                     let
                         loginCrumbStatic =
                             ( "Login", Nothing )
                     in
                     [ accountCrumbStatic, loginCrumbStatic ]
 
-                Route.Path.AccountLogout_ ->
+                Route.Path.AccountLogout ->
                     let
                         logoutCrumbStatic =
                             ( "Logout", Nothing )
@@ -354,34 +354,34 @@ toCrumbs path =
                     in
                     [ accountCrumbStatic, loginCrumbStatic ]
 
-                Route.Path.AccountSettings_ ->
+                Route.Path.AccountSettings ->
                     let
                         settingsCrumbStatic =
                             ( "My Settings", Nothing )
                     in
                     [ overviewCrumbLink, settingsCrumbStatic ]
 
-                Route.Path.Org_Repos params ->
+                Route.Path.Org_ params ->
                     let
                         orgReposCrumbLink =
-                            ( params.org, Just <| Route.Path.Org_Repos { org = params.org } )
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
                     in
                     [ overviewCrumbLink, orgReposCrumbLink ]
 
                 Route.Path.Org_Repo_ params ->
                     let
                         orgReposCrumbLink =
-                            ( params.org, Just <| Route.Path.Org_Repos { org = params.org } )
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
 
                         repoCrumbStatic =
                             ( params.repo, Nothing )
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
 
-                Route.Path.Org_Repo_Deployments_ params ->
+                Route.Path.Org_Repo_Deployments params ->
                     let
                         orgReposCrumbLink =
-                            ( params.org, Just <| Route.Path.Org_Repos { org = params.org } )
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
 
                         repoCrumbStatic =
                             ( params.repo, Nothing )

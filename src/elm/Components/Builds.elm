@@ -53,13 +53,6 @@ import Time
 import Utils.Errors as Errors
 import Utils.Helpers as Util exposing (getNameFromRef)
 import Vela
-    exposing
-        ( Build
-        , BuildNumber
-        , Org
-        , Repo
-        , Status(..)
-        )
 
 
 
@@ -67,9 +60,9 @@ import Vela
 
 
 type alias Msgs msg =
-    { approveBuild : Org -> Repo -> BuildNumber -> msg
-    , restartBuild : Org -> Repo -> BuildNumber -> msg
-    , cancelBuild : Org -> Repo -> BuildNumber -> msg
+    { approveBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
+    , restartBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
+    , cancelBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
     , showHideActionsMenus : Maybe Int -> Maybe Bool -> msg
     }
 
@@ -152,7 +145,7 @@ view shared props =
 
 {-| viewPreview : renders single build item preview based on current application time
 -}
-viewPreview : Shared.Model -> Props msg -> Build -> Html msg
+viewPreview : Shared.Model -> Props msg -> Vela.Build -> Html msg
 viewPreview shared props build =
     let
         isMenuOpen =
@@ -424,7 +417,7 @@ viewPreview shared props build =
 
 {-| viewError : checks for build error and renders message
 -}
-viewError : Build -> Html msg
+viewError : Vela.Build -> Html msg
 viewError build =
     case build.status of
         Vela.Error ->
@@ -500,7 +493,7 @@ viewError build =
 
 {-| statusToClass : takes build status and returns css class
 -}
-statusToClass : Status -> Html.Attribute msg
+statusToClass : Vela.Status -> Html.Attribute msg
 statusToClass status =
     case status of
         Vela.Pending ->
@@ -530,7 +523,7 @@ statusToClass status =
 
 {-| buildAnimation : takes build info and returns div containing styled flair based on running status
 -}
-buildAnimation : Status -> Int -> Html msg
+buildAnimation : Vela.Status -> Int -> Html msg
 buildAnimation buildStatus buildNumber =
     case buildStatus of
         Vela.Running ->

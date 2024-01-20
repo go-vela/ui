@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Home_ exposing (Model, Msg, page, view)
+module Pages.Home exposing (Model, Msg, page, view)
 
 import Auth
 import Components.Favorites as Favorites
@@ -41,7 +41,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Utils.Helpers as Util
-import Vela exposing (Favorites, Org, Repo)
+import Vela
 import View exposing (View)
 
 
@@ -68,7 +68,7 @@ toLayout user model =
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "source-repos"
-                , Route.Path.href Route.Path.AccountSourceRepos_
+                , Route.Path.href Route.Path.AccountSourceRepos
                 ]
                 [ text "Source Repositories" ]
             ]
@@ -99,7 +99,7 @@ init shared () =
 
 type Msg
     = NoOp
-    | ToggleFavorite Org (Maybe Repo)
+    | ToggleFavorite Vela.Org (Maybe Vela.Repo)
     | SearchFavorites String
 
 
@@ -150,7 +150,7 @@ view shared model =
                     , SvgBuilder.star False
                     ]
                 , p [] [ text "Enable repositories from your GitHub account on Vela now!" ]
-                , a [ class "button", Route.Path.href Route.Path.AccountSourceRepos_ ] [ text "Source Repositories" ]
+                , a [ class "button", Route.Path.href Route.Path.AccountSourceRepos ] [ text "Source Repositories" ]
                 ]
 
         body =
@@ -177,7 +177,7 @@ view shared model =
                     Failure _ ->
                         [ text "failed" ]
     in
-    { title = "Pages.Home_New_"
+    { title = "Home"
     , body =
         [ body
         ]
@@ -186,7 +186,7 @@ view shared model =
 
 {-| viewFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFavorites : Favorites -> String -> Html Msg
+viewFavorites : List String -> String -> Html Msg
 viewFavorites favorites filter =
     if String.isEmpty filter then
         favorites
@@ -199,7 +199,7 @@ viewFavorites favorites filter =
 
 {-| viewFilteredFavorites : takes favorites, user search input and favorite action and renders favorites
 -}
-viewFilteredFavorites : Favorites -> String -> Html Msg
+viewFilteredFavorites : List String -> String -> Html Msg
 viewFilteredFavorites favorites filter =
     let
         filteredRepos =
@@ -217,7 +217,7 @@ viewFilteredFavorites favorites filter =
 
 {-| viewFavoritesByOrg : takes favorites dictionary and favorite action and renders favorites by org
 -}
-viewFavoritesByOrg : Dict String Favorites -> Html Msg
+viewFavoritesByOrg : Dict String (List String) -> Html Msg
 viewFavoritesByOrg orgFavorites =
     orgFavorites
         |> Dict.toList
@@ -228,7 +228,7 @@ viewFavoritesByOrg orgFavorites =
 
 {-| toOrgFavorites : takes favorites and organizes them by org in a dict
 -}
-toOrgFavorites : Favorites -> Dict String Favorites
+toOrgFavorites : List String -> Dict String (List String)
 toOrgFavorites favorites =
     List.foldr
         (\x acc ->
@@ -247,11 +247,11 @@ toOrgFavorites favorites =
 
 {-| viewOrg : takes org, favorites and favorite action and renders favorites by org
 -}
-viewOrg : String -> Favorites -> Html Msg
+viewOrg : String -> List String -> Html Msg
 viewOrg org favorites =
     details [ class "details", class "-with-border", attribute "open" "open", Util.testAttribute "repo-org" ]
         (summary [ class "summary" ]
-            [ a [ Route.Path.href <| Route.Path.Org_Repos { org = org } ] [ text org ]
+            [ a [ Route.Path.href <| Route.Path.Org_ { org = org } ] [ text org ]
             , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml []
             ]
             :: List.map (viewFavorite favorites False) favorites
@@ -260,7 +260,7 @@ viewOrg org favorites =
 
 {-| viewFavorite : takes favorites and favorite action and renders single favorite
 -}
-viewFavorite : Favorites -> Bool -> String -> Html Msg
+viewFavorite : List String -> Bool -> String -> Html Msg
 viewFavorite favorites filtered favorite =
     let
         ( org, repo ) =

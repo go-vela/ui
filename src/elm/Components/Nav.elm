@@ -5,17 +5,13 @@ SPDX-License-Identifier: Apache-2.0
 
 module Components.Nav exposing (Msgs, view)
 
-import Api.Pagination as Pagination
 import Components.Crumbs
-import Components.Favorites exposing (UpdateFavorites)
+import Components.Favorites
 import Html
     exposing
         ( Html
-        , a
         , button
-        , div
         , nav
-        , span
         , text
         )
 import Html.Attributes
@@ -30,26 +26,17 @@ import Route exposing (Route)
 import Shared
 import Utils.Helpers as Util
 import Vela
-    exposing
-        ( Build
-        , BuildNumber
-        , Engine
-        , Org
-        , Repo
-        , RepoModel
-        , SecretType
-        )
 
 
 type alias Msgs msg =
     { fetchSourceRepos : msg
-    , toggleFavorite : UpdateFavorites msg
-    , refreshSettings : Org -> Repo -> msg
-    , refreshHooks : Org -> Repo -> msg
-    , refreshSecrets : Engine -> SecretType -> Org -> Repo -> msg
-    , approveBuild : Org -> Repo -> BuildNumber -> msg
-    , restartBuild : Org -> Repo -> BuildNumber -> msg
-    , cancelBuild : Org -> Repo -> BuildNumber -> msg
+    , toggleFavorite : Components.Favorites.UpdateFavorites msg
+    , refreshSettings : Vela.Org -> Vela.Repo -> msg
+    , refreshHooks : Vela.Org -> Vela.Repo -> msg
+    , refreshSecrets : Vela.Engine -> Vela.SecretType -> Vela.Org -> Vela.Repo -> msg
+    , approveBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
+    , restartBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
+    , cancelBuild : Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg
     }
 
 
@@ -67,7 +54,7 @@ view shared route buttons =
 
 {-| cancelBuildButton : takes org repo and build number and renders button to cancel a build
 -}
-cancelBuildButton : Org -> Repo -> WebData Build -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+cancelBuildButton : Vela.Org -> Vela.Repo -> WebData Vela.Build -> (Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg) -> Html msg
 cancelBuildButton org repo build cancelBuild =
     case build of
         RemoteData.Success b ->
@@ -103,7 +90,7 @@ cancelBuildButton org repo build cancelBuild =
 
 {-| restartBuildButton : takes org repo and build number and renders button to restart a build
 -}
-restartBuildButton : Org -> Repo -> WebData Build -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+restartBuildButton : Vela.Org -> Vela.Repo -> WebData Vela.Build -> (Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg) -> Html msg
 restartBuildButton org repo build restartBuild =
     case build of
         RemoteData.Success b ->
@@ -133,7 +120,7 @@ restartBuildButton org repo build restartBuild =
 
 {-| approveBuildButton: takes org repo and build number and renders button to approve a build run
 -}
-approveBuildButton : Org -> Repo -> WebData Build -> (Org -> Repo -> BuildNumber -> msg) -> Html msg
+approveBuildButton : Vela.Org -> Vela.Repo -> WebData Vela.Build -> (Vela.Org -> Vela.Repo -> Vela.BuildNumber -> msg) -> Html msg
 approveBuildButton org repo build approveBuild =
     case build of
         RemoteData.Success b ->

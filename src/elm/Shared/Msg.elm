@@ -14,7 +14,8 @@ import Http.Detailed
 import Time
 import Toasty as Alerting
 import Utils.Interval as Interval
-import Vela exposing (CurrentUser)
+import Utils.Theme as Theme
+import Vela
 
 
 type Msg
@@ -25,23 +26,21 @@ type Msg
       --REFRESH
     | Tick { interval : Interval.Interval, time : Time.Posix }
       -- AUTH
-    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Auth.Jwt.JwtAccessToken ))
-    | RefreshAccessToken
     | FinishAuthentication { code : Maybe String, state : Maybe String }
-    | Logout
-    | LogoutResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | TokenResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Auth.Jwt.JwtAccessToken ))
+    | RefreshToken
+    | Logout { from : Maybe String }
+    | LogoutResponse { from : Maybe String } (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
       -- USER
     | GetCurrentUser
-    | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
+    | CurrentUserResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
       -- FAVORITES
     | UpdateFavorites { org : String, maybeRepo : Maybe String, updateType : Favorites.UpdateType }
-    | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, CurrentUser ))
+    | RepoFavoriteResponse { favorite : String, favorited : Bool } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.CurrentUser ))
       -- BUILD GRAPH
     | BuildGraphInteraction Vela.BuildGraphInteraction
-      -- PAGINATION
-    | GotoPage { pageNumber : Int }
       -- THEME
-    | SetTheme { theme : Vela.Theme }
+    | SetTheme { theme : Theme.Theme }
       -- ALERTS
     | AddAlertError { content : String, addToastIfUnique : Bool }
     | AddAlertSuccess { content : String, addToastIfUnique : Bool }

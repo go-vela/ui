@@ -95,7 +95,7 @@ viewOrgTabs props =
         tabs =
             [ { name = "Repositories"
               , currentPath = props.currentPath
-              , toPath = Route.Path.Org_Repos { org = props.org }
+              , toPath = Route.Path.Org_ { org = props.org }
               , isAlerting = False
               , show = True
               }
@@ -175,7 +175,7 @@ viewRepoTabs shared props =
               }
             , { name = "Deployments"
               , currentPath = props.currentPath
-              , toPath = Route.Path.Org_Repo_Deployments_ { org = props.org, repo = props.repo }
+              , toPath = Route.Path.Org_Repo_Deployments { org = props.org, repo = props.repo }
               , isAlerting = False
               , show = True
               }

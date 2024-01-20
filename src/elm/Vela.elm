@@ -5,7 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 module Vela exposing
     ( AddSchedulePayload
-    , AuthParams
     , Build
     , BuildGraph
     , BuildGraphEdge
@@ -16,23 +15,16 @@ module Vela exposing
     , BuildNumber
     , Builds
     , BuildsModel
-    , ChownRepo
-    , Copy
     , CurrentUser
     , Deployment
     , DeploymentId
     , DeploymentPayload
     , DeploymentsModel
-    , DisableRepo
-    , EnableRepo
-    , EnableRepos
     , EnableRepositoryPayload
     , Enabled
     , Enabling(..)
     , Engine
     , Event
-    , Favicon
-    , Favorites
     , Field
     , FocusFragment
     , Hook
@@ -51,11 +43,9 @@ module Vela exposing
     , PipelineModel
     , PipelineTemplates
     , Ref
-    , RepairRepo
     , Repo
     , RepoModel
     , RepoResourceIdentifier
-    , RepoSearchFilters
     , Repositories
     , Repository
     , Resource
@@ -63,7 +53,6 @@ module Vela exposing
     , Schedule
     , ScheduleName
     , Schedules
-    , SearchFilter
     , Secret
     , SecretType(..)
     , Secrets
@@ -78,7 +67,6 @@ module Vela exposing
     , Team
     , Template
     , Templates
-    , Theme(..)
     , Type
     , UpdateRepositoryPayload
     , UpdateSchedulePayload
@@ -114,10 +102,8 @@ module Vela exposing
     , decodeService
     , decodeSourceRepositories
     , decodeStep
-    , decodeTheme
     , defaultBuildGraph
     , defaultEnableRepositoryPayload
-    , defaultFavicon
     , defaultPipeline
     , defaultPipelineTemplates
     , defaultRepoModel
@@ -126,7 +112,6 @@ module Vela exposing
     , encodeBuildGraphRenderData
     , encodeDeploymentPayload
     , encodeEnableRepository
-    , encodeTheme
     , encodeUpdateRepository
     , encodeUpdateSchedule
     , encodeUpdateSecret
@@ -135,10 +120,8 @@ module Vela exposing
     , secretToKey
     , secretTypeToString
     , secretsErrorLabel
-    , statusToFavicon
     , statusToString
     , stringToStatus
-    , stringToTheme
     , updateBuild
     , updateBuildGraph
     , updateBuildGraphFilter
@@ -194,18 +177,12 @@ import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode
 import LinkHeader exposing (WebLink)
 import RemoteData exposing (RemoteData(..), WebData)
-import Url.Builder as UB
 import Utils.Errors as Errors
 import Visualization.DOT as DOT
 
 
 
 -- COMMON
-
-
-type Theme
-    = Light
-    | Dark
 
 
 type alias Org =
@@ -289,53 +266,16 @@ type alias ScheduleName =
 
 
 
--- THEME
-
-
-stringToTheme : String -> Theme
-stringToTheme theme =
-    case theme of
-        "theme-light" ->
-            Light
-
-        _ ->
-            Dark
-
-
-decodeTheme : Decoder Theme
-decodeTheme =
-    Json.Decode.string
-        |> Json.Decode.andThen
-            (\str ->
-                Json.Decode.succeed <| stringToTheme str
-            )
-
-
-encodeTheme : Theme -> Json.Encode.Value
-encodeTheme theme =
-    case theme of
-        Light ->
-            Json.Encode.string "theme-light"
-
-        _ ->
-            Json.Encode.string "theme-dark"
-
-
-
 -- CURRENTUSER
 
 
 type alias CurrentUser =
     { id : Int
     , name : String
-    , favorites : Favorites
+    , favorites : List String
     , active : Bool
     , admin : Bool
     }
-
-
-type alias Favorites =
-    List String
 
 
 decodeCurrentUser : Decoder CurrentUser
@@ -350,7 +290,7 @@ decodeCurrentUser =
 
 type alias UpdateUserPayload =
     { name : Maybe String
-    , favorites : Maybe Favorites
+    , favorites : Maybe (List String)
     }
 
 
@@ -366,19 +306,9 @@ encodeUpdateUser user =
         ]
 
 
-buildUpdateFavoritesPayload : Favorites -> UpdateUserPayload
+buildUpdateFavoritesPayload : List String -> UpdateUserPayload
 buildUpdateFavoritesPayload value =
     { defaultUpdateUserPayload | favorites = Just value }
-
-
-
--- AUTH
-
-
-type alias AuthParams =
-    { code : Maybe String
-    , state : Maybe String
-    }
 
 
 
@@ -1747,58 +1677,6 @@ isComplete status =
 
 
 
--- STATUS FAVICONS
-
-
-type alias Favicon =
-    String
-
-
-{-| statusToFavicon : takes build status and returns absolute path to the appropriate favicon
--}
-statusToFavicon : Status -> Favicon
-statusToFavicon status =
-    let
-        fileName =
-            "favicon"
-                ++ (case status of
-                        Pending ->
-                            "-pending"
-
-                        PendingApproval ->
-                            "-pending"
-
-                        Running ->
-                            "-running"
-
-                        Success ->
-                            "-success"
-
-                        Failure ->
-                            "-failure"
-
-                        Killed ->
-                            "-failure"
-
-                        Canceled ->
-                            "-canceled"
-
-                        Error ->
-                            "-failure"
-                   )
-                ++ ".ico"
-    in
-    UB.absolute [ "images", fileName ] []
-
-
-{-| defaultFavicon : returns absolute path to default favicon
--}
-defaultFavicon : String
-defaultFavicon =
-    UB.absolute [ "images", "favicon.ico" ] []
-
-
-
 -- STEP
 
 
@@ -2445,59 +2323,3 @@ buildDeploymentPayload org rep commit description ref target task payload =
         target
         task
         payload
-
-
-
--- SEARCH
-
-
-{-| RepoSearchFilters : type alias for filtering source repos
--}
-type alias RepoSearchFilters =
-    Dict Org SearchFilter
-
-
-{-| SearchFilter : type alias for filtering source repos
--}
-type alias SearchFilter =
-    String
-
-
-
--- UPDATES
-
-
-{-| Copy : takes a string and notifies the user of copy event
--}
-type alias Copy msg =
-    String -> msg
-
-
-{-| DisableRepo : takes repo and disables it on Vela
--}
-type alias DisableRepo msg =
-    Repository -> msg
-
-
-{-| EnableRepo : takes repo and enables it on Vela
--}
-type alias EnableRepo msg =
-    Repository -> msg
-
-
-{-| EnableRepos : takes repos and enables them on Vela
--}
-type alias EnableRepos msg =
-    Repositories -> msg
-
-
-{-| ChownRepo : takes repo and changes ownership on Vela
--}
-type alias ChownRepo msg =
-    Repository -> msg
-
-
-{-| RepairRepo : takes repo and re-enables the webhook on it
--}
-type alias RepairRepo msg =
-    Repository -> msg

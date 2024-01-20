@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Deployments_ exposing (..)
+module Pages.Org_.Repo_.Deployments exposing (..)
 
 import Api.Pagination
 import Auth
@@ -162,7 +162,7 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = "Pages.Org_.Repo_.Deployments_"
+    { title = "Deployments"
     , body =
         [ viewDeployments route.params.org route.params.repo model.deployments
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
@@ -184,7 +184,7 @@ viewDeployments org repo deployments =
 
                 -- todo: need add deployment path to do this
                 -- , Route.Path.href <|
-                --     Route.Path.Org_Repo_Deployments_ { org = org, repo = repo }
+                --     Route.Path.Org_Repo_Deployments { org = org, repo = repo }
                 ]
                 [ text "Add Deployment"
                 , FeatherIcons.plus
@@ -348,7 +348,7 @@ redeployLink org repo deployment =
         -- todo: need add deployment path to do this
         -- , Routes.href <| Routes.PromoteDeployment org repo (String.fromInt deployment.id)
         -- , Route.Path.href <|
-        --     Route.Path.Org_Repo_Deployments_ { org = org, repo = repo }
+        --     Route.Path.Org_Repo_Deployments { org = org, repo = repo }
         , Util.testAttribute "redeploy-deployment"
         ]
         [ text "Redeploy"

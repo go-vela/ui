@@ -22,7 +22,7 @@ import Shared
 import Toasty as Alerting
 import Utils.HelpCommands
 import Utils.Helpers as Util
-import Vela exposing (Theme)
+import Utils.Theme as Theme
 import View exposing (View)
 
 
@@ -80,7 +80,7 @@ type Msg
     = NoOp
     | ShowHideIdentity (Maybe Bool)
     | ShowHideHelp (Maybe Bool)
-    | SetTheme Theme
+    | SetTheme Theme.Theme
     | AlertsUpdate (Alerting.Msg Alert)
     | CopyAlert String
 
@@ -146,12 +146,12 @@ subscriptions model =
 -}
 decodeOnThemeChange : Json.Decode.Value -> Msg
 decodeOnThemeChange inTheme =
-    case Json.Decode.decodeValue Vela.decodeTheme inTheme of
+    case Json.Decode.decodeValue Theme.decodeTheme inTheme of
         Ok theme ->
             SetTheme theme
 
         Err _ ->
-            SetTheme Vela.Dark
+            SetTheme Theme.Dark
 
 
 
@@ -169,6 +169,7 @@ view props shared route { toContentMsg, model, content } =
     , body =
         [ Components.Header.view
             { session = shared.session
+            , from = Route.toString route
             , feedbackLink = shared.velaFeedbackURL
             , docsLink = shared.velaDocsURL
             , theme = shared.theme
