@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.PageTemplate_ exposing (Model, Msg, page, view)
+module Pages.PageTemplate exposing (Model, Msg, page, view)
 
 import Auth
 import Effect exposing (Effect)
@@ -89,12 +89,20 @@ subscriptions model =
 
 view : Shared.Model -> Model -> View Msg
 view shared model =
-    let
-        body =
-            text "we are on the OrgRepoPage"
-    in
-    { title = "Pages.OrgRepoPage"
+    { title = "Pages.PageTemplate"
     , body =
-        [ body
+        [ Html.ul []
+            [ Html.li [] [ text "this is a template page\n" ]
+            , Html.li [] [ text "add page specific data to the Model like API resources\n" ]
+            , Html.li [] [ text "apply any Layouts to the page in toLayout\n" ]
+            , Html.li [] [ text "add html to the view to trigger page messages\n" ]
+            , Html.li [] [ text "re-use components first, but add new components when necessary\n" ]
+            , Html.li [] [ text "add page messages and pass them as components args\n" ]
+            , Html.li [] [ text "use page messages to dispatch shared Effects and handle API calls\n" ]
+            , Html.li [] [ text "use page messages and shared Effects to dispatch API calls\n" ]
+            , Html.li [] [ text "add page specific subscriptions like page refresh and favicon updates\n" ]
+            , Html.li [] [ text "try to implement things in the page!\n" ]
+            , Html.li [] [ text "avoid using Shared.Model whenever possible!\n" ]
+            ]
         ]
     }
