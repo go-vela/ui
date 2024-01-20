@@ -77,6 +77,10 @@ type alias Props msg =
     }
 
 
+
+-- VIEW
+
+
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
     let

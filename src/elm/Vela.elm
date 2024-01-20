@@ -54,6 +54,7 @@ module Vela exposing
     , ScheduleName
     , Schedules
     , Secret
+    , SecretPayload
     , SecretType(..)
     , Secrets
     , Service
@@ -70,16 +71,15 @@ module Vela exposing
     , Type
     , UpdateRepositoryPayload
     , UpdateSchedulePayload
-    , UpdateSecretPayload
     , UpdateUserPayload
     , buildDeploymentPayload
     , buildEnableRepositoryPayload
+    , buildSecretPayload
     , buildUpdateFavoritesPayload
     , buildUpdateRepoBoolPayload
     , buildUpdateRepoIntPayload
     , buildUpdateRepoStringPayload
     , buildUpdateSchedulePayload
-    , buildUpdateSecretPayload
     , decodeBuild
     , decodeBuildGraph
     , decodeBuilds
@@ -107,14 +107,15 @@ module Vela exposing
     , defaultPipeline
     , defaultPipelineTemplates
     , defaultRepoModel
+    , defaultSecret
     , defaultStep
     , enableUpdate
     , encodeBuildGraphRenderData
     , encodeDeploymentPayload
     , encodeEnableRepository
+    , encodeSecretPayload
     , encodeUpdateRepository
     , encodeUpdateSchedule
-    , encodeUpdateSecret
     , encodeUpdateUser
     , isComplete
     , secretToKey
@@ -2050,6 +2051,11 @@ type SecretType
     | RepoSecret
 
 
+defaultSecret : SecretType -> Secret
+defaultSecret secretType =
+    Secret -1 "" "" "" "" "" secretType [] [ "push" ] True
+
+
 {-| secretTypeDecoder : decodes string field "type" to the union type SecretType
 -}
 secretTypeDecoder : Decoder SecretType
@@ -2164,7 +2170,7 @@ type alias Secrets =
     List Secret
 
 
-type alias UpdateSecretPayload =
+type alias SecretPayload =
     { type_ : Maybe SecretType
     , org : Maybe Org
     , repo : Maybe Repo
@@ -2177,8 +2183,8 @@ type alias UpdateSecretPayload =
     }
 
 
-encodeUpdateSecret : UpdateSecretPayload -> Json.Encode.Value
-encodeUpdateSecret secret =
+encodeSecretPayload : SecretPayload -> Json.Encode.Value
+encodeSecretPayload secret =
     Json.Encode.object
         [ ( "type", encodeOptional Json.Encode.string <| maybeSecretTypeToMaybeString secret.type_ )
         , ( "org", encodeOptional Json.Encode.string secret.org )
@@ -2192,19 +2198,20 @@ encodeUpdateSecret secret =
         ]
 
 
-buildUpdateSecretPayload :
-    Maybe SecretType
-    -> Maybe Org
-    -> Maybe Repo
-    -> Maybe Team
-    -> Maybe Name
-    -> Maybe String
-    -> Maybe (List String)
-    -> Maybe (List String)
-    -> Maybe Bool
-    -> UpdateSecretPayload
-buildUpdateSecretPayload type_ org repo team name value events images allowCommand =
-    UpdateSecretPayload type_ org repo team name value events images allowCommand
+buildSecretPayload :
+    { type_ : Maybe SecretType
+    , org : Maybe Org
+    , repo : Maybe Repo
+    , team : Maybe Team
+    , name : Maybe Name
+    , value : Maybe String
+    , events : Maybe (List String)
+    , images : Maybe (List String)
+    , allowCommands : Maybe Bool
+    }
+    -> SecretPayload
+buildSecretPayload { type_, org, repo, team, name, value, events, images, allowCommands } =
+    SecretPayload type_ org repo team name value events images allowCommands
 
 
 

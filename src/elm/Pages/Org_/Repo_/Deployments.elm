@@ -9,7 +9,7 @@ import Api.Pagination
 import Auth
 import Components.Pager
 import Components.Svgs as SvgBuilder
-import Components.Table as Table
+import Components.Table
 import Dict
 import Effect exposing (Effect)
 import FeatherIcons
@@ -227,7 +227,7 @@ viewDeployments org repo deployments =
                     ( Util.largeLoader, [] )
 
         cfg =
-            Table.Config
+            Components.Table.Config
                 "Deployments"
                 "deployments"
                 noRowsView
@@ -236,7 +236,7 @@ viewDeployments org repo deployments =
                 actions
     in
     div []
-        [ Table.view cfg
+        [ Components.Table.view cfg
         ]
 
 
@@ -246,14 +246,14 @@ viewDeployments org repo deployments =
 
 {-| deploymentsToRows : takes list of deployments and produces list of Table rows
 -}
-deploymentsToRows : String -> String -> List Vela.Deployment -> Table.Rows Vela.Deployment Msg
+deploymentsToRows : String -> String -> List Vela.Deployment -> Components.Table.Rows Vela.Deployment Msg
 deploymentsToRows org repo deployments =
-    List.map (\deployment -> Table.Row deployment (renderDeployment org repo)) deployments
+    List.map (\deployment -> Components.Table.Row deployment (renderDeployment org repo)) deployments
 
 
 {-| tableHeaders : returns table headers for deployments table
 -}
-tableHeaders : Table.Columns
+tableHeaders : Components.Table.Columns
 tableHeaders =
     [ ( Just "-icon", "" )
     , ( Nothing, "number" )

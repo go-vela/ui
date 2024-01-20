@@ -11,10 +11,6 @@ import Url exposing (Url)
 import Url.Parser exposing ((</>))
 
 
-
--- todo: vader: add all the normal routes
-
-
 type Path
     = Home
     | AccountLogin
@@ -23,6 +19,9 @@ type Path
     | AccountSettings
     | AccountSourceRepos
     | Org_ { org : String }
+    | Org_Builds { org : String }
+    | Org_Secrets { org : String }
+    | Org_SecretsAdd { org : String }
     | Org_Repo_ { org : String, repo : String }
     | Org_Repo_Deployments { org : String, repo : String }
     | NotFound_
@@ -75,6 +74,24 @@ fromString urlPath =
                 }
                 |> Just
 
+        org :: "builds" :: [] ->
+            Org_Builds
+                { org = org
+                }
+                |> Just
+
+        org :: "secrets" :: [] ->
+            Org_Secrets
+                { org = org
+                }
+                |> Just
+
+        org :: "secrets" :: "add" :: [] ->
+            Org_SecretsAdd
+                { org = org
+                }
+                |> Just
+
         org :: repo :: [] ->
             Org_Repo_
                 { org = org
@@ -118,6 +135,15 @@ toString path =
                 Org_ params ->
                     [ params.org ]
 
+                Org_Builds params ->
+                    [ params.org, "builds" ]
+
+                Org_Secrets params ->
+                    [ params.org, "secrets" ]
+
+                Org_SecretsAdd params ->
+                    [ params.org, "secrets", "add" ]
+
                 Org_Repo_ params ->
                     [ params.org, params.repo ]
 
@@ -125,7 +151,7 @@ toString path =
                     [ params.org, params.repo, "deployments" ]
 
                 NotFound_ ->
-                    [ "404" ]
+                    [ "not-found" ]
     in
     pieces
         |> String.join "/"

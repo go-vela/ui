@@ -101,13 +101,13 @@ viewOrgTabs props =
               }
             , { name = "Builds"
               , currentPath = props.currentPath
-              , toPath = Route.Path.NotFound_
+              , toPath = Route.Path.Org_Builds { org = props.org }
               , isAlerting = False
               , show = True
               }
             , { name = "Secrets"
               , currentPath = props.currentPath
-              , toPath = Route.Path.NotFound_
+              , toPath = Route.Path.Org_Secrets { org = props.org }
               , isAlerting = False
               , show = True
               }

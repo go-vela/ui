@@ -11,8 +11,11 @@ import Pages.Account.SourceRepos
 import Pages.Home
 import Pages.NotFound_
 import Pages.Org_
+import Pages.Org_.Builds
 import Pages.Org_.Repo_
 import Pages.Org_.Repo_.Deployments
+import Pages.Org_.Secrets
+import Pages.Org_.Secrets.Add
 
 
 type Model
@@ -21,6 +24,9 @@ type Model
     | AccountSourceRepos Pages.Account.SourceRepos.Model
     | Home Pages.Home.Model
     | Org_ { org : String } Pages.Org_.Model
+    | Org_Builds { org : String } Pages.Org_.Builds.Model
+    | Org_Secrets { org : String } Pages.Org_.Secrets.Model
+    | Org_SecretsAdd { org : String } Pages.Org_.Secrets.Add.Model
     | Org_Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
     | Org_Repo_Deployments { org : String, repo : String } Pages.Org_.Repo_.Deployments.Model
     | Redirecting_

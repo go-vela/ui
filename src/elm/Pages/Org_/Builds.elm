@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_ exposing (Model, Msg, page, view)
+module Pages.Org_.Builds exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
@@ -28,7 +28,7 @@ import Vela
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -43,11 +43,10 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
-    Layouts.Default_Repo
+    Layouts.Default_Org
         { org = route.params.org
-        , repo = route.params.repo
         , nil = []
         }
 
@@ -57,29 +56,28 @@ toLayout user route model =
 
 
 type alias Model =
-    { builds : WebData (List Vela.Build)
+    { builds : WebData Vela.Builds
     , pager : List WebLink
     , showFullTimestamps : Bool
     , showActionsMenus : List Int
     }
 
 
-init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { org : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { builds = RemoteData.Loading
       , pager = []
       , showFullTimestamps = False
       , showActionsMenus = []
       }
-    , Effect.getRepoBuilds
+    , Effect.getOrgBuilds
         { baseUrl = shared.velaAPI
         , session = shared.session
-        , onResponse = GetRepoBuildsResponse
+        , onResponse = GetOrgBuildsResponse
         , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
         , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
         , maybeEvent = Dict.get "event" route.query
         , org = route.params.org
-        , repo = route.params.repo
         }
     )
 
@@ -89,7 +87,7 @@ init shared route () =
 
 
 type Msg
-    = GetRepoBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
+    = GetOrgBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
     | GotoPage Int
     | ApproveBuild Vela.Org Vela.Repo Vela.BuildNumber
     | RestartBuild Vela.Org Vela.Repo Vela.BuildNumber
@@ -99,10 +97,10 @@ type Msg
     | ShowHideFullTimestamps
 
 
-update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
-        GetRepoBuildsResponse response ->
+        GetOrgBuildsResponse response ->
             case response of
                 Ok ( meta, builds ) ->
                     ( { model
@@ -126,46 +124,25 @@ update shared route msg model =
                         Dict.update "page" (\_ -> Just <| String.fromInt pageNumber) route.query
                     , hash = route.hash
                     }
-                , Effect.getRepoBuilds
+                , Effect.getOrgBuilds
                     { baseUrl = shared.velaAPI
                     , session = shared.session
-                    , onResponse = GetRepoBuildsResponse
+                    , onResponse = GetOrgBuildsResponse
                     , pageNumber = Just pageNumber
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                     , maybeEvent = Dict.get "event" route.query
                     , org = route.params.org
-                    , repo = route.params.repo
                     }
                 ]
             )
 
         ApproveBuild _ _ _ ->
-            let
-                _ =
-                    Debug.log "approve build clicked" ""
-
-                -- todo:
-                -- 1. write func in Effect.elm for "approveBuild"
-                -- 2. write Api.Operations.approveBuild that uses it
-                --   look at the code in Api.Operations and the other funcs in Api.Operations for inspiration
-                -- 3. write ApproveBuildResponse Msg in this file
-                -- 4. in ApproveBuildResponse, create a toasty?
-                -- look at how it's done in Main.elm
-            in
             ( model, Effect.none )
 
         RestartBuild _ _ _ ->
-            let
-                _ =
-                    Debug.log "restart build clicked" ""
-            in
             ( model, Effect.none )
 
         CancelBuild _ _ _ ->
-            let
-                _ =
-                    Debug.log "cancel build clicked" ""
-            in
             ( model, Effect.none )
 
         ShowHideActionsMenus build show ->
@@ -210,15 +187,14 @@ update shared route msg model =
                         Dict.update "event" (\_ -> maybeEvent) route.query
                     , hash = route.hash
                     }
-                , Effect.getRepoBuilds
+                , Effect.getOrgBuilds
                     { baseUrl = shared.velaAPI
                     , session = shared.session
-                    , onResponse = GetRepoBuildsResponse
+                    , onResponse = GetOrgBuildsResponse
                     , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                     , maybeEvent = maybeEvent
                     , org = route.params.org
-                    , repo = route.params.repo
                     }
                 ]
             )
@@ -240,7 +216,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
     let
         msgs =
@@ -250,7 +226,7 @@ view shared route model =
             , showHideActionsMenus = ShowHideActionsMenus
             }
     in
-    { title = route.params.org ++ "/" ++ route.params.repo
+    { title = route.params.org ++ " Builds"
     , body =
         [ if List.length (RemoteData.withDefault [] model.builds) > 0 then
             Components.Builds.viewHeader

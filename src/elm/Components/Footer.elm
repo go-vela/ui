@@ -12,6 +12,10 @@ import Toasty as Alerting exposing (Stack)
 import Utils.Helpers as Util
 
 
+
+-- VIEW
+
+
 view :
     { toasties : Stack Alert
     , copyAlertMsg : String -> msg

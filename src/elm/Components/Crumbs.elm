@@ -368,6 +368,36 @@ toCrumbs path =
                     in
                     [ overviewCrumbLink, orgReposCrumbLink ]
 
+                Route.Path.Org_Builds params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        buildsCrumbStatic =
+                            ( "Builds", Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, buildsCrumbStatic ]
+
+                Route.Path.Org_Secrets params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        secretsCrumbStatic =
+                            ( "Secrets", Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, secretsCrumbStatic ]
+
+                Route.Path.Org_SecretsAdd params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        secretsCrumbStatic =
+                            ( "Secrets", Just <| Route.Path.Org_Secrets { org = params.org } )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, secretsCrumbStatic, addCrumbStatic ]
+
                 Route.Path.Org_Repo_ params ->
                     let
                         orgReposCrumbLink =

@@ -15,8 +15,10 @@ import Utils.Helpers as Util
 import Vela
 
 
-{-| UpdateFavorites : takes org and maybe repo and updates favorites
--}
+
+-- TYPES
+
+
 type alias UpdateFavorites msg =
     Vela.Org -> Maybe Vela.Repo -> msg
 
@@ -30,8 +32,6 @@ type UpdateType
 -- VIEW
 
 
-{-| starToggle : takes org repo msg and favorited status and renders the favorites toggle star
--}
 starToggle : Vela.Org -> Vela.Repo -> UpdateFavorites msg -> Bool -> Html msg
 starToggle org repo updateFn favorited =
     button
