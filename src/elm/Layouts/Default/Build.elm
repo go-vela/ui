@@ -3,30 +3,36 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Layouts.Default.Org exposing (Model, Msg, Props, layout, map)
+module Layouts.Default.Build exposing (Model, Msg, Props, layout, map)
 
 import Components.Tabs
 import Effect exposing (Effect)
 import Html exposing (..)
 import Layout exposing (Layout)
 import Layouts.Default
+import RemoteData exposing (WebData)
 import Route exposing (Route)
 import Shared
+import Vela
 import View exposing (View)
 
 
 type alias Props contentMsg =
     { org : String
-    , navButtons : List (Html contentMsg)
-    , utilButtons : List (Html contentMsg)
+    , repo : String
+    , buildNumber : String
+    , build : WebData Vela.Build
+    , nil : List contentMsg
     }
 
 
 map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
     { org = props.org
-    , navButtons = List.map (Html.map fn) props.navButtons
-    , utilButtons = List.map (Html.map fn) props.navButtons
+    , repo = props.repo
+    , buildNumber = props.buildNumber
+    , build = props.build
+    , nil = List.map fn props.nil
     }
 
 
@@ -39,16 +45,8 @@ layout props shared route =
         , subscriptions = subscriptions
         }
         |> Layout.withParentProps
-            { navButtons = props.navButtons
-            , utilButtons =
-                [ Components.Tabs.viewOrgTabs
-                    { org = props.org
-                    , currentPath = route.path
-                    , maybePage = Nothing
-                    , maybePerPage = Nothing
-                    , maybeEvent = Nothing
-                    }
-                ]
+            { navButtons = []
+            , utilButtons = []
             }
 
 
@@ -95,8 +93,15 @@ subscriptions model =
 
 view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
 view props shared route { toContentMsg, model, content } =
-    { title = content.title
+    { title = props.org ++ "/" ++ props.repo ++ " #" ++ props.buildNumber
     , body =
-        [ Html.span [] content.body
+        [ Html.text "build:layout->"
+        , case props.build of
+            RemoteData.Success build ->
+                Html.text (Vela.statusToString build.status)
+
+            _ ->
+                Html.text "Loading..."
+        , Html.div [] content.body
         ]
     }

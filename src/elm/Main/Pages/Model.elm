@@ -13,6 +13,7 @@ import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
+import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Secrets
 import Pages.Org_.Secrets.Add
@@ -29,6 +30,7 @@ type Model
     | Org_SecretsAdd { org : String } Pages.Org_.Secrets.Add.Model
     | Org_Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
     | Org_Repo_Deployments { org : String, repo : String } Pages.Org_.Repo_.Deployments.Model
+    | Org_Repo_Build_ { org : String, repo : String, buildNumber : String } Pages.Org_.Repo_.Build_.Model
     | Redirecting_
     | Loading_
     | NotFound_ Pages.NotFound_.Model

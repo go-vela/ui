@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addOrgSecret, alertsUpdate, clearRedirect, enableRepo, finishAuthentication, focusOn, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, addOrgSecret, alertsUpdate, clearRedirect, enableRepo, finishAuthentication, focusOn, getBuild, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
     )
 
 {-|
@@ -278,24 +278,6 @@ enableRepo options =
         |> sendCmd
 
 
-getRepoBuilds :
-    { baseUrl : String
-    , session : Auth.Session.Session
-    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ) -> msg
-    , pageNumber : Maybe Int
-    , perPage : Maybe Int
-    , maybeEvent : Maybe String
-    , org : String
-    , repo : String
-    }
-    -> Effect msg
-getRepoBuilds options =
-    Api.try
-        options.onResponse
-        (Api.Operations.getRepoBuilds options.baseUrl options.session options)
-        |> sendCmd
-
-
 getOrgRepos :
     { baseUrl : String
     , session : Auth.Session.Session
@@ -340,6 +322,24 @@ getOrgSecrets options =
     Api.try
         options.onResponse
         (Api.Operations.getOrgSecrets options.baseUrl options.session options)
+        |> sendCmd
+
+
+getRepoBuilds :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ) -> msg
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , maybeEvent : Maybe String
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+getRepoBuilds options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getRepoBuilds options.baseUrl options.session options)
         |> sendCmd
 
 
@@ -391,6 +391,22 @@ getRepoDeployments options =
     Api.try
         options.onResponse
         (Api.Operations.getRepoDeployments options.baseUrl options.session options)
+        |> sendCmd
+
+
+getBuild :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ) -> msg
+    , org : String
+    , repo : String
+    , buildNumber : String
+    }
+    -> Effect msg
+getBuild options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getBuild options.baseUrl options.session options)
         |> sendCmd
 
 

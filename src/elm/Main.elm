@@ -1,6 +1,9 @@
 {--
 SPDX-License-Identifier: Apache-2.0
 --}
+--todo: known issues:
+-- favicon fails to load sometimes on fresh visit
+-- not found redirects are weird, refreshing 404 goes to the home page?
 
 
 module Main exposing (main)
@@ -17,6 +20,7 @@ import Json.Encode
 import Layout
 import Layouts exposing (Layout)
 import Layouts.Default
+import Layouts.Default.Build
 import Layouts.Default.Org
 import Layouts.Default.Repo
 import Main.Layouts.Model
@@ -34,6 +38,7 @@ import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
+import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Secrets
 import Pages.Org_.Secrets.Add
@@ -214,6 +219,52 @@ initLayout model layout =
             ( Main.Layouts.Model.Default_Repo { default = defaultLayoutModel, repo = nestedLayoutModel }
             , Cmd.batch
                 [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Repo nestedLayoutEffect)
+                , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
+                ]
+            )
+
+        ( Layouts.Default_Build props, Just (Main.Layouts.Model.Default existing) ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultNestedLayout =
+                    Layouts.Default.Build.layout props model.shared route
+
+                ( nestedLayoutModel, nestedLayoutEffect ) =
+                    Layout.init defaultNestedLayout ()
+            in
+            ( Main.Layouts.Model.Default_Build { default = existing.default, repo = nestedLayoutModel }
+            , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Build nestedLayoutEffect)
+            )
+
+        ( Layouts.Default_Build props, Just (Main.Layouts.Model.Default_Build existing) ) ->
+            ( Main.Layouts.Model.Default_Build existing
+            , Cmd.none
+            )
+
+        ( Layouts.Default_Build props, _ ) ->
+            let
+                route : Route ()
+                route =
+                    Route.fromUrl () model.url
+
+                defaultNestedLayout =
+                    Layouts.Default.Build.layout props model.shared route
+
+                defaultLayout =
+                    Layouts.Default.layout (Layout.parentProps defaultNestedLayout) model.shared route
+
+                ( nestedLayoutModel, nestedLayoutEffect ) =
+                    Layout.init defaultNestedLayout ()
+
+                ( defaultLayoutModel, defaultLayoutEffect ) =
+                    Layout.init defaultLayout ()
+            in
+            ( Main.Layouts.Model.Default_Build { default = defaultLayoutModel, repo = nestedLayoutModel }
+            , Cmd.batch
+                [ fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default_Build nestedLayoutEffect)
                 , fromLayoutEffect model (Effect.map Main.Layouts.Msg.Default defaultLayoutEffect)
                 ]
             )
@@ -502,6 +553,30 @@ initPageAndLayout model =
                     , layout =
                         Page.layout pageModel page
                             |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Deployments >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
+        Route.Path.Org_Repo_Build_ params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Org_.Repo_.Build_.Model Pages.Org_.Repo_.Build_.Msg
+                        page =
+                            Pages.Org_.Repo_.Build_.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Org_Repo_Build_ params)
+                            (Effect.map Main.Pages.Msg.Org_Repo_Build_ >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Build_ >> Page))
                             |> Maybe.map (initLayout model)
                     }
                 )
@@ -839,6 +914,16 @@ updateFromPage msg model =
                         (Page.update (Pages.Org_.Repo_.Deployments.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
+        ( Main.Pages.Msg.Org_Repo_Build_ pageMsg, Main.Pages.Model.Org_Repo_Build_ params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.Org_Repo_Build_ params)
+                        (Effect.map Main.Pages.Msg.Org_Repo_Build_ >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Build_.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
         ( Main.Pages.Msg.NotFound_ pageMsg, Main.Pages.Model.NotFound_ pageModel ) ->
             Tuple.mapBoth
                 Main.Pages.Model.NotFound_
@@ -899,6 +984,23 @@ updateFromLayout msg model =
                 (\newModel -> Just (Main.Layouts.Model.Default_Repo { layoutModel | repo = newModel }))
                 (Effect.map Main.Layouts.Msg.Default_Repo >> fromLayoutEffect model)
                 (Layout.update (Layouts.Default.Repo.layout props model.shared route) layoutMsg layoutModel.repo)
+
+        ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel), Main.Layouts.Msg.Default layoutMsg ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Build.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Tuple.mapBoth
+                (\newModel -> Just (Main.Layouts.Model.Default_Build { layoutModel | default = newModel }))
+                (Effect.map Main.Layouts.Msg.Default >> fromLayoutEffect model)
+                (Layout.update (Layouts.Default.layout defaultProps model.shared route) layoutMsg layoutModel.default)
+
+        ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel), Main.Layouts.Msg.Default_Build layoutMsg ) ->
+            Tuple.mapBoth
+                (\newModel -> Just (Main.Layouts.Model.Default_Build { layoutModel | repo = newModel }))
+                (Effect.map Main.Layouts.Msg.Default_Build >> fromLayoutEffect model)
+                (Layout.update (Layouts.Default.Build.layout props model.shared route) layoutMsg layoutModel.repo)
 
         _ ->
             ( model.layout
@@ -968,6 +1070,12 @@ toLayoutFromPage model =
                 |> toAuthProtectedPage model Pages.Org_.Repo_.Deployments.page
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Deployments >> Page))
+
+        Main.Pages.Model.Org_Repo_Build_ params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Build_.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Build_ >> Page))
 
         Main.Pages.Model.NotFound_ pageModel ->
             Route.fromUrl () model.url
@@ -1088,6 +1196,15 @@ subscriptions model =
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+                Main.Pages.Model.Org_Repo_Build_ params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Org_.Repo_.Build_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repo_Build_
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
                 Main.Pages.Model.NotFound_ pageModel ->
                     Page.subscriptions (Pages.NotFound_.page model.shared (Route.fromUrl () model.url)) pageModel
                         |> Sub.map Main.Pages.Msg.NotFound_
@@ -1142,6 +1259,21 @@ subscriptions model =
                             |> Sub.map Layout
                         , Layout.subscriptions (Layouts.Default.Repo.layout props model.shared route) layoutModel.repo
                             |> Sub.map Main.Layouts.Msg.Default_Repo
+                            |> Sub.map Layout
+                        ]
+
+                ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel) ) ->
+                    let
+                        defaultProps =
+                            Layouts.Default.Build.layout props model.shared route
+                                |> Layout.parentProps
+                    in
+                    Sub.batch
+                        [ Layout.subscriptions (Layouts.Default.layout defaultProps model.shared route) layoutModel.default
+                            |> Sub.map Main.Layouts.Msg.Default
+                            |> Sub.map Layout
+                        , Layout.subscriptions (Layouts.Default.Build.layout props model.shared route) layoutModel.repo
+                            |> Sub.map Main.Layouts.Msg.Default_Build
                             |> Sub.map Layout
                         ]
 
@@ -1226,6 +1358,25 @@ toView model =
                         (Layouts.Default.Repo.layout props model.shared route)
                         { model = layoutModel.repo
                         , toContentMsg = Main.Layouts.Msg.Default_Repo >> Layout
+                        , content = viewPage model
+                        }
+                }
+
+        ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel) ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Build.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Layout.view
+                (Layouts.Default.layout defaultProps model.shared route)
+                { model = layoutModel.default
+                , toContentMsg = Main.Layouts.Msg.Default >> Layout
+                , content =
+                    Layout.view
+                        (Layouts.Default.Build.layout props model.shared route)
+                        { model = layoutModel.repo
+                        , toContentMsg = Main.Layouts.Msg.Default_Build >> Layout
                         , content = viewPage model
                         }
                 }
@@ -1319,6 +1470,15 @@ viewPage model =
                 (\user ->
                     Page.view (Pages.Org_.Repo_.Deployments.page user model.shared (Route.fromUrl params model.url)) pageModel
                         |> View.map Main.Pages.Msg.Org_Repo_Deployments
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Org_Repo_Build_ params pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Org_.Repo_.Build_.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org_Repo_Build_
                         |> View.map Page
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -1488,6 +1648,16 @@ toPageUrlHookCmd model routes =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Org_Repo_Build_ params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Build_.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org_Repo_Build_
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.NotFound_ pageModel ->
             Page.toUrlMessages routes (Pages.NotFound_.page model.shared (Route.fromUrl () model.url))
                 |> List.map Main.Pages.Msg.NotFound_
@@ -1563,6 +1733,23 @@ toLayoutUrlHookCmd oldModel model routes =
                     |> toCommands
                 ]
 
+        ( Just (Layouts.Default_Build props), Just (Main.Layouts.Model.Default_Build layoutModel) ) ->
+            let
+                defaultProps =
+                    Layouts.Default.Build.layout props model.shared route
+                        |> Layout.parentProps
+            in
+            Cmd.batch
+                [ Layout.toUrlMessages routes (Layouts.Default.layout defaultProps model.shared route)
+                    |> List.map Main.Layouts.Msg.Default
+                    |> List.map Layout
+                    |> toCommands
+                , Layout.toUrlMessages routes (Layouts.Default.Build.layout props model.shared route)
+                    |> List.map Main.Layouts.Msg.Default_Build
+                    |> List.map Layout
+                    |> toCommands
+                ]
+
         _ ->
             Cmd.none
 
@@ -1585,6 +1772,12 @@ hasNavigatedWithinNewLayout { from, to } =
                     True
 
                 Just ( Layouts.Default_Repo _, Layouts.Default _ ) ->
+                    True
+
+                Just ( Layouts.Default_Build _, Layouts.Default_Build _ ) ->
+                    True
+
+                Just ( Layouts.Default_Build _, Layouts.Default _ ) ->
                     True
 
                 _ ->
@@ -1633,6 +1826,9 @@ isAuthProtected routePath =
             True
 
         Route.Path.Org_Repo_Deployments _ ->
+            True
+
+        Route.Path.Org_Repo_Build_ _ ->
             True
 
         Route.Path.NotFound_ ->

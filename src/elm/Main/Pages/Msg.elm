@@ -13,6 +13,7 @@ import Pages.NotFound_
 import Pages.Org_
 import Pages.Org_.Builds
 import Pages.Org_.Repo_
+import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Deployments
 import Pages.Org_.Secrets
 import Pages.Org_.Secrets.Add
@@ -29,4 +30,5 @@ type Msg
     | Org_SecretsAdd Pages.Org_.Secrets.Add.Msg
     | Org_Repo_ Pages.Org_.Repo_.Msg
     | Org_Repo_Deployments Pages.Org_.Repo_.Deployments.Msg
+    | Org_Repo_Build_ Pages.Org_.Repo_.Build_.Msg
     | NotFound_ Pages.NotFound_.Msg

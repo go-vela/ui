@@ -7,6 +7,7 @@ module Api.Operations exposing
     ( addOrgSecret
     , enableRepo
     , finishAuthentication
+    , getBuild
     , getCurrentUser
     , getOrgBuilds
     , getOrgRepos
@@ -232,6 +233,25 @@ getRepoDeployments baseUrl session options =
     get baseUrl
         (Api.Endpoint.Deployments options.pageNumber options.perPage options.org options.repo)
         Vela.decodeDeployments
+        |> withAuth session
+
+
+{-| getBuild : retrieves a build
+-}
+getBuild :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , buildNumber : String
+        }
+    -> Request Vela.Build
+getBuild baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Build options.org options.repo options.buildNumber)
+        Vela.decodeBuild
         |> withAuth session
 
 
