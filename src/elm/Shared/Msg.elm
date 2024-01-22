@@ -7,6 +7,7 @@ module Shared.Msg exposing (Msg(..))
 
 import Auth.Jwt
 import Browser.Dom
+import Browser.Events
 import Components.Alerts exposing (Alert)
 import Components.Favorites as Favorites
 import Http
@@ -50,3 +51,8 @@ type Msg
       -- DOM
     | FocusOn { target : String }
     | FocusResult (Result Browser.Dom.Error ())
+      -- BROWSER
+    | DownloadFile { filename : String, content : String, map : String -> String }
+    | OnKeyDown { key : String }
+    | OnKeyUp { key : String }
+    | VisibilityChanged { visibility : Browser.Events.Visibility }

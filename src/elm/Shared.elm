@@ -15,6 +15,7 @@ import Components.Alerts as Alerts
 import Components.Favorites as Favorites
 import Dict
 import Effect exposing (Effect)
+import File.Download
 import Http
 import Http.Detailed
 import Interop
@@ -514,12 +515,67 @@ update route msg model =
                 Ok _ ->
                     ( model, Effect.none )
 
+        Shared.Msg.DownloadFile options ->
+            ( model
+            , File.Download.string
+                options.filename
+                "text"
+                (options.map options.content)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.OnKeyDown options ->
+            ( case options.key of
+                "Shift" ->
+                    { model | shift = True }
+
+                _ ->
+                    model
+            , Effect.none
+            )
+
+        Shared.Msg.OnKeyUp options ->
+            ( case options.key of
+                "Shift" ->
+                    { model | shift = False }
+
+                _ ->
+                    model
+            , Effect.none
+            )
+
+        Shared.Msg.VisibilityChanged options ->
+            -- todo: refresh the page when visibility changes to Visible
+            -- let
+            --     sideEffect =
+            --         case options.visibility of
+            --             Browser.Events.Visibility.Visible ->
+            --                 refreshPage model
+            --             Browser.Events.Visibility.Hidden ->
+            --                 Effect.none
+            -- in
+            ( { model | visibility = options.visibility, shift = False }
+            , Effect.none
+            )
+
 
 subscriptions : Route () -> Model -> Sub Msg
 subscriptions _ model =
     Sub.batch
         [ Interval.tickEveryOneSecond Shared.Msg.Tick
         , Interval.tickEveryFiveSeconds Shared.Msg.Tick
+        , Browser.Events.onKeyDown
+            (Json.Decode.map
+                (\key -> Shared.Msg.OnKeyDown { key = key })
+                (Json.Decode.field "key" Json.Decode.string)
+            )
+        , Browser.Events.onKeyUp
+            (Json.Decode.map
+                (\key -> Shared.Msg.OnKeyUp { key = key })
+                (Json.Decode.field "key" Json.Decode.string)
+            )
+        , Browser.Events.onVisibilityChange
+            (\visibility -> Shared.Msg.VisibilityChanged { visibility = visibility })
 
         -- todo: move this to the build graph page, when we have one
         , Interop.onGraphInteraction

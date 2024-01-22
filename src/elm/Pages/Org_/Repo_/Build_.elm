@@ -36,7 +36,7 @@ import Http
 import Http.Detailed
 import Layouts
 import LinkHeader exposing (WebLink)
-import List
+import List.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
@@ -125,10 +125,12 @@ type Msg
     = OnHashChanged { from : Maybe String, to : Maybe String }
     | GetBuildStepsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
     | GetBuildStepLogResponse Vela.Step (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
-    | ExpandStep Vela.Step
+    | ExpandStep { step : Vela.Step, updateUrlHash : Bool }
+    | CollapseStep { step : Vela.Step, updateUrlHash : Bool }
     | ExpandSteps
     | CollapseSteps
-    | FocusLogLine String
+    | FocusLogLine { identifier : String }
+    | DownloadLog { filename : String, content : String, map : String -> String }
 
 
 update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
@@ -147,10 +149,34 @@ update shared route msg model =
         GetBuildStepsResponse response ->
             case response of
                 Ok ( _, steps ) ->
+                    let
+                        ( steps_, sideEffects ) =
+                            steps
+                                |> List.map
+                                    (\step ->
+                                        case model.logLineFocus of
+                                            ( Just resourceNumber, _ ) ->
+                                                if step.number == resourceNumber then
+                                                    ( { step | viewing = True }
+                                                    , ExpandStep { step = step, updateUrlHash = False }
+                                                        |> Effect.sendMsg
+                                                    )
+
+                                                else
+                                                    ( { step | viewing = False }, Effect.none )
+
+                                            _ ->
+                                                ( { step | viewing = False }, Effect.none )
+                                    )
+                                |> List.unzip
+                                |> Tuple.mapFirst RemoteData.succeed
+                                |> Tuple.mapSecond Effect.batch
+                    in
                     ( { model
-                        | steps = RemoteData.Success steps
+                        | steps =
+                            steps_
                       }
-                    , Effect.none
+                    , sideEffects
                     )
 
                 Err error ->
@@ -176,80 +202,85 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        ExpandStep step ->
-            -- let
-            --                 build =
-            --                     rm.build
-            --                 ( steps, fetchStepLogs ) =
-            --                     clickResource build.steps.steps stepNumber
-            --                 action =
-            --                     if fetchStepLogs then
-            --                         getBuildStepLogs model org repo buildNumber stepNumber Nothing True
-            --                     else
-            --                         Cmd.none
-            --                 stepOpened =
-            --                     isViewing steps stepNumber
-            --                 -- step clicked is step being followed
-            --                 onFollowedStep =
-            --                     build.steps.followingStep == (Maybe.withDefault -1 <| String.toInt stepNumber)
-            --                 follow =
-            --                     if onFollowedStep && not stepOpened then
-            --                         -- stop following a step when collapsed
-            --                         0
-            --                     else
-            --                         build.steps.followingStep
-            --             in
-            --             ( { model | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing follow }
-            --             , Cmd.batch <|
-            --                 [ action
-            --                 , if stepOpened then
-            --                     Navigation.pushUrl model.navigationKey <| resourceFocusFragment "step" stepNumber []
-            --                   else
-            --                     Cmd.none
-            --                 ]
-            --             )
-            ( model
-            , Effect.getBuildStepLog
-                { baseUrl = shared.velaAPI
-                , session = shared.session
-                , onResponse = GetBuildStepLogResponse step
-                , org = route.params.org
-                , repo = route.params.repo
-                , buildNumber = route.params.buildNumber
-                , stepNumber = String.fromInt step.number
-                }
+        ExpandStep options ->
+            ( { model
+                | steps =
+                    case model.steps of
+                        RemoteData.Success steps ->
+                            List.Extra.updateIf
+                                (\s -> s.id == options.step.id)
+                                (\s -> { s | viewing = True })
+                                steps
+                                |> RemoteData.succeed
+
+                        _ ->
+                            model.steps
+              }
+            , Effect.batch
+                [ Effect.getBuildStepLog
+                    { baseUrl = shared.velaAPI
+                    , session = shared.session
+                    , onResponse = GetBuildStepLogResponse options.step
+                    , org = route.params.org
+                    , repo = route.params.repo
+                    , buildNumber = route.params.buildNumber
+                    , stepNumber = String.fromInt options.step.number
+                    }
+                , if options.updateUrlHash then
+                    Effect.pushRoute
+                        { path =
+                            Route.Path.Org_Repo_Build_
+                                { org = route.params.org
+                                , repo = route.params.repo
+                                , buildNumber = route.params.buildNumber
+                                }
+                        , query = route.query
+
+                        -- drop the # before applying it to the hash
+                        , hash = Just <| "step:" ++ String.fromInt options.step.number
+                        }
+
+                  else
+                    Effect.none
+                ]
+            )
+
+        CollapseStep options ->
+            ( { model
+                | steps =
+                    case model.steps of
+                        RemoteData.Success steps ->
+                            List.Extra.updateIf
+                                (\s -> s.id == options.step.id)
+                                (\s -> { s | viewing = False })
+                                steps
+                                |> RemoteData.succeed
+
+                        _ ->
+                            model.steps
+              }
+            , Effect.none
             )
 
         ExpandSteps ->
-            -- let
-            --     steps =
-            --         RemoteData.unwrap build.steps.steps
-            --             (\steps_ -> steps_ |> setAllViews True |> RemoteData.succeed)
-            --             build.steps.steps
-            --     -- refresh logs for expanded steps
-            --     sideEffects =
-            --         getBuildStepsLogs model org repo buildNumber (RemoteData.withDefault [] steps) Nothing True
-            -- in
-            -- ( { model | repo = updateBuildSteps steps rm }
-            -- , sideEffects
-            -- )
             ( model
-            , Effect.none
+            , model.steps
+                |> RemoteData.withDefault []
+                |> List.map (\step -> ExpandStep { step = step, updateUrlHash = False })
+                |> List.map Effect.sendMsg
+                |> Effect.batch
             )
 
         CollapseSteps ->
-            -- let
-            --     steps =
-            --         build.steps.steps
-            --             |> RemoteData.unwrap build.steps.steps
-            --                 (\steps_ -> steps_ |> setAllViews False |> RemoteData.succeed)
-            -- in
-            -- ( { model | repo = rm |> updateBuildSteps steps |> updateBuildStepsFollowing 0 }
             ( model
-            , Effect.none
+            , model.steps
+                |> RemoteData.withDefault []
+                |> List.map (\step -> CollapseStep { step = step, updateUrlHash = False })
+                |> List.map Effect.sendMsg
+                |> Effect.batch
             )
 
-        FocusLogLine line ->
+        FocusLogLine options ->
             ( model
             , Effect.pushRoute
                 { path =
@@ -259,8 +290,15 @@ update shared route msg model =
                         , buildNumber = route.params.buildNumber
                         }
                 , query = route.query
-                , hash = Just <| String.dropLeft 1 line
+
+                -- drop the # before applying it to the hash
+                , hash = Just <| String.dropLeft 1 options.identifier
                 }
+            )
+
+        DownloadLog options ->
+            ( model
+            , Effect.downloadFile options
             )
 
 
@@ -285,9 +323,11 @@ view shared route model =
             shared
             { msgs =
                 { expandStep = ExpandStep
+                , collapseStep = CollapseStep
                 , expandSteps = ExpandSteps
                 , collapseSteps = CollapseSteps
                 , focusLogLine = FocusLogLine
+                , downloadLog = DownloadLog
                 }
             , steps = model.steps
             , logs = model.logs

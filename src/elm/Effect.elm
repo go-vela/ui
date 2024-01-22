@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addOrgSecret, alertsUpdate, clearRedirect, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, addOrgSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
     )
 
 {-|
@@ -553,3 +553,8 @@ alertsUpdate options =
 focusOn : { target : String } -> Effect msg
 focusOn options =
     SendSharedMsg <| Shared.Msg.FocusOn options
+
+
+downloadFile : { filename : String, content : String, map : String -> String } -> Effect msg
+downloadFile options =
+    SendSharedMsg <| Shared.Msg.DownloadFile options

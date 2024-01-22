@@ -14,10 +14,12 @@ import Vela
 
 
 type alias Msgs msg =
-    { expandStep : Vela.Step -> msg
+    { expandStep : { step : Vela.Step, updateUrlHash : Bool } -> msg
+    , collapseStep : { step : Vela.Step, updateUrlHash : Bool } -> msg
     , expandSteps : msg
     , collapseSteps : msg
-    , focusLogLine : String -> msg
+    , focusLogLine : { identifier : String } -> msg
+    , downloadLog : { filename : String, content : String, map : String -> String } -> msg
     }
 
 
@@ -34,32 +36,28 @@ type alias Props msg =
 
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
-    let
-        logActions =
-            div
-                [ class "buttons"
-                , class "log-actions"
-                , class "flowline-left"
-                , Util.testAttribute "log-actions"
-                ]
-                [ Html.button
-                    [ class "button"
-                    , class "-link"
-                    , onClick props.msgs.collapseSteps
-                    , Util.testAttribute "collapse-all"
-                    ]
-                    [ small [] [ text "collapse all" ] ]
-                , Html.button
-                    [ class "button"
-                    , class "-link"
-                    , onClick props.msgs.expandSteps
-                    , Util.testAttribute "expand-all"
-                    ]
-                    [ small [] [ text "expand all" ] ]
-                ]
-    in
     div []
-        [ logActions
+        [ div
+            [ class "buttons"
+            , class "log-actions"
+            , class "flowline-left"
+            , Util.testAttribute "log-actions"
+            ]
+            [ Html.button
+                [ class "button"
+                , class "-link"
+                , onClick props.msgs.collapseSteps
+                , Util.testAttribute "collapse-all"
+                ]
+                [ small [] [ text "collapse all" ] ]
+            , Html.button
+                [ class "button"
+                , class "-link"
+                , onClick props.msgs.expandSteps
+                , Util.testAttribute "expand-all"
+                ]
+                [ small [] [ text "expand all" ] ]
+            ]
         , div [ class "steps" ]
             [ div [ class "-items", Util.testAttribute "steps" ] <|
                 List.map (viewStep shared props) <|
@@ -80,12 +78,28 @@ viewStep shared props step =
         stepNumber =
             String.fromInt step.number
 
-        stepSummary =
+        clickStep =
+            if step.viewing then
+                props.msgs.collapseStep
+
+            else
+                props.msgs.expandStep
+    in
+    div [ classList [ ( "step", True ), ( "flowline-left", True ) ], Util.testAttribute "step" ]
+        [ div [ class "-status" ]
+            [ div [ class "-icon-container" ] [ Components.Svgs.stepStatusToIcon step.status ] ]
+        , details
+            (classList
+                [ ( "details", True )
+                , ( "-with-border", True )
+                , ( "-running", step.status == Vela.Running )
+                ]
+                :: Util.open step.viewing
+            )
             [ summary
                 [ class "summary"
                 , Util.testAttribute <| "step-header-" ++ stepNumber
-                , onClick <|
-                    props.msgs.expandStep step
+                , onClick <| clickStep { step = step, updateUrlHash = True }
                 , id <| "step-" ++ stepNumber
                 ]
                 [ div
@@ -101,19 +115,6 @@ viewStep shared props step =
                         Dict.get step.id props.logs
                 ]
             ]
-    in
-    div [ classList [ ( "step", True ), ( "flowline-left", True ) ], Util.testAttribute "step" ]
-        [ div [ class "-status" ]
-            [ div [ class "-icon-container" ] [ Components.Svgs.stepStatusToIcon step.status ] ]
-        , details
-            (classList
-                [ ( "details", True )
-                , ( "-with-border", True )
-                , ( "-running", step.status == Vela.Running )
-                ]
-                :: Util.open step.viewing
-            )
-            stepSummary
         ]
 
 
@@ -141,6 +142,7 @@ viewLogs shared props step log =
                 shared
                 { msgs =
                     { focusLine = props.msgs.focusLogLine
+                    , download = props.msgs.downloadLog
                     }
                 , log = log
                 , org = props.org

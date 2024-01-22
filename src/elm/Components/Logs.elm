@@ -16,7 +16,8 @@ import Vela
 
 
 type alias Msgs msg =
-    { focusLine : String -> msg
+    { focusLine : { identifier : String } -> msg
+    , download : { filename : String, content : String, map : String -> String } -> msg
     }
 
 
@@ -63,19 +64,15 @@ view shared props =
 -}
 viewLogLines : Shared.Model -> Props msg -> Vela.Log -> Html msg
 viewLogLines shared props log =
+    let
+        ( lines, numLines ) =
+            viewLines shared props log
+    in
     div
         [ class "logs"
         , Util.testAttribute <| "logs-" ++ props.resourceNumber
         ]
-    <|
-        let
-            fileName =
-                String.join "-" [ props.org, props.repo, props.buildNumber, props.resourceType, props.resourceNumber ]
-
-            ( lines, numLines ) =
-                viewLines shared props log
-        in
-        [ logsHeader props fileName log
+        [ logsHeader props log
         , logsSidebar props numLines
         , lines
         ]
@@ -289,8 +286,9 @@ lineFocusButton : Shared.Model -> Props msg -> Int -> Html msg
 lineFocusButton shared props lineNumber =
     button
         [ Util.onClickPreventDefault <|
-            props.msgs.focusLine <|
-                Focus.lineRangeId props.resourceType props.resourceNumber lineNumber props.lineFocus shared.shift
+            props.msgs.focusLine
+                { identifier = Focus.lineRangeId props.resourceType props.resourceNumber lineNumber props.lineFocus shared.shift
+                }
         , Util.testAttribute <| String.join "-" [ "log", "line", "num", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
         , id <| Focus.resourceAndLineToFocusId props.resourceType props.resourceNumber lineNumber
         , class "line-number"
@@ -303,15 +301,14 @@ lineFocusButton shared props lineNumber =
 
 {-| logsHeader : takes number, filename and decoded log and renders logs header
 -}
-logsHeader : Props msg -> String -> Vela.Log -> Html msg
-logsHeader props fileName log =
+logsHeader : Props msg -> Vela.Log -> Html msg
+logsHeader props log =
     div
         [ class "logs-header"
         , class "buttons"
-
-        -- , Util.testAttribute <| "logs-header-actions-" ++ props.number
+        , Util.testAttribute <| "logs-header-actions-" ++ props.resourceNumber
         ]
-        [-- downloadLogsButton props.msgs.download resourceType number fileName log
+        [ viewDownloadButton props log
         ]
 
 
@@ -327,8 +324,7 @@ logsSidebar props numLines =
         [ div [ class "inner-container" ]
             [ div
                 [ class "actions"
-
-                -- , Util.testAttribute <| "logs-sidebar-actions-" ++ props.number
+                , Util.testAttribute <| "logs-sidebar-actions-" ++ props.resourceNumber
                 ]
               <|
                 (if long then
@@ -374,25 +370,34 @@ logsSidebar props numLines =
 --         , attribute "aria-label" <| "jump to top of logs for " ++ resourceType ++ " " ++ number
 --         ]
 --         [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
--- {-| downloadLogsButton : renders action button for downloading a log
--- -}
--- downloadLogsButton : Download msg -> String -> String -> String -> Vela.Log -> Html msg
--- downloadLogsButton download resourceType number fileName log =
---     let
---         logEmpty =
---             isEmpty log
---     in
---     button
---         [ class "button"
---         , class "-link"
---         , Html.Attributes.disabled logEmpty
---         , Util.attrIf logEmpty <| class "-hidden"
---         , Util.attrIf logEmpty <| Util.ariaHidden
---         , Util.testAttribute <| "download-logs-" ++ number
---         , onClick <| download fileName log.rawData
---         , attribute "aria-label" <| "download logs for " ++ resourceType ++ " " ++ number
---         ]
---         [ text <| "download " ++ resourceType ++ " logs" ]
+
+
+{-| viewDownloadButton : renders action button for downloading a log
+-}
+viewDownloadButton : Props msg -> Vela.Log -> Html msg
+viewDownloadButton props log =
+    let
+        logEmpty =
+            log.size == 0
+
+        fileName =
+            String.join "-" [ props.org, props.repo, props.buildNumber, props.resourceType, props.resourceNumber ]
+                ++ ".txt"
+    in
+    button
+        [ class "button"
+        , class "-link"
+        , Html.Attributes.disabled logEmpty
+        , Util.attrIf logEmpty <| class "-hidden"
+        , Util.attrIf logEmpty <| Util.ariaHidden
+        , Util.testAttribute <| "download-logs-" ++ props.resourceNumber
+        , onClick <| props.msgs.download { filename = fileName, content = log.rawData, map = Util.base64Decode }
+        , attribute "aria-label" <| "download logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+        ]
+        [ text <| "download " ++ props.resourceType ++ " logs" ]
+
+
+
 -- {-| followButton : renders button for following logs
 -- -}
 -- followButton : FollowResource msg -> String -> String -> Int -> Html msg
