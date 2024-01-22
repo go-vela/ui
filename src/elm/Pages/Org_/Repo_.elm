@@ -7,6 +7,7 @@ module Pages.Org_.Repo_ exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
+import Components.Build
 import Components.Builds
 import Components.Pager
 import Dict
@@ -48,7 +49,8 @@ toLayout user route model =
     Layouts.Default_Repo
         { org = route.params.org
         , repo = route.params.repo
-        , nil = []
+        , navButtons = []
+        , utilButtons = []
         }
 
 
@@ -266,10 +268,18 @@ view shared route model =
         , Components.Builds.view shared
             { msgs = msgs
             , builds = model.builds
-            , showActionsMenus = model.showActionsMenus
             , maybeEvent = Dict.get "event" route.query
             , showFullTimestamps = model.showFullTimestamps
-            , showActionsMenuBool = True
+            , viewActionsMenu =
+                \b ->
+                    Just <|
+                        Components.Build.viewActionsMenu
+                            { msgs =
+                                { showHideActionsMenus = ShowHideActionsMenus
+                                }
+                            , build = b
+                            , showActionsMenus = model.showActionsMenus
+                            }
             }
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]

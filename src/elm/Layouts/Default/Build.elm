@@ -5,14 +5,20 @@ SPDX-License-Identifier: Apache-2.0
 
 module Layouts.Default.Build exposing (Model, Msg, Props, layout, map)
 
+import Components.Build
+import Components.RecentBuilds
 import Components.Tabs
 import Effect exposing (Effect)
 import Html exposing (..)
+import Http
+import Http.Detailed
 import Layout exposing (Layout)
 import Layouts.Default
 import RemoteData exposing (WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
+import Utils.Errors as Errors
 import Vela
 import View exposing (View)
 
@@ -22,7 +28,9 @@ type alias Props contentMsg =
     , repo : String
     , buildNumber : String
     , build : WebData Vela.Build
-    , nil : List contentMsg
+    , toBuildPath : String -> Route.Path.Path
+    , navButtons : List (Html contentMsg)
+    , utilButtons : List (Html contentMsg)
     }
 
 
@@ -32,15 +40,17 @@ map fn props =
     , repo = props.repo
     , buildNumber = props.buildNumber
     , build = props.build
-    , nil = List.map fn props.nil
+    , toBuildPath = props.toBuildPath
+    , navButtons = List.map (Html.map fn) props.navButtons
+    , utilButtons = List.map (Html.map fn) props.utilButtons
     }
 
 
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg
 layout props shared route =
     Layout.new
-        { init = init shared
-        , update = update
+        { init = init props shared
+        , update = update shared
         , view = view props shared route
         , subscriptions = subscriptions
         }
@@ -55,13 +65,24 @@ layout props shared route =
 
 
 type alias Model =
-    {}
+    { builds : WebData (List Vela.Build)
+    }
 
 
-init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared _ =
-    ( {}
-    , Effect.none
+init : Props contentMsg -> Shared.Model -> () -> ( Model, Effect Msg )
+init props shared _ =
+    ( { builds = RemoteData.Loading
+      }
+    , Effect.getRepoBuilds
+        { baseUrl = shared.velaAPI
+        , session = shared.session
+        , onResponse = GetBuildsResponse
+        , pageNumber = Nothing
+        , perPage = Nothing
+        , maybeEvent = Nothing
+        , org = props.org
+        , repo = props.repo
+        }
     )
 
 
@@ -70,16 +91,25 @@ init shared _ =
 
 
 type Msg
-    = NoOp
+    = GetBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
+update shared msg model =
     case msg of
-        NoOp ->
-            ( model
-            , Effect.none
-            )
+        GetBuildsResponse response ->
+            case response of
+                Ok ( _, builds ) ->
+                    ( { model
+                        | builds = RemoteData.Success builds
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | builds = Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
 
 
 subscriptions : Model -> Sub Msg
@@ -95,13 +125,23 @@ view : Props contentMsg -> Shared.Model -> Route () -> { toContentMsg : Msg -> c
 view props shared route { toContentMsg, model, content } =
     { title = props.org ++ "/" ++ props.repo ++ " #" ++ props.buildNumber
     , body =
-        [ Html.text "build:layout->"
-        , case props.build of
-            RemoteData.Success build ->
-                Html.text (Vela.statusToString build.status)
-
-            _ ->
-                Html.text "Loading..."
-        , Html.div [] content.body
+        [ Components.RecentBuilds.view shared
+            { builds = model.builds
+            , build = props.build
+            , num = 10
+            , toPath = props.toBuildPath
+            }
+        , Components.Build.view shared
+            { build = props.build
+            , showFullTimestamps = False
+            , actionsMenu = Nothing
+            }
+        , Components.Tabs.viewBuildTabs shared
+            { org = props.org
+            , repo = props.repo
+            , buildNumber = props.buildNumber
+            , currentPath = route.path
+            }
         ]
+            ++ content.body
     }

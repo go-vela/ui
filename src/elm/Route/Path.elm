@@ -9,7 +9,6 @@ import Html
 import Html.Attributes
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
-import Vela
 
 
 type Path
@@ -26,6 +25,7 @@ type Path
     | Org_Repo_ { org : String, repo : String }
     | Org_Repo_Deployments { org : String, repo : String }
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String }
+    | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String }
     | NotFound_
 
 
@@ -109,6 +109,14 @@ fromString urlPath =
                 }
                 |> Just
 
+        org :: repo :: buildNumber :: "services" :: [] ->
+            Org_Repo_Build_Services
+                { org = org
+                , repo = repo
+                , buildNumber = buildNumber
+                }
+                |> Just
+
         _ ->
             Nothing
 
@@ -162,6 +170,9 @@ toString path =
 
                 Org_Repo_Build_ params ->
                     [ params.org, params.repo, params.buildNumber ]
+
+                Org_Repo_Build_Services params ->
+                    [ params.org, params.repo, params.buildNumber, "services" ]
 
                 NotFound_ ->
                     [ "not-found" ]

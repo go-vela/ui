@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Build_ exposing (..)
+module Pages.Org_.Repo_.Build_.Services exposing (..)
 
 import Api.Pagination
 import Auth
@@ -151,6 +151,6 @@ view : Shared.Model -> Route { org : String, repo : String, buildNumber : String
 view shared route model =
     { title = "#" ++ route.params.buildNumber
     , body =
-        [ text <| "steps+logs here"
+        [ text <| "services+logs here"
         ]
     }

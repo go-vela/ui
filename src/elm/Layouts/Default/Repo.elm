@@ -16,12 +16,20 @@ import View exposing (View)
 
 
 type alias Props contentMsg =
-    { org : String, repo : String, nil : List contentMsg }
+    { org : String
+    , repo : String
+    , navButtons : List (Html contentMsg)
+    , utilButtons : List (Html contentMsg)
+    }
 
 
 map : (msg1 -> msg2) -> Props msg1 -> Props msg2
 map fn props =
-    { org = props.org, repo = props.repo, nil = List.map fn props.nil }
+    { org = props.org
+    , repo = props.repo
+    , navButtons = List.map (Html.map fn) props.navButtons
+    , utilButtons = List.map (Html.map fn) props.utilButtons
+    }
 
 
 layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default.Props contentMsg) Model Msg contentMsg

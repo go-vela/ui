@@ -1,8 +1,10 @@
 module Components.Tabs exposing (Tab, view, viewBuildTabs, viewOrgTabs, viewRepoTabs)
 
 import Api.Pagination as Pagination
+import Effect
 import Html exposing (Html, a, div, span, text)
 import Html.Attributes exposing (class, classList)
+import Html.Events
 import RemoteData
 import Route.Path
 import Shared
@@ -169,13 +171,21 @@ viewRepoTabs shared props =
         tabs =
             [ { name = "Builds"
               , currentPath = props.currentPath
-              , toPath = Route.Path.Org_Repo_ { org = props.org, repo = props.repo }
+              , toPath =
+                    Route.Path.Org_Repo_
+                        { org = props.org
+                        , repo = props.repo
+                        }
               , isAlerting = False
               , show = True
               }
             , { name = "Deployments"
               , currentPath = props.currentPath
-              , toPath = Route.Path.Org_Repo_Deployments { org = props.org, repo = props.repo }
+              , toPath =
+                    Route.Path.Org_Repo_Deployments
+                        { org = props.org
+                        , repo = props.repo
+                        }
               , isAlerting = False
               , show = True
               }
@@ -226,13 +236,23 @@ viewBuildTabs shared props =
         tabs =
             [ { name = "Build"
               , currentPath = props.currentPath
-              , toPath = Route.Path.NotFound_
+              , toPath =
+                    Route.Path.Org_Repo_Build_
+                        { org = props.org
+                        , repo = props.repo
+                        , buildNumber = props.buildNumber
+                        }
               , isAlerting = False
               , show = True
               }
             , { name = "Services"
               , currentPath = props.currentPath
-              , toPath = Route.Path.NotFound_
+              , toPath =
+                    Route.Path.Org_Repo_Build_Services
+                        { org = props.org
+                        , repo = props.repo
+                        , buildNumber = props.buildNumber
+                        }
               , isAlerting = False
               , show = True
               }

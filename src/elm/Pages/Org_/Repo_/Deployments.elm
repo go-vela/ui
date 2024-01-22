@@ -67,7 +67,8 @@ toLayout user route model =
     Layouts.Default_Repo
         { org = route.params.org
         , repo = route.params.repo
-        , nil = []
+        , navButtons = []
+        , utilButtons = []
         }
 
 

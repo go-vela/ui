@@ -273,16 +273,6 @@ toCrumbs path =
                 --             ( "#" ++ buildNumber, Nothing )
                 --     in
                 --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
-                -- Pages.BuildServices org repo buildNumber _ ->
-                --     let
-                --         orgReposCrumbLink =
-                --             ( org, Just <| Pages.OrgRepositories org Nothing Nothing )
-                --         repoBuildsCrumbLink =
-                --             ( repo, Just <| Pages.RepositoryBuilds org repo Nothing Nothing Nothing )
-                --         buildNumberCrumbStatic =
-                --             ( "#" ++ buildNumber, Nothing )
-                --     in
-                --     [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
                 -- Pages.BuildPipeline org repo buildNumber _ _ ->
                 --     let
                 --         orgReposCrumbLink =
@@ -419,6 +409,19 @@ toCrumbs path =
                     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
 
                 Route.Path.Org_Repo_Build_ params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoBuildsCrumbLink =
+                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
+
+                        buildNumberCrumbStatic =
+                            ( "#" ++ params.buildNumber, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoBuildsCrumbLink, buildNumberCrumbStatic ]
+
+                Route.Path.Org_Repo_Build_Services params ->
                     let
                         orgReposCrumbLink =
                             ( params.org, Just <| Route.Path.Org_ { org = params.org } )
