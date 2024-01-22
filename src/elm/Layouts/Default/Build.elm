@@ -27,7 +27,6 @@ type alias Props contentMsg =
     { org : String
     , repo : String
     , buildNumber : String
-    , build : WebData Vela.Build
     , toBuildPath : String -> Route.Path.Path
     , navButtons : List (Html contentMsg)
     , utilButtons : List (Html contentMsg)
@@ -39,7 +38,6 @@ map fn props =
     { org = props.org
     , repo = props.repo
     , buildNumber = props.buildNumber
-    , build = props.build
     , toBuildPath = props.toBuildPath
     , navButtons = List.map (Html.map fn) props.navButtons
     , utilButtons = List.map (Html.map fn) props.utilButtons
@@ -50,10 +48,11 @@ layout : Props contentMsg -> Shared.Model -> Route () -> Layout (Layouts.Default
 layout props shared route =
     Layout.new
         { init = init props shared
-        , update = update shared
+        , update = update props shared
         , view = view props shared route
         , subscriptions = subscriptions
         }
+        |> Layout.withOnUrlChanged OnUrlChanged
         |> Layout.withParentProps
             { navButtons = []
             , utilButtons = []
@@ -66,23 +65,35 @@ layout props shared route =
 
 type alias Model =
     { builds : WebData (List Vela.Build)
+    , build : WebData Vela.Build
     }
 
 
 init : Props contentMsg -> Shared.Model -> () -> ( Model, Effect Msg )
 init props shared _ =
     ( { builds = RemoteData.Loading
+      , build = RemoteData.Loading
       }
-    , Effect.getRepoBuilds
-        { baseUrl = shared.velaAPI
-        , session = shared.session
-        , onResponse = GetBuildsResponse
-        , pageNumber = Nothing
-        , perPage = Nothing
-        , maybeEvent = Nothing
-        , org = props.org
-        , repo = props.repo
-        }
+    , Effect.batch
+        [ Effect.getRepoBuilds
+            { baseUrl = shared.velaAPI
+            , session = shared.session
+            , onResponse = GetBuildsResponse
+            , pageNumber = Nothing
+            , perPage = Nothing
+            , maybeEvent = Nothing
+            , org = props.org
+            , repo = props.repo
+            }
+        , Effect.getBuild
+            { baseUrl = shared.velaAPI
+            , session = shared.session
+            , onResponse = GetBuildResponse
+            , org = props.org
+            , repo = props.repo
+            , buildNumber = props.buildNumber
+            }
+        ]
     )
 
 
@@ -91,12 +102,52 @@ init props shared _ =
 
 
 type Msg
-    = GetBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
+    = OnUrlChanged { from : Route (), to : Route () }
+    | GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | GetBuildsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Build ))
 
 
-update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
-update shared msg model =
+update : Props contentMsg -> Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
+update props shared msg model =
     case msg of
+        OnUrlChanged _ ->
+            ( model
+            , Effect.batch
+                [ Effect.getRepoBuilds
+                    { baseUrl = shared.velaAPI
+                    , session = shared.session
+                    , onResponse = GetBuildsResponse
+                    , pageNumber = Nothing
+                    , perPage = Nothing
+                    , maybeEvent = Nothing
+                    , org = props.org
+                    , repo = props.repo
+                    }
+                , Effect.getBuild
+                    { baseUrl = shared.velaAPI
+                    , session = shared.session
+                    , onResponse = GetBuildResponse
+                    , org = props.org
+                    , repo = props.repo
+                    , buildNumber = props.buildNumber
+                    }
+                ]
+            )
+
+        GetBuildResponse response ->
+            case response of
+                Ok ( _, build ) ->
+                    ( { model
+                        | build = RemoteData.Success build
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( { model | builds = Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
         GetBuildsResponse response ->
             case response of
                 Ok ( _, builds ) ->
@@ -127,12 +178,12 @@ view props shared route { toContentMsg, model, content } =
     , body =
         [ Components.RecentBuilds.view shared
             { builds = model.builds
-            , build = props.build
+            , build = model.build
             , num = 10
             , toPath = props.toBuildPath
             }
         , Components.Build.view shared
-            { build = props.build
+            { build = model.build
             , showFullTimestamps = False
             , actionsMenu = Nothing
             }

@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addOrgSecret, alertsUpdate, clearRedirect, enableRepo, finishAuthentication, focusOn, getBuild, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, addOrgSecret, alertsUpdate, clearRedirect, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
     )
 
 {-|
@@ -274,7 +274,11 @@ enableRepo options =
     in
     Api.try
         options.onResponse
-        (Api.Operations.enableRepo options.baseUrl options.session body)
+        (Api.Operations.enableRepo
+            options.baseUrl
+            options.session
+            body
+        )
         |> sendCmd
 
 
@@ -288,7 +292,11 @@ getOrgRepos :
 getOrgRepos options =
     Api.try
         options.onResponse
-        (Api.Operations.getOrgRepos options.baseUrl options.session options)
+        (Api.Operations.getOrgRepos
+            options.baseUrl
+            options.session
+            options
+        )
         |> sendCmd
 
 
@@ -305,7 +313,11 @@ getOrgBuilds :
 getOrgBuilds options =
     Api.try
         options.onResponse
-        (Api.Operations.getOrgBuilds options.baseUrl options.session options)
+        (Api.Operations.getOrgBuilds
+            options.baseUrl
+            options.session
+            options
+        )
         |> sendCmd
 
 
@@ -321,7 +333,11 @@ getOrgSecrets :
 getOrgSecrets options =
     Api.try
         options.onResponse
-        (Api.Operations.getOrgSecrets options.baseUrl options.session options)
+        (Api.Operations.getOrgSecrets
+            options.baseUrl
+            options.session
+            options
+        )
         |> sendCmd
 
 
@@ -339,7 +355,11 @@ getRepoBuilds :
 getRepoBuilds options =
     Api.try
         options.onResponse
-        (Api.Operations.getRepoBuilds options.baseUrl options.session options)
+        (Api.Operations.getRepoBuilds
+            options.baseUrl
+            options.session
+            options
+        )
         |> sendCmd
 
 
@@ -356,7 +376,11 @@ getRepoSecrets :
 getRepoSecrets options =
     Api.try
         options.onResponse
-        (Api.Operations.getRepoSecrets options.baseUrl options.session options)
+        (Api.Operations.getRepoSecrets
+            options.baseUrl
+            options.session
+            options
+        )
         |> sendCmd
 
 
@@ -373,7 +397,11 @@ getSharedSecrets :
 getSharedSecrets options =
     Api.try
         options.onResponse
-        (Api.Operations.getSharedSecrets options.baseUrl options.session options)
+        (Api.Operations.getSharedSecrets
+            options.baseUrl
+            options.session
+            options
+        )
         |> sendCmd
 
 
@@ -390,7 +418,11 @@ getRepoDeployments :
 getRepoDeployments options =
     Api.try
         options.onResponse
-        (Api.Operations.getRepoDeployments options.baseUrl options.session options)
+        (Api.Operations.getRepoDeployments
+            options.baseUrl
+            options.session
+            options
+        )
         |> sendCmd
 
 
@@ -406,7 +438,76 @@ getBuild :
 getBuild options =
     Api.try
         options.onResponse
-        (Api.Operations.getBuild options.baseUrl options.session options)
+        (Api.Operations.getBuild
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getBuildSteps :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ) -> msg
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , org : String
+    , repo : String
+    , buildNumber : String
+    }
+    -> Effect msg
+getBuildSteps options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getBuildSteps
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getBuildServices :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Service ) -> msg
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , org : String
+    , repo : String
+    , buildNumber : String
+    }
+    -> Effect msg
+getBuildServices options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getBuildServices
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getBuildStepLog :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ) -> msg
+    , org : String
+    , repo : String
+    , buildNumber : String
+    , stepNumber : String
+    }
+    -> Effect msg
+getBuildStepLog options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getBuildStepLog
+            options.baseUrl
+            options.session
+            options
+        )
         |> sendCmd
 
 
@@ -421,7 +522,11 @@ addOrgSecret :
 addOrgSecret options =
     Api.try
         options.onResponse
-        (Api.Operations.addOrgSecret options.baseUrl options.session options)
+        (Api.Operations.addOrgSecret
+            options.baseUrl
+            options.session
+            options
+        )
         |> sendCmd
 
 

@@ -100,8 +100,10 @@ module Vela exposing
     , decodeSecret
     , decodeSecrets
     , decodeService
+    , decodeServices
     , decodeSourceRepositories
     , decodeStep
+    , decodeSteps
     , defaultBuildGraph
     , defaultEnableRepositoryPayload
     , defaultPipeline
@@ -118,6 +120,7 @@ module Vela exposing
     , encodeUpdateSchedule
     , encodeUpdateUser
     , isComplete
+    , newStepLog
     , secretToKey
     , secretTypeToString
     , secretsErrorLabel
@@ -1472,7 +1475,7 @@ decodeBuildGraphNode =
         |> optional "status" string ""
         |> required "started_at" int
         |> required "finished_at" int
-        |> optional "steps" (Json.Decode.list decodeStep) []
+        |> optional "steps" decodeSteps []
         -- focused
         |> hardcoded False
 
@@ -1737,6 +1740,11 @@ decodeStep =
         |> hardcoded ( Nothing, Nothing )
 
 
+decodeSteps : Decoder (List Step)
+decodeSteps =
+    Json.Decode.list decodeStep
+
+
 type alias Steps =
     List Step
 
@@ -1792,6 +1800,11 @@ decodeService =
         |> hardcoded ( Nothing, Nothing )
 
 
+decodeServices : Decoder (List Service)
+decodeServices =
+    Json.Decode.list decodeService
+
+
 type alias Services =
     List Service
 
@@ -1833,6 +1846,11 @@ type alias Log =
     , decodedLogs : String
     , size : Int
     }
+
+
+newStepLog : Int -> Log
+newStepLog id =
+    Log id -1 -1 -1 -1 "" "" -1
 
 
 {-| decodeLog : decodes json from vela into log

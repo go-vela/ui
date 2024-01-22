@@ -8,6 +8,9 @@ module Api.Operations exposing
     , enableRepo
     , finishAuthentication
     , getBuild
+    , getBuildServices
+    , getBuildStepLog
+    , getBuildSteps
     , getCurrentUser
     , getOrgBuilds
     , getOrgRepos
@@ -131,7 +134,12 @@ getOrgBuilds :
     -> Request (List Vela.Build)
 getOrgBuilds baseUrl session options =
     get baseUrl
-        (Api.Endpoint.OrgBuilds options.pageNumber options.perPage options.maybeEvent options.org)
+        (Api.Endpoint.OrgBuilds
+            options.pageNumber
+            options.perPage
+            options.maybeEvent
+            options.org
+        )
         Vela.decodeBuilds
         |> withAuth session
 
@@ -150,7 +158,14 @@ getOrgSecrets :
     -> Request (List Vela.Secret)
 getOrgSecrets baseUrl session options =
     get baseUrl
-        (Api.Endpoint.Secrets options.pageNumber options.perPage "native" "org" options.org "*")
+        (Api.Endpoint.Secrets
+            options.pageNumber
+            options.perPage
+            "native"
+            "org"
+            options.org
+            "*"
+        )
         Vela.decodeSecrets
         |> withAuth session
 
@@ -170,7 +185,14 @@ getRepoSecrets :
     -> Request (List Vela.Secret)
 getRepoSecrets baseUrl session options =
     get baseUrl
-        (Api.Endpoint.Secrets options.pageNumber options.perPage "native" "repo" options.org options.repo)
+        (Api.Endpoint.Secrets
+            options.pageNumber
+            options.perPage
+            "native"
+            "repo"
+            options.org
+            options.repo
+        )
         Vela.decodeSecrets
         |> withAuth session
 
@@ -190,7 +212,14 @@ getSharedSecrets :
     -> Request (List Vela.Secret)
 getSharedSecrets baseUrl session options =
     get baseUrl
-        (Api.Endpoint.Secrets options.pageNumber options.perPage "native" "shared" options.org options.team)
+        (Api.Endpoint.Secrets
+            options.pageNumber
+            options.perPage
+            "native"
+            "shared"
+            options.org
+            options.team
+        )
         Vela.decodeSecrets
         |> withAuth session
 
@@ -211,7 +240,13 @@ getRepoBuilds :
     -> Request (List Vela.Build)
 getRepoBuilds baseUrl session options =
     get baseUrl
-        (Api.Endpoint.Builds options.pageNumber options.perPage options.maybeEvent options.org options.repo)
+        (Api.Endpoint.Builds
+            options.pageNumber
+            options.perPage
+            options.maybeEvent
+            options.org
+            options.repo
+        )
         Vela.decodeBuilds
         |> withAuth session
 
@@ -231,7 +266,12 @@ getRepoDeployments :
     -> Request (List Vela.Deployment)
 getRepoDeployments baseUrl session options =
     get baseUrl
-        (Api.Endpoint.Deployments options.pageNumber options.perPage options.org options.repo)
+        (Api.Endpoint.Deployments
+            options.pageNumber
+            options.perPage
+            options.org
+            options.repo
+        )
         Vela.decodeDeployments
         |> withAuth session
 
@@ -250,8 +290,91 @@ getBuild :
     -> Request Vela.Build
 getBuild baseUrl session options =
     get baseUrl
-        (Api.Endpoint.Build options.org options.repo options.buildNumber)
+        (Api.Endpoint.Build
+            options.org
+            options.repo
+            options.buildNumber
+        )
         Vela.decodeBuild
+        |> withAuth session
+
+
+{-| getBuildSteps : retrieves steps for a build
+-}
+getBuildSteps :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , buildNumber : String
+            , pageNumber : Maybe Int
+            , perPage : Maybe Int
+        }
+    -> Request (List Vela.Step)
+getBuildSteps baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Steps
+            options.pageNumber
+            options.perPage
+            options.org
+            options.repo
+            options.buildNumber
+        )
+        Vela.decodeSteps
+        |> withAuth session
+
+
+{-| getBuildServices: retrieves services for a build
+-}
+getBuildServices :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , buildNumber : String
+            , pageNumber : Maybe Int
+            , perPage : Maybe Int
+        }
+    -> Request (List Vela.Service)
+getBuildServices baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Services
+            options.pageNumber
+            options.perPage
+            options.org
+            options.repo
+            options.buildNumber
+        )
+        Vela.decodeServices
+        |> withAuth session
+
+
+{-| getBuildStepLog: retrieves a log for a step
+-}
+getBuildStepLog :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , buildNumber : String
+            , stepNumber : String
+        }
+    -> Request Vela.Log
+getBuildStepLog baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.StepLogs
+            options.org
+            options.repo
+            options.buildNumber
+            options.stepNumber
+        )
+        Vela.decodeLog
         |> withAuth session
 
 
@@ -268,7 +391,14 @@ addOrgSecret :
     -> Request Vela.Secret
 addOrgSecret baseUrl session options =
     post baseUrl
-        (Api.Endpoint.Secrets Nothing Nothing "native" "org" options.org "*")
+        (Api.Endpoint.Secrets
+            Nothing
+            Nothing
+            "native"
+            "org"
+            options.org
+            "*"
+        )
         options.body
         Vela.decodeSecret
         |> withAuth session

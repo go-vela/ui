@@ -69,10 +69,9 @@ toLayout user route model =
         { org = route.params.org
         , repo = route.params.repo
         , buildNumber = route.params.buildNumber
-        , build = model.build
         , toBuildPath =
             \buildNumber ->
-                Route.Path.Org_Repo_Build_
+                Route.Path.Org_Repo_Build_Services
                     { org = route.params.org
                     , repo = route.params.repo
                     , buildNumber = buildNumber
@@ -87,24 +86,24 @@ toLayout user route model =
 
 
 type alias Model =
-    { build : WebData Vela.Build
+    { services : WebData (List Vela.Service)
     }
 
 
 init : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { build = RemoteData.Loading
+    ( { services = RemoteData.Loading
       }
-    , Effect.batch
-        [ Effect.getBuild
-            { baseUrl = shared.velaAPI
-            , session = shared.session
-            , onResponse = GetBuildResponse
-            , org = route.params.org
-            , repo = route.params.repo
-            , buildNumber = route.params.buildNumber
-            }
-        ]
+    , Effect.getBuildServices
+        { baseUrl = shared.velaAPI
+        , session = shared.session
+        , onResponse = GetBuildServicesResponse
+        , pageNumber = Nothing
+        , perPage = Nothing
+        , org = route.params.org
+        , repo = route.params.repo
+        , buildNumber = route.params.buildNumber
+        }
     )
 
 
@@ -113,23 +112,23 @@ init shared route () =
 
 
 type Msg
-    = GetBuildResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    = GetBuildServicesResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Service ))
 
 
 update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
-        GetBuildResponse response ->
+        GetBuildServicesResponse response ->
             case response of
-                Ok ( _, build ) ->
+                Ok ( _, services ) ->
                     ( { model
-                        | build = RemoteData.Success build
+                        | services = RemoteData.Success services
                       }
                     , Effect.none
                     )
 
                 Err error ->
-                    ( { model | build = Errors.toFailure error }
+                    ( { model | services = Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -151,6 +150,8 @@ view : Shared.Model -> Route { org : String, repo : String, buildNumber : String
 view shared route model =
     { title = "#" ++ route.params.buildNumber
     , body =
-        [ text <| "services+logs here"
+        [ span [] <|
+            List.map (\s -> div [] [ text s.name ])
+                (RemoteData.withDefault [] model.services)
         ]
     }

@@ -8,7 +8,6 @@ module Utils.Focus exposing
     , FocusTarget
     , Fragment
     , RefQuery
-    , ResourceID
     , ResourceType
     , focusFragmentToFocusId
     , lineFocusStyles
@@ -19,7 +18,7 @@ module Utils.Focus exposing
     , resourceToFocusId
     )
 
-import Vela
+import Maybe.Extra
 
 
 type alias RefQuery =
@@ -38,13 +37,9 @@ type alias ResourceType =
     String
 
 
-type alias ResourceID =
-    String
-
-
 type alias FocusTarget =
     { target : Maybe String
-    , resourceID : Maybe Int
+    , resourceNumber : Maybe Int
     , lineA : Maybe Int
     , lineB : Maybe Int
     }
@@ -52,42 +47,42 @@ type alias FocusTarget =
 
 {-| resourceFocusFragment : takes resource tag and maybe line numbers and produces URL fragment for focusing line ranges
 -}
-resourceFocusFragment : ResourceType -> ResourceID -> List String -> String
+resourceFocusFragment : ResourceType -> String -> List String -> String
 resourceFocusFragment resource resourceId args =
     String.join ":" <| ("#" ++ resource) :: resourceId :: args
 
 
 {-| resourceToFocusId : takes resource and id and returns the resource focus id for auto focusing on page load
 -}
-resourceToFocusId : ResourceType -> ResourceID -> String
-resourceToFocusId resource resourceID =
-    String.join "-" [ resource, resourceID ]
+resourceToFocusId : ResourceType -> String -> String
+resourceToFocusId resource resourceNumber =
+    String.join "-" [ resource, resourceNumber ]
 
 
 {-| resourceAndLineToFocusId : takes resource, id and line number and returns the line focus id for auto focusing on page load
 -}
-resourceAndLineToFocusId : ResourceType -> ResourceID -> Int -> String
-resourceAndLineToFocusId resource resourceID lineNumber =
-    String.join "-" [ resource, resourceID, "line", String.fromInt lineNumber ]
+resourceAndLineToFocusId : ResourceType -> String -> Int -> String
+resourceAndLineToFocusId resource resourceNumber lineNumber =
+    String.join "-" [ resource, resourceNumber, "line", String.fromInt lineNumber ]
 
 
 {-| focusFragmentToFocusId : takes URL fragment and parses it into appropriate line focus id for auto focusing on page load
 -}
-focusFragmentToFocusId : ResourceType -> Vela.FocusFragment -> String
+focusFragmentToFocusId : ResourceType -> Maybe String -> String
 focusFragmentToFocusId resource focusFragment =
     let
         parsed =
             parseFocusFragment focusFragment
     in
-    case ( parsed.resourceID, parsed.lineA, parsed.lineB ) of
-        ( Just resourceID, Just lineA, Nothing ) ->
-            resource ++ "-" ++ String.fromInt resourceID ++ "-line-" ++ String.fromInt lineA
+    case ( parsed.resourceNumber, parsed.lineA, parsed.lineB ) of
+        ( Just resourceNumber, Just lineA, Nothing ) ->
+            resource ++ "-" ++ String.fromInt resourceNumber ++ "-line-" ++ String.fromInt lineA
 
-        ( Just resourceID, Just lineA, Just lineB ) ->
-            resource ++ "-" ++ String.fromInt resourceID ++ "-line-" ++ String.fromInt lineA ++ "-" ++ String.fromInt lineB
+        ( Just resourceNumber, Just lineA, Just lineB ) ->
+            resource ++ "-" ++ String.fromInt resourceNumber ++ "-line-" ++ String.fromInt lineA ++ "-" ++ String.fromInt lineB
 
-        ( Just resourceID, Nothing, Nothing ) ->
-            resource ++ "-" ++ String.fromInt resourceID
+        ( Just resourceNumber, Nothing, Nothing ) ->
+            resource ++ "-" ++ String.fromInt resourceNumber
 
         _ ->
             ""
@@ -95,75 +90,84 @@ focusFragmentToFocusId resource focusFragment =
 
 {-| parseFocusFragment : takes URL fragment and parses it into appropriate line focus chunks
 -}
-parseFocusFragment : Vela.FocusFragment -> FocusTarget
+parseFocusFragment : Maybe String -> FocusTarget
 parseFocusFragment focusFragment =
     case String.split ":" (Maybe.withDefault "" focusFragment) of
-        target :: resourceID :: lineA :: lineB :: _ ->
-            { target = Just target, resourceID = String.toInt resourceID, lineA = String.toInt lineA, lineB = String.toInt lineB }
+        target :: resourceNumber :: lineA :: lineB :: _ ->
+            { target = Just target, resourceNumber = String.toInt resourceNumber, lineA = String.toInt lineA, lineB = String.toInt lineB }
 
-        target :: resourceID :: lineA :: _ ->
-            { target = Just target, resourceID = String.toInt resourceID, lineA = String.toInt lineA, lineB = Nothing }
+        target :: resourceNumber :: lineA :: _ ->
+            { target = Just target, resourceNumber = String.toInt resourceNumber, lineA = String.toInt lineA, lineB = Nothing }
 
-        target :: resourceID :: _ ->
-            { target = Just target, resourceID = String.toInt resourceID, lineA = Nothing, lineB = Nothing }
+        target :: resourceNumber :: _ ->
+            { target = Just target, resourceNumber = String.toInt resourceNumber, lineA = Nothing, lineB = Nothing }
 
         _ ->
-            { target = Nothing, resourceID = Nothing, lineA = Nothing, lineB = Nothing }
+            { target = Nothing, resourceNumber = Nothing, lineA = Nothing, lineB = Nothing }
 
 
 {-| lineRangeId : takes resource, line, and focus information and returns the fragment for focusing a range of lines
 -}
-lineRangeId : ResourceType -> ResourceID -> Int -> Vela.LogFocus -> Bool -> String
-lineRangeId resource resourceID lineNumber lineFocus shiftDown =
-    resourceFocusFragment resource resourceID <|
+lineRangeId : ResourceType -> String -> Int -> Maybe ( Maybe Int, Maybe Int ) -> Bool -> String
+lineRangeId resource resourceNumber lineNumber maybeLineFocus shiftDown =
+    resourceFocusFragment resource resourceNumber <|
         List.map String.fromInt
             (List.sort <|
-                case ( shiftDown, lineFocus ) of
-                    ( True, ( Just lineA, Just lineB ) ) ->
-                        if lineNumber < lineA then
-                            [ lineNumber, lineB ]
+                case maybeLineFocus of
+                    Just lineFocus ->
+                        case ( shiftDown, lineFocus ) of
+                            ( True, ( Just lineA, Just lineB ) ) ->
+                                if lineNumber < lineA then
+                                    [ lineNumber, lineB ]
 
-                        else
-                            [ lineA, lineNumber ]
+                                else
+                                    [ lineA, lineNumber ]
 
-                    ( True, ( Just lineA, _ ) ) ->
-                        if lineNumber < lineA then
-                            [ lineNumber, lineA ]
+                            ( True, ( Just lineA, _ ) ) ->
+                                if lineNumber < lineA then
+                                    [ lineNumber, lineA ]
 
-                        else
-                            [ lineA, lineNumber ]
+                                else
+                                    [ lineA, lineNumber ]
 
-                    _ ->
+                            _ ->
+                                [ lineNumber ]
+
+                    Nothing ->
                         [ lineNumber ]
             )
 
 
 {-| lineFocusStyles : takes maybe linefocus and linenumber and returns the appropriate style for highlighting a focused line
 -}
-lineFocusStyles : Vela.LogFocus -> Int -> String
+lineFocusStyles : Maybe ( Maybe Int, Maybe Int ) -> Int -> String
 lineFocusStyles logFocus lineNumber =
-    case logFocus of
-        ( Just lineA, Just lineB ) ->
-            let
-                ( a, b ) =
-                    if lineA < lineB then
-                        ( lineA, lineB )
+    logFocus
+        |> Maybe.Extra.unwrap ""
+            (\focus ->
+                case focus of
+                    ( Just lineA, Just lineB ) ->
+                        let
+                            ( a, b ) =
+                                if lineA < lineB then
+                                    ( lineA, lineB )
 
-                    else
-                        ( lineB, lineA )
-            in
-            if lineNumber >= a && lineNumber <= b then
-                "-focus"
+                                else
+                                    ( lineB, lineA )
+                        in
+                        if lineNumber >= a && lineNumber <= b then
+                            "-focus"
 
-            else
-                ""
+                        else
+                            ""
 
-        ( Just lineA, Nothing ) ->
-            if lineA == lineNumber then
-                "-focus"
+                    ( Just lineA, Nothing ) ->
+                        if lineA == lineNumber then
+                            "-focus"
 
-            else
-                ""
+                        else
+                            ""
 
-        _ ->
-            ""
+                    _ ->
+                        ""
+            )
