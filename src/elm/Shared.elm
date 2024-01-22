@@ -282,6 +282,34 @@ update route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
+        Shared.Msg.CancelBuild options ->
+            let
+                _ =
+                    Debug.log "cancel a build" options
+            in
+            ( model
+            , Api.try
+                (Shared.Msg.CancelBuildResponse options)
+                (Api.Operations_.cancelBuild model.velaAPI model.session options)
+                |> Effect.sendCmd
+            )
+
+        Shared.Msg.CancelBuildResponse options response ->
+            case response of
+                Ok _ ->
+                    let
+                        canceledBuild =
+                            "Build " ++ String.join "/" [ options.org, options.repo, options.buildNumber ]
+                    in
+                    ( model
+                    , Effect.addAlertSuccess { content = canceledBuild ++ " canceled.", addToastIfUnique = True }
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
         -- PAGINATION
         Shared.Msg.GotoPage options ->
             let

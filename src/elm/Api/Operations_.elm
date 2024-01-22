@@ -4,7 +4,8 @@ SPDX-License-Identifier: Apache-2.0
 
 
 module Api.Operations_ exposing
-    ( enableRepo
+    ( cancelBuild
+    , enableRepo
     , finishAuthentication
     , getCurrentUser
     , getOrgRepos
@@ -138,6 +139,12 @@ getRepoBuilds baseUrl session options =
 restartBuild : String -> Session -> { a | org : String, repo : String, buildNumber : String } -> Request Vela.Build
 restartBuild baseUrl session options =
     post baseUrl (Endpoint.Build options.org options.repo options.buildNumber) Http.emptyBody Vela.decodeBuild
+        |> withAuth session
+
+
+cancelBuild : String -> Session -> { a | org : String, repo : String, buildNumber : String } -> Request Vela.Build
+cancelBuild baseUrl session options =
+    delete baseUrl (Endpoint.CancelBuild options.org options.repo options.buildNumber) Vela.decodeBuild
         |> withAuth session
 
 

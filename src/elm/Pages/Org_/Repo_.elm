@@ -166,12 +166,18 @@ update shared route msg model =
                 }
             )
 
-        CancelBuild _ _ _ ->
+        CancelBuild org repo buildNumber ->
             let
                 _ =
                     Debug.log "cancel build clicked" ""
             in
-            ( model, Effect.none )
+            ( model
+            , Effect.cancelBuild
+                { org = org
+                , repo = repo
+                , buildNumber = buildNumber
+                }
+            )
 
         ShowHideActionsMenus build show ->
             let

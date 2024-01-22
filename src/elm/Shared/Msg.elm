@@ -28,6 +28,8 @@ type Msg
       -- BUILD
     | RestartBuild { org : String, repo : String, buildNumber : String }
     | RestartBuildResponse { org : String, repo : String, buildNumber : String } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
+    | CancelBuild { org : String, repo : String, buildNumber : String }
+    | CancelBuildResponse { org : String, repo : String, buildNumber : String } (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Build ))
       -- PAGINATION
     | GotoPage { pageNumber : Int }
       -- THEME
