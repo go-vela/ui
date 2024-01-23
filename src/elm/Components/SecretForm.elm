@@ -9,7 +9,6 @@ import Html
         , code
         , div
         , em
-        , h2
         , input
         , label
         , p
@@ -30,41 +29,9 @@ import Html.Attributes
         , value
         )
 import Html.Events exposing (onClick, onInput)
-import Maybe.Extra
-import RemoteData exposing (WebData)
 import Shared
 import Utils.Helpers as Util
 import Vela
-
-
-
--- TYPES
-
-
-type alias Msgs msg =
-    { nameOnInput : String -> msg
-    , valueOnInput : String -> msg
-    , imageOnInput : String -> msg
-    , eventOnCheck : String -> Bool -> msg
-    , addImage : String -> msg
-    , removeImage : String -> msg
-    , allowCommandsOnClick : String -> msg
-    , submit : msg
-    , showCopyAlert : String -> msg
-    }
-
-
-type alias Props msg =
-    { msgs : Msgs msg
-    , type_ : Vela.SecretType
-    , teamInput : Maybe (Html msg)
-    , name : String
-    , value : String
-    , events : List String
-    , images : List String
-    , image : String
-    , allowCommands : Bool
-    }
 
 
 
