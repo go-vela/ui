@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addOrgSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
+    , addAlertError, addAlertSuccess, addOrgSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites
     )
 
 {-|
@@ -504,6 +504,27 @@ getBuildStepLog options =
     Api.try
         options.onResponse
         (Api.Operations.getBuildStepLog
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getBuildServiceLog :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ) -> msg
+    , org : String
+    , repo : String
+    , buildNumber : String
+    , serviceNumber : String
+    }
+    -> Effect msg
+getBuildServiceLog options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getBuildServiceLog
             options.baseUrl
             options.session
             options

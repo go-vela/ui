@@ -57,7 +57,11 @@ view shared props =
             Util.largeLoader
 
         Failure _ ->
-            Errors.viewResourceError { resourceLabel = "repos for this org", testLabel = "repos" }
+            div [ Util.testAttribute "repos-error" ]
+                [ p []
+                    [ text "There was an error fetching repos, please refresh or try again later!"
+                    ]
+                ]
 
 
 {-| viewRepo : renders row of repos with action buttons

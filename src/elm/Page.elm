@@ -113,10 +113,6 @@ element options =
 
 withLayout : (model -> Layout msg) -> Page model msg -> Page model msg
 withLayout toLayout_ (Page page) =
-    let
-        _ =
-            Debug.log "with layout"
-    in
     Page { page | toLayout = Just toLayout_ }
 
 

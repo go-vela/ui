@@ -83,7 +83,6 @@ type alias Props msg =
 view : Shared.Model -> Props msg -> Html msg
 view shared props =
     let
-        -- todo: handle query parameters ?event=push etc
         webhooks =
             text "configured webhook events"
 
@@ -97,8 +96,7 @@ view shared props =
             case props.maybeEvent of
                 Nothing ->
                     div []
-                        [ h1 [] [ text "Your repository has been enabled!" ]
-                        , p [] [ text "Builds will show up here once you have:" ]
+                        [ p [] [ text "Builds will show up here once you have:" ]
                         , ol [ class "list" ]
                             [ li []
                                 [ text "A "
@@ -149,7 +147,11 @@ view shared props =
             Util.largeLoader
 
         RemoteData.Failure _ ->
-            Errors.viewResourceError { resourceLabel = "builds", testLabel = "builds" }
+            div [ Util.testAttribute "builds-error" ]
+                [ p []
+                    [ text "There was an error fetching builds, please refresh or try again later!"
+                    ]
+                ]
 
 
 viewHeader :

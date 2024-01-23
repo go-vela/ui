@@ -919,7 +919,8 @@ details.build-toggle {
   font-size: 0.9rem;
 }
 
-.steps {
+.steps,
+.services {
   position: relative;
 
   .details {
@@ -959,7 +960,8 @@ details.build-toggle {
   );
 }
 
-.step.flowline-left:last-child {
+.step.flowline-left:last-child,
+.service.flowline-left:last-child {
   background-repeat: no-repeat;
   background-size: 100% 2em;
 }
@@ -1007,6 +1009,7 @@ details.build-toggle {
   font-family: var(--font-code);
 }
 
+.no-steps,
 .no-services {
   padding: 1rem 1rem;
 

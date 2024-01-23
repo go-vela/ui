@@ -1,10 +1,8 @@
 module Components.Tabs exposing (Tab, view, viewBuildTabs, viewOrgTabs, viewRepoTabs)
 
 import Api.Pagination as Pagination
-import Effect
 import Html exposing (Html, a, div, span, text)
 import Html.Attributes exposing (class, classList)
-import Html.Events
 import RemoteData
 import Route.Path
 import Shared

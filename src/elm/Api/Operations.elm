@@ -8,6 +8,7 @@ module Api.Operations exposing
     , enableRepo
     , finishAuthentication
     , getBuild
+    , getBuildServiceLog
     , getBuildServices
     , getBuildStepLog
     , getBuildSteps
@@ -373,6 +374,31 @@ getBuildStepLog baseUrl session options =
             options.repo
             options.buildNumber
             options.stepNumber
+        )
+        Vela.decodeLog
+        |> withAuth session
+
+
+{-| getBuildServiceLog: retrieves a log for a service
+-}
+getBuildServiceLog :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , buildNumber : String
+            , serviceNumber : String
+        }
+    -> Request Vela.Log
+getBuildServiceLog baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.ServiceLogs
+            options.org
+            options.repo
+            options.buildNumber
+            options.serviceNumber
         )
         Vela.decodeLog
         |> withAuth session

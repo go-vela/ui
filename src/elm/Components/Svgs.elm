@@ -12,7 +12,7 @@ module Components.Svgs exposing
     , hookSuccess
     , recentBuildStatusToIcon
     , star
-    , stepStatusToIcon
+    , statusToIcon
     , terminal
     , velaLogo
     )
@@ -640,10 +640,10 @@ recentBuildStatusToIcon status index =
             buildHistoryError index
 
 
-{-| stepStatusToIcon : takes build status and returns Icon from SvgBuilder
+{-| statusToIcon : takes build status and returns Icon from SvgBuilder
 -}
-stepStatusToIcon : Vela.Status -> Html msg
-stepStatusToIcon status =
+statusToIcon : Vela.Status -> Html msg
+statusToIcon status =
     case status of
         Vela.Pending ->
             stepPending

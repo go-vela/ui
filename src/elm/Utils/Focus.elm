@@ -49,7 +49,7 @@ type alias FocusTarget =
 -}
 resourceFocusFragment : ResourceType -> String -> List String -> String
 resourceFocusFragment resource resourceId args =
-    String.join ":" <| ("#" ++ resource) :: resourceId :: args
+    String.join ":" <| resource :: resourceId :: args
 
 
 {-| resourceToFocusId : takes resource and id and returns the resource focus id for auto focusing on page load

@@ -5,44 +5,25 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Org_.Repo_.Build_ exposing (..)
 
-import Api.Pagination
 import Auth
 import Components.Logs
-import Components.Pager
-import Components.Steps
-import Components.Svgs as SvgBuilder
+import Components.Svgs
+import Debug exposing (log)
 import Dict exposing (Dict)
 import Effect exposing (Effect)
 import FeatherIcons
-import Html
-    exposing
-        ( Html
-        , a
-        , div
-        , span
-        , td
-        , text
-        , tr
-        )
-import Html.Attributes
-    exposing
-        ( attribute
-        , class
-        , href
-        , rows
-        , scope
-        )
+import Html exposing (Html, code, details, div, small, summary, text)
+import Html.Attributes exposing (attribute, class, id)
+import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
 import Layouts
-import LinkHeader exposing (WebLink)
 import List.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
-import Svg.Attributes
 import Utils.Errors as Errors
 import Utils.Focus as Focus
 import Utils.Helpers as Util
@@ -92,6 +73,7 @@ type alias Model =
     { steps : WebData (List Vela.Step)
     , logs : Dict Int (WebData Vela.Log)
     , logLineFocus : ( Maybe Int, ( Maybe Int, Maybe Int ) )
+    , logFollow : Int
     }
 
 
@@ -103,6 +85,7 @@ init shared route () =
             route.hash
                 |> Focus.parseFocusFragment
                 |> (\ft -> ( ft.resourceNumber, ( ft.lineA, ft.lineB ) ))
+      , logFollow = 0
       }
     , Effect.getBuildSteps
         { baseUrl = shared.velaAPI
@@ -122,20 +105,26 @@ init shared route () =
 
 
 type Msg
-    = OnHashChanged { from : Maybe String, to : Maybe String }
+    = -- BROWSER
+      OnHashChanged { from : Maybe String, to : Maybe String }
+    | PushUrlHash { hash : String }
+    | FocusOn { target : String }
+      -- STEPS
     | GetBuildStepsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Step ))
     | GetBuildStepLogResponse Vela.Step (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Log ))
     | ExpandStep { step : Vela.Step, updateUrlHash : Bool }
     | CollapseStep { step : Vela.Step, updateUrlHash : Bool }
-    | ExpandSteps
-    | CollapseSteps
-    | FocusLogLine { identifier : String }
+    | ExpandAll
+    | CollapseAll
+      -- LOGS
     | DownloadLog { filename : String, content : String, map : String -> String }
+    | FollowLog { number : Int }
 
 
 update : Shared.Model -> Route { org : String, repo : String, buildNumber : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        -- BROWSER
         OnHashChanged _ ->
             ( { model
                 | logLineFocus =
@@ -146,6 +135,24 @@ update shared route msg model =
             , Effect.none
             )
 
+        PushUrlHash options ->
+            ( model
+            , Effect.pushRoute
+                { path =
+                    Route.Path.Org_Repo_Build_
+                        { org = route.params.org
+                        , repo = route.params.repo
+                        , buildNumber = route.params.buildNumber
+                        }
+                , query = route.query
+                , hash = Just options.hash
+                }
+            )
+
+        FocusOn options ->
+            ( model, Effect.focusOn options )
+
+        -- STEPS
         GetBuildStepsResponse response ->
             case response of
                 Ok ( _, steps ) ->
@@ -235,8 +242,6 @@ update shared route msg model =
                                 , buildNumber = route.params.buildNumber
                                 }
                         , query = route.query
-
-                        -- drop the # before applying it to the hash
                         , hash = Just <| "step:" ++ String.fromInt options.step.number
                         }
 
@@ -262,7 +267,7 @@ update shared route msg model =
             , Effect.none
             )
 
-        ExpandSteps ->
+        ExpandAll ->
             ( model
             , model.steps
                 |> RemoteData.withDefault []
@@ -271,7 +276,7 @@ update shared route msg model =
                 |> Effect.batch
             )
 
-        CollapseSteps ->
+        CollapseAll ->
             ( model
             , model.steps
                 |> RemoteData.withDefault []
@@ -280,25 +285,15 @@ update shared route msg model =
                 |> Effect.batch
             )
 
-        FocusLogLine options ->
-            ( model
-            , Effect.pushRoute
-                { path =
-                    Route.Path.Org_Repo_Build_
-                        { org = route.params.org
-                        , repo = route.params.repo
-                        , buildNumber = route.params.buildNumber
-                        }
-                , query = route.query
-
-                -- drop the # before applying it to the hash
-                , hash = Just <| String.dropLeft 1 options.identifier
-                }
-            )
-
+        -- LOGS
         DownloadLog options ->
             ( model
             , Effect.downloadFile options
+            )
+
+        FollowLog options ->
+            ( { model | logFollow = options.number }
+            , Effect.none
             )
 
 
@@ -319,22 +314,138 @@ view : Shared.Model -> Route { org : String, repo : String, buildNumber : String
 view shared route model =
     { title = "#" ++ route.params.buildNumber
     , body =
-        [ Components.Steps.view
-            shared
-            { msgs =
-                { expandStep = ExpandStep
-                , collapseStep = CollapseStep
-                , expandSteps = ExpandSteps
-                , collapseSteps = CollapseSteps
-                , focusLogLine = FocusLogLine
-                , downloadLog = DownloadLog
-                }
-            , steps = model.steps
-            , logs = model.logs
-            , org = route.params.org
-            , repo = route.params.repo
-            , buildNumber = route.params.buildNumber
-            , logLineFocus = model.logLineFocus
-            }
+        [ case model.steps of
+            RemoteData.Success steps ->
+                if List.length steps > 0 then
+                    div []
+                        [ div
+                            [ class "buttons"
+                            , class "log-actions"
+                            , class "flowline-left"
+                            , Util.testAttribute "log-actions"
+                            ]
+                            [ Html.button
+                                [ class "button"
+                                , class "-link"
+                                , onClick CollapseAll
+                                , Util.testAttribute "collapse-all"
+                                ]
+                                [ small [] [ text "collapse all" ] ]
+                            , Html.button
+                                [ class "button"
+                                , class "-link"
+                                , onClick ExpandAll
+                                , Util.testAttribute "expand-all"
+                                ]
+                                [ small [] [ text "expand all" ] ]
+                            ]
+                        , div [ class "steps" ]
+                            [ div [ class "-items", Util.testAttribute "steps" ] <|
+                                List.map (viewStep shared model route) <|
+                                    List.sortBy .number <|
+                                        RemoteData.withDefault [] model.steps
+
+                            -- if hasStages steps then
+                            --     viewStages model msgs rm steps
+                            -- else
+                            -- List.map viewStep<| steps
+                            ]
+                        ]
+
+                else
+                    div [ class "no-steps" ] [ small [] [ code [] [ text "No steps found for this pipeline." ] ] ]
+
+            _ ->
+                Util.smallLoader
         ]
     }
+
+
+viewStep : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Step -> Html Msg
+viewStep shared model route step =
+    let
+        stepNumber =
+            String.fromInt step.number
+
+        clickStep =
+            if step.viewing then
+                CollapseStep
+
+            else
+                ExpandStep
+    in
+    div [ Html.Attributes.classList [ ( "step", True ), ( "flowline-left", True ) ], Util.testAttribute "step" ]
+        [ div [ class "-status" ]
+            [ div [ class "-icon-container" ] [ Components.Svgs.statusToIcon step.status ] ]
+        , details
+            (Html.Attributes.classList
+                [ ( "details", True )
+                , ( "-with-border", True )
+                , ( "-running", step.status == Vela.Running )
+                ]
+                :: Util.open step.viewing
+            )
+            [ summary
+                [ class "summary"
+                , Util.testAttribute <| "step-header-" ++ stepNumber
+                , onClick <| clickStep { step = step, updateUrlHash = True }
+                , id <| "step-" ++ stepNumber
+                ]
+                [ div
+                    [ class "-info" ]
+                    [ div [ class "-name" ] [ text step.name ]
+                    , div [ class "-duration" ] [ text <| Util.formatRunTime shared.time step.started step.finished ]
+                    ]
+                , FeatherIcons.chevronDown |> FeatherIcons.withSize 20 |> FeatherIcons.withClass "details-icon-expand" |> FeatherIcons.toHtml [ attribute "aria-label" "show build actions" ]
+                ]
+            , div [ class "logs-container" ]
+                [ viewLogs shared model route step <|
+                    Maybe.withDefault RemoteData.Loading <|
+                        Dict.get step.id model.logs
+                ]
+            ]
+        ]
+
+
+viewLogs : Shared.Model -> Model -> Route { org : String, repo : String, buildNumber : String } -> Vela.Step -> WebData Vela.Log -> Html Msg
+viewLogs shared model route step log =
+    case step.status of
+        Vela.Error ->
+            div [ class "message", class "error", Util.testAttribute "resource-error" ]
+                [ text <|
+                    "error: "
+                        ++ (if String.isEmpty step.error then
+                                "null"
+
+                            else
+                                step.error
+                           )
+                ]
+
+        Vela.Killed ->
+            div [ class "message", class "error", Util.testAttribute "step-skipped" ]
+                [ text "step was skipped" ]
+
+        _ ->
+            Components.Logs.view
+                shared
+                { msgs =
+                    { pushUrlHash = PushUrlHash
+                    , focusOn = FocusOn
+                    , download = DownloadLog
+                    , follow = FollowLog
+                    }
+                , log = log
+                , org = route.params.org
+                , repo = route.params.repo
+                , buildNumber = route.params.buildNumber
+                , resourceType = "step"
+                , resourceNumber = String.fromInt step.number
+                , lineFocus =
+                    if step.number == Maybe.withDefault -1 (Tuple.first model.logLineFocus) then
+                        Just <| Tuple.second model.logLineFocus
+
+                    else
+                        Nothing
+                , follow = model.logFollow
+                }

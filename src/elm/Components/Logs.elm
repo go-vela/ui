@@ -4,7 +4,7 @@ import Ansi
 import Ansi.Log
 import Array
 import FeatherIcons
-import Html exposing (Html, a, button, code, div, small, span, table, td, text, tr)
+import Html exposing (Html, a, button, code, div, span, table, td, text, tr)
 import Html.Attributes exposing (attribute, class, classList, href, id, style)
 import Html.Events exposing (onClick)
 import RemoteData exposing (WebData)
@@ -16,8 +16,10 @@ import Vela
 
 
 type alias Msgs msg =
-    { focusLine : { identifier : String } -> msg
+    { pushUrlHash : { hash : String } -> msg
+    , focusOn : { target : String } -> msg
     , download : { filename : String, content : String, map : String -> String } -> msg
+    , follow : { number : Int } -> msg
     }
 
 
@@ -27,9 +29,10 @@ type alias Props msg =
     , org : String
     , repo : String
     , buildNumber : String
-    , resourceNumber : String
     , resourceType : String
+    , resourceNumber : String
     , lineFocus : Maybe LogFocus
+    , follow : Int
     }
 
 
@@ -104,10 +107,8 @@ viewLines shared props log =
         topTracker =
             tr [ class "line", class "tracker" ]
                 [ a
-                    [ --     id <|
-                      --     topTrackerFocusId resourceType resourceID
-                      -- ,
-                      Util.testAttribute <| "top-log-tracker-" ++ props.resourceNumber
+                    [ id <| topTrackerFocusId props.resourceType props.resourceNumber
+                    , Util.testAttribute <| "top-log-tracker-" ++ props.resourceNumber
                     , Html.Attributes.tabindex -1
                     ]
                     []
@@ -116,10 +117,8 @@ viewLines shared props log =
         bottomTracker =
             tr [ class "line", class "tracker" ]
                 [ a
-                    [ --     id <|
-                      --     bottomTrackerFocusId props.resourceType props.resourceID
-                      -- ,
-                      Util.testAttribute <| "bottom-log-tracker-" ++ props.resourceNumber
+                    [ id <| bottomTrackerFocusId props.resourceType props.resourceNumber
+                    , Util.testAttribute <| "bottom-log-tracker-" ++ props.resourceNumber
                     , Html.Attributes.tabindex -1
                     ]
                     []
@@ -286,8 +285,8 @@ lineFocusButton : Shared.Model -> Props msg -> Int -> Html msg
 lineFocusButton shared props lineNumber =
     button
         [ Util.onClickPreventDefault <|
-            props.msgs.focusLine
-                { identifier = Focus.lineRangeId props.resourceType props.resourceNumber lineNumber props.lineFocus shared.shift
+            props.msgs.pushUrlHash
+                { hash = Focus.lineRangeId props.resourceType props.resourceNumber lineNumber props.lineFocus shared.shift
                 }
         , Util.testAttribute <| String.join "-" [ "log", "line", "num", props.resourceType, props.resourceNumber, String.fromInt lineNumber ]
         , id <| Focus.resourceAndLineToFocusId props.resourceType props.resourceNumber lineNumber
@@ -328,48 +327,49 @@ logsSidebar props numLines =
                 ]
               <|
                 (if long then
-                    [--     jumpToTopButton props.msgs.focusOn props.resourceType props.number
-                     -- , jumpToBottomButton props.msgs.focusOn props.resourceType props.number
+                    [ viewJumpToTopButton props
+                    , viewJumpToBottomButton props
                     ]
 
                  else
                     []
                 )
-                    ++ [-- followButton props.msgs.follow resourceType number following
+                    ++ [ viewFollowButton props
                        ]
             ]
         ]
 
 
+{-| viewJumpToBottomButton : renders action button for jumping to the bottom of a log
+-}
+viewJumpToBottomButton : Props msg -> Html msg
+viewJumpToBottomButton props =
+    button
+        [ class "button"
+        , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" "jump to bottom"
+        , Util.testAttribute <| "jump-to-bottom-" ++ props.resourceNumber
+        , onClick <| props.msgs.focusOn { target = bottomTrackerFocusId props.resourceType props.resourceNumber }
+        , attribute "aria-label" <| "jump to bottom of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+        ]
+        [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
--- {-| jumpToBottomButton : renders action button for jumping to the bottom of a log
--- -}
--- jumpToBottomButton : FocusOn msg -> String -> String -> Html msg
--- jumpToBottomButton focusOn resourceType number =
---     button
---         [ class "button"
---         , class "-icon"
---         , class "tooltip-left"
---         , attribute "data-tooltip" "jump to bottom"
---         , Util.testAttribute <| "jump-to-bottom-" ++ number
---         , onClick <| focusOn <| bottomTrackerFocusId resourceType number
---         , attribute "aria-label" <| "jump to bottom of logs for " ++ resourceType ++ " " ++ number
---         ]
---         [ FeatherIcons.arrowDown |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
--- {-| jumpToTopButton : renders action button for jumping to the top of a log
--- -}
--- jumpToTopButton : FocusOn msg -> String -> String -> Html msg
--- jumpToTopButton focusOn resourceType number =
---     button
---         [ class "button"
---         , class "-icon"
---         , class "tooltip-left"
---         , attribute "data-tooltip" "jump to top"
---         , Util.testAttribute <| "jump-to-top-" ++ number
---         , onClick <| focusOn <| topTrackerFocusId resourceType number
---         , attribute "aria-label" <| "jump to top of logs for " ++ resourceType ++ " " ++ number
---         ]
---         [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
+
+{-| viewJumpToTopButton : renders action button for jumping to the top of a log
+-}
+viewJumpToTopButton : Props msg -> Html msg
+viewJumpToTopButton props =
+    button
+        [ class "button"
+        , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" "jump to top"
+        , Util.testAttribute <| "jump-to-top-" ++ props.resourceNumber
+        , onClick <| props.msgs.focusOn { target = topTrackerFocusId props.resourceType props.resourceNumber }
+        , attribute "aria-label" <| "jump to top of logs for " ++ props.resourceType ++ " " ++ props.resourceNumber
+        ]
+        [ FeatherIcons.arrowUp |> FeatherIcons.toHtml [ attribute "role" "img" ] ]
 
 
 {-| viewDownloadButton : renders action button for downloading a log
@@ -397,32 +397,54 @@ viewDownloadButton props log =
         [ text <| "download " ++ props.resourceType ++ " logs" ]
 
 
+{-| viewFollowButton : renders button for following logs
+-}
+viewFollowButton : Props msg -> Html msg
+viewFollowButton props =
+    let
+        num =
+            Maybe.withDefault 0 <| String.toInt props.resourceNumber
 
--- {-| followButton : renders button for following logs
--- -}
--- followButton : FollowResource msg -> String -> String -> Int -> Html msg
--- followButton followStep resourceType number following =
---     let
---         num =
---             Maybe.withDefault 0 <| String.toInt number
---         ( tooltip, icon, toFollow ) =
---             if following == 0 then
---                 ( "start following " ++ resourceType ++ " logs", FeatherIcons.play, num )
---             else if following == num then
---                 ( "stop following " ++ resourceType ++ " logs", FeatherIcons.pause, 0 )
---             else
---                 ( "start following " ++ resourceType ++ " logs", FeatherIcons.play, num )
---     in
---     button
---         [ class "button"
---         , class "-icon"
---         , class "tooltip-left"
---         , attribute "data-tooltip" tooltip
---         , Util.testAttribute <| "follow-logs-" ++ number
---         , onClick <| followStep toFollow
---         , attribute "aria-label" <| tooltip ++ " for " ++ resourceType ++ " " ++ number
---         ]
---         [ icon |> FeatherIcons.toHtml [ attribute "role" "img", attribute "aria-label" "show build actions" ] ]
+        following =
+            props.follow
+
+        ( tooltip, icon, toFollow ) =
+            if following == 0 then
+                ( "start following " ++ props.resourceType ++ " logs", FeatherIcons.play, num )
+
+            else if following == num then
+                ( "stop following " ++ props.resourceType ++ " logs", FeatherIcons.pause, 0 )
+
+            else
+                ( "start following " ++ props.resourceType ++ " logs", FeatherIcons.play, num )
+    in
+    button
+        [ class "button"
+        , class "-icon"
+        , class "tooltip-left"
+        , attribute "data-tooltip" tooltip
+        , Util.testAttribute <| "follow-logs-" ++ props.resourceNumber
+        , onClick <| props.msgs.follow { number = toFollow }
+        , attribute "aria-label" <| tooltip ++ " for " ++ props.resourceType ++ " " ++ props.resourceNumber
+        ]
+        [ icon |> FeatherIcons.toHtml [ attribute "role" "img", attribute "aria-label" "show build actions" ] ]
+
+
+{-| topTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
+-}
+topTrackerFocusId : String -> String -> String
+topTrackerFocusId resource number =
+    resource ++ "-" ++ number ++ "-line-tracker-top"
+
+
+{-| bottomTrackerFocusId : takes resource number and returns the line focus id for auto focusing on log follow
+-}
+bottomTrackerFocusId : String -> String -> String
+bottomTrackerFocusId resource number =
+    resource ++ "-" ++ number ++ "-line-tracker-bottom"
+
+
+
 -- HELPERS
 
 
