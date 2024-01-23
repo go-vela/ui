@@ -199,7 +199,7 @@ viewRepoTabs shared props =
               }
             , { name = "Schedules"
               , currentPath = props.currentPath
-              , toPath = Route.Path.NotFound_
+              , toPath = Route.Path.Org_Repo_Schedules { org = props.org, repo = props.repo }
               , isAlerting = False
               , show = showSchedules
               }

@@ -46,7 +46,8 @@ type Endpoint
     | Steps (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo Vela.BuildNumber
     | StepLogs Vela.Org Vela.Repo Vela.BuildNumber Vela.StepNumber
     | BuildGraph Vela.Org Vela.Repo Vela.BuildNumber
-    | Schedule Vela.Org Vela.Repo (Maybe Vela.ScheduleName) (Maybe Pagination.Page) (Maybe Pagination.PerPage)
+    | Schedule Vela.Org Vela.Repo Vela.ScheduleName
+    | Schedules (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Org Vela.Repo
     | Secrets (Maybe Pagination.Page) (Maybe Pagination.PerPage) Vela.Engine Vela.Type Vela.Org Vela.Name
     | Secret Vela.Engine Vela.Type Vela.Org String Vela.Name
     | PipelineConfig Vela.Org Vela.Repo Vela.Ref
@@ -131,13 +132,11 @@ toUrl api endpoint =
         Secrets maybePage maybePerPage engine type_ org key ->
             url api [ "secrets", engine, type_, org, key ] <| Pagination.toQueryParams maybePage maybePerPage
 
-        Schedule org repo name maybePage maybePerPage ->
-            case name of
-                Just id ->
-                    url api [ "schedules", org, repo, id ] []
+        Schedules maybePage maybePerPage org repo ->
+            url api [ "schedules", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
 
-                Nothing ->
-                    url api [ "schedules", org, repo ] <| Pagination.toQueryParams maybePage maybePerPage
+        Schedule org repo name ->
+            url api [ "schedules", org, repo, name ] []
 
         Secret engine type_ org key name ->
             url api [ "secrets", engine, type_, org, key, name ] []

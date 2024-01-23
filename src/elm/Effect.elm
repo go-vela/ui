@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoHooks, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
+    , addAlertError, addAlertSuccess, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoHooks, getRepoSchedules, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
     )
 
 {-|
@@ -540,6 +540,27 @@ redeliverHook options =
     Api.try
         options.onResponse
         (Api.Operations.redeliverHook
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+getRepoSchedules :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Schedule ) -> msg
+    , pageNumber : Maybe Int
+    , perPage : Maybe Int
+    , org : String
+    , repo : String
+    }
+    -> Effect msg
+getRepoSchedules options =
+    Api.try
+        options.onResponse
+        (Api.Operations.getRepoSchedules
             options.baseUrl
             options.session
             options

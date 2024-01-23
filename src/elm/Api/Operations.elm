@@ -22,6 +22,7 @@ module Api.Operations exposing
     , getRepoBuilds
     , getRepoDeployments
     , getRepoHooks
+    , getRepoSchedules
     , getRepoSecret
     , getRepoSecrets
     , getSharedSecrets
@@ -409,6 +410,31 @@ getRepoHooks baseUrl session options =
             options.repo
         )
         Vela.decodeHooks
+        |> withAuth session
+
+
+{-| getRepoSchedules : retrieves schedules for a repo
+-}
+getRepoSchedules :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , pageNumber : Maybe Int
+            , perPage : Maybe Int
+        }
+    -> Request (List Vela.Schedule)
+getRepoSchedules baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Schedules
+            options.pageNumber
+            options.perPage
+            options.org
+            options.repo
+        )
+        Vela.decodeSchedules
         |> withAuth session
 
 

@@ -25,6 +25,7 @@ type Path
     | Org_SecretsEdit_ { org : String, name : String }
     | Org_Repo_ { org : String, repo : String }
     | Org_Repo_Deployments { org : String, repo : String }
+    | Org_Repo_Schedules { org : String, repo : String }
     | Org_Repo_Audit { org : String, repo : String }
     | Org_Repo_Secrets { org : String, repo : String }
     | Org_Repo_SecretsAdd { org : String, repo : String }
@@ -108,6 +109,13 @@ fromString urlPath =
 
         org :: repo :: "deployments" :: [] ->
             Org_Repo_Deployments
+                { org = org
+                , repo = repo
+                }
+                |> Just
+
+        org :: repo :: "schedules" :: [] ->
+            Org_Repo_Schedules
                 { org = org
                 , repo = repo
                 }
@@ -211,6 +219,9 @@ toString path =
 
                 Org_Repo_Deployments params ->
                     [ params.org, params.repo, "deployments" ]
+
+                Org_Repo_Schedules params ->
+                    [ params.org, params.repo, "schedules" ]
 
                 Org_Repo_Audit params ->
                     [ params.org, params.repo, "audit" ]

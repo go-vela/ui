@@ -17,6 +17,7 @@ import Pages.Org_.Repo_.Audit
 import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
+import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Secrets
 import Pages.Org_.Repo_.Secrets.Add
 import Pages.Org_.Repo_.Secrets.Edit_
@@ -37,6 +38,7 @@ type Model
     | Org_SecretsEdit_ { org : String, name : String } Pages.Org_.Secrets.Edit_.Model
     | Org_Repo_ { org : String, repo : String } Pages.Org_.Repo_.Model
     | Org_Repo_Deployments { org : String, repo : String } Pages.Org_.Repo_.Deployments.Model
+    | Org_Repo_Schedules { org : String, repo : String } Pages.Org_.Repo_.Schedules.Model
     | Org_Repo_Audit { org : String, repo : String } Pages.Org_.Repo_.Audit.Model
     | Org_Repo_Secrets { org : String, repo : String } Pages.Org_.Repo_.Secrets.Model
     | Org_Repo_SecretsAdd { org : String, repo : String } Pages.Org_.Repo_.Secrets.Add.Model

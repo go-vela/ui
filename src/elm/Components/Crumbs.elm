@@ -363,23 +363,17 @@ toCrumbs path =
 
                 Route.Path.Org_Builds params ->
                     let
-                        orgReposCrumbLink =
-                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
-
-                        buildsCrumbStatic =
-                            ( "Builds", Nothing )
+                        orgReposCrumbStatic =
+                            ( params.org, Nothing )
                     in
-                    [ overviewCrumbLink, orgReposCrumbLink, buildsCrumbStatic ]
+                    [ overviewCrumbLink, orgReposCrumbStatic ]
 
                 Route.Path.Org_Secrets params ->
                     let
-                        orgReposCrumbLink =
-                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
-
-                        secretsCrumbStatic =
-                            ( "Secrets", Nothing )
+                        orgReposCrumbStatic =
+                            ( params.org, Nothing )
                     in
-                    [ overviewCrumbLink, orgReposCrumbLink, secretsCrumbStatic ]
+                    [ overviewCrumbLink, orgReposCrumbStatic ]
 
                 Route.Path.Org_SecretsAdd params ->
                     let
@@ -424,6 +418,16 @@ toCrumbs path =
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
 
+                Route.Path.Org_Repo_Schedules params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoCrumbStatic =
+                            ( params.repo, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
+
                 Route.Path.Org_Repo_Audit params ->
                     let
                         orgReposCrumbLink =
@@ -439,13 +443,10 @@ toCrumbs path =
                         orgReposCrumbLink =
                             ( params.org, Just <| Route.Path.Org_ { org = params.org } )
 
-                        repoCrumbLink =
-                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
-
-                        secretsCrumbStatic =
-                            ( "Secrets", Nothing )
+                        repoCrumbStatic =
+                            ( params.repo, Nothing )
                     in
-                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbLink, secretsCrumbStatic ]
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
 
                 Route.Path.Org_Repo_SecretsAdd params ->
                     let
