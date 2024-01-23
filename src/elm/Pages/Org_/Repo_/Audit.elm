@@ -5,10 +5,12 @@ SPDX-License-Identifier: Apache-2.0
 
 module Pages.Org_.Repo_.Audit exposing (..)
 
+import Ansi.Log
 import Api.Pagination
+import Array
 import Auth
 import Components.Pager
-import Components.Svgs as SvgBuilder
+import Components.Svgs
 import Components.Table
 import Dict
 import Effect exposing (Effect)
@@ -17,7 +19,9 @@ import Html
     exposing
         ( Html
         , a
+        , code
         , div
+        , small
         , span
         , td
         , text
@@ -41,6 +45,8 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
 import Svg.Attributes
+import Time
+import Utils.Ansi
 import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela
@@ -105,6 +111,8 @@ init shared route () =
 
 type Msg
     = GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))
+    | RedeliverRepoHook { hook : Vela.Hook }
+    | RedeliverRepoHookResponse (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
     | GotoPage Int
 
 
@@ -123,6 +131,30 @@ update shared route msg model =
 
                 Err error ->
                     ( { model | hooks = Errors.toFailure error }
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        RedeliverRepoHook options ->
+            ( model
+            , Effect.redeliverHook
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = RedeliverRepoHookResponse
+                , org = route.params.org
+                , repo = route.params.repo
+                , hookNumber = String.fromInt <| options.hook.number
+                }
+            )
+
+        RedeliverRepoHookResponse response ->
+            case response of
+                Ok ( _, result ) ->
+                    ( model
+                    , Effect.addAlertSuccess { content = result, addToastIfUnique = False }
+                    )
+
+                Err error ->
+                    ( model
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -165,63 +197,38 @@ view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Ms
 view shared route model =
     { title = route.params.org ++ "/" ++ route.params.repo ++ " Hooks"
     , body =
-        [ --      viewDeployments route.params.org route.params.repo model.hooks
-          -- ,
-          text "hooks"
+        [ viewHooks shared route.params.org route.params.repo model.hooks
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }
 
 
-{-| viewDeployments : renders a list of deployments
+{-| viewHooks : renders a list of hooks
 -}
-viewDeployments : String -> String -> WebData (List Vela.Deployment) -> Html Msg
-viewDeployments org repo deployments =
+viewHooks : Shared.Model -> String -> String -> WebData (List Vela.Hook) -> Html Msg
+viewHooks shared org repo hooks =
     let
-        addButton =
-            a
-                [ class "button"
-                , class "-outline"
-                , class "button-with-icon"
-                , Util.testAttribute "add-deployment"
-
-                -- todo: need add deployment path to do this
-                -- , Route.Path.href <|
-                --     Route.Path.Org_Repo_Deployments { org = org, repo = repo }
-                ]
-                [ text "Add Deployment"
-                , FeatherIcons.plus
-                    |> FeatherIcons.withSize 18
-                    |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
-                ]
-
-        actions =
-            Just <|
-                div [ class "buttons" ]
-                    [ addButton
-                    ]
-
         ( noRowsView, rows ) =
-            case deployments of
-                RemoteData.Success d ->
-                    ( text "No deployments found for this repo"
-                    , deploymentsToRows org repo d
+            case hooks of
+                RemoteData.Success hooks_ ->
+                    ( text "No hooks found for this repo"
+                    , hooksToRows shared.time hooks_ org repo RedeliverRepoHook
                     )
 
                 RemoteData.Failure error ->
-                    ( span [ Util.testAttribute "repo-deployments-error" ]
+                    ( span [ Util.testAttribute "hooks-error" ]
                         [ text <|
                             case error of
                                 Http.BadStatus statusCode ->
                                     case statusCode of
                                         401 ->
-                                            "No deployments found for this repo, most likely due to not having access to the source control repo"
+                                            "No hooks found for this repo, most likely due to not having sufficient permissions to the source control repo"
 
                                         _ ->
-                                            "No deployments found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+                                            "No hooks found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
 
                                 _ ->
-                                    "No deployments found for this repo, there was an error with the server"
+                                    "No hooks found for this repo, there was an error with the server"
                         ]
                     , []
                     )
@@ -231,128 +238,143 @@ viewDeployments org repo deployments =
 
         cfg =
             Components.Table.Config
-                "Deployments"
-                "deployments"
+                "Hooks"
+                "hooks"
                 noRowsView
                 tableHeaders
                 rows
-                actions
+                Nothing
     in
-    div []
-        [ Components.Table.view cfg
-        ]
+    div [] [ Components.Table.view cfg ]
 
 
-
--- TABLE
-
-
-{-| deploymentsToRows : takes list of deployments and produces list of Table rows
+{-| hooksToRows : takes list of hooks and produces list of Table rows
 -}
-deploymentsToRows : String -> String -> List Vela.Deployment -> Components.Table.Rows Vela.Deployment Msg
-deploymentsToRows org repo deployments =
-    List.map (\deployment -> Components.Table.Row deployment (renderDeployment org repo)) deployments
+hooksToRows : Time.Posix -> List Vela.Hook -> String -> String -> ({ hook : Vela.Hook } -> Msg) -> Components.Table.Rows Vela.Hook Msg
+hooksToRows now hooks org repo redeliverHook =
+    hooks
+        |> List.concatMap (\hook -> [ Just <| Components.Table.Row hook (renderHook now org repo redeliverHook), hookErrorRow hook ])
+        |> List.filterMap identity
 
 
-{-| tableHeaders : returns table headers for deployments table
+{-| tableHeaders : returns table headers for secrets table
 -}
 tableHeaders : Components.Table.Columns
 tableHeaders =
-    [ ( Just "-icon", "" )
-    , ( Nothing, "number" )
-    , ( Nothing, "target" )
-    , ( Nothing, "commit" )
-    , ( Nothing, "ref" )
-    , ( Nothing, "description" )
-    , ( Nothing, "user" )
-    , ( Nothing, "" )
+    [ ( Just "-icon", "Status" )
+    , ( Nothing, "source" )
+    , ( Nothing, "created" )
+    , ( Nothing, "host" )
+    , ( Nothing, "event" )
+    , ( Nothing, "branch" )
     ]
 
 
-{-| renderDeployment : takes deployment and renders a table row
+{-| renderHook : takes hook and renders a table row
 -}
-renderDeployment : String -> String -> Vela.Deployment -> Html Msg
-renderDeployment org repo deployment =
-    let
-        -- todo: somehow build the repo clone link and append the commit hash
-        -- Util.buildRepoCloneLink org repo
-        repoCloneLink =
-            ""
-    in
-    tr [ Util.testAttribute <| "deployments-row" ]
+renderHook : Time.Posix -> String -> String -> ({ hook : Vela.Hook } -> msg) -> Vela.Hook -> Html msg
+renderHook now org repo redeliverHook hook =
+    tr [ Util.testAttribute <| "hooks-row", hookStatusToRowClass hook.status ]
         [ td
-            [ attribute "data-label" ""
-            , scope "row"
+            [ attribute "data-label" "status"
             , class "break-word"
             , class "-icon"
             ]
-            [ SvgBuilder.hookSuccess ]
+            [ Components.Svgs.hookStatusToIcon hook.status ]
         , td
-            [ attribute "data-label" "id"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "deployments-row-id"
+            [ attribute "data-label" "source-id"
+            , class "no-wrap"
             ]
-            [ text <| String.fromInt deployment.id ]
+            [ small [] [ code [ class "source-id", class "break-word" ] [ text hook.source_id ] ] ]
         , td
-            [ attribute "data-label" "target"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "deployments-row-target"
-            ]
-            [ text deployment.target ]
-        , td
-            [ attribute "data-label" "commit"
-            , scope "row"
-            , class "break-word"
-            , Util.testAttribute <| "deployments-row-commit"
-            ]
-            [ a [ href <| Util.buildRefURL repoCloneLink deployment.commit ]
-                [ text <| Util.trimCommitHash deployment.commit ]
-            ]
-        , td
-            [ attribute "data-label" "ref"
-            , scope "row"
-            , class "break-word"
-            , class "ref"
-            , Util.testAttribute <| "deployments-row-ref"
-            ]
-            [ span [ class "list-item" ] [ text <| deployment.ref ] ]
-        , td
-            [ attribute "data-label" "description"
-            , scope "row"
-            , class "break-word"
-            , class "description"
-            ]
-            [ text deployment.description ]
-        , td
-            [ attribute "data-label" "user"
-            , scope "row"
+            [ attribute "data-label" "created"
             , class "break-word"
             ]
-            [ text deployment.user ]
+            [ text <| (Util.relativeTimeNoSeconds now <| Time.millisToPosix <| Util.secondsToMillis hook.created) ]
+        , td
+            [ attribute "data-label" "host"
+            , class "break-word"
+            ]
+            [ text hook.host ]
+        , td
+            [ attribute "data-label" "event"
+            , class "break-word"
+            ]
+            [ text hook.event ]
+        , td
+            [ attribute "data-label" "branch"
+            , class "break-word"
+            ]
+            [ text hook.branch ]
         , td
             [ attribute "data-label" ""
-            , scope "row"
             , class "break-word"
             ]
-            [ redeployLink org repo deployment ]
+            [ a
+                [ href "#"
+                , class "break-word"
+                , Util.onClickPreventDefault <| redeliverHook { hook = hook }
+                , Util.testAttribute <| "redeliver-hook-" ++ String.fromInt hook.number
+                ]
+                [ text "Redeliver Hook"
+                ]
+            ]
         ]
 
 
-{-| redeployLink : takes org, repo and deployment and renders a link to redirect to the promote deployment page
+hookErrorRow : Vela.Hook -> Maybe (Components.Table.Row Vela.Hook msg)
+hookErrorRow hook =
+    if not <| String.isEmpty hook.error then
+        Just <| Components.Table.Row hook renderHookError
+
+    else
+        Nothing
+
+
+renderHookError : Vela.Hook -> Html msg
+renderHookError hook =
+    let
+        lines =
+            Utils.Ansi.decodeAnsi hook.error
+                |> Array.map
+                    (\line ->
+                        Just <|
+                            Ansi.Log.viewLine line
+                    )
+                |> Array.toList
+                |> List.filterMap identity
+
+        msgRow =
+            case hook.status of
+                "skipped" ->
+                    tr [ class "skipped-data", Util.testAttribute "hooks-skipped" ]
+                        [ td [ attribute "colspan" "6" ]
+                            [ code [ class "skipped-content" ]
+                                lines
+                            ]
+                        ]
+
+                _ ->
+                    tr [ class "error-data", Util.testAttribute "hooks-error" ]
+                        [ td [ attribute "colspan" "6" ]
+                            [ code [ class "error-content" ]
+                                lines
+                            ]
+                        ]
+    in
+    msgRow
+
+
+{-| hookStatusToRowClass : takes hook status string and returns style class
 -}
-redeployLink : String -> String -> Vela.Deployment -> Html Msg
-redeployLink org repo deployment =
-    a
-        [ class "redeploy-link"
-        , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
+hookStatusToRowClass : String -> Html.Attribute msg
+hookStatusToRowClass status =
+    case status of
+        "success" ->
+            class "-success"
 
-        -- todo: need add deployment path to do this
-        -- , Routes.href <| Routes.PromoteDeployment org repo (String.fromInt deployment.id)
-        -- , Route.Path.href <|
-        --     Route.Path.Org_Repo_Deployments { org = org, repo = repo }
-        , Util.testAttribute "redeploy-deployment"
-        ]
-        [ text "Redeploy"
-        ]
+        "skipped" ->
+            class "-skipped"
+
+        _ ->
+            class "-error"

@@ -9,7 +9,7 @@ module Effect exposing
     , sendCmd, sendMsg
     , pushRoute, replaceRoute, loadExternalUrl
     , map, toCmd
-    , addAlertError, addAlertSuccess, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoHooks, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
+    , addAlertError, addAlertSuccess, addOrgSecret, addRepoSecret, alertsUpdate, clearRedirect, downloadFile, enableRepo, finishAuthentication, focusOn, getBuild, getBuildServiceLog, getBuildServices, getBuildStepLog, getBuildSteps, getCurrentUser, getOrgBuilds, getOrgRepos, getOrgSecret, getOrgSecrets, getRepoBuilds, getRepoDeployments, getRepoHooks, getRepoSecret, getRepoSecrets, getSharedSecrets, handleHttpError, logout, pushPath, redeliverHook, setRedirect, setTheme, updateFavorites, updateOrgSecret, updateRepoSecret
     )
 
 {-|
@@ -520,6 +520,26 @@ getRepoHooks options =
     Api.try
         options.onResponse
         (Api.Operations.getRepoHooks
+            options.baseUrl
+            options.session
+            options
+        )
+        |> sendCmd
+
+
+redeliverHook :
+    { baseUrl : String
+    , session : Auth.Session.Session
+    , onResponse : Result (Http.Detailed.Error String) ( Http.Metadata, String ) -> msg
+    , org : String
+    , repo : String
+    , hookNumber : String
+    }
+    -> Effect msg
+redeliverHook options =
+    Api.try
+        options.onResponse
+        (Api.Operations.redeliverHook
             options.baseUrl
             options.session
             options

@@ -28,6 +28,7 @@ module Api.Operations exposing
     , getToken
     , getUserSourceRepos
     , logout
+    , redeliverHook
     , updateCurrentUser
     , updateOrgSecret
     , updateRepoSecret
@@ -408,6 +409,30 @@ getRepoHooks baseUrl session options =
             options.repo
         )
         Vela.decodeHooks
+        |> withAuth session
+
+
+{-| redeliverHook : redelivers a hook for a repo
+-}
+redeliverHook :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , hookNumber : String
+        }
+    -> Request String
+redeliverHook baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.Hook
+            options.org
+            options.repo
+            options.hookNumber
+        )
+        Http.emptyBody
+        Json.Decode.string
         |> withAuth session
 
 
