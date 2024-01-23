@@ -6,8 +6,11 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_.Secrets.Edit_ exposing (Model, Msg, page, view)
 
 import Auth
-import Components.SecretEdit
+import Components.Form
+import Components.SecretForm
 import Effect exposing (Effect)
+import Html exposing (div, h2)
+import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Layouts
@@ -241,30 +244,59 @@ subscriptions model =
 view : Shared.Model -> Route { org : String, name : String } -> Model -> View Msg
 view shared route model =
     let
-        msgs =
-            { nameOnInput = NameOnInput
-            , valueOnInput = ValueOnInput
-            , imageOnInput = ImageOnInput
-            , eventOnCheck = EventOnCheck
-            , addImage = AddImage
-            , removeImage = RemoveImage
-            , allowCommandsOnClick = AllowCommandsOnClick
-            , submit = SubmitForm
-            , showCopyAlert = AddAlertCopiedToClipboard
-            }
+        disableForm =
+            not <| RemoteData.isSuccess model.secret
     in
     { title = route.params.org ++ "/" ++ route.params.name ++ " Edit Secret"
     , body =
-        [ Components.SecretEdit.view shared
-            { msgs = msgs
-            , secret = model.secret
-            , type_ = Vela.OrgSecret
-            , value = model.value
-            , events = model.events
-            , images = model.images
-            , image = model.image
-            , allowCommands = model.allowCommands
-            , teamInput = Nothing
-            }
+        [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
+            [ div []
+                [ h2 [] [ Components.SecretForm.viewFormHeader Vela.OrgSecret ]
+                , div [ class "secret-form" ]
+                    [ -- todo: convert this into a select form that uses list of secrets as input
+                      Components.Form.viewInput
+                        { name = "Name"
+                        , val = RemoteData.unwrap "" .name model.secret
+                        , placeholder_ = "loading..."
+                        , classList_ = [ ( "secret-name", True ) ]
+                        , disabled_ = True
+                        , rows_ = Nothing
+                        , wrap_ = Nothing
+                        , msg = NameOnInput
+                        }
+                    , Components.Form.viewTextarea
+                        { name = "Value"
+                        , val = model.value
+                        , placeholder_ = RemoteData.unwrap "loading..." (\_ -> "<leave blank to make no change to the value>") model.secret
+                        , classList_ = [ ( "secret-value", True ) ]
+                        , disabled_ = disableForm
+                        , rows_ = Just 2
+                        , wrap_ = Just "soft"
+                        , msg = ValueOnInput
+                        }
+                    , Components.SecretForm.viewEventsSelect shared
+                        { disabled_ = False
+                        , msg = EventOnCheck
+                        , events = model.events
+                        }
+                    , Components.SecretForm.viewImagesInput
+                        { disabled_ = False
+                        , onInput_ = ImageOnInput
+                        , addImage = AddImage
+                        , removeImage = RemoveImage
+                        , images = model.images
+                        , imageValue = model.image
+                        }
+                    , Components.SecretForm.viewAllowCommandsInput
+                        { msg = AllowCommandsOnClick
+                        , value = model.allowCommands
+                        }
+                    , Components.SecretForm.viewHelp
+                    , Components.SecretForm.viewSubmitButton
+                        { msg = SubmitForm
+                        }
+                    ]
+                ]
+            ]
         ]
     }

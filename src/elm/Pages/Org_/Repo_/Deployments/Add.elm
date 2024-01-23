@@ -3,20 +3,18 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Secrets.Add exposing (Model, Msg, page, view)
+module Pages.Org_.Repo_.Deployments.Add exposing (Model, Msg, page, view)
 
 import Auth
-import Components.Form
-import Components.SecretForm
 import Effect exposing (Effect)
-import Html exposing (div, h2)
+import Html exposing (div, h2, section, strong, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Layouts
 import List.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..))
+import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
 import Utils.Helpers as Util
@@ -27,7 +25,7 @@ import View exposing (View)
 page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
-        { init = init shared
+        { init = init shared route
         , update = update shared route
         , subscriptions = subscriptions
         , view = view shared route
@@ -52,7 +50,8 @@ toLayout user route model =
 
 
 type alias Model =
-    { name : String
+    { repo : WebData Vela.Repository
+    , name : String
     , value : String
     , events : List String
     , images : List String
@@ -61,16 +60,23 @@ type alias Model =
     }
 
 
-init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared () =
-    ( { name = ""
+init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
+init shared route () =
+    ( { repo = RemoteData.Loading
+      , name = ""
       , value = ""
       , events = [ "push" ]
       , images = []
       , image = ""
       , allowCommands = True
       }
-    , Effect.none
+    , Effect.getRepo
+        { baseUrl = shared.velaAPI
+        , session = shared.session
+        , onResponse = GetRepoResponse
+        , org = route.params.org
+        , repo = route.params.repo
+        }
     )
 
 
@@ -79,7 +85,8 @@ init shared () =
 
 
 type Msg
-    = AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    = GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
+    | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | NameOnInput String
     | ValueOnInput String
     | ImageOnInput String
@@ -94,6 +101,18 @@ type Msg
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        GetRepoResponse response ->
+            case response of
+                Ok ( _, repo ) ->
+                    ( { model | repo = RemoteData.succeed repo }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
         AddSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
@@ -216,55 +235,45 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = route.params.org ++ "/" ++ route.params.repo ++ " Add Secret"
+    let
+        msgs =
+            { nameOnInput = NameOnInput
+            , valueOnInput = ValueOnInput
+            , imageOnInput = ImageOnInput
+            , eventOnCheck = EventOnCheck
+            , addImage = AddImage
+            , removeImage = RemoveImage
+            , allowCommandsOnClick = AllowCommandsOnClick
+            , submit = SubmitForm
+            , showCopyAlert = AddAlertCopiedToClipboard
+            }
+    in
+    { title = route.params.org ++ "/" ++ route.params.repo ++ " Add Deployment"
     , body =
-        [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
-            [ div []
-                [ h2 [] [ Components.SecretForm.viewFormHeader Vela.RepoSecret ]
-                , div [ class "secret-form" ]
-                    [ Components.Form.viewInput
-                        { name = "Name"
-                        , val = model.name
-                        , placeholder_ = "Secret Name"
-                        , classList_ = [ ( "secret-name", True ) ]
-                        , disabled_ = False
-                        , rows_ = Nothing
-                        , wrap_ = Nothing
-                        , msg = NameOnInput
-                        }
-                    , Components.Form.viewTextarea
-                        { name = "Value"
-                        , val = model.value
-                        , placeholder_ = "secret-value"
-                        , classList_ = [ ( "secret-value", True ) ]
-                        , disabled_ = False
-                        , rows_ = Just 2
-                        , wrap_ = Just "soft"
-                        , msg = ValueOnInput
-                        }
-                    , Components.SecretForm.viewEventsSelect shared
-                        { disabled_ = False
-                        , msg = EventOnCheck
-                        , events = model.events
-                        }
-                    , Components.SecretForm.viewImagesInput
-                        { disabled_ = False
-                        , onInput_ = ImageOnInput
-                        , addImage = AddImage
-                        , removeImage = RemoveImage
-                        , images = model.images
-                        , imageValue = model.image
-                        }
-                    , Components.SecretForm.viewAllowCommandsInput
-                        { msg = AllowCommandsOnClick
-                        , value = model.allowCommands
-                        }
-                    , Components.SecretForm.viewHelp
-                    , Components.SecretForm.viewSubmitButton
-                        { msg = SubmitForm
-                        }
-                    ]
-                ]
+        [ div [ class "deployment-form" ]
+            [ h2 [ class "deployment-header" ] [ text "Add Deployment" ]
+            , case model.repo of
+                RemoteData.Success repo ->
+                    if repo.allow_deploy then
+                        section []
+                            []
+
+                    else
+                        section [ class "notice" ]
+                            [ strong [] [ text "Deploy webhook for this repo must be enabled in settings" ]
+                            ]
+
+                _ ->
+                    section [] []
+
+            -- GitHub default is "production". If we support more SCMs, this line may need tweaking
+            -- , viewValueInput "Target" deployment.target "provide the name for the target deployment environment (default: \"production\")"
+            -- , viewValueInput "Ref" deployment.ref <| "provide the reference to deploy - this can be a branch, commit (SHA) or tag (default: " ++ branch ++ ")"
+            -- , viewValueInput "Description" deployment.description "provide the description for the deployment (default: \"Deployment request from Vela\")"
+            -- , viewValueInput "Task" deployment.task "Provide the task for the deployment (default: \"deploy:vela\")"
+            -- , viewParameterInput deployment
+            -- , viewHelp
+            -- , viewSubmitButtons
             ]
         ]
     }

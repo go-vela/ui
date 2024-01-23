@@ -6,16 +6,19 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_ exposing (Model, Msg, page, view)
 
 import Auth
-import Components.Repos
 import Effect exposing (Effect)
+import Html exposing (Html, a, div, h1, p, text)
+import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Layouts
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Utils.Errors as Errors
+import Utils.Helpers as Util
 import Vela
 import View exposing (View)
 
@@ -105,14 +108,81 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String } -> Model -> View Msg
 view shared route model =
-    let
-        body =
-            Components.Repos.view shared
-                { repos = model.repos
-                }
-    in
     { title = route.params.org
     , body =
-        [ body
+        [ viewOrgRepos shared route model
         ]
     }
+
+
+viewOrgRepos : Shared.Model -> Route { org : String } -> Model -> Html Msg
+viewOrgRepos shared route model =
+    case model.repos of
+        Success repos ->
+            if List.length repos == 0 then
+                div []
+                    [ h1 [] [ text "No Repositories are enabled for this Organization!" ]
+                    , p [] [ text "Enable repositories" ]
+                    , a
+                        [ class "button"
+                        , class "-outline"
+                        , Util.testAttribute "source-repos"
+                        , Route.Path.href Route.Path.AccountSourceRepos
+                        ]
+                        [ text "Source Repositories" ]
+                    ]
+
+            else
+                div [] (List.map viewRepo repos)
+
+        Loading ->
+            Util.largeLoader
+
+        NotAsked ->
+            Util.largeLoader
+
+        Failure _ ->
+            div [ Util.testAttribute "repos-error" ]
+                [ p []
+                    [ text "There was an error fetching repos, please refresh or try again later!"
+                    ]
+                ]
+
+
+{-| viewRepo : renders row of repos with action buttons
+-}
+viewRepo : Vela.Repository -> Html Msg
+viewRepo repo =
+    div [ class "item", Util.testAttribute "repo-item" ]
+        [ div [] [ text repo.name ]
+        , div [ class "buttons" ]
+            [ a
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "repo-settings"
+
+                -- , Routes.href <| Routes.RepoSettings repo.org repo.name
+                ]
+                [ text "Settings" ]
+            , a
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "repo-audit"
+                , Route.Path.href <| Route.Path.Org_Repo_Audit { org = repo.org, repo = repo.name }
+                ]
+                [ text "Audit" ]
+            , a
+                [ class "button"
+                , class "-outline"
+                , Util.testAttribute "repo-secrets"
+                , Route.Path.href <| Route.Path.Org_Repo_Secrets { org = repo.org, repo = repo.name }
+                ]
+                [ text "Secrets" ]
+            , a
+                [ class "button"
+                , Util.testAttribute "repo-view"
+                , Route.Path.href <| Route.Path.Org_Repo_ { org = repo.org, repo = repo.name }
+                ]
+                [ text "View" ]
+            ]
+        ]

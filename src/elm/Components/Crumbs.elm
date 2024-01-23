@@ -418,6 +418,19 @@ toCrumbs path =
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
 
+                Route.Path.Org_Repo_DeploymentsAdd params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoCrumbLink =
+                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
+
+                        repoDeploymentsLink =
+                            ( "Deployments", Just <| Route.Path.Org_Repo_Deployments { org = params.org, repo = params.repo } )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbLink, repoDeploymentsLink, addCrumbStatic ]
+
                 Route.Path.Org_Repo_Schedules params ->
                     let
                         orgReposCrumbLink =

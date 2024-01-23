@@ -7,6 +7,7 @@ module Utils.Helpers exposing
     ( anyBlank
     , ariaHidden
     , attrIf
+    , attrNone
     , base64Decode
     , boolToString
     , boolToYesNo
@@ -433,6 +434,13 @@ attrIf cond attr =
 
     else
         class ""
+
+
+{-| attrNone : returns the Html.Attribute equivalent of nothing
+-}
+attrNone : Html.Attribute msg
+attrNone =
+    Html.Attributes.classList []
 
 
 {-| boolToString : takes bool and converts to true/false string

@@ -39,6 +39,7 @@ import List
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import Svg.Attributes
 import Utils.Errors as Errors
@@ -182,10 +183,8 @@ viewDeployments org repo deployments =
                 , class "-outline"
                 , class "button-with-icon"
                 , Util.testAttribute "add-deployment"
-
-                -- todo: need add deployment path to do this
-                -- , Route.Path.href <|
-                --     Route.Path.Org_Repo_Deployments { org = org, repo = repo }
+                , Route.Path.href <|
+                    Route.Path.Org_Repo_DeploymentsAdd { org = org, repo = repo }
                 ]
                 [ text "Add Deployment"
                 , FeatherIcons.plus

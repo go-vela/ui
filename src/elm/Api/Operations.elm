@@ -19,6 +19,7 @@ module Api.Operations exposing
     , getOrgRepos
     , getOrgSecret
     , getOrgSecrets
+    , getRepo
     , getRepoBuilds
     , getRepoDeployments
     , getRepoHooks
@@ -39,6 +40,7 @@ import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)
 import Api.Endpoint
 import Auth.Jwt exposing (JwtAccessToken)
 import Auth.Session exposing (Session(..))
+import Html exposing (option)
 import Http
 import Json.Decode
 import Vela
@@ -105,6 +107,16 @@ getUserSourceRepos baseUrl session =
     get baseUrl
         Api.Endpoint.UserSourceRepositories
         Vela.decodeSourceRepositories
+        |> withAuth session
+
+
+{-| getRepo : retrieves a repo
+-}
+getRepo : String -> Session -> { a | org : String, repo : String } -> Request Vela.Repository
+getRepo baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Repository options.org options.repo)
+        Vela.decodeRepository
         |> withAuth session
 
 

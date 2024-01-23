@@ -1,8 +1,9 @@
 module Components.Form exposing (..)
 
 import Html exposing (Html, div, input, label, section, strong, text, textarea)
-import Html.Attributes exposing (checked, class, disabled, for, id, placeholder, rows, type_, value, wrap)
+import Html.Attributes exposing (checked, class, classList, disabled, for, id, placeholder, rows, type_, value, wrap)
 import Html.Events exposing (onCheck, onClick, onInput)
+import Maybe.Extra
 import Utils.Helpers as Util
 
 
@@ -10,25 +11,47 @@ import Utils.Helpers as Util
 -- VIEW
 
 
-viewInput : { name : String, val : String, placeholder_ : String, className : String, disabled_ : Bool, msg : String -> msg } -> Html msg
-viewInput { name, val, placeholder_, className, disabled_, msg } =
+viewInput :
+    { name : String
+    , val : String
+    , placeholder_ : String
+    , classList_ : List ( String, Bool )
+    , disabled_ : Bool
+    , rows_ : Maybe Int
+    , wrap_ : Maybe String
+    , msg : String -> msg
+    }
+    -> Html msg
+viewInput { name, val, placeholder_, classList_, disabled_, rows_, wrap_, msg } =
     section [ class "form-control", class "-stack" ]
         [ label [ class "form-label", for <| name ]
             [ strong [] [ text name ] ]
         , input
-            [ disabled disabled_
+            [ id name
             , value val
-            , onInput msg
-            , class className
             , placeholder placeholder_
-            , id name
+            , classList classList_
+            , disabled disabled_
+            , Maybe.Extra.unwrap Util.attrNone rows rows_
+            , Maybe.Extra.unwrap Util.attrNone wrap wrap_
+            , onInput msg
             ]
             []
         ]
 
 
-viewTextarea : { name : String, val : String, placeholder_ : String, className : String, disabled_ : Bool, msg : String -> msg } -> Html msg
-viewTextarea { name, val, placeholder_, className, disabled_, msg } =
+viewTextarea :
+    { name : String
+    , val : String
+    , placeholder_ : String
+    , classList_ : List ( String, Bool )
+    , disabled_ : Bool
+    , rows_ : Maybe Int
+    , wrap_ : Maybe String
+    , msg : String -> msg
+    }
+    -> Html msg
+viewTextarea { name, val, placeholder_, classList_, disabled_, rows_, wrap_, msg } =
     section [ class "form-control", class "-stack" ]
         [ label
             [ class "form-label"
@@ -36,15 +59,14 @@ viewTextarea { name, val, placeholder_, className, disabled_, msg } =
             ]
             [ strong [] [ text name ] ]
         , textarea
-            [ disabled disabled_
+            [ id name
             , value val
-            , onInput msg
-            , class className
-            , class "form-control"
-            , rows 2
-            , wrap "soft"
             , placeholder placeholder_
-            , id name
+            , classList classList_
+            , disabled disabled_
+            , Maybe.Extra.unwrap Util.attrNone rows rows_
+            , Maybe.Extra.unwrap Util.attrNone wrap wrap_
+            , onInput msg
             ]
             []
         ]

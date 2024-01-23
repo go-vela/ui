@@ -42,6 +42,7 @@ import Pages.Org_.Repo_.Audit
 import Pages.Org_.Repo_.Build_
 import Pages.Org_.Repo_.Build_.Services
 import Pages.Org_.Repo_.Deployments
+import Pages.Org_.Repo_.Deployments.Add
 import Pages.Org_.Repo_.Schedules
 import Pages.Org_.Repo_.Secrets
 import Pages.Org_.Repo_.Secrets.Add
@@ -588,6 +589,30 @@ initPageAndLayout model =
                     }
                 )
 
+        Route.Path.Org_Repo_DeploymentsAdd params ->
+            runWhenAuthenticatedWithLayout
+                model
+                (\user ->
+                    let
+                        page : Page.Page Pages.Org_.Repo_.Deployments.Add.Model Pages.Org_.Repo_.Deployments.Add.Msg
+                        page =
+                            Pages.Org_.Repo_.Deployments.Add.page user model.shared (Route.fromUrl params model.url)
+
+                        ( pageModel, pageEffect ) =
+                            Page.init page ()
+                    in
+                    { page =
+                        Tuple.mapBoth
+                            (Main.Pages.Model.Org_Repo_DeploymentsAdd params)
+                            (Effect.map Main.Pages.Msg.Org_Repo_DeploymentsAdd >> fromPageEffect model)
+                            ( pageModel, pageEffect )
+                    , layout =
+                        Page.layout pageModel page
+                            |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_DeploymentsAdd >> Page))
+                            |> Maybe.map (initLayout model)
+                    }
+                )
+
         Route.Path.Org_Repo_Schedules params ->
             runWhenAuthenticatedWithLayout
                 model
@@ -1099,6 +1124,16 @@ updateFromPage msg model =
                         (Page.update (Pages.Org_.Repo_.Deployments.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
                 )
 
+        ( Main.Pages.Msg.Org_Repo_DeploymentsAdd pageMsg, Main.Pages.Model.Org_Repo_DeploymentsAdd params pageModel ) ->
+            runWhenAuthenticated
+                model
+                (\user ->
+                    Tuple.mapBoth
+                        (Main.Pages.Model.Org_Repo_DeploymentsAdd params)
+                        (Effect.map Main.Pages.Msg.Org_Repo_DeploymentsAdd >> fromPageEffect model)
+                        (Page.update (Pages.Org_.Repo_.Deployments.Add.page user model.shared (Route.fromUrl params model.url)) pageMsg pageModel)
+                )
+
         ( Main.Pages.Msg.Org_Repo_Schedules pageMsg, Main.Pages.Model.Org_Repo_Schedules params pageModel ) ->
             runWhenAuthenticated
                 model
@@ -1322,6 +1357,12 @@ toLayoutFromPage model =
                 |> Maybe.andThen (Page.layout pageModel)
                 |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_Deployments >> Page))
 
+        Main.Pages.Model.Org_Repo_DeploymentsAdd params pageModel ->
+            Route.fromUrl params model.url
+                |> toAuthProtectedPage model Pages.Org_.Repo_.Deployments.Add.page
+                |> Maybe.andThen (Page.layout pageModel)
+                |> Maybe.map (Layouts.map (Main.Pages.Msg.Org_Repo_DeploymentsAdd >> Page))
+
         Main.Pages.Model.Org_Repo_Schedules params pageModel ->
             Route.fromUrl params model.url
                 |> toAuthProtectedPage model Pages.Org_.Repo_.Schedules.page
@@ -1488,6 +1529,15 @@ subscriptions model =
                         (\user ->
                             Page.subscriptions (Pages.Org_.Repo_.Deployments.page user model.shared (Route.fromUrl params model.url)) pageModel
                                 |> Sub.map Main.Pages.Msg.Org_Repo_Deployments
+                                |> Sub.map Page
+                        )
+                        (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+                Main.Pages.Model.Org_Repo_DeploymentsAdd params pageModel ->
+                    Auth.Action.subscriptions
+                        (\user ->
+                            Page.subscriptions (Pages.Org_.Repo_.Deployments.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
+                                |> Sub.map Main.Pages.Msg.Org_Repo_DeploymentsAdd
                                 |> Sub.map Page
                         )
                         (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
@@ -1833,6 +1883,15 @@ viewPage model =
                 )
                 (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
 
+        Main.Pages.Model.Org_Repo_DeploymentsAdd params pageModel ->
+            Auth.Action.view
+                (\user ->
+                    Page.view (Pages.Org_.Repo_.Deployments.Add.page user model.shared (Route.fromUrl params model.url)) pageModel
+                        |> View.map Main.Pages.Msg.Org_Repo_DeploymentsAdd
+                        |> View.map Page
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
         Main.Pages.Model.Org_Repo_Schedules params pageModel ->
             Auth.Action.view
                 (\user ->
@@ -2066,6 +2125,16 @@ toPageUrlHookCmd model routes =
                 (\user ->
                     Page.toUrlMessages routes (Pages.Org_.Repo_.Deployments.page user model.shared (Route.fromUrl params model.url))
                         |> List.map Main.Pages.Msg.Org_Repo_Deployments
+                        |> List.map Page
+                        |> toCommands
+                )
+                (Auth.onPageLoad model.shared (Route.fromUrl () model.url))
+
+        Main.Pages.Model.Org_Repo_DeploymentsAdd params pageModel ->
+            Auth.Action.command
+                (\user ->
+                    Page.toUrlMessages routes (Pages.Org_.Repo_.Deployments.Add.page user model.shared (Route.fromUrl params model.url))
+                        |> List.map Main.Pages.Msg.Org_Repo_DeploymentsAdd
                         |> List.map Page
                         |> toCommands
                 )
@@ -2312,6 +2381,9 @@ isAuthProtected routePath =
             True
 
         Route.Path.Org_Repo_Deployments _ ->
+            True
+
+        Route.Path.Org_Repo_DeploymentsAdd _ ->
             True
 
         Route.Path.Org_Repo_Schedules _ ->
