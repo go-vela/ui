@@ -4,7 +4,8 @@ SPDX-License-Identifier: Apache-2.0
 
 
 module Api.Operations exposing
-    ( addOrgSecret
+    ( addDeployment
+    , addOrgSecret
     , addRepoSecret
     , addSharedSecret
     , enableRepo
@@ -397,6 +398,30 @@ getRepoDeployments baseUrl session options =
             options.repo
         )
         Vela.decodeDeployments
+        |> withAuth session
+
+
+{-| addDeployment : adds a deployment for a repo
+-}
+addDeployment :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , body : Http.Body
+        }
+    -> Request Vela.Deployment
+addDeployment baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.Deployment
+            options.org
+            options.repo
+            Nothing
+        )
+        options.body
+        Vela.decodeDeployment
         |> withAuth session
 
 

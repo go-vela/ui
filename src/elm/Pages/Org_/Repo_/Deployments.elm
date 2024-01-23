@@ -36,12 +36,14 @@ import Http.Detailed
 import Layouts
 import LinkHeader exposing (WebLink)
 import List
+import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Route.Path
 import Shared
 import Svg.Attributes
+import Url
 import Utils.Errors as Errors
 import Utils.Helpers as Util
 import Vela
@@ -344,11 +346,32 @@ redeployLink org repo deployment =
     a
         [ class "redeploy-link"
         , attribute "aria-label" <| "redeploy deployment " ++ String.fromInt deployment.id
-
-        -- todo: need add deployment path to do this
-        -- , Routes.href <| Routes.PromoteDeployment org repo (String.fromInt deployment.id)
-        -- , Route.Path.href <|
-        --     Route.Path.Org_Repo_Deployments { org = org, repo = repo }
+        , Route.href <|
+            { path = Route.Path.Org_Repo_DeploymentsAdd { org = org, repo = repo }
+            , query =
+                Dict.fromList <|
+                    [ ( "target", deployment.target )
+                    , ( "ref", deployment.ref )
+                    , ( "description", deployment.description )
+                    , ( "task", deployment.task )
+                    ]
+                        ++ Maybe.Extra.unwrap
+                            []
+                            (\parameters ->
+                                [ ( "parameters"
+                                  , String.join ","
+                                        (List.map
+                                            (\parameter ->
+                                                Url.percentEncode <| parameter.key ++ "=" ++ parameter.value
+                                            )
+                                            parameters
+                                        )
+                                  )
+                                ]
+                            )
+                            deployment.payload
+            , hash = Nothing
+            }
         , Util.testAttribute "redeploy-deployment"
         ]
         [ text "Redeploy"

@@ -9,7 +9,7 @@ import Auth
 import Components.Form
 import Components.SecretForm
 import Effect exposing (Effect)
-import Html exposing (div, h2)
+import Html exposing (div, h2, text)
 import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
@@ -19,6 +19,7 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
+import String.Extra
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -251,11 +252,12 @@ view shared route model =
     , body =
         [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
             [ div []
-                [ h2 [] [ Components.SecretForm.viewFormHeader Vela.OrgSecret ]
+                [ h2 [] [ text <| String.Extra.toTitleCase <| "edit " ++ Vela.secretTypeToString Vela.RepoSecret ++ " secret" ]
                 , div [ class "secret-form" ]
                     [ -- todo: convert this into a select form that uses list of secrets as input
                       Components.Form.viewInput
-                        { name = "Name"
+                        { label_ = Just "Name"
+                        , id_ = "name"
                         , val = RemoteData.unwrap "" .name model.secret
                         , placeholder_ = "loading..."
                         , classList_ = [ ( "secret-name", True ) ]
@@ -265,7 +267,8 @@ view shared route model =
                         , msg = NameOnInput
                         }
                     , Components.Form.viewTextarea
-                        { name = "Value"
+                        { label_ = Just "Value"
+                        , id_ = "value"
                         , val = model.value
                         , placeholder_ = RemoteData.unwrap "loading..." (\_ -> "<leave blank to make no change to the value>") model.secret
                         , classList_ = [ ( "secret-value", True ) ]

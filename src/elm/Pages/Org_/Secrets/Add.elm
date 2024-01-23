@@ -9,9 +9,8 @@ import Auth
 import Components.Form
 import Components.SecretForm
 import Effect exposing (Effect)
-import Html exposing (a, button, code, div, em, h2, section, span, strong, text)
-import Html.Attributes exposing (class, href, target)
-import Html.Events exposing (onClick)
+import Html exposing (div, h2, text)
+import Html.Attributes exposing (class)
 import Http
 import Http.Detailed
 import Layouts
@@ -20,6 +19,7 @@ import Page exposing (Page)
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Shared
+import String.Extra
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -220,10 +220,11 @@ view shared route model =
     , body =
         [ div [ class "manage-secret", Util.testAttribute "manage-secret" ]
             [ div []
-                [ h2 [] [ Components.SecretForm.viewFormHeader Vela.OrgSecret ]
+                [ h2 [] [ text <| String.Extra.toTitleCase <| "add " ++ Vela.secretTypeToString Vela.RepoSecret ++ " secret" ]
                 , div [ class "secret-form" ]
                     [ Components.Form.viewInput
-                        { name = "Name"
+                        { label_ = Just "Name"
+                        , id_ = "name"
                         , val = model.name
                         , placeholder_ = "Secret Name"
                         , classList_ = [ ( "secret-name", True ) ]
@@ -233,7 +234,8 @@ view shared route model =
                         , msg = NameOnInput
                         }
                     , Components.Form.viewTextarea
-                        { name = "Value"
+                        { label_ = Just "Value"
+                        , id_ = "value"
                         , val = model.value
                         , placeholder_ = "secret-value"
                         , classList_ = [ ( "secret-value", True ) ]

@@ -31,27 +31,20 @@ import Html.Attributes
 import Html.Events exposing (onClick, onInput)
 import Shared
 import Utils.Helpers as Util
-import Vela
 
 
 
 -- VIEW
 
 
-viewFormHeader : Vela.SecretType -> Html msg
-viewFormHeader type_ =
-    case type_ of
-        Vela.OrgSecret ->
-            text "Edit Org Secret"
-
-        Vela.RepoSecret ->
-            text "Edit Repo Secret"
-
-        Vela.SharedSecret ->
-            text "Edit Shared Secret"
-
-
-viewEventsSelect : Shared.Model -> { disabled_ : Bool, msg : String -> Bool -> msg, events : List String } -> Html msg
+viewEventsSelect :
+    Shared.Model
+    ->
+        { disabled_ : Bool
+        , msg : String -> Bool -> msg
+        , events : List String
+        }
+    -> Html msg
 viewEventsSelect shared { disabled_, msg, events } =
     let
         schedulesAllowed =
@@ -140,74 +133,74 @@ viewImagesInput :
     }
     -> Html msg
 viewImagesInput { disabled_, onInput_, addImage, removeImage, images, imageValue } =
-    section [ class "image" ]
-        [ div [ id "images-select", class "form-control", class "-stack" ]
-            [ label [ for "images-select", class "form-label" ]
+    section []
+        [ div
+            [ id "image-select"
+            , class "form-control"
+            , class "-stack"
+            , class "images-container"
+            ]
+            [ label
+                [ for "image-select"
+                , class "form-label"
+                ]
                 [ strong [] [ text "Limit to Docker Images" ]
                 , span
                     [ class "field-description" ]
                     [ em [] [ text "(Leave blank to enable this secret for all images)" ]
                     ]
                 ]
-            , input
-                [ placeholder "Image Name"
-                , onInput onInput_
-                , value imageValue
-                , disabled disabled_
-                ]
-                []
-            , button
-                [ class "button"
-                , class "-outline"
-                , class "add-image"
-                , onClick <| addImage <| String.toLower imageValue
-                , disabled <| String.isEmpty <| String.trim imageValue
-                ]
-                [ text "Add Image"
+            , div [ class "parameters-inputs" ]
+                [ Components.Form.viewInput
+                    { label_ = Nothing
+                    , id_ = "image-name"
+                    , val = imageValue
+                    , placeholder_ = "Image Name"
+                    , classList_ = [ ( "image-input", True ) ]
+                    , disabled_ = disabled_
+                    , rows_ = Just 2
+                    , wrap_ = Just "soft"
+                    , msg = onInput_
+                    }
+                , button
+                    [ class "button"
+                    , class "-outline"
+                    , class "add-image"
+                    , Util.testAttribute "add-image-button"
+                    , onClick <| addImage <| String.toLower imageValue
+                    , disabled <| String.isEmpty <| String.trim imageValue
+                    ]
+                    [ text "Add Image"
+                    ]
                 ]
             ]
-        , div [ class "images" ] <| viewAddedImages { msg = removeImage, images = images }
+        , div [ class "images", Util.testAttribute "images-list" ] <|
+            if List.length images > 0 then
+                List.map (\image -> viewImage { msg = removeImage, image = image }) <| List.reverse images
+
+            else
+                [ div [ class "no-images" ]
+                    [ div
+                        [ class "none"
+                        ]
+                        [ code [] [ text "enabled for all images" ]
+                        ]
+                    ]
+                ]
         ]
 
 
-viewAddedImages : { msg : String -> msg, images : List String } -> List (Html msg)
-viewAddedImages { msg, images } =
-    if List.length images > 0 then
-        List.map (\image -> viewAddedImage { msg = msg, image = image }) <| List.reverse images
-
-    else
-        viewNoImages
-
-
-viewNoImages : List (Html msg)
-viewNoImages =
-    [ div [ class "added-image" ]
-        [ div [ class "name" ] [ code [] [ text "enabled for all images" ] ]
-
-        -- add button to match style
-        , button
-            [ class "button"
-            , class "-outline"
-            , class "visually-hidden"
-            , disabled True
-            ]
-            [ text "remove"
-            ]
-        ]
-    ]
-
-
-viewAddedImage : { msg : String -> msg, image : String } -> Html msg
-viewAddedImage { msg, image } =
-    div [ class "added-image", class "chevron" ]
-        [ div [ class "name" ] [ text image ]
-        , button
+viewImage : { msg : String -> msg, image : String } -> Html msg
+viewImage { msg, image } =
+    div [ class "image", class "chevron" ]
+        [ button
             [ class "button"
             , class "-outline"
             , onClick <| msg image
             ]
             [ text "remove"
             ]
+        , div [ class "name" ] [ text image ]
         ]
 
 
@@ -266,5 +259,5 @@ viewSubmitButton { msg } =
             , class "-outline"
             , onClick msg
             ]
-            [ text "Add" ]
+            [ text "Submit" ]
         ]

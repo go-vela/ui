@@ -2218,10 +2218,10 @@ encodeSecretPayload secret =
 
 buildSecretPayload :
     { type_ : Maybe SecretType
-    , org : Maybe Org
-    , repo : Maybe Repo
-    , team : Maybe Team
-    , name : Maybe Name
+    , org : Maybe String
+    , repo : Maybe String
+    , team : Maybe String
+    , name : Maybe String
     , value : Maybe String
     , events : Maybe (List String)
     , images : Maybe (List String)
@@ -2314,6 +2314,21 @@ type alias DeploymentPayload =
     }
 
 
+buildDeploymentPayload :
+    { org : Maybe String
+    , repo : Maybe String
+    , commit : Maybe String
+    , description : Maybe String
+    , ref : Maybe String
+    , target : Maybe String
+    , task : Maybe String
+    , payload : Maybe (List KeyValuePair)
+    }
+    -> DeploymentPayload
+buildDeploymentPayload { org, repo, commit, description, ref, target, task, payload } =
+    DeploymentPayload org repo commit description ref target task payload
+
+
 encodeDeploymentPayload : DeploymentPayload -> Json.Encode.Value
 encodeDeploymentPayload deployment =
     Json.Encode.object
@@ -2326,25 +2341,3 @@ encodeDeploymentPayload deployment =
         , ( "task", encodeOptional Json.Encode.string deployment.task )
         , ( "payload", encodeOptionalKeyValuePairList deployment.payload )
         ]
-
-
-buildDeploymentPayload :
-    Maybe Org
-    -> Maybe Repo
-    -> Maybe Commit
-    -> Maybe Description
-    -> Maybe Ref
-    -> Maybe Target
-    -> Maybe Task
-    -> Maybe Payload
-    -> DeploymentPayload
-buildDeploymentPayload org rep commit description ref target task payload =
-    DeploymentPayload
-        org
-        rep
-        commit
-        description
-        ref
-        target
-        task
-        payload

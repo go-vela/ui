@@ -12,7 +12,8 @@ import Utils.Helpers as Util
 
 
 viewInput :
-    { name : String
+    { label_ : Maybe String
+    , id_ : String
     , val : String
     , placeholder_ : String
     , classList_ : List ( String, Bool )
@@ -22,12 +23,19 @@ viewInput :
     , msg : String -> msg
     }
     -> Html msg
-viewInput { name, val, placeholder_, classList_, disabled_, rows_, wrap_, msg } =
-    section [ class "form-control", class "-stack" ]
-        [ label [ class "form-label", for <| name ]
-            [ strong [] [ text name ] ]
+viewInput { label_, id_, val, placeholder_, classList_, disabled_, rows_, wrap_, msg } =
+    section
+        [ class "form-control"
+        , class "-stack"
+        ]
+        [ Maybe.Extra.unwrap (text "")
+            (\l ->
+                label [ class "form-label", for <| id_ ]
+                    [ strong [] [ text l ] ]
+            )
+            label_
         , input
-            [ id name
+            [ id id_
             , value val
             , placeholder placeholder_
             , classList classList_
@@ -41,7 +49,8 @@ viewInput { name, val, placeholder_, classList_, disabled_, rows_, wrap_, msg } 
 
 
 viewTextarea :
-    { name : String
+    { label_ : Maybe String
+    , id_ : String
     , val : String
     , placeholder_ : String
     , classList_ : List ( String, Bool )
@@ -51,15 +60,19 @@ viewTextarea :
     , msg : String -> msg
     }
     -> Html msg
-viewTextarea { name, val, placeholder_, classList_, disabled_, rows_, wrap_, msg } =
-    section [ class "form-control", class "-stack" ]
-        [ label
-            [ class "form-label"
-            , for name
-            ]
-            [ strong [] [ text name ] ]
+viewTextarea { label_, id_, val, placeholder_, classList_, disabled_, rows_, wrap_, msg } =
+    section
+        [ class "form-control"
+        , class "-stack"
+        ]
+        [ Maybe.Extra.unwrap (text "")
+            (\l ->
+                label [ class "form-label", for <| id_ ]
+                    [ strong [] [ text l ] ]
+            )
+            label_
         , textarea
-            [ id name
+            [ id id_
             , value val
             , placeholder placeholder_
             , classList classList_

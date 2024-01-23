@@ -6,17 +6,23 @@ SPDX-License-Identifier: Apache-2.0
 module Pages.Org_.Repo_.Deployments.Add exposing (Model, Msg, page, view)
 
 import Auth
+import Components.Form
+import Dict
 import Effect exposing (Effect)
-import Html exposing (div, h2, section, strong, text)
-import Html.Attributes exposing (class)
+import Html exposing (Html, button, code, div, em, h2, label, section, span, strong, text)
+import Html.Attributes exposing (class, disabled, for, id)
+import Html.Events exposing (onClick)
 import Http
 import Http.Detailed
 import Layouts
 import List.Extra
+import Maybe.Extra
 import Page exposing (Page)
 import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
+import String.Extra
+import Url
 import Utils.Helpers as Util
 import Vela
 import View exposing (View)
@@ -34,6 +40,7 @@ page user shared route =
 
 
 
+-- |> Page.withOnQueryParameterChanged { key = "target", onChange = OnQueryParamChanged }
 -- LAYOUT
 
 
@@ -51,24 +58,42 @@ toLayout user route model =
 
 type alias Model =
     { repo : WebData Vela.Repository
-    , name : String
-    , value : String
-    , events : List String
-    , images : List String
-    , image : String
-    , allowCommands : Bool
+    , target : String
+    , ref : String
+    , description : String
+    , task : String
+    , parameterKey : String
+    , parameterValue : String
+    , parameters : List Vela.KeyValuePair
     }
 
 
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { repo = RemoteData.Loading
-      , name = ""
-      , value = ""
-      , events = [ "push" ]
-      , images = []
-      , image = ""
-      , allowCommands = True
+      , target = Maybe.withDefault "" <| Dict.get "target" route.query
+      , ref = Maybe.withDefault "" <| Dict.get "ref" route.query
+      , description = Maybe.withDefault "" <| Dict.get "description" route.query
+      , task = Maybe.withDefault "" <| Dict.get "task" route.query
+      , parameterKey = ""
+      , parameterValue = ""
+      , parameters =
+            Dict.get "parameters" route.query
+                |> Maybe.withDefault ""
+                |> String.split ","
+                |> List.map Url.percentDecode
+                |> List.filterMap identity
+                |> List.map (String.split "=")
+                |> List.map
+                    (\d ->
+                        case d of
+                            key :: value :: [] ->
+                                Just { key = key, value = value }
+
+                            _ ->
+                                Nothing
+                    )
+                |> List.filterMap identity
       }
     , Effect.getRepo
         { baseUrl = shared.velaAPI
@@ -86,21 +111,26 @@ init shared route () =
 
 type Msg
     = GetRepoResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Repository ))
-    | AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
-    | NameOnInput String
-    | ValueOnInput String
-    | ImageOnInput String
-    | EventOnCheck String Bool
-    | AddImage String
-    | RemoveImage String
-    | AllowCommandsOnClick String
+    | AddDeploymentResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Deployment ))
+    | TargetOnInput String
+    | RefOnInput String
+    | DescriptionOnInput String
+    | TaskOnInput String
+    | ParameterKeyOnInput String
+    | ParameterValueOnInput String
+    | AddParameter
+    | RemoveParameter Vela.KeyValuePair
     | SubmitForm
     | AddAlertCopiedToClipboard String
+    | OnQueryParamChanged { from : Maybe String, to : Maybe String }
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
+        OnQueryParamChanged _ ->
+            ( model, Effect.none )
+
         GetRepoResponse response ->
             case response of
                 Ok ( _, repo ) ->
@@ -113,12 +143,12 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        AddSecretResponse response ->
+        AddDeploymentResponse response ->
             case response of
-                Ok ( _, secret ) ->
+                Ok ( _, deployment ) ->
                     ( model
                     , Effect.addAlertSuccess
-                        { content = secret.name ++ " added to repo secrets."
+                        { content = "Added deployment for commit " ++ deployment.commit ++ "."
                         , addToastIfUnique = True
                         }
                     )
@@ -128,86 +158,86 @@ update shared route msg model =
                     , Effect.handleHttpError { httpError = error }
                     )
 
-        NameOnInput val ->
-            ( { model | name = val }
+        TargetOnInput val ->
+            ( { model | target = val }
             , Effect.none
             )
 
-        ValueOnInput val ->
-            ( { model | value = val }
+        RefOnInput val ->
+            ( { model | ref = val }
             , Effect.none
             )
 
-        ImageOnInput val ->
-            ( { model | image = val }
+        DescriptionOnInput val ->
+            ( { model | description = val }
             , Effect.none
             )
 
-        EventOnCheck event val ->
-            let
-                updatedEvents =
-                    if val then
-                        model.events
-                            |> List.append [ event ]
-                            |> List.Extra.unique
-
-                    else
-                        model.events
-                            |> List.filter ((/=) event)
-            in
-            ( { model | events = updatedEvents }
+        TaskOnInput val ->
+            ( { model | task = val }
             , Effect.none
             )
 
-        AddImage image ->
+        ParameterKeyOnInput val ->
+            ( { model | parameterKey = val }
+            , Effect.none
+            )
+
+        ParameterValueOnInput val ->
+            ( { model | parameterValue = val }
+            , Effect.none
+            )
+
+        AddParameter ->
             ( { model
-                | images =
-                    model.images
-                        |> List.append [ image ]
-                        |> List.Extra.unique
-                , image = ""
+                | parameterKey = ""
+                , parameterValue = ""
+                , parameters = { key = model.parameterKey, value = model.parameterValue } :: model.parameters
               }
             , Effect.none
             )
 
-        RemoveImage image ->
+        RemoveParameter parameter ->
             ( { model
-                | images =
-                    model.images
-                        |> List.filter ((/=) image)
+                | parameters = List.Extra.remove parameter model.parameters
               }
-            , Effect.none
-            )
-
-        AllowCommandsOnClick val ->
-            ( model
-                |> (\m -> { m | allowCommands = Util.yesNoToBool val })
             , Effect.none
             )
 
         SubmitForm ->
             let
                 payload =
-                    Vela.buildSecretPayload
-                        { type_ = Just Vela.RepoSecret
-                        , org = Just route.params.org
+                    Vela.buildDeploymentPayload
+                        { org = Just route.params.org
                         , repo = Just route.params.repo
-                        , team = Nothing
-                        , name = Util.stringToMaybe model.name
-                        , value = Util.stringToMaybe model.value
-                        , events = Just model.events
-                        , images = Just model.images
-                        , allowCommands = Just model.allowCommands
+                        , commit = Nothing
+                        , description = Just model.description
+                        , ref =
+                            Just <|
+                                if String.trim model.target == "" then
+                                    RemoteData.unwrap "main" .branch model.repo
+
+                                else
+                                    model.ref
+                        , target =
+                            Just <|
+                                if String.trim model.target == "" then
+                                    "production"
+
+                                else
+                                    model.target
+                        , task = Just model.task
+                        , payload = Just model.parameters
                         }
 
                 body =
-                    Http.jsonBody <| Vela.encodeSecretPayload payload
+                    Http.jsonBody <| Vela.encodeDeploymentPayload payload
             in
             ( model
-            , Effect.addRepoSecret
+            , Effect.addDeployment
                 { baseUrl = shared.velaAPI
                 , session = shared.session
-                , onResponse = AddSecretResponse
+                , onResponse = AddDeploymentResponse
                 , org = route.params.org
                 , repo = route.params.repo
                 , body = body
@@ -235,45 +265,178 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    let
-        msgs =
-            { nameOnInput = NameOnInput
-            , valueOnInput = ValueOnInput
-            , imageOnInput = ImageOnInput
-            , eventOnCheck = EventOnCheck
-            , addImage = AddImage
-            , removeImage = RemoveImage
-            , allowCommandsOnClick = AllowCommandsOnClick
-            , submit = SubmitForm
-            , showCopyAlert = AddAlertCopiedToClipboard
-            }
-    in
     { title = route.params.org ++ "/" ++ route.params.repo ++ " Add Deployment"
     , body =
-        [ div [ class "deployment-form" ]
-            [ h2 [ class "deployment-header" ] [ text "Add Deployment" ]
-            , case model.repo of
-                RemoteData.Success repo ->
-                    if repo.allow_deploy then
-                        section []
-                            []
+        [ div [ class "manage-deployment", Util.testAttribute "manage-deployment" ]
+            [ div []
+                [ h2 [] [ text <| String.Extra.toTitleCase <| "add deployment" ]
+                , div [ class "deployment-form" ]
+                    [ case model.repo of
+                        RemoteData.Success repo ->
+                            if not repo.allow_deploy then
+                                section [ class "notice" ]
+                                    [ strong []
+                                        [ text "Deploy webhook for this repo must be enabled in settings"
+                                        ]
+                                    ]
 
-                    else
-                        section [ class "notice" ]
-                            [ strong [] [ text "Deploy webhook for this repo must be enabled in settings" ]
+                            else
+                                text ""
+
+                        _ ->
+                            text ""
+                    , Components.Form.viewTextarea
+                        { label_ = Just "Target"
+                        , id_ = "target"
+                        , val = model.target
+                        , placeholder_ = "provide the name for the target deployment environment (default: \"production\")"
+                        , classList_ = [ ( "secret-value", True ) ]
+                        , disabled_ = False
+                        , rows_ = Just 2
+                        , wrap_ = Just "soft"
+                        , msg = TargetOnInput
+                        }
+                    , Components.Form.viewTextarea
+                        { label_ = Just "Ref"
+                        , id_ = "ref"
+                        , val = model.ref
+                        , placeholder_ =
+                            "provide the reference to deploy - this can be a branch, commit (SHA) or tag\n(default is your repo's default branch: "
+                                ++ RemoteData.unwrap "main" .branch model.repo
+                                ++ ")"
+                        , classList_ = [ ( "secret-value", True ) ]
+                        , disabled_ = False
+                        , rows_ = Just 2
+                        , wrap_ = Just "soft"
+                        , msg = RefOnInput
+                        }
+                    , Components.Form.viewTextarea
+                        { label_ = Just "Description"
+                        , id_ = "description"
+                        , val = model.description
+                        , placeholder_ = "provide the description for the deployment (default: \"Deployment request from Vela\")"
+                        , classList_ = [ ( "secret-value", True ) ]
+                        , disabled_ = False
+                        , rows_ = Just 5
+                        , wrap_ = Just "soft"
+                        , msg = DescriptionOnInput
+                        }
+                    , Components.Form.viewTextarea
+                        { label_ = Just "Task"
+                        , id_ = "task"
+                        , val = model.task
+                        , placeholder_ = "Provide the task for the deployment (default: \"deploy:vela\")"
+                        , classList_ = [ ( "secret-value", True ) ]
+                        , disabled_ = False
+                        , rows_ = Just 2
+                        , wrap_ = Just "soft"
+                        , msg = TaskOnInput
+                        }
+                    , viewParametersInput model
+                    , div [ class "help" ]
+                        [ text "Need help? Visit our "
+                        , Html.a
+                            [ Html.Attributes.href "https://go-vela.github.io/docs/usage/deployments/"
+                            , Html.Attributes.target "_blank"
                             ]
-
-                _ ->
-                    section [] []
-
-            -- GitHub default is "production". If we support more SCMs, this line may need tweaking
-            -- , viewValueInput "Target" deployment.target "provide the name for the target deployment environment (default: \"production\")"
-            -- , viewValueInput "Ref" deployment.ref <| "provide the reference to deploy - this can be a branch, commit (SHA) or tag (default: " ++ branch ++ ")"
-            -- , viewValueInput "Description" deployment.description "provide the description for the deployment (default: \"Deployment request from Vela\")"
-            -- , viewValueInput "Task" deployment.task "Provide the task for the deployment (default: \"deploy:vela\")"
-            -- , viewParameterInput deployment
-            -- , viewHelp
-            -- , viewSubmitButtons
+                            [ text "docs" ]
+                        , text "!"
+                        ]
+                    , div [ class "buttons" ]
+                        [ div [ class "form-action" ]
+                            [ button
+                                [ class "button"
+                                , class "-outline"
+                                , onClick SubmitForm
+                                ]
+                                [ text "Submit" ]
+                            ]
+                        ]
+                    ]
+                ]
             ]
         ]
     }
+
+
+viewParametersInput : Model -> Html Msg
+viewParametersInput model =
+    section []
+        [ div
+            [ id "parameter-select"
+            , class "form-control"
+            , class "-stack"
+            , class "parameters-container"
+            ]
+            [ label
+                [ for "parameter-select"
+                , class "form-label"
+                ]
+                [ strong [] [ text "Add Parameters" ]
+                , span
+                    [ class "field-description" ]
+                    [ em [] [ text "(Optional)" ]
+                    ]
+                ]
+            , div [ class "parameters-inputs" ]
+                [ Components.Form.viewInput
+                    { label_ = Nothing
+                    , id_ = "parameter-key"
+                    , val = model.parameterKey
+                    , placeholder_ = "key"
+                    , classList_ = [ ( "parameter-input", True ) ]
+                    , disabled_ = False
+                    , rows_ = Just 2
+                    , wrap_ = Just "soft"
+                    , msg = ParameterKeyOnInput
+                    }
+                , Components.Form.viewInput
+                    { label_ = Nothing
+                    , id_ = "parameter-value"
+                    , val = model.parameterValue
+                    , placeholder_ = "value"
+                    , classList_ = [ ( "parameter-input", True ) ]
+                    , disabled_ = False
+                    , rows_ = Just 2
+                    , wrap_ = Just "soft"
+                    , msg = ParameterValueOnInput
+                    }
+                , button
+                    [ class "button"
+                    , class "-outline"
+                    , class "add-parameter"
+                    , onClick <| AddParameter
+                    , Util.testAttribute "add-parameter-button"
+                    , disabled <| String.length model.parameterKey == 0 || String.length model.parameterValue == 0
+                    ]
+                    [ text "Add"
+                    ]
+                ]
+            ]
+        , div [ class "parameters", Util.testAttribute "parameters-list" ] <|
+            if List.length model.parameters > 0 then
+                List.map viewParameter <| List.reverse model.parameters
+
+            else
+                [ div [ class "no-parameters" ]
+                    [ div
+                        [ class "none"
+                        ]
+                        [ code [] [ text "no parameters defined" ] ]
+                    ]
+                ]
+        ]
+
+
+viewParameter : Vela.KeyValuePair -> Html Msg
+viewParameter parameter =
+    div [ class "parameter", class "chevron" ]
+        [ button
+            [ class "button"
+            , class "-outline"
+            , onClick <| RemoveParameter parameter
+            ]
+            [ text "remove"
+            ]
+        , div [ class "name" ] [ text (parameter.key ++ "=" ++ parameter.value) ]
+        ]

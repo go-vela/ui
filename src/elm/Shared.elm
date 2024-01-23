@@ -25,11 +25,13 @@ import Json.Encode
 import RemoteData exposing (RemoteData(..))
 import Route exposing (Route)
 import Route.Path
+import Route.Query
 import Shared.Model
 import Shared.Msg
 import Task
 import Time
 import Toasty as Alerting
+import Url
 import Utils.Errors as Errors
 import Utils.Favicons as Favicons
 import Utils.Helpers as Util
@@ -231,6 +233,16 @@ update route msg model =
 
                         _ ->
                             model.velaRedirect
+
+                ( redirectPath, redirectQuery ) =
+                    case String.split "?" velaRedirect of
+                        path :: query ->
+                            ( Maybe.withDefault Route.Path.Home <| Route.Path.fromString path
+                            , Route.Query.fromString <| String.join "" query
+                            )
+
+                        _ ->
+                            ( Route.Path.Home, Dict.empty )
             in
             case response of
                 Ok ( _, token ) ->
@@ -247,10 +259,11 @@ update route msg model =
                         redirectEffect =
                             case currentSession of
                                 Auth.Session.Unauthenticated ->
-                                    velaRedirect
-                                        |> Route.Path.fromString
-                                        |> Maybe.withDefault Route.Path.Home
-                                        |> Effect.pushPath
+                                    Effect.pushRoute
+                                        { path = redirectPath
+                                        , query = redirectQuery
+                                        , hash = Nothing
+                                        }
 
                                 Auth.Session.Authenticated _ ->
                                     Effect.none
