@@ -89,6 +89,9 @@ toCrumbs path =
         addCrumbStatic =
             ( "Add", Nothing )
 
+        editCrumbStatic =
+            ( "Edit", Nothing )
+
         pages =
             case path of
                 Route.Path.Home ->
@@ -383,10 +386,23 @@ toCrumbs path =
                         orgReposCrumbLink =
                             ( params.org, Just <| Route.Path.Org_ { org = params.org } )
 
-                        secretsCrumbStatic =
+                        secretsCrumbLink =
                             ( "Secrets", Just <| Route.Path.Org_Secrets { org = params.org } )
                     in
-                    [ overviewCrumbLink, orgReposCrumbLink, secretsCrumbStatic, addCrumbStatic ]
+                    [ overviewCrumbLink, orgReposCrumbLink, secretsCrumbLink, addCrumbStatic ]
+
+                Route.Path.Org_SecretsEdit_ params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        secretsCrumbLink =
+                            ( "Secrets", Just <| Route.Path.Org_Secrets { org = params.org } )
+
+                        nameCrumbStatic =
+                            ( params.name, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, secretsCrumbLink, editCrumbStatic, nameCrumbStatic ]
 
                 Route.Path.Org_Repo_ params ->
                     let
@@ -407,6 +423,58 @@ toCrumbs path =
                             ( params.repo, Nothing )
                     in
                     [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
+
+                Route.Path.Org_Repo_Audit params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoCrumbStatic =
+                            ( params.repo, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbStatic ]
+
+                Route.Path.Org_Repo_Secrets params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoCrumbLink =
+                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
+
+                        secretsCrumbStatic =
+                            ( "Secrets", Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbLink, secretsCrumbStatic ]
+
+                Route.Path.Org_Repo_SecretsAdd params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoCrumbLink =
+                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
+
+                        secretsCrumbLink =
+                            ( "Secrets", Just <| Route.Path.Org_Repo_Secrets { org = params.org, repo = params.repo } )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbLink, secretsCrumbLink, addCrumbStatic ]
+
+                Route.Path.Org_Repo_SecretsEdit_ params ->
+                    let
+                        orgReposCrumbLink =
+                            ( params.org, Just <| Route.Path.Org_ { org = params.org } )
+
+                        repoCrumbLink =
+                            ( params.repo, Just <| Route.Path.Org_Repo_ { org = params.org, repo = params.repo } )
+
+                        secretsCrumbLink =
+                            ( "Secrets", Just <| Route.Path.Org_Repo_Secrets { org = params.org, repo = params.repo } )
+
+                        nameCrumbStatic =
+                            ( params.name, Nothing )
+                    in
+                    [ overviewCrumbLink, orgReposCrumbLink, repoCrumbLink, secretsCrumbLink, editCrumbStatic, nameCrumbStatic ]
 
                 Route.Path.Org_Repo_Build_ params ->
                     let

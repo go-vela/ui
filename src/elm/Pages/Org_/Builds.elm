@@ -38,6 +38,7 @@ page user shared route =
         , view = view shared route
         }
         |> Page.withLayout (toLayout user route)
+        |> Page.withOnQueryParameterChanged { key = "event", onChange = OnEventQueryParameterChanged }
 
 
 
@@ -95,6 +96,7 @@ type Msg
     | RestartBuild Vela.Org Vela.Repo Vela.BuildNumber
     | CancelBuild Vela.Org Vela.Repo Vela.BuildNumber
     | ShowHideActionsMenus (Maybe Int) (Maybe Bool)
+    | OnEventQueryParameterChanged { from : Maybe String, to : Maybe String }
     | FilterByEvent (Maybe String)
     | ShowHideFullTimestamps
 
@@ -177,6 +179,19 @@ update shared route msg model =
             , Effect.none
             )
 
+        OnEventQueryParameterChanged options ->
+            ( model
+            , Effect.getOrgBuilds
+                { baseUrl = shared.velaAPI
+                , session = shared.session
+                , onResponse = GetOrgBuildsResponse
+                , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
+                , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
+                , maybeEvent = options.to
+                , org = route.params.org
+                }
+            )
+
         FilterByEvent maybeEvent ->
             ( { model
                 | builds = RemoteData.Loading
@@ -230,16 +245,12 @@ view shared route model =
     in
     { title = route.params.org ++ " Builds"
     , body =
-        [ if List.length (RemoteData.withDefault [] model.builds) > 0 then
-            Components.Builds.viewHeader
-                { maybeEvent = Dict.get "event" route.query
-                , showFullTimestamps = model.showFullTimestamps
-                , filterByEvent = FilterByEvent
-                , showHideFullTimestamps = ShowHideFullTimestamps
-                }
-
-          else
-            text ""
+        [ Components.Builds.viewHeader
+            { maybeEvent = Dict.get "event" route.query
+            , showFullTimestamps = model.showFullTimestamps
+            , filterByEvent = FilterByEvent
+            , showHideFullTimestamps = ShowHideFullTimestamps
+            }
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         , Components.Builds.view shared
             { msgs = msgs

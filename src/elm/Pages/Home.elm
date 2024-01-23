@@ -290,16 +290,14 @@ viewFavorite favorites filtered favorite =
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-hooks"
-
-                -- , Routes.href <| Routes.Hooks org repo Nothing Nothing
+                , Route.Path.href <| Route.Path.Org_Repo_Audit { org = org, repo = repo }
                 ]
-                [ text "Hooks" ]
+                [ text "Audit" ]
             , a
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-secrets"
-
-                -- , Routes.href <| Routes.RepoSecrets "native" org repo Nothing Nothing
+                , Route.Path.href <| Route.Path.Org_Repo_Secrets { org = org, repo = repo }
                 ]
                 [ text "Secrets" ]
             , a

@@ -3,17 +3,17 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Secrets.Add exposing (Model, Msg, page, view)
+module Pages.Org_.Repo_.Secrets.Edit_ exposing (Model, Msg, page, view)
 
 import Auth
-import Components.SecretAdd
+import Components.SecretEdit
 import Effect exposing (Effect)
 import Http
 import Http.Detailed
 import Layouts
 import List.Extra
 import Page exposing (Page)
-import RemoteData exposing (RemoteData(..))
+import RemoteData exposing (RemoteData(..), WebData)
 import Route exposing (Route)
 import Shared
 import Utils.Helpers as Util
@@ -21,10 +21,10 @@ import Vela
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String, name : String } -> Page Model Msg
 page user shared route =
     Page.new
-        { init = init shared
+        { init = init shared route
         , update = update shared route
         , subscriptions = subscriptions
         , view = view shared route
@@ -36,7 +36,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String, name : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { utilButtons = []
@@ -49,7 +49,8 @@ toLayout user route model =
 
 
 type alias Model =
-    { name : String
+    { secret : WebData Vela.Secret
+    , name : String
     , value : String
     , events : List String
     , images : List String
@@ -58,16 +59,24 @@ type alias Model =
     }
 
 
-init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared () =
-    ( { name = ""
+init : Shared.Model -> Route { org : String, repo : String, name : String } -> () -> ( Model, Effect Msg )
+init shared route () =
+    ( { secret = RemoteData.Loading
+      , name = ""
       , value = ""
       , events = [ "push" ]
       , images = []
       , image = ""
       , allowCommands = True
       }
-    , Effect.none
+    , Effect.getRepoSecret
+        { baseUrl = shared.velaAPI
+        , session = shared.session
+        , onResponse = GetSecretResponse
+        , org = route.params.org
+        , repo = route.params.repo
+        , name = route.params.name
+        }
     )
 
 
@@ -76,7 +85,8 @@ init shared () =
 
 
 type Msg
-    = AddSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    = GetSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
+    | UpdateSecretResponse (Result (Http.Detailed.Error String) ( Http.Metadata, Vela.Secret ))
     | NameOnInput String
     | ValueOnInput String
     | ImageOnInput String
@@ -88,15 +98,33 @@ type Msg
     | AddAlertCopiedToClipboard String
 
 
-update : Shared.Model -> Route { org : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String, name : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
-        AddSecretResponse response ->
+        GetSecretResponse response ->
+            case response of
+                Ok ( _, secret ) ->
+                    ( { model
+                        | secret = RemoteData.succeed secret
+                        , name = secret.name
+                        , events = secret.events
+                        , images = secret.images
+                        , allowCommands = secret.allowCommand
+                      }
+                    , Effect.none
+                    )
+
+                Err error ->
+                    ( model
+                    , Effect.handleHttpError { httpError = error }
+                    )
+
+        UpdateSecretResponse response ->
             case response of
                 Ok ( _, secret ) ->
                     ( model
                     , Effect.addAlertSuccess
-                        { content = secret.name ++ " added to org secrets."
+                        { content = "Repo secret " ++ secret.name ++ " updated."
                         , addToastIfUnique = True
                         }
                     )
@@ -167,9 +195,9 @@ update shared route msg model =
             let
                 payload =
                     Vela.buildSecretPayload
-                        { type_ = Just Vela.OrgSecret
+                        { type_ = Just Vela.RepoSecret
                         , org = Just route.params.org
-                        , repo = Just "*"
+                        , repo = Just route.params.repo
                         , team = Nothing
                         , name = Util.stringToMaybe model.name
                         , value = Util.stringToMaybe model.value
@@ -182,11 +210,13 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSecretPayload payload
             in
             ( model
-            , Effect.addOrgSecret
+            , Effect.updateRepoSecret
                 { baseUrl = shared.velaAPI
                 , session = shared.session
-                , onResponse = AddSecretResponse
+                , onResponse = UpdateSecretResponse
                 , org = route.params.org
+                , repo = route.params.repo
+                , name = route.params.name
                 , body = body
                 }
             )
@@ -210,7 +240,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String, name : String } -> Model -> View Msg
 view shared route model =
     let
         msgs =
@@ -225,12 +255,12 @@ view shared route model =
             , showCopyAlert = AddAlertCopiedToClipboard
             }
     in
-    { title = route.params.org ++ " Add Secret"
+    { title = route.params.org ++ "/" ++ route.params.repo ++ "/" ++ route.params.name ++ " Edit Secret"
     , body =
-        [ Components.SecretAdd.view shared
+        [ Components.SecretEdit.view shared
             { msgs = msgs
-            , type_ = Vela.OrgSecret
-            , name = model.name
+            , secret = model.secret
+            , type_ = Vela.RepoSecret
             , value = model.value
             , events = model.events
             , images = model.images

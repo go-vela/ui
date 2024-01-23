@@ -81,17 +81,15 @@ viewRepo repo =
             , a
                 [ class "button"
                 , class "-outline"
-                , Util.testAttribute "repo-hooks"
-
-                -- , Routes.href <| Routes.Hooks repo.org repo.name Nothing Nothing
+                , Util.testAttribute "repo-audit"
+                , Route.Path.href <| Route.Path.Org_Repo_Audit { org = repo.org, repo = repo.name }
                 ]
-                [ text "Hooks" ]
+                [ text "Audit" ]
             , a
                 [ class "button"
                 , class "-outline"
                 , Util.testAttribute "repo-secrets"
-
-                -- , Routes.href <| Routes.RepoSecrets "native" repo.org repo.name Nothing Nothing
+                , Route.Path.href <| Route.Path.Org_Repo_Secrets { org = repo.org, repo = repo.name }
                 ]
                 [ text "Secrets" ]
             , a

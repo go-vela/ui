@@ -1,4 +1,4 @@
-module Components.AddSecret exposing (..)
+module Components.SecretEdit exposing (..)
 
 import Components.Form
 import Html
@@ -31,6 +31,7 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick, onInput)
 import Maybe.Extra
+import RemoteData exposing (WebData)
 import Shared
 import Utils.Helpers as Util
 import Vela
@@ -55,14 +56,14 @@ type alias Msgs msg =
 
 type alias Props msg =
     { msgs : Msgs msg
+    , secret : WebData Vela.Secret
     , type_ : Vela.SecretType
-    , teamInput : Maybe (Html msg)
-    , name : String
     , value : String
     , events : List String
     , images : List String
     , image : String
     , allowCommands : Bool
+    , teamInput : Maybe (Html msg)
     }
 
 
@@ -77,20 +78,22 @@ view shared props =
             [ h2 [] [ viewFormHeader props.type_ ]
             , div [ class "secret-form" ]
                 [ Maybe.Extra.unwrap (text "") (\t -> t) props.teamInput
+
+                -- todo: convert this into a select form that uses list of secrets as input
                 , Components.Form.viewInput
                     { name = "Name"
-                    , val = props.name
-                    , placeholder_ = "secret-name"
+                    , val = RemoteData.unwrap "" .name props.secret
+                    , placeholder_ = "loading..."
                     , className = "Secret Name"
-                    , disabled_ = False
+                    , disabled_ = True
                     , msg = props.msgs.nameOnInput
                     }
                 , Components.Form.viewTextarea
                     { name = "Value"
                     , val = props.value
-                    , placeholder_ = "secret-value"
+                    , placeholder_ = RemoteData.unwrap "loading..." (\_ -> "<leave blank to make no change to the value>") props.secret
                     , className = "Secret Value"
-                    , disabled_ = False
+                    , disabled_ = not <| RemoteData.isSuccess props.secret
                     , msg = props.msgs.valueOnInput
                     }
                 , viewEventsSelect shared props
@@ -114,32 +117,35 @@ view shared props =
                             , field = "yes"
                             , title = "Yes"
                             , msg = props.msgs.allowCommandsOnClick "yes"
+                            , disabled_ = not <| RemoteData.isSuccess props.secret
                             }
                         , Components.Form.viewRadio
                             { value = Util.boolToYesNo props.allowCommands
                             , field = "no"
                             , title = "No"
                             , msg = props.msgs.allowCommandsOnClick "no"
+                            , disabled_ = not <| RemoteData.isSuccess props.secret
                             }
                         ]
                     ]
-                , div [ class "help" ]
-                    [ text "Need help? Visit our "
-                    , a
-                        [ href "https://go-vela.github.io/docs/tour/secrets/"
-                        , target "_blank"
-                        ]
-                        [ text "docs" ]
-                    , text "!"
+                ]
+            , div [ class "help" ]
+                [ text "Need help? Visit our "
+                , a
+                    [ href "https://go-vela.github.io/docs/tour/secrets/"
+                    , target "_blank"
                     ]
-                , div [ class "form-action" ]
-                    [ button
-                        [ class "button"
-                        , class "-outline"
-                        , onClick props.msgs.submit
-                        ]
-                        [ text "Add" ]
+                    [ text "docs" ]
+                , text "!"
+                ]
+            , div [ class "form-action" ]
+                [ button
+                    [ class "button"
+                    , class "-outline"
+                    , onClick props.msgs.submit
+                    , disabled <| not <| RemoteData.isSuccess props.secret
                     ]
+                    [ text "Update" ]
                 ]
             ]
         ]
@@ -149,13 +155,13 @@ viewFormHeader : Vela.SecretType -> Html msg
 viewFormHeader type_ =
     case type_ of
         Vela.OrgSecret ->
-            text "Add Org Secret"
+            text "Edit Org Secret"
 
         Vela.RepoSecret ->
-            text "Add Repo Secret"
+            text "Edit Repo Secret"
 
         Vela.SharedSecret ->
-            text "Add Shared Secret"
+            text "Edit Shared Secret"
 
 
 viewEventsSelect : Shared.Model -> Props msg -> Html msg
@@ -183,30 +189,35 @@ viewEventsSelect shared props =
                 , field = "push"
                 , state = List.member "push" props.events
                 , msg = props.msgs.eventOnCheck "push"
+                , disabled_ = not <| RemoteData.isSuccess props.secret
                 }
             , Components.Form.viewCheckbox
                 { name = "Pull Request"
                 , field = "pull_request"
                 , state = List.member "pull_request" props.events
                 , msg = props.msgs.eventOnCheck "pull_request"
+                , disabled_ = not <| RemoteData.isSuccess props.secret
                 }
             , Components.Form.viewCheckbox
                 { name = "Tag"
                 , field = "tag"
                 , state = List.member "tag" props.events
                 , msg = props.msgs.eventOnCheck "tag"
+                , disabled_ = not <| RemoteData.isSuccess props.secret
                 }
             , Components.Form.viewCheckbox
                 { name = "Comment"
                 , field = "comment"
                 , state = List.member "comment" props.events
                 , msg = props.msgs.eventOnCheck "comment"
+                , disabled_ = not <| RemoteData.isSuccess props.secret
                 }
             , Components.Form.viewCheckbox
                 { name = "Deployment"
                 , field = "deployment"
                 , state = List.member "deployment" props.events
                 , msg = props.msgs.eventOnCheck "deployment"
+                , disabled_ = not <| RemoteData.isSuccess props.secret
                 }
             , if schedulesAllowed then
                 Components.Form.viewCheckbox
@@ -214,6 +225,7 @@ viewEventsSelect shared props =
                     , field = "schedule"
                     , state = List.member "schedule" props.events
                     , msg = props.msgs.eventOnCheck "schedule"
+                    , disabled_ = not <| RemoteData.isSuccess props.secret
                     }
 
               else
@@ -246,6 +258,7 @@ viewImagesInput props =
                 [ placeholder "Image Name"
                 , onInput <| props.msgs.imageOnInput
                 , value props.image
+                , disabled <| not <| RemoteData.isSuccess props.secret
                 ]
                 []
             , button

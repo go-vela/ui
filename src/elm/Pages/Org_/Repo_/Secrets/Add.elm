@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Secrets.Add exposing (Model, Msg, page, view)
+module Pages.Org_.Repo_.Secrets.Add exposing (Model, Msg, page, view)
 
 import Auth
 import Components.SecretAdd
@@ -21,7 +21,7 @@ import Vela
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared
@@ -36,7 +36,7 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
     Layouts.Default
         { utilButtons = []
@@ -88,7 +88,7 @@ type Msg
     | AddAlertCopiedToClipboard String
 
 
-update : Shared.Model -> Route { org : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
         AddSecretResponse response ->
@@ -96,7 +96,7 @@ update shared route msg model =
                 Ok ( _, secret ) ->
                     ( model
                     , Effect.addAlertSuccess
-                        { content = secret.name ++ " added to org secrets."
+                        { content = secret.name ++ " added to repo secrets."
                         , addToastIfUnique = True
                         }
                     )
@@ -167,9 +167,9 @@ update shared route msg model =
             let
                 payload =
                     Vela.buildSecretPayload
-                        { type_ = Just Vela.OrgSecret
+                        { type_ = Just Vela.RepoSecret
                         , org = Just route.params.org
-                        , repo = Just "*"
+                        , repo = Just route.params.repo
                         , team = Nothing
                         , name = Util.stringToMaybe model.name
                         , value = Util.stringToMaybe model.value
@@ -182,11 +182,12 @@ update shared route msg model =
                     Http.jsonBody <| Vela.encodeSecretPayload payload
             in
             ( model
-            , Effect.addOrgSecret
+            , Effect.addRepoSecret
                 { baseUrl = shared.velaAPI
                 , session = shared.session
                 , onResponse = AddSecretResponse
                 , org = route.params.org
+                , repo = route.params.repo
                 , body = body
                 }
             )
@@ -210,7 +211,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
     let
         msgs =
@@ -225,11 +226,11 @@ view shared route model =
             , showCopyAlert = AddAlertCopiedToClipboard
             }
     in
-    { title = route.params.org ++ " Add Secret"
+    { title = route.params.org ++ "/" ++ route.params.repo ++ " Add Secret"
     , body =
         [ Components.SecretAdd.view shared
             { msgs = msgs
-            , type_ = Vela.OrgSecret
+            , type_ = Vela.RepoSecret
             , name = model.name
             , value = model.value
             , events = model.events

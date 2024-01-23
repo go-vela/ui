@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Repo_.Deployments exposing (..)
+module Pages.Org_.Repo_.Audit exposing (..)
 
 import Api.Pagination
 import Auth
@@ -77,20 +77,20 @@ toLayout user route model =
 
 
 type alias Model =
-    { deployments : WebData (List Vela.Deployment)
+    { hooks : WebData (List Vela.Hook)
     , pager : List WebLink
     }
 
 
 init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
-    ( { deployments = RemoteData.Loading
+    ( { hooks = RemoteData.Loading
       , pager = []
       }
-    , Effect.getRepoDeployments
+    , Effect.getRepoHooks
         { baseUrl = shared.velaAPI
         , session = shared.session
-        , onResponse = GetRepoDeploymentsResponse
+        , onResponse = GetRepoHooksResponse
         , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
         , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
         , org = route.params.org
@@ -104,25 +104,25 @@ init shared route () =
 
 
 type Msg
-    = GetRepoDeploymentsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Deployment ))
+    = GetRepoHooksResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Hook ))
     | GotoPage Int
 
 
 update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
-        GetRepoDeploymentsResponse response ->
+        GetRepoHooksResponse response ->
             case response of
-                Ok ( meta, deployments ) ->
+                Ok ( meta, hooks ) ->
                     ( { model
-                        | deployments = RemoteData.Success deployments
+                        | hooks = RemoteData.Success hooks
                         , pager = Api.Pagination.get meta.headers
                       }
                     , Effect.none
                     )
 
                 Err error ->
-                    ( { model | deployments = Errors.toFailure error }
+                    ( { model | hooks = Errors.toFailure error }
                     , Effect.handleHttpError { httpError = error }
                     )
 
@@ -135,10 +135,10 @@ update shared route msg model =
                         Dict.update "page" (\_ -> Just <| String.fromInt pageNumber) route.query
                     , hash = route.hash
                     }
-                , Effect.getRepoDeployments
+                , Effect.getRepoHooks
                     { baseUrl = shared.velaAPI
                     , session = shared.session
-                    , onResponse = GetRepoDeploymentsResponse
+                    , onResponse = GetRepoHooksResponse
                     , pageNumber = Just pageNumber
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                     , org = route.params.org
@@ -163,9 +163,11 @@ subscriptions model =
 
 view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
-    { title = route.params.org ++ "/" ++ route.params.repo ++ " Deployments"
+    { title = route.params.org ++ "/" ++ route.params.repo ++ " Hooks"
     , body =
-        [ viewDeployments route.params.org route.params.repo model.deployments
+        [ --      viewDeployments route.params.org route.params.repo model.hooks
+          -- ,
+          text "hooks"
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]
     }

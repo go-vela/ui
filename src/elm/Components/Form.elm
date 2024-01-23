@@ -50,8 +50,8 @@ viewTextarea { name, val, placeholder_, className, disabled_, msg } =
         ]
 
 
-viewCheckbox : { name : String, field : String, state : Bool, msg : Bool -> msg } -> Html msg
-viewCheckbox { name, field, state, msg } =
+viewCheckbox : { name : String, field : String, state : Bool, disabled_ : Bool, msg : Bool -> msg } -> Html msg
+viewCheckbox { name, field, state, disabled_, msg } =
     div
         [ class "form-control"
         , Util.testAttribute <| "checkbox-" ++ field
@@ -60,6 +60,7 @@ viewCheckbox { name, field, state, msg } =
             [ type_ "checkbox"
             , id <| "checkbox-" ++ field
             , checked state
+            , disabled disabled_
             , onCheck msg
             ]
             []
@@ -68,13 +69,14 @@ viewCheckbox { name, field, state, msg } =
         ]
 
 
-viewRadio : { value : String, field : String, title : String, msg : msg } -> Html msg
-viewRadio { value, field, title, msg } =
+viewRadio : { value : String, field : String, title : String, disabled_ : Bool, msg : msg } -> Html msg
+viewRadio { value, field, title, disabled_, msg } =
     div [ class "form-control", Util.testAttribute <| "radio-" ++ field ]
         [ input
             [ type_ "radio"
             , id <| "radio-" ++ field
             , checked (value == field)
+            , disabled disabled_
             , onClick msg
             ]
             []

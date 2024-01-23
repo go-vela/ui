@@ -254,16 +254,12 @@ view shared route model =
     in
     { title = route.params.org ++ "/" ++ route.params.repo
     , body =
-        [ if List.length (RemoteData.withDefault [] model.builds) > 0 then
-            Components.Builds.viewHeader
-                { maybeEvent = Dict.get "event" route.query
-                , showFullTimestamps = model.showFullTimestamps
-                , filterByEvent = FilterByEvent
-                , showHideFullTimestamps = ShowHideFullTimestamps
-                }
-
-          else
-            text ""
+        [ Components.Builds.viewHeader
+            { maybeEvent = Dict.get "event" route.query
+            , showFullTimestamps = model.showFullTimestamps
+            , filterByEvent = FilterByEvent
+            , showHideFullTimestamps = ShowHideFullTimestamps
+            }
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         , Components.Builds.view shared
             { msgs = msgs

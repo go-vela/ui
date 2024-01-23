@@ -3,7 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 --}
 
 
-module Pages.Org_.Secrets exposing (Model, Msg, page, view)
+module Pages.Org_.Repo_.Secrets exposing (Model, Msg, page, view)
 
 import Api.Pagination
 import Auth
@@ -30,7 +30,7 @@ import Vela
 import View exposing (View)
 
 
-page : Auth.User -> Shared.Model -> Route { org : String } -> Page Model Msg
+page : Auth.User -> Shared.Model -> Route { org : String, repo : String } -> Page Model Msg
 page user shared route =
     Page.new
         { init = init shared route
@@ -45,10 +45,11 @@ page user shared route =
 -- LAYOUT
 
 
-toLayout : Auth.User -> Route { org : String } -> Model -> Layouts.Layout Msg
+toLayout : Auth.User -> Route { org : String, repo : String } -> Model -> Layouts.Layout Msg
 toLayout user route model =
-    Layouts.Default_Org
+    Layouts.Default_Repo
         { org = route.params.org
+        , repo = route.params.repo
         , navButtons = []
         , utilButtons = []
         }
@@ -64,18 +65,19 @@ type alias Model =
     }
 
 
-init : Shared.Model -> Route { org : String } -> () -> ( Model, Effect Msg )
+init : Shared.Model -> Route { org : String, repo : String } -> () -> ( Model, Effect Msg )
 init shared route () =
     ( { secrets = RemoteData.Loading
       , pager = []
       }
-    , Effect.getOrgSecrets
+    , Effect.getRepoSecrets
         { baseUrl = shared.velaAPI
         , session = shared.session
-        , onResponse = GetOrgSecretsResponse
+        , onResponse = GetRepoSecretsResponse
         , pageNumber = Dict.get "page" route.query |> Maybe.andThen String.toInt
         , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
         , org = route.params.org
+        , repo = route.params.repo
         }
     )
 
@@ -85,15 +87,15 @@ init shared route () =
 
 
 type Msg
-    = GetOrgSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
+    = GetRepoSecretsResponse (Result (Http.Detailed.Error String) ( Http.Metadata, List Vela.Secret ))
     | GotoPage Int
     | AddAlertCopiedToClipboard String
 
 
-update : Shared.Model -> Route { org : String } -> Msg -> Model -> ( Model, Effect Msg )
+update : Shared.Model -> Route { org : String, repo : String } -> Msg -> Model -> ( Model, Effect Msg )
 update shared route msg model =
     case msg of
-        GetOrgSecretsResponse response ->
+        GetRepoSecretsResponse response ->
             case response of
                 Ok ( meta, secrets ) ->
                     ( { model
@@ -117,13 +119,14 @@ update shared route msg model =
                         Dict.update "page" (\_ -> Just <| String.fromInt pageNumber) route.query
                     , hash = route.hash
                     }
-                , Effect.getOrgSecrets
+                , Effect.getRepoSecrets
                     { baseUrl = shared.velaAPI
                     , session = shared.session
-                    , onResponse = GetOrgSecretsResponse
+                    , onResponse = GetRepoSecretsResponse
                     , pageNumber = Just pageNumber
                     , perPage = Dict.get "perPage" route.query |> Maybe.andThen String.toInt
                     , org = route.params.org
+                    , repo = route.params.repo
                     }
                 ]
             )
@@ -147,19 +150,29 @@ subscriptions model =
 -- VIEW
 
 
-view : Shared.Model -> Route { org : String } -> Model -> View Msg
+view : Shared.Model -> Route { org : String, repo : String } -> Model -> View Msg
 view shared route model =
     let
-        addOrgSecretButton =
+        manageOrgSecretsButton =
+            a
+                [ class "button"
+                , class "-outline"
+                , Route.Path.href <|
+                    Route.Path.Org_Secrets { org = route.params.org }
+                , Util.testAttribute "manage-org-secrets"
+                ]
+                [ text "Manage Org Secrets" ]
+
+        addRepoSecretButton =
             a
                 [ class "button"
                 , class "-outline"
                 , class "button-with-icon"
-                , Util.testAttribute "add-org-secret"
+                , Util.testAttribute "add-repo-secret"
                 , Route.Path.href <|
-                    Route.Path.Org_SecretsAdd { org = route.params.org }
+                    Route.Path.Org_Repo_SecretsAdd { org = route.params.org, repo = route.params.repo }
                 ]
-                [ text "Add Org Secret"
+                [ text "Add Repo Secret"
                 , FeatherIcons.plus
                     |> FeatherIcons.withSize 18
                     |> FeatherIcons.toHtml [ Svg.Attributes.class "button-icon" ]
@@ -169,13 +182,13 @@ view shared route model =
             { showCopyAlert = AddAlertCopiedToClipboard
             }
     in
-    { title = route.params.org ++ " Secrets"
+    { title = route.params.org ++ "/" ++ route.params.repo ++ " Secrets"
     , body =
         [ Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
-        , Components.Secrets.viewOrgSecrets shared
+        , Components.Secrets.viewRepoSecrets shared
             { msgs = msgs
             , secrets = model.secrets
-            , tableButtons = Just [ addOrgSecretButton ]
+            , tableButtons = Just [ manageOrgSecretsButton, addRepoSecretButton ]
             }
         , Components.Pager.view model.pager Components.Pager.defaultLabels GotoPage
         ]

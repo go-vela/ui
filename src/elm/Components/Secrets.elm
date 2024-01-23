@@ -77,6 +77,56 @@ viewOrgSecrets shared props =
     div [] [ Components.Table.view cfg ]
 
 
+{-| viewRepoSecrets : takes secrets model and renders table for viewing repo secrets
+-}
+viewRepoSecrets : Shared.Model -> Props msg -> Html msg
+viewRepoSecrets shared props =
+    let
+        actions =
+            Maybe.map
+                (\tableButtons -> div [ class "buttons" ] tableButtons)
+                props.tableButtons
+
+        ( noRowsView, rows ) =
+            case props.secrets of
+                RemoteData.Success s ->
+                    ( text "No secrets found for this repo"
+                    , secretsToRows Vela.RepoSecret props.msgs.showCopyAlert s
+                    )
+
+                RemoteData.Failure error ->
+                    ( span [ Util.testAttribute "repo-secrets-error" ]
+                        [ text <|
+                            case error of
+                                Http.BadStatus statusCode ->
+                                    case statusCode of
+                                        401 ->
+                                            "No secrets found for this repo, most likely due to not being an admin of the source control repo"
+
+                                        _ ->
+                                            "No secrets found for this repo, there was an error with the server (" ++ String.fromInt statusCode ++ ")"
+
+                                _ ->
+                                    "No secrets found for this repo, there was an error with the server"
+                        ]
+                    , []
+                    )
+
+                _ ->
+                    ( Util.largeLoader, [] )
+
+        cfg =
+            Components.Table.Config
+                "Repo Secrets"
+                "repo-secrets"
+                noRowsView
+                tableHeaders
+                rows
+                actions
+    in
+    div [] [ Components.Table.view cfg ]
+
+
 {-| tableHeaders : returns table headers for secrets table
 -}
 tableHeaders : Components.Table.Columns
@@ -95,7 +145,7 @@ tableHeaders =
 -}
 secretsToRows : Vela.SecretType -> (String -> msg) -> List Vela.Secret -> Components.Table.Rows Vela.Secret msg
 secretsToRows type_ copyMsg secrets =
-    List.map (\secret -> Components.Table.Row (addKey secret) (renderSecret type_ copyMsg)) secrets
+    List.map (\secret -> Components.Table.Row (addKey secret) (viewSecret type_ copyMsg)) secrets
 
 
 {-| addKey : helper to create secret key
@@ -113,10 +163,10 @@ addKey secret =
             { secret | key = secret.org ++ "/" ++ secret.repo ++ "/" ++ secret.name }
 
 
-{-| renderSecret : takes secret and secret type and renders a table row
+{-| viewSecret : takes secret and secret type and renders a table row
 -}
-renderSecret : Vela.SecretType -> (String -> msg) -> Vela.Secret -> Html msg
-renderSecret type_ copyMsg secret =
+viewSecret : Vela.SecretType -> (String -> msg) -> Vela.Secret -> Html msg
+viewSecret type_ copyMsg secret =
     tr [ Util.testAttribute <| "secrets-row" ]
         [ td
             [ attribute "data-label" "copy yaml"
@@ -132,7 +182,7 @@ renderSecret type_ copyMsg secret =
             , class "name"
             , Util.testAttribute <| "secrets-row-name"
             ]
-            [ a [ updateSecretHref type_ secret ] [ text secret.name ] ]
+            [ a [ editSecretHref type_ secret ] [ text secret.name ] ]
         , td
             [ attribute "data-label" "key"
             , scope "row"
@@ -152,13 +202,13 @@ renderSecret type_ copyMsg secret =
             , scope "row"
             , class "break-word"
             ]
-            [ renderListCell secret.events "no events" "secret-event" ]
+            [ viewListCell secret.events "no events" "secret-event" ]
         , td
             [ attribute "data-label" "images"
             , scope "row"
             , class "break-word"
             ]
-            [ renderListCell secret.images "all images" "secret-image" ]
+            [ viewListCell secret.images "all images" "secret-image" ]
         , td
             [ attribute "data-label" "allow command"
             , scope "row"
@@ -168,10 +218,10 @@ renderSecret type_ copyMsg secret =
         ]
 
 
-{-| renderListCell : takes list of items, text for none and className and renders a table cell
+{-| viewListCell : takes list of items, text for none and className and renders a table cell
 -}
-renderListCell : List String -> String -> String -> Html msg
-renderListCell items none itemClassName =
+viewListCell : List String -> String -> String -> Html msg
+viewListCell items none itemClassName =
     div [] <|
         if List.length items == 0 then
             [ text none ]
@@ -235,10 +285,10 @@ copyButton copyYaml copyMsg =
         ]
 
 
-{-| updateSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
+{-| editSecretHref : takes secret and secret type and returns href link for routing to view/edit secret page
 -}
-updateSecretHref : Vela.SecretType -> Vela.Secret -> Html.Attribute msg
-updateSecretHref type_ secret =
+editSecretHref : Vela.SecretType -> Vela.Secret -> Html.Attribute msg
+editSecretHref type_ secret =
     -- let
     --     encodedTeam =
     --         Url.percentEncode secret.team
@@ -248,14 +298,10 @@ updateSecretHref type_ secret =
     Route.Path.href <|
         case type_ of
             Vela.OrgSecret ->
-                Route.Path.Org_Secrets { org = secret.org }
+                Route.Path.Org_SecretsEdit_ { org = secret.org, name = secret.name }
 
             Vela.RepoSecret ->
-                Route.Path.Org_Secrets { org = secret.org }
+                Route.Path.Org_Repo_SecretsEdit_ { org = secret.org, repo = secret.repo, name = secret.name }
 
             Vela.SharedSecret ->
                 Route.Path.Org_Secrets { org = secret.org }
-
-
-
--- ADD SECRET

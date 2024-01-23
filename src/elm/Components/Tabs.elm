@@ -189,7 +189,11 @@ viewRepoTabs shared props =
               }
             , { name = "Secrets"
               , currentPath = props.currentPath
-              , toPath = Route.Path.NotFound_
+              , toPath =
+                    Route.Path.Org_Repo_Secrets
+                        { org = props.org
+                        , repo = props.repo
+                        }
               , isAlerting = False
               , show = True
               }
@@ -201,7 +205,7 @@ viewRepoTabs shared props =
               }
             , { name = "Audit"
               , currentPath = props.currentPath
-              , toPath = Route.Path.NotFound_
+              , toPath = Route.Path.Org_Repo_Audit { org = props.org, repo = props.repo }
               , isAlerting = auditAlerting
               , show = True
               }

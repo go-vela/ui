@@ -5,6 +5,8 @@ SPDX-License-Identifier: Apache-2.0
 
 module Api.Operations exposing
     ( addOrgSecret
+    , addRepoSecret
+    , addSharedSecret
     , enableRepo
     , finishAuthentication
     , getBuild
@@ -15,15 +17,20 @@ module Api.Operations exposing
     , getCurrentUser
     , getOrgBuilds
     , getOrgRepos
+    , getOrgSecret
     , getOrgSecrets
     , getRepoBuilds
     , getRepoDeployments
+    , getRepoHooks
+    , getRepoSecret
     , getRepoSecrets
     , getSharedSecrets
     , getToken
     , getUserSourceRepos
     , logout
     , updateCurrentUser
+    , updateOrgSecret
+    , updateRepoSecret
     )
 
 import Api.Api exposing (Request, delete, get, patch, post, put, withAuth)
@@ -171,6 +178,56 @@ getOrgSecrets baseUrl session options =
         |> withAuth session
 
 
+{-| getOrgSecret : retrieves a secret for an org
+-}
+getOrgSecret :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , name : String
+        }
+    -> Request Vela.Secret
+getOrgSecret baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Secret
+            "native"
+            "org"
+            options.org
+            "*"
+            options.name
+        )
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| updateOrgSecret : updates a secret for an org
+-}
+updateOrgSecret :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , name : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+updateOrgSecret baseUrl session options =
+    put baseUrl
+        (Api.Endpoint.Secret
+            "native"
+            "org"
+            options.org
+            "*"
+            options.name
+        )
+        options.body
+        Vela.decodeSecret
+        |> withAuth session
+
+
 {-| getRepoSecrets : retrieves secrets for a repo
 -}
 getRepoSecrets :
@@ -195,6 +252,58 @@ getRepoSecrets baseUrl session options =
             options.repo
         )
         Vela.decodeSecrets
+        |> withAuth session
+
+
+{-| getRepoSecret : retrieve a secret for a repo
+-}
+getRepoSecret :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , name : String
+        }
+    -> Request Vela.Secret
+getRepoSecret baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Secret
+            "native"
+            "repo"
+            options.org
+            options.repo
+            options.name
+        )
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| updateRepoSecret : updates a secret for a repo
+-}
+updateRepoSecret :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , name : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+updateRepoSecret baseUrl session options =
+    put baseUrl
+        (Api.Endpoint.Secret
+            "native"
+            "repo"
+            options.org
+            options.repo
+            options.name
+        )
+        options.body
+        Vela.decodeSecret
         |> withAuth session
 
 
@@ -274,6 +383,31 @@ getRepoDeployments baseUrl session options =
             options.repo
         )
         Vela.decodeDeployments
+        |> withAuth session
+
+
+{-| getRepoHooks : retrieves hooks for a repo
+-}
+getRepoHooks :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , pageNumber : Maybe Int
+            , perPage : Maybe Int
+        }
+    -> Request (List Vela.Hook)
+getRepoHooks baseUrl session options =
+    get baseUrl
+        (Api.Endpoint.Hooks
+            options.pageNumber
+            options.perPage
+            options.org
+            options.repo
+        )
+        Vela.decodeHooks
         |> withAuth session
 
 
@@ -424,6 +558,60 @@ addOrgSecret baseUrl session options =
             "org"
             options.org
             "*"
+        )
+        options.body
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| addRepoSecret : adds a repo secret
+-}
+addRepoSecret :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , repo : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+addRepoSecret baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.Secrets
+            Nothing
+            Nothing
+            "native"
+            "repo"
+            options.org
+            options.repo
+        )
+        options.body
+        Vela.decodeSecret
+        |> withAuth session
+
+
+{-| addSharedSecret : adds a shared secret
+-}
+addSharedSecret :
+    String
+    -> Session
+    ->
+        { a
+            | org : String
+            , team : String
+            , body : Http.Body
+        }
+    -> Request Vela.Secret
+addSharedSecret baseUrl session options =
+    post baseUrl
+        (Api.Endpoint.Secrets
+            Nothing
+            Nothing
+            "native"
+            "shared"
+            options.org
+            options.team
         )
         options.body
         Vela.decodeSecret

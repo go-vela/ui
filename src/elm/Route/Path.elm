@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 module Route.Path exposing (Path(..), fromString, fromUrl, href, toString)
 
 import Html
-import Html.Attributes
+import Html.Attributes exposing (name)
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
 
@@ -22,8 +22,13 @@ type Path
     | Org_Builds { org : String }
     | Org_Secrets { org : String }
     | Org_SecretsAdd { org : String }
+    | Org_SecretsEdit_ { org : String, name : String }
     | Org_Repo_ { org : String, repo : String }
     | Org_Repo_Deployments { org : String, repo : String }
+    | Org_Repo_Audit { org : String, repo : String }
+    | Org_Repo_Secrets { org : String, repo : String }
+    | Org_Repo_SecretsAdd { org : String, repo : String }
+    | Org_Repo_SecretsEdit_ { org : String, repo : String, name : String }
     | Org_Repo_Build_ { org : String, repo : String, buildNumber : String }
     | Org_Repo_Build_Services { org : String, repo : String, buildNumber : String }
     | NotFound_
@@ -87,6 +92,13 @@ fromString urlPath =
                 }
                 |> Just
 
+        org :: "secrets" :: name :: [] ->
+            Org_SecretsEdit_
+                { org = org
+                , name = name
+                }
+                |> Just
+
         org :: repo :: [] ->
             Org_Repo_
                 { org = org
@@ -98,6 +110,35 @@ fromString urlPath =
             Org_Repo_Deployments
                 { org = org
                 , repo = repo
+                }
+                |> Just
+
+        org :: repo :: "audit" :: [] ->
+            Org_Repo_Audit
+                { org = org
+                , repo = repo
+                }
+                |> Just
+
+        org :: repo :: "secrets" :: [] ->
+            Org_Repo_Secrets
+                { org = org
+                , repo = repo
+                }
+                |> Just
+
+        org :: repo :: "secrets" :: "add" :: [] ->
+            Org_Repo_SecretsAdd
+                { org = org
+                , repo = repo
+                }
+                |> Just
+
+        org :: repo :: "secrets" :: name :: [] ->
+            Org_Repo_SecretsEdit_
+                { org = org
+                , repo = repo
+                , name = name
                 }
                 |> Just
 
@@ -162,11 +203,26 @@ toString path =
                 Org_SecretsAdd params ->
                     [ params.org, "secrets", "add" ]
 
+                Org_SecretsEdit_ params ->
+                    [ params.org, "secrets", params.name ]
+
                 Org_Repo_ params ->
                     [ params.org, params.repo ]
 
                 Org_Repo_Deployments params ->
                     [ params.org, params.repo, "deployments" ]
+
+                Org_Repo_Audit params ->
+                    [ params.org, params.repo, "audit" ]
+
+                Org_Repo_Secrets params ->
+                    [ params.org, params.repo, "secrets" ]
+
+                Org_Repo_SecretsAdd params ->
+                    [ params.org, params.repo, "secrets", "add" ]
+
+                Org_Repo_SecretsEdit_ params ->
+                    [ params.org, params.repo, "secrets", params.name ]
 
                 Org_Repo_Build_ params ->
                     [ params.org, params.repo, params.buildNumber ]
